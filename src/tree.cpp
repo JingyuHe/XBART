@@ -417,8 +417,6 @@ void tree::deathp(tree_p nb, double theta)
 // void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, int depth, int max_depth, int Nmin, double tau, double sigma){
 void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, int depth, int max_depth, int Nmin, double tau, double sigma, double alpha, double beta){
 
-    // cout << depth << endl;
-    // double current_mean = arma::as_scalar(arma::mean(y));
     theta = y_mean;
 
     if(Xorder.n_rows <= Nmin){
@@ -435,9 +433,6 @@ void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat&
     split_error_2(Xorder, y, best_split, least_error, tau, sigma, depth, alpha, beta);
 
 
-    // cout <<  "best_split" << best_split << endl;
-    // cout << "least error" << least_error << endl;
-    // int split_var = arma::index_min(least_error);
     int split_var = arma::index_max(least_error); // maximize likelihood
     double split_point = best_split(split_var);
     if(split_point == 0){
@@ -446,26 +441,13 @@ void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat&
     if(split_point == Xorder.n_rows - 1){
         return;
     }
-    // cout << "OK " << endl;
-    // cout << depth << endl;
+    
     this -> v = split_var;
-    // cout << "c value" << X(Xorder(split_point, split_var), split_var)<< endl;
 
     this -> c =  X(Xorder(split_point, split_var), split_var);
 
-    // cout << "-----------------" << endl;
-    // cout << split_var << "   " << split_point <<
-    // cout << Xorder(split_point, split_var) << endl;
-    // cout << this -> v << endl;
-    // cout << X(Xorder(split_point, split_var), split_var) << endl;
-    // arma::umat Xorder_left = Xorder.rows(arma::span(0, split_point));
-    // arma::umat Xorder_right = Xorder.rows(arma::span(split_point + 1, Xorder.n_rows - 1));
     arma::umat Xorder_left = arma::zeros<arma::umat>(split_point + 1, Xorder.n_cols);
     arma::umat Xorder_right = arma::zeros<arma::umat>(Xorder.n_rows - split_point - 1, Xorder.n_cols);
-    // cout << Xorder_left.n_rows << Xorder_left2.n_rows << endl;
-    // cout << Xorder_right.n_rows << Xorder_right2.n_rows << endl;
-
-    // cout << split_var << "," << endl; //"    " << split_point << endl;
 
     split_xorder(Xorder_left, Xorder_right, Xorder, X, split_var, split_point);
 
@@ -494,14 +476,7 @@ void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat&
     int N = Xorder.n_rows;
     int left_ix = 0;
     int right_ix = 0;
-    // cout << Xorder_right.n_rows << endl;
-    // cout << Xorder_left.n_rows << endl;
     for(int i = 0; i < Xorder.n_cols; i ++){
-
-        // loop over all variables but not split_var
-        // if(i == split_var){
-            // continue;
-        // }else{
             left_ix = 0;
             right_ix = 0;
             for(int j = 0; j < N; j ++){
@@ -538,17 +513,16 @@ arma::vec BART_likelihood(arma::vec& n1, arma::vec& n2, arma::vec& s1, arma::vec
 
 
 void split_error(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split, arma::vec& least_error){
+    // regular CART algorithm, compute sum of squared loss error
+
     int N = Xorder.n_rows;
     int p = Xorder.n_cols;
     // arma::mat errormat = arma::zeros(N, p);
     // loop over all variables and observations and compute error
-    // arma::vec y_left;
-    // arma::vec y_right;
+
     double y_error = arma::as_scalar(arma::sum(pow(y(Xorder.col(0)) - arma::mean(y(Xorder.col(0))), 2)));
 
     double ee;
-    // double eee;
-    // arma::uvec best_split(p);
     double temp_error = y_error;
     arma::vec y_cumsum(y.n_elem);
     arma::vec y2_cumsum(y.n_elem);
@@ -564,45 +538,18 @@ void split_error(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split,
         temp_error = 100.0;
         y_cumsum = arma::cumsum(y(Xorder.col(i)));
         y2_cumsum = arma::cumsum(pow(y(Xorder.col(i)), 2));
-        // cout << "---------------*****************-------------------" << endl;
         for(int j = 1; j < N - 1; j++){ // loop over cutpoints
-        //   cout << j << endl;
-            // y_left = y(Xorder(arma::span(0, j), i));
-            // y_right = y(Xorder(arma::span(j+1, N - 1), i));
-            // ee = arma::as_scalar(arma::sum(pow(y_left - arma::mean(y_left), 2)));
-            // cout << "----" << endl;
-            // cout << ee << endl;
-            // cout << y2_cumsum(j) - pow(y_cumsum(j), 2) / (double) (j+ 1) << endl; 
-            // ee = ee + arma::as_scalar(arma::sum(pow(y_right - arma::mean(y_right), 2)));
-
-
-            // cout << "-----" << endl;
-            // cout << arma::as_scalar(arma::sum(pow(y_right - arma::mean(y_right), 2))) << endl;
-            // cout << y2_sum - y2_cumsum(j) - pow((y_sum - y_cumsum(j)), 2) / (double) (N - j - 1)<< endl;
-            // ee = var(y_left) + var(y_right);
-            // 
-            // errormat(j, i) = ee;
 
             ee = y2_cumsum(j) - pow(y_cumsum(j), 2) / (double) (j+ 1) + y2_sum - y2_cumsum(j) - pow((y_sum - y_cumsum(j)), 2) / (double) (N - j - 1) ;
-        // cout << abs(ee - eee) << endl;
-            // errormat(Xorder(j, i), i) = ee;
+
             if(ee < temp_error || temp_error == 100.0){
                 best_split(i) = j; // Xorder(j,i) coordinate;
                 temp_error = ee;
                 least_error(i) = ee;
             }
         }
-        // errormat(Xorder(N - 1, i), i) = y_error;
-        // errormat(Xorder(0, i), i) = y_error;
-        // errormat(0, i) = y_error;
-        // errormat(N-1, i) = y_error;
     }
-    // split point cannot be the endpoints
-
-    // cout << errormat(Xorder.row(N - 1)) << endl;
-    //errormat.rows(Xorder.row(N-1)) = arma::max(errormat);
-    //errormat.rows(Xorder.row(0)) = arma::max(errormat);
-    // return errormat;
+    
     return;
 }
 
@@ -610,18 +557,18 @@ void split_error(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split,
 
 
 void split_error_2(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split, arma::vec& least_error, double tau, double sigma, double depth, double alpha, double beta){
+    // compute BART posterior (loglikelihood + logprior penalty)
+
     int N = Xorder.n_rows;
     int p = Xorder.n_cols;
 
     double y_error = arma::as_scalar(arma::sum(pow(y(Xorder.col(0)) - arma::mean(y(Xorder.col(0))), 2)));
 
     double ee;
-    // double eee;
-    // arma::uvec best_split(p);
+    
     arma::vec y_cumsum;
 
     double y_sum;
-    // double y2_sum = y2_cumsum(y2_cumsum.n_elem - 1);
 
     arma::vec y_cumsum_inv;
 
@@ -633,24 +580,14 @@ void split_error_2(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_spli
     for(int i = 0; i < p; i++){ // loop over variables 
         y_cumsum = arma::cumsum(y(Xorder.col(i)));
         y_sum = y_cumsum(y_cumsum.n_elem - 1);
-        // cout << "y_cumsum " << y_cumsum << endl;
-                y_cumsum_inv = y_sum - y_cumsum;
+        y_cumsum_inv = y_sum - y_cumsum;
 
-        // cout << " y_cumsum_inv" << y_cumsum_inv << endl;
         temp_error = BART_likelihood(ind1, ind2, y_cumsum, y_cumsum_inv, tau, sigma);
-        // cout << temp_error << endl;
         temp_error(arma::span(1, N-2)) = temp_error(arma::span(1, N - 2)) + penalty;
-        // temp_error(0) = temp_error(0) - penalty;
-        // temp_error(N - 1) = temp_error(N - 1) - penalty;
+        
         best_split(i) = arma::index_max(temp_error); // maximize likelihood
         least_error(i) = arma::max(temp_error);
     }
-    // split point cannot be the endpoints
-
-    // cout << errormat(Xorder.row(N - 1)) << endl;
-    //errormat.rows(Xorder.row(N-1)) = arma::max(errormat);
-    //errormat.rows(Xorder.row(0)) = arma::max(errormat);
-    // return errormat;
     return;
 }
 
