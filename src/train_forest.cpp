@@ -17,9 +17,9 @@ Rcpp::List train_forest(arma::mat y, arma::mat X, arma::mat Xtest, int M, int L,
     }
 
 
-    arma::mat yhats = arma::zeros<arma::mat>(N, L);
+    arma::mat yhats = arma::zeros<arma::mat>(X.n_rows, L);
 
-    arma::mat yhats_test = arma::zeros<arma::mat>(N, L);
+    arma::mat yhats_test = arma::zeros<arma::mat>(Xtest.n_rows, L);
 
     arma::mat predictions(X.n_rows, M);
 
@@ -55,7 +55,7 @@ Rcpp::List train_forest(arma::mat y, arma::mat X, arma::mat Xtest, int M, int L,
 
         yhat = arma::sum(predictions, 1);
 
-        yhat_test = yhat;
+        yhat_test = arma::sum(predictions_test, 1);
 
         residual = y - yhat;
 
