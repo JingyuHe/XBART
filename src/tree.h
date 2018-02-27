@@ -24,6 +24,10 @@
 #include <cmath>
 #include <cstddef>
 #include "common.h"
+
+// [[Rcpp::plugins(cpp11)]]
+
+
 //--------------------------------------------------
 //find best split variable and value, CART
 void split_error(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split, arma::vec& least_error);

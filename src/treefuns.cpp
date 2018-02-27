@@ -109,3 +109,22 @@ arma::vec fit_new(tree& tree, arma::mat& Xnew){
 
 
 
+
+
+void fit_new_void(tree& tree, arma::mat& Xnew, arma::mat& pred, int& ind){
+    int p = Xnew.n_cols;
+    int N = Xnew.n_rows;
+    arma::vec result(N);
+    tree::tree_p bn;
+    arma::mat temp;
+    for(int i = 0; i < N; i ++){
+        // cout << i << endl;
+        temp = Xnew.row(i);
+        bn = tree.search_bottom(temp);
+        pred(i, ind) = bn -> gettheta();
+    }
+    return;
+}
+
+
+

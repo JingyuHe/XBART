@@ -9,3 +9,7 @@ singletree <- function(y, X, depth, max_depth = 100L, Nmin = 5L, tau = 10, sigma
     .Call(`_SpikySmoothTrees_singletree`, y, X, depth, max_depth, Nmin, tau, sigma, alpha, beta)
 }
 
+train_forest <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, alpha, beta, tau, draw_sigma) {
+    .Call(`_SpikySmoothTrees_train_forest`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, alpha, beta, tau, draw_sigma)
+}
+

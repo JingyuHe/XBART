@@ -31,6 +31,10 @@
         "cctype": "cpp",
         "cstddef": "cpp",
         "cstdlib": "cpp",
-        "memory": "cpp"
+        "memory": "cpp",
+        "__bit_reference": "cpp",
+        "ios": "cpp",
+        "__functional_03": "cpp",
+        "functional": "cpp"
     }
 }
