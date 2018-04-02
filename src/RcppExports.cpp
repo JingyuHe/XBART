@@ -18,6 +18,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// singletree_2
+Rcpp::List singletree_2(arma::vec y, arma::mat X, int depth, int max_depth, int Nmin, double tau, double sigma, double alpha, double beta);
+RcppExport SEXP _SpikySmoothTrees_singletree_2(SEXP ySEXP, SEXP XSEXP, SEXP depthSEXP, SEXP max_depthSEXP, SEXP NminSEXP, SEXP tauSEXP, SEXP sigmaSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< int >::type depth(depthSEXP);
+    Rcpp::traits::input_parameter< int >::type max_depth(max_depthSEXP);
+    Rcpp::traits::input_parameter< int >::type Nmin(NminSEXP);
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma(sigmaSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    rcpp_result_gen = Rcpp::wrap(singletree_2(y, X, depth, max_depth, Nmin, tau, sigma, alpha, beta));
+    return rcpp_result_gen;
+END_RCPP
+}
 // singletree
 Rcpp::List singletree(arma::vec y, arma::mat X, int depth, int max_depth, int Nmin, double tau, double sigma, double alpha, double beta);
 RcppExport SEXP _SpikySmoothTrees_singletree(SEXP ySEXP, SEXP XSEXP, SEXP depthSEXP, SEXP max_depthSEXP, SEXP NminSEXP, SEXP tauSEXP, SEXP sigmaSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
@@ -34,6 +53,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     rcpp_result_gen = Rcpp::wrap(singletree(y, X, depth, max_depth, Nmin, tau, sigma, alpha, beta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// train_forest_2
+Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, int M, int L, int N_sweeps, arma::vec max_depth, int Nmin, double alpha, double beta, double tau, bool draw_sigma);
+RcppExport SEXP _SpikySmoothTrees_train_forest_2(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP LSEXP, SEXP N_sweepsSEXP, SEXP max_depthSEXP, SEXP NminSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP draw_sigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Xtest(XtestSEXP);
+    Rcpp::traits::input_parameter< int >::type M(MSEXP);
+    Rcpp::traits::input_parameter< int >::type L(LSEXP);
+    Rcpp::traits::input_parameter< int >::type N_sweeps(N_sweepsSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type max_depth(max_depthSEXP);
+    Rcpp::traits::input_parameter< int >::type Nmin(NminSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< bool >::type draw_sigma(draw_sigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(train_forest_2(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, alpha, beta, tau, draw_sigma));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -62,7 +103,9 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_SpikySmoothTrees_predict_tree", (DL_FUNC) &_SpikySmoothTrees_predict_tree, 2},
+    {"_SpikySmoothTrees_singletree_2", (DL_FUNC) &_SpikySmoothTrees_singletree_2, 9},
     {"_SpikySmoothTrees_singletree", (DL_FUNC) &_SpikySmoothTrees_singletree, 9},
+    {"_SpikySmoothTrees_train_forest_2", (DL_FUNC) &_SpikySmoothTrees_train_forest_2, 12},
     {"_SpikySmoothTrees_train_forest", (DL_FUNC) &_SpikySmoothTrees_train_forest, 12},
     {NULL, NULL, 0}
 };

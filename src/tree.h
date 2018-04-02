@@ -32,6 +32,7 @@
 //find best split variable and value, CART
 void split_error(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split, arma::vec& least_error);
 void split_error_2(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split, arma::vec& least_error, double tau, double sigma, double depth, double alpha, double beta);
+void split_error_3(const arma::umat& Xorder, arma::vec& y, arma::umat& best_split, arma::mat& loglike, double tau, double sigma, double depth, double alpha, double beta);
 //--------------------------------------------------
 //split Xorder matrix for two subnodes 
 void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat& Xorder, arma::mat& X, int split_var, int split_point);
@@ -102,6 +103,7 @@ public:
    void getnodes(npv& v);         //get vector of all nodes
    void getnodes(cnpv& v) const;  //get vector of all nodes (const)
    void grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, int depth, int max_depth, int Nmin, double tau, double sigma, double alpha, double beta);
+   void grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, int depth, int max_depth, int Nmin, double tau, double sigma, double alpha, double beta);
    tree_p bn(double *x,xinfo& xi); //find Bottom Node
    tree_p search_bottom(arma::mat& Xnew);
    void rg(size_t v, int* L, int* U); //recursively find region [L,U] for var v

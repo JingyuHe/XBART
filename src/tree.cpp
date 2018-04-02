@@ -18,6 +18,8 @@
  */
 
 #include "tree.h"
+#include <RcppArmadilloExtensions/sample.h>
+
 
 //--------------------
 // node id
@@ -416,7 +418,8 @@ void tree::deathp(tree_p nb, double theta)
 
 // void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, int depth, int max_depth, int Nmin, double tau, double sigma){
 void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, int depth, int max_depth, int Nmin, double tau, double sigma, double alpha, double beta){
-
+    // this function grow the tree greedly
+    // always pick the best split point
     theta = y_mean;
 
     if(Xorder.n_rows <= Nmin){
@@ -465,10 +468,107 @@ void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat&
     this -> l = lchild;
     this -> r = rchild;
 
+    return;
+}
+
+
+
+
+
+void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, int depth, int max_depth, int Nmin, double tau, double sigma, double alpha, double beta){
+    // this function is more randomized
+    // sample from several best split points
+
+    theta = y_mean;
+
+    if(Xorder.n_rows <= Nmin){
+        return;
+    }
+
+    if(depth >= max_depth - 1){
+        return;
+    }
+
+    int N = Xorder.n_cols;
+    arma::umat best_split = arma::zeros<arma::umat>(Xorder.n_rows, Xorder.n_cols);
+    arma::mat loglike = arma::zeros<arma::mat>(Xorder.n_rows, Xorder.n_cols); 
+
     
+    split_error_3(Xorder, y, best_split, loglike, tau, sigma, depth, alpha, beta);
+
+    // now we have 5 best split points for each variable
+    // combine them and sample from top 10 split points
+    // need to normalize the error vector
+    // arma::accu : sum of all elements
+    // arma::uvec least_error_vec = 1.0 / arma::accu(least_error) * arma::sort_index(arma::vectorise(least_error), "descend");
+
+    
+    // arma::vec least_error_vec = 1.0 / arma::accu(least_error) * arma::vectorise(least_error);
+    
+    arma::vec loglike_vec = arma::vectorise(loglike);
+    loglike_vec = loglike_vec - min(loglike_vec);
+    loglike_vec = exp(loglike_vec);
+    loglike_vec = loglike_vec / arma::as_scalar(arma::sum(loglike_vec));
+    // convert log likelihood to probability
+
+
+
+    // uniformly sample from it
+
+    // std::default_random_engine generator;
+    // std::uniform_int_distribution<int> distribution(0,20);
+
+    // int ind = distribution(generator);
+
+    Rcpp::IntegerVector temp_ind = Rcpp::seq_len(loglike_vec.n_elem) - 1;
+
+    int ind = Rcpp::RcppArmadillo::sample(temp_ind, 1, false, loglike_vec)[0];
+
+    cout << ind << endl;
+
+
+    int split_var = ind / loglike.n_rows;
+
+    int split_point = ind % loglike.n_rows;
+
+
+    // int split_var = 3; //arma::index_max(least_error); // maximize likelihood
+    // double split_point = best_split(split_var);
+    if(split_point == 0){
+        return;
+    }
+    if(split_point == Xorder.n_rows - 1){
+        return;
+    }
+    
+    this -> v = split_var;
+
+    this -> c =  X(Xorder(split_point, split_var), split_var);
+
+    arma::umat Xorder_left = arma::zeros<arma::umat>(split_point + 1, Xorder.n_cols);
+    arma::umat Xorder_right = arma::zeros<arma::umat>(Xorder.n_rows - split_point - 1, Xorder.n_cols);
+
+    split_xorder(Xorder_left, Xorder_right, Xorder, X, split_var, split_point);
+
+
+    double yleft_mean = arma::as_scalar(arma::mean(y(Xorder_left.col(split_var))));
+    double yright_mean = arma::as_scalar(arma::mean(y(Xorder_right.col(split_var))));
+
+    depth = depth + 1;
+    tree::tree_p lchild = new tree();
+    lchild->grow_tree(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, tau, sigma, alpha, beta);
+    tree::tree_p rchild = new tree();
+    rchild->grow_tree(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, tau, sigma, alpha, beta);
+    lchild -> p = this;
+    rchild -> p = this;
+    this -> l = lchild;
+    this -> r = rchild;
 
     return;
 }
+
+
+
 
 
 void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat& Xorder, arma::mat& X, int split_var, int split_point){
@@ -498,7 +598,7 @@ void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat&
 
 
 arma::vec BART_likelihood(arma::vec& n1, arma::vec& n2, arma::vec& s1, arma::vec& s2, double& tau, double& sigma){
-    // likelihood of BART model
+    // log - likelihood of BART model
     // n1 is number of observations in group 1
     // s1 is sum of group 1
     arma::vec result;
@@ -558,6 +658,7 @@ void split_error(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split,
 
 void split_error_2(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split, arma::vec& least_error, double tau, double sigma, double depth, double alpha, double beta){
     // compute BART posterior (loglikelihood + logprior penalty)
+    // greedy 
 
     int N = Xorder.n_rows;
     int p = Xorder.n_cols;
@@ -593,6 +694,48 @@ void split_error_2(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_spli
 
 
 
+void split_error_3(const arma::umat& Xorder, arma::vec& y, arma::umat& best_split, arma::mat& loglike, double tau, double sigma, double depth, double alpha, double beta){
+    // compute BART posterior (loglikelihood + logprior penalty)
+    // randomized
+
+
+    int N = Xorder.n_rows;
+    int p = Xorder.n_cols;
+
+    double y_error = arma::as_scalar(arma::sum(pow(y(Xorder.col(0)) - arma::mean(y(Xorder.col(0))), 2)));
+
+    double ee;
+    
+    arma::vec y_cumsum;
+
+    double y_sum;
+
+    arma::vec y_cumsum_inv;
+
+    arma::vec ind1 = arma::linspace(1, N, N);
+    arma::vec ind2 = arma::linspace(N, 1, N);
+    arma::vec temp_likelihood;
+    arma::uvec temp_ind;
+
+    double penalty = log(alpha) - beta * log(1.0 + depth);
+
+    for(int i = 0; i < p; i++){ // loop over variables 
+        y_cumsum = arma::cumsum(y(Xorder.col(i)));
+        y_sum = y_cumsum(y_cumsum.n_elem - 1);
+        y_cumsum_inv = y_sum - y_cumsum;
+
+        temp_likelihood = BART_likelihood(ind1, ind2, y_cumsum, y_cumsum_inv, tau, sigma);
+        temp_likelihood(arma::span(1, N-2)) = temp_likelihood(arma::span(1, N - 2)) + penalty;
+        temp_ind = arma::sort_index(temp_likelihood, "descend"); // decreasing order, pick the largest value
+
+        // best_split(i) = arma::index_max(temp_error); // maximize likelihood
+        best_split.col(i) = temp_ind;
+
+        loglike.col(i) = temp_likelihood(best_split.col(i));
+
+    }
+    return;
+}
 
 
 arma::uvec range(int start, int end){

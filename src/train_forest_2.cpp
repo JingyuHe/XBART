@@ -7,7 +7,7 @@
 // [[Rcpp::plugins(cpp11)]]
 
 // [[Rcpp::export]]
-Rcpp::List train_forest(arma::mat y, arma::mat X, arma::mat Xtest, int M, int L, int N_sweeps, arma::vec max_depth, int Nmin, double alpha, double beta, double tau, bool draw_sigma){
+Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, int M, int L, int N_sweeps, arma::vec max_depth, int Nmin, double alpha, double beta, double tau, bool draw_sigma){
 
     int N = X.n_rows;
 
@@ -82,7 +82,7 @@ Rcpp::List train_forest(arma::mat y, arma::mat X, arma::mat Xtest, int M, int L,
                 yhat_test = yhat_test - predictions_test.col(tree);
 
 
-                trees.t[tree].grow_tree(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(sweeps), Nmin, tau, sigma, alpha, beta);
+                trees.t[tree].grow_tree_2(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(sweeps), Nmin, tau, sigma, alpha, beta);
 
                 reshat = fit_new(trees.t[tree], X);
 

@@ -17,6 +17,7 @@
  *  https://www.R-project.org/Licenses/GPL-2
  */
 
+
 #ifndef GUARD_common_h
 #define GUARD_common_h
 
@@ -30,8 +31,12 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <random>
 #include <vector>
 #include <RcppArmadillo.h>
+
+
+
 
 using std::endl;
 
@@ -49,7 +54,9 @@ using std::cout;
 
 #else // YesRcpp
 
-#include <Rcpp.h>
+// [[Rcpp::depends(RcppArmadillo)]]
+
+// #include <Rcpp.h>
 
 #define printf Rprintf
 #define cout Rcpp::Rcout
