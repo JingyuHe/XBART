@@ -9,6 +9,10 @@ singletree_2 <- function(y, X, depth, max_depth = 100L, Nmin = 5L, tau = 10, sig
     .Call(`_SpikySmoothTrees_singletree_2`, y, X, depth, max_depth, Nmin, tau, sigma, alpha, beta)
 }
 
+singletree_3 <- function(y, X, depth, max_depth = 100L, Nmin = 5L, tau = 10, sigma = 1, alpha = 0.95, beta = 2) {
+    .Call(`_SpikySmoothTrees_singletree_3`, y, X, depth, max_depth, Nmin, tau, sigma, alpha, beta)
+}
+
 singletree <- function(y, X, depth, max_depth = 100L, Nmin = 5L, tau = 10, sigma = 1, alpha = 0.95, beta = 2) {
     .Call(`_SpikySmoothTrees_singletree`, y, X, depth, max_depth, Nmin, tau, sigma, alpha, beta)
 }

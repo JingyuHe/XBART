@@ -505,6 +505,9 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
     
     // arma::vec least_error_vec = 1.0 / arma::accu(least_error) * arma::vectorise(least_error);
     
+    cout << loglike << endl;
+
+    cout << " --- -- -- -- - -" << endl;
     arma::vec loglike_vec = arma::vectorise(loglike);
     loglike_vec = loglike_vec - min(loglike_vec);
     loglike_vec = exp(loglike_vec);
@@ -512,7 +515,7 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
     // convert log likelihood to probability
 
 
-
+    cout << loglike_vec << endl;
     // uniformly sample from it
 
     // std::default_random_engine generator;
@@ -556,9 +559,9 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
 
     depth = depth + 1;
     tree::tree_p lchild = new tree();
-    lchild->grow_tree(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, tau, sigma, alpha, beta);
+    lchild->grow_tree_2(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, tau, sigma, alpha, beta);
     tree::tree_p rchild = new tree();
-    rchild->grow_tree(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, tau, sigma, alpha, beta);
+    rchild->grow_tree_2(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, tau, sigma, alpha, beta);
     lchild -> p = this;
     rchild -> p = this;
     this -> l = lchild;
