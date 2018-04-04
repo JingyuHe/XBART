@@ -505,18 +505,20 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
     
     // arma::vec least_error_vec = 1.0 / arma::accu(least_error) * arma::vectorise(least_error);
     
-    cout << loglike << endl;
+    // cout << loglike << endl;
 
-    cout << " --- -- -- -- - -" << endl;
+    // convert log likelihood to probability
+    // uniformly sample from it
     arma::vec loglike_vec = arma::vectorise(loglike);
-    loglike_vec = loglike_vec - min(loglike_vec);
+    loglike_vec = loglike_vec - max(loglike_vec);
     loglike_vec = exp(loglike_vec);
     loglike_vec = loglike_vec / arma::as_scalar(arma::sum(loglike_vec));
-    // convert log likelihood to probability
 
 
-    cout << loglike_vec << endl;
-    // uniformly sample from it
+    // print out probability of top 5 split points
+    arma::vec templog = arma::sort(loglike_vec, "descend");
+    // cout << templog.rows(arma::span(0,5)) << endl;
+
 
     // std::default_random_engine generator;
     // std::uniform_int_distribution<int> distribution(0,20);
@@ -526,9 +528,6 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
     Rcpp::IntegerVector temp_ind = Rcpp::seq_len(loglike_vec.n_elem) - 1;
 
     int ind = Rcpp::RcppArmadillo::sample(temp_ind, 1, false, loglike_vec)[0];
-
-    cout << ind << endl;
-
 
     int split_var = ind / loglike.n_rows;
 
@@ -609,6 +608,10 @@ arma::vec BART_likelihood(arma::vec& n1, arma::vec& n2, arma::vec& s1, arma::vec
     arma::vec n1tau = n1 * tau;
     arma::vec n2tau = n2 * tau;
     result = -0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(s1, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(s2, 2)/(sigma2 * (n2tau + sigma2));
+
+    double temp = result.min();
+    result(0) = temp;
+    result(result.n_elem - 1) = temp;
     return result;
 }
 
@@ -652,7 +655,6 @@ void split_error(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split,
             }
         }
     }
-    
     return;
 }
 
@@ -727,16 +729,22 @@ void split_error_3(const arma::umat& Xorder, arma::vec& y, arma::umat& best_spli
         y_sum = y_cumsum(y_cumsum.n_elem - 1);
         y_cumsum_inv = y_sum - y_cumsum;
 
-        temp_likelihood = BART_likelihood(ind1, ind2, y_cumsum, y_cumsum_inv, tau, sigma);
-        temp_likelihood(arma::span(1, N-2)) = temp_likelihood(arma::span(1, N - 2)) + penalty;
-        temp_ind = arma::sort_index(temp_likelihood, "descend"); // decreasing order, pick the largest value
-
+        loglike.col(i) = BART_likelihood(ind1, ind2, y_cumsum, y_cumsum_inv, tau, sigma);
+        // temp_likelihood(arma::span(1, N-2)) = temp_likelihood(arma::span(1, N - 2)) + penalty;
+        // temp_ind = arma::sort_index(temp_likelihood, "descend"); // decreasing order, pick the largest value
         // best_split(i) = arma::index_max(temp_error); // maximize likelihood
-        best_split.col(i) = temp_ind;
-
-        loglike.col(i) = temp_likelihood(best_split.col(i));
-
+        // best_split.col(i) = temp_ind;
+        // loglike.col(i) = temp_likelihood(best_split.col(i));
+        
     }
+    // add penalty term
+
+    loglike.rows(arma::span(1, N-2)) += penalty; 
+
+    // cout << loglike.min() << endl;
+    // loglike.row(0) = arma::ones(1, p) * arma::as_scalar(loglike.min());
+    // loglike.row(N - 1) = arma::ones(1, p) * arma::as_scalar(loglike.min());
+
     return;
 }
 

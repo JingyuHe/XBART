@@ -35,6 +35,8 @@
         "__bit_reference": "cpp",
         "ios": "cpp",
         "__functional_03": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "chrono": "cpp",
+        "limits": "cpp"
     }
 }
