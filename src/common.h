@@ -44,24 +44,16 @@ using std::endl;
 #include <omp.h>
 #endif
 
-#ifdef NoRcpp
-
-#include <stdio.h> // for printf
-
-using std::cout;
-
-#define PI 3.1415926535897931
-
-#else // YesRcpp
 
 // [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::plugins(cpp11)]]
 
 // #include <Rcpp.h>
 
 #define printf Rprintf
 #define cout Rcpp::Rcout
 
-#endif
+
 
 // log(2*pi)
 #define LTPI 1.83787706640934536

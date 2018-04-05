@@ -5,9 +5,8 @@
 #include "forest.h"
 
 // [[Rcpp::plugins(cpp11)]]
-
 // [[Rcpp::export]]
-Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, int M, int L, int N_sweeps, arma::vec max_depth, int Nmin, double alpha, double beta, double tau, bool draw_sigma){
+Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, int M, int L, int N_sweeps, arma::vec max_depth, int Nmin, double alpha, double beta, double tau, bool draw_sigma, bool verbose = false){
 
     int N = X.n_rows;
 
@@ -61,21 +60,29 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, int M, int 
 
         for(int sweeps = 0; sweeps < N_sweeps; sweeps ++){
 
+            if(verbose == true){
+            cout << "--------------------------------" << endl;
+            cout << "number of sweeps " << sweeps << endl;
+            cout << "--------------------------------" << endl;
+            }
+
             for(int tree = 0; tree < M; tree ++){
 
                 // current_tree = &trees.t[tree];
-
                 residual = residual + predictions.col(tree);
 
-                
+
+
 
                 if(draw_sigma == true){
                     sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param(N / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)))))));
 
                     // sigma = 1.0 / Rcpp::rgamma(1, N / 2.0, 2.0 / as_scalar(sum(pow(residual, 2))))[0];
                 }else{
-                    sigma = sqrt(arma::as_scalar(arma::mean(pow(residual, 2))));
+                    // sigma = sqrt(arma::as_scalar(arma::mean(pow(residual, 2))));
+                    sigma = 0.1;
                 }
+
 
                 yhat = yhat - predictions.col(tree);
 
@@ -84,6 +91,11 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, int M, int 
 
                 trees.t[tree].grow_tree_2(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(sweeps), Nmin, tau, sigma, alpha, beta);
 
+
+                if(verbose == true){
+                cout << "tree " << tree << " size is " << trees.t[tree].treesize() << endl;
+                }
+                
                 reshat = fit_new(trees.t[tree], X);
 
                 predictions.col(tree) = reshat;
@@ -97,6 +109,8 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, int M, int 
                 // fit_new_void(trees.t[tree], Xtest, predictions_test, tree);
 
                 residual = residual - predictions.col(tree);
+
+
 
                 yhat = yhat + predictions.col(tree);
 

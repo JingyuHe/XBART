@@ -67,16 +67,20 @@ Rcpp::List train_forest(arma::mat y, arma::mat X, arma::mat Xtest, int M, int L,
 
                 residual = residual + predictions.col(tree);
 
-                
+
+
 
                 if(draw_sigma == true){
                     sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param(N / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)))))));
 
                     // sigma = 1.0 / Rcpp::rgamma(1, N / 2.0, 2.0 / as_scalar(sum(pow(residual, 2))))[0];
                 }else{
-                    sigma = sqrt(arma::as_scalar(arma::mean(pow(residual, 2))));
+                    // sigma = sqrt(arma::as_scalar(arma::mean(pow(residual, 2))));
+                    sigma = 0.1;
                 }
 
+
+            
                 yhat = yhat - predictions.col(tree);
 
                 yhat_test = yhat_test - predictions_test.col(tree);
@@ -99,6 +103,7 @@ Rcpp::List train_forest(arma::mat y, arma::mat X, arma::mat Xtest, int M, int L,
                 residual = residual - predictions.col(tree);
 
                 yhat = yhat + predictions.col(tree);
+
 
                 yhat_test = yhat_test + predictions_test.col(tree);
 
