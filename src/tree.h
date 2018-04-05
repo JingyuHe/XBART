@@ -33,6 +33,7 @@
 void split_error(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split, arma::vec& least_error);
 void split_error_2(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split, arma::vec& least_error, double tau, double sigma, double depth, double alpha, double beta);
 void split_error_3(const arma::umat& Xorder, arma::vec& y, arma::umat& best_split, arma::mat& loglike, double tau, double sigma, double depth, double alpha, double beta);
+void split_error_4(const arma::umat& Xorder, arma::vec& y, arma::umat& best_split, arma::vec& loglike, double tau, double sigma, double depth, double alpha, double beta);
 //--------------------------------------------------
 //split Xorder matrix for two subnodes 
 void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat& Xorder, arma::mat& X, int split_var, int split_point);
