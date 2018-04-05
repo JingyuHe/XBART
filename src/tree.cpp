@@ -767,7 +767,6 @@ arma::uvec range(int start, int end){
 
 
 
-
 #ifndef NoRcpp   
 // instead of returning y.test, let's return trees
 // this conveniently avoids the need for x.test
