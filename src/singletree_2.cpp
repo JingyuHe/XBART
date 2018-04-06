@@ -17,7 +17,7 @@ Rcpp::List singletree_2(arma::vec y, arma::mat X, int depth, int max_depth = 100
     int p = X.n_cols; // number of X variables
 
 
-    tree::tree root;
+    tree root;
     double y_mean = arma::as_scalar(arma::mean(y));
 
     root.grow_tree_2(y, y_mean, Xorder, X, depth, max_depth, Nmin, tau, sigma, alpha, beta);
@@ -26,8 +26,8 @@ Rcpp::List singletree_2(arma::vec y, arma::mat X, int depth, int max_depth = 100
     treess << root ;
 
 
-    tree::tree_p tree_l;
-    tree::tree_p tree_r;
+    tree_p tree_l;
+    tree_p tree_r;
 
     tree_l = root.getl();
     tree_r = root.getr();

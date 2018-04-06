@@ -41,7 +41,7 @@ void grm(tree& tr, xinfo& xi, std::ostream& os)
    }
    size_t n1 = xi[0].size();
    size_t n2 = xi[1].size();
-   tree::tree_p bp; //pointer to bottom node
+   tree_p bp; //pointer to bottom node
    double *x = new double[2];
    for(size_t i=0;i!=n1;i++) {
       for(size_t j=0;j!=n2;j++) {
@@ -57,7 +57,7 @@ void grm(tree& tr, xinfo& xi, std::ostream& os)
 //fit tree at matrix of x, matrix is stacked columns x[i,j] is *(x+p*i+j)
 void fit(tree& t, xinfo& xi, size_t p, size_t n, double *x,  double* fv)
 {
-   tree::tree_p bn;
+   tree_p bn;
    for(size_t i=0;i<n;i++) {
       bn = t.bn(x+i*p,xi);
       fv[i] = bn->gettheta();
@@ -65,7 +65,7 @@ void fit(tree& t, xinfo& xi, size_t p, size_t n, double *x,  double* fv)
 }
 //--------------------------------------------------
 //does this bottom node n have any variables it can split on.
-bool cansplit(tree::tree_p n, xinfo& xi)
+bool cansplit(tree_p n, xinfo& xi)
 {
    int L,U;
    bool v_found = false; //have you found a variable you can split on
@@ -80,7 +80,7 @@ bool cansplit(tree::tree_p n, xinfo& xi)
 }
 //--------------------------------------------------
 //find variables n can split on, put their indices in goodvars
-void getgoodvars(tree::tree_p n, xinfo& xi,  std::vector<size_t>& goodvars)
+void getgoodvars(tree_p n, xinfo& xi,  std::vector<size_t>& goodvars)
 {
    goodvars.clear();
    int L,U;
@@ -96,7 +96,7 @@ arma::vec fit_new(tree& tree, arma::mat& Xnew){
     int p = Xnew.n_cols;
     int N = Xnew.n_rows;
     arma::vec result(N);
-    tree::tree_p bn;
+    tree_p bn;
     arma::mat temp;
     for(int i = 0; i < N; i ++){
         // cout << i << endl;
@@ -115,7 +115,7 @@ void fit_new_void(tree& tree, arma::mat& Xnew, arma::mat& pred, int& ind){
     int p = Xnew.n_cols;
     int N = Xnew.n_rows;
     arma::vec result(N);
-    tree::tree_p bn;
+    tree_p bn;
     arma::mat temp;
     for(int i = 0; i < N; i ++){
         // cout << i << endl;

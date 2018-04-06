@@ -37,13 +37,13 @@ Rcpp::List train_forest(arma::mat y, arma::mat X, arma::mat Xtest, int M, int L,
 
     // double tau;
 
-    forest::forest trees(M);
+    forest trees(M);
 
     arma::vec reshat;
 
     arma::vec reshat_test;
 
-    tree::tree_p current_tree;
+    tree_p current_tree;
 
 
     for(int mc = 0; mc < L; mc ++ ){

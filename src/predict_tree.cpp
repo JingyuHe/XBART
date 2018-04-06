@@ -16,7 +16,7 @@ Rcpp::List predict_tree(Rcpp::List trees, arma::mat Xnew){
 
     std::stringstream ttss(itv);
 
-    tree::tree tree_model;
+    tree tree_model;
     ttss >> tree_model;
 
     arma::vec pred = fit_new(tree_model, Xnew);

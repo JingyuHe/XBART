@@ -32,7 +32,7 @@ public:
 
 //protected:
     size_t m; // number of trees
-    std::vector<tree::tree> t; // vector of trees
+    std::vector<tree> t; // vector of trees
 
     // data
 
