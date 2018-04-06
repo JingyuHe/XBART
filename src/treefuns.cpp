@@ -67,7 +67,7 @@ void fit(tree& t, xinfo& xi, size_t p, size_t n, double *x,  double* fv)
 //does this bottom node n have any variables it can split on.
 bool cansplit(tree::tree_p n, xinfo& xi)
 {
-   int L,U;
+   size_t L,U;
    bool v_found = false; //have you found a variable you can split on
    size_t v=0;
    while(!v_found && (v < xi.size())) { //invar: splitvar not found, vars left
@@ -83,7 +83,7 @@ bool cansplit(tree::tree_p n, xinfo& xi)
 void getgoodvars(tree::tree_p n, xinfo& xi,  std::vector<size_t>& goodvars)
 {
    goodvars.clear();
-   int L,U;
+   size_t L,U;
    for(size_t v=0;v!=xi.size();v++) {//try each variable
       L=0; U = xi[v].size()-1;
       n->rg(v,&L,&U);
@@ -93,12 +93,12 @@ void getgoodvars(tree::tree_p n, xinfo& xi,  std::vector<size_t>& goodvars)
 
 
 arma::vec fit_new(tree& tree, arma::mat& Xnew){
-    // int p = Xnew.n_cols;
-    int N = Xnew.n_rows;
+    // size_t p = Xnew.n_cols;
+    size_t N = Xnew.n_rows;
     arma::vec result(N);
     tree::tree_p bn;
     arma::mat temp;
-    for(int i = 0; i < N; i ++){
+    for(size_t i = 0; i < N; i ++){
         // cout << i << endl;
         temp = Xnew.row(i);
         bn = tree.search_bottom(temp);
@@ -111,13 +111,13 @@ arma::vec fit_new(tree& tree, arma::mat& Xnew){
 
 
 
-void fit_new_void(tree& tree, arma::mat& Xnew, arma::mat& pred, int& ind){
-    // int p = Xnew.n_cols;
-    int N = Xnew.n_rows;
+void fit_new_void(tree& tree, arma::mat& Xnew, arma::mat& pred, size_t& ind){
+    // size_t p = Xnew.n_cols;
+    size_t N = Xnew.n_rows;
     arma::vec result(N);
     tree::tree_p bn;
     arma::mat temp;
-    for(int i = 0; i < N; i ++){
+    for(size_t i = 0; i < N; i ++){
         // cout << i << endl;
         temp = Xnew.row(i);
         bn = tree.search_bottom(temp);

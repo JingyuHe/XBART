@@ -84,7 +84,7 @@ static unsigned long rk_hash(unsigned long key);
 
 void rk_seed(unsigned long seed, rk_state *state)
 {
-	int pos;
+	size_t pos;
 	seed &= 0xffffffffUL;
 
 	/* Knuth's PRNG as used in the Mersenne Twister reference implementation */
@@ -152,7 +152,7 @@ unsigned long rk_random(rk_state *state)
 
   if (state->pos == RK_STATE_LEN)
 	{
-    int i;
+    size_t i;
 
     for (i=0;i<N-M;i++)
 		{
@@ -246,11 +246,11 @@ void rk_fill(void *buffer, size_t size, rk_state *state)
 		*(buf++) = (unsigned char)(r & 0xFF);
 }
 
-rk_error rk_devfill(void *buffer, size_t size, int strong)
+rk_error rk_devfill(void *buffer, size_t size, size_t strong)
 {
 #ifndef _WIN32
 	FILE *rfile;
-	int done;
+	size_t done;
 
 	if (strong)
 		rfile = fopen(RK_DEV_RANDOM, "rb");
@@ -282,7 +282,7 @@ rk_error rk_devfill(void *buffer, size_t size, int strong)
 	return RK_ENODEV;
 }
 
-rk_error rk_altfill(void *buffer, size_t size, int strong, rk_state *state)
+rk_error rk_altfill(void *buffer, size_t size, size_t strong, rk_state *state)
 {
 	rk_error err;
 

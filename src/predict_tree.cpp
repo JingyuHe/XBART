@@ -4,8 +4,8 @@
 // [[Rcpp::plugins(cpp11)]]
 #include <RcppArmadillo.h>
 // double region_error(arma::vec& y);
-// double error_function(int split_point, arma::vec& y, arma::uvec& Xorder_vec);
-// void search_split_point(arma::uvec& Xorder_vec, arma::vec& y, int& split_ind, double& error_split);
+// double error_function(size_t split_point, arma::vec& y, arma::uvec& Xorder_vec);
+// void search_split_point(arma::uvec& Xorder_vec, arma::vec& y, size_t& split_ind, double& error_split);
 // [[Rcpp::export]]
 Rcpp::List predict_tree(Rcpp::List trees, arma::mat Xnew){
     Rcpp::List output;

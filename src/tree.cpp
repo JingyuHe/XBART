@@ -246,17 +246,17 @@ tree::tree_p tree::search_bottom(arma::mat& Xnew){
 }
 //--------------------
 //find region for a given variable
-void tree::rg(size_t v, int* L, int* U)
+void tree::rg(size_t v, size_t* L, size_t* U)
 {
    if(this->p==0)  {
       return;
    }
    if((this->p)->v == v) { //does my parent use v?
       if(this == p->l) { //am I left or right child
-         if((int)(p->c) <= (*U)) *U = (p->c)-1;
+         if((size_t)(p->c) <= (*U)) *U = (p->c)-1;
          p->rg(v,L,U);
       } else {
-         if((int)(p->c) >= *L) *L = (p->c)+1;
+         if((size_t)(p->c) >= *L) *L = (p->c)+1;
          p->rg(v,L,U);
       }
    } else {
@@ -419,8 +419,8 @@ void tree::deathp(tree_p nb, double theta)
 
 
 
-// void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, int depth, int max_depth, int Nmin, double tau, double sigma){
-void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, int depth, int max_depth, int Nmin, double tau, double sigma, double alpha, double beta){
+// void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma){
+void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta){
     // this function grow the tree greedly
     // always pick the best split point
     theta = y_mean;
@@ -438,7 +438,7 @@ void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat&
     split_error_2(Xorder, y, best_split, least_error, tau, sigma, depth, alpha, beta);
 
 
-    int split_var = arma::index_max(least_error); // maximize likelihood
+    size_t split_var = arma::index_max(least_error); // maximize likelihood
     double split_point = best_split(split_var);
     if(split_point == 0){
         return;
@@ -481,7 +481,7 @@ void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat&
 
 
 
-void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, int depth, int max_depth, int Nmin, double tau, double sigma, double alpha, double beta){
+void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta){
     // this function is more randomized
     // sample from several best split points
 
@@ -498,8 +498,8 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
         return;
     }
 
-    int N = Xorder.n_rows;
-    int p = Xorder.n_cols;
+    size_t N = Xorder.n_rows;
+    size_t p = Xorder.n_cols;
     // arma::umat best_split = arma::zeros<arma::umat>(Xorder.n_rows, Xorder.n_cols);
     
     
@@ -517,11 +517,11 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
 
     // Rcpp::IntegerVector temp_ind = Rcpp::seq_len(loglike_vec.n_elem) - 1;
 
-    // int ind = Rcpp::RcppArmadillo::sample(temp_ind, 1, false, loglike_vec)[0];
+    // size_t ind = Rcpp::RcppArmadillo::sample(temp_ind, 1, false, loglike_vec)[0];
 
-    // int split_var = ind / loglike.n_rows;
+    // size_t split_var = ind / loglike.n_rows;
 
-    // int split_point = ind % loglike.n_rows;
+    // size_t split_point = ind % loglike.n_rows;
 
     // // if(split_point == 0){
     // //     return;
@@ -540,9 +540,9 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
     loglike_vec = exp(loglike_vec);
     loglike_vec = loglike_vec / arma::as_scalar(arma::sum(loglike_vec));
     Rcpp::IntegerVector temp_ind = Rcpp::seq_len(loglike_vec.n_elem) - 1;
-    int ind = Rcpp::RcppArmadillo::sample(temp_ind, 1, false, loglike_vec)[0];
-    int split_var = ind / (N - 1);
-    int split_point = ind % (N - 1);
+    size_t ind = Rcpp::RcppArmadillo::sample(temp_ind, 1, false, loglike_vec)[0];
+    size_t split_var = ind / (N - 1);
+    size_t split_point = ind % (N - 1);
 
     if(ind == loglike_vec.n_elem - 1){
         // cout << "early termination" << endl;
@@ -580,15 +580,15 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
 
 
 
-void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat& Xorder, arma::mat& X, int split_var, int split_point){
+void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat& Xorder, arma::mat& X, size_t split_var, size_t split_point){
     // preserve order of other variables
-    int N = Xorder.n_rows;
-    int left_ix = 0;
-    int right_ix = 0;
-    for(int i = 0; i < Xorder.n_cols; i ++){
+    size_t N = Xorder.n_rows;
+    size_t left_ix = 0;
+    size_t right_ix = 0;
+    for(size_t i = 0; i < Xorder.n_cols; i ++){
             left_ix = 0;
             right_ix = 0;
-            for(int j = 0; j < N; j ++){
+            for(size_t j = 0; j < N; j ++){
                 // loop over all observations
                 if(X(Xorder(j, i), split_var) <= X(Xorder(split_point, split_var), split_var)){
                     Xorder_left(left_ix, i) = Xorder(j, i);
@@ -633,8 +633,8 @@ arma::vec BART_likelihood(arma::vec& n1, arma::vec& n2, arma::vec& s1, arma::vec
 void split_error(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split, arma::vec& least_error){
     // regular CART algorithm, compute sum of squared loss error
 
-    int N = Xorder.n_rows;
-    int p = Xorder.n_cols;
+    size_t N = Xorder.n_rows;
+    size_t p = Xorder.n_cols;
     // arma::mat errormat = arma::zeros(N, p);
     // loop over all variables and observations and compute error
 
@@ -652,11 +652,11 @@ void split_error(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split,
     double y2_sum = y2_cumsum(y2_cumsum.n_elem - 1);
 
     arma::vec y2 = pow(y, 2);
-    for(int i = 0; i < p; i++){ // loop over variables 
+    for(size_t i = 0; i < p; i++){ // loop over variables 
         temp_error = 100.0;
         y_cumsum = arma::cumsum(y(Xorder.col(i)));
         y2_cumsum = arma::cumsum(pow(y(Xorder.col(i)), 2));
-        for(int j = 1; j < N - 1; j++){ // loop over cutpoints
+        for(size_t j = 1; j < N - 1; j++){ // loop over cutpoints
 
             ee = y2_cumsum(j) - pow(y_cumsum(j), 2) / (double) (j+ 1) + y2_sum - y2_cumsum(j) - pow((y_sum - y_cumsum(j)), 2) / (double) (N - j - 1) ;
 
@@ -677,8 +677,8 @@ void split_error_2(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_spli
     // compute BART posterior (loglikelihood + logprior penalty)
     // greedy 
 
-    int N = Xorder.n_rows;
-    int p = Xorder.n_cols;
+    size_t N = Xorder.n_rows;
+    size_t p = Xorder.n_cols;
 
     double ee;
     
@@ -693,7 +693,7 @@ void split_error_2(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_spli
     arma::vec temp_error;
 
     double penalty = log(alpha) - beta * log(1.0 + depth);
-    for(int i = 0; i < p; i++){ // loop over variables 
+    for(size_t i = 0; i < p; i++){ // loop over variables 
         y_cumsum = arma::cumsum(y(Xorder.col(i)));
         y_sum = y_cumsum(y_cumsum.n_elem - 1);
         y_cumsum_inv = y_sum - y_cumsum;
@@ -714,8 +714,8 @@ void split_error_3(const arma::umat& Xorder, arma::vec& y, arma::umat& best_spli
     // randomized
 
 
-    int N = Xorder.n_rows;
-    int p = Xorder.n_cols;
+    size_t N = Xorder.n_rows;
+    size_t p = Xorder.n_cols;
 
     double y_error = arma::as_scalar(arma::sum(pow(y(Xorder.col(0)) - arma::mean(y(Xorder.col(0))), 2)));
     
@@ -732,7 +732,7 @@ void split_error_3(const arma::umat& Xorder, arma::vec& y, arma::umat& best_spli
 
     double sigma2 = pow(sigma, 2);
 
-    for(int i = 0; i < p; i++){ // loop over variables 
+    for(size_t i = 0; i < p; i++){ // loop over variables 
         y_cumsum = arma::cumsum(y(Xorder.col(i)));
         y_sum = y_cumsum(y_cumsum.n_elem - 1);
         y_cumsum_inv = y_sum - y_cumsum;
@@ -767,8 +767,8 @@ void split_error_4(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, d
     // faster than split_error_3
     // use stacked vector loglike instead of a matrix, no need to convert, but harder to read the code
 
-    int N = Xorder.n_rows;
-    int p = Xorder.n_cols;
+    size_t N = Xorder.n_rows;
+    size_t p = Xorder.n_cols;
     
     arma::vec y_cumsum;
 
@@ -785,7 +785,7 @@ void split_error_4(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, d
     
     // double penalty = log(alpha) - beta * log(1.0 + depth);
 
-    for(int i = 0; i < p; i++){ // loop over variables 
+    for(size_t i = 0; i < p; i++){ // loop over variables 
         y_cumsum = arma::cumsum(y(Xorder.col(i)));
         y_sum = y_cumsum(y_cumsum.n_elem - 1);
         y_cumsum_inv = y_sum - y_cumsum;
@@ -811,11 +811,11 @@ void split_error_4(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, d
 
 
 
-arma::uvec range(int start, int end){
+arma::uvec range(size_t start, size_t end){
     // generate integers from start to end
-    int N = end - start;
+    size_t N = end - start;
     arma::uvec output(N);
-    for(int i = 0; i < N; i ++){
+    for(size_t i = 0; i < N; i ++){
         output(i) = start + i;
     }
     return output;
@@ -841,30 +841,30 @@ Rcpp::List tree::tree2list(xinfo& xi, double center, double scale) {
     var++; cut++; // increment from 0-based (C) to 1-based (R) array index
 
     if(l->l && r->l)         // two sub-trees
-      res=Rcpp::List::create(Rcpp::Named("var")=(int)var,
+      res=Rcpp::List::create(Rcpp::Named("var")=(size_t)var,
 			     //Rcpp::Named("cut")=cut,
-			     Rcpp::Named("cut")=(int)cut,
+			     Rcpp::Named("cut")=(size_t)cut,
 			     Rcpp::Named("type")=1,
 			     Rcpp::Named("left")= l->tree2list(xi, center, scale),
 			     Rcpp::Named("right")=r->tree2list(xi, center, scale));   
     else if(l->l && !(r->l)) // left sub-tree and right terminal
-      res=Rcpp::List::create(Rcpp::Named("var")=(int)var,
+      res=Rcpp::List::create(Rcpp::Named("var")=(size_t)var,
 			     //Rcpp::Named("cut")=cut,
-			     Rcpp::Named("cut")=(int)cut,
+			     Rcpp::Named("cut")=(size_t)cut,
 			     Rcpp::Named("type")=2,
 			     Rcpp::Named("left")= l->tree2list(xi, center, scale),
 			     Rcpp::Named("right")=r->gettheta()*scale+center);    
     else if(!(l->l) && r->l) // left terminal and right sub-tree
-      res=Rcpp::List::create(Rcpp::Named("var")=(int)var,
+      res=Rcpp::List::create(Rcpp::Named("var")=(size_t)var,
 			     //Rcpp::Named("cut")=cut,
-			     Rcpp::Named("cut")=(int)cut,
+			     Rcpp::Named("cut")=(size_t)cut,
 			     Rcpp::Named("type")=3,
 			     Rcpp::Named("left")= l->gettheta()*scale+center,
 			     Rcpp::Named("right")=r->tree2list(xi, center, scale));
     else                     // no sub-trees 
-      res=Rcpp::List::create(Rcpp::Named("var")=(int)var,
+      res=Rcpp::List::create(Rcpp::Named("var")=(size_t)var,
 			     //Rcpp::Named("cut")=cut,
-			     Rcpp::Named("cut")=(int)cut,
+			     Rcpp::Named("cut")=(size_t)cut,
 			     Rcpp::Named("type")=0,
 			     Rcpp::Named("left")= l->gettheta()*scale+center,
 			     Rcpp::Named("right")=r->gettheta()*scale+center);

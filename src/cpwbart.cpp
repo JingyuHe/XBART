@@ -27,7 +27,7 @@ void local_getpred(size_t nd, size_t p, size_t m, size_t np, xinfo& xi, std::vec
 //void local_getpred(size_t nd, size_t p, size_t m, size_t np, xinfo xi, std::vector<vtree>& tmat, double *px, Rcpp::NumericMatrix& yhat);
 #endif
 
-void getpred(int beg, int end, size_t p, size_t m, size_t np, xinfo& xi, std::vector<vtree>& tmat, double *px, Rcpp::NumericMatrix& yhat);
+void getpred(size_t beg, size_t end, size_t p, size_t m, size_t np, xinfo& xi, std::vector<vtree>& tmat, double *px, Rcpp::NumericMatrix& yhat);
 
 RcppExport SEXP cpwbart(
    SEXP _itrees,		//treedraws list from fbart
@@ -39,7 +39,7 @@ RcppExport SEXP cpwbart(
 
    //--------------------------------------------------
    //get threadcount
-   int tc = Rcpp::as<int>(_itc);
+   size_t tc = Rcpp::as<size_t>(_itc);
    cout << "tc (threadcount): " << tc << endl;
    //--------------------------------------------------
    //process trees
@@ -114,11 +114,11 @@ RcppExport SEXP cpwbart(
    ret["yhat.test"] = yhat;
    return ret;
 }
-void getpred(int beg, int end, size_t p, size_t m, size_t np, xinfo& xi, std::vector<vtree>& tmat, double *px, Rcpp::NumericMatrix& yhat)
+void getpred(size_t beg, size_t end, size_t p, size_t m, size_t np, xinfo& xi, std::vector<vtree>& tmat, double *px, Rcpp::NumericMatrix& yhat)
 {
    double *fptemp = new double[np];
 
-   for(int i=beg;i<=end;i++) { // loop over number of posterior draws
+   for(size_t i=beg;i<=end;i++) { // loop over number of posterior draws
       for(size_t j=0;j<m;j++) {     // loop over trees in each draw
          fit(tmat[i][j],xi,p,np,px,fptemp);     // key function
          // tmat is a matrix of trees
@@ -134,9 +134,9 @@ void local_getpred(size_t nd, size_t p, size_t m, size_t np, xinfo& xi, std::vec
 {
       // parallel version
 
-   int my_rank = omp_get_thread_num();
-   int thread_count = omp_get_num_threads();
-   int h = nd/thread_count; int beg = my_rank*h; int end = beg+h-1;
+   size_t my_rank = omp_get_thread_num();
+   size_t thread_count = omp_get_num_threads();
+   size_t h = nd/thread_count; size_t beg = my_rank*h; size_t end = beg+h-1;
    
    getpred(beg,end,p,m,np,xi,tmat,px,yhat);
 }

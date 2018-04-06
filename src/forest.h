@@ -14,7 +14,7 @@ class forest{
 public:
     // friends, main function to train the forest
 
-    friend Rcpp::List train_forest(arma::mat y, arma::mat X, int M, int L, int MC, int N_sweeps);
+    friend Rcpp::List train_forest(arma::mat y, arma::mat X, size_t M, size_t L, size_t MC, size_t N_sweeps);
 
 
     // constructor / destructor

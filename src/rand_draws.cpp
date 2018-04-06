@@ -19,7 +19,7 @@
 
 #include "rand_draws.h"
 
-int NS;
+size_t NS;
 rk_state **states;
 
 /* 
@@ -31,7 +31,7 @@ rk_state **states;
 void newRNGstates(void)
 {
   unsigned long s;
-  int i;
+  size_t i;
 
 #ifdef _OPENMP
   NS = omp_get_max_threads();
@@ -56,7 +56,7 @@ void newRNGstates(void)
 
 void deleteRNGstates(void)
 {
-  int i; //unsigned int i;
+  size_t i; //unsigned size_t i;
   for(i=0; i<NS; i++) {
     free(states[i]);
   }
@@ -165,7 +165,7 @@ double expo_rand(rk_state *state)
     if (u <= q[0])
         return a + u;
 
-    int i = 0;
+    size_t i = 0;
     double ustar = runi(state), umin = ustar;
     do {
         ustar = runi(state);
@@ -223,7 +223,7 @@ double rinvgauss(const double mu, const double lambda)
 double rtnorm_reject(double mean, double tau, double sd, rk_state* state)
 {
   double x, z, lambda;
-  //int cnt;
+  //size_t cnt;
 
   /* Christian Robert's way */
   assert(mean < tau);

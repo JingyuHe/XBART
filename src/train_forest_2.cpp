@@ -6,12 +6,12 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, int M, int L, int N_sweeps, arma::vec max_depth, int Nmin, double alpha, double beta, double tau, bool draw_sigma, bool verbose = false){
+Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::vec max_depth, size_t Nmin, double alpha, double beta, double tau, bool draw_sigma, bool verbose = false){
 
-    int N = X.n_rows;
+    size_t N = X.n_rows;
 
     arma::umat Xorder(X.n_rows, X.n_cols);
-    for(int i = 0; i < X.n_cols; i++){
+    for(size_t i = 0; i < X.n_cols; i++){
         Xorder.col(i) = arma::sort_index(X.col(i));
     }
 
@@ -41,7 +41,7 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, int M, int 
     arma::vec reshat_test;
 
 
-    for(int mc = 0; mc < L; mc ++ ){
+    for(size_t mc = 0; mc < L; mc ++ ){
 
         predictions.fill(arma::as_scalar(arma::mean(y)) / (double) M);
 
@@ -54,7 +54,7 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, int M, int 
 
         residual = y - yhat;
 
-        for(int sweeps = 0; sweeps < N_sweeps; sweeps ++){
+        for(size_t sweeps = 0; sweeps < N_sweeps; sweeps ++){
 
             if(verbose == true){
             cout << "--------------------------------" << endl;
@@ -62,7 +62,7 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, int M, int 
             cout << "--------------------------------" << endl;
             }
 
-            for(int tree = 0; tree < M; tree ++){
+            for(size_t tree = 0; tree < M; tree ++){
 
                 residual = residual + predictions.col(tree);
 

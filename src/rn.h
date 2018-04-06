@@ -29,7 +29,7 @@ public:
    virtual double uniform() = 0; //uniform(0,1)
    virtual double chi_square() = 0; //chi-square
    virtual double exp() = 0; //exponential
-   virtual void set_df(int df) = 0; //set df for chi-square
+   virtual void set_df(size_t df) = 0; //set df for chi-square
    virtual ~rn() {}
 };
 
@@ -49,18 +49,18 @@ class arn: public rn
  public:
   //constructor
   arn() {}
-  arn(unsigned int n1, unsigned int n2) {this->n1=n1; this->n2=n2;}
+  arn(unsigned size_t n1, unsigned size_t n2) {this->n1=n1; this->n2=n2;}
   //virtual
   virtual ~arn() {}
   virtual double normal() {return (nor)(gen);}
   virtual double uniform() {return (uni)(gen);}
   virtual double chi_square() {return (chi)(gen);}
   virtual double exp() {return -log(uniform());}
-  virtual void set_df(int df){this->df=df;}
-  int get_df()  {return df;}
+  virtual void set_df(size_t df){this->df=df;}
+  size_t get_df()  {return df;}
  private:
-  int df;
-  unsigned int n1, n2;
+  size_t df;
+  unsigned size_t n1, n2;
   genD gen;
   norD nor;
   uniD uni;
@@ -77,21 +77,21 @@ class arn: public rn
  public:
   //constructor
   arn():df(1) {}
-  arn(unsigned int n1, unsigned int n2):df(1) {::set_seed(n1, n2);}
+  arn(unsigned size_t n1, unsigned size_t n2):df(1) {::set_seed(n1, n2);}
   //virtual
   virtual ~arn() {}
   virtual double normal() {return ::norm_rand();}
   virtual double uniform() { return ::unif_rand();}
   virtual double chi_square() {return ::rchisq((double)df);}
   virtual double exp() {return ::exp_rand();}
-  virtual void set_df(int df) {this->df=df;}
-  int get_df() {return df;}
-  void set_seed(unsigned int n1, unsigned int n2) 
+  virtual void set_df(size_t df) {this->df=df;}
+  size_t get_df() {return df;}
+  void set_seed(unsigned size_t n1, unsigned size_t n2) 
   {::set_seed(n1, n2);}
-  void get_seed(unsigned int* n1, unsigned int* n2) 
+  void get_seed(unsigned size_t* n1, unsigned size_t* n2) 
   {::get_seed(n1, n2);}
  private:
-  int df;
+  size_t df;
 };
 
 #else // YesRcpp
@@ -108,10 +108,10 @@ class arn: public rn
   virtual double uniform() { return R::unif_rand();}
   virtual double chi_square() {return R::rchisq((double)df);}
   virtual double exp() {return R::exp_rand();}
-  virtual void set_df(int df) {this->df=df;}
-  int get_df() {return df;}
+  virtual void set_df(size_t df) {this->df=df;}
+  size_t get_df() {return df;}
  private:
-  int df;
+  size_t df;
   Rcpp::RNGScope RNGstate;
 };
 

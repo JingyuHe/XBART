@@ -4,13 +4,13 @@
 // [[Rcpp::plugins(cpp11)]]
 #include <RcppArmadillo.h>
 // double region_error(arma::vec& y);
-// double error_function(int split_point, arma::vec& y, arma::uvec& Xorder_vec);
-// void search_split_point(arma::uvec& Xorder_vec, arma::vec& y, int& split_ind, double& error_split);
+// double error_function(size_t split_point, arma::vec& y, arma::uvec& Xorder_vec);
+// void search_split_point(arma::uvec& Xorder_vec, arma::vec& y, size_t& split_ind, double& error_split);
 // [[Rcpp::export]]
-Rcpp::List singletree_2(arma::vec y, arma::mat X, int depth, int max_depth = 100, int Nmin = 5, double tau = 10, double sigma = 1, double alpha = 0.95, double beta = 2){
+Rcpp::List singletree_2(arma::vec y, arma::mat X, size_t depth, size_t max_depth = 100, size_t Nmin = 5, double tau = 10, double sigma = 1, double alpha = 0.95, double beta = 2){
     // sort each column of X, create a matrix for order of elements in each column
     arma::umat Xorder(X.n_rows, X.n_cols);
-    for(int i = 0; i < X.n_cols; i++){
+    for(size_t i = 0; i < X.n_cols; i++){
         Xorder.col(i) = arma::sort_index(X.col(i));
     }
 

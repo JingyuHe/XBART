@@ -36,13 +36,13 @@ void split_error_3(const arma::umat& Xorder, arma::vec& y, arma::umat& best_spli
 void split_error_4(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, double tau, double sigma, double depth, double alpha, double beta);
 //--------------------------------------------------
 //split Xorder matrix for two subnodes 
-void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat& Xorder, arma::mat& X, int split_var, int split_point);
+void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat& Xorder, arma::mat& X, size_t split_var, size_t split_point);
 //--------------------------------------------------
 //BART likelihood function
 arma::vec BART_likelihood(arma::vec& n1, arma::vec& n2, arma::vec& s1, arma::vec& s2, double& tau, double& sigma, double& alpha, double& penalty);
 //--------------------------------------------------
 //generate a vector of integers
-arma::uvec range(int start, int end);
+arma::uvec range(size_t start, size_t end);
 
 //--------------------------------------------------
 //xinfo xi, then xi[v][c] is the c^{th} cutpoint for variable v.
@@ -103,11 +103,11 @@ public:
    void getnogs(npv& nv);         //get nog nodes (no granchildren)
    void getnodes(npv& v);         //get vector of all nodes
    void getnodes(cnpv& v) const;  //get vector of all nodes (const)
-   void grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, int depth, int max_depth, int Nmin, double tau, double sigma, double alpha, double beta);
-   void grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, int depth, int max_depth, int Nmin, double tau, double sigma, double alpha, double beta);
+   void grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta);
+   void grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta);
    tree_p bn(double *x,xinfo& xi); //find Bottom Node
    tree_p search_bottom(arma::mat& Xnew);
-   void rg(size_t v, int* L, int* U); //recursively find region [L,U] for var v
+   void rg(size_t v, size_t* L, size_t* U); //recursively find region [L,U] for var v
    //node functions--------------------
    size_t nid() const; //nid of a node
    size_t depth();  //depth of a node
