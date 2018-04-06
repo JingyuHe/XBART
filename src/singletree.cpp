@@ -14,9 +14,6 @@ Rcpp::List singletree(arma::vec y, arma::mat X, int depth, int max_depth = 100, 
         Xorder.col(i) = arma::sort_index(X.col(i));
     }
 
-    int p = X.n_cols; // number of X variables
-
-
     tree root;
     double y_mean = arma::as_scalar(arma::mean(y));
     root.grow_tree(y, y_mean, Xorder, X, depth, max_depth, Nmin, tau, sigma, alpha, beta);

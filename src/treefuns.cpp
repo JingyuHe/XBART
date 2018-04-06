@@ -93,7 +93,7 @@ void getgoodvars(tree::tree_p n, xinfo& xi,  std::vector<size_t>& goodvars)
 
 
 arma::vec fit_new(tree& tree, arma::mat& Xnew){
-    int p = Xnew.n_cols;
+    // int p = Xnew.n_cols;
     int N = Xnew.n_rows;
     arma::vec result(N);
     tree::tree_p bn;
@@ -112,7 +112,7 @@ arma::vec fit_new(tree& tree, arma::mat& Xnew){
 
 
 void fit_new_void(tree& tree, arma::mat& Xnew, arma::mat& pred, int& ind){
-    int p = Xnew.n_cols;
+    // int p = Xnew.n_cols;
     int N = Xnew.n_rows;
     arma::vec result(N);
     tree::tree_p bn;

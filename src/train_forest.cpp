@@ -33,8 +33,6 @@ Rcpp::List train_forest(arma::mat y, arma::mat X, arma::mat Xtest, int M, int L,
 
     double sigma;
 
-    double var_y = arma::as_scalar(arma::var(y));
-
     // double tau;
 
     forest trees(M);
@@ -42,8 +40,6 @@ Rcpp::List train_forest(arma::mat y, arma::mat X, arma::mat Xtest, int M, int L,
     arma::vec reshat;
 
     arma::vec reshat_test;
-
-    tree::tree_p current_tree;
 
 
     for(int mc = 0; mc < L; mc ++ ){
@@ -62,8 +58,6 @@ Rcpp::List train_forest(arma::mat y, arma::mat X, arma::mat Xtest, int M, int L,
         for(int sweeps = 0; sweeps < N_sweeps; sweeps ++){
 
             for(int tree = 0; tree < M; tree ++){
-
-                // current_tree = &trees.t[tree];
 
                 residual = residual + predictions.col(tree);
 

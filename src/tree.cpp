@@ -433,7 +433,6 @@ void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat&
         return;
     }
 
-    int N = Xorder.n_cols;
     arma::uvec best_split(Xorder.n_cols);
     arma::vec least_error(Xorder.n_cols); 
     split_error_2(Xorder, y, best_split, least_error, tau, sigma, depth, alpha, beta);
@@ -681,8 +680,6 @@ void split_error_2(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_spli
     int N = Xorder.n_rows;
     int p = Xorder.n_cols;
 
-    double y_error = arma::as_scalar(arma::sum(pow(y(Xorder.col(0)) - arma::mean(y(Xorder.col(0))), 2)));
-
     double ee;
     
     arma::vec y_cumsum;
@@ -721,8 +718,6 @@ void split_error_3(const arma::umat& Xorder, arma::vec& y, arma::umat& best_spli
     int p = Xorder.n_cols;
 
     double y_error = arma::as_scalar(arma::sum(pow(y(Xorder.col(0)) - arma::mean(y(Xorder.col(0))), 2)));
-
-    double ee;
     
     arma::vec y_cumsum;
 
@@ -736,7 +731,6 @@ void split_error_3(const arma::umat& Xorder, arma::vec& y, arma::umat& best_spli
     arma::uvec temp_ind;
 
     double sigma2 = pow(sigma, 2);
-    double penalty = log(alpha) - beta * log(1.0 + depth);
 
     for(int i = 0; i < p; i++){ // loop over variables 
         y_cumsum = arma::cumsum(y(Xorder.col(i)));
@@ -775,8 +769,6 @@ void split_error_4(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, d
 
     int N = Xorder.n_rows;
     int p = Xorder.n_cols;
-
-    double y_error = arma::as_scalar(arma::sum(pow(y(Xorder.col(0)) - arma::mean(y(Xorder.col(0))), 2)));
     
     arma::vec y_cumsum;
 
@@ -790,7 +782,8 @@ void split_error_4(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, d
     arma::uvec temp_ind;
 
     double sigma2 = pow(sigma, 2);
-    double penalty = log(alpha) - beta * log(1.0 + depth);
+    
+    // double penalty = log(alpha) - beta * log(1.0 + depth);
 
     for(int i = 0; i < p; i++){ // loop over variables 
         y_cumsum = arma::cumsum(y(Xorder.col(i)));
