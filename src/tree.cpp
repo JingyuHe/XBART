@@ -482,7 +482,7 @@ void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat&
 
 
 
-void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, int depth, int max_depth, int Nmin, double tau, double sigma, double alpha, double beta){
+void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, int depth, int max_depth, int Nmin, double tau, double sigma, const double alpha, const double beta){
     // this function is more randomized
     // sample from several best split points
 
@@ -537,6 +537,10 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
     arma::vec loglike_vec((N - 1) * p + 1);
 
     split_error_4(Xorder, y, loglike_vec, tau, sigma, depth, alpha, beta);
+
+    // cout << loglike_vec << endl;
+
+
     loglike_vec = loglike_vec - max(loglike_vec);
     loglike_vec = exp(loglike_vec);
     loglike_vec = loglike_vec / arma::as_scalar(arma::sum(loglike_vec));
@@ -766,7 +770,7 @@ void split_error_3(const arma::umat& Xorder, arma::vec& y, arma::umat& best_spli
 
 
 
-void split_error_4(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, double tau, double sigma, double depth, double alpha, double beta){
+void split_error_4(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, double tau, double sigma, double depth, const double alpha, const double beta){
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
 
@@ -806,11 +810,13 @@ void split_error_4(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, d
         // loglike.col(i) = temp_likelihood(best_split.col(i));
         
     }
-    loglike(loglike.n_elem - 1) = - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
+
+    // cout << depth << endl;
+    // cout << - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha) << endl;
+    loglike(loglike.n_elem - 1) = - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(2.0 + depth) + beta * log(1.0 + depth) + log(1.0 - alpha) - log(alpha);
     // add penalty term
     // loglike.row(N - 1) = loglike.row(N - 1) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
     
-
     return;
 }
 
