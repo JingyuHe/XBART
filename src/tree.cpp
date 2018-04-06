@@ -486,9 +486,10 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
     // this function is more randomized
     // sample from several best split points
 
-    // theta = y_mean * Xorder.n_cols / pow(sigma, 2) * 1.0 / (1.0 / pow(tau, 2) + Xorder.n_cols / pow(sigma, 2));
+    // tau is prior VARIANCE, do not take squares
+    theta = y_mean * Xorder.n_cols / pow(sigma, 2) / (1.0 / tau + Xorder.n_cols / pow(sigma, 2));
 
-    theta = y_mean / pow(sigma, 2) * 1.0 / (1.0 / pow(tau, 2) + 1.0 / pow(sigma, 2));
+    // theta = y_mean / pow(sigma, 2) * 1.0 / (1.0 / pow(tau, 2) + 1.0 / pow(sigma, 2));
 
     if(Xorder.n_rows <= Nmin){
         return;
@@ -500,7 +501,7 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
 
     int N = Xorder.n_rows;
     int p = Xorder.n_cols;
-    arma::umat best_split = arma::zeros<arma::umat>(Xorder.n_rows, Xorder.n_cols);
+    // arma::umat best_split = arma::zeros<arma::umat>(Xorder.n_rows, Xorder.n_cols);
     
     
     
@@ -535,7 +536,7 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
 
     arma::vec loglike_vec((N - 1) * p + 1);
 
-    split_error_4(Xorder, y, best_split, loglike_vec, tau, sigma, depth, alpha, beta);
+    split_error_4(Xorder, y, loglike_vec, tau, sigma, depth, alpha, beta);
     loglike_vec = loglike_vec - max(loglike_vec);
     loglike_vec = exp(loglike_vec);
     loglike_vec = loglike_vec / arma::as_scalar(arma::sum(loglike_vec));
@@ -765,16 +766,17 @@ void split_error_3(const arma::umat& Xorder, arma::vec& y, arma::umat& best_spli
 
 
 
-void split_error_4(const arma::umat& Xorder, arma::vec& y, arma::umat& best_split, arma::vec& loglike, double tau, double sigma, double depth, double alpha, double beta){
+void split_error_4(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, double tau, double sigma, double depth, double alpha, double beta){
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
+
+    // faster than split_error_3
+    // use stacked vector loglike instead of a matrix, no need to convert, but harder to read the code
 
     int N = Xorder.n_rows;
     int p = Xorder.n_cols;
 
     double y_error = arma::as_scalar(arma::sum(pow(y(Xorder.col(0)) - arma::mean(y(Xorder.col(0))), 2)));
-
-    double ee;
     
     arma::vec y_cumsum;
 
