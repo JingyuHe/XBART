@@ -42,7 +42,7 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, int M, int 
 
     arma::vec reshat_test;
 
-    tree_p current_tree;
+    tree::tree_p current_tree;
 
 
     for(int mc = 0; mc < L; mc ++ ){

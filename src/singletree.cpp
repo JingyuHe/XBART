@@ -25,8 +25,8 @@ Rcpp::List singletree(arma::vec y, arma::mat X, int depth, int max_depth = 100, 
     treess << root ;
 
 
-    tree_p tree_l;
-    tree_p tree_r;
+    tree::tree_p tree_l;
+    tree::tree_p tree_r;
 
     tree_l = root.getl();
     tree_r = root.getr();
