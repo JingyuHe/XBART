@@ -6,7 +6,7 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::vec max_depth, size_t Nmin, double alpha, double beta, double tau, bool draw_sigma, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false){
+Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::vec max_depth, size_t Nmin, double alpha, double beta, double tau, bool draw_sigma, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false){
 
     size_t N = X.n_rows;
 
@@ -66,14 +66,7 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, s
 
 
                 if(m_update_sigma == true){
-                                if(draw_sigma == true){
                      sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
-
-                    // sigma = 1.0 / Rcpp::rgamma(1, N / 2.0, 2.0 / as_scalar(sum(pow(residual, 2))))[0];
-                }else{
-                    // sigma = sqrt(arma::as_scalar(arma::mean(pow(residual, 2))));
-                    sigma = 0.1;
-                }
                 }
 
 
@@ -81,25 +74,12 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, s
                 // then it's m - 1 trees residual
                 residual = residual + predictions.col(tree_ind);
 
-
-                if(m_update_sigma == false){
-
-                if(draw_sigma == true){
-                    sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
-
-                    // sigma = 1.0 / Rcpp::rgamma(1, N / 2.0, 2.0 / as_scalar(sum(pow(residual, 2))))[0];
-                }else{
-                    // sigma = sqrt(arma::as_scalar(arma::mean(pow(residual, 2))));
-                    sigma = 0.1;
-                }
-                }
-
                 yhat = yhat - predictions.col(tree_ind);
 
                 yhat_test = yhat_test - predictions_test.col(tree_ind);
 
 
-                trees.t[tree_ind].grow_tree_2(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(sweeps), Nmin, tau, sigma, alpha, beta);
+                trees.t[tree_ind].grow_tree_2(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(sweeps), Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
 
 
                 if(verbose == true){
@@ -117,6 +97,13 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, s
                 predictions_test.col(tree_ind) = reshat_test;
 
                 // fit_new_void(trees.t[tree], Xtest, predictions_test, tree);
+
+                if(m_update_sigma == false){
+
+                    sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
+
+                }
+
 
                 residual = residual - predictions.col(tree_ind);
 

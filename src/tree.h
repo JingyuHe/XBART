@@ -103,8 +103,9 @@ public:
    void getnogs(npv& nv);         //get nog nodes (no granchildren)
    void getnodes(npv& v);         //get vector of all nodes
    void getnodes(cnpv& v) const;  //get vector of all nodes (const)
+   tree_p gettop(); // get pointer to the top node
    void grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta);
-   void grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta);
+   void grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta, arma::vec& residual, bool draw_sigma, bool draw_mu);
    tree_p bn(double *x,xinfo& xi); //find Bottom Node
    tree_p search_bottom(arma::mat& Xnew);
    void rg(size_t v, size_t* L, size_t* U); //recursively find region [L,U] for var v

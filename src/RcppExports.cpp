@@ -76,8 +76,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // train_forest_2
-Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::vec max_depth, size_t Nmin, double alpha, double beta, double tau, bool draw_sigma, double kap, double s, bool verbose, bool m_update_sigma);
-RcppExport SEXP _SpikySmoothTrees_train_forest_2(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP LSEXP, SEXP N_sweepsSEXP, SEXP max_depthSEXP, SEXP NminSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP draw_sigmaSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP m_update_sigmaSEXP) {
+Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::vec max_depth, size_t Nmin, double alpha, double beta, double tau, bool draw_sigma, double kap, double s, bool verbose, bool m_update_sigma, bool draw_mu);
+RcppExport SEXP _SpikySmoothTrees_train_forest_2(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP LSEXP, SEXP N_sweepsSEXP, SEXP max_depthSEXP, SEXP NminSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP draw_sigmaSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP m_update_sigmaSEXP, SEXP draw_muSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -97,7 +97,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type s(sSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< bool >::type m_update_sigma(m_update_sigmaSEXP);
-    rcpp_result_gen = Rcpp::wrap(train_forest_2(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, alpha, beta, tau, draw_sigma, kap, s, verbose, m_update_sigma));
+    Rcpp::traits::input_parameter< bool >::type draw_mu(draw_muSEXP);
+    rcpp_result_gen = Rcpp::wrap(train_forest_2(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, alpha, beta, tau, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -129,7 +130,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SpikySmoothTrees_singletree_2", (DL_FUNC) &_SpikySmoothTrees_singletree_2, 9},
     {"_SpikySmoothTrees_singletree_3", (DL_FUNC) &_SpikySmoothTrees_singletree_3, 9},
     {"_SpikySmoothTrees_singletree", (DL_FUNC) &_SpikySmoothTrees_singletree, 9},
-    {"_SpikySmoothTrees_train_forest_2", (DL_FUNC) &_SpikySmoothTrees_train_forest_2, 16},
+    {"_SpikySmoothTrees_train_forest_2", (DL_FUNC) &_SpikySmoothTrees_train_forest_2, 17},
     {"_SpikySmoothTrees_train_forest", (DL_FUNC) &_SpikySmoothTrees_train_forest, 12},
     {NULL, NULL, 0}
 };

@@ -18,7 +18,7 @@ Rcpp::List singletree_2(arma::vec y, arma::mat X, size_t depth, size_t max_depth
     tree root;
     double y_mean = arma::as_scalar(arma::mean(y));
 
-    root.grow_tree_2(y, y_mean, Xorder, X, depth, max_depth, Nmin, tau, sigma, alpha, beta);
+    // root.grow_tree_2(y, y_mean, Xorder, X, depth, max_depth, Nmin, tau, sigma, alpha, beta);
     std::stringstream treess;  //string stream to write trees to  
 
     treess << root ;
