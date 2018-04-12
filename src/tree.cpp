@@ -498,13 +498,16 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
 
     // tau is prior VARIANCE, do not take squares
 
-    this->theta = y_mean * Xorder.n_cols / pow(sigma, 2) / (1.0 / tau + Xorder.n_cols / pow(sigma, 2));
     
     
     
     if(draw_mu == true){
-        this->theta_noise = this->theta + sqrt(1.0 / (1.0 / tau + Xorder.n_cols / pow(sigma, 2))) * as_scalar(arma::randn(1,1));
+        this->theta = y_mean * Xorder.n_rows / pow(sigma, 2) / (1.0 / tau + Xorder.n_rows / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + Xorder.n_rows / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
+
+        this->theta_noise = this->theta ;
     }else{
+        this->theta = y_mean * Xorder.n_rows / pow(sigma, 2) / (1.0 / tau + Xorder.n_rows / pow(sigma, 2));
+
         this->theta_noise = this->theta; // identical to theta
     }
     // this->theta_noise = this->theta;

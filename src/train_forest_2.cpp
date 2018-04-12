@@ -24,7 +24,7 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, s
     arma::mat predictions(X.n_rows, M);
 
     // save predictions (based on theta_noise) of each tree
-    arma::mat predictions_theta_noise(X.n_rows, M);
+    // arma::mat predictions_theta_noise(X.n_rows, M);
 
     arma::mat predictions_test(Xtest.n_rows, M);
 
@@ -36,7 +36,7 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, s
     arma::vec residual;
 
     // current residual (based on theta_noise)
-    arma::vec residual_theta_noise;
+    // arma::vec residual_theta_noise;
 
     arma::mat sigma_draw(M, N_sweeps);
 
@@ -56,7 +56,7 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, s
         // initialize
         predictions.fill(arma::as_scalar(arma::mean(y)) / (double) M);
 
-        predictions_theta_noise.fill(arma::as_scalar(arma::mean(y)) / (double) M);
+        // predictions_theta_noise.fill(arma::as_scalar(arma::mean(y)) / (double) M);
 
         predictions_test.fill(arma::as_scalar(arma::mean(y)) / (double) M);
 
@@ -66,7 +66,7 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, s
 
         residual = y - yhat;
 
-        residual_theta_noise = y - yhat;
+        // residual_theta_noise = y - yhat;
 
         for(size_t sweeps = 0; sweeps < N_sweeps; sweeps ++){
 
@@ -81,7 +81,7 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, s
 
                 // if update sigma based on residual of all m trees
                 if(m_update_sigma == true){
-                     sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual_theta_noise, 2)) + s)))));
+                     sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
                 }
 
                 // save sigma
@@ -92,7 +92,7 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, s
                 residual = residual + predictions.col(tree_ind);
 
                 // do the samething for residual_theta_noise, residual of m - 1 trees
-                residual_theta_noise = residual_theta_noise + predictions_theta_noise.col(tree_ind);
+                // residual_theta_noise = residual_theta_noise + predictions_theta_noise.col(tree_ind);
 
                 // prediction of m - 1 trees
                 yhat = yhat - predictions.col(tree_ind);
@@ -101,7 +101,7 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, s
                 yhat_test = yhat_test - predictions_test.col(tree_ind);
 
                 // grow a tree
-                trees.t[tree_ind].grow_tree_2(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, tau, sigma, alpha, beta, residual_theta_noise, draw_sigma, draw_mu);
+                trees.t[tree_ind].grow_tree_2(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
 
 
                 if(verbose == true){
@@ -112,7 +112,7 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, s
                 predictions.col(tree_ind) = fit_new(trees.t[tree_ind], X);
 
                 // update prediction (theta_noise) of current tree
-                predictions_theta_noise.col(tree_ind) = fit_new_theta_noise(trees.t[tree_ind], X);
+                // predictions_theta_noise.col(tree_ind) = fit_new_theta_noise(trees.t[tree_ind], X);
 
                 // update prediction of current tree, test set
                 predictions_test.col(tree_ind) = fit_new(trees.t[tree_ind], Xtest);
@@ -122,14 +122,14 @@ Rcpp::List train_forest_2(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, s
                 // update sigma based on residual of m - 1 trees, residual_theta_noise
                 if(m_update_sigma == false){
 
-                    sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual_theta_noise, 2)) + s)))));
+                    sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
 
                 }
 
                 // update residual, now it's residual of m trees
                 residual = residual - predictions.col(tree_ind);
 
-                residual_theta_noise = residual_theta_noise - predictions_theta_noise.col(tree_ind);
+                // residual_theta_noise = residual_theta_noise - predictions_theta_noise.col(tree_ind);
 
                 yhat = yhat + predictions.col(tree_ind);
 
