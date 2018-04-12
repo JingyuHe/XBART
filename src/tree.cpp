@@ -498,24 +498,29 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
 
     // tau is prior VARIANCE, do not take squares
 
-    theta = y_mean * Xorder.n_cols / pow(sigma, 2) / (1.0 / tau + Xorder.n_cols / pow(sigma, 2));
+    this->theta = y_mean * Xorder.n_cols / pow(sigma, 2) / (1.0 / tau + Xorder.n_cols / pow(sigma, 2));
+    
+    
     
     if(draw_mu == true){
-        // draw from posterior distribution
-        theta = theta + sqrt(1.0 / (1.0 / tau + Xorder.n_cols / pow(sigma, 2))) * as_scalar(arma::randn(1,1));
+        this->theta_noise = this->theta + sqrt(1.0 / (1.0 / tau + Xorder.n_cols / pow(sigma, 2))) * as_scalar(arma::randn(1,1));
+    }else{
+        this->theta_noise = this->theta; // identical to theta
     }
-
+    // this->theta_noise = this->theta;
 
 
     // cout << "ok" << endl;    
 
     if(draw_sigma == true){
         tree::tree_p top_p = this->gettop();
-        arma::vec reshat = residual - fit_new( * top_p, X);
+
+        // draw sigma use residual of noisy theta
+        arma::vec reshat = residual - fit_new_theta_noise( * top_p, X);
         sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (reshat.n_elem + 16) / 2.0, 2.0 / as_scalar(sum(pow(reshat, 2)) + 4)))));
     }
 
-
+    this->sig = sigma;
 
     // theta = y_mean / pow(sigma, 2) * 1.0 / (1.0 / pow(tau, 2) + 1.0 / pow(sigma, 2));
 

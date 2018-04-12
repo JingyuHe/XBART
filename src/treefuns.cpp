@@ -109,7 +109,20 @@ arma::vec fit_new(tree& tree, arma::mat& Xnew){
 
 
 
-
+arma::vec fit_new_theta_noise(tree& tree, arma::mat& Xnew){
+    // size_t p = Xnew.n_cols;
+    size_t N = Xnew.n_rows;
+    arma::vec result(N);
+    tree::tree_p bn;
+    arma::mat temp;
+    for(size_t i = 0; i < N; i ++){
+        // cout << i << endl;
+        temp = Xnew.row(i);
+        bn = tree.search_bottom(temp);
+        result(i) = bn -> gettheta_noise();
+    }
+    return result;
+}
 
 void fit_new_void(tree& tree, arma::mat& Xnew, arma::mat& pred, size_t& ind){
     // size_t p = Xnew.n_cols;

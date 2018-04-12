@@ -1,7 +1,7 @@
 Package: SpikySmoothTrees
 Type: Package
 Title: What the Package Does in One 'Title Case' Line
-Version: 3.3
+Version: 3.5
 Date: 2017-10-08
 Author: Your Name
 Maintainer: Your Name <your@email.com>
@@ -11,4 +11,4 @@ License: GPL (>= 2)
 Imports: Rcpp (>= 0.12.13)
 LinkingTo: Rcpp, RcppArmadillo, RcppParallel
 NeedsCompilation: yes
-Packaged: 2018-04-05 00:36:29 UTC; jingyuhe
+Packaged: 2018-04-10 20:57:17 UTC; jingyuhe

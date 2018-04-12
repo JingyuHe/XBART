@@ -70,9 +70,9 @@ public:
    typedef std::vector<tree_p> npv; 
    typedef std::vector<tree_cp> cnpv;
    //contructors,destructors--------------------
-   tree(): theta(0.0),v(0),c(0),p(0),l(0),r(0) {}
-   tree(const tree& n): theta(0.0),v(0),c(0),p(0),l(0),r(0) {cp(this,&n);}
-   tree(double itheta): theta(itheta),v(0),c(0),p(0),l(0),r(0) {}
+   tree(): theta(0.0),theta_noise(0.0),sig(0.0),v(0),c(0),p(0),l(0),r(0) {}
+   tree(const tree& n): theta(0.0),theta_noise(0.0),sig(0.0),v(0),c(0),p(0),l(0),r(0) {cp(this,&n);}
+   tree(double itheta): theta(itheta),theta_noise(0.0),sig(0.0),v(0),c(0),p(0),l(0),r(0) {}
    void tonull(); //like a "clear", null tree has just one node
    ~tree() {tonull();}
    //operators----------
@@ -84,6 +84,8 @@ public:
    void setc(size_t c) {this->c = c;}
    //get
    double gettheta() const {return theta;}
+   double gettheta_noise() const {return theta_noise;}
+   double getsig() const {return sig;}
    size_t getv() const {return v;}
    double getc() const {return c;}
    tree_p getp() {return p;}  
@@ -121,6 +123,8 @@ public:
 #endif
 private:
    double theta; //univariate double parameter
+   double theta_noise;
+   double sig;
    //rule: left if x[v] < xinfo[v][c]
    size_t v;  //index of variable to split
         double c;   
