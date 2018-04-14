@@ -503,7 +503,6 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
     
     if(draw_mu == true){
         this->theta = y_mean * Xorder.n_rows / pow(sigma, 2) / (1.0 / tau + Xorder.n_rows / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + Xorder.n_rows / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-
         this->theta_noise = this->theta ;
     }else{
         this->theta = y_mean * Xorder.n_rows / pow(sigma, 2) / (1.0 / tau + Xorder.n_rows / pow(sigma, 2));
@@ -527,6 +526,7 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
 
     // theta = y_mean / pow(sigma, 2) * 1.0 / (1.0 / pow(tau, 2) + 1.0 / pow(sigma, 2));
 
+    cout << Xorder.n_rows << endl;
     if(Xorder.n_rows <= Nmin){
         return;
     }
@@ -562,10 +562,16 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
 
     this -> c =  X(Xorder(split_point, split_var), split_var);
 
+    // if(split_point + 1 < Nmin || Xorder.n_rows - split_point - 1 < Nmin){
+    //     return;
+    // }
+
+
     arma::umat Xorder_left = arma::zeros<arma::umat>(split_point + 1, Xorder.n_cols);
     arma::umat Xorder_right = arma::zeros<arma::umat>(Xorder.n_rows - split_point - 1, Xorder.n_cols);
 
     split_xorder(Xorder_left, Xorder_right, Xorder, X, split_var, split_point);
+
 
 
     double yleft_mean = arma::as_scalar(arma::mean(y(Xorder_left.col(split_var))));
