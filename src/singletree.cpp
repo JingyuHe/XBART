@@ -14,9 +14,11 @@ Rcpp::List singletree(arma::vec y, arma::mat X, size_t depth, size_t max_depth =
         Xorder.col(i) = arma::sort_index(X.col(i));
     }
 
+
     tree root;
     double y_mean = arma::as_scalar(arma::mean(y));
-    root.grow_tree(y, y_mean, Xorder, X, depth, max_depth, Nmin, tau, sigma, alpha, beta);
+
+    // root.grow_tree_2(y, y_mean, Xorder, X, depth, max_depth, Nmin, tau, sigma, alpha, beta);
     std::stringstream treess;  //string stream to write trees to  
 
     treess << root ;

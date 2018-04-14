@@ -430,65 +430,6 @@ void tree::deathp(tree_p nb, double theta)
 
 
 
-// void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma){
-void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta){
-    // this function grow the tree greedly
-    // always pick the best split point
-    theta = y_mean;
-
-    if(Xorder.n_rows <= Nmin){
-        return;
-    }
-
-    if(depth >= max_depth - 1){
-        return;
-    }
-
-    arma::uvec best_split(Xorder.n_cols);
-    arma::vec least_error(Xorder.n_cols); 
-    split_error_2(Xorder, y, best_split, least_error, tau, sigma, depth, alpha, beta);
-
-
-    size_t split_var = arma::index_max(least_error); // maximize likelihood
-    double split_point = best_split(split_var);
-    if(split_point == 0){
-        return;
-    }
-    if(split_point == Xorder.n_rows - 1){
-        return;
-    }
-    
-    this -> v = split_var;
-
-    this -> c =  X(Xorder(split_point, split_var), split_var);
-
-
-    // if smaller than or equals to the cutpoint, go to left child
-    // strictly greater than cutpoint, go to right child
-
-    arma::umat Xorder_left = arma::zeros<arma::umat>(split_point + 1, Xorder.n_cols);
-    arma::umat Xorder_right = arma::zeros<arma::umat>(Xorder.n_rows - split_point - 1, Xorder.n_cols);
-
-    split_xorder(Xorder_left, Xorder_right, Xorder, X, split_var, split_point);
-
-
-    double yleft_mean = arma::as_scalar(arma::mean(y(Xorder_left.col(split_var))));
-    double yright_mean = arma::as_scalar(arma::mean(y(Xorder_right.col(split_var))));
-
-    depth = depth + 1;
-    tree::tree_p lchild = new tree();
-    lchild->grow_tree(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, tau, sigma, alpha, beta);
-    tree::tree_p rchild = new tree();
-    rchild->grow_tree(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, tau, sigma, alpha, beta);
-    lchild -> p = this;
-    rchild -> p = this;
-    this -> l = lchild;
-    this -> r = rchild;
-
-    return;
-}
-
-
 
 
 
@@ -543,7 +484,7 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
 
     arma::vec loglike_vec((N - 1) * p + 1);
 
-    split_error_4(Xorder, y, loglike_vec, tau, sigma, depth, alpha, beta);
+    BART_likelihood(Xorder, y, loglike_vec, tau, sigma, depth, alpha, beta);
     loglike_vec = loglike_vec - max(loglike_vec);
     loglike_vec = exp(loglike_vec);
     loglike_vec = loglike_vec / arma::as_scalar(arma::sum(loglike_vec));
@@ -622,7 +563,7 @@ void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat&
 
 
 
-arma::vec BART_likelihood(arma::vec& n1, arma::vec& n2, arma::vec& s1, arma::vec& s2, double& tau, double& sigma, double& alpha, double& penalty){
+arma::vec BART_likelihood_function(arma::vec& n1, arma::vec& n2, arma::vec& s1, arma::vec& s2, double& tau, double& sigma, double& alpha, double& penalty){
     // log - likelihood of BART model
     // n1 is number of observations in group 1
     // s1 is sum of group 1
@@ -689,94 +630,8 @@ void split_error(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split,
 
 
 
-void split_error_2(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split, arma::vec& least_error, double tau, double sigma, double depth, double alpha, double beta){
-    // compute BART posterior (loglikelihood + logprior penalty)
-    // greedy 
 
-    size_t N = Xorder.n_rows;
-    size_t p = Xorder.n_cols;
-
-    double ee;
-    
-    arma::vec y_cumsum;
-
-    double y_sum;
-
-    arma::vec y_cumsum_inv;
-
-    arma::vec ind1 = arma::linspace(1, N, N);
-    arma::vec ind2 = arma::linspace(N, 1, N);
-    arma::vec temp_error;
-
-    double penalty = log(alpha) - beta * log(1.0 + depth);
-    for(size_t i = 0; i < p; i++){ // loop over variables 
-        y_cumsum = arma::cumsum(y(Xorder.col(i)));
-        y_sum = y_cumsum(y_cumsum.n_elem - 1);
-        y_cumsum_inv = y_sum - y_cumsum;
-
-        temp_error = BART_likelihood(ind1, ind2, y_cumsum, y_cumsum_inv, tau, sigma, alpha, penalty);
-        temp_error(arma::span(1, N-2)) = temp_error(arma::span(1, N - 2)) + penalty;
-        
-        best_split(i) = arma::index_max(temp_error); // maximize likelihood
-        least_error(i) = arma::max(temp_error);
-    }
-    return;
-}
-
-
-
-void split_error_3(const arma::umat& Xorder, arma::vec& y, arma::umat& best_split, arma::mat& loglike, double tau, double sigma, double depth, double alpha, double beta){
-    // compute BART posterior (loglikelihood + logprior penalty)
-    // randomized
-
-
-    size_t N = Xorder.n_rows;
-    size_t p = Xorder.n_cols;
-
-    double y_error = arma::as_scalar(arma::sum(pow(y(Xorder.col(0)) - arma::mean(y(Xorder.col(0))), 2)));
-    
-    arma::vec y_cumsum;
-
-    double y_sum;
-
-    arma::vec y_cumsum_inv;
-
-    arma::vec n1tau = tau * arma::linspace(1, N, N);
-    arma::vec n2tau = tau * arma::linspace(N-1, 0, N);
-    arma::vec temp_likelihood;
-    arma::uvec temp_ind;
-
-    double sigma2 = pow(sigma, 2);
-
-    for(size_t i = 0; i < p; i++){ // loop over variables 
-        y_cumsum = arma::cumsum(y(Xorder.col(i)));
-        y_sum = y_cumsum(y_cumsum.n_elem - 1);
-        y_cumsum_inv = y_sum - y_cumsum;
-
-        // loglike.col(i) = BART_likelihood(ind1, ind2, y_cumsum, y_cumsum_inv, tau, sigma, alpha, penalty);
-        loglike.col(i) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv, 2)/(sigma2 * (n2tau + sigma2));
-        // temp_likelihood(arma::span(1, N-2)) = temp_likelihood(arma::span(1, N - 2)) + penalty;
-        // temp_ind = arma::sort_index(temp_likelihood, "descend"); // decreasing order, pick the largest value
-        // best_split(i) = arma::index_max(temp_error); // maximize likelihood
-        // best_split.col(i) = temp_ind;
-        // loglike.col(i) = temp_likelihood(best_split.col(i));
-        
-    }
-    // add penalty term
-    loglike.row(N - 1) = loglike.row(N - 1) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
-    
-
-    return;
-}
-
-
-
-
-
-
-
-
-void split_error_4(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, double tau, double sigma, double depth, double alpha, double beta){
+void BART_likelihood(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, double tau, double sigma, double depth, double alpha, double beta){
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
 

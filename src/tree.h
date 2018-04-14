@@ -31,15 +31,13 @@
 //--------------------------------------------------
 //find best split variable and value, CART
 void split_error(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split, arma::vec& least_error);
-void split_error_2(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split, arma::vec& least_error, double tau, double sigma, double depth, double alpha, double beta);
-void split_error_3(const arma::umat& Xorder, arma::vec& y, arma::umat& best_split, arma::mat& loglike, double tau, double sigma, double depth, double alpha, double beta);
-void split_error_4(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, double tau, double sigma, double depth, double alpha, double beta);
+void BART_likelihood(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, double tau, double sigma, double depth, double alpha, double beta);
 //--------------------------------------------------
 //split Xorder matrix for two subnodes 
 void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat& Xorder, arma::mat& X, size_t split_var, size_t split_point);
 //--------------------------------------------------
 //BART likelihood function
-arma::vec BART_likelihood(arma::vec& n1, arma::vec& n2, arma::vec& s1, arma::vec& s2, double& tau, double& sigma, double& alpha, double& penalty);
+arma::vec BART_likelihood_function(arma::vec& n1, arma::vec& n2, arma::vec& s1, arma::vec& s2, double& tau, double& sigma, double& alpha, double& penalty);
 //--------------------------------------------------
 //generate a vector of integers
 arma::uvec range(size_t start, size_t end);

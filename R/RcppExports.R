@@ -5,23 +5,11 @@ predict_tree <- function(trees, Xnew) {
     .Call(`_SpikySmoothTrees_predict_tree`, trees, Xnew)
 }
 
-singletree_2 <- function(y, X, depth, max_depth = 100L, Nmin = 5L, tau = 10, sigma = 1, alpha = 0.95, beta = 2) {
-    .Call(`_SpikySmoothTrees_singletree_2`, y, X, depth, max_depth, Nmin, tau, sigma, alpha, beta)
-}
-
-singletree_3 <- function(y, X, depth, max_depth = 100L, Nmin = 5L, tau = 10, sigma = 1, alpha = 0.95, beta = 2) {
-    .Call(`_SpikySmoothTrees_singletree_3`, y, X, depth, max_depth, Nmin, tau, sigma, alpha, beta)
-}
-
 singletree <- function(y, X, depth, max_depth = 100L, Nmin = 5L, tau = 10, sigma = 1, alpha = 0.95, beta = 2) {
     .Call(`_SpikySmoothTrees_singletree`, y, X, depth, max_depth, Nmin, tau, sigma, alpha, beta)
 }
 
-train_forest_2 <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, alpha, beta, tau, draw_sigma, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE) {
-    .Call(`_SpikySmoothTrees_train_forest_2`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, alpha, beta, tau, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu)
-}
-
-train_forest <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, alpha, beta, tau, draw_sigma) {
-    .Call(`_SpikySmoothTrees_train_forest`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, alpha, beta, tau, draw_sigma)
+train_forest <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, alpha, beta, tau, draw_sigma, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE) {
+    .Call(`_SpikySmoothTrees_train_forest`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, alpha, beta, tau, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu)
 }
 
