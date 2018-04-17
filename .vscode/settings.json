@@ -37,6 +37,7 @@
         "__functional_03": "cpp",
         "functional": "cpp",
         "chrono": "cpp",
-        "limits": "cpp"
+        "limits": "cpp",
+        "__string": "cpp"
     }
 }

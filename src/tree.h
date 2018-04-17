@@ -47,6 +47,8 @@ arma::uvec range(size_t start, size_t end);
 //left if x[v] < xi[v][c]
 typedef std::vector<double> vec_d; //double vector
 typedef std::vector<vec_d> xinfo; //vector of vectors, will be split rules
+typedef std::vector<size_t> vec_sizet; // unsigned int vector
+typedef std::vector<vec_sizet> xinfo_sizet;
 
 //--------------------------------------------------
 //info contained in a node, used by input operator
@@ -125,7 +127,7 @@ private:
    double sig;
    //rule: left if x[v] < xinfo[v][c]
    size_t v;  //index of variable to split
-        double c;   
+   double c;   
 
    //////////////////////////
    // size_t c;  // split point
