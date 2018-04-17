@@ -7,18 +7,18 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List train_forest_std(Rcpp::NumericMatrix y_rcpp, Rcpp::NumericMatrix X_rcpp, Rcpp::NumericMatrix Xtest_rcpp, size_t M, size_t L, size_t N_sweeps, Rcpp::NumericMatrix max_depth_rcpp, size_t Nmin, double alpha, double beta, double tau, bool draw_sigma, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false){
+Rcpp::List train_forest_std(Rcpp::NumericMatrix y_rcpp, Rcpp::NumericMatrix X_rcpp, Rcpp::NumericMatrix Xtest_rcpp, Rcpp::IntegerMatrix Xorder_rcpp, size_t M, size_t L, size_t N_sweeps, Rcpp::NumericMatrix max_depth_rcpp, size_t Nmin, double alpha, double beta, double tau, bool draw_sigma, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false){
 
     // matrices are stacked by column
     size_t p = X_rcpp.ncol();
     size_t N = X_rcpp.nrow();
 
     // define matrices
-    xinfo X = create_xinfo(X_rcpp);
-    xinfo Xtest = create_xinfo(Xtest_rcpp);
-    xinfo_sizet Xorder = create_xinfo_sizet(Xorder_rcpp);
+    xinfo X = copy_xinfo(X_rcpp);
+    xinfo Xtest = copy_xinfo(Xtest_rcpp);
+    xinfo_sizet Xorder = copy_xinfo_sizet(Xorder_rcpp);
 
-
+    // xinfo yhats;
 
 
 

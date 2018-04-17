@@ -6,10 +6,15 @@
 #include "treefuns.h"
 
 // copy NumericMatrix to STD matrix
-xinfo create_xinfo(Rcpp::NumericMatrix& X);
+xinfo copy_xinfo(Rcpp::NumericMatrix& X);
 
 // copy IntegerMatrix to STD matrix
-xinfo_sizet create_xinfo_sizet(Rcpp::IntegerMatrix& X);
+xinfo_sizet copy_xinfo_sizet(Rcpp::IntegerMatrix& X);
 
+// // initialize STD matrix
+xinfo ini_xinfo(size_t p, size_t N);
+
+// // initialize STD integer matrix
+xinfo_sizet ini_xinfo_sizet(size_t p, size_t N);
 
 #endif

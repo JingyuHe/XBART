@@ -1,6 +1,6 @@
 #include "utility.h"
 
-xinfo create_xinfo(Rcpp::NumericMatrix& X){
+xinfo copy_xinfo(Rcpp::NumericMatrix& X){
     size_t n_row = X.nrow();
     size_t n_col = X.ncol();
 
@@ -22,7 +22,7 @@ xinfo create_xinfo(Rcpp::NumericMatrix& X){
 }
 
 
-xinfo_sizet create_xinfo_sizet(Rcpp::IntegerMatrix& X){
+xinfo_sizet copy_xinfo_sizet(Rcpp::IntegerMatrix& X){
     size_t n_row = X.nrow();
     size_t n_col = X.ncol();
 
@@ -42,3 +42,25 @@ xinfo_sizet create_xinfo_sizet(Rcpp::IntegerMatrix& X){
     return std::move(Xinfo);
 }
 
+
+xinfo ini_xinfo(size_t p, size_t N){
+    xinfo X;
+    X.resize(p);
+
+    for(size_t i = 0; i < p; i ++){
+        X[i].resize(N);
+    }
+
+    return std::move(X);
+}
+
+xinfo_sizet ini_xinfo_sizet(size_t p, size_t N){
+    xinfo_sizet X;
+    X.resize(p);
+
+    for(size_t i = 0; i < p; i ++){
+        X[i].resize(N);
+    }
+
+    return std::move(X);
+}
