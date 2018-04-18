@@ -43,7 +43,7 @@ xinfo_sizet copy_xinfo_sizet(Rcpp::IntegerMatrix& X){
 }
 
 
-xinfo ini_xinfo(size_t p, size_t N){
+xinfo ini_xinfo(size_t N, size_t p){
     xinfo X;
     X.resize(p);
 
@@ -54,7 +54,7 @@ xinfo ini_xinfo(size_t p, size_t N){
     return std::move(X);
 }
 
-xinfo_sizet ini_xinfo_sizet(size_t p, size_t N){
+xinfo_sizet ini_xinfo_sizet(size_t N, size_t p){
     xinfo_sizet X;
     X.resize(p);
 
@@ -64,3 +64,30 @@ xinfo_sizet ini_xinfo_sizet(size_t p, size_t N){
 
     return std::move(X);
 }
+
+
+std::vector<double> row_sum(xinfo& X){
+    size_t p = X.size();
+    size_t N = X[0].size();
+    std::vector<double> output(N);
+    for(size_t i = 0; i < N; i ++){
+        for(size_t j = 0; j < p; j ++ ){
+            output[i] = output[i] + X[j][i];
+        }
+    }
+    return output;
+}
+
+
+std::vector<double> col_sum(xinfo& X){
+    size_t p = X.size();
+    size_t N = X[0].size();
+    std::vector<double> output(p);
+    for(size_t i = 0; i < p; i ++){
+        for(size_t j = 0; j < N; j ++){
+            output[i] = output[i] + X[i][j];
+        }
+    }
+    return output;
+}
+

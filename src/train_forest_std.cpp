@@ -12,6 +12,7 @@ Rcpp::List train_forest_std(Rcpp::NumericMatrix y_rcpp, Rcpp::NumericMatrix X_rc
     // matrices are stacked by column
     size_t p = X_rcpp.ncol();
     size_t N = X_rcpp.nrow();
+    size_t N_test = Xtest_rcpp.nrow();
 
     // define matrices
     xinfo X = copy_xinfo(X_rcpp);
@@ -19,7 +20,13 @@ Rcpp::List train_forest_std(Rcpp::NumericMatrix y_rcpp, Rcpp::NumericMatrix X_rc
     xinfo_sizet Xorder = copy_xinfo_sizet(Xorder_rcpp);
 
     // xinfo yhats;
+    xinfo yhats = ini_xinfo(N, p);
+    xinfo yhats_test = ini_xinfo(N_test, p);
+    xinfo predictions = ini_xinfo(N, M);
+    std::vector<double> yhat(N);
+    std::vector<double> yhat_test(N_test);
 
+    
 
 
 

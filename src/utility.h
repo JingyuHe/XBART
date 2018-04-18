@@ -12,9 +12,13 @@ xinfo copy_xinfo(Rcpp::NumericMatrix& X);
 xinfo_sizet copy_xinfo_sizet(Rcpp::IntegerMatrix& X);
 
 // // initialize STD matrix
-xinfo ini_xinfo(size_t p, size_t N);
+xinfo ini_xinfo(size_t N, size_t p);
 
 // // initialize STD integer matrix
-xinfo_sizet ini_xinfo_sizet(size_t p, size_t N);
+xinfo_sizet ini_xinfo_sizet(size_t N, size_t p);
+
+std::vector<double> row_sum(xinfo& X);
+
+std::vector<double> col_sum(xinfo& X);
 
 #endif
