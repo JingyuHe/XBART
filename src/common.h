@@ -60,4 +60,13 @@ using std::endl;
 
 #include "rn.h"
 
+
+
+std::ostream& operator<< (std::ostream& out, const std::vector<double>& v);
+std::ostream& operator<< (std::ostream& out, const std::vector<size_t>& v);
+std::ostream& operator<< (std::ostream& out, const std::vector< std::vector<double> >& v);
+std::ostream& operator<< (std::ostream& out, const std::vector< std::vector<size_t> >& v);
+double sum_vec(std::vector<double>& vec);
+
+
 #endif

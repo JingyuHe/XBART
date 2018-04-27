@@ -140,4 +140,3 @@ void fit_new_void(tree& tree, arma::mat& Xnew, arma::mat& pred, size_t& ind){
 }
 
 
-

@@ -38,6 +38,12 @@
         "functional": "cpp",
         "chrono": "cpp",
         "limits": "cpp",
-        "__string": "cpp"
+        "__string": "cpp",
+        "__functional_base": "cpp",
+        "__functional_base_03": "cpp",
+        "__tuple": "cpp",
+        "ratio": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp"
     }
 }

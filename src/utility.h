@@ -21,4 +21,6 @@ std::vector<double> row_sum(xinfo& X);
 
 std::vector<double> col_sum(xinfo& X);
 
+
+
 #endif

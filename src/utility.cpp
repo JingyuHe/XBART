@@ -90,4 +90,3 @@ std::vector<double> col_sum(xinfo& X){
     }
     return output;
 }
-
