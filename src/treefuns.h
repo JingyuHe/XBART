@@ -34,6 +34,8 @@ void grm(tree& tr, xinfo& xi, std::ostream& os);
 //--------------------------------------------------
 //fit tree at matrix of x, matrix is stacked columns x[i,j] is *(x+p*i+j)
 void fit(tree& t, xinfo& xi, size_t p, size_t n, double *x,  double* fv);
+void fit_std(tree& t, size_t p, size_t n, double *x, std::vector<double>& fv);
+void fit_noise_std(tree& t, size_t p, size_t n, double *x, std::vector<double>& fv);
 //--------------------------------------------------
 //does a (bottom) node have variables you can split on?
 bool cansplit(tree::tree_p n, xinfo& xi);

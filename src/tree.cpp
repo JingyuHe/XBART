@@ -230,6 +230,10 @@ void tree::getnodes(cnpv& v)  const
 //--------------------
 tree::tree_p tree::bn(double *x,xinfo& xi)
 {
+
+   // original BART function, v and c are index of split point in xinfo& xi
+
+
    if(l==0) return this; //no children
    if(x[v] <= xi[v][c]) {
        // if smaller than or equals to the cutpoint, go to left child
@@ -241,7 +245,25 @@ tree::tree_p tree::bn(double *x,xinfo& xi)
    }
 }
 
+tree::tree_p tree::bn_std(double *x)
+{
+    // v is variable to split, c is raw value
+    // not index in xinfo, so compare x[v] with c directly
+
+    if(l==0) return this;
+    if(x[v] <= c){
+        return l-> bn_std(x);
+    }else{
+        return r->bn_std(x);
+    }
+}
+
+
 tree::tree_p tree::search_bottom(arma::mat& Xnew){
+
+    // v is variable to split, c is raw value
+    // not index in xinfo, so compare x[v] with c directly
+
     // cout << "c value" << c << endl;
     if(l == 0){
         // cout << "return this" << endl;
@@ -536,7 +558,11 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
 
 
 
-void tree::grow_tree_std(double* y, double& y_mean, xinfo_sizet& Xorder, xinfo& X, size_t N, size_t p, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta, double* residual, bool draw_sigma, bool draw_mu){
+void tree::grow_tree_std(double* y, double& y_mean, xinfo_sizet& Xorder, double* X, size_t N, size_t p, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta, double* residual, bool draw_sigma, bool draw_mu){
+
+    // X is a p * N matrix of data, stacked by row, the (i, j)th entry of the matrix is  *(X+p*i+j)
+    
+   
 
     if(draw_mu == true){
         this->theta = y_mean * N / pow(sigma, 2) / (1.0 / tau + N / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
@@ -549,8 +575,9 @@ void tree::grow_tree_std(double* y, double& y_mean, xinfo_sizet& Xorder, xinfo& 
 
     if(draw_sigma == true){
         tree::tree_p top_p = this->gettop();
-
+        std::vector<double> fptemp(N);
         // draw sigma use residual of noisy theta
+        fit_noise_std( * top_p, p, N, X, fptemp);
         // arma::vec reshat = residual - fit_new_theta_noise( * top_p, X);
         // sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (reshat.n_elem + 16) / 2.0, 2.0 / as_scalar(sum(pow(reshat, 2)) + 4)))));
     }
@@ -571,13 +598,23 @@ void tree::grow_tree_std(double* y, double& y_mean, xinfo_sizet& Xorder, xinfo& 
     BART_likelihood_std(N, p, Xorder, y, loglike_vec, tau, sigma, depth, alpha, beta);
 
 
-    // loglike_vec = loglike_vec - max(loglike_vec);
-    // loglike_vec = exp(loglike_vec);
-    // loglike_vec = loglike_vec / arma::as_scalar(arma::sum(loglike_vec));
-    // Rcpp::IntegerVector temp_ind = Rcpp::seq_len(N) - 1;
-    // // size_t ind = Rcpp::RcppArmadillo::sample(temp_ind, 1, false, loglike_vec)[0]; // replace sample function
-    // size_t split_var = ind / (N - 1);
-    // size_t split_point = ind % (N - 1);
+    double loglike_vec_max = *std::max_element(loglike_vec.begin(), loglike_vec.end());
+    for(size_t i = 0; i < loglike_vec.size(); i ++ ){
+        // take exponents and normalize probability vector
+        loglike_vec[i] = exp(loglike_vec[i] - loglike_vec_max);
+    }
+
+    // sample from multinomial distribution
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::discrete_distribution<> d(loglike_vec.begin(), loglike_vec.end());
+    // sample one index of split point
+    size_t ind = d(gen); 
+
+    // find corresponding split point index in Xorder
+    size_t split_var = ind / (N - 1);
+    size_t split_point = ind % (N - 1);
+
 
 }
 
