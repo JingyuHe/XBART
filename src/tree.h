@@ -24,17 +24,13 @@
 #include <cmath>
 #include <cstddef>
 #include "common.h"
-// #include "utility.h"
+#include "utility.h"
 
 // [[Rcpp::plugins(cpp11)]]
 //--------------------------------------------------
 //xinfo xi, then xi[v][c] is the c^{th} cutpoint for variable v.
 //left if x[v] < xi[v][c]
-typedef std::vector<double> vec_d; //double vector
-typedef std::vector<vec_d> xinfo; //vector of vectors, will be split rules
-typedef std::vector<size_t> vec_sizet; // unsigned int vector
-typedef std::vector<vec_sizet> xinfo_sizet;
-xinfo_sizet ini_xinfo_sizet(size_t N, size_t p);
+
 
 //--------------------------------------------------
 //find best split variable and value, CART

@@ -2,8 +2,7 @@
 #define GUARD_utility_h
 
 #include "common.h"
-#include "tree.h"
-#include "treefuns.h"
+
 
 // copy NumericMatrix to STD matrix
 xinfo copy_xinfo(Rcpp::NumericMatrix& X);
@@ -21,6 +20,8 @@ std::vector<double> row_sum(xinfo& X);
 
 std::vector<double> col_sum(xinfo& X);
 
+double sum_squared(std::vector<double> v);
 
+double sum_vec(std::vector<double>& v);
 
 #endif

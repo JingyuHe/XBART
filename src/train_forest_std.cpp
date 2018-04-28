@@ -3,7 +3,7 @@
 #include "tree.h"
 #include "treefuns.h"
 #include "forest.h"
-#include "utility.h"
+// #include "utility.h"
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
@@ -13,6 +13,10 @@ Rcpp::List train_forest_std(Rcpp::NumericMatrix y_rcpp, Rcpp::NumericMatrix X_rc
     size_t p = X_rcpp.ncol();
     size_t N = X_rcpp.nrow();
     size_t N_test = Xtest_rcpp.nrow();
+
+    // random number generator
+    std::default_random_engine generator;
+    std::gamma_distribution<double> gamma_d;
 
     // define matrices
     xinfo_sizet Xorder = copy_xinfo_sizet(Xorder_rcpp);
@@ -60,6 +64,7 @@ Rcpp::List train_forest_std(Rcpp::NumericMatrix y_rcpp, Rcpp::NumericMatrix X_rc
         
                 if(m_update_sigma == true){
                     // sampling sigma
+                    
                 }
                 sigma_draw[sweeps][tree_ind] = sigma;
 

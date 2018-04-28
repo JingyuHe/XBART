@@ -90,3 +90,25 @@ std::vector<double> col_sum(xinfo& X){
     }
     return output;
 }
+
+
+double sum_squared(std::vector<double> v){
+    size_t N = v.size();
+    double output = 0.0;
+    for(size_t i = 0; i < N; i ++ ){
+        output = output + pow(v[i], 2);
+    }
+    return output;
+}
+
+
+double sum_vec(std::vector<double>& v){
+    size_t N = v.size();
+    double output = 0;
+    for(size_t i = 0; i < N; i ++){
+        output = output + v[i];
+    }
+    return output;
+}
+
+

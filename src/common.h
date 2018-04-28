@@ -66,7 +66,15 @@ std::ostream& operator<< (std::ostream& out, const std::vector<double>& v);
 std::ostream& operator<< (std::ostream& out, const std::vector<size_t>& v);
 std::ostream& operator<< (std::ostream& out, const std::vector< std::vector<double> >& v);
 std::ostream& operator<< (std::ostream& out, const std::vector< std::vector<size_t> >& v);
-double sum_vec(std::vector<double>& vec);
+
+
+
+
+
+typedef std::vector<double> vec_d; //double vector
+typedef std::vector<vec_d> xinfo; //vector of vectors, will be split rules
+typedef std::vector<size_t> vec_sizet; // unsigned int vector
+typedef std::vector<vec_sizet> xinfo_sizet;
 
 
 #endif

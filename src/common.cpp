@@ -41,13 +41,3 @@ std::ostream& operator<< (std::ostream& out, const std::vector< std::vector<size
 }
 
 
-double sum_vec(std::vector<double>& vec){
-    size_t N = vec.size();
-    double output = 0;
-    for(size_t i = 0; i < N; i ++){
-        output = output + vec[i];
-    }
-    return output;
-}
-
-

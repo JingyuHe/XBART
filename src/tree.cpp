@@ -21,16 +21,7 @@
 #include "treefuns.h"
 #include <RcppArmadilloExtensions/sample.h>
 
-// xinfo_sizet ini_xinfo_sizet(size_t N, size_t p){
-//     xinfo_sizet X;
-//     X.resize(p);
 
-//     for(size_t i = 0; i < p; i ++){
-//         X[i].resize(N);
-//     }
-
-//     return std::move(X);
-// }
 //--------------------
 // node id
 size_t tree::nid() const 
