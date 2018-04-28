@@ -51,17 +51,3 @@ double sum_vec(std::vector<double>& vec){
 }
 
 
-// vector<double> operator+(const vector<double>& v1, const vector<double>& v2)
-// {
-//     size_t N1 = v1.size();
-//     size_t N2 = v2.size();
-//     if(N1 != N2){
-//         cout << "wrong dimension" << endl;
-//     }else{
-//         vector<double> output(N1);
-//         for(size_t i = 0; i < N1; i ++){
-//             output[i] = v1[i] + v2[i];
-//         }
-//     }
-//     return output;
-// }

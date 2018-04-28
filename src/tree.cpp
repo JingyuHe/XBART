@@ -21,7 +21,16 @@
 #include "treefuns.h"
 #include <RcppArmadilloExtensions/sample.h>
 
+// xinfo_sizet ini_xinfo_sizet(size_t N, size_t p){
+//     xinfo_sizet X;
+//     X.resize(p);
 
+//     for(size_t i = 0; i < p; i ++){
+//         X[i].resize(N);
+//     }
+
+//     return std::move(X);
+// }
 //--------------------
 // node id
 size_t tree::nid() const 
@@ -561,8 +570,6 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
 void tree::grow_tree_std(double* y, double& y_mean, xinfo_sizet& Xorder, double* X, size_t N, size_t p, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta, double* residual, bool draw_sigma, bool draw_mu){
 
     // X is a p * N matrix of data, stacked by row, the (i, j)th entry of the matrix is  *(X+p*i+j)
-    
-   
 
     if(draw_mu == true){
         this->theta = y_mean * N / pow(sigma, 2) / (1.0 / tau + N / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
@@ -616,6 +623,41 @@ void tree::grow_tree_std(double* y, double& y_mean, xinfo_sizet& Xorder, double*
     size_t split_point = ind % (N - 1);
 
 
+    if(ind == loglike_vec.size() - 1){
+        // cout << "early termination" << endl;
+        return;
+    }
+
+    // save split variable and value to tree object
+    this -> v = split_var;
+
+    // Xorder[split_var][split_point]
+    this -> c =  *(X + p * split_var + Xorder[split_var][split_point]);
+
+
+    xinfo_sizet Xorder_left = ini_xinfo_sizet(split_point + 1, p);
+    xinfo_sizet Xorder_right = ini_xinfo_sizet(N - split_point - 1, p);
+
+
+    split_xorder_std(Xorder_left, Xorder_right, Xorder, X, split_var, split_point, N , p);
+
+
+    double yleft_mean;// = arma::as_scalar(arma::mean(y(Xorder_left.col(split_var))));
+    double yright_mean;// = arma::as_scalar(arma::mean(y(Xorder_right.col(split_var))));
+
+    size_t N_left = split_point + 1;
+    size_t N_right = N - split_point - 1;
+
+    depth = depth + 1;
+    tree::tree_p lchild = new tree();
+    lchild->grow_tree_std(y, yleft_mean, Xorder_left, X, N_left, p, depth, max_depth, Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
+    tree::tree_p rchild = new tree();
+    rchild->grow_tree_std(y, yright_mean, Xorder_right, X, N_right, p, depth, max_depth, Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
+    lchild -> p = this;
+    rchild -> p = this;
+    this -> l = lchild;
+    this -> r = rchild;
+
 }
 
 
@@ -646,7 +688,7 @@ void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat&
 }
 
 
-void split_xorder_std(xinfo_sizet& Xorder_left, xinfo_sizet& Xorder_right, xinfo_sizet& Xorder, xinfo& X, size_t split_var, size_t split_point, size_t N, size_t p){
+void split_xorder_std(xinfo_sizet& Xorder_left, xinfo_sizet& Xorder_right, xinfo_sizet& Xorder, double *  X, size_t split_var, size_t split_point, size_t N, size_t p){
     // N is number of rows for Xorder
     size_t left_ix = 0;
     size_t right_ix = 0;
@@ -656,7 +698,9 @@ void split_xorder_std(xinfo_sizet& Xorder_left, xinfo_sizet& Xorder_right, xinfo
         for(size_t j = 0; j < N; j ++){
             // Xorder(j, i), jth row and ith column
             // look at X(Xorder(j, i), split_var)
-            if(X[split_var][Xorder[i][j]] <= X[split_var][Xorder[split_var][split_point]]){
+            // X[split_var][Xorder[i][j]]
+            // X[split_var][Xorder[split_var][split_point]]
+            if( *(X + p * split_var + Xorder[i][j])<= *(X + p * split_var + Xorder[split_var][split_point])){
                 // copy a row
                 for(size_t k = 0; k < p; k ++){
                     Xorder_left[i][left_ix] = Xorder[i][j];

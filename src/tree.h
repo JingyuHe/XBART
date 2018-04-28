@@ -24,6 +24,7 @@
 #include <cmath>
 #include <cstddef>
 #include "common.h"
+// #include "utility.h"
 
 // [[Rcpp::plugins(cpp11)]]
 //--------------------------------------------------
@@ -33,11 +34,12 @@ typedef std::vector<double> vec_d; //double vector
 typedef std::vector<vec_d> xinfo; //vector of vectors, will be split rules
 typedef std::vector<size_t> vec_sizet; // unsigned int vector
 typedef std::vector<vec_sizet> xinfo_sizet;
+xinfo_sizet ini_xinfo_sizet(size_t N, size_t p);
 
 //--------------------------------------------------
 //find best split variable and value, CART
 void split_error(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split, arma::vec& least_error);
-void split_xorder_std(xinfo_sizet& Xorder_left, xinfo_sizet& Xorder_right, xinfo_sizet& Xorder, xinfo& X, size_t split_var, size_t split_point, size_t N, size_t p);
+void split_xorder_std(xinfo_sizet& Xorder_left, xinfo_sizet& Xorder_right, xinfo_sizet& Xorder, double *  X, size_t split_var, size_t split_point, size_t N, size_t p);
 void BART_likelihood(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, double tau, double sigma, size_t depth, double alpha, double beta);
 void BART_likelihood_std(size_t N, size_t p, xinfo_sizet& Xorder, double* y, std::vector<double>& loglike, double& tau, double& sigma, size_t& depth, double& alpha, double& beta);
 void cumulative_sum_std(std::vector<double>& y_cumsum, std::vector<double>& y_cumsum_inv, double& y_sum, double* y, xinfo_sizet& Xorder, size_t& i, size_t& N);

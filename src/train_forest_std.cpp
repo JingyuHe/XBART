@@ -15,157 +15,116 @@ Rcpp::List train_forest_std(Rcpp::NumericMatrix y_rcpp, Rcpp::NumericMatrix X_rc
     size_t N_test = Xtest_rcpp.nrow();
 
     // define matrices
-    xinfo X = copy_xinfo(X_rcpp);
-    xinfo Xtest = copy_xinfo(Xtest_rcpp);
     xinfo_sizet Xorder = copy_xinfo_sizet(Xorder_rcpp);
 
+    // X and Xtest are pointers to the matrix
+    // matrix are p * n, stack by row
+    double *X = &X_rcpp[0];
+    double *Xtest = &Xtest_rcpp[0];
+
+    // max_depth is a matrix, number of trees by number of sweeps
+    // double *max_depth = &max_depth_rcpp[0];
+    size_t max_depth;
+
     // xinfo yhats;
-    xinfo yhats = ini_xinfo(N, p);
+    xinfo yhats = ini_xinfo(N, p); // vector of vectors, stack by column
     xinfo yhats_test = ini_xinfo(N_test, p);
     xinfo predictions = ini_xinfo(N, M);
+    xinfo predictions_test = ini_xinfo(N_test, M);
     std::vector<double> yhat(N);
     std::vector<double> yhat_test(N_test);
 
-    
+    std::vector<double> residual(N);
+    std::vector<double> residual_theta_noise(N);
+    xinfo sigma_draw = ini_xinfo(M, N_sweeps);
+
+    double sigma;
+
+    forest trees(M);
+
+    std::vector<double> reshat(N);
+    std::vector<double> reshat_test(N_test);
 
 
+    for(size_t mc = 0; mc < L; mc ++ ){
 
+        for(size_t sweeps = 0; sweeps < N_sweeps; sweeps ++ ){
 
-    // size_t N = X.n_rows;
+            if(verbose == true){
+                cout << "--------------------------------" << endl;
+                cout << "number of sweeps " << sweeps << endl;
+                cout << "--------------------------------" << endl;
+            }
 
-    // arma::umat Xorder(X.n_rows, X.n_cols);
-    // for(size_t i = 0; i < X.n_cols; i++){
-    //     Xorder.col(i) = arma::sort_index(X.col(i));
-    // }
+            for(size_t tree_ind = 0; tree_ind < M; tree_ind ++ ){
+        
+                if(m_update_sigma == true){
+                    // sampling sigma
+                }
+                sigma_draw[sweeps][tree_ind] = sigma;
 
+                // add prediction of current tree back to residual
+                // then it's m - 1 trees residual
+                for(size_t i = 0; i < N; i ++ ){
+                    residual[i] = residual[i] + predictions[tree_ind][i];
+                    // prediction of m - 1 trees
+                    yhat[i] = yhat[i] - predictions[tree_ind][i];
+                }
 
-    // arma::mat yhats = arma::zeros<arma::mat>(X.n_rows, N_sweeps);
+                // do the samething for residual_theta_noise, residual of m - 1 trees
+                for(size_t i = 0; i < N; i ++ ){
+                    residual_theta_noise[i] = residual_theta_noise[i] + predictions[tree_ind][i];
+                }
 
-    // arma::mat yhats_test = arma::zeros<arma::mat>(Xtest.n_rows, N_sweeps);
+                for(size_t i = 0; i < N_test; i ++ ){
+                    yhat_test[i] = yhat_test[i] - predictions_test[tree_ind][i];
+                }
 
-    // // save predictions of each tree
-    // arma::mat predictions(X.n_rows, M);
-
-    // // save predictions (based on theta_noise) of each tree
-    // // arma::mat predictions_theta_noise(X.n_rows, M);
-
-    // arma::mat predictions_test(Xtest.n_rows, M);
-
-    // arma::vec yhat = arma::sum(predictions, 1);
-
-    // arma::vec yhat_test = arma::zeros<arma::vec>(Xtest.n_rows);
-
-    // // current residual
-    // arma::vec residual;
-
-    // // current residual (based on theta_noise)
-    // // arma::vec residual_theta_noise;
-
-    // arma::mat sigma_draw(M, N_sweeps);
-
-    // double sigma;
-
-    // // double tau;
-
-    // forest trees(M);
-
-    // arma::vec reshat;
-
-    // arma::vec reshat_test;
-
-
-    // for(size_t mc = 0; mc < L; mc ++ ){
-
-    //     // initialize
-    //     predictions.fill(arma::as_scalar(arma::mean(y)) / (double) M);
-
-    //     // predictions_theta_noise.fill(arma::as_scalar(arma::mean(y)) / (double) M);
-
-    //     predictions_test.fill(arma::as_scalar(arma::mean(y)) / (double) M);
-
-    //     yhat = arma::sum(predictions, 1);
-
-    //     yhat_test = arma::sum(predictions_test, 1);
-
-    //     residual = y - yhat;
-
-    //     // residual_theta_noise = y - yhat;
-
-    //     for(size_t sweeps = 0; sweeps < N_sweeps; sweeps ++){
-
-    //         if(verbose == true){
-    //         cout << "--------------------------------" << endl;
-    //         cout << "number of sweeps " << sweeps << endl;
-    //         cout << "--------------------------------" << endl;
-    //         }
-
-    //         for(size_t tree_ind = 0; tree_ind < M; tree_ind ++){
-
-
-    //             // if update sigma based on residual of all m trees
-    //             if(m_update_sigma == true){
-    //                  sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
-    //             }
-
-    //             // save sigma
-    //             sigma_draw(tree_ind, sweeps) = sigma;
-
-    //             // add prediction of current tree back to residual
-    //             // then it's m - 1 trees residual
-    //             residual = residual + predictions.col(tree_ind);
-
-    //             // do the samething for residual_theta_noise, residual of m - 1 trees
-    //             // residual_theta_noise = residual_theta_noise + predictions_theta_noise.col(tree_ind);
-
-    //             // prediction of m - 1 trees
-    //             yhat = yhat - predictions.col(tree_ind);
-
-    //             // prediction of m - 1 trees on testing set
-    //             yhat_test = yhat_test - predictions_test.col(tree_ind);
-
-    //             // grow a tree
-    //             trees.t[tree_ind].grow_tree_2(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
-
-
-    //             if(verbose == true){
-    //             cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
-    //             }
+                double mean_y = 0;
+                for(size_t i = 0; i < N; i ++ ){
+                    mean_y = mean_y + residual[i];
+                }
+                mean_y = mean_y / (double) N;
                 
-    //             // update prediction of current tree
-    //             predictions.col(tree_ind) = fit_new(trees.t[tree_ind], X);
+                // update the current tree
+                trees.t[tree_ind].grow_tree_std(&residual[0], mean_y, Xorder, X, N, p, 0, max_depth_rcpp(tree_ind, sweeps), Nmin, tau, sigma, alpha, beta, &residual[0], draw_sigma, draw_mu);
 
-    //             // update prediction (theta_noise) of current tree
-    //             // predictions_theta_noise.col(tree_ind) = fit_new_theta_noise(trees.t[tree_ind], X);
+                if(verbose == true){
+                    cout << "tree" << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
+                }
 
-    //             // update prediction of current tree, test set
-    //             predictions_test.col(tree_ind) = fit_new(trees.t[tree_ind], Xtest);
+                // update prediction of current tree
+                fit_std(trees.t[tree_ind], p, N, X, predictions[tree_ind]);
 
-    //             // fit_new_void(trees.t[tree], Xtest, predictions_test, tree);
+                // update prediction of current tree, on test set
+                fit_std(trees.t[tree_ind], p, N_test, Xtest, predictions_test[tree_ind]);
 
-    //             // update sigma based on residual of m - 1 trees, residual_theta_noise
-    //             if(m_update_sigma == false){
+                // update sigma based on residual of m - 1 trees, rather than residual of m trees
+                if(m_update_sigma == false){
 
-    //                 sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
+                }
 
-    //             }
+                // update residuals, now it's residual of m trees
+                for(size_t i = 0; i < N; i ++ ){
+                    residual[i] = residual[i] - predictions[tree_ind][i];
+                    yhat[i] = yhat[i] + predictions[tree_ind][i];
+                }
 
-    //             // update residual, now it's residual of m trees
-    //             residual = residual - predictions.col(tree_ind);
+                // update yhat_test
+                for(size_t i = 0; i < N_test; i ++ ){
+                    yhat_test[i] = yhat_test[i] + predictions[tree_ind][i];
+                }
 
-    //             // residual_theta_noise = residual_theta_noise - predictions_theta_noise.col(tree_ind);
+                
+            }
+        
+        yhats[sweeps] = yhat;
+        yhats_test[sweeps] = yhat_test;
 
-    //             yhat = yhat + predictions.col(tree_ind);
+        }
+    }
 
-    //             yhat_test = yhat_test + predictions_test.col(tree_ind);
 
-    //         }
-    //     yhats.col(sweeps) = yhat;
-    //     yhats_test.col(sweeps) = yhat_test;
-    //     }
-
-    // }
-
-    // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw);
     return Rcpp::List::create(Rcpp::Named("aaa") = 1.0);
 }
 
