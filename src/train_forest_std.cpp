@@ -64,7 +64,8 @@ Rcpp::List train_forest_std(Rcpp::NumericMatrix y_rcpp, Rcpp::NumericMatrix X_rc
         
                 if(m_update_sigma == true){
                     // sampling sigma
-                    
+                    gamma_d = std::gamma_distribution<double>((N + kap) / 2.0, 2.0 / sum_squared(residual) + s);
+                    sigma = 1.0 / gamma_d(generator);
                 }
                 sigma_draw[sweeps][tree_ind] = sigma;
 
@@ -106,7 +107,8 @@ Rcpp::List train_forest_std(Rcpp::NumericMatrix y_rcpp, Rcpp::NumericMatrix X_rc
 
                 // update sigma based on residual of m - 1 trees, rather than residual of m trees
                 if(m_update_sigma == false){
-
+                    gamma_d = std::gamma_distribution<double>((N + kap) / 2.0, 2.0 / sum_squared(residual) + s);
+                    sigma = 1.0 / gamma_d(generator);
                 }
 
                 // update residuals, now it's residual of m trees
