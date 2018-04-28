@@ -455,14 +455,11 @@ void tree::deathp(tree_p nb, double theta)
 
 
 
-void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta, arma::vec& residual, bool draw_sigma, bool draw_mu){
+void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta, arma::vec& residual, bool draw_sigma, bool draw_mu){
     // this function is more randomized
     // sample from several best split points
 
     // tau is prior VARIANCE, do not take squares
-
-    
-    
     
     if(draw_mu == true){
         this->theta = y_mean * Xorder.n_rows / pow(sigma, 2) / (1.0 / tau + Xorder.n_rows / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + Xorder.n_rows / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
@@ -506,10 +503,7 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
 
     arma::vec loglike_vec((N - 1) * p + 1);
 
-    BART_likelihood(Xorder, y, loglike_vec, tau, sigma, depth, alpha, beta);
-    loglike_vec = loglike_vec - max(loglike_vec);
-    loglike_vec = exp(loglike_vec);
-    loglike_vec = loglike_vec / arma::as_scalar(arma::sum(loglike_vec));
+    BART_likelihood(Xorder, y, loglike_vec, tau, sigma, depth, Nmin, alpha, beta);
     Rcpp::IntegerVector temp_ind = Rcpp::seq_len(loglike_vec.n_elem) - 1;
     size_t ind = Rcpp::RcppArmadillo::sample(temp_ind, 1, false, loglike_vec)[0];
     size_t split_var = ind / (N - 1);
@@ -542,9 +536,9 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
 
     depth = depth + 1;
     tree::tree_p lchild = new tree();
-    lchild->grow_tree_2(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
+    lchild->grow_tree(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
     tree::tree_p rchild = new tree();
-    rchild->grow_tree_2(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
+    rchild->grow_tree(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
     lchild -> p = this;
     rchild -> p = this;
     this -> l = lchild;
@@ -556,6 +550,100 @@ void tree::grow_tree_2(arma::vec& y, double y_mean, arma::umat& Xorder, arma::ma
 }
 
 
+void tree::grow_tree_adaptive(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta, arma::vec& residual, bool draw_sigma, bool draw_mu){
+    // this function is more randomized
+    // sample from several best split points
+
+    // tau is prior VARIANCE, do not take squares
+    
+    if(draw_mu == true){
+        this->theta = y_mean * Xorder.n_rows / pow(sigma, 2) / (1.0 / tau + Xorder.n_rows / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + Xorder.n_rows / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
+        this->theta_noise = this->theta ;
+    }else{
+        this->theta = y_mean * Xorder.n_rows / pow(sigma, 2) / (1.0 / tau + Xorder.n_rows / pow(sigma, 2));
+
+        this->theta_noise = this->theta; // identical to theta
+    }
+    // this->theta_noise = this->theta;
+
+
+    // cout << "ok" << endl;    
+
+    if(draw_sigma == true){
+        tree::tree_p top_p = this->gettop();
+
+        // draw sigma use residual of noisy theta
+        arma::vec reshat = residual - fit_new_theta_noise( * top_p, X);
+        sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (reshat.n_elem + 16) / 2.0, 2.0 / as_scalar(sum(pow(reshat, 2)) + 4)))));
+    }
+
+    this->sig = sigma;
+
+    // theta = y_mean / pow(sigma, 2) * 1.0 / (1.0 / pow(tau, 2) + 1.0 / pow(sigma, 2));
+
+    // cout << Xorder.n_rows << endl;
+    if(Xorder.n_rows <= Nmin){
+        return;
+    }
+
+    if(depth >= max_depth - 1){
+        return;
+    }
+
+    size_t N = Xorder.n_rows;
+    size_t p = Xorder.n_cols;
+    // arma::umat best_split = arma::zeros<arma::umat>(Xorder.n_rows, Xorder.n_cols);
+    
+
+
+    arma::vec loglike_vec((N - 1) * p + 1);
+
+    BART_likelihood(Xorder, y, loglike_vec, tau, sigma, depth, Nmin, alpha, beta);
+    
+    Rcpp::IntegerVector temp_ind = Rcpp::seq_len(loglike_vec.n_elem) - 1;
+    size_t ind = Rcpp::RcppArmadillo::sample(temp_ind, 1, false, loglike_vec)[0];
+    size_t split_var = ind / (N - 1);
+    size_t split_point = ind % (N - 1);
+
+    if(ind == loglike_vec.n_elem - 1){
+        // cout << "early termination" << endl;
+        return;
+    }
+
+    
+    this -> v = split_var;
+
+    this -> c =  X(Xorder(split_point, split_var), split_var);
+
+    // if(split_point + 1 < Nmin || Xorder.n_rows - split_point - 1 < Nmin){
+    //     return;
+    // }
+
+
+    arma::umat Xorder_left = arma::zeros<arma::umat>(split_point + 1, Xorder.n_cols);
+    arma::umat Xorder_right = arma::zeros<arma::umat>(Xorder.n_rows - split_point - 1, Xorder.n_cols);
+
+    split_xorder(Xorder_left, Xorder_right, Xorder, X, split_var, split_point);
+
+
+
+    double yleft_mean = arma::as_scalar(arma::mean(y(Xorder_left.col(split_var))));
+    double yright_mean = arma::as_scalar(arma::mean(y(Xorder_right.col(split_var))));
+
+    depth = depth + 1;
+    tree::tree_p lchild = new tree();
+    lchild->grow_tree(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
+    tree::tree_p rchild = new tree();
+    rchild->grow_tree(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
+    lchild -> p = this;
+    rchild -> p = this;
+    this -> l = lchild;
+    this -> r = rchild;
+
+
+
+    return;
+}
 
 
 void tree::grow_tree_std(double* y, double& y_mean, xinfo_sizet& Xorder, double* X, size_t N, size_t p, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta, double* residual, bool draw_sigma, bool draw_mu){
@@ -780,12 +868,14 @@ void split_error(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split,
 
 
 
-void BART_likelihood(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, double tau, double sigma, size_t depth, double alpha, double beta){
+void BART_likelihood(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike, double tau, double sigma, size_t depth, size_t Nmin, double alpha, double beta){
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
 
     // faster than split_error_3
-    // use stacked vector loglike instead of a matrix, no need to convert, but harder to read the code
+    // use stacked vector loglike instead of a matrix, stacked by column
+    // length of loglike is p * (N - 1) + 1
+    // N - 1 has to be greater than 2 * Nmin
 
     size_t N = Xorder.n_rows;
     size_t p = Xorder.n_cols;
@@ -823,7 +913,17 @@ void BART_likelihood(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike,
     // add penalty term
     // loglike.row(N - 1) = loglike.row(N - 1) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
     
+    loglike = loglike - max(loglike);
+    loglike = exp(loglike);
+    loglike = loglike / arma::as_scalar(arma::sum(loglike));
 
+    if((N - 1) > 2 * Nmin){
+        for(size_t i = 0; i < p; i ++ ){
+            // delete some candidates, otherwise size of the new node can be smaller than Nmin
+            loglike(arma::span(i * (N - 1), i * (N - 1) + Nmin)).fill(0);
+            loglike(arma::span(i * (N - 1) + N - 2 - Nmin, i * (N - 1) + N - 2)).fill(0);
+        }
+    }
     return;
 }
 
