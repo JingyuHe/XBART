@@ -335,13 +335,13 @@ void BART_likelihood(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike,
     loglike = exp(loglike);
     loglike = loglike / arma::as_scalar(arma::sum(loglike));
 
-    if((N - 1) > 2 * Nmin){
-        for(size_t i = 0; i < p; i ++ ){
-            // delete some candidates, otherwise size of the new node can be smaller than Nmin
-            loglike(arma::span(i * (N - 1), i * (N - 1) + Nmin)).fill(0);
-            loglike(arma::span(i * (N - 1) + N - 2 - Nmin, i * (N - 1) + N - 2)).fill(0);
-        }
-    }
+    // if((N - 1) > 2 * Nmin){
+    //     for(size_t i = 0; i < p; i ++ ){
+    //         // delete some candidates, otherwise size of the new node can be smaller than Nmin
+    //         loglike(arma::span(i * (N - 1), i * (N - 1) + Nmin)).fill(0);
+    //         loglike(arma::span(i * (N - 1) + N - 2 - Nmin, i * (N - 1) + N - 2)).fill(0);
+    //     }
+    // }
     return;
 }
 
