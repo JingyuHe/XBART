@@ -604,7 +604,6 @@ void tree::grow_tree_adaptive(arma::vec& y, double y_mean, arma::umat& Xorder, a
 
     BART_likelihood_adaptive(Xorder, y, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, ind, split_var, split_point);
 
-
     if(ind == (N - 1) * p){
         cout << "early termination" << endl;
         return;
@@ -630,18 +629,18 @@ void tree::grow_tree_adaptive(arma::vec& y, double y_mean, arma::umat& Xorder, a
     double yleft_mean = arma::as_scalar(arma::mean(y(Xorder_left.col(split_var))));
     double yright_mean = arma::as_scalar(arma::mean(y(Xorder_right.col(split_var))));
 
+    depth = depth + 1;
+    tree::tree_p lchild = new tree();
+    lchild->grow_tree_adaptive(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
+    tree::tree_p rchild = new tree();
+    rchild->grow_tree_adaptive(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
+
+
     // depth = depth + 1;
     // tree::tree_p lchild = new tree();
-    // lchild->grow_tree_adaptive(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
+    // lchild->grow_tree(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
     // tree::tree_p rchild = new tree();
-    // rchild->grow_tree_adaptive(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
-
-
-        depth = depth + 1;
-    tree::tree_p lchild = new tree();
-    lchild->grow_tree(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
-    tree::tree_p rchild = new tree();
-    rchild->grow_tree(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
+    // rchild->grow_tree(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
 
     lchild -> p = this;
     rchild -> p = this;
@@ -941,15 +940,13 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau
 
     size_t N = Xorder.n_rows;
     size_t p = Xorder.n_cols;
-    
 
     double y_sum;
-
-
 
     double sigma2 = pow(sigma, 2);
     
     if( N - 1 - 2 * Nmin <= Ncutpoints){
+        // cout << "all cutpoints" << endl;
         arma::vec n1tau = tau * arma::linspace(1, N - 1, N - 1);
         arma::vec n2tau = tau * arma::linspace(N - 1, 1, N - 1);
         arma::vec loglike((N - 1) * p + 1);
@@ -996,7 +993,8 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau
         split_point = ind % (N - 1);
 
     }else{
-
+        y_sum = arma::as_scalar(arma::sum(y(Xorder.col(0))));
+        // cout << "not all points" << endl;
         arma::vec loglike(Ncutpoints * p + 1);
         // otherwise, simplify calculate, use only Ncutpoints splitpoint candidates
         // note that the first Nmin and last Nmin cannot be splitpoint candidate
@@ -1006,47 +1004,41 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau
         arma::vec n1tau = tau * (1.0 + arma::conv_to<arma::vec>::from(candidate_index)); // plus 1 because the index starts from 0, we want count of observations
         arma::vec n2tau = tau * N  - n1tau;
 
-        // cout << candidate_index << endl;    
-        // cout << n1tau << endl;
-        // cout << n2tau << endl;
-
         // compute cumulative sum of chunks
-        arma::vec y_cumsum_chunk(Ncutpoints+1);
         arma::vec y_cumsum(Ncutpoints);
         arma::vec y_cumsum_inv(Ncutpoints);
-        arma::vec temp;
         arma::vec y_sort(N);
-        for(size_t i = 0; i < p; i ++ ){
-            // cout << p << endl;
-            // cout << loglike.n_elem << endl;
-            // cout << y_cumsum.n_elem << endl;
-            y_sort = y(Xorder.col(i));
-            cumsum_chunk(y_sort, candidate_index, y_cumsum_chunk);
-            // cout << "p is" << p << endl;
-            // cout << i << endl;
-            // calculate_y_cumsum(y_cumsum_chunk, y_cumsum, y_cumsum_inv);
-            calculate_y_cumsum(y_sort, candidate_index, y_cumsum, y_cumsum_inv);
 
-            // cout << y_cumsum + y_cumsum_inv<< endl;
+
+        for(size_t i = 0; i < p; i ++ ){
+
+            y_sort = y(Xorder.col(i));
+
+            calculate_y_cumsum(y_sort, y_sum, candidate_index, y_cumsum, y_cumsum_inv);
 
             loglike(arma::span(i * Ncutpoints, i * Ncutpoints + Ncutpoints - 1)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv, 2)/(sigma2 * (n2tau + sigma2));
         }
 
-        // cout << loglike << endl;
 
         loglike(loglike.n_elem - 1) = - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
+
+        // for(size_t i = 0; i < loglike.n_elem; i ++ ){
+            // cout << loglike(i);
+        // }
+        // cout << arma::sum(y_cumsum) <<  "    " << arma::sum(y_cumsum_inv) << endl;
+        // cout << sigma2 << endl;
+
         loglike = loglike - max(loglike);
         loglike = exp(loglike);
         loglike = loglike / arma::as_scalar(arma::sum(loglike));
+
         Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(loglike.n_elem) - 1;
         ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
         split_var = ind / Ncutpoints;
         split_point = candidate_index(ind % Ncutpoints);
 
-        // cout << loglike << endl;
-        // cout << "split var" << split_var << endl;
-        // cout << ind % Ncutpoints << endl;
-        // cout << "split point" << split_point << endl;
+        // cout << split_var << split_point << endl;
+
     }
     return;
 }
