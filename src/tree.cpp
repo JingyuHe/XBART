@@ -605,7 +605,7 @@ void tree::grow_tree_adaptive(arma::vec& y, double y_mean, arma::umat& Xorder, a
     BART_likelihood_adaptive(Xorder, y, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, ind, split_var, split_point);
 
     if(ind == (N - 1) * p){
-        cout << "early termination" << endl;
+        // cout << "early termination" << endl;
         return;
     }
 
@@ -945,8 +945,9 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau
 
     double sigma2 = pow(sigma, 2);
     
-    if( N - 1 - 2 * Nmin <= Ncutpoints){
-        // cout << "all cutpoints" << endl;
+    if( N  <= Ncutpoints + 1 + 2 * Nmin){
+        // N - 1 - 2 * Nmin <= Ncutpoints
+        // cout << "all cutpoints  "  <<  N << "  " << N - 1 - 2 * Nmin << "  "<< Ncutpoints << endl;
         arma::vec n1tau = tau * arma::linspace(1, N - 1, N - 1);
         arma::vec n2tau = tau * arma::linspace(N - 1, 1, N - 1);
         arma::vec loglike((N - 1) * p + 1);
@@ -994,7 +995,6 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau
 
     }else{
         y_sum = arma::as_scalar(arma::sum(y(Xorder.col(0))));
-        // cout << "not all points" << endl;
         arma::vec loglike(Ncutpoints * p + 1);
         // otherwise, simplify calculate, use only Ncutpoints splitpoint candidates
         // note that the first Nmin and last Nmin cannot be splitpoint candidate
@@ -1023,11 +1023,13 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau
         loglike(loglike.n_elem - 1) = - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
 
         // for(size_t i = 0; i < loglike.n_elem; i ++ ){
-            // cout << loglike(i);
+            // cout << loglike(i) << "   ";
         // }
-        // cout << arma::sum(y_cumsum) <<  "    " << arma::sum(y_cumsum_inv) << endl;
-        // cout << sigma2 << endl;
 
+        // cout << endl;
+        
+
+    
         loglike = loglike - max(loglike);
         loglike = exp(loglike);
         loglike = loglike / arma::as_scalar(arma::sum(loglike));

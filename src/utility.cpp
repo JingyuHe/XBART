@@ -139,15 +139,16 @@ void calculate_y_cumsum(arma::vec& y, double y_sum, arma::uvec& ind, arma::vec& 
         if(i <= ind[ind_ind]){
             y_cumsum_chunk[ind_ind] = y_cumsum_chunk[ind_ind] + y[i];
         }else{
-            if(ind_ind < M){
-                ind_ind = ind_ind + 1;
-            }
+              if(ind_ind < M - 1){
+                 ind_ind = ind_ind + 1;
+             }
             y_cumsum_chunk[ind_ind] = 0;
             y_cumsum_chunk[ind_ind] = y_cumsum_chunk[ind_ind] + y[i];
         }
     }
 
     y_cumsum[0] = y_cumsum_chunk[0];
+    y_cumsum_inv[0] = y_sum - y_cumsum[0];
     for(size_t i = 1; i < M; i ++ ){
         y_cumsum[i] = y_cumsum[i - 1] + y_cumsum_chunk[i];
         y_cumsum_inv[i] = y_sum - y_cumsum[i];
