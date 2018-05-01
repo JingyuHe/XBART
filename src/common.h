@@ -34,7 +34,7 @@
 #include <random>
 #include <vector>
 #include <RcppArmadillo.h>
-
+#include <cassert>
 
 
 
