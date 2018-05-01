@@ -24,4 +24,11 @@ double sum_squared(std::vector<double> v);
 
 double sum_vec(std::vector<double>& v);
 
+void seq_gen(size_t start, size_t end, size_t length_out, arma::uvec& vec);
+
+void cumsum_chunk(arma::vec& y, arma::uvec& ind, arma::vec& y_cumsum_chunk);
+
+void calculate_y_cumsum(arma::vec& y_cumsum_chunk, arma::vec& y_cumsum, arma::vec& y_cumsum_inv);
+
+
 #endif
