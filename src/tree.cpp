@@ -553,9 +553,7 @@ void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat&
 
 
 void tree::grow_tree_adaptive(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, arma::vec& residual, bool draw_sigma, bool draw_mu){
-    // this function is more randomized
-    // sample from several best split points
-
+    
     // tau is prior VARIANCE, do not take squares
     
     if(draw_mu == true){
@@ -566,12 +564,10 @@ void tree::grow_tree_adaptive(arma::vec& y, double y_mean, arma::umat& Xorder, a
 
         this->theta_noise = this->theta; // identical to theta
     }
-    // this->theta_noise = this->theta;
 
-
-    // cout << "ok" << endl;    
 
     if(draw_sigma == true){
+
         tree::tree_p top_p = this->gettop();
 
         // draw sigma use residual of noisy theta
@@ -581,9 +577,6 @@ void tree::grow_tree_adaptive(arma::vec& y, double y_mean, arma::umat& Xorder, a
 
     this->sig = sigma;
 
-    // theta = y_mean / pow(sigma, 2) * 1.0 / (1.0 / pow(tau, 2) + 1.0 / pow(sigma, 2));
-
-    // cout << Xorder.n_rows << endl;
     if(Xorder.n_rows <= Nmin){
         return;
     }
@@ -594,35 +587,37 @@ void tree::grow_tree_adaptive(arma::vec& y, double y_mean, arma::umat& Xorder, a
 
     size_t N = Xorder.n_rows;
     size_t p = Xorder.n_cols;
-    // arma::umat best_split = arma::zeros<arma::umat>(Xorder.n_rows, Xorder.n_cols);
-    
-
-
     size_t ind;
     size_t split_var;
     size_t split_point;
 
-    BART_likelihood_adaptive(Xorder, y, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, ind, split_var, split_point);
+    bool no_split = false; // if true, do not split at current node
 
-    if(ind == (N - 1) * p){
-        // cout << "early termination" << endl;
+    BART_likelihood_adaptive(Xorder, y, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point);
+
+    if(no_split == true){
+        // cout << "no splitno splitno splitno splitno splitno splitno splitno splitno splitno splitno splitno split" << endl;
         return;
     }
 
     
     this -> v = split_var;
 
+    // cout << "ok1" << endl;
+    // cout << split_point << "   " << split_var << "  " << Xorder(split_point, split_var) << endl;
+    // cout << /
     this -> c =  X(Xorder(split_point, split_var), split_var);
+    // cout << "ok2"<< endl; 
 
-    // if(split_point + 1 < Nmin || Xorder.n_rows - split_point - 1 < Nmin){
-    //     return;
-    // }
-
+    // cout << split_point << "  " << split_var << "  " << this->c << endl;
 
     arma::umat Xorder_left = arma::zeros<arma::umat>(split_point + 1, Xorder.n_cols);
     arma::umat Xorder_right = arma::zeros<arma::umat>(Xorder.n_rows - split_point - 1, Xorder.n_cols);
 
+        // cout << "ok 1" << endl;
+
     split_xorder(Xorder_left, Xorder_right, Xorder, X, split_var, split_point);
+    // cout << "ok 2" << endl;
 
 
 
@@ -929,25 +924,26 @@ void BART_likelihood(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike,
 }
 
 
-void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, size_t& ind, size_t & split_var, size_t & split_point){
+void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point){
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
 
-    // faster than split_error_3
     // use stacked vector loglike instead of a matrix, stacked by column
     // length of loglike is p * (N - 1) + 1
     // N - 1 has to be greater than 2 * Nmin
 
     size_t N = Xorder.n_rows;
     size_t p = Xorder.n_cols;
+    size_t ind;
+
 
     double y_sum;
 
     double sigma2 = pow(sigma, 2);
     
     if( N  <= Ncutpoints + 1 + 2 * Nmin){
-        // N - 1 - 2 * Nmin <= Ncutpoints
-        // cout << "all cutpoints  "  <<  N << "  " << N - 1 - 2 * Nmin << "  "<< Ncutpoints << endl;
+        // cout << "all points" << endl;
+        // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
         arma::vec n1tau = tau * arma::linspace(1, N - 1, N - 1);
         arma::vec n2tau = tau * arma::linspace(N - 1, 1, N - 1);
         arma::vec loglike((N - 1) * p + 1);
@@ -993,7 +989,10 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau
         split_var = ind / (N - 1);
         split_point = ind % (N - 1);
 
+        if(ind == (N - 1) * p){no_split = true;}
+
     }else{
+        // cout << "some points " << endl;
         y_sum = arma::as_scalar(arma::sum(y(Xorder.col(0))));
         arma::vec loglike(Ncutpoints * p + 1);
         // otherwise, simplify calculate, use only Ncutpoints splitpoint candidates
@@ -1013,10 +1012,10 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau
         for(size_t i = 0; i < p; i ++ ){
 
             y_sort = y(Xorder.col(i));
-
             calculate_y_cumsum(y_sort, y_sum, candidate_index, y_cumsum, y_cumsum_inv);
-
             loglike(arma::span(i * Ncutpoints, i * Ncutpoints + Ncutpoints - 1)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv, 2)/(sigma2 * (n2tau + sigma2));
+                        // cout << "    ----  ---   " << endl;
+
         }
 
 
@@ -1036,8 +1035,14 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau
 
         Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(loglike.n_elem) - 1;
         ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
+        // cout << loglike.n_elem << "  " << temp_ind2(temp_ind2.size() - 1) << "  " << ind << "   " << Ncutpoints << endl;
         split_var = ind / Ncutpoints;
+                    // cout << "ok1" << endl;
+
         split_point = candidate_index(ind % Ncutpoints);
+            // cout << "ok2" << endl;
+
+        if(ind == (Ncutpoints) * p){no_split = true;}
 
         // cout << split_var << split_point << endl;
 

@@ -101,8 +101,9 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
                 yhat_test = yhat_test - predictions_test.col(tree_ind);
 
                 // grow a tree
+                // cout << "ok1" << endl;
                 trees.t[tree_ind].grow_tree_adaptive(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
-
+                // cout << "ok2" <<endl;
 
                 if(verbose == true){
                 cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
