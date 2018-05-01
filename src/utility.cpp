@@ -124,12 +124,13 @@ void seq_gen(size_t start, size_t end, size_t length_out, arma::uvec& vec){
 }
 
 
-void cumsum_chunk(arma::vec& y, arma::uvec& ind, arma::vec& y_cumsum_chunk){
+void calculate_y_cumsum(arma::vec& y, arma::uvec& ind, arma::vec& y_cumsum, arma::vec& y_cumsum_inv){
     // compute cumulative sum of chunks for y, separate by ind vector
     // y_cumsum_chunk should be lenght M + 1
     size_t N = y.n_elem;
     size_t M = ind.n_elem;
     size_t ind_ind = 0;
+    arma::vec y_cumsum_chunk(M + 1);
 
     y_cumsum_chunk[0] = 0; // initialize  
 
@@ -142,13 +143,9 @@ void cumsum_chunk(arma::vec& y, arma::uvec& ind, arma::vec& y_cumsum_chunk){
             y_cumsum_chunk[ind_ind] = y_cumsum_chunk[ind_ind] + y[i];
         }
     }
-    return;
-}
 
-void calculate_y_cumsum(arma::vec& y_cumsum_chunk, arma::vec& y_cumsum, arma::vec& y_cumsum_inv){
-    size_t N = y_cumsum.n_elem;
     y_cumsum[0] = y_cumsum_chunk[0];
-    for(size_t i = 1; i < N; i ++ ){
+    for(size_t i = 1; i < M; i ++ ){
         y_cumsum[i] = y_cumsum[i - 1] + y_cumsum_chunk[i];
     }
     double y_sum = arma::as_scalar(arma::sum(y_cumsum_chunk));

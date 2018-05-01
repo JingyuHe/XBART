@@ -606,7 +606,7 @@ void tree::grow_tree_adaptive(arma::vec& y, double y_mean, arma::umat& Xorder, a
 
 
     if(ind == (N - 1) * p){
-        // cout << "early termination" << endl;
+        cout << "early termination" << endl;
         return;
     }
 
@@ -990,8 +990,6 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau
         //     }
         // }
 
-        cout << loglike << endl;
-
         Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(loglike.n_elem) - 1;
         ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
         split_var = ind / (N - 1);
@@ -1003,7 +1001,7 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau
         // otherwise, simplify calculate, use only Ncutpoints splitpoint candidates
         // note that the first Nmin and last Nmin cannot be splitpoint candidate
         arma::uvec candidate_index(Ncutpoints);
-        seq_gen(Nmin, N - 1 - Nmin, Ncutpoints, candidate_index); // row index in Xorder to be candidates
+        seq_gen(2, N - 2, Ncutpoints, candidate_index); // row index in Xorder to be candidates
         // cout << "tau" << tau << endl;
         arma::vec n1tau = tau * (1.0 + arma::conv_to<arma::vec>::from(candidate_index)); // plus 1 because the index starts from 0, we want count of observations
         arma::vec n2tau = tau * N  - n1tau;
@@ -1026,7 +1024,8 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau
             cumsum_chunk(y_sort, candidate_index, y_cumsum_chunk);
             // cout << "p is" << p << endl;
             // cout << i << endl;
-            calculate_y_cumsum(y_cumsum_chunk, y_cumsum, y_cumsum_inv);
+            // calculate_y_cumsum(y_cumsum_chunk, y_cumsum, y_cumsum_inv);
+            calculate_y_cumsum(y_sort, candidate_index, y_cumsum, y_cumsum_inv);
 
             // cout << y_cumsum + y_cumsum_inv<< endl;
 
