@@ -35,6 +35,11 @@
 #include <vector>
 #include <RcppArmadillo.h>
 #include <cassert>
+#include <RcppParallel.h>
+
+
+
+using namespace RcppParallel;
 
 
 
