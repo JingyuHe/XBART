@@ -59,6 +59,7 @@ struct likelihood_evaluation_subset : public Worker {
             loglike(arma::span(i * Ncutpoints, i * Ncutpoints + Ncutpoints - 1)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv, 2)/(sigma2 * (n2tau + sigma2));
                         // cout << "    ----  ---   " << endl;
         }
+        return;
     }
 };
 
@@ -93,6 +94,7 @@ struct likelihood_evaluation_fullset : public Worker {
             y_cumsum_inv = y_sum - y_cumsum;  // redundant copy!
             loglike(arma::span(i * (N - 1), i * (N - 1) + N - 2)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum(arma::span(0, N - 2)), 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv(arma::span(0, N - 2)), 2)/(sigma2 * (n2tau + sigma2));   
         }
+        return;
     }
 };
 
