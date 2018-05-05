@@ -187,6 +187,16 @@ void tree::getbots(npv& bv)
    }
 }
 //--------------------
+//get second last nodes 
+void tree::getsecondbots(npv& bv){
+    if(!this->l->l) {
+        bv.push_back(this);
+    } else{
+        l -> getsecondbots(bv);
+        r -> getsecondbots(bv);
+    }
+}
+//--------------------
 //get nog nodes
 void tree::getnogs(npv& nv)
 {
@@ -552,7 +562,7 @@ void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat&
 
 
 
-void tree::grow_tree_adaptive(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, arma::vec& residual, bool draw_sigma, bool draw_mu){
+void tree::grow_tree_adaptive(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, arma::vec& residual, bool draw_sigma, bool draw_mu, bool parallel){
     
     // tau is prior VARIANCE, do not take squares
     
@@ -593,7 +603,7 @@ void tree::grow_tree_adaptive(arma::vec& y, double y_mean, arma::umat& Xorder, a
 
     bool no_split = false; // if true, do not split at current node
 
-    BART_likelihood_adaptive(Xorder, y, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point);
+    BART_likelihood_adaptive(Xorder, y, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel);
 
     if(no_split == true){
         // cout << "no splitno splitno splitno splitno splitno splitno splitno splitno splitno splitno splitno split" << endl;
@@ -626,9 +636,9 @@ void tree::grow_tree_adaptive(arma::vec& y, double y_mean, arma::umat& Xorder, a
 
     depth = depth + 1;
     tree::tree_p lchild = new tree();
-    lchild->grow_tree_adaptive(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
+    lchild->grow_tree_adaptive(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
     tree::tree_p rchild = new tree();
-    rchild->grow_tree_adaptive(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
+    rchild->grow_tree_adaptive(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
 
 
     // depth = depth + 1;
@@ -924,7 +934,7 @@ void BART_likelihood(const arma::umat& Xorder, arma::vec& y, arma::vec& loglike,
 }
 
 
-void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point){
+void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel){
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
 
@@ -949,21 +959,24 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau
         arma::vec loglike((N - 1) * p + 1);
         // if number of observations is smaller than Ncutpoints, all data are splitpoint candidates       
         // note that the first Nmin and last Nmin cannot be splitpoint candidate
-        // arma::vec y_cumsum(y.n_elem);
-        // arma::vec y_cumsum_inv(y.n_elem);
-        // arma::vec temp_likelihood((N - 1) * p + 1);
-        // arma::uvec temp_ind((N - 1) * p + 1);
 
-        // for(size_t i = 0; i < p; i++){ // loop over variables 
-        //     y_cumsum = arma::cumsum(y(Xorder.col(i)));
-        //     y_sum = y_cumsum(y_cumsum.n_elem - 1);
-        //     y_cumsum_inv = y_sum - y_cumsum;  // redundant copy!
-        //     loglike(arma::span(i * (N - 1), i * (N - 1) + N - 2)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum(arma::span(0, N - 2)), 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv(arma::span(0, N - 2)), 2)/(sigma2 * (n2tau + sigma2));   
-        // }
-        
-        likelihood_evaluation_fullset like_parallel_full(y, Xorder, loglike, sigma2, tau, N, n1tau, n2tau);
-        parallelFor(0, p, like_parallel_full);
+        if(parallel == false){
+            arma::vec y_cumsum(y.n_elem);
+            arma::vec y_cumsum_inv(y.n_elem);
+            arma::vec temp_likelihood((N - 1) * p + 1);
+            arma::uvec temp_ind((N - 1) * p + 1);
 
+            for(size_t i = 0; i < p; i++){ // loop over variables 
+                y_cumsum = arma::cumsum(y(Xorder.col(i)));
+                y_sum = y_cumsum(y_cumsum.n_elem - 1);
+                y_cumsum_inv = y_sum - y_cumsum;  // redundant copy!
+                loglike(arma::span(i * (N - 1), i * (N - 1) + N - 2)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum(arma::span(0, N - 2)), 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv(arma::span(0, N - 2)), 2)/(sigma2 * (n2tau + sigma2));   
+            }
+        }else{
+            
+            likelihood_evaluation_fullset like_parallel_full(y, Xorder, loglike, sigma2, tau, N, n1tau, n2tau);
+            parallelFor(0, p, like_parallel_full);
+        }
 
         loglike(loglike.n_elem - 1) = - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
 
@@ -999,22 +1012,23 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::vec& y, double tau
         arma::vec n2tau = tau * N  - n1tau;
 
         // compute cumulative sum of chunks
-        // arma::vec y_cumsum(Ncutpoints);
-        // arma::vec y_cumsum_inv(Ncutpoints);
-        // arma::vec y_sort(N);
+        if(parallel == false){
+            arma::vec y_cumsum(Ncutpoints);
+            arma::vec y_cumsum_inv(Ncutpoints);
+            arma::vec y_sort(N);
 
 
-        // for(size_t i = 0; i < p; i ++ ){
+            for(size_t i = 0; i < p; i ++ ){
 
-        //     y_sort = y(Xorder.col(i));
-        //     calculate_y_cumsum(y_sort, y_sum, candidate_index, y_cumsum, y_cumsum_inv);
-        //     loglike(arma::span(i * Ncutpoints, i * Ncutpoints + Ncutpoints - 1)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv, 2)/(sigma2 * (n2tau + sigma2));
-        //                 // cout << "    ----  ---   " << endl;
-        // }
-
-        likelihood_evaluation_subset like_parallel(y, Xorder, candidate_index, loglike, sigma2, tau, y_sum, Ncutpoints, N, n1tau, n2tau);
-        parallelFor(0, p, like_parallel);
-
+                y_sort = y(Xorder.col(i));
+                calculate_y_cumsum(y_sort, y_sum, candidate_index, y_cumsum, y_cumsum_inv);
+                loglike(arma::span(i * Ncutpoints, i * Ncutpoints + Ncutpoints - 1)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv, 2)/(sigma2 * (n2tau + sigma2));
+                            // cout << "    ----  ---   " << endl;
+            }
+        }else{
+            likelihood_evaluation_subset like_parallel(y, Xorder, candidate_index, loglike, sigma2, tau, y_sum, Ncutpoints, N, n1tau, n2tau);
+            parallelFor(0, p, like_parallel);
+        }
 
         loglike(loglike.n_elem - 1) = - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
 
