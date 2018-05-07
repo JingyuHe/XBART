@@ -187,17 +187,6 @@ void tree::getbots(npv& bv)
    }
 }
 //--------------------
-//get second last nodes 
-void tree::getsecondbots(npv& bv){
-   if(this->l->l != NULL) { //have children
-      l->getsecondbots(bv);
-      r->getsecondbots(bv);
-   } else {
-      bv.push_back(this);
-   }
-    // cout << l == this->l << endl;
-}
-//--------------------
 //get nog nodes
 void tree::getnogs(npv& nv)
 {

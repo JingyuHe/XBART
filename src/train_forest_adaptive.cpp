@@ -50,8 +50,6 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
 
     arma::vec reshat_test;
 
-    tree::npv secondbottom;
-
     for(size_t mc = 0; mc < L; mc ++ ){
 
         // initialize
@@ -102,28 +100,8 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
                 yhat_test = yhat_test - predictions_test.col(tree_ind);
 
                 // grow a tree
-                // cout << "ok1" << endl;
                 trees.t[tree_ind].grow_tree_adaptive(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
-                // cout << "ok2" <<endl;
-                
-                
-                
-                // if(trees.t[tree_ind].treesize() > 5){
-                    cout << "1---" << endl;
-                    trees.t[tree_ind].getbots(secondbottom);
-                    cout << secondbottom.size() << endl;
-                    cout << "theta " << secondbottom[0] << endl; 
-                    secondbottom.clear();
-
-                    // trees.t[tree_ind].getsecondbots(secondbottom);
-                                        // cout << secondbottom.size() << endl;
-
-                    cout << "2 ---" << endl;
-                    secondbottom.clear();
-                // }
-                // cout << "tree depth" << trees.t[tree_ind].treesize() << endl;  
-                // cout << secondbottom.size() << endl;
-
+            
                 if(verbose == true){
                 cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
                 }
@@ -158,7 +136,6 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
             }
         yhats.col(sweeps) = yhat;
         yhats_test.col(sweeps) = yhat_test;
-        cout << "finish a sweep" << endl;
         }
 
     }

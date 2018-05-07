@@ -105,7 +105,6 @@ public:
    void birthp(tree_p np,size_t v, size_t c, double thetal, double thetar);
    void deathp(tree_p nb, double theta);
    void getbots(npv& bv);         //get bottom nodes
-   void getsecondbots(npv& bv);   //get second last bottom nodes
    void getnogs(npv& nv);         //get nog nodes (no granchildren)
    void getnodes(npv& v);         //get vector of all nodes
    void getnodes(cnpv& v) const;  //get vector of all nodes (const)
