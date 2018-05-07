@@ -44,6 +44,8 @@
         "__tuple": "cpp",
         "ratio": "cpp",
         "tuple": "cpp",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "atomic": "cpp",
+        "system_error": "cpp"
     }
 }

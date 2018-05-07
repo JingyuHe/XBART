@@ -189,12 +189,13 @@ void tree::getbots(npv& bv)
 //--------------------
 //get second last nodes 
 void tree::getsecondbots(npv& bv){
-    if(!this->l->l) {
-        bv.push_back(this);
-    } else{
-        l -> getsecondbots(bv);
-        r -> getsecondbots(bv);
-    }
+   if(this->l->l != NULL) { //have children
+      l->getsecondbots(bv);
+      r->getsecondbots(bv);
+   } else {
+      bv.push_back(this);
+   }
+    // cout << l == this->l << endl;
 }
 //--------------------
 //get nog nodes
@@ -551,9 +552,11 @@ void tree::grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat&
     rchild->grow_tree(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
     lchild -> p = this;
     rchild -> p = this;
-    this -> l = lchild;
-    this -> r = rchild;
-
+    if(!lchild->l){
+        // if a new tree does generated
+        this -> l = lchild;
+        this -> r = rchild;
+    }
 
 
     return;
@@ -649,10 +652,11 @@ void tree::grow_tree_adaptive(arma::vec& y, double y_mean, arma::umat& Xorder, a
 
     lchild -> p = this;
     rchild -> p = this;
-    this -> l = lchild;
-    this -> r = rchild;
-
-
+    if(!lchild->l){
+        // if a new tree does generated
+        this -> l = lchild;
+        this -> r = rchild;
+    }
 
     return;
 }
@@ -747,8 +751,11 @@ void tree::grow_tree_std(double* y, double& y_mean, xinfo_sizet& Xorder, double*
     rchild->grow_tree_std(y, yright_mean, Xorder_right, X, N_right, p, depth, max_depth, Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
     lchild -> p = this;
     rchild -> p = this;
-    this -> l = lchild;
-    this -> r = rchild;
+    if(!lchild->l){
+        // if a new tree does generated
+        this -> l = lchild;
+        this -> r = rchild;
+    }
 
 }
 
