@@ -112,10 +112,11 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
                     cout << "1---" << endl;
                     trees.t[tree_ind].getbots(secondbottom);
                     cout << secondbottom.size() << endl;
+                    cout << "theta " << secondbottom[0] << endl; 
                     secondbottom.clear();
 
-                    trees.t[tree_ind].getsecondbots(secondbottom);
-                                        cout << secondbottom.size() << endl;
+                    // trees.t[tree_ind].getsecondbots(secondbottom);
+                                        // cout << secondbottom.size() << endl;
 
                     cout << "2 ---" << endl;
                     secondbottom.clear();
