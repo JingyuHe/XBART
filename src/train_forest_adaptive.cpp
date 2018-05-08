@@ -66,6 +66,7 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
         residual = y - yhat;
 
         tree::npv pointer_endnodes;
+        tree::npv pointer_nograndchild;
 
         // residual_theta_noise = y - yhat;
 
@@ -106,11 +107,17 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
 
                 pointer_endnodes.clear();
 
+                pointer_nograndchild.clear();
+
+                trees.t[tree_ind].getnogs(pointer_nograndchild);
+
                 trees.t[tree_ind].getbots(pointer_endnodes);
 
-                update_sufficient_stat(trees.t[tree_ind], y, X, pointer_endnodes);
+                trees.t[tree_ind].update_sufficient_stat(y, X, pointer_endnodes, pointer_nograndchild, tau, sigma, alpha, beta);
 
                 pointer_endnodes.clear();
+
+                pointer_nograndchild.clear();
 
 
                 if(verbose == true){

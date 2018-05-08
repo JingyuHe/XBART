@@ -65,13 +65,14 @@ struct node_info {
 //--------------------------------------------------
 class tree {
 public:
-   //friends--------------------
-   friend std::istream& operator>>(std::istream&, tree&);
    //typedefs--------------------
    typedef tree* tree_p;
    typedef const tree* tree_cp;
    typedef std::vector<tree_p> npv; 
    typedef std::vector<tree_cp> cnpv;
+   //friends--------------------
+   friend std::istream& operator>>(std::istream&, tree&);
+  //  friend void update_sufficient_stat(tree& tree, arma::mat& y, arma::mat& X, tree::npv& bv, tree::npv& bv2, double& tau, double& sigma, double& alpha, double& beta);
    //contructors,destructors--------------------
    tree(): theta(0.0),theta_noise(0.0),sig(0.0),v(0),c(0),p(0),l(0),r(0) {}
    tree(const tree& n): theta(0.0),theta_noise(0.0),sig(0.0),v(0),c(0),p(0),l(0),r(0) {cp(this,&n);}
@@ -113,6 +114,7 @@ public:
    void grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta, arma::vec& residual, bool draw_sigma, bool draw_mu);
    void grow_tree_adaptive(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, arma::vec& residual, bool draw_sigma, bool draw_mu, bool parallel);
    void grow_tree_std(double* y, double& y_mean, xinfo_sizet& Xorder, double* X, size_t N, size_t p, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta, double* residual, bool draw_sigma, bool draw_mu);
+   void update_sufficient_stat(arma::mat& y, arma::mat& X, tree::npv& bv, tree::npv& bv2, double& tau, double& sigma, double& alpha, double& beta);
    tree_p bn(double *x,xinfo& xi); //find Bottom Node, original BART version
    tree_p bn_std(double *x); // find Bottom Node, std version, compare
    tree_p search_bottom(arma::mat& Xnew, const size_t& i);
