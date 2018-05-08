@@ -33,7 +33,7 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
     arma::vec yhat_test = arma::zeros<arma::vec>(Xtest.n_rows);
 
     // current residual
-    arma::vec residual;
+    arma::mat residual;
 
     // current residual (based on theta_noise)
     // arma::vec residual_theta_noise;
@@ -102,22 +102,15 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
                 yhat_test = yhat_test - predictions_test.col(tree_ind);
 
                 // grow a tree
-                trees.t[tree_ind].grow_tree_adaptive(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
 
-                // pointer_endnodes.clear();
+                if(sweeps < 30){
 
-                // pointer_nograndchild.clear();
-
-                // trees.t[tree_ind].getnogs(pointer_nograndchild);
-
-                // trees.t[tree_ind].getbots(pointer_endnodes);
-
-                trees.t[tree_ind].prune_regrow(y, X, tau, sigma, alpha, beta);
-
-                // pointer_endnodes.clear();
-
-                // pointer_nograndchild.clear();
-
+                    trees.t[tree_ind].grow_tree_adaptive(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
+                
+                }else{  
+                
+                    trees.t[tree_ind].prune_regrow(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
+                }
 
                 if(verbose == true){
                     cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
