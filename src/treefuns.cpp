@@ -117,11 +117,8 @@ arma::vec fit_new(tree& tree, arma::mat& Xnew){
     size_t N = Xnew.n_rows;
     arma::vec result(N);
     tree::tree_p bn;
-    arma::mat temp;
     for(size_t i = 0; i < N; i ++){
-        // cout << i << endl;
-        temp = Xnew.row(i);
-        bn = tree.search_bottom(temp);
+        bn = tree.search_bottom(Xnew, i);
         result(i) = bn -> gettheta();
     }
     return result;
@@ -134,11 +131,8 @@ arma::vec fit_new_theta_noise(tree& tree, arma::mat& Xnew){
     size_t N = Xnew.n_rows;
     arma::vec result(N);
     tree::tree_p bn;
-    arma::mat temp;
     for(size_t i = 0; i < N; i ++){
-        // cout << i << endl;
-        temp = Xnew.row(i);
-        bn = tree.search_bottom(temp);
+        bn = tree.search_bottom(Xnew, i);
         result(i) = bn -> gettheta_noise();
     }
     return result;
@@ -149,13 +143,35 @@ void fit_new_void(tree& tree, arma::mat& Xnew, arma::mat& pred, size_t& ind){
     size_t N = Xnew.n_rows;
     arma::vec result(N);
     tree::tree_p bn;
-    arma::mat temp;
     for(size_t i = 0; i < N; i ++){
-        // cout << i << endl;
-        temp = Xnew.row(i);
-        bn = tree.search_bottom(temp);
+        bn = tree.search_bottom(Xnew, i);
         pred(i, ind) = bn -> gettheta();
     }
     return;
 }
 
+void update_sufficient_stat(arma::vec& y, arma::mat& X, tree::npv& bv){
+
+    // create a map object, key is pointer to endnodes and value is sufficient statistics
+    std::map<tree::tree_p, arma::vec > sufficient_stat;
+    size_t N_endnodes = bv.size();
+    size_t N_obs = y.n_elem;
+    for(size_t i = 0; i < N_endnodes; i ++ ){
+        // initialize the object
+        sufficient_stat[bv[i]] = arma::zeros<arma::vec>(2);
+        // 2 dimension vector, first element for counts, second element for sum of y
+    }
+
+    tree::tree_p temp_pointer;
+    // arma::mat 
+    // // loop over observations
+    // for(size_t i = 0; i < N_obs; i ++ ){
+    //     temp_pointer = tree.search_bottom(X)
+    // }
+
+    // if(sufficient_stat.count(bv[0])){
+    //     // if statement for protection
+    // }
+
+
+}

@@ -36,6 +36,7 @@
 #include <RcppArmadillo.h>
 #include <cassert>
 #include <RcppParallel.h>
+#include <map>
 
 
 

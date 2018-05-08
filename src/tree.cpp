@@ -259,22 +259,21 @@ tree::tree_p tree::bn_std(double *x)
 }
 
 
-tree::tree_p tree::search_bottom(arma::mat& Xnew){
+tree::tree_p tree::search_bottom(arma::mat& Xnew, const size_t& i){
 
     // v is variable to split, c is raw value
     // not index in xinfo, so compare x[v] with c directly
+    // only look at the i-th row
 
-    // cout << "c value" << c << endl;
     if(l == 0){
-        // cout << "return this" << endl;
         return this;
         } // no children
-    if(arma::as_scalar(Xnew.col(v)) <= c){
+    if(arma::as_scalar(Xnew(i, v)) <= c){
 
-        return l -> search_bottom(Xnew);  // if smaller or equal cut point, go to left node
+        return l -> search_bottom(Xnew, i);  // if smaller or equal cut point, go to left node
     } else {
 
-        return r -> search_bottom(Xnew);
+        return r -> search_bottom(Xnew, i);
     }
 }
 //--------------------

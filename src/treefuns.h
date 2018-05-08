@@ -49,7 +49,7 @@ arma::vec fit_new_theta_noise(tree& tree, arma::mat& Xnew);
 
 void fit_new_void(tree& tree, arma::mat& Xnew, arma::mat& pred, size_t& ind);
 
-
+void update_sufficient_stat(tree::npv& bv);
 
 
 
