@@ -584,6 +584,8 @@ void tree::grow_tree_adaptive(arma::mat& y, double y_mean, arma::umat& Xorder, a
         return;
     }
 
+    // cout << "no early return" << endl;
+
     size_t N = Xorder.n_rows;
     size_t p = Xorder.n_cols;
     size_t ind;
