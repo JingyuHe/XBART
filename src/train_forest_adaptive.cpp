@@ -65,6 +65,8 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
 
         residual = y - yhat;
 
+        tree::npv pointer_endnodes;
+
         // residual_theta_noise = y - yhat;
 
         for(size_t sweeps = 0; sweeps < N_sweeps; sweeps ++){
@@ -101,7 +103,16 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
 
                 // grow a tree
                 trees.t[tree_ind].grow_tree_adaptive(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
-            
+
+                pointer_endnodes.clear();
+
+                trees.t[tree_ind].getbots(pointer_endnodes);
+
+                update_sufficient_stat(trees.t[tree_ind], y, X, pointer_endnodes);
+
+                pointer_endnodes.clear();
+
+
                 if(verbose == true){
                     cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
                 }
@@ -136,6 +147,10 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
             }
         yhats.col(sweeps) = yhat;
         yhats_test.col(sweeps) = yhat_test;
+        cout << "+++++++++++++++++++++++++++++++++++" << endl;
+        cout << "end of one sweep" << endl;
+        cout << "+++++++++++++++++++++++++++++++++++" << endl;
+
         }
 
     }

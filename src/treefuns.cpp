@@ -150,7 +150,7 @@ void fit_new_void(tree& tree, arma::mat& Xnew, arma::mat& pred, size_t& ind){
     return;
 }
 
-void update_sufficient_stat(arma::vec& y, arma::mat& X, tree::npv& bv){
+void update_sufficient_stat(tree& tree, arma::mat& y, arma::mat& X, tree::npv& bv){
 
     // create a map object, key is pointer to endnodes and value is sufficient statistics
     std::map<tree::tree_p, arma::vec > sufficient_stat;
@@ -163,15 +163,24 @@ void update_sufficient_stat(arma::vec& y, arma::mat& X, tree::npv& bv){
     }
 
     tree::tree_p temp_pointer;
-    // arma::mat 
-    // // loop over observations
-    // for(size_t i = 0; i < N_obs; i ++ ){
-    //     temp_pointer = tree.search_bottom(X)
-    // }
+    // loop over observations
+    for(size_t i = 0; i < N_obs; i ++ ){
+        temp_pointer = tree.search_bottom(X, i);
+        if(sufficient_stat.count(temp_pointer)){
+            // update sufficient statistics
+            // if statement for protection
+            sufficient_stat[temp_pointer][0] += 1;      // add one for count
+            sufficient_stat[temp_pointer][1] += arma::as_scalar(y.row(i));   // sum of y
+        }
+    }
+    // cout << "---------------------------------" << endl;
+    // cout << "Nnodes" << N_endnodes << endl;
+    // cout << "mapsize" << sufficient_stat.size() << endl;
+    //     for (std::map<tree::tree_p, arma::vec >::iterator it=sufficient_stat.begin(); it!=sufficient_stat.end(); ++it){
+    //         cout << it->second << endl;
+    //     }
+    
+    // cout << "---------------------------------" << endl;
 
-    // if(sufficient_stat.count(bv[0])){
-    //     // if statement for protection
-    // }
-
-
+    return;
 }
