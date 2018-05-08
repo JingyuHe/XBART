@@ -1112,7 +1112,13 @@ arma::uvec range(size_t start, size_t end){
 }
 
 
-void tree::update_sufficient_stat(arma::mat& y, arma::mat& X, tree::npv& bv, tree::npv& bv2, double& tau, double& sigma, double& alpha, double& beta){
+void tree::prune_regrow(arma::mat& y, arma::mat& X, double& tau, double& sigma, double& alpha, double& beta){
+
+
+    tree::npv bv;
+    tree::npv bv2;
+    this->getbots(bv);
+    this->getnogs(bv2);
 
     // create a map object, key is pointer to endnodes and value is sufficient statistics
     std::map<tree::tree_p, arma::vec > sufficient_stat;
@@ -1124,6 +1130,7 @@ void tree::update_sufficient_stat(arma::mat& y, arma::mat& X, tree::npv& bv, tre
         // 2 dimension vector, first element for counts, second element for sum of y
     }
 
+    arma::vec y_ind(N_obs);
     tree::tree_p temp_pointer;
     // loop over observations
     for(size_t i = 0; i < N_obs; i ++ ){
@@ -1131,13 +1138,12 @@ void tree::update_sufficient_stat(arma::mat& y, arma::mat& X, tree::npv& bv, tre
         if(sufficient_stat.count(temp_pointer)){
             // update sufficient statistics
             // if statement for protection
+            y_ind[i] = temp_pointer->nid();
             sufficient_stat[temp_pointer][0] += 1;      // add one for count
             sufficient_stat[temp_pointer][1] += arma::as_scalar(y.row(i));   // sum of y
         }
     }
     
-
-
     double left_loglike = 0.0;
     double right_loglike = 0.0;
     double total_loglike = 0.0;
@@ -1154,55 +1160,29 @@ void tree::update_sufficient_stat(arma::mat& y, arma::mat& X, tree::npv& bv, tre
 
         total_loglike = - 0.5 * log((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow((sufficient_stat[bv2[i]->l][1] + sufficient_stat[bv2[i]->r][1]), 2) / (sigma2 * ((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2)) - beta * log(1.0 + bv2[i]->depth()) + beta * log(bv2[i]->depth()) + log(1.0 - alpha) - log(alpha);
     
-    
         loglike[0] = total_loglike;
         loglike[1] = left_loglike + right_loglike;
         loglike = exp(loglike - max(loglike));
         ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
 
         // if ind == 0, collapse the current node
-        delete &bv2[i]->l;
-        delete &bv2[i]->r;
+        if(bv2[i]->l){
+            free(bv2[i]->l);
+        }
+        if(bv2[i]->r){
+            free(bv2[i]->r);
+        }
         bv2[i]->l = 0;
         bv2[i]->r = 0;
-
-        // cout << ind << "   " ;
-
-        // test = total_loglike > left_loglike + right_loglike;
-        // cout << "     adafsafafad   " << endl;
-        // cout << test << endl;
-        // cout << left_loglike + right_loglike << endl;
-        // cout << total_loglike << endl;
     }
-    // cout << endl;
-    // sampling to decide collapse or not
-    // Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(2) - 1;
 
+    // regrow the current tree
+    bv.clear();
 
+    // update list of bottom nodes
+    this->getnogs(bv);
 
-    // if ind == 0, prune the node
-    // delete left and right node
-
-
-
-    // std::random_device rd;
-    // std::mt19937 gen(rd());
-    // std::discrete_distribution<> d(loglike.begin(), loglike.end());
-    // sample one index of split point
-    // size_t ind = d(gen); 
-
-    // note that number of second last nodes is much smaller
-    // compute logposterior for the split and no split
-
-
-    // cout << "---------------------------------" << endl;
-    // cout << "Nnodes" << N_endnodes << endl;
-    // cout << "mapsize" << sufficient_stat.size() << endl;
-    //     for (std::map<tree::tree_p, arma::vec >::iterator it=sufficient_stat.begin(); it!=sufficient_stat.end(); ++it){
-    //         cout << it->second << endl;
-    //     }
     
-    // cout << "---------------------------------" << endl;
 
     return;
 }
