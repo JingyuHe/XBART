@@ -1116,6 +1116,7 @@ arma::uvec range(size_t start, size_t end){
 
 void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double& tau, double& sigma, double& alpha, double& beta, arma::mat& residual, bool draw_sigma, bool draw_mu, bool parallel){
 
+    // cout << "tree size " << this->treesize() << endl;
     tree::npv bv;
     tree::npv bv2;
     this->getbots(bv);
@@ -1234,42 +1235,58 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
 
     double temp_y_mean;
 
+    size_t new_maxdepth;
+
     for(size_t i = 0; i < bv.size(); i ++ ){
+
+        if(node_y_ind[bv[i]].size() > Nmin){
         // cout << "loop i" << i << endl;
         // create Xorder for the subnode
         // cout << "size " << node_y_ind[bv[i]].size() << endl;
-        temp_ind.set_size(node_y_ind[bv[i]].size());
-        // cout << "ok 1" << endl;
+            temp_ind.set_size(node_y_ind[bv[i]].size());
+            // cout << "ok 1" << endl;
 
-            // cout << node_y_ind.count(bv[i]) << endl;
+                // cout << node_y_ind.count(bv[i]) << endl;
 
-        for(size_t j = 0; j < node_y_ind[bv[i]].size(); j ++ ){
-            temp_ind[j] = node_y_ind[bv[i]][j];
-        } 
-        // cout << "ok 2" << endl;
+            for(size_t j = 0; j < node_y_ind[bv[i]].size(); j ++ ){
+                temp_ind[j] = node_y_ind[bv[i]][j];
+            } 
+            // cout << "ok 2" << endl;
 
-        // cout << temp_ind << endl;
+            // cout << temp_ind << endl;
 
-        // cout << "temp_ind " << temp_ind.n_elem << endl;
-        temp_X = X.rows(temp_ind);
+            // cout << "temp_ind " << temp_ind.n_elem << endl;
+            temp_X = X.rows(temp_ind);
 
-        // cout << "temp_X " << temp_X.n_cols << temp_X.n_rows << endl;
+            // cout << "temp_X " << temp_X.n_cols << temp_X.n_rows << endl;
 
-        temp_Xorder.set_size(temp_X.n_rows, temp_X.n_cols);
+            temp_Xorder.set_size(temp_X.n_rows, temp_X.n_cols);
 
-        // cout << "aaaaaaa !!!" << temp_X.n_cols << endl;
-        for(size_t t = 0; t < temp_X.n_cols; t++){
-            // cout << "t " << t << endl;
-            temp_Xorder.col(t) = arma::sort_index(temp_X.col(t));
+            // cout << "aaaaaaa !!!" << temp_X.n_cols << endl;
+            for(size_t t = 0; t < temp_X.n_cols; t++){
+                // cout << "t " << t << endl;
+                temp_Xorder.col(t) = arma::sort_index(temp_X.col(t));
+            }
+
+            // cout << "ok 3" << endl;
+            temp_y_mean = arma::as_scalar(mean(y.rows(temp_ind)));
+
+            cout << "before regrows " << this->treesize() << "  data size  " << temp_Xorder.n_rows << " " << temp_Xorder.n_cols  << endl;
+
+            if(max_depth > bv[i]->depth()){
+                new_maxdepth = max_depth - bv[i]->depth();
+            }else{
+                new_maxdepth = 0;
+            }
+            cout << "max depth " << bv[i]->depth() << "  " << new_maxdepth << endl;
+            bv[i]->grow_tree_adaptive(y, temp_y_mean, temp_Xorder, temp_X, bv[i]->depth(), new_maxdepth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
+                    cout << "after regrows " << this->treesize() << endl;
+                        cout << "------------------------------------" << endl;
+
+
         }
-
-        // cout << "ok 3" << endl;
-        temp_y_mean = arma::as_scalar(mean(y.rows(temp_ind)));
-
-        cout << "before regrows " << this->treesize() << endl;
-        bv[i]->grow_tree_adaptive(y, temp_y_mean, temp_Xorder, temp_X, bv[i]->depth(), max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
-        cout << "after regrows " << this->treesize() << endl;
     }
+
     return;
 }
 
