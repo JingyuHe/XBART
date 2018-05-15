@@ -1131,9 +1131,8 @@ arma::uvec range(size_t start, size_t end){
 
 void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double& tau, double& sigma, double& alpha, double& beta, arma::mat& residual, bool draw_sigma, bool draw_mu, bool parallel){
 
-    // cout << "tree size " << this->treesize() << endl;
-    tree::npv bv;
-    tree::npv bv2;
+    tree::npv bv;       // vector of pointers to bottom nodes
+    tree::npv bv2;      // vector of pointers to nodes without grandchild
     this->getbots(bv);
     this->getnogs(bv2);
 
@@ -1144,27 +1143,27 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
     for(size_t i = 0; i < N_endnodes; i ++ ){
         // initialize the object
         sufficient_stat[bv[i]] = arma::zeros<arma::vec>(2);
-        // 2 dimension vector, first element for counts, second element for sum of y
-        // node_y_ind[bv[i]];
+        // 2 dimension vector, first element for counts, second element for sum of y fall in that node
     }
 
-    // create a map to save index of ys fall into each endnodes
+    // create a map to save *index* of ys fall into each endnodes
     std::map<tree::tree_p, std::vector<size_t> > node_y_ind;
 
-    arma::vec y_ind(N_obs);
+    arma::vec y_ind(N_obs); // same length as y, the value is ID of end nodes associated with
     tree::tree_p temp_pointer;
+
     // loop over observations
     for(size_t i = 0; i < N_obs; i ++ ){
         temp_pointer = this->search_bottom(X, i);
-        // if(sufficient_stat.count(temp_pointer)){
+        // if(sufficient_stat.count(temp_pointer)){ // for protection, since the map is intialized, not necessary
             // update sufficient statistics
             // if statement for protection
             // y_ind[i] = temp_pointer->nid();
             sufficient_stat[temp_pointer][0] += 1;      // add one for count
-            sufficient_stat[temp_pointer][1] += arma::as_scalar(y.row(i));   // sum of y
+            sufficient_stat[temp_pointer][1] += arma::as_scalar(y.row(i));   // sum of y, add it to the sum
         // }
         // if(node_y_ind.count(temp_pointer)){
-            node_y_ind[temp_pointer].push_back(i);
+            node_y_ind[temp_pointer].push_back(i);      // push the index to node_y_ind vector
         // }
     }
 
@@ -1176,14 +1175,18 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
     // cout << "total count is " << total_count << endl;
 
     cout<<"before prune size" << this->treesize() << endl;
+
+
     if(1){
+        //////////////////////////////////////////////////////////////
         // prune the tree
+        //////////////////////////////////////////////////////////////
         double left_loglike = 0.0;
         double right_loglike = 0.0;
         double total_loglike = 0.0;
         double sigma2 = pow(sigma, 2);
         bool test;
-        arma::vec loglike(2);
+        arma::vec loglike(2);       // only two elements, collapse or not
         Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(2) - 1;
         size_t ind ;
 
@@ -1196,10 +1199,13 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
 
 
         // while(0.95 * bv2.size() > keep_count && bv2.size() > 1){
-            bv2.clear();
-            this->getnogs(bv2);            
-            keep_count = 0;
-        cout << " number of no grands " << bv2.size() << endl;
+            // stop loop untile 95% ends node cannot be collapsed, might prune too much
+
+            bv2.clear();    // clear the vector of no grandchild nodes  
+            this->getnogs(bv2);      
+            keep_count = 0; // count of nodes not collapsed
+
+            cout << " number of no grands " << bv2.size() << endl;
 
             // cout << bv2.size() << endl;
             for(size_t i = 0; i < bv2.size(); i ++ ){
@@ -1218,16 +1224,21 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
 
                 // if ind == 0, collapse the current node
                 if(ind == 0){
-                    left_nid = bv2[i]->l->nid();
-                    right_nid = bv2[i]->r->nid();
-                    current_nid = bv2[i]->nid();
-                    for(size_t j = 0; j < y_ind.n_elem; j ++ ){
-                        if(y_ind[j] == left_nid || y_ind[j] == right_nid){
-                            y_ind[j] = current_nid;
-                        }
-                    }
+
+                    // looks to be not necessary
+                    // left_nid = bv2[i]->l->nid();
+                    // right_nid = bv2[i]->r->nid();
+                    // current_nid = bv2[i]->nid();
+
+
+                    // for(size_t j = 0; j < y_ind.n_elem; j ++ ){
+                    //     if(y_ind[j] == left_nid || y_ind[j] == right_nid){
+                    //         y_ind[j] = current_nid;
+                    //     }
+                    // }
 
                     // collapse two child node, create a new key in node_y_ind for the parent
+                    // the current no grandchild node becomes a new end node
                     std::merge(node_y_ind[bv2[i]->l].begin(), node_y_ind[bv2[i]->l].end(), node_y_ind[bv2[i]->r].begin(), node_y_ind[bv2[i]->r].end(), std::back_inserter(node_y_ind[bv2[i]]));
 
                     // also need to update sufficient_stat map
@@ -1256,7 +1267,11 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
 
 
     if(1){
+
+        //////////////////////////////////////////////////////////////
         // regrow the tree
+        //////////////////////////////////////////////////////////////
+
 
             // regrow the current tree
         bv.clear();
