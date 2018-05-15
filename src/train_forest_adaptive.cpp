@@ -71,11 +71,11 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
 
         for(size_t sweeps = 0; sweeps < N_sweeps; sweeps ++){
 
-            if(verbose == true){
+            // if(verbose == true){
             cout << "--------------------------------" << endl;
             cout << "number of sweeps " << sweeps << endl;
             cout << "--------------------------------" << endl;
-            }
+            // }
 
             for(size_t tree_ind = 0; tree_ind < M; tree_ind ++){
 
@@ -103,13 +103,15 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
 
                 // grow a tree
 
-                if(sweeps < 10){
+                if(sweeps < 20){
 
                     trees.t[tree_ind].grow_tree_adaptive(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
-                    cout << "tree size " << trees.t[tree_ind].treesize() << endl;
+                    // cout << "tree size " << trees.t[tree_ind].treesize() << endl;
                 }else{  
                 
                     trees.t[tree_ind].prune_regrow(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
+                    // cout << "tree size, prune and regrow " << trees.t[tree_ind].treesize() << endl;
+
                 }   
                     // cout << "+++++++++++++++++++++++++++" << endl;
                     //                 cout << "tree size " << trees.t[tree_ind].treesize() << endl;
@@ -122,6 +124,9 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
                 
                 // update prediction of current tree
                 predictions.col(tree_ind) = fit_new(trees.t[tree_ind], X);
+
+
+                // cout << "prediction sum of squares " << sum(pow(predictions.col(tree_ind), 2)) << endl;
 
                 // update prediction (theta_noise) of current tree
                 // predictions_theta_noise.col(tree_ind) = fit_new_theta_noise(trees.t[tree_ind], X);
@@ -150,9 +155,9 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
             }
         yhats.col(sweeps) = yhat;
         yhats_test.col(sweeps) = yhat_test;
-        cout << "+++++++++++++++++++++++++++++++++++" << endl;
-        cout << "end of one sweep" << endl;
-        cout << "+++++++++++++++++++++++++++++++++++" << endl;
+        // cout << "+++++++++++++++++++++++++++++++++++" << endl;
+        // cout << "end of one sweep" << endl;
+        // cout << "+++++++++++++++++++++++++++++++++++" << endl;
 
         }
 
