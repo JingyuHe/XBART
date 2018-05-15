@@ -47,6 +47,7 @@
         "type_traits": "cpp",
         "atomic": "cpp",
         "system_error": "cpp",
-        "locale": "cpp"
+        "locale": "cpp",
+        "cmath": "cpp"
     }
 }
