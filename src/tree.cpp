@@ -1167,6 +1167,13 @@ arma::uvec range(size_t start, size_t end){
 
 void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double& tau, double& sigma, double& alpha, double& beta, arma::mat& residual, bool draw_sigma, bool draw_mu, bool parallel){
 
+    // this->l->l = 0;
+    // this->l->r = 0;
+    // this->r->r = 0;
+    // this->r->l = 0;
+
+
+
     tree::npv bv;       // vector of pointers to bottom nodes
     tree::npv bv2;      // vector of pointers to nodes without grandchild
     this->getbots(bv);
@@ -1241,6 +1248,7 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
 
 
         while(0.8 * bv2.size() > keep_count && bv2.size() > 1){
+        // while(bv2.size() > 3){
             // stop loop untile 95% ends node cannot be collapsed, might prune too much
 
             bv2.clear();    // clear the vector of no grandchild nodes  
