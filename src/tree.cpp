@@ -978,23 +978,18 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
         // Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(loglike.n_elem) - 1;
         // ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
 
-                        // cout << "----prob of selected " << loglike(ind) << " prob of no split " << loglike(loglike.n_elem - 1) << " max prob " << max(loglike) << endl;
-
-
 
         std::vector<double> loglike_vec(loglike.n_elem);
         for(size_t i = 0; i < loglike.n_elem; i ++ ){
             loglike_vec[i] = loglike(i);
         }
 
-        // cout << endl;
 
         std::random_device rd;
         std::mt19937 gen(rd());
         std::discrete_distribution<> d(loglike_vec.begin(), loglike_vec.end());
         // sample one index of split point
         ind = d(gen); 
-                // cout << "----prob of selected " << loglike_vec[ind] << " prob of no split " << loglike_vec[loglike.n_elem - 1] << " max prob " << max(loglike) << endl;
 
 
         split_var = ind / (N - 1);
@@ -1066,14 +1061,6 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
         std::discrete_distribution<> d(loglike_vec.begin(), loglike_vec.end());
         // // sample one index of split point
         ind = d(gen); 
-
-
-
-        // std::random_device rd;
-        // std::mt19937 gen(rd());
-        // std::discrete_distribution<> d(loglike.begin(), loglike.end());
-        // // sample one index of split point
-        // ind = d(gen); 
 
 
         split_var = ind / Ncutpoints;
@@ -1222,7 +1209,8 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
         double total_loglike = 0.0;
         double sigma2 = pow(sigma, 2);
         bool test;
-        arma::vec loglike(2);       // only two elements, collapse or not
+        // arma::vec loglike(2);
+        std::vector<double> loglike(2);       // only two elements, collapse or not
         Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(2) - 1;
         size_t ind ;
 
@@ -1265,10 +1253,26 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
 
 
 
-                loglike[0] = total_loglike;
-                loglike[1] = left_loglike + right_loglike;
-                loglike = exp(loglike - max(loglike));
-                ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
+                // loglike[0] = total_loglike;
+                // loglike[1] = left_loglike + right_loglike;
+                // loglike = exp(loglike - max(loglike));
+                // ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
+
+                if(total_loglike > left_loglike + right_loglike){
+                    loglike[0] = 1.0;
+                    loglike[1] = exp(left_loglike + right_loglike - total_loglike);
+                }else{
+                    loglike[0] = exp(total_loglike - left_loglike - right_loglike);
+                    loglike[1] = 1.0;                    
+                }
+
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::discrete_distribution<> d(loglike.begin(), loglike.end());
+                // // sample one index of split point
+                ind = d(gen); 
+
+
 
                 // cout << loglike << endl;
                 // cout << "========" << endl;
