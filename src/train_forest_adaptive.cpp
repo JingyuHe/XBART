@@ -103,16 +103,16 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
 
                 // grow a tree
 
-                // if(sweeps < 3){
+                if(sweeps < 30){
 
                     trees.t[tree_ind].grow_tree_adaptive(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
                     // cout << "tree size " << trees.t[tree_ind].treesize() << endl;
-                // }else{  
+                }else{  
                 
                     trees.t[tree_ind].prune_regrow(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
                     // cout << "tree size, prune and regrow " << trees.t[tree_ind].treesize() << endl;
 
-                // }   
+                }   
                     // cout << "+++++++++++++++++++++++++++" << endl;
                     //                 cout << "tree size " << trees.t[tree_ind].treesize() << endl;
                     // cout << "+++++++++++++++++++++++++++" << endl;

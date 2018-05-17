@@ -589,9 +589,6 @@ void tree::grow_tree_adaptive(arma::mat& y, double y_mean, arma::umat& Xorder, a
     this->sig = sigma;
 
 
-
-    // cout << "no early return" << endl;
-
     size_t N = Xorder.n_rows;
     size_t p = Xorder.n_cols;
     size_t ind;
@@ -603,28 +600,18 @@ void tree::grow_tree_adaptive(arma::mat& y, double y_mean, arma::umat& Xorder, a
     BART_likelihood_adaptive(Xorder, y, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel);
 
     if(no_split == true){
-        // cout << "no splitno splitno splitno splitno splitno splitno splitno splitno splitno splitno splitno split" << endl;
         return;
     }
 
     
     this -> v = split_var;
 
-    // cout << "ok1" << endl;
-    // cout << split_point << "   " << split_var << "  " << Xorder(split_point, split_var) << endl;
-    // cout << /
     this -> c =  X(Xorder(split_point, split_var), split_var);
-    // cout << "ok2"<< endl; 
-
-    // cout << split_point << "  " << split_var << "  " << this->c << endl;
 
     arma::umat Xorder_left = arma::zeros<arma::umat>(split_point + 1, Xorder.n_cols);
     arma::umat Xorder_right = arma::zeros<arma::umat>(Xorder.n_rows - split_point - 1, Xorder.n_cols);
 
-        // cout << "ok 1" << endl;
-
     split_xorder(Xorder_left, Xorder_right, Xorder, X, split_var, split_point);
-    // cout << "ok 2" << endl;
 
 
 
@@ -636,13 +623,6 @@ void tree::grow_tree_adaptive(arma::mat& y, double y_mean, arma::umat& Xorder, a
     lchild->grow_tree_adaptive(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
     tree::tree_p rchild = new tree();
     rchild->grow_tree_adaptive(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
-
-
-    // depth = depth + 1;
-    // tree::tree_p lchild = new tree();
-    // lchild->grow_tree(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
-    // tree::tree_p rchild = new tree();
-    // rchild->grow_tree(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
 
     lchild -> p = this;
     rchild -> p = this;
@@ -979,6 +959,9 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
 
         loglike(loglike.n_elem - 1) = - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
 
+        // cout <<  loglike(loglike.n_elem - 1) << "    " << loglike(loglike.n_elem - 2) << endl; 
+
+
         loglike = loglike - max(loglike);
         loglike = exp(loglike);
         loglike = loglike / arma::as_scalar(arma::sum(loglike));
@@ -994,11 +977,11 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
             return;
         }
 
-        // cout << loglike << endl;
+
+        // cout <<"mean " << mean(loglike) << " max "<<max(loglike) << " min " << min(loglike) << endl;
 
         Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(loglike.n_elem) - 1;
         ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
-
 
                         // cout << "----prob of selected " << loglike(ind) << " prob of no split " << loglike(loglike.n_elem - 1) << " max prob " << max(loglike) << endl;
 
@@ -1190,7 +1173,7 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
     this->getnogs(bv2);
 
     // create a map object, key is pointer to endnodes and value is sufficient statistics
-    std::map<tree::tree_p, arma::vec > sufficient_stat;
+    std::map< tree::tree_p, arma::vec > sufficient_stat;
     size_t N_endnodes = bv.size();
     size_t N_obs = y.n_elem;
     for(size_t i = 0; i < N_endnodes; i ++ ){
@@ -1236,7 +1219,7 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
     cout<<"before prune size" << this->treesize() << endl;
 
 
-    if(0){
+    if(1){
         //////////////////////////////////////////////////////////////
         // prune the tree, looks to be correct
         //////////////////////////////////////////////////////////////
@@ -1257,7 +1240,7 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
         size_t keep_count = 0;
 
 
-        while(0.5 * bv2.size() > keep_count && bv2.size() > 1){
+        while(0.8 * bv2.size() > keep_count && bv2.size() > 1){
             // stop loop untile 95% ends node cannot be collapsed, might prune too much
 
             bv2.clear();    // clear the vector of no grandchild nodes  
@@ -1366,6 +1349,11 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
         // size_t new_maxdepth;
 
 
+        arma::mat temp_y;
+
+        
+        // cout << "number of end nodes "<< bv.size()  <<endl;
+
         for(size_t i = 0; i < bv.size(); i ++ ){
             // loop over all endnodes
 
@@ -1378,6 +1366,9 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
             // create Xorder for the subnode
             // cout << "size " << node_y_ind[bv[i]].size() << endl;
                 temp_ind.set_size(node_y_ind[bv[i]].size());
+
+            //  cout << "length of temp_ind " << temp_ind.n_elem << endl;   
+            //  cout << "X size " << X.n_rows << endl;
                 // cout << "ok 1" << endl;
 
                     // cout << node_y_ind.count(bv[i]) << endl;
@@ -1391,7 +1382,13 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
                 // cout << temp_ind << endl;
 
                 // cout << "temp_ind " << temp_ind.n_elem << endl;
+
+
+
                 temp_X = X.rows(temp_ind);          // take corresponding rows of X
+
+
+                // cout << " temp _X size " << temp_X.n_rows << "  " << temp_X.n_cols << endl;
 
                 // cout << "temp_X " << temp_X.n_cols << temp_X.n_rows << endl;
 
@@ -1406,6 +1403,8 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
                 // cout << "ok 3" << endl;
                 temp_y_mean = arma::as_scalar(mean(y.rows(temp_ind)));
 
+                temp_y = y.rows(temp_ind);
+
         // cout << "before regrows " << this->treesize() << "  data size  " << temp_Xorder.n_rows << " " << temp_Xorder.n_cols  << endl;
 
 
@@ -1415,11 +1414,30 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
                 //     new_maxdepth = 0;
                 // }
                 // cout << "max depth " << bv[i]->depth()  << "  " << max_depth << endl;
-                cout << temp_X.n_cols << endl;
-                bv[i]->grow_tree_adaptive(y, temp_y_mean, temp_Xorder, temp_X, bv[i]->depth(), max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
+                // cout << temp_X.n_rows << endl;
+
+
+                // cout << bv[i]->theta << "    " << temp_y_mean << endl;
+                // cout << bv[i]->depth() << "   " << max_depth << endl;
+
+                // cout << Nmin << "  " << Ncutpoints << "  " << tau << "  " << sigma << "  " << alpha << "  " << beta << endl;
+
+                // cout << temp_y_mean << "  " << mean(fit_new(*this, temp_X)) << endl;
+
+                // cout << temp_Xorder.col(0)  << endl;
+                // cout << temp_X.n_rows << endl;
+                bv[i]->grow_tree_adaptive(temp_y, temp_y_mean, temp_Xorder, temp_X, bv[i]->depth(), max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, temp_y, draw_sigma, draw_mu, parallel);
             // }
 
 
+
+                // if(bv[i]->l){
+                //     cout <<" has left " << endl;
+                // }
+
+                // if(bv[i]->r){
+                //     cout <<" has right " << endl;
+                // }
         }
         cout << "after regrows " << this->treesize() << endl;
 
