@@ -569,9 +569,9 @@ void tree::grow_tree_adaptive(arma::mat& y, double y_mean, arma::umat& Xorder, a
         this->theta = y_mean * Xorder.n_rows / pow(sigma, 2) / (1.0 / tau + Xorder.n_rows / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + Xorder.n_rows / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
         this->theta_noise = this->theta ;
     }else{
-        this->theta = y_mean * Xorder.n_rows / pow(sigma, 2) / (1.0 / tau + Xorder.n_rows / pow(sigma, 2));
+        // this->theta = y_mean * Xorder.n_rows / pow(sigma, 2) / (1.0 / tau + Xorder.n_rows / pow(sigma, 2));
 
-        // this->theta = y_mean;
+        this->theta = y_mean;
 
         this->theta_noise = this->theta; // identical to theta
     }
@@ -959,9 +959,6 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
 
         loglike(loglike.n_elem - 1) = - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
 
-        // cout <<  loglike(loglike.n_elem - 1) << "    " << loglike(loglike.n_elem - 2) << endl; 
-
-
         loglike = loglike - max(loglike);
         loglike = exp(loglike);
         loglike = loglike / arma::as_scalar(arma::sum(loglike));
@@ -978,28 +975,25 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
         }
 
 
-        // cout <<"mean " << mean(loglike) << " max "<<max(loglike) << " min " << min(loglike) << endl;
-
-        Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(loglike.n_elem) - 1;
-        ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
+        // Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(loglike.n_elem) - 1;
+        // ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
 
                         // cout << "----prob of selected " << loglike(ind) << " prob of no split " << loglike(loglike.n_elem - 1) << " max prob " << max(loglike) << endl;
 
 
 
-        // std::vector<double> loglike_vec(loglike.n_elem);
-        // for(size_t i = 0; i < loglike.n_elem; i ++ ){
-        //     cout << loglike(i) << "  ";
-        //     // loglike_vec[i] = loglike(i);
-        // }
+        std::vector<double> loglike_vec(loglike.n_elem);
+        for(size_t i = 0; i < loglike.n_elem; i ++ ){
+            loglike_vec[i] = loglike(i);
+        }
 
         // cout << endl;
 
-        // std::random_device rd;
-        // std::mt19937 gen(rd());
-        // std::discrete_distribution<> d(loglike_vec.begin(), loglike_vec.end());
-        // // sample one index of split point
-        // ind = d(gen); 
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::discrete_distribution<> d(loglike_vec.begin(), loglike_vec.end());
+        // sample one index of split point
+        ind = d(gen); 
                 // cout << "----prob of selected " << loglike_vec[ind] << " prob of no split " << loglike_vec[loglike.n_elem - 1] << " max prob " << max(loglike) << endl;
 
 
@@ -1048,42 +1042,30 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
         }
 
         loglike(loglike.n_elem - 1) = - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
-
-        // for(size_t i = 0; i < loglike.n_elem; i ++ ){
-            // cout << loglike(i) << "   ";
-        // }
-
-        // cout << endl;
-        
-
     
         loglike = loglike - max(loglike);
         loglike = exp(loglike);
         loglike = loglike / arma::as_scalar(arma::sum(loglike));
-        Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(loglike.n_elem) - 1;  // sample candidate ! start from 0
-        ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
+
+
+        // Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(loglike.n_elem) - 1;  // sample candidate ! start from 0
+        // ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
 
 
         // cout << "prob of selected " << loglike(ind) << " prob of no split " << loglike(loglike.n_elem - 1) << " max prob " << max(loglike) << endl;
 
 
 
-        // std::vector<double> loglike_vec(loglike.n_elem);
-        // for(size_t i = 0; i < loglike.n_elem; i ++ ){
-        //     loglike_vec[i] = loglike(i);
+        std::vector<double> loglike_vec(loglike.n_elem);
+        for(size_t i = 0; i < loglike.n_elem; i ++ ){
+            loglike_vec[i] = loglike(i);
+        }
 
-        //     cout << loglike(i) << "  " ;
-        // }
-
-        // std::random_device rd;
-        // std::mt19937 gen(rd());
-        // std::discrete_distribution<> d(loglike_vec.begin(), loglike_vec.end());
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::discrete_distribution<> d(loglike_vec.begin(), loglike_vec.end());
         // // sample one index of split point
-        // ind = d(gen); 
-
-
-        // cout << endl;
-            // cout << "prob of selected " << loglike_vec[ind] << " prob of no split " << loglike_vec[loglike.n_elem - 1] << " max prob " << max(loglike) << endl;
+        ind = d(gen); 
 
 
 
@@ -1094,16 +1076,11 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
         // ind = d(gen); 
 
 
-        // cout << loglike.n_elem << "  " << temp_ind2(temp_ind2.size() - 1) << "  " << ind << "   " << Ncutpoints << endl;
         split_var = ind / Ncutpoints;
-                    // cout << "ok1" << endl;
 
         split_point = candidate_index(ind % Ncutpoints);
-            // cout << "ok2" << endl;
 
         if(ind == (Ncutpoints) * p){no_split = true;}
-
-        // cout << split_var << split_point << endl;
 
     }
     return;
@@ -1174,14 +1151,14 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
 
 
 
-    this->l->l->l = 0;
-    this->l->l->r = 0;
-    this->l->r->l = 0;
-    this->l->r->r = 0;
-    this->r->l->l = 0;
-    this->r->l->r = 0;
-    this->r->r->l = 0;
-    this->r->r->r = 0;
+    // this->l->l->l = 0;
+    // this->l->l->r = 0;
+    // this->l->r->l = 0;
+    // this->l->r->r = 0;
+    // this->r->l->l = 0;
+    // this->r->l->r = 0;
+    // this->r->r->l = 0;
+    // this->r->r->r = 0;
 
 
     tree::npv bv;       // vector of pointers to bottom nodes
