@@ -1174,6 +1174,16 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
 
 
 
+    this->l->l->l = 0;
+    this->l->l->r = 0;
+    this->l->r->l = 0;
+    this->l->r->r = 0;
+    this->r->l->l = 0;
+    this->r->l->r = 0;
+    this->r->r->l = 0;
+    this->r->r->r = 0;
+
+
     tree::npv bv;       // vector of pointers to bottom nodes
     tree::npv bv2;      // vector of pointers to nodes without grandchild
     this->getbots(bv);
@@ -1226,7 +1236,7 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
     cout<<"before prune size" << this->treesize() << endl;
 
 
-    if(1){
+    if(0){
         //////////////////////////////////////////////////////////////
         // prune the tree, looks to be correct
         //////////////////////////////////////////////////////////////
@@ -1247,8 +1257,8 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
         size_t keep_count = 0;
 
 
-        while(0.8 * bv2.size() > keep_count && bv2.size() > 1){
-        // while(bv2.size() > 3){
+        while(0.95 * bv2.size() > keep_count && bv2.size() > 1){
+        // while(bv2.size() > 8){
             // stop loop untile 95% ends node cannot be collapsed, might prune too much
 
             bv2.clear();    // clear the vector of no grandchild nodes  
