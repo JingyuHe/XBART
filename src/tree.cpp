@@ -635,6 +635,91 @@ void tree::grow_tree_adaptive(arma::mat& y, double y_mean, arma::umat& Xorder, a
 
 
 
+void tree::grow_tree_adaptive_onestep(arma::mat& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, arma::mat& residual, bool draw_sigma, bool draw_mu, bool parallel){
+    
+    if(Xorder.n_rows <= Nmin){
+        // cout << " too small " << endl;
+        return;
+    }
+
+    if(depth >= max_depth - 1){
+        // cout << " too deep " << endl;
+        return;
+    }
+
+    // tau is prior VARIANCE, do not take squares
+    
+    if(draw_mu == true){
+        this->theta = y_mean * Xorder.n_rows / pow(sigma, 2) / (1.0 / tau + Xorder.n_rows / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + Xorder.n_rows / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
+        this->theta_noise = this->theta ;
+    }else{
+        // this->theta = y_mean * Xorder.n_rows / pow(sigma, 2) / (1.0 / tau + Xorder.n_rows / pow(sigma, 2));
+
+        this->theta = y_mean;
+
+        this->theta_noise = this->theta; // identical to theta
+    }
+
+
+    if(draw_sigma == true){
+
+        tree::tree_p top_p = this->gettop();
+
+        // draw sigma use residual of noisy theta
+        arma::vec reshat = residual - fit_new_theta_noise( * top_p, X);
+        sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (reshat.n_elem + 16) / 2.0, 2.0 / as_scalar(sum(pow(reshat, 2)) + 4)))));
+    }
+
+    this->sig = sigma;
+
+
+    size_t N = Xorder.n_rows;
+    size_t p = Xorder.n_cols;
+    size_t ind;
+    size_t split_var;
+    size_t split_point;
+
+    bool no_split = false; // if true, do not split at current node
+
+    BART_likelihood_adaptive(Xorder, y, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel);
+
+    if(no_split == true){
+        return;
+    }
+
+    
+    this -> v = split_var;
+
+    this -> c =  X(Xorder(split_point, split_var), split_var);
+
+    arma::umat Xorder_left = arma::zeros<arma::umat>(split_point + 1, Xorder.n_cols);
+    arma::umat Xorder_right = arma::zeros<arma::umat>(Xorder.n_rows - split_point - 1, Xorder.n_cols);
+
+    split_xorder(Xorder_left, Xorder_right, Xorder, X, split_var, split_point);
+
+
+
+    double yleft_mean = arma::as_scalar(arma::mean(y(Xorder_left.col(split_var))));
+    double yright_mean = arma::as_scalar(arma::mean(y(Xorder_right.col(split_var))));
+
+    depth = depth + 1;
+    tree::tree_p lchild = new tree();
+    // lchild->grow_tree_adaptive(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
+    tree::tree_p rchild = new tree();
+    // rchild->grow_tree_adaptive(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
+
+    lchild -> p = this;
+    rchild -> p = this;
+    this -> l = lchild;
+    this -> r = rchild;
+    lchild -> theta = yleft_mean;
+    rchild -> theta = yright_mean;
+
+    return;
+}
+
+
+
 void tree::grow_tree_std(double* y, double& y_mean, xinfo_sizet& Xorder, double* X, size_t N, size_t p, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta, double* residual, bool draw_sigma, bool draw_mu){
 
     // theta = y_mean / pow(sigma, 2) * 1.0 / (1.0 / pow(tau, 2) + 1.0 / pow(sigma, 2));
@@ -1211,7 +1296,7 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
         bool test;
         // arma::vec loglike(2);
         std::vector<double> loglike(2);       // only two elements, collapse or not
-        Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(2) - 1;
+        // Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(2) - 1;
         size_t ind ;
 
         size_t left_nid;
@@ -1444,8 +1529,283 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
     }
                                 cout << "------------------------------------" << endl;
 
+
     return;
 }
+
+
+
+
+
+
+
+void tree::one_step_grow(arma::mat& y, double y_mean, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double& tau, double& sigma, double& alpha, double& beta, arma::mat& residual, bool draw_sigma, bool draw_mu, bool parallel){
+
+    tree::npv bv;       // vector of pointers to bottom nodes
+    tree::npv bv2;      // vector of pointers to nodes without grandchild
+    this->getbots(bv);
+    this->getnogs(bv2);
+
+    // create a map object, key is pointer to endnodes and value is sufficient statistics
+    std::map< tree::tree_p, arma::vec > sufficient_stat;
+    size_t N_endnodes = bv.size();
+    size_t N_obs = y.n_elem;
+    for(size_t i = 0; i < N_endnodes; i ++ ){
+        // initialize the object
+        sufficient_stat[bv[i]] = arma::zeros<arma::vec>(2);
+        // 2 dimension vector, first element for counts, second element for sum of y fall in that node
+    }
+
+    // create a map to save *index* of ys fall into each endnodes
+    std::map<tree::tree_p, std::vector<size_t> > node_y_ind;
+
+    arma::vec y_ind(N_obs); // same length as y, the value is ID of end nodes associated with
+    tree::tree_p temp_pointer;
+
+    // loop over observations
+    for(size_t i = 0; i < N_obs; i ++ ){
+        temp_pointer = this->search_bottom(X, i);
+        // if(sufficient_stat.count(temp_pointer)){ // for protection, since the map is intialized, not necessary
+            // update sufficient statistics
+            // if statement for protection
+            // y_ind[i] = temp_pointer->nid();
+            sufficient_stat[temp_pointer][0] += 1;      // add one for count
+            sufficient_stat[temp_pointer][1] += arma::as_scalar(y.row(i));   // sum of y, add it to the sum
+        // }
+        // if(node_y_ind.count(temp_pointer)){
+            node_y_ind[temp_pointer].push_back(i);      // push the index to node_y_ind vector
+        // }
+    }
+
+
+
+
+    //////////////////////////////////////////////////////////////
+    // regrow the tree
+    //////////////////////////////////////////////////////////////
+    // update list of bottom nodes
+    bv.clear();
+    this->getbots(bv);      // get bottom nodes
+
+    size_t node_id;
+
+    arma::uvec y_ind_subnode;
+
+    arma::uvec temp_ind;    // index for y in the current nodes
+
+    arma::mat temp_X;       // X values
+
+    arma::umat temp_Xorder; // Xorder values
+
+    double temp_y_mean;     // mean of y 
+
+    arma::mat temp_y;
+
+    size_t i = 0;
+
+    // randomly select one leaf to grow
+
+    std::vector<double> prob(bv.size() , 1.0 / (double) bv.size());
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::discrete_distribution<> d(prob.begin(), prob.end());
+    // // sample one index of split point
+    i = d(gen);     
+
+    temp_ind.set_size(node_y_ind[bv[i]].size());
+
+    for(size_t j = 0; j < node_y_ind[bv[i]].size(); j ++ ){
+        // copy indicies of y falls in node bv[i]
+        temp_ind[j] = node_y_ind[bv[i]][j];
+    }
+
+    temp_X = X.rows(temp_ind);          // take corresponding rows of X
+
+    temp_Xorder.set_size(temp_X.n_rows, temp_X.n_cols);         // sort corresponding X, create order matrix
+
+    for(size_t t = 0; t < temp_X.n_cols; t++){
+        temp_Xorder.col(t) = arma::sort_index(temp_X.col(t));
+    }
+
+    temp_y_mean = arma::as_scalar(mean(y.rows(temp_ind)));
+
+    temp_y = y.rows(temp_ind);
+
+    bv[i]->grow_tree_adaptive_onestep(temp_y, temp_y_mean, temp_Xorder, temp_X, bv[i]->depth(), max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, temp_y, draw_sigma, draw_mu, parallel);
+
+    
+    // cout << "after regrows " << this->treesize() << endl;
+
+    
+
+    return;
+}
+
+
+
+
+
+void tree::one_step_prune(arma::mat& y, double y_mean, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double& tau, double& sigma, double& alpha, double& beta, arma::mat& residual, bool draw_sigma, bool draw_mu, bool parallel){
+
+
+    tree::npv bv;       // vector of pointers to bottom nodes
+    tree::npv bv2;      // vector of pointers to nodes without grandchild
+    this->getbots(bv);
+    this->getnogs(bv2);
+
+    // create a map object, key is pointer to endnodes and value is sufficient statistics
+    std::map< tree::tree_p, arma::vec > sufficient_stat;
+    size_t N_endnodes = bv.size();
+    size_t N_obs = y.n_elem;
+    for(size_t i = 0; i < N_endnodes; i ++ ){
+        // initialize the object
+        sufficient_stat[bv[i]] = arma::zeros<arma::vec>(2);
+        // 2 dimension vector, first element for counts, second element for sum of y fall in that node
+    }
+
+    // create a map to save *index* of ys fall into each endnodes
+    std::map<tree::tree_p, std::vector<size_t> > node_y_ind;
+
+    arma::vec y_ind(N_obs); // same length as y, the value is ID of end nodes associated with
+    tree::tree_p temp_pointer;
+
+    // loop over observations
+    for(size_t i = 0; i < N_obs; i ++ ){
+        temp_pointer = this->search_bottom(X, i);
+        // if(sufficient_stat.count(temp_pointer)){ // for protection, since the map is intialized, not necessary
+            // update sufficient statistics
+            // if statement for protection
+            // y_ind[i] = temp_pointer->nid();
+            sufficient_stat[temp_pointer][0] += 1;      // add one for count
+            sufficient_stat[temp_pointer][1] += arma::as_scalar(y.row(i));   // sum of y, add it to the sum
+        // }
+        // if(node_y_ind.count(temp_pointer)){
+            node_y_ind[temp_pointer].push_back(i);      // push the index to node_y_ind vector
+        // }
+    }
+
+
+    //////////////////////////////////////////////////////////////
+    // prune the tree, looks to be correct
+    //////////////////////////////////////////////////////////////
+    double left_loglike = 0.0;
+    double right_loglike = 0.0;
+    double total_loglike = 0.0;
+    double sigma2 = pow(sigma, 2);
+    bool test;
+    // arma::vec loglike(2);
+    std::vector<double> loglike(2);       // only two elements, collapse or not
+    // Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(2) - 1;
+    size_t ind ;
+
+    size_t left_nid;
+    size_t right_nid;
+    size_t current_nid;
+
+
+    // size_t keep_count = 0;
+
+
+
+    bv2.clear();    // clear the vector of no grandchild nodes  
+    this->getnogs(bv2);      
+    // keep_count = 0; // count of nodes not collapsed
+
+    // cout << " number of no grands " << bv2.size() << endl;
+
+    // randomly sample one nograndchild node to collapse
+
+    std::vector<double> prob(bv2.size() , 1.0 / (double) bv2.size());
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::discrete_distribution<> d(prob.begin(), prob.end());
+    // // sample one index of split point
+    size_t i = d(gen);   
+
+
+    left_loglike = - 0.5 * log(sufficient_stat[bv2[i]->l][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->l][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->l][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->l->depth()) + beta * log(bv2[i]->l->depth()) + log(1.0 - alpha) - log(alpha);
+    right_loglike = - 0.5 * log(sufficient_stat[bv2[i]->r][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->r][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->r][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->r->depth()) + beta * log(bv2[i]->r->depth()) + log(1.0 - alpha) - log(alpha);
+
+    total_loglike = - 0.5 * log((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow((sufficient_stat[bv2[i]->l][1] + sufficient_stat[bv2[i]->r][1]), 2) / (sigma2 * ((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2)) - beta * log(1.0 + bv2[i]->depth()) + beta * log(bv2[i]->depth()) + log(1.0 - alpha) - log(alpha);
+
+
+
+
+        // left_loglike = - 0.5 * log(sufficient_stat[bv2[i]->l][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->l][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->l][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->depth()) + beta * log(bv2[i]->depth()) + log(1.0 - alpha) - log(alpha);
+        // right_loglike = - 0.5 * log(sufficient_stat[bv2[i]->r][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->r][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->r][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->depth()) + beta * log(bv2[i]->depth()) + log(1.0 - alpha) - log(alpha);
+
+        // total_loglike = - 0.5 * log((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow((sufficient_stat[bv2[i]->l][1] + sufficient_stat[bv2[i]->r][1]), 2) / (sigma2 * ((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2)) - beta * log(1.0 + bv2[i]->depth()) + beta * log(bv2[i]->depth()) + log(1.0 - alpha) - log(alpha);
+    
+
+
+
+        // loglike[0] = total_loglike;
+        // loglike[1] = left_loglike + right_loglike;
+        // loglike = exp(loglike - max(loglike));
+        // ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
+
+    if(total_loglike > left_loglike + right_loglike){
+        loglike[0] = 1.0;
+        loglike[1] = exp(left_loglike + right_loglike - total_loglike);
+    }else{
+        loglike[0] = exp(total_loglike - left_loglike - right_loglike);
+        loglike[1] = 1.0;                    
+    }
+
+        // std::random_device rd;
+        // std::mt19937 gen(rd());
+    std::discrete_distribution<> d2(loglike.begin(), loglike.end());
+        // // sample one index of split point
+    ind = d2(gen); 
+
+
+
+        // cout << loglike << endl;
+        // cout << "========" << endl;
+
+    // if ind == 0, collapse the current node
+    if(ind == 0){
+
+        // looks to be not necessary
+        // left_nid = bv2[i]->l->nid();
+        // right_nid = bv2[i]->r->nid();
+        // current_nid = bv2[i]->nid();
+
+
+        // for(size_t j = 0; j < y_ind.n_elem; j ++ ){
+        //     if(y_ind[j] == left_nid || y_ind[j] == right_nid){
+        //         y_ind[j] = current_nid;
+        //     }
+        // }
+
+        // collapse two child node, create a new key in node_y_ind for the parent
+        // the current no grandchild node becomes a new end node
+        std::merge(node_y_ind[bv2[i]->l].begin(), node_y_ind[bv2[i]->l].end(), node_y_ind[bv2[i]->r].begin(), node_y_ind[bv2[i]->r].end(), std::back_inserter(node_y_ind[bv2[i]]));
+
+        // also need to update sufficient_stat map
+        sufficient_stat[bv2[i]] = sufficient_stat[bv2[i]->l] + sufficient_stat[bv2[i]->r];
+
+        free(bv2[i]->l);
+        free(bv2[i]->r);
+        bv2[i]->l = 0;
+        bv2[i]->r = 0;
+        // cout << bv2[i]->theta << endl;
+
+    }
+
+
+    return;
+}
+
+
+
+
+
+
+
+
 
 #ifndef NoRcpp   
 // instead of returning y.test, let's return trees

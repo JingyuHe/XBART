@@ -50,6 +50,16 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
 
     arma::vec reshat_test;
 
+
+    std::vector<double> prob(2, 0.5);
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::discrete_distribution<> d(prob.begin(), prob.end());
+    // // sample one index of split point
+    size_t prune;  
+
+
     for(size_t mc = 0; mc < L; mc ++ ){
 
         // initialize
@@ -105,17 +115,35 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
 
                 // if(sweeps < 30){
 
+
+                if(sweeps < 1){
                     trees.t[tree_ind].grow_tree_adaptive(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
                     // cout << "tree size " << trees.t[tree_ind].treesize() << endl;
-                // }else{  
+                }else{  
                 
-                    trees.t[tree_ind].prune_regrow(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
+                    // trees.t[tree_ind].prune_regrow(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
                     // cout << "tree size, prune and regrow " << trees.t[tree_ind].treesize() << endl;
+                    cout << "+++++++++++++++++++++++++++" << endl;
 
-                // }   
-                    // cout << "+++++++++++++++++++++++++++" << endl;
-                    //                 cout << "tree size " << trees.t[tree_ind].treesize() << endl;
-                    // cout << "+++++++++++++++++++++++++++" << endl;
+
+                    prune = d(gen);
+                    if(prune == 0){
+                        cout << " grow " << endl;
+                        trees.t[tree_ind].one_step_grow(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
+                        cout << "grow, before tree size " << trees.t[tree_ind].treesize() << endl;
+
+                    }else{
+                        if(trees.t[tree_ind].treesize() > 5){
+                        cout << " prune " << endl;
+                        trees.t[tree_ind].one_step_prune(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
+                        cout << "prune, before tree size " << trees.t[tree_ind].treesize() << endl;
+                        }
+                    }
+
+                }   
+                
+                cout << "after tree size " << trees.t[tree_ind].treesize() << endl;
+                cout << "+++++++++++++++++++++++++++" << endl;
 
 
                 if(verbose == true){
