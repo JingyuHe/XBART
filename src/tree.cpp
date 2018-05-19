@@ -569,7 +569,7 @@ void tree::grow_tree_adaptive(arma::mat& y, double y_mean, arma::umat& Xorder, a
         this->theta = y_mean * Xorder.n_rows / pow(sigma, 2) / (1.0 / tau + Xorder.n_rows / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + Xorder.n_rows / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
         this->theta_noise = this->theta ;
     }else{
-        // this->theta = y_mean * Xorder.n_rows / pow(sigma, 2) / (1.0 / tau + Xorder.n_rows / pow(sigma, 2));
+        this->theta = y_mean * Xorder.n_rows / pow(sigma, 2) / (1.0 / tau + Xorder.n_rows / pow(sigma, 2));
 
         this->theta = y_mean;
 
@@ -1285,7 +1285,13 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
     cout<<"before prune size" << this->treesize() << endl;
 
 
-    if(0){
+    // update theta (mu) of all other nodes
+    for(size_t ii = 0; ii < bv.size(); ii ++ ){
+                    bv[ii]->theta = sufficient_stat[bv[ii]][1] / sufficient_stat[bv[ii]][0] * sufficient_stat[bv[ii]][0] / pow(sigma, 2) / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];
+    }
+    
+
+    if(1){
         //////////////////////////////////////////////////////////////
         // prune the tree, looks to be correct
         //////////////////////////////////////////////////////////////
@@ -1307,7 +1313,7 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
         size_t keep_count = 0;
 
 
-        while(0.95 * bv2.size() > keep_count && bv2.size() > 1){
+        // while(0.95 * bv2.size() > keep_count && bv2.size() > 1){
         // while(bv2.size() > 8){
             // stop loop untile 95% ends node cannot be collapsed, might prune too much
 
@@ -1394,7 +1400,7 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
                     keep_count ++ ;
                 }
          
-           }
+        //    }
 
                    cout << "After pruning " << this->treesize() << endl;
 
@@ -1637,6 +1643,13 @@ void tree::one_step_grow(arma::mat& y, double y_mean, arma::mat& X, size_t depth
     
     // cout << "after regrows " << this->treesize() << endl;
 
+
+    // update theta (mu) of all other nodes
+    for(size_t ii = 0; ii < bv.size(); ii ++ ){
+        if(ii!=i){
+            bv[ii]->theta = sufficient_stat[bv[ii]][1] / sufficient_stat[bv[ii]][0] * sufficient_stat[bv[ii]][0] / pow(sigma, 2) / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];
+        }
+    }
     
 
     return;
@@ -1762,6 +1775,14 @@ void tree::one_step_prune(arma::mat& y, double y_mean, arma::mat& X, size_t dept
 
 
 
+
+    // // update theta (mu) of all other nodes
+    // for(size_t ii = 0; ii < bv.size(); ii ++ ){
+    //     if(ii!=i){
+    //         bv[ii]->theta = sufficient_stat[bv[ii]][1] / sufficient_stat[bv[ii]][0] * sufficient_stat[bv[ii]][0] / pow(sigma, 2) / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];
+    //     }
+    // }
+    
         // cout << loglike << endl;
         // cout << "========" << endl;
 
