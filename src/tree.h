@@ -118,6 +118,7 @@ public:
    void prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double& tau, double& sigma, double& alpha, double& beta, arma::mat& residual, bool draw_sigma, bool draw_mu, bool parallel);
    void one_step_grow(arma::mat& y, double y_mean, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double& tau, double& sigma, double& alpha, double& beta, arma::mat& residual, bool draw_sigma, bool draw_mu, bool parallel);
    void one_step_prune(arma::mat& y, double y_mean, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double& tau, double& sigma, double& alpha, double& beta, arma::mat& residual, bool draw_sigma, bool draw_mu, bool parallel);
+   void sample_theta(arma::mat& y, arma::mat& X, double& tau, double& sigma, bool draw_mu);
    tree_p bn(double *x,xinfo& xi); //find Bottom Node, original BART version
    tree_p bn_std(double *x); // find Bottom Node, std version, compare
    tree_p search_bottom(arma::mat& Xnew, const size_t& i);

@@ -1825,6 +1825,59 @@ void tree::one_step_prune(arma::mat& y, double y_mean, arma::mat& X, size_t dept
 
 
 
+void tree::sample_theta(arma::mat& y, arma::mat& X, double& tau, double& sigma, bool draw_mu){
+
+    if(draw_mu){
+        tree::npv bv;       // vector of pointers to bottom nodes
+        tree::npv bv2;      // vector of pointers to nodes without grandchild
+        this->getbots(bv);
+        this->getnogs(bv2);
+
+        // create a map object, key is pointer to endnodes and value is sufficient statistics
+        std::map< tree::tree_p, arma::vec > sufficient_stat;
+        size_t N_endnodes = bv.size();
+        size_t N_obs = y.n_elem;
+        for(size_t i = 0; i < N_endnodes; i ++ ){
+            // initialize the object
+            sufficient_stat[bv[i]] = arma::zeros<arma::vec>(2);
+            // 2 dimension vector, first element for counts, second element for sum of y fall in that node
+        }
+
+        // create a map to save *index* of ys fall into each endnodes
+        std::map<tree::tree_p, std::vector<size_t> > node_y_ind;
+
+        arma::vec y_ind(N_obs); // same length as y, the value is ID of end nodes associated with
+        tree::tree_p temp_pointer;
+
+        // loop over observations
+        for(size_t i = 0; i < N_obs; i ++ ){
+            temp_pointer = this->search_bottom(X, i);
+            // if(sufficient_stat.count(temp_pointer)){ // for protection, since the map is intialized, not necessary
+                // update sufficient statistics
+                // if statement for protection
+                // y_ind[i] = temp_pointer->nid();
+                sufficient_stat[temp_pointer][0] += 1;      // add one for count
+                sufficient_stat[temp_pointer][1] += arma::as_scalar(y.row(i));   // sum of y, add it to the sum
+            // }
+            // if(node_y_ind.count(temp_pointer)){
+                node_y_ind[temp_pointer].push_back(i);      // push the index to node_y_ind vector
+            // }
+        }
+
+
+        // update theta (mu) of all other nodes
+        for(size_t ii = 0; ii < bv.size(); ii ++ ){
+            bv[ii]->theta = sufficient_stat[bv[ii]][1] / sufficient_stat[bv[ii]][0] * sufficient_stat[bv[ii]][0] / pow(sigma, 2) / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];
+        }
+    
+    }
+    return;
+}
+
+
+
+
+
 
 
 
