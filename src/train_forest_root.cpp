@@ -6,7 +6,7 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, bool draw_sigma, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true){
+Rcpp::List train_forest_root(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, bool draw_sigma, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true){
 
     size_t N = X.n_rows;
 
@@ -117,34 +117,34 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
                 // if(sweeps < 30){
 
 
-                if(sweeps < 1){
+                // if(sweeps < 1){
                     trees.t[tree_ind].grow_tree_adaptive(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
                     // cout << "tree size " << trees.t[tree_ind].treesize() << endl;
-                }else{ 
-                    //    trees.t[tree_ind].sample_theta(residual, X, tau, sigma, draw_mu);
+                // }else{ 
+                //     //    trees.t[tree_ind].sample_theta(residual, X, tau, sigma, draw_mu);
 
-                // }
+                // // }
                 
-                    // trees.t[tree_ind].prune_regrow(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
-                //     // cout << "tree size, prune and regrow " << trees.t[tree_ind].treesize() << endl;
-                //     cout << "+++++++++++++++++++++++++++" << endl;
+                //     // trees.t[tree_ind].prune_regrow(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
+                // //     // cout << "tree size, prune and regrow " << trees.t[tree_ind].treesize() << endl;
+                // //     cout << "+++++++++++++++++++++++++++" << endl;
 
 
-                    prune = d(gen);
-                    if(prune == 0){
-                        // cout << " grow " << endl;
-                        trees.t[tree_ind].one_step_grow(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
-                        // cout << "grow, before tree size " << trees.t[tree_ind].treesize() << endl;
+                //     prune = d(gen);
+                //     if(prune == 0){
+                //         // cout << " grow " << endl;
+                //         trees.t[tree_ind].one_step_grow(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
+                //         // cout << "grow, before tree size " << trees.t[tree_ind].treesize() << endl;
 
-                    }else{
-                        if(trees.t[tree_ind].treesize() > 5){
-                        // cout << " prune " << endl;
-                        trees.t[tree_ind].one_step_prune(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
-                        // cout << "prune, before tree size " << trees.t[tree_ind].treesize() << endl;
-                        }
-                    }
+                //     }else{
+                //         if(trees.t[tree_ind].treesize() > 5){
+                //         // cout << " prune " << endl;
+                //         trees.t[tree_ind].one_step_prune(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
+                //         // cout << "prune, before tree size " << trees.t[tree_ind].treesize() << endl;
+                //         }
+                //     }
 
-                }   
+                // }   
                 // trees.t[tree_ind].grow_tree_adaptive(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
 
                 // trees.t[tree_ind].one_step_prune(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel); 

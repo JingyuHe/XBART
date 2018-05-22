@@ -1023,7 +1023,7 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
         // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
         arma::vec n1tau = tau * arma::linspace(1, N - 1, N - 1);
         arma::vec n2tau = tau * arma::linspace(N - 1, 1, N - 1);
-        arma::vec loglike((N - 1) * p + 1);
+        arma::vec loglike((N - 1) * p);
         // if number of observations is smaller than Ncutpoints, all data are splitpoint candidates       
         // note that the first Nmin and last Nmin cannot be splitpoint candidate
 
@@ -1045,7 +1045,9 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
             parallelFor(0, p, like_parallel_full);
         }
 
-        loglike(loglike.n_elem - 1) = 1.0 + (- 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha));
+        // loglike(loglike.n_elem - 1) = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
+
+        loglike(loglike.n_elem - 1) = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
         loglike = loglike - max(loglike);
         loglike = exp(loglike);
@@ -1124,7 +1126,10 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
             parallelFor(0, p, like_parallel);
         }
 
-        loglike(loglike.n_elem - 1) = 1.0 + (- 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha));
+        // loglike(loglike.n_elem - 1) = log(Ncutpoints) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
+
+        loglike(loglike.n_elem - 1) = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+
     
         loglike = loglike - max(loglike);
         loglike = exp(loglike);
@@ -1159,7 +1164,7 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
 
     }
 
-    cout << "select variable " << split_var << endl;
+    // cout << "select variable " << split_var << endl;
     return;
 }
 
@@ -1336,7 +1341,7 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
                 left_loglike = - 0.5 * log(sufficient_stat[bv2[i]->l][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->l][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->l][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->l->depth()) + beta * log(bv2[i]->l->depth()) + log(1.0 - alpha) - log(alpha);
                 right_loglike = - 0.5 * log(sufficient_stat[bv2[i]->r][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->r][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->r][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->r->depth()) + beta * log(bv2[i]->r->depth()) + log(1.0 - alpha) - log(alpha);
 
-                total_loglike = - 0.5 * log((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow((sufficient_stat[bv2[i]->l][1] + sufficient_stat[bv2[i]->r][1]), 2) / (sigma2 * ((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2)) - beta * log(1.0 + bv2[i]->depth()) + beta * log(bv2[i]->depth()) + log(1.0 - alpha) - log(alpha);
+                total_loglike = - 0.5 * log((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow((sufficient_stat[bv2[i]->l][1] + sufficient_stat[bv2[i]->r][1]), 2) / (sigma2 * ((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + bv2[i]->depth(), -1.0 * beta)) - log(alpha) + beta * log(1.0 + bv2[i]->depth()); //- beta * log(1.0 + bv2[i]->depth()) + beta * log(bv2[i]->depth()) + log(1.0 - alpha) - log(alpha);
             
 
 
@@ -1743,14 +1748,19 @@ void tree::one_step_prune(arma::mat& y, double y_mean, arma::mat& X, size_t dept
     // // sample one index of split point
     size_t i = d(gen);   
 
-
-    left_loglike = - 0.5 * log(sufficient_stat[bv2[i]->l][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->l][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->l][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->l->depth()) + beta * log(bv2[i]->l->depth()) + log(1.0 - alpha) - log(alpha);
-    right_loglike = - 0.5 * log(sufficient_stat[bv2[i]->r][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->r][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->r][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->r->depth()) + beta * log(bv2[i]->r->depth()) + log(1.0 - alpha) - log(alpha);
-
-    total_loglike = 1.0 + - 0.5 * log((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow((sufficient_stat[bv2[i]->l][1] + sufficient_stat[bv2[i]->r][1]), 2) / (sigma2 * ((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2)) - beta * log(1.0 + bv2[i]->depth()) + beta * log(bv2[i]->depth()) + log(1.0 - alpha) - log(alpha);
+    size_t current_depth = bv2[i]->depth();
 
 
+    // left_loglike = - 0.5 * log(sufficient_stat[bv2[i]->l][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->l][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->l][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->l->depth()) + beta * log(bv2[i]->l->depth()) + log(1.0 - alpha) - log(alpha);
+    // right_loglike = - 0.5 * log(sufficient_stat[bv2[i]->r][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->r][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->r][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->r->depth()) + beta * log(bv2[i]->r->depth()) + log(1.0 - alpha) - log(alpha);
 
+    // total_loglike = - 0.5 * log((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow((sufficient_stat[bv2[i]->l][1] + sufficient_stat[bv2[i]->r][1]), 2) / (sigma2 * ((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + bv2[i]->depth(), -1.0 * beta)) - log(alpha) + beta * log(1.0 + bv2[i]->depth());//- beta * log(1.0 + bv2[i]->depth()) + beta * log(bv2[i]->depth()) + log(1.0 - alpha) - log(alpha);
+    
+
+    left_loglike = - 0.5 * log(sufficient_stat[bv2[i]->l][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->l][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->l][0] * tau + sigma2)); 
+    right_loglike = - 0.5 * log(sufficient_stat[bv2[i]->r][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->r][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->r][0] * tau + sigma2));
+
+    total_loglike = - 0.5 * log((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow((sufficient_stat[bv2[i]->l][1] + sufficient_stat[bv2[i]->r][1]), 2) / (sigma2 * ((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + current_depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + current_depth);//- beta * log(1.0 + bv2[i]->depth()) + beta * log(bv2[i]->depth()) + log(1.0 - alpha) - log(alpha);
 
         // left_loglike = - 0.5 * log(sufficient_stat[bv2[i]->l][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->l][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->l][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->depth()) + beta * log(bv2[i]->depth()) + log(1.0 - alpha) - log(alpha);
         // right_loglike = - 0.5 * log(sufficient_stat[bv2[i]->r][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->r][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->r][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->depth()) + beta * log(bv2[i]->depth()) + log(1.0 - alpha) - log(alpha);
