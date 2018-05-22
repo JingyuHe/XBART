@@ -93,11 +93,11 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
 
                 // if update sigma based on residual of all m trees
                 if(m_update_sigma == true){
-                     sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
+                    sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
+                    sigma_draw(tree_ind, sweeps) = sigma;
                 }
 
                 // save sigma
-                sigma_draw(tree_ind, sweeps) = sigma;
 
                 // add prediction of current tree back to residual
                 // then it's m - 1 trees residual
@@ -179,6 +179,7 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
                 if(m_update_sigma == false){
 
                     sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
+                    sigma_draw(tree_ind, sweeps) = sigma;
 
                 }
 

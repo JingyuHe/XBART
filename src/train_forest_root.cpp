@@ -93,7 +93,8 @@ Rcpp::List train_forest_root(arma::mat y, arma::mat X, arma::mat Xtest, size_t M
 
                 // if update sigma based on residual of all m trees
                 if(m_update_sigma == true){
-                     sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
+                    sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
+                    sigma_draw(tree_ind, sweeps) = sigma;
                 }
 
                 // save sigma
@@ -177,9 +178,8 @@ Rcpp::List train_forest_root(arma::mat y, arma::mat X, arma::mat Xtest, size_t M
 
                 // update sigma based on residual of m - 1 trees, residual_theta_noise
                 if(m_update_sigma == false){
-
                     sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
-
+                    sigma_draw(tree_ind, sweeps) = sigma;
                 }
 
                 // update residual, now it's residual of m trees
