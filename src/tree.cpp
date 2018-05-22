@@ -1014,6 +1014,9 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
     double y_sum;
 
     double sigma2 = pow(sigma, 2);
+
+    double p_split = 0.0;
+    double p_nosplit = 0.0;
     
     if( N  <= Ncutpoints + 1 + 2 * Nmin){
         // cout << "all points" << endl;
@@ -1042,7 +1045,7 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
             parallelFor(0, p, like_parallel_full);
         }
 
-        loglike(loglike.n_elem - 1) = - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
+        loglike(loglike.n_elem - 1) = 1.0 + (- 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha));
 
         loglike = loglike - max(loglike);
         loglike = exp(loglike);
@@ -1121,7 +1124,7 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
             parallelFor(0, p, like_parallel);
         }
 
-        loglike(loglike.n_elem - 1) = - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
+        loglike(loglike.n_elem - 1) = 1.0 + (- 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha));
     
         loglike = loglike - max(loglike);
         loglike = exp(loglike);
@@ -1155,6 +1158,8 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
         if(ind == (Ncutpoints) * p){no_split = true;}
 
     }
+
+    cout << "select variable " << split_var << endl;
     return;
 }
 
@@ -1644,13 +1649,14 @@ void tree::one_step_grow(arma::mat& y, double y_mean, arma::mat& X, size_t depth
     // cout << "after regrows " << this->treesize() << endl;
 
 
-    // update theta (mu) of all other nodes
-    for(size_t ii = 0; ii < bv.size(); ii ++ ){
-        if(ii!=i){
-            bv[ii]->theta = sufficient_stat[bv[ii]][1] / sufficient_stat[bv[ii]][0] * sufficient_stat[bv[ii]][0] / pow(sigma, 2) / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];
+    if(draw_mu){
+        // update theta (mu) of all other nodes
+        for(size_t ii = 0; ii < bv.size(); ii ++ ){
+            if(ii!=i){
+                bv[ii]->theta = sufficient_stat[bv[ii]][1] / sufficient_stat[bv[ii]][0] * sufficient_stat[bv[ii]][0] / pow(sigma, 2) / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];
+            }
         }
     }
-    
 
     return;
 }
@@ -1741,7 +1747,7 @@ void tree::one_step_prune(arma::mat& y, double y_mean, arma::mat& X, size_t dept
     left_loglike = - 0.5 * log(sufficient_stat[bv2[i]->l][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->l][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->l][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->l->depth()) + beta * log(bv2[i]->l->depth()) + log(1.0 - alpha) - log(alpha);
     right_loglike = - 0.5 * log(sufficient_stat[bv2[i]->r][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->r][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->r][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->r->depth()) + beta * log(bv2[i]->r->depth()) + log(1.0 - alpha) - log(alpha);
 
-    total_loglike = - 0.5 * log((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow((sufficient_stat[bv2[i]->l][1] + sufficient_stat[bv2[i]->r][1]), 2) / (sigma2 * ((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2)) - beta * log(1.0 + bv2[i]->depth()) + beta * log(bv2[i]->depth()) + log(1.0 - alpha) - log(alpha);
+    total_loglike = 1.0 + - 0.5 * log((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow((sufficient_stat[bv2[i]->l][1] + sufficient_stat[bv2[i]->r][1]), 2) / (sigma2 * ((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2)) - beta * log(1.0 + bv2[i]->depth()) + beta * log(bv2[i]->depth()) + log(1.0 - alpha) - log(alpha);
 
 
 
@@ -1776,12 +1782,14 @@ void tree::one_step_prune(arma::mat& y, double y_mean, arma::mat& X, size_t dept
 
 
 
-    // // update theta (mu) of all other nodes
-    // for(size_t ii = 0; ii < bv.size(); ii ++ ){
-    //     if(ii!=i){
-    //         bv[ii]->theta = sufficient_stat[bv[ii]][1] / sufficient_stat[bv[ii]][0] * sufficient_stat[bv[ii]][0] / pow(sigma, 2) / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];
-    //     }
-    // }
+    // update theta (mu) of all other nodes
+    if(draw_mu){
+        for(size_t ii = 0; ii < bv.size(); ii ++ ){
+            if(ii!=i){
+                bv[ii]->theta = sufficient_stat[bv[ii]][1] / sufficient_stat[bv[ii]][0] * sufficient_stat[bv[ii]][0] / pow(sigma, 2) / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];
+            }
+        }
+    }
     
         // cout << loglike << endl;
         // cout << "========" << endl;

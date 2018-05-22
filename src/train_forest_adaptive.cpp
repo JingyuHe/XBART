@@ -83,9 +83,9 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
         for(size_t sweeps = 0; sweeps < N_sweeps; sweeps ++){
 
             // if(verbose == true){
-            cout << "--------------------------------" << endl;
-            cout << "number of sweeps " << sweeps << endl;
-            cout << "--------------------------------" << endl;
+            // cout << "--------------------------------" << endl;
+            // cout << "number of sweeps " << sweeps << endl;
+            // cout << "--------------------------------" << endl;
             // }
 
             for(size_t tree_ind = 0; tree_ind < M; tree_ind ++){
@@ -119,7 +119,7 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
 
                 if(sweeps < 1){
                     trees.t[tree_ind].grow_tree_adaptive(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
-                //     // cout << "tree size " << trees.t[tree_ind].treesize() << endl;
+                    cout << "tree size " << trees.t[tree_ind].treesize() << endl;
                 }else{ 
                     //    trees.t[tree_ind].sample_theta(residual, X, tau, sigma, draw_mu);
 
@@ -132,15 +132,15 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
 
                     prune = d(gen);
                     if(prune == 0){
-                        cout << " grow " << endl;
+                        // cout << " grow " << endl;
                         trees.t[tree_ind].one_step_grow(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
-                        cout << "grow, before tree size " << trees.t[tree_ind].treesize() << endl;
+                        // cout << "grow, before tree size " << trees.t[tree_ind].treesize() << endl;
 
                     }else{
                         if(trees.t[tree_ind].treesize() > 5){
-                        cout << " prune " << endl;
+                        // cout << " prune " << endl;
                         trees.t[tree_ind].one_step_prune(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
-                        cout << "prune, before tree size " << trees.t[tree_ind].treesize() << endl;
+                        // cout << "prune, before tree size " << trees.t[tree_ind].treesize() << endl;
                         }
                     }
 
@@ -153,8 +153,8 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
 
 
                 
-                cout << "after tree size " << trees.t[tree_ind].treesize() << endl;
-                cout << "+++++++++++++++++++++++++++" << endl;
+                // cout << "after tree size " << trees.t[tree_ind].treesize() << endl;
+                // cout << "+++++++++++++++++++++++++++" << endl;
 
 
                 if(verbose == true){
