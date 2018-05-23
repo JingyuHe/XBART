@@ -1023,7 +1023,7 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
         // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
         arma::vec n1tau = tau * arma::linspace(1, N - 1, N - 1);
         arma::vec n2tau = tau * arma::linspace(N - 1, 1, N - 1);
-        arma::vec loglike((N - 1) * p);
+        arma::vec loglike((N - 1) * p + 1);
         // if number of observations is smaller than Ncutpoints, all data are splitpoint candidates       
         // note that the first Nmin and last Nmin cannot be splitpoint candidate
 
@@ -1224,23 +1224,7 @@ arma::uvec range(size_t start, size_t end){
 }
 
 
-void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double& tau, double& sigma, double& alpha, double& beta, arma::mat& residual, bool draw_sigma, bool draw_mu, bool parallel){
-
-    // this->l->l = 0;
-    // this->l->r = 0;
-    // this->r->r = 0;
-    // this->r->l = 0;
-
-
-
-    // this->l->l->l = 0;
-    // this->l->l->r = 0;
-    // this->l->r->l = 0;
-    // this->l->r->r = 0;
-    // this->r->l->l = 0;
-    // this->r->l->r = 0;
-    // this->r->r->l = 0;
-    // this->r->r->r = 0;
+void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double& tau, double& sigma, double& alpha, double& beta, arma::mat& residual, bool draw_sigma, bool draw_mu,bool parallel){
 
 
     tree::npv bv;       // vector of pointers to bottom nodes
@@ -1278,21 +1262,6 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
             node_y_ind[temp_pointer].push_back(i);      // push the index to node_y_ind vector
         // }
     }
-
-
-    // for(size_t i = 0; i < bv.size(); i++){
-    //     cout << bv[i] -> theta << "     " << sufficient_stat[bv[i]][1] / (double) sufficient_stat[bv[i]][0] << endl;
-    // }
-
-
-    // size_t total_count = 0;
-    // for (std::map<tree::tree_p, std::vector<size_t> >::iterator it=node_y_ind.begin(); it!=node_y_ind.end(); ++it){
-    //     cout << it->second.size() << endl;
-    //     total_count = total_count + it->second.size();
-    // }
-    // cout << "total count is " << total_count << endl;
-
-    cout<<"before prune size" << this->treesize() << endl;
 
 
     // update theta (mu) of all other nodes
@@ -1755,7 +1724,7 @@ void tree::one_step_prune(arma::mat& y, double y_mean, arma::mat& X, size_t dept
     // right_loglike = - 0.5 * log(sufficient_stat[bv2[i]->r][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->r][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->r][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->r->depth()) + beta * log(bv2[i]->r->depth()) + log(1.0 - alpha) - log(alpha);
 
     // total_loglike = - 0.5 * log((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow((sufficient_stat[bv2[i]->l][1] + sufficient_stat[bv2[i]->r][1]), 2) / (sigma2 * ((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + bv2[i]->depth(), -1.0 * beta)) - log(alpha) + beta * log(1.0 + bv2[i]->depth());//- beta * log(1.0 + bv2[i]->depth()) + beta * log(bv2[i]->depth()) + log(1.0 - alpha) - log(alpha);
-    
+
 
     left_loglike = - 0.5 * log(sufficient_stat[bv2[i]->l][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->l][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->l][0] * tau + sigma2)); 
     right_loglike = - 0.5 * log(sufficient_stat[bv2[i]->r][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->r][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->r][0] * tau + sigma2));
