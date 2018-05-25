@@ -1015,9 +1015,7 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
     double y_sum;
 
     double sigma2 = pow(sigma, 2);
-
-    double p_split = 0.0;
-    double p_nosplit = 0.0;
+    
     
     if( N  <= Ncutpoints + 1 + 2 * Nmin){
         // cout << "all points" << endl;
@@ -1031,8 +1029,8 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
         if(parallel == false){
             arma::vec y_cumsum(y.n_elem);
             arma::vec y_cumsum_inv(y.n_elem);
-            arma::vec temp_likelihood((N - 1) * p + 1);
-            arma::uvec temp_ind((N - 1) * p + 1);
+            // arma::vec temp_likelihood((N - 1) * p + 1);
+            // arma::uvec temp_ind((N - 1) * p + 1);
 
             for(size_t i = 0; i < p; i++){ // loop over variables 
                 y_cumsum = arma::cumsum(y.rows(Xorder.col(i)));
@@ -1044,6 +1042,7 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
             
             likelihood_evaluation_fullset like_parallel_full(y, Xorder, loglike, sigma2, tau, N, n1tau, n2tau);
             parallelFor(0, p, like_parallel_full);
+            
         }
 
         // loglike(loglike.n_elem - 1) = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
@@ -1096,6 +1095,7 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
 
 
     }else{
+        
         // cout << "some points " << endl;
         y_sum = arma::as_scalar(arma::sum(y(Xorder.col(0))));
         arma::vec loglike(Ncutpoints * p + 1);
@@ -1168,6 +1168,184 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
     // cout << "select variable " << split_var << endl;
     return;
 }
+
+
+
+
+
+
+
+
+// void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel){
+//     // compute BART posterior (loglikelihood + logprior penalty)
+//     // randomized
+
+//     // use stacked vector loglike instead of a matrix, stacked by column
+//     // length of loglike is p * (N - 1) + 1
+//     // N - 1 has to be greater than 2 * Nmin
+
+//     size_t N = Xorder.n_rows;
+//     size_t p = Xorder.n_cols;
+//     size_t ind;
+
+
+//     double y_sum;
+
+//     double sigma2 = pow(sigma, 2);
+    
+    
+//     if( N  <= Ncutpoints + 1 + 2 * Nmin){
+//         // cout << "all points" << endl;
+//         // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
+//         arma::vec n1tau = tau * arma::linspace(1, N - 1, N - 1);
+//         arma::vec n2tau = tau * arma::linspace(N - 1, 1, N - 1);
+//         arma::vec loglike((N - 1) * p + 1);
+//         // if number of observations is smaller than Ncutpoints, all data are splitpoint candidates       
+//         // note that the first Nmin and last Nmin cannot be splitpoint candidate
+
+//         if(parallel == false){
+//             arma::vec y_cumsum(y.n_elem);
+//             arma::vec y_cumsum_inv(y.n_elem);
+//             // arma::vec temp_likelihood((N - 1) * p + 1);
+//             // arma::uvec temp_ind((N - 1) * p + 1);
+
+//             for(size_t i = 0; i < p; i++){ // loop over variables 
+//                 y_cumsum = arma::cumsum(y.rows(Xorder.col(i)));
+//                 y_sum = y_cumsum(y_cumsum.n_elem - 1);
+//                 y_cumsum_inv = y_sum - y_cumsum;  // redundant copy!
+//                 loglike(arma::span(i * (N - 1), i * (N - 1) + N - 2)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum(arma::span(0, N - 2)), 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv(arma::span(0, N - 2)), 2)/(sigma2 * (n2tau + sigma2));   
+//             }
+//         }else{
+            
+//             likelihood_evaluation_fullset like_parallel_full(y, Xorder, loglike, sigma2, tau, N, n1tau, n2tau);
+//             parallelFor(0, p, like_parallel_full);
+//         }
+
+//         // loglike(loglike.n_elem - 1) = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
+
+//         loglike(loglike.n_elem - 1) = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+
+//         loglike = loglike - max(loglike);
+//         loglike = exp(loglike);
+//         loglike = loglike / arma::as_scalar(arma::sum(loglike));
+
+//         if((N - 1) > 2 * Nmin){
+//             for(size_t i = 0; i < p; i ++ ){
+//                 // delete some candidates, otherwise size of the new node can be smaller than Nmin
+//                 loglike(arma::span(i * (N - 1), i * (N - 1) + Nmin)).fill(0);
+//                 loglike(arma::span(i * (N - 1) + N - 2 - Nmin, i * (N - 1) + N - 2)).fill(0);
+//             }
+//         }else{
+//             no_split = true;
+//             return;
+//         }
+
+
+//         // Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(loglike.n_elem) - 1;
+//         // ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
+
+
+//         std::vector<double> loglike_vec(loglike.n_elem);
+//         for(size_t i = 0; i < loglike.n_elem; i ++ ){
+//             loglike_vec[i] = loglike(i);
+//         }
+
+
+//         std::random_device rd;
+//         std::mt19937 gen(rd());
+//         std::discrete_distribution<> d(loglike_vec.begin(), loglike_vec.end());
+//         // sample one index of split point
+//         ind = d(gen); 
+
+
+//         split_var = ind / (N - 1);
+//         split_point = ind % (N - 1);
+
+//         if(ind == (N - 1) * p){no_split = true;}
+
+//         if((N - 1)<= 2 * Nmin){
+//             no_split = true;
+//         }
+
+
+
+
+//     }else{
+//         // cout << "some points " << endl;
+//         y_sum = arma::as_scalar(arma::sum(y(Xorder.col(0))));
+//         arma::vec loglike(Ncutpoints * p + 1);
+//         // otherwise, simplify calculate, use only Ncutpoints splitpoint candidates
+//         // note that the first Nmin and last Nmin cannot be splitpoint candidate
+//         arma::uvec candidate_index(Ncutpoints);
+//         // seq_gen(2, N - 2, Ncutpoints, candidate_index); // row index in Xorder to be candidates
+//         seq_gen(Nmin, N - Nmin, Ncutpoints, candidate_index);
+//         // cout << "tau" << tau << endl;
+//         arma::vec n1tau = tau * (1.0 + arma::conv_to<arma::vec>::from(candidate_index)); // plus 1 because the index starts from 0, we want count of observations
+//         arma::vec n2tau = tau * N  - n1tau;
+
+//         // compute cumulative sum of chunks
+//         if(parallel == false){
+//             arma::vec y_cumsum(Ncutpoints);
+//             arma::vec y_cumsum_inv(Ncutpoints);
+//             arma::vec y_sort(N);
+
+
+//             for(size_t i = 0; i < p; i ++ ){
+
+//                 y_sort = y(Xorder.col(i));
+//                 calculate_y_cumsum(y_sort, y_sum, candidate_index, y_cumsum, y_cumsum_inv);
+//                 loglike(arma::span(i * Ncutpoints, i * Ncutpoints + Ncutpoints - 1)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv, 2)/(sigma2 * (n2tau + sigma2));
+//                             // cout << "    ----  ---   " << endl;
+//             }
+//         }else{
+//             likelihood_evaluation_subset like_parallel(y, Xorder, candidate_index, loglike, sigma2, tau, y_sum, Ncutpoints, N, n1tau, n2tau);
+//             parallelFor(0, p, like_parallel);
+//         }
+
+//         // loglike(loglike.n_elem - 1) = log(Ncutpoints) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
+
+//         loglike(loglike.n_elem - 1) = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+
+    
+//         loglike = loglike - max(loglike);
+//         loglike = exp(loglike);
+//         loglike = loglike / arma::as_scalar(arma::sum(loglike));
+
+
+//         // Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(loglike.n_elem) - 1;  // sample candidate ! start from 0
+//         // ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
+
+
+//         // cout << "prob of selected " << loglike(ind) << " prob of no split " << loglike(loglike.n_elem - 1) << " max prob " << max(loglike) << endl;
+
+
+
+//         std::vector<double> loglike_vec(loglike.n_elem);
+//         for(size_t i = 0; i < loglike.n_elem; i ++ ){
+//             loglike_vec[i] = loglike(i);
+//         }
+
+//         std::random_device rd;
+//         std::mt19937 gen(rd());
+//         std::discrete_distribution<> d(loglike_vec.begin(), loglike_vec.end());
+//         // // sample one index of split point
+//         ind = d(gen); 
+
+
+//         split_var = ind / Ncutpoints;
+
+//         split_point = candidate_index(ind % Ncutpoints);
+
+//         if(ind == (Ncutpoints) * p){no_split = true;}
+
+//     }
+
+//     // cout << "select variable " << split_var << endl;
+//     return;
+// }
+
+
+
 
 
 void BART_likelihood_std(size_t N, size_t p, xinfo_sizet& Xorder, double* y, std::vector<double>& loglike, double& tau, double& sigma, size_t& depth, double& alpha, double& beta){
