@@ -43,8 +43,6 @@ struct likelihood_evaluation_subset : public Worker {
     const arma::vec& n1tau;
     const arma::vec& n2tau;
     
-
-
     // constructor
     likelihood_evaluation_subset(const arma::vec& y, const arma::umat& Xorder, arma::uvec& candidate_index, arma::vec&loglike, const double& sigma2, const double& tau, const double& y_sum, const size_t& Ncutpoints, const size_t& N, const arma::vec& n1tau, const arma::vec& n2tau) : y(y), Xorder(Xorder), candidate_index(candidate_index), loglike(loglike), sigma2(sigma2), tau(tau), y_sum(y_sum), Ncutpoints(Ncutpoints), N(N), n1tau(n1tau), n2tau(n2tau){}
 
@@ -78,8 +76,6 @@ struct likelihood_evaluation_fullset : public Worker {
     const arma::vec& n1tau;
     const arma::vec& n2tau;
     
-
-
     // constructor
     likelihood_evaluation_fullset(const arma::vec& y, const arma::umat& Xorder, arma::vec&loglike, const double& sigma2, const double& tau, const size_t& N, const arma::vec& n1tau, const arma::vec& n2tau) : y(y), Xorder(Xorder), loglike(loglike), sigma2(sigma2), tau(tau), N(N), n1tau(n1tau), n2tau(n2tau){}
 
