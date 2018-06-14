@@ -43,26 +43,28 @@ xinfo_sizet copy_xinfo_sizet(Rcpp::IntegerMatrix& X){
 }
 
 
-xinfo ini_xinfo(size_t N, size_t p){
-    xinfo X;
+void ini_xinfo(xinfo& X, size_t N, size_t p){
+    // xinfo X;
     X.resize(p);
 
     for(size_t i = 0; i < p; i ++){
         X[i].resize(N);
     }
 
-    return std::move(X);
+    // return std::move(X);
+    return;
 }
 
-xinfo_sizet ini_xinfo_sizet(size_t N, size_t p){
-    xinfo_sizet X;
+void ini_xinfo_sizet(xinfo_sizet& X, size_t N, size_t p){
+    // xinfo_sizet X;
     X.resize(p);
 
     for(size_t i = 0; i < p; i ++){
         X[i].resize(N);
     }
 
-    return std::move(X);
+    // return std::move(X);
+    return;
 }
 
 

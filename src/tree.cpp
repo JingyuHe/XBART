@@ -717,44 +717,46 @@ void tree::grow_tree_std(double* y, double& y_mean, xinfo_sizet& Xorder, double*
 
     std::vector<double> loglike_vec((N - 1) * p + 1);
 
-    BART_likelihood_std(N, p, Xorder, y, loglike_vec, tau, sigma, depth, alpha, beta);
+    // BART_likelihood_std(N, p, Xorder, y, loglike_vec, tau, sigma, depth, alpha, beta);
 
 
-    double loglike_vec_max = *std::max_element(loglike_vec.begin(), loglike_vec.end());
-    for(size_t i = 0; i < loglike_vec.size(); i ++ ){
-        // take exponents and normalize probability vector
-        loglike_vec[i] = exp(loglike_vec[i] - loglike_vec_max);
-    }
+    // double loglike_vec_max = *std::max_element(loglike_vec.begin(), loglike_vec.end());
+    // for(size_t i = 0; i < loglike_vec.size(); i ++ ){
+    //     // take exponents and normalize probability vector
+    //     loglike_vec[i] = exp(loglike_vec[i] - loglike_vec_max);
+    // }
 
-    // sample from multinomial distribution
+    // // sample from multinomial distribution
     std::random_device rd;
     std::mt19937 gen(rd());
     std::discrete_distribution<> d(loglike_vec.begin(), loglike_vec.end());
-    // sample one index of split point
+    // // sample one index of split point
     size_t ind = d(gen); 
 
-    // find corresponding split point index in Xorder
+    // // find corresponding split point index in Xorder
     size_t split_var = ind / (N - 1);
     size_t split_point = ind % (N - 1);
 
 
-    if(ind == loglike_vec.size() - 1){
-        // cout << "early termination" << endl;
-        return;
-    }
+    // if(ind == loglike_vec.size() - 1){
+    //     // cout << "early termination" << endl;
+    //     return;
+    // }
 
-    // save split variable and value to tree object
-    this -> v = split_var;
+    // // save split variable and value to tree object
+    // this -> v = split_var;
 
-    // Xorder[split_var][split_point]
-    this -> c =  *(X + p * split_var + Xorder[split_var][split_point]);
-
-
-    xinfo_sizet Xorder_left = ini_xinfo_sizet(split_point + 1, p);
-    xinfo_sizet Xorder_right = ini_xinfo_sizet(N - split_point - 1, p);
+    // // Xorder[split_var][split_point]
+    // this -> c =  *(X + p * split_var + Xorder[split_var][split_point]);
 
 
-    split_xorder_std(Xorder_left, Xorder_right, Xorder, X, split_var, split_point, N , p);
+    xinfo_sizet Xorder_left;
+    ini_xinfo_sizet(Xorder_left, split_point + 1, p);
+    xinfo_sizet Xorder_right;
+    ini_xinfo_sizet(Xorder_right, N - split_point - 1, p);
+
+
+    // split_xorder_std(Xorder_left, Xorder_right, Xorder, X, split_var, split_point, N , p);
 
 
     double yleft_mean;// = arma::as_scalar(arma::mean(y(Xorder_left.col(split_var))));
@@ -1127,183 +1129,6 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
 
 
 
-
-
-
-
-
-// void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel){
-//     // compute BART posterior (loglikelihood + logprior penalty)
-//     // randomized
-
-//     // use stacked vector loglike instead of a matrix, stacked by column
-//     // length of loglike is p * (N - 1) + 1
-//     // N - 1 has to be greater than 2 * Nmin
-
-//     size_t N = Xorder.n_rows;
-//     size_t p = Xorder.n_cols;
-//     size_t ind;
-
-
-//     double y_sum;
-
-//     double sigma2 = pow(sigma, 2);
-    
-    
-//     if( N  <= Ncutpoints + 1 + 2 * Nmin){
-//         // cout << "all points" << endl;
-//         // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
-//         arma::vec n1tau = tau * arma::linspace(1, N - 1, N - 1);
-//         arma::vec n2tau = tau * arma::linspace(N - 1, 1, N - 1);
-//         arma::vec loglike((N - 1) * p + 1);
-//         // if number of observations is smaller than Ncutpoints, all data are splitpoint candidates       
-//         // note that the first Nmin and last Nmin cannot be splitpoint candidate
-
-//         if(parallel == false){
-//             arma::vec y_cumsum(y.n_elem);
-//             arma::vec y_cumsum_inv(y.n_elem);
-//             // arma::vec temp_likelihood((N - 1) * p + 1);
-//             // arma::uvec temp_ind((N - 1) * p + 1);
-
-//             for(size_t i = 0; i < p; i++){ // loop over variables 
-//                 y_cumsum = arma::cumsum(y.rows(Xorder.col(i)));
-//                 y_sum = y_cumsum(y_cumsum.n_elem - 1);
-//                 y_cumsum_inv = y_sum - y_cumsum;  // redundant copy!
-//                 loglike(arma::span(i * (N - 1), i * (N - 1) + N - 2)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum(arma::span(0, N - 2)), 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv(arma::span(0, N - 2)), 2)/(sigma2 * (n2tau + sigma2));   
-//             }
-//         }else{
-            
-//             likelihood_evaluation_fullset like_parallel_full(y, Xorder, loglike, sigma2, tau, N, n1tau, n2tau);
-//             parallelFor(0, p, like_parallel_full);
-//         }
-
-//         // loglike(loglike.n_elem - 1) = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
-
-//         loglike(loglike.n_elem - 1) = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
-
-//         loglike = loglike - max(loglike);
-//         loglike = exp(loglike);
-//         loglike = loglike / arma::as_scalar(arma::sum(loglike));
-
-//         if((N - 1) > 2 * Nmin){
-//             for(size_t i = 0; i < p; i ++ ){
-//                 // delete some candidates, otherwise size of the new node can be smaller than Nmin
-//                 loglike(arma::span(i * (N - 1), i * (N - 1) + Nmin)).fill(0);
-//                 loglike(arma::span(i * (N - 1) + N - 2 - Nmin, i * (N - 1) + N - 2)).fill(0);
-//             }
-//         }else{
-//             no_split = true;
-//             return;
-//         }
-
-
-//         // Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(loglike.n_elem) - 1;
-//         // ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
-
-
-//         std::vector<double> loglike_vec(loglike.n_elem);
-//         for(size_t i = 0; i < loglike.n_elem; i ++ ){
-//             loglike_vec[i] = loglike(i);
-//         }
-
-
-//         std::random_device rd;
-//         std::mt19937 gen(rd());
-//         std::discrete_distribution<> d(loglike_vec.begin(), loglike_vec.end());
-//         // sample one index of split point
-//         ind = d(gen); 
-
-
-//         split_var = ind / (N - 1);
-//         split_point = ind % (N - 1);
-
-//         if(ind == (N - 1) * p){no_split = true;}
-
-//         if((N - 1)<= 2 * Nmin){
-//             no_split = true;
-//         }
-
-
-
-
-//     }else{
-//         // cout << "some points " << endl;
-//         y_sum = arma::as_scalar(arma::sum(y(Xorder.col(0))));
-//         arma::vec loglike(Ncutpoints * p + 1);
-//         // otherwise, simplify calculate, use only Ncutpoints splitpoint candidates
-//         // note that the first Nmin and last Nmin cannot be splitpoint candidate
-//         arma::uvec candidate_index(Ncutpoints);
-//         // seq_gen(2, N - 2, Ncutpoints, candidate_index); // row index in Xorder to be candidates
-//         seq_gen(Nmin, N - Nmin, Ncutpoints, candidate_index);
-//         // cout << "tau" << tau << endl;
-//         arma::vec n1tau = tau * (1.0 + arma::conv_to<arma::vec>::from(candidate_index)); // plus 1 because the index starts from 0, we want count of observations
-//         arma::vec n2tau = tau * N  - n1tau;
-
-//         // compute cumulative sum of chunks
-//         if(parallel == false){
-//             arma::vec y_cumsum(Ncutpoints);
-//             arma::vec y_cumsum_inv(Ncutpoints);
-//             arma::vec y_sort(N);
-
-
-//             for(size_t i = 0; i < p; i ++ ){
-
-//                 y_sort = y(Xorder.col(i));
-//                 calculate_y_cumsum(y_sort, y_sum, candidate_index, y_cumsum, y_cumsum_inv);
-//                 loglike(arma::span(i * Ncutpoints, i * Ncutpoints + Ncutpoints - 1)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv, 2)/(sigma2 * (n2tau + sigma2));
-//                             // cout << "    ----  ---   " << endl;
-//             }
-//         }else{
-//             likelihood_evaluation_subset like_parallel(y, Xorder, candidate_index, loglike, sigma2, tau, y_sum, Ncutpoints, N, n1tau, n2tau);
-//             parallelFor(0, p, like_parallel);
-//         }
-
-//         // loglike(loglike.n_elem - 1) = log(Ncutpoints) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
-
-//         loglike(loglike.n_elem - 1) = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
-
-    
-//         loglike = loglike - max(loglike);
-//         loglike = exp(loglike);
-//         loglike = loglike / arma::as_scalar(arma::sum(loglike));
-
-
-//         // Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(loglike.n_elem) - 1;  // sample candidate ! start from 0
-//         // ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
-
-
-//         // cout << "prob of selected " << loglike(ind) << " prob of no split " << loglike(loglike.n_elem - 1) << " max prob " << max(loglike) << endl;
-
-
-
-//         std::vector<double> loglike_vec(loglike.n_elem);
-//         for(size_t i = 0; i < loglike.n_elem; i ++ ){
-//             loglike_vec[i] = loglike(i);
-//         }
-
-//         std::random_device rd;
-//         std::mt19937 gen(rd());
-//         std::discrete_distribution<> d(loglike_vec.begin(), loglike_vec.end());
-//         // // sample one index of split point
-//         ind = d(gen); 
-
-
-//         split_var = ind / Ncutpoints;
-
-//         split_point = candidate_index(ind % Ncutpoints);
-
-//         if(ind == (Ncutpoints) * p){no_split = true;}
-
-//     }
-
-//     // cout << "select variable " << split_var << endl;
-//     return;
-// }
-
-
-
-
-
 void BART_likelihood_std(size_t N, size_t p, xinfo_sizet& Xorder, double* y, std::vector<double>& loglike, double& tau, double& sigma, size_t& depth, double& alpha, double& beta){
     std::vector<double> y_cumsum(N);
     double y_sum;
@@ -1440,12 +1265,6 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
                 left_loglike = - 0.5 * log(sufficient_stat[bv2[i]->l][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->l][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->l][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->l->depth()) + beta * log(bv2[i]->l->depth()) + log(1.0 - alpha) - log(alpha);
                 right_loglike = - 0.5 * log(sufficient_stat[bv2[i]->r][0] * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(sufficient_stat[bv2[i]->r][1], 2) / (sigma2 * (sufficient_stat[bv2[i]->r][0] * tau + sigma2)) - beta * log(1.0 + bv2[i]->r->depth()) + beta * log(bv2[i]->r->depth()) + log(1.0 - alpha) - log(alpha);
                 total_loglike = - 0.5 * log((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow((sufficient_stat[bv2[i]->l][1] + sufficient_stat[bv2[i]->r][1]), 2) / (sigma2 * ((sufficient_stat[bv2[i]->l][0] + sufficient_stat[bv2[i]->r][0]) * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + bv2[i]->depth(), -1.0 * beta)) - log(alpha) + beta * log(1.0 + bv2[i]->depth()); //- beta * log(1.0 + bv2[i]->depth()) + beta * log(bv2[i]->depth()) + log(1.0 - alpha) - log(alpha);
-        
-
-                // loglike[0] = total_loglike;
-                // loglike[1] = left_loglike + right_loglike;
-                // loglike = exp(loglike - max(loglike));
-                // ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
 
                 if(total_loglike > left_loglike + right_loglike){
                     loglike[0] = 1.0;
@@ -1489,8 +1308,6 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
         // regrow the tree
         //////////////////////////////////////////////////////////////
 
-
-
         // update list of bottom nodes
         bv.clear();
         this->getbots(bv);      // get bottom nodes
@@ -1518,40 +1335,18 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
         for(size_t i = 0; i < bv.size(); i ++ ){
             // loop over all endnodes
 
-
-
-            // cout << node_y_ind[bv[i]].size() << endl;
-
             // if(node_y_ind[bv[i]].size() > Nmin){
-            // cout << "loop i" << i << endl;
+
             // create Xorder for the subnode
-            // cout << "size " << node_y_ind[bv[i]].size() << endl;
+
                 temp_ind.set_size(node_y_ind[bv[i]].size());
-
-            //  cout << "length of temp_ind " << temp_ind.n_elem << endl;   
-            //  cout << "X size " << X.n_rows << endl;
-                // cout << "ok 1" << endl;
-
-                    // cout << node_y_ind.count(bv[i]) << endl;
 
                 for(size_t j = 0; j < node_y_ind[bv[i]].size(); j ++ ){
                     // copy indicies of y falls in node bv[i]
                     temp_ind[j] = node_y_ind[bv[i]][j];
                 } 
-                // cout << "ok 2" << endl;
-
-                // cout << temp_ind << endl;
-
-                // cout << "temp_ind " << temp_ind.n_elem << endl;
-
-
 
                 temp_X = X.rows(temp_ind);          // take corresponding rows of X
-
-
-                // cout << " temp _X size " << temp_X.n_rows << "  " << temp_X.n_cols << endl;
-
-                // cout << "temp_X " << temp_X.n_cols << temp_X.n_rows << endl;
 
                 temp_Xorder.set_size(temp_X.n_rows, temp_X.n_cols);         // sort corresponding X, create order matrix
 
@@ -1566,39 +1361,14 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
 
                 temp_y = y.rows(temp_ind);
 
-        // cout << "before regrows " << this->treesize() << "  data size  " << temp_Xorder.n_rows << " " << temp_Xorder.n_cols  << endl;
-
-
                 // if(max_depth > bv[i]->depth()){
                 //     new_maxdepth = max_depth - bv[i]->depth();
                 // }else{
                 //     new_maxdepth = 0;
                 // }
-                // cout << "max depth " << bv[i]->depth()  << "  " << max_depth << endl;
-                // cout << temp_X.n_rows << endl;
-
-
-                // cout << bv[i]->theta << "    " << temp_y_mean << endl;
-                // cout << bv[i]->depth() << "   " << max_depth << endl;
-
-                // cout << Nmin << "  " << Ncutpoints << "  " << tau << "  " << sigma << "  " << alpha << "  " << beta << endl;
-
-                // cout << temp_y_mean << "  " << mean(fit_new(*this, temp_X)) << endl;
-
-                // cout << temp_Xorder.col(0)  << endl;
-                // cout << temp_X.n_rows << endl;
                 bv[i]->grow_tree_adaptive(temp_y, temp_y_mean, temp_Xorder, temp_X, bv[i]->depth(), max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, temp_y, draw_sigma, draw_mu, parallel);
             // }
 
-
-
-                // if(bv[i]->l){
-                //     cout <<" has left " << endl;
-                // }
-
-                // if(bv[i]->r){
-                //     cout <<" has right " << endl;
-                // }
         }
         cout << "after regrows " << this->treesize() << endl;
 
@@ -1890,8 +1660,6 @@ void tree::sample_theta(arma::mat& y, arma::mat& X, double& tau, double& sigma, 
                 node_y_ind[temp_pointer].push_back(i);      // push the index to node_y_ind vector
             // }
         }
-
-
         // update theta (mu) of all other nodes
         for(size_t ii = 0; ii < bv.size(); ii ++ ){
             bv[ii]->theta = sufficient_stat[bv[ii]][1] / sufficient_stat[bv[ii]][0] * sufficient_stat[bv[ii]][0] / pow(sigma, 2) / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + sufficient_stat[bv[ii]][0] / pow(sigma, 2))) * Rcpp::rnorm(1, 0, 1)[0];

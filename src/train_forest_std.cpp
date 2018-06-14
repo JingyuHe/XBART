@@ -7,7 +7,9 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List train_forest_std(Rcpp::NumericMatrix y_rcpp, Rcpp::NumericMatrix X_rcpp, Rcpp::NumericMatrix Xtest_rcpp, Rcpp::IntegerMatrix Xorder_rcpp, size_t M, size_t L, size_t N_sweeps, Rcpp::NumericMatrix max_depth_rcpp, size_t Nmin, double alpha, double beta, double tau, bool draw_sigma, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false){
+Rcpp::List train_forest_std(Rcpp::NumericMatrix y_rcpp, Rcpp::NumericMatrix X_rcpp, Rcpp::NumericMatrix Xtest_rcpp, Rcpp::IntegerMatrix Xorder_rcpp, size_t M, size_t L, size_t N_sweeps, Rcpp::NumericMatrix max_depth_rcpp, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, bool draw_sigma, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true)
+{
+
 
     // matrices are stacked by column
     size_t p = X_rcpp.ncol();
@@ -31,18 +33,23 @@ Rcpp::List train_forest_std(Rcpp::NumericMatrix y_rcpp, Rcpp::NumericMatrix X_rc
     size_t max_depth;
 
     // xinfo yhats;
-    xinfo yhats = ini_xinfo(N, p); // vector of vectors, stack by column
-    xinfo yhats_test = ini_xinfo(N_test, p);
-    xinfo predictions = ini_xinfo(N, M);
-    xinfo predictions_test = ini_xinfo(N_test, M);
+    xinfo yhats;
+    ini_xinfo(yhats, N, p); // vector of vectors, stack by column
+    xinfo yhats_test;
+    ini_xinfo(yhats_test, N_test, p);
+    xinfo predictions;
+    ini_xinfo(predictions, N, M);
+    xinfo predictions_test;
+    ini_xinfo(predictions_test, N_test, M);
     std::vector<double> yhat(N);
     std::vector<double> yhat_test(N_test);
 
     std::vector<double> residual(N);
     std::vector<double> residual_theta_noise(N);
-    xinfo sigma_draw = ini_xinfo(M, N_sweeps);
+    xinfo sigma_draw;
+    ini_xinfo(sigma_draw, M, N_sweeps);
 
-    double sigma;
+    double sigma = 0.0;
 
     forest trees(M);
 
@@ -92,7 +99,7 @@ Rcpp::List train_forest_std(Rcpp::NumericMatrix y_rcpp, Rcpp::NumericMatrix X_rc
                 }
                 mean_y = mean_y / (double) N;
                 
-                // update the current tree
+                // // update the current tree
                 trees.t[tree_ind].grow_tree_std(&residual[0], mean_y, Xorder, X, N, p, 0, max_depth_rcpp(tree_ind, sweeps), Nmin, tau, sigma, alpha, beta, &residual[0], draw_sigma, draw_mu);
 
                 if(verbose == true){
@@ -104,6 +111,7 @@ Rcpp::List train_forest_std(Rcpp::NumericMatrix y_rcpp, Rcpp::NumericMatrix X_rc
 
                 // update prediction of current tree, on test set
                 fit_std(trees.t[tree_ind], p, N_test, Xtest, predictions_test[tree_ind]);
+
 
                 // update sigma based on residual of m - 1 trees, rather than residual of m trees
                 if(m_update_sigma == false){
@@ -125,8 +133,8 @@ Rcpp::List train_forest_std(Rcpp::NumericMatrix y_rcpp, Rcpp::NumericMatrix X_rc
                 
             }
         
-        yhats[sweeps] = yhat;
-        yhats_test[sweeps] = yhat_test;
+        // yhats[sweeps] = yhat;
+        // yhats_test[sweeps] = yhat_test;
 
         }
     }

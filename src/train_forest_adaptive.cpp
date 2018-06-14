@@ -23,9 +23,6 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
     // save predictions of each tree
     arma::mat predictions(X.n_rows, M);
 
-    // save predictions (based on theta_noise) of each tree
-    // arma::mat predictions_theta_noise(X.n_rows, M);
-
     arma::mat predictions_test(Xtest.n_rows, M);
 
     arma::vec yhat = arma::sum(predictions, 1);
@@ -177,10 +174,6 @@ Rcpp::List train_forest_adaptive(arma::mat y, arma::mat X, arma::mat Xtest, size
             }
         yhats.col(sweeps) = yhat;
         yhats_test.col(sweeps) = yhat_test;
-        // cout << "+++++++++++++++++++++++++++++++++++" << endl;
-        // cout << "end of one sweep" << endl;
-        // cout << "+++++++++++++++++++++++++++++++++++" << endl;
-
         }
 
     }

@@ -4,6 +4,14 @@
 #include "treefuns.h"
 #include "forest.h"
 
+///////////////////////////////////////////////////////////
+//                                                       //
+//                                                       //
+//          ABANDON                                      //
+//                                                       //
+//                                                       //
+///////////////////////////////////////////////////////////
+
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List train_forest_root(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, bool draw_sigma, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true){
