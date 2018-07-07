@@ -48,6 +48,10 @@
         "atomic": "cpp",
         "system_error": "cpp",
         "locale": "cpp",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "__hash_table": "cpp",
+        "unordered_map": "cpp",
+        "cfenv": "cpp",
+        "variant": "cpp"
     }
 }

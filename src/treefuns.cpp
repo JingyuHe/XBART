@@ -68,7 +68,7 @@ void fit(tree& t, xinfo& xi, size_t p, size_t n, double *x,  double* fv)
 void fit_std(tree& t, size_t p, size_t n, double *x, std::vector<double>& fv){
     tree::tree_p bn;
     for(size_t i=0;i<n;i++){
-        bn = t.bn_std(x+i*p);
+        bn = t.bn_std(x + i * p);
         fv[i] = bn->gettheta();
     }
 }
