@@ -52,6 +52,7 @@
         "__hash_table": "cpp",
         "unordered_map": "cpp",
         "cfenv": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "complex": "cpp"
     }
 }

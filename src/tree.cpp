@@ -276,6 +276,20 @@ tree::tree_p tree::search_bottom(arma::mat& Xnew, const size_t& i){
         return r -> search_bottom(Xnew, i);
     }
 }
+
+tree::tree_p tree::search_bottom_std(xinfo& X, const size_t& i){
+    if(l == 0){
+        return this;
+    }
+    if(X[v][i] <= c){
+        // v-th column and i-th row
+        return l -> search_bottom_std(X, i);
+    }else{
+        return r -> search_bottom_std(X, i);
+    }
+}
+
+
 //--------------------
 //find region for a given variable
 void tree::rg(size_t v, size_t* L, size_t* U)
@@ -626,88 +640,91 @@ void tree::grow_tree_adaptive(arma::mat& y, double y_mean, arma::umat& Xorder, a
 
 
 
-// void tree::grow_tree_adaptive_std(double* y, double y_mean, xinfo_sizet& Xorder, double* X, size_t p, size_t N, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, arma::mat& residual, bool draw_sigma, bool draw_mu, bool parallel){
+void tree::grow_tree_adaptive_std(double* y, double y_mean, xinfo_sizet& Xorder, xinfo& X, size_t p, size_t N, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, arma::mat& residual, bool draw_sigma, bool draw_mu, bool parallel){
 
-//     // grow a tree, users can control number of split points
+    // grow a tree, users can control number of split points
     
-//     if(N <= Nmin){
-//         return;
-//     }
+    if(N <= Nmin){
+        return;
+    }
 
-//     if(depth >= max_depth - 1){
-//         return;
-//     }
+    if(depth >= max_depth - 1){
+        return;
+    }
 
-//     // tau is prior VARIANCE, do not take squares
+    // tau is prior VARIANCE, do not take squares
 
-//     // set up random device
-//     std::default_random_engine generator;
-//     std::normal_distribution<double> normal_samp(0.0,1.0);
+    // set up random device
+    std::default_random_engine generator;
+    std::normal_distribution<double> normal_samp(0.0,1.0);
     
-//     if(draw_mu == true){
+    if(draw_mu == true){
 
-//         this->theta = y_mean * Xorder.size() / pow(sigma, 2) / (1.0 / tau + Xorder.size() / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + Xorder.size() / pow(sigma, 2))) * normal_samp(generator);//Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-//         this->theta_noise = this->theta ;
+        this->theta = y_mean * N / pow(sigma, 2) / (1.0 / tau + N / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N / pow(sigma, 2))) * normal_samp(generator);//Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
+        this->theta_noise = this->theta ;
 
-//     }else{
+    }else{
 
-//         this->theta = y_mean * Xorder.size() / pow(sigma, 2) / (1.0 / tau + Xorder.size() / pow(sigma, 2));
-//         this->theta_noise = this->theta; // identical to theta
+        this->theta = y_mean * N / pow(sigma, 2) / (1.0 / tau + N / pow(sigma, 2));
+        this->theta_noise = this->theta; // identical to theta
 
-//     }
+    }
 
 
-//     if(draw_sigma == true){
+    if(draw_sigma == true){
+        std::vector<double> reshat(N);
+        tree::tree_p top_p = this->gettop();
+        // draw sigma use residual of noisy theta
+        // arma::vec reshat = residual - fit_new_theta_noise(* top_p, X);
 
-//         tree::tree_p top_p = this->gettop();
-//         // draw sigma use residual of noisy theta
-//         arma::vec reshat = residual - fit_new_theta_noise(* top_p, X);
-//         // sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (reshat.n_elem + 16) / 2.0, 2.0 / as_scalar(sum(pow(reshat, 2)) + 4)))));
+        fit_new_theta_noise_std(* top_p, X, p, N, residual, reshat);
 
-//         std::gamma_distribution<double> gamma_samp((reshat.n_elem + 16) / 2.0, 2.0 / as_scalar(sum(pow(reshat, 2)) + 4));
-//         sigma = 1.0 / gamma_samp(generator);
+        // sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (reshat.n_elem + 16) / 2.0, 2.0 / as_scalar(sum(pow(reshat, 2)) + 4)))));
+
+        std::gamma_distribution<double> gamma_samp((reshat.n_elem + 16) / 2.0, 2.0 / as_scalar(sum(pow(reshat, 2)) + 4));
+        sigma = 1.0 / gamma_samp(generator);
     
-//     }
+    }
 
-//     this->sig = sigma;
-//     // size_t N = Xorder.n_rows;
-//     // size_t p = Xorder.n_cols;
-//     size_t ind;
-//     size_t split_var;
-//     size_t split_point;
+    // this->sig = sigma;
+    // // size_t N = Xorder.n_rows;
+    // // size_t p = Xorder.n_cols;
+    // size_t ind;
+    // size_t split_var;
+    // size_t split_point;
 
-//     bool no_split = false;
+    // bool no_split = false;
 
-//     BART_likelihood_adaptive(Xorder, y, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel);
+    // BART_likelihood_adaptive(Xorder, y, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel);
 
-//     if(no_split == true){
-//         return;
-//     }
+    // if(no_split == true){
+    //     return;
+    // }
 
     
-//     this -> v = split_var;
-//     this -> c =  X(Xorder(split_point, split_var), split_var);
+    // this -> v = split_var;
+    // this -> c =  X(Xorder(split_point, split_var), split_var);
 
-//     arma::umat Xorder_left = arma::zeros<arma::umat>(split_point + 1, Xorder.n_cols);
-//     arma::umat Xorder_right = arma::zeros<arma::umat>(Xorder.n_rows - split_point - 1, Xorder.n_cols);
+    // arma::umat Xorder_left = arma::zeros<arma::umat>(split_point + 1, Xorder.n_cols);
+    // arma::umat Xorder_right = arma::zeros<arma::umat>(Xorder.n_rows - split_point - 1, Xorder.n_cols);
 
-//     split_xorder(Xorder_left, Xorder_right, Xorder, X, split_var, split_point);
-//     double yleft_mean = arma::as_scalar(arma::mean(y(Xorder_left.col(split_var))));
-//     double yright_mean = arma::as_scalar(arma::mean(y(Xorder_right.col(split_var))));
+    // split_xorder(Xorder_left, Xorder_right, Xorder, X, split_var, split_point);
+    // double yleft_mean = arma::as_scalar(arma::mean(y(Xorder_left.col(split_var))));
+    // double yright_mean = arma::as_scalar(arma::mean(y(Xorder_right.col(split_var))));
 
-//     depth = depth + 1;
-//     tree::tree_p lchild = new tree();
-//     lchild->grow_tree_adaptive_std(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
-//     tree::tree_p rchild = new tree();
-//     rchild->grow_tree_adaptive_std(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
+    // depth = depth + 1;
+    // tree::tree_p lchild = new tree();
+    // lchild->grow_tree_adaptive_std(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
+    // tree::tree_p rchild = new tree();
+    // rchild->grow_tree_adaptive_std(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu, parallel);
 
-//     lchild -> p = this;
-//     rchild -> p = this;
-//     this -> l = lchild;
-//     this -> r = rchild;
+    // lchild -> p = this;
+    // rchild -> p = this;
+    // this -> l = lchild;
+    // this -> r = rchild;
 
-//     return;
-// }
+    return;
+}
 
 
 
