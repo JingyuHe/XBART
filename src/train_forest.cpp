@@ -109,7 +109,7 @@ Rcpp::List train_forest(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, siz
                 yhat_test = yhat_test - predictions_test.col(tree_ind);
 
                 // grow a tree
-                trees.t[tree_ind].grow_tree(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, tau, sigma, alpha, beta, residual, draw_sigma, draw_mu);
+                trees.t[tree_ind].grow_tree(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, tau, sigma, alpha, beta, draw_sigma, draw_mu);
 
 
                 if(verbose == true){

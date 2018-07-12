@@ -68,6 +68,19 @@ void ini_xinfo_sizet(xinfo_sizet& X, size_t N, size_t p){
 }
 
 
+double subnode_mean(double * y, xinfo_sizet& Xorder, const size_t& split_var, const size_t& N_y){
+    // calculate mean of y falls into the same subnode
+    double output = 0.0;
+    size_t N_Xorder = Xorder[split_var].size();
+    for(size_t i = 0; i < N_Xorder; i ++ ){
+        output = output + *(y + Xorder[split_var][i]);
+    }
+    output = output / N_Xorder;
+    return output;
+}
+
+
+
 std::vector<double> row_sum(xinfo& X){
     size_t p = X.size();
     size_t N = X[0].size();

@@ -2,6 +2,8 @@
 #define GUARD_utility_h
 
 #include "common.h"
+#include <algorithm>
+#include <functional>
 
 
 // copy NumericMatrix to STD matrix
@@ -30,8 +32,9 @@ void seq_gen_std(size_t start, size_t end, size_t length_out, std::vector<size_t
 
 void calculate_y_cumsum(arma::vec& y, double y_sum, arma::uvec& ind, arma::vec& y_cumsum, arma::vec& y_cumsum_inv);
 
-
 void calculate_y_cumsum_std(const double * y, const size_t N, double y_sum, std::vector<size_t>& ind, std::vector<double>& y_cumsum, std::vector<double>& y_cumsum_inv);
+
+double subnode_mean(double * y, xinfo_sizet& Xorder, const size_t& split_var, const size_t& N_y);
 
 struct likelihood_evaluation_subset : public Worker {
     // input variables, pass by reference
@@ -101,7 +104,18 @@ struct likelihood_evaluation_fullset : public Worker {
 
 
 
+template <typename T>
+std::vector<T> operator+(const std::vector<T>& a, const std::vector<T>& b)
+{
+    assert(a.size() == b.size());
 
+    std::vector<T> result;
+    result.reserve(a.size());
+
+    std::transform(a.begin(), a.end(), b.begin(), 
+                   std::back_inserter(result), std::plus<T>());
+    return result;
+}
 
 
 
