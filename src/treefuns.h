@@ -48,6 +48,7 @@ arma::vec fit_new_theta_noise(tree& tree, arma::mat& Xnew);
 void fit_new_theta_noise_std(tree& tree, xinfo& X, size_t p, size_t N, std::vector<double>& output);
 
 void fit_new_void(tree& tree, arma::mat& Xnew, arma::mat& pred, size_t& ind);
+double sum_residual_squared(tree& tree, double* X, double* y, size_t p, size_t N_y);
 
 // void update_sufficient_stat(tree& tree, arma::mat& y, arma::mat& X, tree::npv& bv, tree::npv& bv2, double& tau, double& sigma, double& alpha, double& beta);
 

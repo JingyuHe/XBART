@@ -124,7 +124,7 @@ public:
    tree_p bn(double *x,xinfo& xi); //find Bottom Node, original BART version
    tree_p bn_std(double *x); // find Bottom Node, std version, compare
    tree_p search_bottom(arma::mat& Xnew, const size_t& i);
-   tree_p search_bottom_std(xinfo& X, const size_t& i);
+   tree_p search_bottom_std(double* X, const size_t& i, const size_t& p, const size_t& N);
    void rg(size_t v, size_t* L, size_t* U); //recursively find region [L,U] for var v
    //node functions--------------------
    size_t nid() const; //nid of a node

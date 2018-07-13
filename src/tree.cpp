@@ -277,15 +277,18 @@ tree::tree_p tree::search_bottom(arma::mat& Xnew, const size_t& i){
     }
 }
 
-tree::tree_p tree::search_bottom_std(xinfo& X, const size_t& i){
+tree::tree_p tree::search_bottom_std(double* X, const size_t& i, const size_t& p, const size_t& N){
+    // X is a matrix, std vector of vectors, stack by column, N rows and p columns
+    // i is index of row in X to predict
     if(l == 0){
         return this;
     }
-    if(X[v][i] <= c){
-        // v-th column and i-th row
-        return l -> search_bottom_std(X, i);
+    // X[v][i], v-th column and i-th row
+    // if(X[v][i] <= c){
+    if(*(X + p * v + i) <= c){
+        return l -> search_bottom_std(X, i, p, N);
     }else{
-        return r -> search_bottom_std(X, i);
+        return r -> search_bottom_std(X, i, p, N);
     }
 }
 
@@ -681,8 +684,13 @@ void tree::grow_tree_adaptive_std(double* y, double y_mean, xinfo_sizet& Xorder,
 
         // sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (reshat.n_elem + 16) / 2.0, 2.0 / as_scalar(sum(pow(reshat, 2)) + 4)))));
 
-        // std::gamma_distribution<double> gamma_samp((reshat.n_elem + 16) / 2.0, 2.0 / as_scalar(sum(pow(reshat, 2)) + 4));
-        // sigma = 1.0 / gamma_samp(generator);
+        // compute sum(pow(residual, 2)), sum of squared residuals
+        double sum_res_squared = sum_residual_squared(* top_p, X, y, p, N_y);
+
+        std::gamma_distribution<double> gamma_samp((N_y + 16) / 2.0, 2.0 / (sum_res_squared + 4));
+
+        // std::gamma_distribution<double> gamma_samp((N_y + 16) / 2.0, 2.0 / as_scalar(sum(pow(reshat, 2)) + 4));
+        sigma = 1.0 / gamma_samp(generator);
     
     }
 
