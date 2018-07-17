@@ -136,6 +136,8 @@ Rcpp::List train_forest_root_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, R
 
                 // cout << p << "  " << N << "   " << Nmin << "   "<< Ncutpoints << "   " << tau << "   " << sigma << "   " << alpha<< "   " << beta << endl;
 
+                cout << "OK" << endl;
+
 
                 trees.t[tree_ind].grow_tree_adaptive_std(y_pointer, y_mean, Xorder, X_pointer, p, N, N, 0, (size_t) max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel);
 

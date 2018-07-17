@@ -1472,12 +1472,12 @@ void BART_likelihood_adaptive_std(const xinfo_sizet& Xorder, const double * y, s
                     y_cumsum_inv[k] = y_sum - y_cumsum[k];
                 }
 
-                for(size_t j = 0; j < N_Xorder - 1; j ++ ){
+                for(size_t j = 0; j < N_Xorder; j ++ ){
                     // loop over all possible cutpoints
                     n1tau = (j + 1) * tau; // number of points on left side (x <= cutpoint)
                     n2tau = Ntau - n1tau; // number of points on right side (x > cutpoint)
 
-                    loglike[(N - 1) * iii + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
+                    loglike[N_Xorder * iii + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
                 }
             }
         }else{
@@ -1505,15 +1505,18 @@ void BART_likelihood_adaptive_std(const xinfo_sizet& Xorder, const double * y, s
 
 
     }else{
+
+        // cout << "lalalaa " << endl;
         
         arma::uvec candidate_index(Ncutpoints);
         // seq_gen(2, N - 2, Ncutpoints, candidate_index); // row index in Xorder to be candidates
-        seq_gen(Nmin, N_Xorder - Nmin, Ncutpoints, candidate_index);
+        seq_gen(Nmin, N - Nmin, Ncutpoints, candidate_index);
                 
         std::vector<double> loglike(Ncutpoints * p + 1);
         std::vector<size_t> candidate_index_2(Ncutpoints);
         std::vector<double> y_cumsum(Ncutpoints);
         std::vector<double> y_cumsum_inv(Ncutpoints);
+
 
         // compute cumulative sum of chunks
         if(parallel == false){
@@ -1526,7 +1529,7 @@ void BART_likelihood_adaptive_std(const xinfo_sizet& Xorder, const double * y, s
             double* ypointer;
             double n1tau;
             double n2tau;
-            double Ntau = N_Xorder * tau;
+            double Ntau = N * tau;
 
 
             for(size_t iii = 0; iii < p; iii ++ ){
@@ -1565,7 +1568,7 @@ void BART_likelihood_adaptive_std(const xinfo_sizet& Xorder, const double * y, s
         loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
 
-        cout << loglike << endl;
+        // cout << loglike << endl;
         // take exponential, normalize values
         double loglike_max = *std::max_element(loglike.begin(), loglike.end());
         for(size_t ii = 0; ii < loglike.size(); ii ++ ){
