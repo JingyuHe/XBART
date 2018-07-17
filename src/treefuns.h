@@ -45,7 +45,7 @@ void getgoodvars(tree::tree_p n, xinfo& xi,  std::vector<size_t>& goodvars);
 //--------------------------------------------------
 arma::vec fit_new(tree& tree, arma::mat& Xnew);
 arma::vec fit_new_theta_noise(tree& tree, arma::mat& Xnew);
-void fit_new_theta_noise_std(tree& tree, xinfo& X, size_t p, size_t N, std::vector<double>& output);
+void fit_new_theta_noise_std(tree& tree, double* X, size_t p, size_t N, std::vector<double>& output);
 
 void fit_new_void(tree& tree, arma::mat& Xnew, arma::mat& pred, size_t& ind);
 double sum_residual_squared(tree& tree, double* X, double* y, size_t p, size_t N_y);

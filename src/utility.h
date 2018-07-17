@@ -105,6 +105,7 @@ struct likelihood_evaluation_fullset : public Worker {
 
 
 
+// overload plus for std vectors
 template <typename T>
 std::vector<T> operator+(const std::vector<T>& a, const std::vector<T>& b)
 {
@@ -120,6 +121,7 @@ std::vector<T> operator+(const std::vector<T>& a, const std::vector<T>& b)
 
 
 
+// overload minus for std vectors
 template <typename T>
 std::vector<T> operator-(const std::vector<T>& a, const std::vector<T>& b)
 {
@@ -136,6 +138,7 @@ std::vector<T> operator-(const std::vector<T>& a, const std::vector<T>& b)
 
 
 
+// sort std vectors from small to large numbers, return indexes
 template <typename T>
 std::vector<size_t> sort_indexes(const std::vector<T> &v) {
 
@@ -149,5 +152,20 @@ std::vector<size_t> sort_indexes(const std::vector<T> &v) {
 
   return idx;
 }
+
+
+
+// overload print out for std vectors
+template <typename T>
+std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) {
+  if ( !v.empty() ) {
+    out << '[';
+    std::copy (v.begin(), v.end(), std::ostream_iterator<T>(out, ", "));
+    out << "\b\b]";
+  }
+  return out;
+}
+
+
 
 #endif

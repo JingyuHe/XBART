@@ -10,9 +10,26 @@ Rcpp::List train_forest_root_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, R
 
     size_t N = X.nrow();
     size_t p = X.ncol();
+    size_t N_test = Xtest.nrow();
+
+
+    xinfo X_std;
+    ini_xinfo(X_std, N, p);
+    for(size_t i = 0; i < p; i++){
+        for(size_t j = 0; j < N; j ++ ){
+            X_std[i][j] = X(j,i);
+        }
+    }
 
     xinfo_sizet Xorder;
     ini_xinfo_sizet(Xorder, N, p);
+
+    // Rcpp::NumericMatrix::Column temp;
+    // generate Xorder matrix
+    for(size_t i = 0; i < p; i ++ ){
+        Xorder[i] = sort_indexes(X_std[i]);
+    }
+    // Xorder is correct
 
     // caclulate mean of y
     double y_mean = 0.0;
@@ -35,6 +52,8 @@ Rcpp::List train_forest_root_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, R
     // save predictions of each tree
     std::vector< std::vector<double> > predictions;
     ini_xinfo(predictions, N, M);
+
+    cout << predictions[0][0] << endl;
     xinfo predictions_test;
     ini_xinfo(predictions_test, Xtest.nrow(), M);
 
@@ -44,12 +63,12 @@ Rcpp::List train_forest_root_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, R
     row_sum(predictions_test, yhat_test);
 
     // current residual
-    std::vector<double> residual;
+    std::vector<double> residual(N);
 
     xinfo sigma_draw;
     ini_xinfo(sigma_draw, M, N_sweeps);
 
-    double sigma;
+    double sigma = 1.0; 
 
     forest trees(M);
 
@@ -66,6 +85,7 @@ Rcpp::List train_forest_root_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, R
 
     double* y_pointer = &y[0];
     double* X_pointer = &X[0];
+    double* Xtest_pointer = &Xtest[0];
 
 
     for(size_t mc = 0; mc < L; mc ++){
@@ -143,8 +163,10 @@ Rcpp::List train_forest_root_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, R
             //     // update prediction of current tree
             //     predictions[tree_ind] = fit_new_theta_noise_std;
 
-            //     predictions_test[tree_ind] = fit_new_theta_noise_std;
+                fit_new_theta_noise_std(trees.t[tree_ind], X_pointer, p, N, predictions[tree_ind]);
 
+            //     predictions_test[tree_ind] = fit_new_theta_noise_std;
+                fit_new_theta_noise_std(trees.t[tree_ind], Xtest_pointer, p, N_test, predictions_test[tree_ind]);
 
             //     // update sigma based on residual of M - 1 trees, residual_theta_noise
 
@@ -176,6 +198,6 @@ Rcpp::List train_forest_root_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, R
 
 
 
-    // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw);
+    return Rcpp::List::create(Rcpp::Named("yhats") = Rcpp::wrap(yhats), Rcpp::Named("yhats_test") = Rcpp::wrap(yhats_test), Rcpp::Named("sigma") = Rcpp::wrap(sigma_draw));
 }
 
