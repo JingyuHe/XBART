@@ -38,6 +38,7 @@ Rcpp::List train_forest_root_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, R
     }
     y_mean = y_mean / (double) N;
     
+    
 
     // for(size_t i = 0; i < p; i++){
     //     // Xorder.col(i) = arma::sort_index(X.col(i));
@@ -133,8 +134,11 @@ Rcpp::List train_forest_root_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, R
                 // prediction of M - 1 trees on testing set
                 yhat_test = yhat_test - predictions_test[tree_ind];
 
+                // cout << p << "  " << N << "   " << Nmin << "   "<< Ncutpoints << "   " << tau << "   " << sigma << "   " << alpha<< "   " << beta << endl;
+
 
                 trees.t[tree_ind].grow_tree_adaptive_std(y_pointer, y_mean, Xorder, X_pointer, p, N, N, 0, (size_t) max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel);
+
 
 
 

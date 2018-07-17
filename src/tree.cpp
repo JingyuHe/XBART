@@ -648,10 +648,12 @@ void tree::grow_tree_adaptive_std(double* y, double y_mean, xinfo_sizet& Xorder,
     // grow a tree, users can control number of split points
     
     if(N_Xorder <= Nmin){
+        cout << " too few " << endl; 
         return;
     }
 
     if(depth >= max_depth - 1){
+        cout << " too deep " << endl;
         return;
     }
 
@@ -708,6 +710,7 @@ void tree::grow_tree_adaptive_std(double* y, double y_mean, xinfo_sizet& Xorder,
     BART_likelihood_adaptive_std(Xorder, y, N_y, p, N_Xorder, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel);
 
     if(no_split == true){
+        cout << " no split " << endl;
         return;
     }
 
@@ -1307,7 +1310,7 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
             // std::vector<double> y_cumsum_inv_2(Ncutpoints);
             
             // for(size_t m = 0; m < candidate_index.n_elem; m ++ ){
-            //     candidate_index_2[m] = candidate_index[m];
+                // candidate_index_2[m] = candidate_index[m];
             // }
         
             for(size_t i = 0; i < p; i ++ ){
@@ -1320,31 +1323,31 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
 
             }
 
-            // STD part
+            // // STD part
 
-                // std::vector<double> Y_sort(Xorder.n_rows);
-                // double* ypointer;
-                // double n1tau2;
-                // double n2tau2;
+            //     std::vector<double> Y_sort(Xorder.n_rows);
+            //     double* ypointer;
+            //     double n1tau2;
+            //     double n2tau2;
 
 
-                // for(size_t iii = 0; iii < p; iii ++ ){
+            //     for(size_t iii = 0; iii < p; iii ++ ){
 
-                //     for(size_t q = 0;  q < Xorder.n_rows; q++ ){
-                //         Y_sort[q] = y(Xorder(q, iii));
-                //     }
-                //     ypointer = &Y_sort[0];  
+            //         for(size_t q = 0;  q < Xorder.n_rows; q++ ){
+            //             Y_sort[q] = y(Xorder(q, iii));
+            //         }
+            //         ypointer = &Y_sort[0];  
 
-                //     calculate_y_cumsum_std(ypointer, N, y_sum, candidate_index_2, y_cumsum_2, y_cumsum_inv_2);
+            //         calculate_y_cumsum_std(ypointer, N, y_sum, candidate_index_2, y_cumsum_2, y_cumsum_inv_2);
 
-                //     for(size_t j = 0; j < Ncutpoints - 1; j ++ ){
-                //         // loop over all possible cutpoints
-                //         n1tau2 = (candidate_index[j] + 1) * tau; // number of points on left side (x <= cutpoint)
-                //         n2tau2 = N * tau - n1tau2; // number of points on right side (x > cutpoint)
+            //         for(size_t j = 0; j < Ncutpoints; j ++ ){
+            //             // loop over all possible cutpoints
+            //             n1tau2 = (candidate_index[j] + 1) * tau; // number of points on left side (x <= cutpoint)
+            //             n2tau2 = N * tau - n1tau2; // number of points on right side (x > cutpoint)
 
-                //         loglike2[(Ncutpoints - 1) * iii + j] = - 0.5 * log(n1tau2 + sigma2) - 0.5 * log(n2tau2 + sigma2) + 0.5 * tau * pow(y_cumsum_2[j], 2) / (sigma2 * (n1tau2 + sigma2)) + 0.5 * tau * pow(y_cumsum_inv_2[j], 2) / (sigma2 * (n2tau2 + sigma2));
-                //     }
-                // }
+            //             loglike2[(Ncutpoints) * iii + j] = - 0.5 * log(n1tau2 + sigma2) - 0.5 * log(n2tau2 + sigma2) + 0.5 * tau * pow(y_cumsum_2[j], 2) / (sigma2 * (n1tau2 + sigma2)) + 0.5 * tau * pow(y_cumsum_inv_2[j], 2) / (sigma2 * (n2tau2 + sigma2));
+            //         }
+            //     }
             
         
         }else{
@@ -1360,6 +1363,11 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
 
 
         // cout << loglike(loglike.n_elem - 1) << "  " << loglike2[loglike2.size() - 1] << endl;
+
+        cout << "--------- loglike "<< endl;
+        cout << loglike << endl;
+        cout << "--------- loglike2 " << endl;
+        cout << loglike2 << endl;
 
         // take exponential, normalize values
         // double loglike2_max = *std::max_element(loglike2.begin(), loglike2.end());
@@ -1439,61 +1447,6 @@ void BART_likelihood_adaptive_std(const xinfo_sizet& Xorder, const double * y, s
         // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
 
 
-
-        // arma::vec n1tau = tau * arma::linspace(1, N - 1, N - 1);
-        // arma::vec n2tau = tau * arma::linspace(N - 1, 1, N - 1);
-        // arma::vec loglike((N - 1) * p + 1);
-        // // if number of observations is smaller than Ncutpoints, all data are splitpoint candidates       
-        // // note that the first Nmin and last Nmin cannot be splitpoint candidate
-
-        // if(parallel == false){
-        //     arma::vec y_cumsum(y.n_elem);
-        //     arma::vec y_cumsum_inv(y.n_elem);
-        //     // arma::vec temp_likelihood((N - 1) * p + 1);
-        //     // arma::uvec temp_ind((N - 1) * p + 1);
-
-        //     for(size_t i = 0; i < p; i++){ // loop over variables 
-        //         y_cumsum = arma::cumsum(y.rows(Xorder.col(i)));
-        //         y_sum = y_cumsum(y_cumsum.n_elem - 1);
-        //         y_cumsum_inv = y_sum - y_cumsum;  // redundant copy!
-        //         loglike(arma::span(i * (N - 1), i * (N - 1) + N - 2)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum(arma::span(0, N - 2)), 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv(arma::span(0, N - 2)), 2)/(sigma2 * (n2tau + sigma2));   
-        //     }
-        // }else{
-            
-        //     likelihood_evaluation_fullset like_parallel_full(y, Xorder, loglike, sigma2, tau, N, n1tau, n2tau);
-        //     parallelFor(0, p, like_parallel_full);
-            
-        // }
-
-        // // loglike(loglike.n_elem - 1) = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
-
-        // loglike(loglike.n_elem - 1) = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
-
-        // loglike = loglike - max(loglike);
-        // loglike = exp(loglike);
-        // loglike = loglike / arma::as_scalar(arma::sum(loglike));
-
-        // if((N - 1) > 2 * Nmin){
-        //     for(size_t i = 0; i < p; i ++ ){
-        //         // delete some candidates, otherwise size of the new node can be smaller than Nmin
-        //         loglike(arma::span(i * (N - 1), i * (N - 1) + Nmin)).fill(0);
-        //         loglike(arma::span(i * (N - 1) + N - 2 - Nmin, i * (N - 1) + N - 2)).fill(0);
-        //     }
-        // }else{
-        //     no_split = true;
-        //     return;
-        // }
-
-
-        // // Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(loglike.n_elem) - 1;
-        // // ind = Rcpp::RcppArmadillo::sample(temp_ind2, 1, false, loglike)[0];
-
-
-        // std::vector<double> loglike_vec(loglike.n_elem);
-        // for(size_t i = 0; i < loglike.n_elem; i ++ ){
-        //     loglike_vec[i] = loglike(i);
-        // }
-        
         std::vector<double> Y_sort(N_Xorder); // a container for sorted y
         double* ypointer;
         double n1tau;
@@ -1586,13 +1539,16 @@ void BART_likelihood_adaptive_std(const xinfo_sizet& Xorder, const double * y, s
 
                 calculate_y_cumsum_std(ypointer, N_Xorder, y_sum, candidate_index_2, y_cumsum, y_cumsum_inv);
 
-                for(size_t j = 0; j < Ncutpoints - 1; j ++ ){
+                for(size_t j = 0; j < Ncutpoints; j ++ ){
                     // loop over all possible cutpoints
                     n1tau = (candidate_index[j] + 1) * tau; // number of points on left side (x <= cutpoint)
                     n2tau = Ntau - n1tau; // number of points on right side (x > cutpoint)
 
-                    loglike[(Ncutpoints - 1) * iii + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
+
+                // cout << n1tau << "   " << n2tau << endl;    
+                    loglike[Ncutpoints * iii + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
                 }
+
             }
             
         
@@ -1605,15 +1561,20 @@ void BART_likelihood_adaptive_std(const xinfo_sizet& Xorder, const double * y, s
 
         // loglike(loglike.n_elem - 1) = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
+
         loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
+
+        cout << loglike << endl;
         // take exponential, normalize values
         double loglike_max = *std::max_element(loglike.begin(), loglike.end());
         for(size_t ii = 0; ii < loglike.size(); ii ++ ){
             loglike[ii] = exp(loglike[ii] - loglike_max);
         }
 
-
+    // if( N_Xorder  <= Ncutpoints + 1 + 2 * Nmin){
+    //     cout << loglike << endl;
+    // }
         std::random_device rd;
         std::mt19937 gen(rd());
         std::discrete_distribution<> d(loglike.begin(), loglike.end());
