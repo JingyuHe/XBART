@@ -81,29 +81,29 @@ double subnode_mean(double * y, xinfo_sizet& Xorder, const size_t& split_var, co
 
 
 
-std::vector<double> row_sum(xinfo& X){
+void row_sum(xinfo& X, std::vector<double> output){
     size_t p = X.size();
     size_t N = X[0].size();
-    std::vector<double> output(N);
+    // std::vector<double> output(N);
     for(size_t i = 0; i < N; i ++){
         for(size_t j = 0; j < p; j ++ ){
             output[i] = output[i] + X[j][i];
         }
     }
-    return output;
+    return;
 }
 
 
-std::vector<double> col_sum(xinfo& X){
+void col_sum(xinfo& X, std::vector<double> output){
     size_t p = X.size();
     size_t N = X[0].size();
-    std::vector<double> output(p);
+    // std::vector<double> output(p);
     for(size_t i = 0; i < p; i ++){
         for(size_t j = 0; j < N; j ++){
             output[i] = output[i] + X[i][j];
         }
     }
-    return output;
+    return;
 }
 
 
@@ -218,5 +218,4 @@ void calculate_y_cumsum_std(const double * y, const size_t N, double y_sum, std:
     
     return;
 }
-
 

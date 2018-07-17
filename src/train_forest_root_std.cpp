@@ -6,7 +6,7 @@
 #include <Rcpp.h>
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List train_forest_adaptive_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, Rcpp::NumericMatrix Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, bool draw_sigma, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true){
+Rcpp::List train_forest_root_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, Rcpp::NumericMatrix Xtest, size_t M, size_t L, size_t N_sweeps, Rcpp::IntegerMatrix max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, bool draw_sigma, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true){
 
     size_t N = X.nrow();
     size_t p = X.ncol();
@@ -33,7 +33,7 @@ Rcpp::List train_forest_adaptive_std(Rcpp::NumericVector y, Rcpp::NumericMatrix 
     ini_xinfo(yhats_test, Xtest.nrow(), N_sweeps);
 
     // save predictions of each tree
-    xinfo predictions;
+    std::vector< std::vector<double> > predictions;
     ini_xinfo(predictions, N, M);
     xinfo predictions_test;
     ini_xinfo(predictions_test, Xtest.nrow(), M);
@@ -65,6 +65,7 @@ Rcpp::List train_forest_adaptive_std(Rcpp::NumericVector y, Rcpp::NumericMatrix 
     size_t prune;
 
     double* y_pointer = &y[0];
+    double* X_pointer = &X[0];
 
 
     for(size_t mc = 0; mc < L; mc ++){
@@ -89,28 +90,33 @@ Rcpp::List train_forest_adaptive_std(Rcpp::NumericVector y, Rcpp::NumericMatrix 
                 cout << "--------------------------------" << endl;
             }
 
-            // for(size_t tree_ind = 0; tree_ind < M; tree_ind ++ ){
-            //     // loop over trees in each sweep
-            //     if(m_update_sigma == true){
-            //         // if update sigma based on residual of all M trees
+            for(size_t tree_ind = 0; tree_ind < M; tree_ind ++ ){
+                // loop over trees in each sweep
+                if(m_update_sigma == true){
+                    // if update sigma based on residual of all M trees
 
-            //             //                 sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
+                        //                 sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
 
 
-            //         sigma_draw[sweeps][tree_ind] = sigma;
-            //     }
+                    sigma_draw[sweeps][tree_ind] = sigma;
+                }
 
-            //     // save sigma
-            //     // add prediction of current tree back to residual
-            //     // then it's M - 1 trees residual
+                // save sigma
+                // add prediction of current tree back to residual
+                // then it's M - 1 trees residual
 
-            //     residual = residual + predictions[tree_ind];
+                residual = residual + predictions[tree_ind];
 
-            //     // prediction of M - 1 trees
-            //     yhat = yhat - predictions[tree_ind];
+                // prediction of M - 1 trees
+                yhat = yhat - predictions[tree_ind];
 
-            //     // prediction of M - 1 trees on testing set
-            //     yhat_test = yhat_test - predictions_test[tree_ind];
+                // prediction of M - 1 trees on testing set
+                yhat_test = yhat_test - predictions_test[tree_ind];
+
+
+                trees.t[tree_ind].grow_tree_adaptive_std(y_pointer, y_mean, Xorder, X_pointer, p, N, N, 0, (size_t) max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel);
+
+
 
             //     // grow a tree
             //     if(sweeps < 1){
@@ -130,9 +136,9 @@ Rcpp::List train_forest_adaptive_std(Rcpp::NumericVector y, Rcpp::NumericMatrix 
 
             //     }
 
-            //     if(verbose == true){
-            //         cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
-            //     }
+                if(verbose == true){
+                    cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
+                }
 
             //     // update prediction of current tree
             //     predictions[tree_ind] = fit_new_theta_noise_std;
@@ -142,18 +148,18 @@ Rcpp::List train_forest_adaptive_std(Rcpp::NumericVector y, Rcpp::NumericMatrix 
 
             //     // update sigma based on residual of M - 1 trees, residual_theta_noise
 
-            //     if(m_update_sigma == false){
-            //         sigma_draw[sweeps][tree_ind] = sigma;
-            //     }
+                if(m_update_sigma == false){
+                    sigma_draw[sweeps][tree_ind] = sigma;
+                }
 
 
             //     // update residual, now it's residual of M trees
-            //     residual = residual - predictions[tree_ind];
+                residual = residual - predictions[tree_ind];
 
-            //     yhat = yhat + predictions[tree_ind];
+                yhat = yhat + predictions[tree_ind];
 
-            //     yhat_test = yhat_test + predictions_test[tree_ind];
-            // }
+                yhat_test = yhat_test + predictions_test[tree_ind];
+            }
 
 
         

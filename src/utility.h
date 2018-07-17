@@ -18,9 +18,10 @@ void ini_xinfo(xinfo& X, size_t N, size_t p);
 // // initialize STD integer matrix
 void ini_xinfo_sizet(xinfo_sizet& X, size_t N, size_t p);
 
-std::vector<double> row_sum(xinfo& X);
 
-std::vector<double> col_sum(xinfo& X);
+void row_sum(xinfo& X, std::vector<double> output);
+
+void col_sum(xinfo& X, std::vector<double> output);
 
 double sum_squared(std::vector<double> v);
 
@@ -118,5 +119,35 @@ std::vector<T> operator+(const std::vector<T>& a, const std::vector<T>& b)
 }
 
 
+
+template <typename T>
+std::vector<T> operator-(const std::vector<T>& a, const std::vector<T>& b)
+{
+    assert(a.size() == b.size());
+
+    std::vector<T> result;
+    result.reserve(a.size());
+
+    std::transform(a.begin(), a.end(), b.begin(), 
+                   std::back_inserter(result), std::minus<T>());
+    return result;
+}
+
+
+
+
+template <typename T>
+std::vector<size_t> sort_indexes(const std::vector<T> &v) {
+
+  // initialize original index locations
+  std::vector<size_t> idx(v.size());
+  iota(idx.begin(), idx.end(), 0);
+
+  // sort indexes based on comparing values in v
+  sort(idx.begin(), idx.end(),
+       [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
+
+  return idx;
+}
 
 #endif
