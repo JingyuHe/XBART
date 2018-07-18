@@ -21,6 +21,9 @@ Rcpp::List train_forest_root_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, R
         }
     }
 
+
+
+
     xinfo_sizet Xorder;
     ini_xinfo_sizet(Xorder, N, p);
 
@@ -30,6 +33,7 @@ Rcpp::List train_forest_root_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, R
         Xorder[i] = sort_indexes(X_std[i]);
     }
     // Xorder is correct
+
 
     // caclulate mean of y
     double y_mean = 0.0;
@@ -54,7 +58,6 @@ Rcpp::List train_forest_root_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, R
     std::vector< std::vector<double> > predictions;
     ini_xinfo(predictions, N, M);
 
-    cout << predictions[0][0] << endl;
     xinfo predictions_test;
     ini_xinfo(predictions_test, Xtest.nrow(), M);
 

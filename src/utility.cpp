@@ -186,7 +186,7 @@ void calculate_y_cumsum(arma::vec& y, double y_sum, arma::uvec& ind, arma::vec& 
 
 
 
-void calculate_y_cumsum_std(const double * y, const size_t N, double y_sum, std::vector<size_t>& ind, std::vector<double>& y_cumsum, std::vector<double>& y_cumsum_inv){
+void calculate_y_cumsum_std(const double * y, const size_t N_y, double y_sum, std::vector<size_t>& ind, std::vector<double>& y_cumsum, std::vector<double>& y_cumsum_inv){
     // compute cumulative sum of chunks for y, separate by ind vector
     // N is length of y (total)
     // y_cumsum_chunk should be lenght M + 1
@@ -197,7 +197,7 @@ void calculate_y_cumsum_std(const double * y, const size_t N, double y_sum, std:
 
     y_cumsum_chunk[0] = 0; // initialize  
 
-    for(size_t i = 0; i < N; i ++ ){
+    for(size_t i = 0; i < N_y; i ++ ){
         if(i <= ind[ind_ind]){
             y_cumsum_chunk[ind_ind] = y_cumsum_chunk[ind_ind] + y[i];
         }else{
@@ -219,3 +219,10 @@ void calculate_y_cumsum_std(const double * y, const size_t N, double y_sum, std:
     return;
 }
 
+void vec_sum(std::vector<double> vector, double& sum){
+    sum = 0.0;
+    for(size_t i = 0; i < vector.size(); i ++ ){
+        sum = sum + vector[i];
+    }
+    return;
+}
