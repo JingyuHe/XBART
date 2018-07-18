@@ -149,13 +149,14 @@ void fit_new_theta_noise_std(tree& tree, double* X, size_t p, size_t N, std::vec
 }
 
 
-double sum_residual_squared(tree& tree, double* X, double* y, size_t p, size_t N_y){
+double sum_residual_squared(tree& tree, double* X, const std::vector<double>& y, size_t p){
     double output = 0.0;
     double temp = 0.0;
+    size_t N_y = y.size();
     tree::tree_p bn;
     for(size_t i = 0; i < N_y; i ++ ){
         bn = tree.search_bottom_std(X, i, p, N_y);
-        temp = *(y + i) - bn -> gettheta_noise();
+        temp = y[i] - bn -> gettheta_noise();
         output = output + pow(temp, 2.0);
     }
     return output;

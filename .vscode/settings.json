@@ -53,6 +53,7 @@
         "unordered_map": "cpp",
         "cfenv": "cpp",
         "variant": "cpp",
-        "complex": "cpp"
+        "complex": "cpp",
+        "ctime": "cpp"
     }
 }

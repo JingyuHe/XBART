@@ -13,6 +13,11 @@ Rcpp::List train_forest_root_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, R
     size_t N_test = Xtest.nrow();
 
 
+    // random number generator
+    std::default_random_engine generator;
+    std::gamma_distribution<double> gamma_d;
+
+
     xinfo X_std;
     ini_xinfo(X_std, N, p);
     for(size_t i = 0; i < p; i++){
@@ -118,10 +123,8 @@ Rcpp::List train_forest_root_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, R
                 // loop over trees in each sweep
                 if(m_update_sigma == true){
                     // if update sigma based on residual of all M trees
-
-                        //                 sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
-
-
+                    gamma_d = std::gamma_distribution<double>((N + kap) / 2.0, 2.0 / sum_squared(residual) + s);
+                    sigma = 1.0 / gamma_d(generator);
                     sigma_draw[sweeps][tree_ind] = sigma;
                 }
 
@@ -139,10 +142,10 @@ Rcpp::List train_forest_root_std(Rcpp::NumericVector y, Rcpp::NumericMatrix X, R
 
                 // cout << p << "  " << N << "   " << Nmin << "   "<< Ncutpoints << "   " << tau << "   " << sigma << "   " << alpha<< "   " << beta << endl;
 
-                cout << "OK" << endl;
 
-
-                trees.t[tree_ind].grow_tree_adaptive_std(y_pointer, y_mean, Xorder, X_pointer, p, N, N, 0, (size_t) max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel);
+                cout << "------------------------OK1" << endl;
+                trees.t[tree_ind].grow_tree_adaptive_std(residual, y_mean, Xorder, X_pointer, p, N, N, 0, (size_t) max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel);
+                cout << "------------------------OK2" << endl;
 
 
 
