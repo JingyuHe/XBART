@@ -41,7 +41,7 @@ void BART_likelihood_adaptive_std(const xinfo_sizet& Xorder, const std::vector<d
 
 
 
-void BART_likelihood_adaptive_test(const arma::umat& Xorder, arma::mat& y, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel);
+void BART_likelihood_adaptive_test(const arma::umat& Xorder, arma::mat& y, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, double* X_std);
 
 
 
