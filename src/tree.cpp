@@ -733,7 +733,7 @@ void tree::grow_tree_adaptive_std(std::vector<double>& y, double y_mean, xinfo_s
 
     // cout << "okokokokokokoko" << endl;
 
-    split_xorder_std(Xorder_left, Xorder_right, Xorder, X, split_var, split_point, N_Xorder, p);
+    split_xorder_std(Xorder_left, Xorder_right, Xorder, X, split_var, split_point, N_Xorder, N_y, p);
     // split_xorder(Xorder_left, Xorder_right, Xorder, X, split_var, split_point);
     // double yleft_mean = arma::as_scalar(arma::mean(y(Xorder_left.col(split_var))));
     // double yright_mean = arma::as_scalar(arma::mean(y(Xorder_right.col(split_var))));
@@ -762,7 +762,7 @@ void tree::grow_tree_adaptive_std(std::vector<double>& y, double y_mean, xinfo_s
 
 
 
-void tree::grow_tree_adaptive_test(arma::mat& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, double* X_std){
+void tree::grow_tree_adaptive_test(arma::mat& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std){
 
     // grow a tree, users can control number of split points
     
@@ -814,22 +814,30 @@ void tree::grow_tree_adaptive_test(arma::mat& y, double y_mean, arma::umat& Xord
 
     bool no_split = false;
 
-    // BART_likelihood_adaptive_test(Xorder, y, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, y_std, Xorder_std, X_std);
+    BART_likelihood_adaptive_test(Xorder, y, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, y_std, Xorder_std, X_std);
 
-    BART_likelihood_adaptive(Xorder, y, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel);//, y_std, Xorder_std, X_std);
+    // BART_likelihood_adaptive(Xorder, y, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel);//, y_std, Xorder_std, X_std);
 
     if(no_split == true){
         return;
     }
 
-    
+
     this -> v = split_var;
     this -> c =  X(Xorder(split_point, split_var), split_var);
+    
+
+
+    xinfo_sizet Xorder_left_std;
+    xinfo_sizet Xorder_right_std;
+    ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
+    ini_xinfo_sizet(Xorder_right_std, Xorder.n_rows - split_point - 1, p);
+
 
     arma::umat Xorder_left = arma::zeros<arma::umat>(split_point + 1, Xorder.n_cols);
     arma::umat Xorder_right = arma::zeros<arma::umat>(Xorder.n_rows - split_point - 1, Xorder.n_cols);
 
-    split_xorder(Xorder_left, Xorder_right, Xorder, X, split_var, split_point);
+    split_xorder_test(Xorder_left, Xorder_right, Xorder, X, split_var, split_point, Xorder_left_std, Xorder_right_std, Xorder_std, X_std, Xorder.n_rows, y.n_elem, p);
     double yleft_mean = arma::as_scalar(arma::mean(y(Xorder_left.col(split_var))));
     double yright_mean = arma::as_scalar(arma::mean(y(Xorder_right.col(split_var))));
 
@@ -1078,11 +1086,40 @@ void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat&
 }
 
 
-void split_xorder_std(xinfo_sizet& Xorder_left, xinfo_sizet& Xorder_right, xinfo_sizet& Xorder, double* X, size_t split_var, size_t split_point, size_t N_Xorder, size_t p){
+void split_xorder_test(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat& Xorder, arma::mat& X, size_t split_var, size_t split_point, xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, xinfo_sizet& Xorder_std, const double* X_std, size_t N_Xorder, size_t N_y, size_t p){
+
+    // when find the split point, split Xorder matrix to two sub matrices for both subnodes
+
+    // preserve order of other variables
+    size_t N = Xorder.n_rows;
+    size_t left_ix = 0;
+    size_t right_ix = 0;
+    for(size_t i = 0; i < Xorder.n_cols; i ++){
+        left_ix = 0;
+        right_ix = 0;
+        for(size_t j = 0; j < N; j ++){
+            // loop over all observations
+            if(X(Xorder(j, i), split_var) <= X(Xorder(split_point, split_var), split_var)){
+                Xorder_left(left_ix, i) = Xorder(j, i);
+                left_ix = left_ix + 1;
+            }else{
+                Xorder_right(right_ix, i) = Xorder(j, i);
+                right_ix = right_ix + 1;   
+            }
+        }
+    }
+    return;
+}
+
+
+
+void split_xorder_std(xinfo_sizet& Xorder_left, xinfo_sizet& Xorder_right, xinfo_sizet& Xorder, const double* X, size_t split_var, size_t split_point, size_t N_Xorder, size_t N_y, size_t p){
 
     // split_xorder in STD library
 
     // N_Xorder is number of rows for Xorder
+    // N_y is total length of the original data (vector y)
+
     size_t left_ix = 0;
     size_t right_ix = 0;
     for(size_t i = 0; i < p; i ++ ){
@@ -1093,7 +1130,7 @@ void split_xorder_std(xinfo_sizet& Xorder_left, xinfo_sizet& Xorder_right, xinfo
             // look at X(Xorder(j, i), split_var)
             // X[split_var][Xorder[i][j]]
             // X[split_var][Xorder[split_var][split_point]]
-            if( *(X + p * split_var + Xorder[i][j])<= *(X + p * split_var + Xorder[split_var][split_point])){
+            if( *(X + N_y * split_var + Xorder[i][j])<= *(X + N_y * split_var + Xorder[split_var][split_point])){
                 // copy a row
                 for(size_t k = 0; k < p; k ++){
                     Xorder_left[i][left_ix] = Xorder[i][j];
@@ -1531,7 +1568,7 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
 
 
 
-void BART_likelihood_adaptive_test(const arma::umat& Xorder, arma::mat& y, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, double* X_std){
+void BART_likelihood_adaptive_test(const arma::umat& Xorder, arma::mat& y, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std){
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
 
@@ -1776,25 +1813,25 @@ void BART_likelihood_adaptive_test(const arma::umat& Xorder, arma::mat& y, doubl
         //     loglike2[ii] = exp(loglike2[ii] - loglike2_max);
         // }
 
-        // cout << "loglike" << endl;
-        // cout << loglike << endl;
-        // cout << "loglike 2 " << endl;
-        // cout << loglike2 << endl;
-        // cout << "---------" << endl;
-
-
     
         loglike = loglike - max(loglike);
         loglike = exp(loglike);
         loglike = loglike / arma::as_scalar(arma::sum(loglike));
 
 
-        // // normalize loglike
-        // double loglike_max = *std::max_element(loglike2.begin(), loglike2.end());
-        // for(size_t ii = 0; ii < loglike2.size(); ii ++ ){
-        //     loglike2[ii] = exp(loglike2[ii] - loglike_max);
-        // }
+        // normalize loglike
+        double loglike_max = *std::max_element(loglike2.begin(), loglike2.end());
+        for(size_t ii = 0; ii < loglike2.size(); ii ++ ){
+            loglike2[ii] = exp(loglike2[ii] - loglike_max);
+        }
         
+
+        // cout << "loglike" << endl;
+        // cout << loglike << endl;
+        // cout << "loglike 2 " << endl;
+        // cout << loglike2 << endl;
+        // cout << "---------" << endl;
+
 
 
         // Rcpp::IntegerVector temp_ind2 = Rcpp::seq_len(loglike.n_elem) - 1;  // sample candidate ! start from 0
