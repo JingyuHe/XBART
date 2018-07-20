@@ -738,8 +738,8 @@ void tree::grow_tree_adaptive_std(std::vector<double>& y, double y_mean, xinfo_s
     // double yleft_mean = arma::as_scalar(arma::mean(y(Xorder_left.col(split_var))));
     // double yright_mean = arma::as_scalar(arma::mean(y(Xorder_right.col(split_var))));
 
-    double yleft_mean = subnode_mean(y, Xorder_left, split_var, N_y);
-    double yright_mean = subnode_mean(y, Xorder_right, split_var, N_y);
+    double yleft_mean = subnode_mean(y, Xorder_left, split_var);
+    double yright_mean = subnode_mean(y, Xorder_right, split_var);
 
     cout << Xorder_left.size() <<"   " << Xorder_right.size() << "   " << yleft_mean << "   " << yright_mean << endl;
 
@@ -837,15 +837,36 @@ void tree::grow_tree_adaptive_test(arma::mat& y, double y_mean, arma::umat& Xord
     arma::umat Xorder_left = arma::zeros<arma::umat>(split_point + 1, Xorder.n_cols);
     arma::umat Xorder_right = arma::zeros<arma::umat>(Xorder.n_rows - split_point - 1, Xorder.n_cols);
 
+
+    // cout << " OK  1" << endl;
     split_xorder_test(Xorder_left, Xorder_right, Xorder, X, split_var, split_point, Xorder_left_std, Xorder_right_std, Xorder_std, X_std, Xorder.n_rows, y.n_elem, p);
+
+    // cout << " OK 2 " << endl;
+    // cout << "--------" << endl;
+    // cout << Xorder_left.col(0) << endl;
+    // cout << " +++++ " << endl;
+    // cout << Xorder_left_std[0] << endl;
+    // cout << " XXXXX " << endl;
+
+    // cout << Xorder_left.n_rows << " " << Xorder_left.n_cols << " " << Xorder_left_std[0].size() << " " << Xorder_left_std.size() << endl;
+
+
     double yleft_mean = arma::as_scalar(arma::mean(y(Xorder_left.col(split_var))));
     double yright_mean = arma::as_scalar(arma::mean(y(Xorder_right.col(split_var))));
 
+
+    double yleft_mean_std = subnode_mean(y_std, Xorder_left_std, split_var);
+    double yright_mean_std = subnode_mean(y_std, Xorder_right_std, split_var);
+
+    cout << "left mean " << yleft_mean << "  " << yleft_mean_std << endl;
+    cout << "right mean " << yright_mean << "  " << yright_mean_std << endl;
+
+
     depth = depth + 1;
     tree::tree_p lchild = new tree();
-    lchild->grow_tree_adaptive_test(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_std, X_std);
+    lchild->grow_tree_adaptive_test(y, yleft_mean, Xorder_left, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std);
     tree::tree_p rchild = new tree();
-    rchild->grow_tree_adaptive_test(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_std, X_std);
+    rchild->grow_tree_adaptive_test(y, yright_mean, Xorder_right, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std);
 
     lchild -> p = this;
     rchild -> p = this;
@@ -1108,6 +1129,37 @@ void split_xorder_test(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::
             }
         }
     }
+
+    for(size_t i = 0; i < p; i ++ ){
+        left_ix = 0;
+        right_ix = 0;
+        for(size_t j = 0; j < N_Xorder; j ++){
+            // Xorder(j, i), jth row and ith column
+            // look at X(Xorder(j, i), split_var)
+            // X[split_var][Xorder[i][j]]
+            // X[split_var][Xorder[split_var][split_point]]
+            if( *(X_std + N_y * split_var + Xorder_std[i][j])<= *(X_std + N_y * split_var + Xorder_std[split_var][split_point])){
+                // copy a row
+                // for(size_t k = 0; k < p; k ++){
+                //     Xorder_left_std[i][left_ix];// = Xorder_std[i][j];
+                //     left_ix = left_ix + 1;
+                // }
+                Xorder_left_std[i][left_ix] = Xorder_std[i][j];
+                left_ix = left_ix + 1;
+            }else{
+                // for(size_t k = 0; k < p; k ++){
+                //     // Xorder_right[i][right_ix] = Xorder[i][j];
+                //     right_ix = right_ix + 1;
+                // }
+                Xorder_right_std[i][right_ix] = Xorder_std[i][j];
+                right_ix = right_ix + 1;
+            }
+
+        }
+
+    }
+
+
     return;
 }
 

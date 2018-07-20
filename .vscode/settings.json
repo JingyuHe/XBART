@@ -54,6 +54,7 @@
         "cfenv": "cpp",
         "variant": "cpp",
         "complex": "cpp",
-        "ctime": "cpp"
+        "ctime": "cpp",
+        "future": "cpp"
     }
 }

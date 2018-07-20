@@ -166,6 +166,10 @@ Rcpp::List train_forest_test(arma::mat y, arma::mat X, arma::mat Xtest, size_t M
                 // then it's m - 1 trees residual
                 residual = residual + predictions.col(tree_ind);
 
+                for(size_t kk = 0; kk < N; kk ++ ){
+                    residual_std[kk] = residual(kk);
+                }
+
                 // do the samething for residual_theta_noise, residual of m - 1 trees
                 // residual_theta_noise = residual_theta_noise + predictions_theta_noise.col(tree_ind);
 
