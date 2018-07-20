@@ -55,6 +55,7 @@
         "variant": "cpp",
         "complex": "cpp",
         "ctime": "cpp",
-        "future": "cpp"
+        "future": "cpp",
+        "stack": "cpp"
     }
 }
