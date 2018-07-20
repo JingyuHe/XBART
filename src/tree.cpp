@@ -1691,10 +1691,10 @@ void BART_likelihood_adaptive_test(const arma::umat& Xorder, arma::mat& y, doubl
 
                 iii = i;
 
-                y_cumsum = arma::cumsum(y.rows(Xorder.col(i)));
-                y_sum = y_cumsum(y_cumsum.n_elem - 1);
-                y_cumsum_inv = y_sum - y_cumsum;  // redundant copy!
-                loglike(arma::span(i * (N - 1), i * (N - 1) + N - 2)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum(arma::span(0, N - 2)), 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv(arma::span(0, N - 2)), 2)/(sigma2 * (n2tau + sigma2));   
+                // y_cumsum = arma::cumsum(y.rows(Xorder.col(i)));
+                // y_sum = y_cumsum(y_cumsum.n_elem - 1);
+                // y_cumsum_inv = y_sum - y_cumsum;  // redundant copy!
+                // loglike(arma::span(i * (N - 1), i * (N - 1) + N - 2)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum(arma::span(0, N - 2)), 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv(arma::span(0, N - 2)), 2)/(sigma2 * (n2tau + sigma2));   
 
                 for(size_t q = 0;  q < N_Xorder; q++ ){
                     Y_sort[q] = y_std[Xorder_std[iii][q]];
@@ -1714,7 +1714,7 @@ void BART_likelihood_adaptive_test(const arma::umat& Xorder, arma::mat& y, doubl
 
 
 
-                    loglike2[(N_Xorder-1) * iii + j] = - 0.5 * log(n1tau2 + sigma2) - 0.5 * log(n2tau2 + sigma2) + 0.5 * tau * pow(y_cumsum(j), 2) / (sigma2 * (n1tau2 + sigma2)) + 0.5 * tau * pow(y_cumsum_inv(j), 2) / (sigma2 * (n2tau2 + sigma2));
+                    loglike2[(N_Xorder-1) * iii + j] = - 0.5 * log(n1tau2 + sigma2) - 0.5 * log(n2tau2 + sigma2) + 0.5 * tau * pow(y_cumsum_std[j], 2) / (sigma2 * (n1tau2 + sigma2)) + 0.5 * tau * pow(y_cumsum_inv_std[j], 2) / (sigma2 * (n2tau2 + sigma2));
                     // loglike2[N_Xorder * iii + j]
 
                 }
@@ -1743,31 +1743,39 @@ void BART_likelihood_adaptive_test(const arma::umat& Xorder, arma::mat& y, doubl
 
         loglike2[loglike2.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
-        // cout << loglike << endl;
-        // cout << loglike2 << endl;
 
-        // loglike = loglike - max(loglike);
-        // loglike = exp(loglike);
+        loglike = loglike - max(loglike);
+        loglike = exp(loglike);
         // loglike = loglike / arma::as_scalar(arma::sum(loglike));
+        
+        
+        // normalize loglike
+        double loglike_max = *std::max_element(loglike2.begin(), loglike2.end());
+        for(size_t ii = 0; ii < loglike2.size(); ii ++ ){
+            loglike2[ii] = exp(loglike2[ii] - loglike_max);
+        }
+
+   
+
 
         if((N - 1) > 2 * Nmin){
             for(size_t i = 0; i < p; i ++ ){
                 // delete some candidates, otherwise size of the new node can be smaller than Nmin
                 loglike(arma::span(i * (N - 1), i * (N - 1) + Nmin)).fill(0);
                 loglike(arma::span(i * (N - 1) + N - 2 - Nmin, i * (N - 1) + N - 2)).fill(0);
+
+                std::fill(loglike2.begin() + i * (N - 1), loglike2.begin() + i * (N - 1) + Nmin + 1, 0.0);
+                std::fill(loglike2.begin() + i * (N - 1) + N - 2 - Nmin, loglike2.begin() + i * (N - 1) + N - 2 + 1, 0.0);
+
             }
+
         }else{
             no_split = true;
             return;
         }
 
 
-
-        // normalize loglike
-        double loglike_max = *std::max_element(loglike2.begin(), loglike2.end());
-        for(size_t ii = 0; ii < loglike2.size(); ii ++ ){
-            loglike2[ii] = exp(loglike2[ii] - loglike_max);
-        }
+    
 
 
 
@@ -1779,8 +1787,9 @@ void BART_likelihood_adaptive_test(const arma::umat& Xorder, arma::mat& y, doubl
         for(size_t i = 0; i < loglike.n_elem; i ++ ){
             loglike_vec[i] = loglike(i);
         }
-    
+        // cout << "-------------------" << endl;
         // cout << loglike_vec << endl;
+        // cout << "++++++++++++++++++++" << endl;
         // cout << loglike2 << endl;
 
         std::random_device rd;
@@ -1797,6 +1806,7 @@ void BART_likelihood_adaptive_test(const arma::umat& Xorder, arma::mat& y, doubl
 
         if((N - 1)<= 2 * Nmin){
             no_split = true;
+
         }
 
 
@@ -1811,8 +1821,8 @@ void BART_likelihood_adaptive_test(const arma::umat& Xorder, arma::mat& y, doubl
         // seq_gen(2, N - 2, Ncutpoints, candidate_index); // row index in Xorder to be candidates
         seq_gen(Nmin, N - Nmin, Ncutpoints, candidate_index);
         // cout << "tau" << tau << endl;
-        arma::vec n1tau = tau * (1.0 + arma::conv_to<arma::vec>::from(candidate_index)); // plus 1 because the index starts from 0, we want count of observations
-        arma::vec n2tau = tau * N  - n1tau;
+        // arma::vec n1tau = tau * (1.0 + arma::conv_to<arma::vec>::from(candidate_index)); // plus 1 because the index starts from 0, we want count of observations
+        // arma::vec n2tau = tau * N  - n1tau;
                 
         std::vector<double> loglike2(Ncutpoints * p + 1);
         std::vector<size_t> candidate_index_2(candidate_index.n_elem);
@@ -1833,15 +1843,15 @@ void BART_likelihood_adaptive_test(const arma::umat& Xorder, arma::mat& y, doubl
                 candidate_index_2[m] = candidate_index[m];
             }
         
-            for(size_t i = 0; i < p; i ++ ){
+            // for(size_t i = 0; i < p; i ++ ){
 
-                y_sort = y(Xorder.col(i));
+            //     y_sort = y(Xorder.col(i));
 
-                calculate_y_cumsum(y_sort, y_sum, candidate_index, y_cumsum, y_cumsum_inv);
+            //     calculate_y_cumsum(y_sort, y_sum, candidate_index, y_cumsum, y_cumsum_inv);
                 
-                loglike(arma::span(i * Ncutpoints, i * Ncutpoints + Ncutpoints - 1)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv, 2)/(sigma2 * (n2tau + sigma2));
+            //     loglike(arma::span(i * Ncutpoints, i * Ncutpoints + Ncutpoints - 1)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv, 2)/(sigma2 * (n2tau + sigma2));
 
-            }
+            // }
 
             // STD part
 
@@ -1878,7 +1888,7 @@ void BART_likelihood_adaptive_test(const arma::umat& Xorder, arma::mat& y, doubl
 
         // loglike(loglike.n_elem - 1) = log(Ncutpoints) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) - beta * log(1.0 + depth) + beta * log(depth) + log(1.0 - alpha) - log(alpha);
 
-        loglike(loglike.n_elem - 1) = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+        // loglike(loglike.n_elem - 1) = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
         loglike2[loglike2.size() - 1] = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
@@ -1892,9 +1902,9 @@ void BART_likelihood_adaptive_test(const arma::umat& Xorder, arma::mat& y, doubl
         // }
 
     
-        loglike = loglike - max(loglike);
-        loglike = exp(loglike);
-        loglike = loglike / arma::as_scalar(arma::sum(loglike));
+        // loglike = loglike - max(loglike);
+        // loglike = exp(loglike);
+        // loglike = loglike / arma::as_scalar(arma::sum(loglike));
 
 
         // normalize loglike
@@ -1920,10 +1930,10 @@ void BART_likelihood_adaptive_test(const arma::umat& Xorder, arma::mat& y, doubl
 
 
         // copy from armadillo to std for sampling use
-        std::vector<double> loglike_vec(loglike.n_elem);
-        for(size_t i = 0; i < loglike.n_elem; i ++ ){
-            loglike_vec[i] = loglike(i);
-        }
+        // std::vector<double> loglike_vec(loglike.n_elem);
+        // for(size_t i = 0; i < loglike.n_elem; i ++ ){
+        //     loglike_vec[i] = loglike(i);
+        // }
 
         std::random_device rd;
         std::mt19937 gen(rd());
