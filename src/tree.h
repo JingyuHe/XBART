@@ -30,7 +30,7 @@
 //--------------------------------------------------
 //xinfo xi, then xi[v][c] is the c^{th} cutpoint for variable v.
 //left if x[v] < xi[v][c]
-void split_xorder_test(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat& Xorder, arma::mat& X, size_t split_var, size_t split_point, xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, xinfo_sizet& Xorder_std, const double* X_std, size_t N_Xorder, size_t N_y, size_t p);
+void split_xorder_test(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, arma::mat& X, size_t split_var, size_t split_point, xinfo_sizet& Xorder_std, const double* X_std, size_t N_y, size_t p);
 
 
 
@@ -44,7 +44,7 @@ void BART_likelihood_adaptive_std(const xinfo_sizet& Xorder, const std::vector<d
 
 
 
-void BART_likelihood_adaptive_test(const arma::umat& Xorder, arma::mat& y, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std);
+void BART_likelihood_adaptive_test(std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel);
 
 
 
@@ -128,7 +128,7 @@ public:
    void grow_tree_std(double* y, double& y_mean, xinfo_sizet& Xorder, double* X, size_t N, size_t p, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta, double* residual, bool draw_sigma, bool draw_mu);
 
 
-   void grow_tree_adaptive_test(arma::mat& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std);
+   void grow_tree_adaptive_test(arma::mat& y, double y_mean, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std);
 
 
    void grow_tree_adaptive_onestep(arma::mat& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel);
