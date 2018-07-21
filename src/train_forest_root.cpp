@@ -121,7 +121,7 @@ Rcpp::List train_forest_root(arma::mat y, arma::mat X, arma::mat Xtest, size_t M
 
                 // if(sweeps < 1){
                     trees.t[tree_ind].grow_tree_adaptive(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel);
-                    // cout << "tree size " << trees.t[tree_ind].treesize() << endl;
+                    cout << "tree size " << trees.t[tree_ind].treesize() << endl;
                 // }else{ 
                 //     //    trees.t[tree_ind].sample_theta(residual, X, tau, sigma, draw_mu);
 

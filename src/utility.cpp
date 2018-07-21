@@ -226,3 +226,16 @@ void vec_sum(std::vector<double> vector, double& sum){
     }
     return;
 }
+
+
+double sq_diff_arma_std(arma::vec vec1, std::vector<double> vec2){
+    // compute squared difference between an armadillo vector and a std vector
+    // for debug use
+    assert(vec1.n_elem == vec2.size());
+    size_t N = vec1.n_elem;
+    double output = 0.0;
+    for(size_t i = 0; i < N; i ++ ){
+        output = output + pow(arma::as_scalar(vec1(i)) - vec2[i], 2);
+    }
+    return output;
+}
