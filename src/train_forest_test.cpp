@@ -18,6 +18,7 @@ Rcpp::List train_forest_test(arma::mat y, arma::mat X, arma::mat Xtest, size_t M
         Xorder.col(i) = arma::sort_index(X.col(i));
     }
 
+    std::default_random_engine(generator);
 
     ///////////////////////////////////////////////////////////////////
     // create copies for STD version
@@ -137,16 +138,18 @@ Rcpp::List train_forest_test(arma::mat y, arma::mat X, arma::mat Xtest, size_t M
     for(size_t mc = 0; mc < L; mc ++ ){
 
         // initialize
-        // predictions.fill(arma::as_scalar(arma::mean(y)) / (double) M);
+        predictions.fill(arma::as_scalar(arma::mean(y)) / (double) M);
 
         // predictions_theta_noise.fill(arma::as_scalar(arma::mean(y)) / (double) M);
-        // predictions_test.fill(arma::as_scalar(arma::mean(y)) / (double) M);
 
-        // yhat = arma::sum(predictions, 1);
 
-        // yhat_test = arma::sum(predictions_test, 1);
+        predictions_test.fill(arma::as_scalar(arma::mean(y)) / (double) M);
 
-        // residual = y - yhat;
+        yhat = arma::sum(predictions, 1);
+
+        yhat_test = arma::sum(predictions_test, 1);
+
+        residual = y - yhat;
 
 
         // initialize predcitions and predictions_test
@@ -179,39 +182,49 @@ Rcpp::List train_forest_test(arma::mat y, arma::mat X, arma::mat Xtest, size_t M
 
 
                 // if update sigma based on residual of all m trees
-                // if(m_update_sigma == true){
-                //     sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
-                //     sigma_draw(tree_ind, sweeps) = sigma;
-                // }
+                if(m_update_sigma == true){
+
+                    sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
+
+
+                    // std::gamma_distribution<double> gamma_samp((N + kap) / 2.0 , 2.0 / (sum_squared(residual_std) + s ));
+
+                    // sigma = 1.0 / gamma_samp(generator);
+
+                    sigma_draw(tree_ind, sweeps) = sigma;
+                }
 
                 // save sigma
                 sigma_draw(tree_ind, sweeps) = sigma;
 
                 // add prediction of current tree back to residual
                 // then it's m - 1 trees residual
-                // residual = residual + predictions.col(tree_ind);
+                residual = residual + predictions.col(tree_ind);
                 residual_std = residual_std + predictions_std[tree_ind];
 
 
                 // for(size_t kk = 0; kk < N; kk ++ ){
-                //     residual_std_2[kk] = residual(kk);
+                //     residual_std_2[kk] = residual_std[kk];
                 // }
 
                 // do the samething for residual_theta_noise, residual of m - 1 trees
                 // residual_theta_noise = residual_theta_noise + predictions_theta_noise.col(tree_ind);
 
                 // prediction of m - 1 trees
-                // yhat = yhat - predictions.col(tree_ind);
-
+                yhat = yhat - predictions.col(tree_ind);
                 yhat_std = yhat_std - predictions_std[tree_ind];
 
+
                 // prediction of m - 1 trees on testing set
-                // yhat_test = yhat_test - predictions_test.col(tree_ind);
+                yhat_test = yhat_test - predictions_test.col(tree_ind);
                 yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
 
                 // cout << sq_diff_arma_std(residual, residual_std) << endl;
                 // cout << arma::as_scalar(mean(residual)) << " " << sum_vec(residual_std) / N << endl;
 
+                // cout << sq_vec_diff(residual_std, residual_std_2) << endl; 
+
+                // cout << residual_std[0] << residual_std_2[0] << endl;
 
                 trees.t[tree_ind].grow_tree_adaptive_test(sum_vec(residual_std) / (double) N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer);
 
@@ -225,42 +238,49 @@ Rcpp::List train_forest_test(arma::mat y, arma::mat X, arma::mat Xtest, size_t M
                 }
                 
                 // update prediction of current tree
-                // predictions.col(tree_ind) = fit_new(trees.t[tree_ind], X);
+                predictions.col(tree_ind) = fit_new(trees.t[tree_ind], X);
 
                 fit_new_std(trees.t[tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
 
                 // update prediction of current tree, test set
-                // predictions_test.col(tree_ind) = fit_new(trees.t[tree_ind], Xtest);
+                predictions_test.col(tree_ind) = fit_new(trees.t[tree_ind], Xtest);
                 fit_new_std(trees.t[tree_ind], Xtestpointer, N_test, p, predictions_test_std[tree_ind]);
 
 
                 // update sigma based on residual of m - 1 trees, residual_theta_noise
-                // if(m_update_sigma == false){
-                //     sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
-                //     sigma_draw(tree_ind, sweeps) = sigma;
-                // }
+                if(m_update_sigma == false){
+                    sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (N + kap) / 2.0, 2.0 / as_scalar(sum(pow(residual, 2)) + s)))));
+
+
+                    // std::gamma_distribution<double> gamma_samp((N + kap) / 2.0 , 2.0 / (sum_squared(residual_std) + s ));
+
+                    // sigma = 1.0 / gamma_samp(generator);
+
+
+                    sigma_draw(tree_ind, sweeps) = sigma;
+                }
 
                 // update residual, now it's residual of m trees
-                // residual = residual - predictions.col(tree_ind);
+                residual = residual - predictions.col(tree_ind);
 
                 residual_std = residual_std - predictions_std[tree_ind];
 
                 // residual_theta_noise = residual_theta_noise - predictions_theta_noise.col(tree_ind);
 
-                // yhat = yhat + predictions.col(tree_ind);
+                yhat = yhat + predictions.col(tree_ind);
+                yhat_test = yhat_test + predictions_test.col(tree_ind);
+
+
 
                 yhat_std = yhat_std + predictions_std[tree_ind];
-
-                // yhat_test = yhat_test + predictions_test.col(tree_ind);
-
                 yhat_test_std = yhat_test_std + predictions_test_std[tree_ind];
 
 
                 // cout << sq_diff_arma_std(yhat, yhat_std) << endl;
 
             }
-        // yhats.col(sweeps) = yhat;
-        // yhats_test.col(sweeps) = yhat_test;
+        yhats.col(sweeps) = yhat;
+        yhats_test.col(sweeps) = yhat_test;
 
 
         yhats_std[sweeps] = yhat_std;
@@ -273,16 +293,16 @@ Rcpp::List train_forest_test(arma::mat y, arma::mat X, arma::mat Xtest, size_t M
     //     arma::mat yhats = arma::zeros<arma::mat>(X.n_rows, N_sweeps);
     // arma::mat yhats_test = arma::zeros<arma::mat>(Xtest.n_rows, N_sweeps);
 
-    for(size_t i = 0; i < N; i ++ ){
-        for(size_t j = 0; j < N_sweeps; j ++ ){
-            yhats(i, j) = yhats_std[j][i];
-        }
-    }
-    for(size_t i = 0; i < N_test; i ++ ){
-        for(size_t j = 0; j < N_sweeps; j ++ ){
-            yhats_test(i, j) = yhats_test_std[j][i];
-        }
-    }
+    // for(size_t i = 0; i < N; i ++ ){
+    //     for(size_t j = 0; j < N_sweeps; j ++ ){
+    //         yhats(i, j) = yhats_std[j][i];
+    //     }
+    // }
+    // for(size_t i = 0; i < N_test; i ++ ){
+    //     for(size_t j = 0; j < N_sweeps; j ++ ){
+    //         yhats_test(i, j) = yhats_test_std[j][i];
+    //     }
+    // }
 
     return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw);
 }

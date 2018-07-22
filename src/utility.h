@@ -169,5 +169,6 @@ std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) {
 }
 
 double sq_diff_arma_std(arma::vec vec1, std::vector<double> vec2);
+double sq_vec_diff(std::vector<double>& v1, std::vector<double>& v2);
 
 #endif

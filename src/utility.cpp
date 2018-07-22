@@ -240,3 +240,17 @@ double sq_diff_arma_std(arma::vec vec1, std::vector<double> vec2){
     }
     return output;
 }
+
+
+
+double sq_vec_diff(std::vector<double>& v1, std::vector<double>& v2){
+    assert(v1.size() == v2.size());
+    size_t N = v1.size();
+    double output = 0.0;
+    for(size_t i =0; i < N; i ++ ){
+        output = output + pow(v1[i] - v2[i], 2);
+    }
+    return output;
+}
+
+
