@@ -89,11 +89,11 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     std::vector<double> reshat_std;
     std::vector<double> reshat_test_std;
 
-    std::vector<double> prob_std(2, 0.5);
+    // std::vector<double> prob_std(2, 0.5);
 
-    std::random_device rd_std;
-    std::mt19937 gen_std(rd_std());
-    std::discrete_distribution<> d_std(prob_std.begin(), prob_std.end());   
+    // std::random_device rd_std;
+    // std::mt19937 gen_std(rd_std());
+    // std::discrete_distribution<> d_std(prob_std.begin(), prob_std.end());   
 
 
     ///////////////////////////////////////////////////////////////////
