@@ -19,13 +19,13 @@ void ini_xinfo(xinfo& X, size_t N, size_t p);
 void ini_xinfo_sizet(xinfo_sizet& X, size_t N, size_t p);
 
 
-void row_sum(xinfo& X, std::vector<double> output);
+void row_sum(xinfo& X, std::vector<double>& output);
 
-void col_sum(xinfo& X, std::vector<double> output);
+void col_sum(xinfo& X, std::vector<double>& output);
 
-void vec_sum(std::vector<double> vector, double& sum);
+void vec_sum(std::vector<double>& vector, double& sum);
 
-double sum_squared(std::vector<double> v);
+double sum_squared(std::vector<double>& v);
 
 double sum_vec(std::vector<double>& v);
 

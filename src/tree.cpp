@@ -789,7 +789,7 @@ void tree::grow_tree_adaptive_std(std::vector<double>& y, double y_mean, xinfo_s
 
 
 
-void tree::grow_tree_adaptive_test(arma::mat& y, double y_mean, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std){
+void tree::grow_tree_adaptive_test(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std){
 
 
     // grow a tree, users can control number of split points
@@ -871,16 +871,16 @@ void tree::grow_tree_adaptive_test(arma::mat& y, double y_mean, arma::mat& X, si
     ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
     ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
 
-    split_xorder_test(Xorder_left_std, Xorder_right_std, X, split_var, split_point, Xorder_std, X_std, y.n_elem, p);
+    split_xorder_test(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p);
 
     double yleft_mean_std = subnode_mean(y_std, Xorder_left_std, split_var);
     double yright_mean_std = subnode_mean(y_std, Xorder_right_std, split_var);
 
     depth = depth + 1;
     tree::tree_p lchild = new tree();
-    lchild->grow_tree_adaptive_test(y, yleft_mean_std, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std);
+    lchild->grow_tree_adaptive_test(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std);
     tree::tree_p rchild = new tree();
-    rchild->grow_tree_adaptive_test(y, yright_mean_std, X, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std);
+    rchild->grow_tree_adaptive_test(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std);
 
     lchild -> p = this;
     rchild -> p = this;
@@ -1121,7 +1121,7 @@ void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat&
 }
 
 
-void split_xorder_test(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, arma::mat& X, size_t split_var, size_t split_point, xinfo_sizet& Xorder_std, const double* X_std, size_t N_y, size_t p){
+void split_xorder_test(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet& Xorder_std, const double* X_std, size_t N_y, size_t p){
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
 

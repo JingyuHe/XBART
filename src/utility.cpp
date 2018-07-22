@@ -81,12 +81,13 @@ double subnode_mean(const std::vector<double>& y, xinfo_sizet& Xorder, const siz
 
 
 
-void row_sum(xinfo& X, std::vector<double> output){
+void row_sum(xinfo& X, std::vector<double>& output){
     size_t p = X.size();
     size_t N = X[0].size();
     // std::vector<double> output(N);
     for(size_t i = 0; i < N; i ++){
         for(size_t j = 0; j < p; j ++ ){
+            // cout << X[j][i] << endl;
             output[i] = output[i] + X[j][i];
         }
     }
@@ -94,7 +95,7 @@ void row_sum(xinfo& X, std::vector<double> output){
 }
 
 
-void col_sum(xinfo& X, std::vector<double> output){
+void col_sum(xinfo& X, std::vector<double>& output){
     size_t p = X.size();
     size_t N = X[0].size();
     // std::vector<double> output(p);
@@ -107,7 +108,7 @@ void col_sum(xinfo& X, std::vector<double> output){
 }
 
 
-double sum_squared(std::vector<double> v){
+double sum_squared(std::vector<double>& v){
     size_t N = v.size();
     double output = 0.0;
     for(size_t i = 0; i < N; i ++ ){
@@ -219,7 +220,7 @@ void calculate_y_cumsum_std(const double * y, const size_t N_y, double y_sum, st
     return;
 }
 
-void vec_sum(std::vector<double> vector, double& sum){
+void vec_sum(std::vector<double>& vector, double& sum){
     sum = 0.0;
     for(size_t i = 0; i < vector.size(); i ++ ){
         sum = sum + vector[i];

@@ -125,6 +125,15 @@ arma::vec fit_new(tree& tree, arma::mat& Xnew){
 }
 
 
+void fit_new_std(tree& tree, const double * X_std, size_t N, size_t p, std::vector<double>& output){
+    tree::tree_p bn;
+    for(size_t i = 0; i < N; i ++ ){
+        bn = tree.search_bottom_std(X_std, i, p, N);
+        output[i] = bn -> gettheta();
+    } 
+    return;
+}
+
 
 arma::vec fit_new_theta_noise(tree& tree, arma::mat& Xnew){
     // size_t p = Xnew.n_cols;
