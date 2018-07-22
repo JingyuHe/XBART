@@ -129,7 +129,7 @@ public:
 
 
    void grow_tree_adaptive_test(arma::mat& y, double y_mean, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std);
-
+  
 
    void grow_tree_adaptive_onestep(arma::mat& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel);
    void prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double& tau, double& sigma, double& alpha, double& beta, bool draw_sigma, bool draw_mu, bool parallel);
@@ -139,7 +139,8 @@ public:
    tree_p bn(double *x,xinfo& xi); //find Bottom Node, original BART version
    tree_p bn_std(double *x); // find Bottom Node, std version, compare
    tree_p search_bottom(arma::mat& Xnew, const size_t& i);
-   tree_p search_bottom_std(double* X, const size_t& i, const size_t& p, const size_t& N);
+   tree_p search_bottom_std(const double* X, const size_t& i, const size_t& p, const size_t& N);
+   tree_p search_bottom_test(arma::mat& Xnew, const size_t& i, const double* X_std, const size_t& p, const size_t& N);
    void rg(size_t v, size_t* L, size_t* U); //recursively find region [L,U] for var v
    //node functions--------------------
    size_t nid() const; //nid of a node

@@ -139,7 +139,25 @@ arma::vec fit_new_theta_noise(tree& tree, arma::mat& Xnew){
 }
 
 
-void fit_new_theta_noise_std(tree& tree, double* X, size_t p, size_t N, std::vector<double>& output){
+
+arma::vec fit_new_theta_noise_test(tree& tree, arma::mat& Xnew, const double * X_std, size_t p, size_t N, std::vector<double>& output){
+    // size_t p = Xnew.n_cols;
+    // size_t N = Xnew.n_rows;
+    arma::vec result(N);
+    tree::tree_p bn;
+    tree::tree_p bn2;
+    for(size_t i = 0; i < N; i ++){
+        bn = tree.search_bottom_test(Xnew, i, X_std, p, N);
+        // bn2 = tree.search_bottom_std(X, i, p, N);
+        // cout << (bn == bn2) << endl;
+        result(i) = bn -> gettheta_noise();
+    }
+    return result;
+}
+
+
+
+void fit_new_theta_noise_std(tree& tree, const double* X, size_t p, size_t N, std::vector<double>& output){
     tree::tree_p bn;
     for(size_t i = 0; i < N; i ++ ){
         bn = tree.search_bottom_std(X, i, p, N);
@@ -149,7 +167,7 @@ void fit_new_theta_noise_std(tree& tree, double* X, size_t p, size_t N, std::vec
 }
 
 
-double sum_residual_squared(tree& tree, double* X, const std::vector<double>& y, size_t p){
+double sum_residual_squared(tree& tree, const double* X, const std::vector<double>& y, size_t p){
     double output = 0.0;
     double temp = 0.0;
     size_t N_y = y.size();

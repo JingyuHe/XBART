@@ -32,6 +32,7 @@ Rcpp::List train_forest_test(arma::mat y, arma::mat X, arma::mat Xtest, size_t M
             X_std(i, j) = X(i, j);
         }
     }
+    
     Rcpp::NumericMatrix Xtest_std(N_test, p);
     for(size_t i = 0; i < N_test; i ++ ){
         for(size_t j = 0; j < p; j ++ ){
@@ -41,7 +42,9 @@ Rcpp::List train_forest_test(arma::mat y, arma::mat X, arma::mat Xtest, size_t M
     double * ypointer = &y_std[0];
     double * Xpointer = &X_std[0];
     double * Xtestpointer = &Xtest_std[0];
-    
+
+
+
     xinfo_sizet Xorder_std;
     ini_xinfo_sizet(Xorder_std, N, p);
     for(size_t i = 0; i < N; i ++ ){
@@ -179,7 +182,7 @@ Rcpp::List train_forest_test(arma::mat y, arma::mat X, arma::mat Xtest, size_t M
                 // prediction of m - 1 trees on testing set
                 yhat_test = yhat_test - predictions_test.col(tree_ind);
 
-                trees.t[tree_ind].grow_tree_adaptive_test(arma::as_scalar(mean(residual)), 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer);
+                trees.t[tree_ind].grow_tree_adaptive_test(residual, arma::as_scalar(mean(residual)), X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer);
 
                 // trees.t[tree_ind].grow_tree_adaptive(residual, arma::as_scalar(mean(residual)), Xorder, X, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel);
 

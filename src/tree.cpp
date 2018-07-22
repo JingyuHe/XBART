@@ -277,7 +277,7 @@ tree::tree_p tree::search_bottom(arma::mat& Xnew, const size_t& i){
     }
 }
 
-tree::tree_p tree::search_bottom_std(double* X, const size_t& i, const size_t& p, const size_t& N){
+tree::tree_p tree::search_bottom_std(const double* X, const size_t& i, const size_t& p, const size_t& N){
     // X is a matrix, std vector of vectors, stack by column, N rows and p columns
     // i is index of row in X to predict
     if(l == 0){
@@ -285,10 +285,37 @@ tree::tree_p tree::search_bottom_std(double* X, const size_t& i, const size_t& p
     }
     // X[v][i], v-th column and i-th row
     // if(X[v][i] <= c){
-    if(*(X + p * v + i) <= c){
+    if(*(X + N * v + i) <= c){
         return l -> search_bottom_std(X, i, p, N);
     }else{
         return r -> search_bottom_std(X, i, p, N);
+    }
+}
+
+
+tree::tree_p tree::search_bottom_test(arma::mat& Xnew, const size_t& i, const double* X_std, const size_t& p, const size_t& N){
+
+    // v is variable to split, c is raw value
+    // not index in xinfo, so compare x[v] with c directly
+    // only look at the i-th row
+
+    if(l == 0){
+        return this;
+        } // no children){
+
+    // v is variable to split, c is raw value
+    // not index in xinfo, so compare x[v] with c directly
+    // only look at the i-th row
+
+    if(l == 0){
+        return this;
+        } // no children
+    if(arma::as_scalar(Xnew(i, v)) <= c){
+
+        return l -> search_bottom(Xnew, i);  // if smaller or equal cut point, go to left node
+    } else {
+
+        return r -> search_bottom(Xnew, i);
     }
 }
 
@@ -764,6 +791,7 @@ void tree::grow_tree_adaptive_std(std::vector<double>& y, double y_mean, xinfo_s
 
 void tree::grow_tree_adaptive_test(arma::mat& y, double y_mean, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std){
 
+
     // grow a tree, users can control number of split points
 
     size_t N_Xorder = Xorder_std[0].size();
@@ -804,10 +832,22 @@ void tree::grow_tree_adaptive_test(arma::mat& y, double y_mean, arma::mat& X, si
 
         tree::tree_p top_p = this->gettop();
         // draw sigma use residual of noisy theta
-        arma::vec reshat = y - fit_new_theta_noise( * top_p, X);
+        // arma::vec reshat = y - fit_new_theta_noise( * top_p, X);
+
+        // arma::vec fitfit = fit_new_theta_noise(* top_p, X);
+
+        std::vector<double> reshat_std(N_y);
+        fit_new_theta_noise_std( * top_p, X_std, p, N_y, reshat_std);
+        reshat_std = y_std - reshat_std;
+
+        // cout << sq_diff_arma_std(reshat, reshat_std) << endl;
         // sigma = 1.0 / sqrt(arma::as_scalar(arma::randg(1, arma::distr_param( (reshat.n_elem + 16) / 2.0, 2.0 / as_scalar(sum(pow(reshat, 2)) + 4)))));
 
-        std::gamma_distribution<double> gamma_samp((reshat.n_elem + 16) / 2.0, 2.0 / as_scalar(sum(pow(reshat, 2)) + 4));
+
+        // std::gamma_distribution<double> gamma_samp((reshat.n_elem + 16) / 2.0, 2.0 / as_scalar(sum(pow(reshat, 2)) + 4));
+
+
+        std::gamma_distribution<double> gamma_samp((N_y + 16) / 2.0, 2.0 / (sum_squared(reshat_std) + 4.0));
         sigma = 1.0 / gamma_samp(generator);
     
     }
