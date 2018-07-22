@@ -62,18 +62,18 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     xinfo yhats_std;
     ini_xinfo(yhats_std, N, N_sweeps);
     xinfo yhats_test_std;
-    ini_xinfo(yhats_test_std, Xtest.n_rows, N_sweeps);
+    ini_xinfo(yhats_test_std, N_test, N_sweeps);
 
     // save predictions of each tree
     std::vector< std::vector<double> > predictions_std;
     ini_xinfo(predictions_std, N, M);
 
     xinfo predictions_test_std;
-    ini_xinfo(predictions_test_std, Xtest.n_rows, M);
+    ini_xinfo(predictions_test_std, N_test, M);
 
     std::vector<double> yhat_std(N);
     row_sum(predictions_std, yhat_std);
-    std::vector<double> yhat_test_std(Xtest.n_rows);
+    std::vector<double> yhat_test_std(N_test);
     row_sum(predictions_test_std, yhat_test_std);
 
  
