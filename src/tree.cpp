@@ -425,9 +425,6 @@ std::istream& operator>>(std::istream& is, tree& t)
       return is;
    }
 
-//    cout << "number of nodes " << nn << endl;
-
-
     // The idea is to dump string to a lot of node_info structure first, then link them as a tree, by nid
 
    //read in vector of node information----------
@@ -668,7 +665,7 @@ void tree::grow_tree_adaptive(arma::mat& y, double y_mean, arma::umat& Xorder, a
 
 
 
-void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, std::vector<double>& split_var_count){
+void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, std::vector<double>& split_var_count, size_t& mtry){
 
 
     // grow a tree, users can control number of split points
@@ -756,9 +753,9 @@ void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth,
 
     depth = depth + 1;
     tree::tree_p lchild = new tree();
-    lchild->grow_tree_adaptive_std(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, split_var_count);
+    lchild->grow_tree_adaptive_std(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, split_var_count, mtry);
     tree::tree_p rchild = new tree();
-    rchild->grow_tree_adaptive_std(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, split_var_count);
+    rchild->grow_tree_adaptive_std(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, split_var_count, mtry);
 
     lchild -> p = this;
     rchild -> p = this;
@@ -767,9 +764,6 @@ void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth,
 
     return;
 }
-
-
-
 
 
 
@@ -869,6 +863,109 @@ void tree::grow_tree_adaptive_onestep(arma::mat& y, double y_mean, arma::umat& X
 
 
 
+void tree::grow_tree_adaptive_onestep_std(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, std::vector<double>& split_var_count){
+
+
+    // grow a tree, users can control number of split points
+
+    size_t N_Xorder = Xorder_std[0].size();
+    size_t p = Xorder_std.size();
+    size_t N_y = y_std.size();
+    size_t ind;
+    size_t split_var;
+    size_t split_point;
+
+    if(N_Xorder <= Nmin){
+        return;
+    }
+
+    if(depth >= max_depth - 1){
+        return;
+    }
+
+    // tau is prior VARIANCE, do not take squares
+    // set up random device
+
+    std::default_random_engine generator;
+    std::normal_distribution<double> normal_samp(0.0,1.0);
+    
+    if(draw_mu == true){
+
+        this->theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2))) * normal_samp(generator);//Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
+        this->theta_noise = this->theta ;
+
+    }else{
+
+        this->theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2));
+        this->theta_noise = this->theta; // identical to theta
+
+    }
+
+
+    if(draw_sigma == true){
+
+        tree::tree_p top_p = this->gettop();
+        // draw sigma use residual of noisy theta
+        
+        std::vector<double> reshat_std(N_y);
+        fit_new_theta_noise_std( * top_p, X_std, p, N_y, reshat_std);
+        reshat_std = y_std - reshat_std;
+
+        std::gamma_distribution<double> gamma_samp((N_y + 16) / 2.0, 2.0 / (sum_squared(reshat_std) + 4.0));
+        sigma = 1.0 / gamma_samp(generator);
+    
+    }
+
+    this->sig = sigma;
+    bool no_split = false;
+
+
+    std::vector<size_t> subset_vars(p);
+
+    // generate a vector {0, 1, 2, 3, ...., p - 1};
+    std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
+
+    BART_likelihood_adaptive_std_mtry(y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars);
+
+    if(no_split == true){
+        return;
+    }
+
+
+    this -> v = split_var;
+    this -> c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+
+
+    split_var_count[split_var] ++;
+    
+
+    xinfo_sizet Xorder_left_std;
+    xinfo_sizet Xorder_right_std;
+    ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
+    ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
+
+    split_xorder_std(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p);
+
+    double yleft_mean_std = subnode_mean(y_std, Xorder_left_std, split_var);
+    double yright_mean_std = subnode_mean(y_std, Xorder_right_std, split_var);
+
+    depth = depth + 1;
+    tree::tree_p lchild = new tree();
+    // lchild->grow_tree_adaptive_std(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, split_var_count);
+    tree::tree_p rchild = new tree();
+    // rchild->grow_tree_adaptive_std(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, split_var_count);
+
+    lchild -> p = this;
+    rchild -> p = this;
+    this -> l = lchild;
+    this -> r = rchild;
+
+    return;
+}
+
+
+
+
 void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat& Xorder, arma::mat& X, size_t split_var, size_t split_point){
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
@@ -951,70 +1048,6 @@ void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_st
 
     return;
 }
-
-
-
-// arma::vec BART_likelihood_function(arma::vec& n1, arma::vec& n2, arma::vec& s1, arma::vec& s2, double& tau, double& sigma, double& alpha, double& penalty){
-//     // log - likelihood of BART model
-//     // n1 is number of observations in group 1
-//     // s1 is sum of group 1
-//     arma::vec result;
-//     double sigma2 = pow(sigma, 2);
-//     arma::vec n1tau = n1 * tau;
-//     arma::vec n2tau = n2 * tau;
-//     result = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(s1, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(s2, 2)/(sigma2 * (n2tau + sigma2));
-//     // result(result.n_elem - 1) = result(result.n_elem - 1) - penalty;
-//     // double temp = result.min();
-//     // result(0) = temp;
-//     // result(result.n_elem - 1) = temp;
-
-//     // the last entry is probability of no split
-//     // alpha is the prior probability of split, multiply it
-//     // result = result + log(alpha);
-//     result(result.n_elem - 1) = result(result.n_elem - 1) + log(1.0 - alpha) - log(alpha);
-//     return result;
-// }
-
-
-// void split_error(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split, arma::vec& least_error){
-//     // regular CART algorithm, compute sum of squared loss error
-
-//     size_t N = Xorder.n_rows;
-//     size_t p = Xorder.n_cols;
-//     // arma::mat errormat = arma::zeros(N, p);
-//     // loop over all variables and observations and compute error
-
-//     double y_error = arma::as_scalar(arma::sum(pow(y(Xorder.col(0)) - arma::mean(y(Xorder.col(0))), 2)));
-
-//     double ee;
-//     double temp_error = y_error;
-//     arma::vec y_cumsum(y.n_elem);
-//     arma::vec y2_cumsum(y.n_elem);
-
-//     y_cumsum = arma::cumsum(y(Xorder.col(0)));
-//     y2_cumsum = arma::cumsum(pow(y(Xorder.col(0)), 2));
-
-//     double y_sum = y_cumsum(y_cumsum.n_elem - 1);
-//     double y2_sum = y2_cumsum(y2_cumsum.n_elem - 1);
-
-//     arma::vec y2 = pow(y, 2);
-//     for(size_t i = 0; i < p; i++){ // loop over variables 
-//         temp_error = 100.0;
-//         y_cumsum = arma::cumsum(y(Xorder.col(i)));
-//         y2_cumsum = arma::cumsum(pow(y(Xorder.col(i)), 2));
-//         for(size_t j = 1; j < N - 1; j++){ // loop over cutpoints
-
-//             ee = y2_cumsum(j) - pow(y_cumsum(j), 2) / (double) (j+ 1) + y2_sum - y2_cumsum(j) - pow((y_sum - y_cumsum(j)), 2) / (double) (N - j - 1) ;
-
-//             if(ee < temp_error || temp_error == 100.0){
-//                 best_split(i) = j; // Xorder(j,i) coordinate;
-//                 temp_error = ee;
-//                 least_error(i) = ee;
-//             }
-//         }
-//     }
-//     return;
-// }
 
 
 void BART_likelihood(const arma::umat& Xorder, arma::mat& y, arma::vec& loglike, double tau, double sigma, size_t depth, size_t Nmin, double alpha, double beta){
@@ -1372,8 +1405,6 @@ void BART_likelihood_adaptive(const arma::umat& Xorder, arma::mat& y, double tau
 
 
 
-
-
 void BART_likelihood_adaptive_std(std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, std::vector<size_t>& subset_vars){
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
@@ -1562,9 +1593,6 @@ void BART_likelihood_adaptive_std(std::vector<double>& y_std, xinfo_sizet& Xorde
 
     return;
 }
-
-
-
 
 
 
@@ -2008,9 +2036,6 @@ void tree::prune_regrow(arma::mat& y, double y_mean, arma::mat& X, size_t depth,
 
 
 
-
-
-
 void tree::one_step_grow(arma::mat& y, double y_mean, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double& tau, double& sigma, double& alpha, double& beta, bool draw_sigma, bool draw_mu, bool parallel){
 
     tree::npv bv;       // vector of pointers to bottom nodes
@@ -2120,7 +2145,6 @@ void tree::one_step_grow(arma::mat& y, double y_mean, arma::mat& X, size_t depth
 
     return;
 }
-
 
 
 
@@ -2258,8 +2282,6 @@ void tree::one_step_prune(arma::mat& y, double y_mean, arma::mat& X, size_t dept
 
 
 
-
-
 void tree::sample_theta(arma::mat& y, arma::mat& X, double& tau, double& sigma, bool draw_mu){
 
     if(draw_mu){
@@ -2309,6 +2331,68 @@ void tree::sample_theta(arma::mat& y, arma::mat& X, double& tau, double& sigma, 
 
 
 
+
+// arma::vec BART_likelihood_function(arma::vec& n1, arma::vec& n2, arma::vec& s1, arma::vec& s2, double& tau, double& sigma, double& alpha, double& penalty){
+//     // log - likelihood of BART model
+//     // n1 is number of observations in group 1
+//     // s1 is sum of group 1
+//     arma::vec result;
+//     double sigma2 = pow(sigma, 2);
+//     arma::vec n1tau = n1 * tau;
+//     arma::vec n2tau = n2 * tau;
+//     result = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(s1, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(s2, 2)/(sigma2 * (n2tau + sigma2));
+//     // result(result.n_elem - 1) = result(result.n_elem - 1) - penalty;
+//     // double temp = result.min();
+//     // result(0) = temp;
+//     // result(result.n_elem - 1) = temp;
+
+//     // the last entry is probability of no split
+//     // alpha is the prior probability of split, multiply it
+//     // result = result + log(alpha);
+//     result(result.n_elem - 1) = result(result.n_elem - 1) + log(1.0 - alpha) - log(alpha);
+//     return result;
+// }
+
+
+// void split_error(const arma::umat& Xorder, arma::vec& y, arma::uvec& best_split, arma::vec& least_error){
+//     // regular CART algorithm, compute sum of squared loss error
+
+//     size_t N = Xorder.n_rows;
+//     size_t p = Xorder.n_cols;
+//     // arma::mat errormat = arma::zeros(N, p);
+//     // loop over all variables and observations and compute error
+
+//     double y_error = arma::as_scalar(arma::sum(pow(y(Xorder.col(0)) - arma::mean(y(Xorder.col(0))), 2)));
+
+//     double ee;
+//     double temp_error = y_error;
+//     arma::vec y_cumsum(y.n_elem);
+//     arma::vec y2_cumsum(y.n_elem);
+
+//     y_cumsum = arma::cumsum(y(Xorder.col(0)));
+//     y2_cumsum = arma::cumsum(pow(y(Xorder.col(0)), 2));
+
+//     double y_sum = y_cumsum(y_cumsum.n_elem - 1);
+//     double y2_sum = y2_cumsum(y2_cumsum.n_elem - 1);
+
+//     arma::vec y2 = pow(y, 2);
+//     for(size_t i = 0; i < p; i++){ // loop over variables 
+//         temp_error = 100.0;
+//         y_cumsum = arma::cumsum(y(Xorder.col(i)));
+//         y2_cumsum = arma::cumsum(pow(y(Xorder.col(i)), 2));
+//         for(size_t j = 1; j < N - 1; j++){ // loop over cutpoints
+
+//             ee = y2_cumsum(j) - pow(y_cumsum(j), 2) / (double) (j+ 1) + y2_sum - y2_cumsum(j) - pow((y_sum - y_cumsum(j)), 2) / (double) (N - j - 1) ;
+
+//             if(ee < temp_error || temp_error == 100.0){
+//                 best_split(i) = j; // Xorder(j,i) coordinate;
+//                 temp_error = ee;
+//                 least_error(i) = ee;
+//             }
+//         }
+//     }
+//     return;
+// }
 
 
 

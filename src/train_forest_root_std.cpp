@@ -7,11 +7,15 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, bool draw_sigma, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true){
+Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t mtry = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true){
 
     size_t N = X.n_rows;
     size_t p = X.n_cols;
     size_t N_test = Xtest.n_rows;
+
+    if(mtry == 0){
+        mtry = p;
+    }
 
     arma::umat Xorder(X.n_rows, X.n_cols);
     for(size_t i = 0; i < X.n_cols; i++){
@@ -22,6 +26,15 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
     ///////////////////////////////////////////////////////////////////
     // create copies for STD version
+
+
+
+
+
+
+
+    ///////////////////////////////////////////////////////////////////
+    // inefficient! Need replacement
     std::vector<double> y_std(N);
     double y_mean = 0.0;
     for(size_t i = 0; i < N; i ++ ){
@@ -45,10 +58,6 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
             Xtest_std(i, j) = Xtest(i, j);
         }
     }
-    double * ypointer = &y_std[0];
-    double * Xpointer = &X_std[0];
-    double * Xtestpointer = &Xtest_std[0];
-
 
 
     xinfo_sizet Xorder_std;
@@ -58,6 +67,17 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
             Xorder_std[j][i] = Xorder(i, j);
         }
     }
+
+    ///////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+    double * ypointer = &y_std[0];
+    double * Xpointer = &X_std[0];
+    double * Xtestpointer = &Xtest_std[0];
 
     xinfo yhats_std;
     ini_xinfo(yhats_std, N, N_sweeps);
@@ -175,7 +195,7 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
                 yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
 
-                trees.t[tree_ind].grow_tree_adaptive_std(sum_vec(residual_std) / (double) N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count);
+                trees.t[tree_ind].grow_tree_adaptive_std(sum_vec(residual_std) / (double) N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count, mtry);
 
                 if(verbose == true){
                     cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
@@ -224,7 +244,6 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
 
     cout << "Count of splits for each variable " << split_var_count << endl;
-
 
     return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw);
 }

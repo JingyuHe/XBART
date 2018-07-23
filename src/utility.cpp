@@ -266,3 +266,6 @@ std::vector<size_t> sort_indexes(const Rcpp::NumericVector &v) {
 
   return idx;
 }
+
+
+
