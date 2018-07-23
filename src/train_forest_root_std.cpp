@@ -116,6 +116,9 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     size_t prune;  
 
 
+    std::vector<double> split_var_count(p);
+
+
 
     std::vector<double> residual_std_2(N);
 
@@ -172,7 +175,7 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
                 yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
 
-                trees.t[tree_ind].grow_tree_adaptive_test(sum_vec(residual_std) / (double) N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer);
+                trees.t[tree_ind].grow_tree_adaptive_std(sum_vec(residual_std) / (double) N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer);
 
                 if(verbose == true){
                     cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
