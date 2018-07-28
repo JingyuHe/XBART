@@ -1668,32 +1668,6 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
             }
 
 
-
-            // for(auto&& i : subset_vars_2){
-            //     // loop over variables 
-            //     for(size_t q = 0;  q < N_Xorder; q++ ){
-            //         Y_sort[q] = y_std[Xorder_std[i][q]];
-            //     }
-            //     ypointer = &Y_sort[0];  
-
-            //     std::partial_sum(Y_sort.begin(), Y_sort.end(), y_cumsum.begin());
-
-            //     y_sum = y_cumsum[y_cumsum.size() - 1]; // last one 
-
-            //     for(size_t k = 0; k < N_Xorder; k ++ ){
-            //         y_cumsum_inv[k] = y_sum - y_cumsum[k];
-            //     }
-
-            //     for(size_t j = 0; j < N_Xorder - 1; j ++ ){
-            //         // loop over all possible cutpoints
-            //         n1tau = (j + 1) * tau; // number of points on left side (x <= cutpoint)
-            //         n2tau = Ntau - n1tau; // number of points on right side (x > cutpoint)
-
-            //         loglike_2[(N_Xorder-1) * i + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
-            //     }
-            // }
-
-
             
         }else{
             
@@ -1706,12 +1680,6 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
 
         loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
-        // loglike_2[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
-
-
-        // loglike_2 = loglike_2 - loglike;
-
-        // cout << "diff, all cutpoints " << sum_squared(loglike_2) << endl;
 
         // normalize loglike, take exp to likelihood
         double loglike_max = *std::max_element(loglike.begin(), loglike.end());
@@ -1837,16 +1805,6 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
 
 
         loglike[loglike.size() - 1] = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
-
-        // loglike_2[loglike.size() - 1] = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
-
-
-
-        // loglike_2 = loglike_2 - loglike;
-
-
-
-        // cout << "n cutpoints " << sum_squared(loglike_2) << endl;
 
         // normalize loglike
         double loglike_max = *std::max_element(loglike.begin(), loglike.end());

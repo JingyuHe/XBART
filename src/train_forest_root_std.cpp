@@ -13,8 +13,15 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     size_t p = X.n_cols;
     size_t N_test = Xtest.n_rows;
 
+    assert(mtry <= p);
+
     if(mtry == 0){
         mtry = p;
+    }
+
+
+    if(mtry != p){
+        cout << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
     }
 
     arma::umat Xorder(X.n_rows, X.n_cols);
@@ -23,13 +30,6 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     }
 
     std::default_random_engine(generator);
-
-    ///////////////////////////////////////////////////////////////////
-    // create copies for STD version
-
-
-
-
 
 
 
@@ -109,13 +109,6 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     std::vector<double> reshat_std;
     std::vector<double> reshat_test_std;
 
-    // std::vector<double> prob_std(2, 0.5);
-
-    // std::random_device rd_std;
-    // std::mt19937 gen_std(rd_std());
-    // std::discrete_distribution<> d_std(prob_std.begin(), prob_std.end());   
-
-
     ///////////////////////////////////////////////////////////////////
 
 
@@ -138,26 +131,13 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
     // std::vector<double> split_var_count(p);
     // std::fill(split_var_count.begin(), split_var_count.end(), 1);
-
     Rcpp::NumericVector split_var_count(p, 1);
     
     double* split_var_count_pointer = &split_var_count[0];
 
-
-
-    // Rcpp::NumericVector xx;
-    // Rcpp::NumericVector probb;
-    // sample(xx, mtry, false, probb);
-
     std::vector<size_t> subset_vars(mtry);
     std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
 
-
-    // subset_vars[0] = 0;
-    // subset_vars[1] = 1;
-    // subset_vars[2] = 2;
-
-    // cout << subset_vars << endl;
 
     Rcpp::IntegerVector var_index_candidate(p);
     for(size_t i = 0; i < p; i ++ ){
@@ -182,9 +162,6 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
         
 
         residual_std = y_std - yhat_std;
-
-
-        // residual_theta_noise = y - yhat;
 
         for(size_t sweeps = 0; sweeps < N_sweeps; sweeps ++){
 
@@ -226,7 +203,10 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
                     subset_vars = Rcpp::as<std::vector<size_t> >(sample(var_index_candidate, mtry, false, split_var_count));
                 }
 
-                cout << subset_vars << endl;
+
+                if(verbose == true){
+                    cout << "variables selected " << subset_vars << endl;
+                }
 
                 trees.t[tree_ind].grow_tree_adaptive_std(sum_vec(residual_std) / (double) N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, subset_vars);
 
