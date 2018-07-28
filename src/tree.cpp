@@ -665,7 +665,7 @@ void tree::grow_tree_adaptive(arma::mat& y, double y_mean, arma::umat& Xorder, a
 
 
 
-void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, std::vector<double>& split_var_count, size_t& mtry){
+void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double* split_var_count_pointer, size_t& mtry, std::vector<size_t>& subset_vars){
 
 
     // grow a tree, users can control number of split points
@@ -722,11 +722,6 @@ void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth,
     bool no_split = false;
 
 
-    std::vector<size_t> subset_vars(p);
-
-    // generate a vector {0, 1, 2, 3, ...., p - 1};
-    std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
-
     BART_likelihood_adaptive_std_mtry(y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars);
 
     if(no_split == true){
@@ -738,7 +733,7 @@ void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth,
     this -> c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
 
 
-    split_var_count[split_var] ++;
+    split_var_count_pointer[split_var] ++;
     
 
     xinfo_sizet Xorder_left_std;
@@ -753,9 +748,9 @@ void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth,
 
     depth = depth + 1;
     tree::tree_p lchild = new tree();
-    lchild->grow_tree_adaptive_std(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, split_var_count, mtry);
+    lchild->grow_tree_adaptive_std(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, split_var_count_pointer, mtry, subset_vars);
     tree::tree_p rchild = new tree();
-    rchild->grow_tree_adaptive_std(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, split_var_count, mtry);
+    rchild->grow_tree_adaptive_std(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, split_var_count_pointer, mtry, subset_vars);
 
     lchild -> p = this;
     rchild -> p = this;

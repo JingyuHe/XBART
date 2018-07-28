@@ -136,11 +136,20 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     size_t prune;  
 
 
-    std::vector<double> split_var_count(p);
+    // std::vector<double> split_var_count(p);
+
+    Rcpp::NumericVector split_var_count(p);
+    double* split_var_count_pointer = &split_var_count[0];
 
 
 
-    std::vector<double> residual_std_2(N);
+    // Rcpp::NumericVector xx;
+    // Rcpp::NumericVector probb;
+    // sample(xx, 3, false, probb);
+
+    std::vector<size_t> subset_vars(mtry);
+    std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
+
 
     // size_t count = 0;
     for(size_t mc = 0; mc < L; mc ++ ){
@@ -195,7 +204,7 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
                 yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
 
-                trees.t[tree_ind].grow_tree_adaptive_std(sum_vec(residual_std) / (double) N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count, mtry);
+                trees.t[tree_ind].grow_tree_adaptive_std(sum_vec(residual_std) / (double) N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, subset_vars);
 
                 if(verbose == true){
                     cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
