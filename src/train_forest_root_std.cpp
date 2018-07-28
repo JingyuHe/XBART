@@ -152,12 +152,20 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     std::vector<size_t> subset_vars(mtry);
     std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
 
+
+    // subset_vars[0] = 0;
+    // subset_vars[1] = 1;
+    // subset_vars[2] = 2;
+
+    // cout << subset_vars << endl;
+
     Rcpp::IntegerVector var_index_candidate(p);
     for(size_t i = 0; i < p; i ++ ){
         var_index_candidate[i] = i;
     }
 
-
+    subset_vars = Rcpp::as<std::vector<size_t> >(sample(var_index_candidate, mtry, false, split_var_count));
+    // cout << subset_vars << endl;
 
     // size_t count = 0;
     for(size_t mc = 0; mc < L; mc ++ ){
@@ -214,9 +222,11 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
 
 
-                // if(mtry != p){
+                if(mtry != p){
                     subset_vars = Rcpp::as<std::vector<size_t> >(sample(var_index_candidate, mtry, false, split_var_count));
-                // }
+                }
+
+                cout << subset_vars << endl;
 
                 trees.t[tree_ind].grow_tree_adaptive_std(sum_vec(residual_std) / (double) N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, subset_vars);
 
