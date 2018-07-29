@@ -743,6 +743,8 @@ void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth,
 
     split_xorder_std(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p);
 
+    // free(Xorder_std);
+
     double yleft_mean_std = subnode_mean(y_std, Xorder_left_std, split_var);
     double yright_mean_std = subnode_mean(y_std, Xorder_right_std, split_var);
 
@@ -1611,12 +1613,6 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
     double sigma2 = pow(sigma, 2);
     
 
-
-    std::vector<size_t> subset_vars_2(subset_vars.size());
-    std::iota(subset_vars_2.begin() + 1, subset_vars_2.end(), 1);
-
-
-
     if( N  <= Ncutpoints + 1 + 2 * Nmin){
 
         // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
@@ -1675,6 +1671,9 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
 
             // likelihood_evaluation_fullset like_parallel_full(y, Xorder, loglike, sigma2, tau, N, n1tau, n2tau);
             // parallelFor(0, p, like_parallel_full);
+
+            likelihood_fullset_std like_parallel_full(y_std, Xorder_std, N_Xorder, subset_vars, tau, Ntau, sigma2, loglike);
+            parallelFor(0, subset_vars.size(), like_parallel_full);
             
         }
 
@@ -1738,15 +1737,16 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
 
         seq_gen_std(Nmin, N - Nmin, Ncutpoints, candidate_index);
 
-        bool firstrun = true;   // flag of the first loop
+        
+        double Ntau = N_Xorder * tau;
 
         if(parallel == false){
 
+            bool firstrun = true;   // flag of the first loop
             std::vector<double> Y_sort(N_Xorder);
             double* ypointer;
             double n1tau;
             double n2tau;
-            double Ntau = N_Xorder * tau;
             // for(size_t i = 0; i < p; i ++ ){
             for(auto&& i : subset_vars){
 
@@ -1760,34 +1760,13 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
                     firstrun = false;
                 }
 
-                calculate_y_cumsum_std(ypointer, N, y_sum, candidate_index, y_cumsum, y_cumsum_inv);
+                calculate_y_cumsum_std(ypointer, Y_sort.size(), y_sum, candidate_index, y_cumsum, y_cumsum_inv);
 
                 for(size_t j = 0; j < Ncutpoints; j ++ ){
                     // loop over all possible cutpoints
                     n1tau = (candidate_index[j] + 1) * tau; // number of points on left side (x <= cutpoint)
                     n2tau = Ntau - n1tau; // number of points on right side (x > cutpoint)
                     loglike[(Ncutpoints) * i + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
-
-                }
-            }
-
-
-
-            for(auto&& i : subset_vars_2){
-
-                for(size_t q = 0;  q < N_Xorder; q++ ){
-                    Y_sort[q] = y_std[Xorder_std[i][q]];
-                }
-                ypointer = &Y_sort[0];  
-                
-
-                calculate_y_cumsum_std(ypointer, N, y_sum, candidate_index, y_cumsum, y_cumsum_inv);
-
-                for(size_t j = 0; j < Ncutpoints; j ++ ){
-                    // loop over all possible cutpoints
-                    n1tau = (candidate_index[j] + 1) * tau; // number of points on left side (x <= cutpoint)
-                    n2tau = Ntau - n1tau; // number of points on right side (x > cutpoint)
-                    loglike_2[(Ncutpoints) * i + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
 
                 }
             }
@@ -1801,6 +1780,9 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
             
             // likelihood_evaluation_subset like_parallel(y, Xorder, candidate_index, loglike, sigma2, tau, y_sum, Ncutpoints, N, n1tau, n2tau);
             // parallelFor(0, p, like_parallel);
+
+            likelihood_subset_std like_parallel(y_std, Xorder_std, N_Xorder, Ncutpoints, subset_vars, tau, Ntau, sigma2, candidate_index, loglike);
+            parallelFor(0, subset_vars.size(), like_parallel);
         }
 
 

@@ -204,10 +204,6 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
                 }
 
 
-                if(verbose == true){
-                    cout << "variables selected " << subset_vars << endl;
-                }
-
                 trees.t[tree_ind].grow_tree_adaptive_std(sum_vec(residual_std) / (double) N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, subset_vars);
 
                 if(verbose == true){
