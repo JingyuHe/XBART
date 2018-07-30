@@ -169,13 +169,12 @@ struct likelihood_subset_std : public Worker{
     const size_t& Ncutpoints;
     const std::vector<size_t> subset_vars;
     const double& tau;
-    const double& Ntau;
     const double& sigma2;
     std::vector<size_t>& candidate_index;
     std::vector<double>& loglike;
 
     // constructor
-    likelihood_subset_std(const std::vector<double>& y_std, const xinfo_sizet& Xorder_std, const size_t& N_Xorder, size_t& Ncutpoints, const std::vector<size_t> subset_vars, const double& tau, const  double& Ntau, const double& sigma2, std::vector<size_t>& candidate_index, std::vector<double>& loglike) : y_std(y_std), Xorder_std(Xorder_std), N_Xorder(N_Xorder), Ncutpoints(Ncutpoints), subset_vars(subset_vars), tau(tau), Ntau(Ntau), sigma2(sigma2), candidate_index(candidate_index), loglike(loglike){}
+    likelihood_subset_std(const std::vector<double>& y_std, const xinfo_sizet& Xorder_std, const size_t& N_Xorder, size_t& Ncutpoints, const std::vector<size_t> subset_vars, const double& tau, const double& sigma2, std::vector<size_t>& candidate_index, std::vector<double>& loglike) : y_std(y_std), Xorder_std(Xorder_std), N_Xorder(N_Xorder), Ncutpoints(Ncutpoints), subset_vars(subset_vars), tau(tau), sigma2(sigma2), candidate_index(candidate_index), loglike(loglike){}
 
 
     void operator()(std::size_t begin, std::size_t end){
@@ -183,23 +182,31 @@ struct likelihood_subset_std : public Worker{
         double* ypointer;
         double n1tau;
         double n2tau;
+        double Ntau = N_Xorder * tau;
         size_t var_ind;
         double y_sum = 0.0;
         std::vector<double> y_cumsum(Ncutpoints);
         std::vector<double> y_cumsum_inv(Ncutpoints);
 
+        bool firstrun = true;   // flag of the first loop
+
+
+        // for(size_t i = 0; i < p; i ++ ){
         for(size_t i = begin; i < end; i ++ ){
+
             var_ind = subset_vars[i];
 
-            y_sum = 0.0;
             for(size_t q = 0;  q < N_Xorder; q++ ){
                 Y_sort[q] = y_std[Xorder_std[var_ind][q]];
-                y_sum = y_sum + Y_sort[q];
             }
             ypointer = &Y_sort[0];  
+            
+            if(firstrun){
+                y_sum = sum_vec(Y_sort);
+                firstrun = false;
+            }
 
-            calculate_y_cumsum_std(ypointer, N_Xorder, y_sum, candidate_index, y_cumsum, y_cumsum_inv);
-
+            calculate_y_cumsum_std(ypointer, Y_sort.size(), y_sum, candidate_index, y_cumsum, y_cumsum_inv);
 
             for(size_t j = 0; j < Ncutpoints; j ++ ){
                 // loop over all possible cutpoints
@@ -208,10 +215,8 @@ struct likelihood_subset_std : public Worker{
                 loglike[(Ncutpoints) * var_ind + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
 
             }
-
-
         }
-    
+
         return;
         
     }

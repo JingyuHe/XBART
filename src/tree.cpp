@@ -1632,7 +1632,7 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
         std::vector<double> y_cumsum_inv(N_Xorder);
 
 
-        std::vector<double> loglike_2(loglike.size(), -INFINITY);
+        // std::vector<double> loglike_2(loglike.size(), -INFINITY);
 
 
 
@@ -1669,16 +1669,13 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
             
             // parallel computing 
 
-            // likelihood_evaluation_fullset like_parallel_full(y, Xorder, loglike, sigma2, tau, N, n1tau, n2tau);
-            // parallelFor(0, p, like_parallel_full);
-
             likelihood_fullset_std like_parallel_full(y_std, Xorder_std, N_Xorder, subset_vars, tau, Ntau, sigma2, loglike);
             parallelFor(0, subset_vars.size(), like_parallel_full);
             
         }
 
-        loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
+        loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
         // normalize loglike, take exp to likelihood
         double loglike_max = *std::max_element(loglike.begin(), loglike.end());
@@ -1732,7 +1729,7 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
         
 
 
-        std::vector<double> loglike_2(loglike.size(), -INFINITY);
+        // std::vector<double> loglike_2(loglike.size(), -INFINITY);
 
 
         seq_gen_std(Nmin, N - Nmin, Ncutpoints, candidate_index);
@@ -1777,22 +1774,35 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
         }else{
 
             // parallel computing
-            
-            // likelihood_evaluation_subset like_parallel(y, Xorder, candidate_index, loglike, sigma2, tau, y_sum, Ncutpoints, N, n1tau, n2tau);
-            // parallelFor(0, p, like_parallel);
 
-            likelihood_subset_std like_parallel(y_std, Xorder_std, N_Xorder, Ncutpoints, subset_vars, tau, Ntau, sigma2, candidate_index, loglike);
+
+            likelihood_subset_std like_parallel(y_std, Xorder_std, N_Xorder, Ncutpoints, subset_vars, tau, sigma2, candidate_index, loglike);
             parallelFor(0, subset_vars.size(), like_parallel);
         }
 
 
-        loglike[loglike.size() - 1] = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+        // no split option
+        loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+
+        // loglike_2[loglike.size() - 1] = loglike[loglike.size() - 1];
+
+        // loglike_2 = loglike_2 - loglike;
+        
+        // cout << sum_squared(loglike_2) << endl;
+        // loglike = loglike_2;
 
         // normalize loglike
         double loglike_max = *std::max_element(loglike.begin(), loglike.end());
+        // double loglike_2_max = *std::max_element(loglike_2.begin(), loglike_2.end());
         for(size_t ii = 0; ii < loglike.size(); ii ++ ){
             loglike[ii] = exp(loglike[ii] - loglike_max);
+            // loglike_2[ii] = exp(loglike_2[ii] - loglike_2_max);
         }
+        // loglike_2 = loglike_2 - loglike;
+        // cout << sum_squared(loglike_2) << endl;
+
+
+        // loglike = loglike_2;
 
         std::random_device rd;
         std::mt19937 gen(rd());
