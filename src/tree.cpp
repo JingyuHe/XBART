@@ -1021,12 +1021,13 @@ void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_st
         // loop over variables
         left_ix = 0;
         right_ix = 0;
+        const double * temp_pointer = X_std + N_y * split_var;
         for(size_t j = 0; j < N_Xorder; j ++){
             // Xorder(j, i), jth row and ith column
             // look at X(Xorder(j, i), split_var)
             // X[split_var][Xorder[i][j]]
             // X[split_var][Xorder[split_var][split_point]]
-            if( *(X_std + N_y * split_var + Xorder_std[i][j])<= cutvalue){
+            if( *(temp_pointer + Xorder_std[i][j])<= cutvalue){
                 // copy a row
                 // for(size_t k = 0; k < p; k ++){
                 //     Xorder_left_std[i][left_ix];// = Xorder_std[i][j];
