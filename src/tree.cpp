@@ -969,14 +969,16 @@ void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat&
 
     // preserve order of other variables
     size_t N = Xorder.n_rows;
-    size_t left_ix = 0;
-    size_t right_ix = 0;
+    size_t left_ix = 0; // index of current row for Xorder_left
+    size_t right_ix = 0;    // index of current column for Xorder_right
+    double cutpoint = X(Xorder(split_point, split_var), split_var);
     for(size_t i = 0; i < Xorder.n_cols; i ++){
-        left_ix = 0;
-        right_ix = 0;
+        // loop over variables
+        left_ix = 0;    // reset to 0, start from first row of Xorder_left
+        right_ix = 0;   // reset to 0, start from first row of Xorder_right
         for(size_t j = 0; j < N; j ++){
             // loop over all observations
-            if(X(Xorder(j, i), split_var) <= X(Xorder(split_point, split_var), split_var)){
+            if(X(Xorder(j, i), split_var) <= cutpoint){
                 Xorder_left(left_ix, i) = Xorder(j, i);
                 left_ix = left_ix + 1;
             }else{
@@ -1013,7 +1015,10 @@ void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_st
     //     }
     // }
 
+
+    double cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
     for(size_t i = 0; i < p; i ++ ){
+        // loop over variables
         left_ix = 0;
         right_ix = 0;
         for(size_t j = 0; j < N_Xorder; j ++){
@@ -1021,7 +1026,7 @@ void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_st
             // look at X(Xorder(j, i), split_var)
             // X[split_var][Xorder[i][j]]
             // X[split_var][Xorder[split_var][split_point]]
-            if( *(X_std + N_y * split_var + Xorder_std[i][j])<= *(X_std + N_y * split_var + Xorder_std[split_var][split_point])){
+            if( *(X_std + N_y * split_var + Xorder_std[i][j])<= cutvalue){
                 // copy a row
                 // for(size_t k = 0; k < p; k ++){
                 //     Xorder_left_std[i][left_ix];// = Xorder_std[i][j];
@@ -1784,7 +1789,7 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
         // no split option
         loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
-        // loglike_2[loglike.size() - 1] = loglike[loglike.size() - 1];
+        // loglike_2[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
         // loglike_2 = loglike_2 - loglike;
         
