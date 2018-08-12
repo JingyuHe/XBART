@@ -842,9 +842,9 @@ void tree::grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t 
     ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
 
 
-    size_t Xorder_firstline = 0;
-    size_t Xorder_right_firstline = 0;
-    size_t Xorder_left_firstline = 0;
+    std::vector<size_t> Xorder_firstline(p);
+    std::vector<size_t> Xorder_right_firstline(p);
+    std::vector<size_t> Xorder_left_firstline(p);
 
 
     split_xorder_std_newXorder(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, Xorder_next_index, X_std, N_y, p, Xorder_firstline, Xorder_left_firstline, Xorder_right_firstline);
@@ -1145,7 +1145,7 @@ void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_st
 
 
 
-void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet& Xorder_std, xinfo_sizet& Xorder_next_index, const double* X_std, size_t N_y, size_t p, size_t Xorder_firstline, size_t& Xorder_left_firstline, size_t& Xorder_right_firstline){
+void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet& Xorder_std, xinfo_sizet& Xorder_next_index, const double* X_std, size_t N_y, size_t p, std::vector<size_t>& Xorder_firstline, std::vector<size_t>& Xorder_left_firstline, std::vector<size_t>& Xorder_right_firstline){
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
 
@@ -1153,6 +1153,10 @@ void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorde
     size_t N_Xorder = Xorder_std[0].size();
     size_t left_ix = 0;
     size_t right_ix = 0;
+
+    size_t left_length = 0;
+    size_t right_length = 0;
+
     
     double cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
     for(size_t i = 0; i < p; i ++ ){
@@ -1173,6 +1177,14 @@ void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorde
                 // }
                 Xorder_left_std[i][left_ix] = Xorder_std[i][j];
                 left_ix = left_ix + 1;
+
+                if(left_ix == 1){
+                    // first time find one observation on the left side
+                    Xorder_left_firstline[i] = j;   // save the index to vector Xorder_left_firstline
+                }
+
+
+
             }else{
                 // for(size_t k = 0; k < p; k ++){
                 //     // Xorder_right[i][right_ix] = Xorder[i][j];
@@ -1180,10 +1192,20 @@ void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorde
                 // }
                 Xorder_right_std[i][right_ix] = Xorder_std[i][j];
                 right_ix = right_ix + 1;
+
+                if(right_ix == 1){
+                    // first time find one observation on the right side 
+                    Xorder_right_firstline[i] = j;  // save the index to vector Xorder_right_firstline
+                }
+
             }
 
         }
-
+        
+        if(p == 0){
+            left_length = left_ix + 1;
+            right_length = right_ix + 1;
+        }
     }
 
     return;
