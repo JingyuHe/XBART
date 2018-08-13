@@ -20,6 +20,10 @@
 #include "tree.h"
 #include "treefuns.h"
 #include <RcppArmadilloExtensions/sample.h>
+#include <chrono>
+
+using namespace std;
+using namespace chrono;
 
 
 //--------------------
@@ -665,7 +669,8 @@ void tree::grow_tree_adaptive(arma::mat& y, double y_mean, arma::umat& Xorder, a
 
 
 
-void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double* split_var_count_pointer, size_t& mtry, const std::vector<size_t>& subset_vars){
+
+void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double* split_var_count_pointer, size_t& mtry, const std::vector<size_t>& subset_vars, double& run_time){
 
 
     // grow a tree, users can control number of split points
@@ -741,23 +746,40 @@ void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth,
     ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
     ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
 
+
+    auto start = system_clock::now();
+
     split_xorder_std(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p);
+
+    auto end = system_clock::now();
+
+
+    auto duration = duration_cast<microseconds>(end - start);
+
+    double running_time = double(duration.count()) * microseconds::period::num / microseconds::period::den ;
+
+    // cout << running_time << endl;
 
     // free(Xorder_std);
 
     double yleft_mean_std = subnode_mean(y_std, Xorder_left_std, split_var);
     double yright_mean_std = subnode_mean(y_std, Xorder_right_std, split_var);
 
+    double running_time_left = 0.0;
+    double running_time_right = 0.0;
+
     depth = depth + 1;
     tree::tree_p lchild = new tree();
-    lchild->grow_tree_adaptive_std(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, split_var_count_pointer, mtry, subset_vars);
+    lchild->grow_tree_adaptive_std(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, split_var_count_pointer, mtry, subset_vars, running_time_left);
     tree::tree_p rchild = new tree();
-    rchild->grow_tree_adaptive_std(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, split_var_count_pointer, mtry, subset_vars);
+    rchild->grow_tree_adaptive_std(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, split_var_count_pointer, mtry, subset_vars, running_time_right);
 
     lchild -> p = this;
     rchild -> p = this;
     this -> l = lchild;
     this -> r = rchild;
+
+    run_time = run_time +  running_time + running_time_left + running_time_right;
 
     return;
 }

@@ -3,11 +3,16 @@
 #include "tree.h"
 #include "treefuns.h"
 #include "forest.h"
+#include <chrono>
 
+using namespace std;
+
+using namespace chrono;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t mtry = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true){
+    auto start = system_clock::now();
 
     size_t N = X.n_rows;
     size_t p = X.n_cols;
@@ -148,6 +153,10 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     // cout << subset_vars << endl;
 
     // size_t count = 0;
+
+
+    double run_time = 0.0;
+
     for(size_t mc = 0; mc < L; mc ++ ){
 
         // initialize predcitions and predictions_test
@@ -204,7 +213,7 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
                 }
 
 
-                trees.t[tree_ind].grow_tree_adaptive_std(sum_vec(residual_std) / (double) N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, subset_vars);
+                trees.t[tree_ind].grow_tree_adaptive_std(sum_vec(residual_std) / (double) N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, subset_vars, run_time);
 
                 if(verbose == true){
                     cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
@@ -251,8 +260,17 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
     }
 
+    auto end = system_clock::now();
+
+    auto duration = duration_cast<microseconds>(end - start);
+
+    cout << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
+
+    cout << "Running time of split Xorder " << run_time << endl;
 
     cout << "Count of splits for each variable " << split_var_count << endl;
+
+    
 
     return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw);
 }
