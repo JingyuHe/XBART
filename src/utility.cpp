@@ -9,7 +9,7 @@ xinfo copy_xinfo(Rcpp::NumericMatrix& X){
     //stacked by column
     Xinfo.resize(n_col);
 
-    //copy to std matrix 
+    //copy to std matrix
     for(size_t i = 0; i < n_col; i ++){
         Xinfo[i].resize(n_row);
         for(size_t j = 0; j < n_row; j++){
@@ -31,7 +31,7 @@ xinfo_sizet copy_xinfo_sizet(Rcpp::IntegerMatrix& X){
     //stacked by column
     Xinfo.resize(n_col);
 
-    //copy to std matrix 
+    //copy to std matrix
     for(size_t i = 0; i < n_col; i ++){
         Xinfo[i].resize(n_row);
         for(size_t j = 0; j < n_row; j++){
@@ -161,7 +161,7 @@ void calculate_y_cumsum(arma::vec& y, double y_sum, arma::uvec& ind, arma::vec& 
     size_t ind_ind = 0;
     arma::vec y_cumsum_chunk(M + 1);
 
-    y_cumsum_chunk[0] = 0; // initialize  
+    y_cumsum_chunk[0] = 0; // initialize
 
     for(size_t i = 0; i < N; i ++ ){
         if(i <= ind[ind_ind]){
@@ -181,7 +181,7 @@ void calculate_y_cumsum(arma::vec& y, double y_sum, arma::uvec& ind, arma::vec& 
         y_cumsum[i] = y_cumsum[i - 1] + y_cumsum_chunk[i];
         y_cumsum_inv[i] = y_sum - y_cumsum[i];
     }
-    
+
     return;
 }
 
@@ -196,7 +196,7 @@ void calculate_y_cumsum_std(const double * y, const size_t N_y, double y_sum, st
     size_t ind_ind = 0;
     std::vector<double> y_cumsum_chunk(M + 1);
 
-    y_cumsum_chunk[0] = 0; // initialize  
+    y_cumsum_chunk[0] = 0; // initialize
 
     for(size_t i = 0; i < N_y; i ++ ){
         if(i <= ind[ind_ind]){
@@ -216,7 +216,7 @@ void calculate_y_cumsum_std(const double * y, const size_t N_y, double y_sum, st
         y_cumsum[i] = y_cumsum[i - 1] + y_cumsum_chunk[i];
         y_cumsum_inv[i] = y_sum - y_cumsum[i];
     }
-    
+
     return;
 }
 
@@ -269,3 +269,23 @@ std::vector<size_t> sort_indexes(const Rcpp::NumericVector &v) {
 
 
 
+void recover_Xorder(xinfo_sizet& Xorder, std::vector<size_t>& Xorder_firstline, xinfo_sizet& Xorder_next_index, xinfo_sizet& Xorder_new){
+    size_t p = Xorder.size();
+    size_t n = Xorder[0].size();
+    size_t current_index;
+    std::vector<size_t> temp;
+
+
+    for(size_t i = 0; i < p; i ++ ){
+        current_index = Xorder_firstline[i];
+        temp.clear();
+        while(current_index >= 0){
+            // cout << Xorder[i][current_index] << endl;
+            temp.push_back(Xorder[i][current_index]);
+            current_index = Xorder_next_index[i][current_index];
+        }
+        Xorder_new[i] = temp;
+        // cout << temp << endl;
+    }
+    return;
+}

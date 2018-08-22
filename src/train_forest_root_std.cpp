@@ -49,14 +49,14 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     y_mean = y_mean / (double) N;
 
 
-    
+
     Rcpp::NumericMatrix X_std(N, p);
     for(size_t i = 0; i < N; i ++ ){
         for(size_t j = 0; j < p; j ++ ){
             X_std(i, j) = X(i, j);
         }
     }
-    
+
     Rcpp::NumericMatrix Xtest_std(N_test, p);
     for(size_t i = 0; i < N_test; i ++ ){
         for(size_t j = 0; j < p; j ++ ){
@@ -101,7 +101,7 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     std::vector<double> yhat_test_std(N_test);
     row_sum(predictions_test_std, yhat_test_std);
 
- 
+
     // current residual
     std::vector<double> residual_std(N);
 
@@ -131,13 +131,13 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     std::mt19937 gen(rd());
     std::discrete_distribution<> d(prob.begin(), prob.end());
     // // sample one index of split point
-    size_t prune;  
+    size_t prune;
 
 
     // std::vector<double> split_var_count(p);
     // std::fill(split_var_count.begin(), split_var_count.end(), 1);
     Rcpp::NumericVector split_var_count(p, 1);
-    
+
     double* split_var_count_pointer = &split_var_count[0];
 
     std::vector<size_t> subset_vars(mtry);
@@ -157,6 +157,15 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
     double run_time = 0.0;
 
+
+    // save tree objects to strings
+    // std::stringstream treess;
+    // treess.precision(10);
+    // treess << L << " " << M << " " << p << endl;
+
+    // L, number of samples
+    // M, number of trees
+
     for(size_t mc = 0; mc < L; mc ++ ){
 
         // initialize predcitions and predictions_test
@@ -168,7 +177,7 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
         row_sum(predictions_std, yhat_std);
         row_sum(predictions_test_std, yhat_test_std);
-        
+
 
         residual_std = y_std - yhat_std;
 
@@ -218,7 +227,7 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
                 if(verbose == true){
                     cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
                 }
-                
+
                 // update prediction of current tree
                 fit_new_std(trees.t[tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
 
@@ -243,6 +252,8 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
                 yhat_std = yhat_std + predictions_std[tree_ind];
                 yhat_test_std = yhat_test_std + predictions_test_std[tree_ind];
+
+                // treess << trees.t[tree_ind];
 
 
             }
@@ -270,8 +281,9 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
     cout << "Count of splits for each variable " << split_var_count << endl;
 
-    
 
+
+    // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
     return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw);
-}
 
+}

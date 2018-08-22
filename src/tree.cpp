@@ -1178,123 +1178,134 @@ void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorde
 
     // preserve order of other variables
     // size_t N_Xorder = Xorder_std[0].size();
-    // size_t left_ix = 0;
-    // size_t right_ix = 0;
-    //
-    // size_t left_length = 0;
-    // size_t right_length = 0;
-    //
-    // const double * temp_pointer = X_std + N_y * split_var;
-    //
-    // double cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
-    //
-    //
-    // // for(size_t i = 0; i < p; i ++ ){
-    // //     left_ix = 0;
-    // //     right_ix = 0;
-    //
-    // //     for(size_t j = 0; j < N_xorder; j ++ ){
-    //
-    // //     }
-    //
-    //
-    // // }
-    // size_t current_index = 0;
-    // size_t previous_index = 0;
-    //
-    //
-    // for(size_t i = 0; i < p; i ++ ){
-    //     // loop over variables
-    //     left_ix = 0;
-    //     right_ix = 0;
-    //
-    //     current_index = Xorder_firstline[i];
-    //     previous_index = Xorder_firstline[i];
-    //
-    //
-    //     for(size_t j = 0; j < N_Xorder; j ++){
-    //         // Xorder(j, i), jth row and ith column
-    //         // look at X(Xorder(j, i), split_var)
-    //         // X[split_var][Xorder[i][j]]
-    //         // X[split_var][Xorder[split_var][split_point]]
-    //         if( *(temp_pointer + Xorder_std[i][j])<= cutvalue){
-    //             // copy a row
-    //             // for(size_t k = 0; k < p; k ++){
-    //             //     Xorder_left_std[i][left_ix];// = Xorder_std[i][j];
-    //             //     left_ix = left_ix + 1;
-    //             // }
-    //             Xorder_left_std[i][left_ix] = Xorder_std[i][j];
-    //             left_ix = left_ix + 1;
-    //
-    //             // if(left_ix == 1){
-    //             //     // take a record of index of the first line
-    //             //     Xorder_left_firstline[i] = j;   // save the index to vector Xorder_left_firstline
-    //             //     // previous_index =
-    //
-    //             //     // current_index =
-    //             // }else{
-    //             //     // not the first line
-    //
-    //             // }
-    //
-    //
-    //
-    //         }else{
-    //             // for(size_t k = 0; k < p; k ++){
-    //             //     // Xorder_right[i][right_ix] = Xorder[i][j];
-    //             //     right_ix = right_ix + 1;
-    //             // }
-    //             Xorder_right_std[i][right_ix] = Xorder_std[i][j];
-    //             right_ix = right_ix + 1;
-    //
-    //             // if(right_ix == 1){
-    //             //     // first time find one observation on the right side
-    //             //     Xorder_right_firstline[i] = j;  // save the index to vector Xorder_right_firstline
-    //             // }
-    //
-    //
-    //         }
-    //
-    //     }
-    //
-    //     if(p == 0){
-    //         left_length = left_ix + 1;
-    //         right_length = right_ix + 1;
-    //     }
-    // }
-    //
-    //
-    // size_t next_index;
-    // size_t total_count = 0;
-    // for(size_t i = 0; i < p; i ++ ){
-    //     left_ix = 0;
-    //     right_ix = 0;
-    //     current_index = Xorder_firstline[i];
-    //     previous_index = current_index;
-    //     next_index = current_index;
-    //     while(total_count < N_Xorder){
-    //         next_index = Xorder_next_index[i][current_index]
-    //         if( *(temp_pointer + Xorder_std[i][current_index])<= cutvalue){
-    //           // go to left
-    //           if(left_ix == 0){
-    //             Xorder_left_firstline[i] = current_index;
-    //             previous_index = current_index;
-    //           }else{
-    //
-    //           }
-    //         }else{
-    //           // go to right
-    //           if(right_ix == 0){
-    //             Xorder_right_firstline[i] = current_index;
-    //
-    //           }
-    //         }
-    //
-    //
-    //
-    //         total_count = total_count + 1;
-    //     }
-    // }
+    size_t left_ix = 0;
+    size_t right_ix = 0;
+
+    size_t left_length = 0;
+    size_t right_length = 0;
+
+    const double * temp_pointer = X_std + N_y * split_var;
+
+    double cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+    for(size_t i = 0; i < p; i ++ ){
+        // loop over variables
+        left_ix = 0;
+        right_ix = 0;
+        const double * temp_pointer = X_std + N_y * split_var;
+        for(size_t j = 0; j < N_Xorder; j ++){
+            // Xorder(j, i), jth row and ith column
+            // look at X(Xorder(j, i), split_var)
+            // X[split_var][Xorder[i][j]]
+            // X[split_var][Xorder[split_var][split_point]]
+            if( *(temp_pointer + Xorder_std[i][j])<= cutvalue){
+                // copy a row
+                // for(size_t k = 0; k < p; k ++){
+                //     Xorder_left_std[i][left_ix];// = Xorder_std[i][j];
+                //     left_ix = left_ix + 1;
+                // }
+                Xorder_left_std[i][left_ix] = Xorder_std[i][j];
+                left_ix = left_ix + 1;
+            }else{
+                // for(size_t k = 0; k < p; k ++){
+                //     // Xorder_right[i][right_ix] = Xorder[i][j];
+                //     right_ix = right_ix + 1;
+                // }
+                Xorder_right_std[i][right_ix] = Xorder_std[i][j];
+                right_ix = right_ix + 1;
+            }
+
+        }
+
+    }
+
+
+
+
+    size_t current_index = 0;
+    size_t left_previous_index = 0;
+    size_t right_previous_index = 0;
+    size_t next_index = 0;
+
+    for(size_t i = 0; i < p; i ++ ){
+        left_ix = 0;
+        right_ix = 0;
+        current_index = Xorder_firstline[i];
+        left_previous_index = current_index;
+        right_previous_index = current_index;
+        next_index = current_index;
+        while(next_index > -1){
+            next_index = Xorder_next_index[i][current_index];
+            if( *(temp_pointer + Xorder_std[i][current_index])<= cutvalue){
+              // go to left
+              if(left_ix == 0){
+                // this is the first row
+                // for the first row, we do not have previous_index
+                // so don't need to modify Xorder_next_index matrix
+                Xorder_left_firstline[i] = current_index;
+                left_previous_index = current_index;
+                current_index = next_index;
+                left_ix = left_ix + 1;
+              }else{
+                Xorder_next_index[i][left_previous_index] = current_index;
+                // move all indexes next
+                left_previous_index = current_index;
+                current_index = next_index;
+                left_ix = left_ix + 1;
+              }
+            }else{
+              // go to right
+              if(right_ix == 0){
+                // this is the first row
+                Xorder_right_firstline[i] = current_index;
+                right_previous_index = current_index;
+                current_index = next_index;
+                right_ix = right_ix + 1;
+              }else{
+                Xorder_next_index[i][right_previous_index] = current_index;
+                right_previous_index = current_index;
+                current_index = next_index;
+                right_ix = right_ix + 1;
+              }
+            }
+
+            if(left_ix >= N_Xorder_left){
+                // reach the last one
+                Xorder_next_index[i][left_previous_index] = -1;
+            }
+
+            if(right_ix >= N_Xorder_right){
+                Xorder_next_index[i][right_previous_index] = -1;
+            }
+        }
+    }
+
+
+
+    std::vector<size_t> temp(N_Xorder_left);
+
+    current_index = Xorder_left_firstline[0];
+        // temp.clear();
+    for(size_t i = 0; i < N_Xorder_left; i ++){
+        // cout << Xorder[i][current_index] << endl;
+        temp[i] = Xorder_std[0][current_index];
+        current_index = Xorder_next_index[0][current_index];
+    }
+        // cout << temp << endl;
+
+
+
+    // xinfo_sizet Xorder_left_new;
+
+    // ini_xinfo_sizet(Xorder_left_new, N_Xorder_left, p);
+
+    // recover_Xorder(Xorder_std, Xorder_left_firstline, Xorder_next_index, Xorder_left_new);
+
+    cout << "-------------" << endl;
+
+    cout << Xorder_left_std[0] << endl;
+
+    cout << " +++ " << endl;
+    cout << temp << endl;
 
 
     return;

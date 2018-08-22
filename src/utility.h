@@ -52,7 +52,7 @@ struct likelihood_evaluation_subset : public Worker {
     const size_t& N;
     const arma::vec& n1tau;
     const arma::vec& n2tau;
-    
+
     // constructor
     likelihood_evaluation_subset(const arma::vec& y, const arma::umat& Xorder, arma::uvec& candidate_index, arma::vec&loglike, const double& sigma2, const double& tau, const double& y_sum, const size_t& Ncutpoints, const size_t& N, const arma::vec& n1tau, const arma::vec& n2tau) : y(y), Xorder(Xorder), candidate_index(candidate_index), loglike(loglike), sigma2(sigma2), tau(tau), y_sum(y_sum), Ncutpoints(Ncutpoints), N(N), n1tau(n1tau), n2tau(n2tau){}
 
@@ -85,7 +85,7 @@ struct likelihood_evaluation_fullset : public Worker {
     const size_t& N;
     const arma::vec& n1tau;
     const arma::vec& n2tau;
-    
+
     // constructor
     likelihood_evaluation_fullset(const arma::vec& y, const arma::umat& Xorder, arma::vec&loglike, const double& sigma2, const double& tau, const size_t& N, const arma::vec& n1tau, const arma::vec& n2tau) : y(y), Xorder(Xorder), loglike(loglike), sigma2(sigma2), tau(tau), N(N), n1tau(n1tau), n2tau(n2tau){}
 
@@ -94,11 +94,11 @@ struct likelihood_evaluation_fullset : public Worker {
         arma::vec y_cumsum(y.n_elem);
         arma::vec y_cumsum_inv(y.n_elem);
         double y_sum = 0.0;
-        for(size_t i = begin; i < end; i++){ // loop over variables 
+        for(size_t i = begin; i < end; i++){ // loop over variables
             y_cumsum = arma::cumsum(y.rows(Xorder.col(i)));
             y_sum = y_cumsum(y_cumsum.n_elem - 1);
             y_cumsum_inv = y_sum - y_cumsum;  // redundant copy!
-            loglike(arma::span(i * (N - 1), i * (N - 1) + N - 2)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum(arma::span(0, N - 2)), 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv(arma::span(0, N - 2)), 2)/(sigma2 * (n2tau + sigma2));   
+            loglike(arma::span(i * (N - 1), i * (N - 1) + N - 2)) = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum(arma::span(0, N - 2)), 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv(arma::span(0, N - 2)), 2)/(sigma2 * (n2tau + sigma2));
         }
         return;
     }
@@ -141,7 +141,7 @@ struct likelihood_fullset_std : public Worker {
             std::partial_sum(Y_sort.begin(), Y_sort.end(), y_cumsum.begin());
 
             y_sum = y_cumsum[y_cumsum.size() - 1];
-            
+
             for(size_t k = 0; k < N_Xorder; k ++ ){
                 y_cumsum_inv[k] = y_sum - y_cumsum[k];
             }
@@ -199,8 +199,8 @@ struct likelihood_subset_std : public Worker{
             for(size_t q = 0;  q < N_Xorder; q++ ){
                 Y_sort[q] = y_std[Xorder_std[var_ind][q]];
             }
-            ypointer = &Y_sort[0];  
-            
+            ypointer = &Y_sort[0];
+
             if(firstrun){
                 y_sum = sum_vec(Y_sort);
                 firstrun = false;
@@ -218,7 +218,7 @@ struct likelihood_subset_std : public Worker{
         }
 
         return;
-        
+
     }
 
 };
@@ -234,7 +234,7 @@ std::vector<T> operator+(const std::vector<T>& a, const std::vector<T>& b)
     std::vector<T> result;
     result.reserve(a.size());
 
-    std::transform(a.begin(), a.end(), b.begin(), 
+    std::transform(a.begin(), a.end(), b.begin(),
                    std::back_inserter(result), std::plus<T>());
     return result;
 }
@@ -250,7 +250,7 @@ std::vector<T> operator-(const std::vector<T>& a, const std::vector<T>& b)
     std::vector<T> result;
     result.reserve(a.size());
 
-    std::transform(a.begin(), a.end(), b.begin(), 
+    std::transform(a.begin(), a.end(), b.begin(),
                    std::back_inserter(result), std::minus<T>());
     return result;
 }
@@ -277,6 +277,9 @@ std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) {
 double sq_diff_arma_std(arma::vec vec1, std::vector<double> vec2);
 double sq_vec_diff(std::vector<double>& v1, std::vector<double>& v2);
 
+
+
+void recover_Xorder(xinfo_sizet& Xorder, std::vector<size_t>& Xorder_firstline, xinfo_sizet& Xorder_next_index, xinfo_sizet& Xorder_new);
 
 
 #endif

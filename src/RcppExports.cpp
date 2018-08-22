@@ -6,6 +6,18 @@
 
 using namespace Rcpp;
 
+// predict_tree_std
+Rcpp::List predict_tree_std(Rcpp::List trees, Rcpp::NumericMatrix Xnew);
+RcppExport SEXP _SpikySmoothTrees_predict_tree_std(SEXP treesSEXP, SEXP XnewSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type trees(treesSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type Xnew(XnewSEXP);
+    rcpp_result_gen = Rcpp::wrap(predict_tree_std(trees, Xnew));
+    return rcpp_result_gen;
+END_RCPP
+}
 // predict_tree
 Rcpp::List predict_tree(Rcpp::List trees, arma::mat Xnew);
 RcppExport SEXP _SpikySmoothTrees_predict_tree(SEXP treesSEXP, SEXP XnewSEXP) {
@@ -184,6 +196,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_SpikySmoothTrees_predict_tree_std", (DL_FUNC) &_SpikySmoothTrees_predict_tree_std, 2},
     {"_SpikySmoothTrees_predict_tree", (DL_FUNC) &_SpikySmoothTrees_predict_tree, 2},
     {"_SpikySmoothTrees_singletree", (DL_FUNC) &_SpikySmoothTrees_singletree, 9},
     {"_SpikySmoothTrees_train_forest_adaptive", (DL_FUNC) &_SpikySmoothTrees_train_forest_adaptive, 19},
