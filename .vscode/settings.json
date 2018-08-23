@@ -57,6 +57,19 @@
         "ctime": "cpp",
         "future": "cpp",
         "stack": "cpp",
-        "forward_list": "cpp"
+        "forward_list": "cpp",
+        "*.tcc": "cpp",
+        "clocale": "cpp",
+        "cstdint": "cpp",
+        "cstdio": "cpp",
+        "cwchar": "cpp",
+        "cwctype": "cpp",
+        "fstream": "cpp",
+        "iostream": "cpp",
+        "istream": "cpp",
+        "numeric": "cpp",
+        "optional": "cpp",
+        "sstream": "cpp",
+        "streambuf": "cpp"
     }
 }

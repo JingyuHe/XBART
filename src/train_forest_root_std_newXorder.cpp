@@ -9,6 +9,7 @@
 // [[Rcpp::export]]
 Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t mtry = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true){
 
+
     size_t N = X.n_rows;
     size_t p = X.n_cols;
     size_t N_test = Xtest.n_rows;
@@ -75,6 +76,9 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
     // for example, if the first element Xorder_next_index[0][0] = 1
     // it means that the next line follows the first line of Xorder is line 1 of Xorder
 
+    size_t MAX_SIZE_T = std::numeric_limits<size_t>::max();
+
+
     xinfo_sizet Xorder_next_index;
     ini_xinfo_sizet(Xorder_next_index, N, p);
     for(size_t i = 0; i < N; i ++ ){
@@ -82,10 +86,16 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
             if(i != N - 1){
                 Xorder_next_index[j][i] = i + 1;
             }else{
-                Xorder_next_index[j][i] = -1; // -1 means end, no next observation
+                Xorder_next_index[j][i] = MAX_SIZE_T; // MAX_SIZE_T means end, no next observation
             }
         }
     }
+
+
+    // for(size_t i = 0; i < p; i ++ ){
+    //     cout << Xorder_next_index[i] << endl;
+    // }
+
 
 
     ///////////////////////////////////////////////////////////////////

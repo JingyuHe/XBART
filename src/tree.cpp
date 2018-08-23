@@ -787,7 +787,7 @@ void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth,
 
 
 
-void tree::grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, xinfo_sizet& Xorder_next_index, const std::vector<size_t>& Xorder_firstline, const double* X_std, double* split_var_count_pointer, size_t& mtry, const std::vector<size_t>& subset_vars){
+void tree::grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline, const double* X_std, double* split_var_count_pointer, size_t& mtry, const std::vector<size_t>& subset_vars){
 
 
     // grow a tree, users can control number of split points
@@ -882,19 +882,19 @@ void tree::grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t 
 
     // free(Xorder_std);
 
-    double yleft_mean_std = subnode_mean(y_std, Xorder_left_std, split_var);
-    double yright_mean_std = subnode_mean(y_std, Xorder_right_std, split_var);
+    // double yleft_mean_std = subnode_mean(y_std, Xorder_left_std, split_var);
+    // double yright_mean_std = subnode_mean(y_std, Xorder_right_std, split_var);
 
-    depth = depth + 1;
-    tree::tree_p lchild = new tree();
-    lchild->grow_tree_adaptive_std_newXorder(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, Xorder_next_index, Xorder_left_firstline, X_std, split_var_count_pointer, mtry, subset_vars);
-    tree::tree_p rchild = new tree();
-    rchild->grow_tree_adaptive_std_newXorder(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, Xorder_next_index, Xorder_right_firstline, X_std, split_var_count_pointer, mtry, subset_vars);
+    // depth = depth + 1;
+    // tree::tree_p lchild = new tree();
+    // lchild->grow_tree_adaptive_std_newXorder(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, Xorder_next_index, Xorder_left_firstline, X_std, split_var_count_pointer, mtry, subset_vars);
+    // tree::tree_p rchild = new tree();
+    // rchild->grow_tree_adaptive_std_newXorder(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, Xorder_next_index, Xorder_right_firstline, X_std, split_var_count_pointer, mtry, subset_vars);
 
-    lchild -> p = this;
-    rchild -> p = this;
-    this -> l = lchild;
-    this -> r = rchild;
+    // lchild -> p = this;
+    // rchild -> p = this;
+    // this -> l = lchild;
+    // this -> r = rchild;
 
     return;
 }
@@ -1176,20 +1176,18 @@ void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_st
 
 
 
-void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet& Xorder_std, xinfo_sizet& Xorder_next_index, const double* X_std, size_t N_y, size_t p, size_t& N_Xorder, size_t& N_Xorder_left, size_t& N_Xorder_right, const std::vector<size_t>& Xorder_firstline, std::vector<size_t>& Xorder_left_firstline, std::vector<size_t>& Xorder_right_firstline){
+void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, size_t split_var, size_t split_point, const xinfo_sizet& Xorder_std, xinfo_sizet& Xorder_next_index, const double* X_std, size_t N_y, size_t p, size_t& N_Xorder, size_t& N_Xorder_left, size_t& N_Xorder_right, std::vector<size_t>& Xorder_firstline, std::vector<size_t>& Xorder_left_firstline, std::vector<size_t>& Xorder_right_firstline){
 
+
+    cout << "cut at variable " << split_var << endl;
+
+    cout << "cut at data point " << split_point << endl;
 
     size_t MAX_SIZE_T = std::numeric_limits<size_t>::max();
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
-
-    // preserve order of other variables
-    // size_t N_Xorder = Xorder_std[0].size();
     size_t left_ix = 0;
     size_t right_ix = 0;
-
-    size_t left_length = 0;
-    size_t right_length = 0;
 
     const double * temp_pointer = X_std + N_y * split_var;
 
@@ -1226,7 +1224,8 @@ void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorde
     }
 
 
-
+    // preserve order of other variables
+    // size_t N_Xorder = Xorder_std[0].size();
 
     size_t current_index = 0;
     size_t left_previous_index = 0;
@@ -1235,108 +1234,64 @@ void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorde
 
     size_t count = 0;
 
+    left_ix = 0;
+    right_ix = 0;
+
     for(size_t i = 0; i < p; i ++ ){
         left_ix = 0;
         right_ix = 0;
-
-        count = 0;
-        // just initialization
         current_index = Xorder_firstline[i];
         left_previous_index = current_index;
         right_previous_index = current_index;
         next_index = current_index;
 
-        cout << "next_index " << next_index << endl;
-
-        while(next_index < MAX_SIZE_T){
-            count = count + 1;
-            // while we do not reach end of the bigger Xorder matrix
-
-            // find index of the next row, look up Xorder_next_index matrix
+        while(next_index < 100000){
             next_index = Xorder_next_index[i][current_index];
             if( *(temp_pointer + Xorder_std[i][current_index])<= cutvalue){
-              // go to left
-              if(left_ix == 0){
-                // this is the first row
-                // for the first row, we do not have previous_index
-                // so don't need to modify Xorder_next_index matrix
-                // just keep a record of index of the first line in Xorder_left_firstline
-                // Xorder_left_firstline[i] = current_index;
-
-                // move pointer to previous row
-                // left_previous_index = current_index;
-                current_index = next_index;
-                left_ix = left_ix + 1;
-
-              }else{
-                // update Xorder_next_index matrix
-                // Xorder_next_index[i][left_previous_index] = current_index;
-                // move all indexes next
-                // left_previous_index = current_index;
-                current_index = next_index;
-                left_ix = left_ix + 1;
-              }
+                if(left_ix == 0){
+                    Xorder_left_firstline[i] = current_index;
+                    left_previous_index = current_index;
+                    current_index = next_index;
+                    left_ix ++ ;
+                }else{
+                    Xorder_next_index[i][left_previous_index] = current_index;
+                    left_previous_index = current_index;
+                    current_index = next_index;
+                    left_ix ++ ;
+                }
             }else{
-              // go to right
-              if(right_ix == 0){
-                // this is the first row
-                // Xorder_right_firstline[i] = current_index;
-                // right_previous_index = current_index;
-                current_index = next_index;
-                right_ix = right_ix + 1;
-              }else{
-                // Xorder_next_index[i][right_previous_index] = current_index;
-                // right_previous_index = current_index;
-                current_index = next_index;
-                right_ix = right_ix + 1;
-              }
+                if(right_ix == 0){
+                    Xorder_right_firstline[i] = current_index;
+                    right_previous_index = current_index;
+                    current_index = next_index;
+                    right_ix ++ ;
+                }else{
+                    Xorder_next_index[i][right_previous_index] = current_index;
+                    right_previous_index = current_index;
+                    current_index = next_index;
+                    right_ix = right_ix + 1;
+                }
             }
-
-            // if(left_ix >= N_Xorder_left){
-            //     // reach the last one
-            //     Xorder_next_index[i][left_previous_index] = MAX_SIZE_T;
-            // }
-            //
-            // if(right_ix >= N_Xorder_right){
-            //     Xorder_next_index[i][right_previous_index] = MAX_SIZE_T;
-            // }
         }
 
-        cout << " count " << count << endl;
+        if(left_ix >= N_Xorder_left){
+            Xorder_next_index[i][left_previous_index] = MAX_SIZE_T;
+        }
+        if(right_ix >= N_Xorder_right){
+            Xorder_next_index[i][right_previous_index] = MAX_SIZE_T;
+        }
+
     }
 
 
-    //
-    // std::vector<size_t> temp(N_Xorder_left);
-    //
-    // current_index = Xorder_left_firstline[0];
-    //     // temp.clear();
-    // for(size_t i = 0; i < N_Xorder_left; i ++){
-    //     // cout << Xorder[i][current_index] << endl;
-    //     temp[i] = Xorder_std[0][current_index];
-    //     current_index = Xorder_next_index[0][current_index];
-    // }
-        // cout << temp << endl;
+
+    for(size_t i = 0; i < p; i ++ ){
+        cout << Xorder_left_std[i][0] << "   " << Xorder_std[i][Xorder_left_firstline[i]]<< endl;
+    }
+
+    // cout <<  << endl;
 
 
-
-    // xinfo_sizet Xorder_left_new;
-
-    // ini_xinfo_sizet(Xorder_left_new, N_Xorder_left, p);
-
-    // recover_Xorder(Xorder_std, Xorder_left_firstline, Xorder_next_index, Xorder_left_new);
-
-    // cout << "-------------" << endl;
-    //
-    // for(size_t i = 0; i < p; i ++ ){
-    //     cout << Xorder_left_std[i][0] << " ";
-    // }
-    // cout << endl;
-    //
-    // cout << " +++ " << endl;
-    // cout << Xorder_left_firstline << endl;
-    // cout << " XXX " << endl;
-    // cout << Xorder_right_firstline << endl;
 
 
     return;
