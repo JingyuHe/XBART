@@ -20,6 +20,7 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
     }
 
 
+
     if(mtry != p){
         cout << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
     }
