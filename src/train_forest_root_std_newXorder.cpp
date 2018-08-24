@@ -92,10 +92,9 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
     }
 
 
-    // for(size_t i = 0; i < p; i ++ ){
-    //     cout << Xorder_next_index[i] << endl;
-    // }
-
+    // create an initialized copy for the Xorder_next_index matrix,
+    // need to restore for each tree
+    // xinfo_sizet Xorder_next_index_backup = Xorder_next_index;
 
 
     ///////////////////////////////////////////////////////////////////
@@ -239,6 +238,23 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
                 }
 
 
+
+                // recover the Xoder_next_index matrix to initialized value
+
+                for(size_t i = 0; i < N; i ++ ){
+                    for(size_t j = 0; j < p; j ++ ){
+                        if(i != N - 1){
+                            Xorder_next_index[j][i] = i + 1;
+                        }else{
+                            Xorder_next_index[j][i] = MAX_SIZE_T; // MAX_SIZE_T means end, no next observation
+                       }
+                    }
+                }
+
+                std::fill(Xorder_firstline.begin(), Xorder_firstline.end(), 0);
+
+
+                
                 trees.t[tree_ind].grow_tree_adaptive_std_newXorder(sum_vec(residual_std) / (double) N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xorder_next_index, Xorder_firstline, Xpointer, split_var_count_pointer, mtry, subset_vars);
 
                 if(verbose == true){
