@@ -2145,6 +2145,233 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
 
 
 
+void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, const std::vector<size_t>& subset_vars, xinfo_sizet& Xorder_full, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline){
+    // compute BART posterior (loglikelihood + logprior penalty)
+    // randomized
+
+    // subset_vars: a vector of indexes of varibles to consider (like random forest)
+
+    // use stacked vector loglike instead of a matrix, stacked by column
+    // length of loglike is p * (N - 1) + 1
+    // N - 1 has to be greater than 2 * Nmin
+
+    size_t N = Xorder_std[0].size();
+    size_t p = Xorder_std.size();
+    size_t ind;
+    size_t N_Xorder = N;
+
+    double y_sum;
+    double sigma2 = pow(sigma, 2);
+
+
+    if( N  <= Ncutpoints + 1 + 2 * Nmin){
+
+        // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
+
+        // if number of observations is smaller than Ncutpoints, all data are splitpoint candidates
+        // note that the first Nmin and last Nmin cannot be splitpoint candidate
+
+        std::vector<double> Y_sort(N_Xorder); // a container for sorted y
+        double* ypointer;
+        double n1tau;
+        double n2tau;
+        double Ntau = N_Xorder * tau;
+
+        // initialize log likelihood at -INFINITY
+        std::vector<double> loglike((N_Xorder - 1) * p + 1, -INFINITY);
+        std::vector<double> y_cumsum(N_Xorder);
+        std::vector<double> y_cumsum_inv(N_Xorder);
+
+
+        // std::vector<double> loglike_2(loglike.size(), -INFINITY);
+
+
+
+        if(parallel == false){
+
+            // for(size_t i = 0; i < p; i++){
+            for(auto&& i : subset_vars){
+                // loop over variables
+                for(size_t q = 0;  q < N_Xorder; q++ ){
+                    Y_sort[q] = y_std[Xorder_std[i][q]];
+                }
+                ypointer = &Y_sort[0];
+
+                std::partial_sum(Y_sort.begin(), Y_sort.end(), y_cumsum.begin());
+
+                y_sum = y_cumsum[y_cumsum.size() - 1]; // last one
+
+                for(size_t k = 0; k < N_Xorder; k ++ ){
+                    y_cumsum_inv[k] = y_sum - y_cumsum[k];
+                }
+
+                for(size_t j = 0; j < N_Xorder - 1; j ++ ){
+                    // loop over all possible cutpoints
+                    n1tau = (j + 1) * tau; // number of points on left side (x <= cutpoint)
+                    n2tau = Ntau - n1tau; // number of points on right side (x > cutpoint)
+
+                    loglike[(N_Xorder-1) * i + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
+
+                    // loglike[(N_Xorder-1) * i + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2)) + 2 * 0.5 * log(sigma2);
+
+                }
+            }
+
+
+
+        }else{
+
+            // parallel computing
+
+            likelihood_fullset_std like_parallel_full(y_std, Xorder_std, N_Xorder, subset_vars, tau, Ntau, sigma2, loglike);
+            parallelFor(0, subset_vars.size(), like_parallel_full);
+
+        }
+
+
+        loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+
+        // loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth) + 0.5 * log(sigma2);
+
+
+
+        // normalize loglike, take exp to likelihood
+        double loglike_max = *std::max_element(loglike.begin(), loglike.end());
+        for(size_t ii = 0; ii < loglike.size(); ii ++ ){
+            // if a variable is not selected, take exp will becomes 0
+            loglike[ii] = exp(loglike[ii] - loglike_max);
+        }
+
+
+        if((N - 1) > 2 * Nmin){
+            // for(size_t i = 0; i < p; i ++ ){
+            for(auto&& i : subset_vars){
+                // delete some candidates, otherwise size of the new node can be smaller than Nmin
+                std::fill(loglike.begin() + i * (N - 1), loglike.begin() + i * (N - 1) + Nmin + 1, 0.0);
+                std::fill(loglike.begin() + i * (N - 1) + N - 2 - Nmin, loglike.begin() + i * (N - 1) + N - 2 + 1, 0.0);
+
+            }
+
+        }else{
+            no_split = true;
+            return;
+        }
+
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::discrete_distribution<> d(loglike.begin(), loglike.end());
+        // sample one index of split point
+
+        ind = d(gen);
+
+        split_var = ind / (N - 1);
+        split_point = ind % (N - 1);
+
+        if(ind == (N - 1) * p){no_split = true;}
+
+        if((N - 1)<= 2 * Nmin){
+            no_split = true;
+
+        }
+
+
+
+    }else{
+
+        // initialize loglikelihood at -INFINITY
+        std::vector<double> loglike(Ncutpoints * p + 1, -INFINITY);
+        std::vector<size_t> candidate_index(Ncutpoints);
+        std::vector<double> y_cumsum(Ncutpoints);
+        std::vector<double> y_cumsum_inv(Ncutpoints);
+
+
+
+        // std::vector<double> loglike_2(loglike.size(), -INFINITY);
+
+
+        seq_gen_std(Nmin, N - Nmin, Ncutpoints, candidate_index);
+
+
+        double Ntau = N_Xorder * tau;
+
+        if(parallel == false){
+
+            bool firstrun = true;   // flag of the first loop
+            std::vector<double> Y_sort(N_Xorder);
+            double* ypointer;
+            double n1tau;
+            double n2tau;
+            // for(size_t i = 0; i < p; i ++ ){
+            for(auto&& i : subset_vars){
+
+                for(size_t q = 0;  q < N_Xorder; q++ ){
+                    Y_sort[q] = y_std[Xorder_std[i][q]];
+                }
+                ypointer = &Y_sort[0];
+
+                if(firstrun){
+                    y_sum = sum_vec(Y_sort);
+                    firstrun = false;
+                }
+
+                calculate_y_cumsum_std(ypointer, Y_sort.size(), y_sum, candidate_index, y_cumsum, y_cumsum_inv);
+
+                for(size_t j = 0; j < Ncutpoints; j ++ ){
+                    // loop over all possible cutpoints
+                    n1tau = (candidate_index[j] + 1) * tau; // number of points on left side (x <= cutpoint)
+                    n2tau = Ntau - n1tau; // number of points on right side (x > cutpoint)
+                    loglike[(Ncutpoints) * i + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
+
+                    // loglike[(Ncutpoints) * i + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2)) + 2 * 0.5 * log(sigma2);
+
+
+                }
+            }
+
+
+
+
+        }else{
+
+            // parallel computing
+
+
+            likelihood_subset_std like_parallel(y_std, Xorder_std, N_Xorder, Ncutpoints, subset_vars, tau, sigma2, candidate_index, loglike);
+            parallelFor(0, subset_vars.size(), like_parallel);
+        }
+
+
+        // no split option
+        loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+
+
+        // loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth) + 0.5 * log(sigma2);
+
+        // normalize loglike
+        double loglike_max = *std::max_element(loglike.begin(), loglike.end());
+        // double loglike_2_max = *std::max_element(loglike_2.begin(), loglike_2.end());
+        for(size_t ii = 0; ii < loglike.size(); ii ++ ){
+            loglike[ii] = exp(loglike[ii] - loglike_max);
+        }
+
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::discrete_distribution<size_t> d(loglike.begin(), loglike.end());
+        // // sample one index of split point
+        ind = d(gen);
+
+        split_var = ind / Ncutpoints;
+
+        split_point = candidate_index[ind % Ncutpoints];
+
+        if(ind == (Ncutpoints) * p){no_split = true;}
+
+    }
+
+    return;
+}
 
 void cumulative_sum_std(std::vector<double>& y_cumsum, std::vector<double>& y_cumsum_inv, double& y_sum, double* y, xinfo_sizet& Xorder, size_t& i, size_t& N){
     // y_cumsum is the output cumulative sum
