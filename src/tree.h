@@ -51,6 +51,7 @@ void BART_likelihood_adaptive_std(std::vector<double>& y_std, xinfo_sizet& Xorde
 void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, const std::vector<size_t>& subset_vars); 
 
 
+
 void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, const std::vector<size_t>& subset_vars, xinfo_sizet& Xorder_full, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline);
 
 
