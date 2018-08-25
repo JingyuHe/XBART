@@ -1,6 +1,6 @@
-\name{SpikySmoothTrees-package}
-\alias{SpikySmoothTrees-package}
-\alias{SpikySmoothTrees}
+\name{abarth-package}
+\alias{abarth-package}
+\alias{abarth}
 \docType{package}
 \title{
   A short title line describing what the package does

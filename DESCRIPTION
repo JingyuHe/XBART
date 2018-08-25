@@ -1,8 +1,8 @@
-Package: SpikySmoothTrees
+Package: abarth
 Type: Package
 Title: What the Package Does in One 'Title Case' Line
-Version: 4.9
-Date: 2018-07-22
+Version: 1.0
+Date: 2018-08-24
 Author: Your Name
 Maintainer: Your Name <your@email.com>
 Description: One paragraph description of what the package does as one

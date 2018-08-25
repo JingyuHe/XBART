@@ -275,11 +275,12 @@ void recover_Xorder(xinfo_sizet& Xorder, std::vector<size_t>& Xorder_firstline, 
     size_t current_index;
     std::vector<size_t> temp;
 
+    size_t MAX_SIZE_T = std::numeric_limits<size_t>::max();
 
     for(size_t i = 0; i < p; i ++ ){
         current_index = Xorder_firstline[i];
         temp.clear();
-        while(current_index >= 0){
+        while(current_index >= MAX_SIZE_T){
             // cout << Xorder[i][current_index] << endl;
             temp.push_back(Xorder[i][current_index]);
             current_index = Xorder_next_index[i][current_index];

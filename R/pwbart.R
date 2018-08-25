@@ -32,7 +32,7 @@ p <- length(treedraws$cutpoints)
 if(p!=nrow(x.test))
     stop(paste0('The number of columns in x.test must be equal to ', p))
 
-res = .Call(SpikySmoothTrees:::"cpwbart",
+res = .Call(abarth:::"cpwbart",
    treedraws,	#trees list returned as returned from fbart
    x.test,      #the test x.
    mc.cores   	#thread count

@@ -1,4 +1,4 @@
-useDynLib(SpikySmoothTrees, .registration=TRUE)
+useDynLib(abarth, .registration=TRUE)
 exportPattern("^[[:alpha:]]+")
 importFrom(Rcpp, evalCpp)
 importFrom(RcppParallel, RcppParallelLibs)
