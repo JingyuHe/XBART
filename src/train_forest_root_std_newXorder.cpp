@@ -255,7 +255,7 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
 
 
                 
-                trees.t[tree_ind].grow_tree_adaptive_std_newXorder(sum_vec(residual_std) / (double) N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xorder_next_index, Xorder_firstline, Xpointer, split_var_count_pointer, mtry, subset_vars);
+                trees.t[tree_ind].grow_tree_adaptive_std_newXorder(sum_vec(residual_std) / (double) N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xorder_next_index, Xorder_firstline, Xpointer, split_var_count_pointer, mtry, subset_vars, Xorder_std);
 
                 if(verbose == true){
                     cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
