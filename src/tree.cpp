@@ -851,8 +851,15 @@ void tree::grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t 
     }
 
 
-    this -> v = split_var;
-    this -> c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+    // this -> v = split_var;
+    // this -> c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+
+
+    this -> v = 0;
+    this -> c = 3.5;
+
+    split_var = 0;
+    split_point = 2;
 
 
     split_var_count_pointer[split_var] ++;
@@ -870,6 +877,10 @@ void tree::grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t 
     // std::vector<size_t> Xorder_firstline(p);
     std::vector<size_t> Xorder_right_firstline(p);
     std::vector<size_t> Xorder_left_firstline(p);
+
+
+    std::fill(Xorder_right_firstline.begin(), Xorder_right_firstline.end(), 0);
+    std::fill(Xorder_left_firstline.begin(), Xorder_left_firstline.end(), 0);
 
 
 
@@ -1239,7 +1250,7 @@ void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorde
     left_ix = 0;
     right_ix = 0;
 
-    cout << "inside ok 1" << endl;
+    // cout << "inside ok 1" << endl;
 
     for(size_t i = 0; i < p; i ++ ){
         left_ix = 0;
@@ -1249,18 +1260,18 @@ void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorde
         right_previous_index = current_index;
         next_index = current_index;
 
-        cout << "inside ok 2" << endl;
+        // cout << "inside ok 2" << endl;
 
         while(next_index < 100000){
 
             next_index = Xorder_next_index[i][current_index];
 
-                        cout << "inside ok 3" << " " << next_index << endl;
+                        // cout << "inside ok 3" << " " << next_index <<   endl;
 
             if( *(temp_pointer + Xorder_std[i][current_index])<= cutvalue){
-                cout << "left " << endl;
+                // cout << "left " << endl;
                 if(left_ix == 0){
-                    cout << "left first " << endl;
+                    // cout << "left first " << endl;
                     Xorder_left_firstline[i] = current_index;
                     left_previous_index = current_index;
                     current_index = next_index;
@@ -1273,10 +1284,10 @@ void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorde
                 }
             }else{
 
-                cout << "right " << endl;
+                // cout << "right " << endl;
                 if(right_ix == 0){
 
-                    cout << "right first " << endl;
+                    // cout << "right first " << endl;
                     Xorder_right_firstline[i] = current_index;
                     right_previous_index = current_index;
                     current_index = next_index;
@@ -1285,17 +1296,17 @@ void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorde
                     Xorder_next_index[i][right_previous_index] = current_index;
                     right_previous_index = current_index;
                     current_index = next_index;
-                    right_ix = right_ix + 1;
+                    right_ix ++ ;
                 }
             }
         }
 
-        if(left_ix >= N_Xorder_left){
+        // if(left_ix >= N_Xorder_left){
             Xorder_next_index[i][left_previous_index] = MAX_SIZE_T;
-        }
-        if(right_ix >= N_Xorder_right){
+        // }
+        // if(right_ix >= N_Xorder_right){
             Xorder_next_index[i][right_previous_index] = MAX_SIZE_T;
-        }
+        // }
 
     }
 
@@ -1307,30 +1318,54 @@ void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorde
     // }
 
 
-    // check that Xorder_left_firstline is correct
+    // // check that Xorder_left_firstline is correct
     // for(size_t i = 0; i < p; i ++ ){
-    //     cout << Xorder_left_std[i][0] << "   " << Xorder_std[i][Xorder_left_firstline[i]]<< endl;
+    //     cout << Xorder_right_std[i][0] << "   " << Xorder_std[i][Xorder_right_firstline[i]]<< endl;
     //     // cout << Xorder_next_index[i] << endl;
     // }
 
-    // cout << "first " << Xorder_left_firstline << endl;
+    // cout << "first " << Xorder_right_firstline << endl;
 
 
+    // cout << Xorder_firstline << endl;
+
+    cout << "---------------------- RIGHT " << endl; 
+
+    for(size_t j = 0; j < p; j ++ ){
+        cout << "variable " << j << endl;
+        cout << Xorder_right_std[j] << endl;
+
+        current_index = Xorder_right_firstline[j];
+        while(current_index < 10000){
+            cout << Xorder_std[j][current_index] << "    ";
+            current_index = Xorder_next_index[j][current_index];
+        }
+
+        cout << endl;
+
+    }   
 
 
-    // check that we can recover Xorder_left
-    cout << Xorder_left_std[1] << endl;
+    cout << "---------------------- LEFT " << endl; 
 
-    current_index = Xorder_left_firstline[1];
-    while(current_index < 10000){
-        cout << Xorder_std[1][current_index] << endl;
-        current_index = Xorder_next_index[1][current_index];
+    for(size_t j = 0; j < p; j ++ ){
+        cout << "variable " << j << endl;
+        cout << Xorder_left_std[j] << endl;
+
+        current_index = Xorder_left_firstline[j];
+        while(current_index < 10000){
+            cout << Xorder_std[j][current_index] << "    ";
+            current_index = Xorder_next_index[j][current_index];
+        }
+
+        cout << endl;
+
+    }   
+
+    cout << "---------------------- Xorder NEXT " << endl; 
+    for(size_t j = 0; j < p ; j ++ ){
+        cout << Xorder_next_index[j] << endl;
     }
-
-    // cout <<  << endl;
-
-
-
 
     return;
 }
