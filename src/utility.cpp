@@ -1,5 +1,6 @@
 #include "utility.h"
 
+
 xinfo copy_xinfo(Rcpp::NumericMatrix& X){
     size_t n_row = X.nrow();
     size_t n_col = X.ncol();
@@ -275,12 +276,12 @@ void recover_Xorder(xinfo_sizet& Xorder, std::vector<size_t>& Xorder_firstline, 
     size_t current_index;
     std::vector<size_t> temp;
 
-    size_t MAX_SIZE_T = std::numeric_limits<size_t>::max();
+    // size_t MAX_SIZE_T = std::numeric_limits<size_t>::max();
 
     for(size_t i = 0; i < p; i ++ ){
         current_index = Xorder_firstline[i];
         temp.clear();
-        while(current_index >= MAX_SIZE_T){
+        while(current_index < UINT_MAX){
             // cout << Xorder[i][current_index] << endl;
             temp.push_back(Xorder[i][current_index]);
             current_index = Xorder_next_index[i][current_index];
@@ -290,3 +291,28 @@ void recover_Xorder(xinfo_sizet& Xorder, std::vector<size_t>& Xorder_firstline, 
     }
     return;
 }
+
+
+void create_y_sort(std::vector<double>& Y_sort, const std::vector<double>& y_std, const xinfo_sizet& Xorder, const xinfo_sizet& Xorder_next_index, const std::vector<size_t>& Xorder_firstline, const size_t& var){
+    // recover sorted Y using Xorder linked list object
+    // only consider variable var
+    size_t current_index = Xorder_firstline[var];
+
+    size_t i = 0;
+    // cout << "Xorder_next" << Xorder_next_index[var] << endl;
+
+    // cout << "xoder" << Xorder[var] << endl;
+
+    // cout << "size of Y_sort " << Y_sort.size() << "  ";
+    while(current_index < UINT_MAX){
+        // cout << "  " << i ;
+        // cout << "  current_index " << current_index;       
+        // cout << " Xorder " << Xorder[var][current_index];
+        Y_sort[i] = y_std[Xorder[var][current_index]];
+        current_index = Xorder_next_index[var][current_index];
+        i ++;
+    }
+
+    return;
+}
+

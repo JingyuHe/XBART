@@ -281,5 +281,7 @@ double sq_vec_diff(std::vector<double>& v1, std::vector<double>& v2);
 
 void recover_Xorder(xinfo_sizet& Xorder, std::vector<size_t>& Xorder_firstline, xinfo_sizet& Xorder_next_index, xinfo_sizet& Xorder_new);
 
+void create_y_sort(std::vector<double>& Y_sort, const std::vector<double>& y_std, const xinfo_sizet& Xorder, const xinfo_sizet& Xorder_next_index, const std::vector<size_t>& Xorder_firstline, const size_t& var);
+
 
 #endif

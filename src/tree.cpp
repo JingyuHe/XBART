@@ -26,6 +26,7 @@ using namespace std;
 using namespace chrono;
 
 
+
 //--------------------
 // node id
 size_t tree::nid() const
@@ -844,7 +845,7 @@ void tree::grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t 
     bool no_split = false;
 
 
-    BART_likelihood_adaptive_std_mtry(y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars);
+    BART_likelihood_adaptive_std_mtry_newXorder(y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, Xorder_full, Xorder_next_index, Xorder_firstline);
 
     if(no_split == true){
         return;
@@ -1190,7 +1191,6 @@ void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorde
 
     // cout << "cut at data point " << split_point << endl;
 
-    size_t MAX_SIZE_T = std::numeric_limits<size_t>::max();
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
     size_t left_ix = 0;
@@ -1256,7 +1256,7 @@ void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorde
 
         // cout << "inside ok 2" << endl;
 
-        while(next_index < 100000){
+        while(next_index < UINT_MAX){
 
             next_index = Xorder_next_index[i][current_index];
 
@@ -1296,10 +1296,10 @@ void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorde
         }
 
         if(left_ix >= N_Xorder_left){
-            Xorder_next_index[i][left_previous_index] = MAX_SIZE_T;
+            Xorder_next_index[i][left_previous_index] = UINT_MAX;
         }
         if(right_ix >= N_Xorder_right){
-            Xorder_next_index[i][right_previous_index] = MAX_SIZE_T;
+            Xorder_next_index[i][right_previous_index] = UINT_MAX;
         }
 
     }
@@ -1331,7 +1331,7 @@ void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorde
 
     //     current_index = Xorder_right_firstline[j];
     //     while(current_index < 10000){
-    //         cout << Xorder_std_full[j][current_index] << "    ";
+    //         cout << Xorder_std_full[j][current_index] << ", ";
     //         current_index = Xorder_next_index[j][current_index];
     //     }
 
@@ -2162,7 +2162,8 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, xin
 
     double y_sum;
     double sigma2 = pow(sigma, 2);
-
+    
+    // std::vector<double> Y_sort2(N_Xorder);
 
     if( N  <= Ncutpoints + 1 + 2 * Nmin){
 
@@ -2192,9 +2193,12 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, xin
             // for(size_t i = 0; i < p; i++){
             for(auto&& i : subset_vars){
                 // loop over variables
-                for(size_t q = 0;  q < N_Xorder; q++ ){
-                    Y_sort[q] = y_std[Xorder_std[i][q]];
-                }
+                // for(size_t q = 0;  q < N_Xorder; q++ ){
+                //     Y_sort[q] = y_std[Xorder_std[i][q]];
+                // }
+
+                create_y_sort(Y_sort, y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i);
+
                 ypointer = &Y_sort[0];
 
                 std::partial_sum(Y_sort.begin(), Y_sort.end(), y_cumsum.begin());
@@ -2268,7 +2272,23 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, xin
         split_var = ind / (N - 1);
         split_point = ind % (N - 1);
 
-        if(ind == (N - 1) * p){no_split = true;}
+
+
+        if(ind == (N - 1) * p){
+            no_split = true;
+        }else{
+
+            size_t current_index = Xorder_firstline[split_var];
+            size_t count = 0;
+
+            while(count <= split_point){
+                current_index = Xorder_next_index[split_var][current_index];
+                count ++ ;
+            }
+
+            cout << Xorder_std[split_var][split_point] << "  " << Xorder_full[split_var][split_point] << endl;
+
+        }
 
         if((N - 1)<= 2 * Nmin){
             no_split = true;
@@ -2305,9 +2325,13 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, xin
             // for(size_t i = 0; i < p; i ++ ){
             for(auto&& i : subset_vars){
 
-                for(size_t q = 0;  q < N_Xorder; q++ ){
-                    Y_sort[q] = y_std[Xorder_std[i][q]];
-                }
+                // for(size_t q = 0;  q < N_Xorder; q++ ){
+                //     Y_sort[q] = y_std[Xorder_std[i][q]];
+                // }
+
+                create_y_sort(Y_sort, y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i);
+
+
                 ypointer = &Y_sort[0];
 
                 if(firstrun){

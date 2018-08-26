@@ -37,7 +37,7 @@
 #include <cassert>
 #include <RcppParallel.h>
 #include <map>
-
+#include <climits>
 
 
 using namespace RcppParallel;
