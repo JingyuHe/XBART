@@ -39,6 +39,9 @@ void calculate_y_cumsum_std(const double * y, const size_t N_y, double y_sum, st
 
 double subnode_mean(const std::vector<double>& y, xinfo_sizet& Xorder, const size_t& split_var);
 
+double subnode_mean_newXorder(const std::vector<double>& y, const xinfo_sizet& Xorder_full, const xinfo_sizet& Xorder_next_index, const size_t& split_var, const std::vector<size_t>& Xorder_firstline, const size_t& N_Xorder);
+
+
 struct likelihood_evaluation_subset : public Worker {
     // input variables, pass by reference
     const arma::vec& y;

@@ -788,13 +788,13 @@ void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth,
 
 
 
-void tree::grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline, const double* X_std, double* split_var_count_pointer, size_t& mtry, const std::vector<size_t>& subset_vars, xinfo_sizet& Xorder_full){
+void tree::grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, size_t N_Xorder, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline, const double* X_std, double* split_var_count_pointer, size_t& mtry, const std::vector<size_t>& subset_vars, xinfo_sizet& Xorder_full){
 
 
     // grow a tree, users can control number of split points
 
-    size_t N_Xorder = Xorder_std[0].size();
-    size_t p = Xorder_std.size();
+    // size_t N_Xorder = Xorder_std[0].size();
+    size_t p = Xorder_full.size();
     size_t N_y = y_std.size();
     size_t ind;
     size_t split_var;
@@ -845,15 +845,24 @@ void tree::grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t 
     bool no_split = false;
 
 
-    BART_likelihood_adaptive_std_mtry_newXorder(y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, Xorder_full, Xorder_next_index, Xorder_firstline);
+    BART_likelihood_adaptive_std_mtry_newXorder(y_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, N_Xorder, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, Xorder_full, Xorder_next_index, Xorder_firstline);
 
     if(no_split == true){
         return;
     }
 
 
+    size_t current_index = Xorder_firstline[split_var];
+    size_t count = 0;
+    while(count < split_point){
+        current_index = Xorder_next_index[split_var][current_index];
+        count ++ ;
+    }
+
+
     this -> v = split_var;
-    this -> c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+    // this -> c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+    this -> c = *(X_std + N_y * split_var + Xorder_full[split_var][current_index]);
 
 
 
@@ -863,10 +872,10 @@ void tree::grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t 
     size_t N_Xorder_left = split_point + 1;
     size_t N_Xorder_right = N_Xorder - split_point - 1;
 
-    xinfo_sizet Xorder_left_std;
-    xinfo_sizet Xorder_right_std;
-    ini_xinfo_sizet(Xorder_left_std, N_Xorder_left, p);
-    ini_xinfo_sizet(Xorder_right_std, N_Xorder_right, p);
+    // xinfo_sizet Xorder_left_std;
+    // xinfo_sizet Xorder_right_std;
+    // ini_xinfo_sizet(Xorder_left_std, N_Xorder_left, p);
+    // ini_xinfo_sizet(Xorder_right_std, N_Xorder_right, p);
 
 
     // std::vector<size_t> Xorder_firstline(p);
@@ -881,21 +890,26 @@ void tree::grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t 
 
     // cout << "OK 1" << endl;
 
-    split_xorder_std_newXorder(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, Xorder_next_index, X_std, N_y, p, N_Xorder, N_Xorder_left, N_Xorder_right, Xorder_firstline, Xorder_left_firstline, Xorder_right_firstline, Xorder_full);
+    split_xorder_std_newXorder(this-> c, split_var, split_point, Xorder_next_index, X_std, N_y, p, N_Xorder, N_Xorder_left, N_Xorder_right, Xorder_firstline, Xorder_left_firstline, Xorder_right_firstline, Xorder_full);
 
     // cout << "OK 2" << endl;
 
 
-    // free(Xorder_std);
+    // free(Xorder_std)
 
-    double yleft_mean_std = subnode_mean(y_std, Xorder_left_std, split_var);
-    double yright_mean_std = subnode_mean(y_std, Xorder_right_std, split_var);
+    // double yleft_mean_std = subnode_mean(y_std, Xorder_left_std, split_var);
+    double yleft_mean_std = subnode_mean_newXorder(y_std, Xorder_full, Xorder_next_index, split_var, Xorder_left_firstline, N_Xorder_left);
+    // double yright_mean_std = subnode_mean(y_std, Xorder_right_std, split_var);
+
+    double yright_mean_std = subnode_mean_newXorder(y_std, Xorder_full, Xorder_next_index, split_var, Xorder_right_firstline, N_Xorder_right);
+
+
 
     depth = depth + 1;
     tree::tree_p lchild = new tree();
-    lchild->grow_tree_adaptive_std_newXorder(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, Xorder_next_index, Xorder_left_firstline, X_std, split_var_count_pointer, mtry, subset_vars, Xorder_full);
+    lchild->grow_tree_adaptive_std_newXorder(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, N_Xorder_left, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_next_index, Xorder_left_firstline, X_std, split_var_count_pointer, mtry, subset_vars, Xorder_full);
     tree::tree_p rchild = new tree();
-    rchild->grow_tree_adaptive_std_newXorder(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, Xorder_next_index, Xorder_right_firstline, X_std, split_var_count_pointer, mtry, subset_vars, Xorder_full);
+    rchild->grow_tree_adaptive_std_newXorder(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, N_Xorder_right, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_next_index, Xorder_right_firstline, X_std, split_var_count_pointer, mtry, subset_vars, Xorder_full);
 
 
 
@@ -1184,7 +1198,7 @@ void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_st
 
 
 
-void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, const size_t& split_var, const size_t& split_point, const xinfo_sizet& Xorder_std, xinfo_sizet& Xorder_next_index, const double* X_std, size_t N_y, size_t p, size_t& N_Xorder, size_t& N_Xorder_left, size_t& N_Xorder_right, std::vector<size_t>& Xorder_firstline, std::vector<size_t>& Xorder_left_firstline, std::vector<size_t>& Xorder_right_firstline, xinfo_sizet& Xorder_std_full){
+void split_xorder_std_newXorder(const double& cutvalue, const size_t& split_var, const size_t& split_point, xinfo_sizet& Xorder_next_index, const double* X_std, size_t N_y, size_t p, size_t& N_Xorder, size_t& N_Xorder_left, size_t& N_Xorder_right, std::vector<size_t>& Xorder_firstline, std::vector<size_t>& Xorder_left_firstline, std::vector<size_t>& Xorder_right_firstline, xinfo_sizet& Xorder_std_full){
 
 
     // cout << "cut at variable " << split_var << endl;
@@ -1198,37 +1212,37 @@ void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorde
 
     const double * temp_pointer = X_std + N_y * split_var;
 
-    double cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
-    for(size_t i = 0; i < p; i ++ ){
-        // loop over variables
-        left_ix = 0;
-        right_ix = 0;
-        const double * temp_pointer = X_std + N_y * split_var;
-        for(size_t j = 0; j < N_Xorder; j ++){
-            // Xorder(j, i), jth row and ith column
-            // look at X(Xorder(j, i), split_var)
-            // X[split_var][Xorder[i][j]]
-            // X[split_var][Xorder[split_var][split_point]]
-            if( *(temp_pointer + Xorder_std[i][j])<= cutvalue){
-                // copy a row
-                // for(size_t k = 0; k < p; k ++){
-                //     Xorder_left_std[i][left_ix];// = Xorder_std[i][j];
-                //     left_ix = left_ix + 1;
-                // }
-                Xorder_left_std[i][left_ix] = Xorder_std[i][j];
-                left_ix = left_ix + 1;
-            }else{
-                // for(size_t k = 0; k < p; k ++){
-                //     // Xorder_right[i][right_ix] = Xorder[i][j];
-                //     right_ix = right_ix + 1;
-                // }
-                Xorder_right_std[i][right_ix] = Xorder_std[i][j];
-                right_ix = right_ix + 1;
-            }
+    // double cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+    // for(size_t i = 0; i < p; i ++ ){
+    //     // loop over variables
+    //     left_ix = 0;
+    //     right_ix = 0;
+    //     const double * temp_pointer = X_std + N_y * split_var;
+    //     for(size_t j = 0; j < N_Xorder; j ++){
+    //         // Xorder(j, i), jth row and ith column
+    //         // look at X(Xorder(j, i), split_var)
+    //         // X[split_var][Xorder[i][j]]
+    //         // X[split_var][Xorder[split_var][split_point]]
+    //         if( *(temp_pointer + Xorder_std[i][j])<= cutvalue){
+    //             // copy a row
+    //             // for(size_t k = 0; k < p; k ++){
+    //             //     Xorder_left_std[i][left_ix];// = Xorder_std[i][j];
+    //             //     left_ix = left_ix + 1;
+    //             // }
+    //             Xorder_left_std[i][left_ix] = Xorder_std[i][j];
+    //             left_ix = left_ix + 1;
+    //         }else{
+    //             // for(size_t k = 0; k < p; k ++){
+    //             //     // Xorder_right[i][right_ix] = Xorder[i][j];
+    //             //     right_ix = right_ix + 1;
+    //             // }
+    //             Xorder_right_std[i][right_ix] = Xorder_std[i][j];
+    //             right_ix = right_ix + 1;
+    //         }
 
-        }
+    //     }
 
-    }
+    // }
 
 
     // preserve order of other variables
@@ -2145,7 +2159,7 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
 
 
 
-void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, const std::vector<size_t>& subset_vars, xinfo_sizet& Xorder_full, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline){
+void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, const double* X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, size_t N_Xorder, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, const std::vector<size_t>& subset_vars, xinfo_sizet& Xorder_full, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline){
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
 
@@ -2155,10 +2169,10 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, xin
     // length of loglike is p * (N - 1) + 1
     // N - 1 has to be greater than 2 * Nmin
 
-    size_t N = Xorder_std[0].size();
-    size_t p = Xorder_std.size();
+    size_t N = N_Xorder;
+    size_t p = Xorder_full.size();
     size_t ind;
-    size_t N_Xorder = N;
+    // size_t N_Xorder = N;
 
     double y_sum;
     double sigma2 = pow(sigma, 2);
@@ -2227,8 +2241,8 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, xin
 
             // parallel computing
 
-            likelihood_fullset_std like_parallel_full(y_std, Xorder_std, N_Xorder, subset_vars, tau, Ntau, sigma2, loglike);
-            parallelFor(0, subset_vars.size(), like_parallel_full);
+            // likelihood_fullset_std like_parallel_full(y_std, Xorder_std, N_Xorder, subset_vars, tau, Ntau, sigma2, loglike);
+            // parallelFor(0, subset_vars.size(), like_parallel_full);
 
         }
 
@@ -2277,16 +2291,15 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, xin
         if(ind == (N - 1) * p){
             no_split = true;
         }else{
+                    
+            // size_t current_index = Xorder_firstline[split_var];
+            // size_t count = 0;
+            // while(count < split_point){
+            //     current_index = Xorder_next_index[split_var][current_index];
+            //     count ++ ;
+            // }
 
-            size_t current_index = Xorder_firstline[split_var];
-            size_t count = 0;
-
-            while(count <= split_point){
-                current_index = Xorder_next_index[split_var][current_index];
-                count ++ ;
-            }
-
-            cout << Xorder_std[split_var][split_point] << "  " << Xorder_full[split_var][split_point] << endl;
+            // cout << Xorder_std[split_var][split_point] << "  " << Xorder_full[split_var][current_index] << endl;
 
         }
 
@@ -2361,8 +2374,8 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, xin
             // parallel computing
 
 
-            likelihood_subset_std like_parallel(y_std, Xorder_std, N_Xorder, Ncutpoints, subset_vars, tau, sigma2, candidate_index, loglike);
-            parallelFor(0, subset_vars.size(), like_parallel);
+            // likelihood_subset_std like_parallel(y_std, Xorder_std, N_Xorder, Ncutpoints, subset_vars, tau, sigma2, candidate_index, loglike);
+            // parallelFor(0, subset_vars.size(), like_parallel);
         }
 
 

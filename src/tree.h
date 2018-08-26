@@ -33,7 +33,9 @@
 void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet& Xorder_std, const double* X_std, size_t N_y, size_t p);
 
 
-void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, const size_t& split_var, const size_t& split_point, const xinfo_sizet& Xorder_std, xinfo_sizet& Xorder_next_index, const double* X_std, size_t N_y, size_t p, size_t& N_Xorder, size_t& N_Xorder_left, size_t& N_Xorder_right, std::vector<size_t>& Xorder_firstline, std::vector<size_t>& Xorder_left_firstline, std::vector<size_t>& Xorder_right_firstline, xinfo_sizet& Xorder_full);
+// void split_xorder_std_newXorder(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, const size_t& split_var, const size_t& split_point, const xinfo_sizet& Xorder_std, xinfo_sizet& Xorder_next_index, const double* X_std, size_t N_y, size_t p, size_t& N_Xorder, size_t& N_Xorder_left, size_t& N_Xorder_right, std::vector<size_t>& Xorder_firstline, std::vector<size_t>& Xorder_left_firstline, std::vector<size_t>& Xorder_right_firstline, xinfo_sizet& Xorder_full);
+
+void split_xorder_std_newXorder(const double& cutvalue, const size_t& split_var, const size_t& split_point, xinfo_sizet& Xorder_next_index, const double* X_std, size_t N_y, size_t p, size_t& N_Xorder, size_t& N_Xorder_left, size_t& N_Xorder_right, std::vector<size_t>& Xorder_firstline, std::vector<size_t>& Xorder_left_firstline, std::vector<size_t>& Xorder_right_firstline, xinfo_sizet& Xorder_std_full);
 
 
 //--------------------------------------------------
@@ -52,7 +54,7 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
 
 
 
-void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, const std::vector<size_t>& subset_vars, xinfo_sizet& Xorder_full, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline);
+void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, const double* X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, size_t N_Xorder, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, const std::vector<size_t>& subset_vars, xinfo_sizet& Xorder_full, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline);
 
 
 void cumulative_sum_std(std::vector<double>& y_cumsum, std::vector<double>& y_cumsum_inv, double& y_sum, double* y, xinfo_sizet& Xorder, size_t& i, size_t& N);
@@ -134,7 +136,11 @@ public:
 
    void grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double* split_var_count_pointer, size_t& mtry, const std::vector<size_t>& subset_vars, double& run_time);
 
-   void grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline, const double* X_std, double* split_var_count_pointer, size_t& mtry, const std::vector<size_t>& subset_vars, xinfo_sizet& Xorder_full);
+  //  void grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, size_t N_Xorder, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline, const double* X_std, double* split_var_count_pointer, size_t& mtry, const std::vector<size_t>& subset_vars, xinfo_sizet& Xorder_full);
+
+
+   void grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, size_t N_Xorder, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline, const double* X_std, double* split_var_count_pointer, size_t& mtry, const std::vector<size_t>& subset_vars, xinfo_sizet& Xorder_full);
+
 
    void grow_tree_adaptive_onestep(arma::mat& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel);
 

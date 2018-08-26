@@ -82,6 +82,25 @@ double subnode_mean(const std::vector<double>& y, xinfo_sizet& Xorder, const siz
 
 
 
+
+double subnode_mean_newXorder(const std::vector<double>& y, const xinfo_sizet& Xorder_full, const xinfo_sizet& Xorder_next_index, const size_t& split_var, const std::vector<size_t>& Xorder_firstline, const size_t& N_Xorder){
+    // calculate mean of y falls into the same subnode
+    double output = 0.0;
+    // size_t N_Xorder = Xorder[split_var].size();
+
+    size_t current_index = Xorder_firstline[split_var];
+    for(size_t i = 0; i < N_Xorder; i ++ ){
+        output = output + y[Xorder_full[split_var][current_index]];
+        current_index = Xorder_next_index[split_var][current_index];
+    }
+    output = output / N_Xorder;
+    return output;
+}
+
+
+
+
+
 void row_sum(xinfo& X, std::vector<double>& output){
     size_t p = X.size();
     size_t N = X[0].size();
