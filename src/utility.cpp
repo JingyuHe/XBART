@@ -343,26 +343,45 @@ void create_y_sort_2(std::vector<double>& Y_sort, std::vector<double>& possible_
     // recover sorted Y using Xorder linked list object
     // only consider variable var
     size_t current_index = Xorder_firstline[var];
-
     size_t i = 0;
-    // cout << "Xorder_next" << Xorder_next_index[var] << endl;
 
-    // cout << "xoder" << Xorder[var] << endl;
 
-    // cout << "size of Y_sort " << Y_sort.size() << "  ";
+    
     while(current_index < UINT_MAX){
-        // cout << "  " << i ;
-        // cout << "  current_index " << current_index;       
-        // cout << " Xorder " << Xorder[var][current_index];
+        
         possible_cutpoints[i] = *(X_std + N_y * var + Xorder[var][current_index]);
 
         Y_sort[i] = y_std[Xorder[var][current_index]];
         current_index = Xorder_next_index[var][current_index];
         i ++;
+
     }
 
     return;
 }
+
+
+
+void compute_partial_sum_newXorder(const std::vector<double>& y_std, const xinfo_sizet& Xorder, const xinfo_sizet& Xorder_next_index, const std::vector<size_t>& Xorder_firstline, const size_t& var, const size_t N_y, std::vector<double>& y_cumsum, std::vector<double>& possible_cutpoints, const double* X_std){
+    size_t current_index = Xorder_firstline[var];
+    size_t i = 0;
+    // first element 
+    y_cumsum[0] = y_std[Xorder[var][current_index]];
+    possible_cutpoints[0] = *(X_std + N_y * var + Xorder[var][current_index]);
+    current_index = Xorder_next_index[var][current_index];
+    i = 1;
+
+
+    while(current_index < UINT_MAX){
+        possible_cutpoints[i] = *(X_std + N_y * var + Xorder[var][current_index]);
+        y_cumsum[i] = y_cumsum[i - 1] + y_std[Xorder[var][current_index]];
+        current_index = Xorder_next_index[var][current_index];
+        i++;
+    }
+    return;
+}
+
+
 
 
 void create_y_sort_3(std::vector<double>& Y_sort, std::vector<double>& possible_cutpoints, const double* X_std, const std::vector<double>& y_std, const xinfo_sizet& Xorder, const xinfo_sizet& Xorder_next_index, const std::vector<size_t>& Xorder_firstline, const size_t& var, const size_t& N_y, std::vector<size_t>& candidate_index){

@@ -2211,12 +2211,13 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, con
         std::vector<double> y_cumsum(N_Xorder);
         std::vector<double> y_cumsum_inv(N_Xorder);
 
-
+        // std::vector<double> y_cumsum2(N_Xorder);
         // std::vector<double> loglike_2(loglike.size(), -INFINITY);
 
 
         xinfo possible_cutpoints;
-
+        // xinfo possible_cutpoints2;
+        // ini_xinfo(possible_cutpoints2, N_Xorder, p);
         ini_xinfo(possible_cutpoints, N_Xorder, p);
 
         if(parallel == false){
@@ -2231,14 +2232,16 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, con
                 // create_y_sort(Y_sort, y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i);
 
 
-                create_y_sort_2(Y_sort, possible_cutpoints[i], X_std, y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i, N_y);
+                // create_y_sort_2(Y_sort, possible_cutpoints[i], X_std, y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i, N_y);
 
-
+                compute_partial_sum_newXorder(y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i, N_y, y_cumsum, possible_cutpoints[i], X_std);
 // cout << possible_cutpoints[i] << endl;
 
-                ypointer = &Y_sort[0];
+                // ypointer = &Y_sort[0];
 
-                std::partial_sum(Y_sort.begin(), Y_sort.end(), y_cumsum.begin());
+                // std::partial_sum(Y_sort.begin(), Y_sort.end(), y_cumsum.begin());
+
+                // cout << possible_cutpoints[i] - possible_cutpoints2[i] << endl;
 
                 y_sum = y_cumsum[y_cumsum.size() - 1]; // last one
 
