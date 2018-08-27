@@ -851,15 +851,6 @@ void tree::grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t 
         return;
     }
 
-
-    // size_t current_index = Xorder_firstline[split_var];
-    // size_t count = 0;
-    // while(count < split_point){
-    //     current_index = Xorder_next_index[split_var][current_index];
-    //     count ++ ;
-    // }
-
-
     this -> v = split_var;
     // this -> c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
     // this -> c = *(X_std + N_y * split_var + Xorder_full[split_var][current_index]);
@@ -2216,7 +2207,7 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, con
                 //     Y_sort[q] = y_std[Xorder_std[i][q]];
                 // }
 
-                create_y_sort(Y_sort, y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i);
+                // create_y_sort(Y_sort, y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i);
 
 
                 create_y_sort_2(Y_sort, possible_cutpoints[i], X_std, y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i, N_y);
@@ -2351,7 +2342,7 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, con
                 //     Y_sort[q] = y_std[Xorder_std[i][q]];
                 // }
 
-                create_y_sort(Y_sort, y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i);
+                // create_y_sort(Y_sort, y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i);
 
                 create_y_sort_3(Y_sort, possible_cutpoints[i], X_std, y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i, N_y, candidate_index);
 
