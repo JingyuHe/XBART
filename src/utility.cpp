@@ -240,6 +240,25 @@ void calculate_y_cumsum_std(const double * y, const size_t N_y, double y_sum, st
 }
 
 
+void compute_partial_sum_adaptive(std::vector<double>& y_std, std::vector<size_t>& candidate_index, std::vector<double>& y_cumsum, xinfo_sizet& Xorder_std, const size_t& var){
+    size_t M = y_cumsum.size();
+    size_t N_Xorder = Xorder_std[0].size();
+    size_t ind = 0;
+    // size_t N_Xorder = Xorder_std[0].size();
+    for(size_t i = 0; i < N_Xorder; i ++ ){
+        if(i <= candidate_index[ind]){
+            y_cumsum[ind] = y_cumsum[ind] + y_std[Xorder_std[var][i]];
+        }else{
+            if(ind < M - 1){
+                ind ++;
+            }
+            y_cumsum[ind] = y_cumsum[ind - 1] + y_std[Xorder_std[var][i]];
+        }
+    }
+    return;
+}
+
+
 
 
 

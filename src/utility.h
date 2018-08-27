@@ -37,6 +37,10 @@ void calculate_y_cumsum(arma::vec& y, double y_sum, arma::uvec& ind, arma::vec& 
 
 void calculate_y_cumsum_std(const double * y, const size_t N_y, double y_sum, std::vector<size_t>& ind, std::vector<double>& y_cumsum, std::vector<double>& y_cumsum_inv);
 
+void compute_partial_sum_adaptive(std::vector<double>& y_std, std::vector<size_t>& candidate_index, std::vector<double>& y_cumsum, xinfo_sizet& Xorder_std, const size_t& var);
+
+
+
 double subnode_mean(const std::vector<double>& y, xinfo_sizet& Xorder, const size_t& split_var);
 
 double subnode_mean_newXorder(const std::vector<double>& y, const xinfo_sizet& Xorder_full, const xinfo_sizet& Xorder_next_index, const size_t& split_var, const std::vector<size_t>& Xorder_firstline, const size_t& N_Xorder);

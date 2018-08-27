@@ -671,7 +671,7 @@ void tree::grow_tree_adaptive(arma::mat& y, double y_mean, arma::umat& Xorder, a
 
 
 
-void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double* split_var_count_pointer, size_t& mtry, const std::vector<size_t>& subset_vars, double& run_time){
+void tree::grow_tree_adaptive_std(double y_mean, double y_sum, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double* split_var_count_pointer, size_t& mtry, const std::vector<size_t>& subset_vars, double& run_time){
 
 
     // grow a tree, users can control number of split points
@@ -727,8 +727,8 @@ void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth,
     this->sig = sigma;
     bool no_split = false;
 
-
     BART_likelihood_adaptive_std_mtry(y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars);
+
 
     if(no_split == true){
         return;
@@ -758,6 +758,10 @@ void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth,
     auto end = system_clock::now();
 
 
+    double yleft_sum = yleft_mean_std *  (split_point + 1);
+
+    double yright_sum = yright_mean_std * (N_Xorder - split_point - 1);
+
     auto duration = duration_cast<microseconds>(end - start);
 
     double running_time = double(duration.count()) * microseconds::period::num / microseconds::period::den ;
@@ -777,9 +781,9 @@ void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth,
 
     depth = depth + 1;
     tree::tree_p lchild = new tree();
-    lchild->grow_tree_adaptive_std(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, split_var_count_pointer, mtry, subset_vars, running_time_left);
+    lchild->grow_tree_adaptive_std(yleft_mean_std, yleft_sum, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, split_var_count_pointer, mtry, subset_vars, running_time_left);
     tree::tree_p rchild = new tree();
-    rchild->grow_tree_adaptive_std(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, split_var_count_pointer, mtry, subset_vars, running_time_right);
+    rchild->grow_tree_adaptive_std(yright_mean_std, yright_sum, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, split_var_count_pointer, mtry, subset_vars, running_time_right);
 
     lchild -> p = this;
     rchild -> p = this;
@@ -2083,7 +2087,7 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
         std::vector<double> y_cumsum(Ncutpoints);
         std::vector<double> y_cumsum_inv(Ncutpoints);
 
-
+        // std::vector<double> y_cumsum2(Ncutpoints);
 
         // std::vector<double> loglike_2(loglike.size(), -INFINITY);
 
@@ -2103,17 +2107,31 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
             // for(size_t i = 0; i < p; i ++ ){
             for(auto&& i : subset_vars){
 
-                for(size_t q = 0;  q < N_Xorder; q++ ){
-                    Y_sort[q] = y_std[Xorder_std[i][q]];
-                }
-                ypointer = &Y_sort[0];
+                // for(size_t q = 0;  q < N_Xorder; q++ ){
+                //     Y_sort[q] = y_std[Xorder_std[i][q]];
+                // }
+                // ypointer = &Y_sort[0];
 
-                if(firstrun){
-                    y_sum = sum_vec(Y_sort);
-                    firstrun = false;
-                }
+                // if(firstrun){
+                //     y_sum = sum_vec(Y_sort);
+                //     firstrun = false;
+                // }
 
-                calculate_y_cumsum_std(ypointer, Y_sort.size(), y_sum, candidate_index, y_cumsum, y_cumsum_inv);
+                // calculate_y_cumsum_std(ypointer, Y_sort.size(), y_sum, candidate_index, y_cumsum, y_cumsum_inv);
+
+
+                std::fill(y_cumsum.begin(), y_cumsum.end(), 0.0);
+                compute_partial_sum_adaptive(y_std, candidate_index, y_cumsum, Xorder_std, i);
+
+                // y_sum = y_cumsum[y_cumsum.size() - 1]; // last one
+
+                // for(size_t k = 0; k < Ncutpoints; k ++ ){
+                    // y_cumsum_inv[k] = y_sum - y_cumsum[k];
+                // }
+
+
+// cout << y_cumsum[1] <<" " <<  y_cumsum2[1] << endl;
+
 
                 for(size_t j = 0; j < Ncutpoints; j ++ ){
                     // loop over all possible cutpoints
