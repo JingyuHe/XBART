@@ -844,26 +844,28 @@ void tree::grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t 
     this->sig = sigma;
     bool no_split = false;
 
-
-    BART_likelihood_adaptive_std_mtry_newXorder(y_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, N_Xorder, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, Xorder_full, Xorder_next_index, Xorder_firstline);
+    double cutvalue = 0.0;
+    BART_likelihood_adaptive_std_mtry_newXorder(y_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, N_Xorder, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, Xorder_full, Xorder_next_index, Xorder_firstline, N_y, cutvalue);
 
     if(no_split == true){
         return;
     }
 
 
-    size_t current_index = Xorder_firstline[split_var];
-    size_t count = 0;
-    while(count < split_point){
-        current_index = Xorder_next_index[split_var][current_index];
-        count ++ ;
-    }
+    // size_t current_index = Xorder_firstline[split_var];
+    // size_t count = 0;
+    // while(count < split_point){
+    //     current_index = Xorder_next_index[split_var][current_index];
+    //     count ++ ;
+    // }
 
 
     this -> v = split_var;
     // this -> c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
-    this -> c = *(X_std + N_y * split_var + Xorder_full[split_var][current_index]);
+    // this -> c = *(X_std + N_y * split_var + Xorder_full[split_var][current_index]);
 
+    this -> c = cutvalue;
+    // cout << "real split point " << this-> c <<"   " << cutvalue <<  endl;
 
 
     split_var_count_pointer[split_var] ++;
@@ -2159,7 +2161,7 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
 
 
 
-void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, const double* X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, size_t N_Xorder, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, const std::vector<size_t>& subset_vars, xinfo_sizet& Xorder_full, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline){
+void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, const double* X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, size_t N_Xorder, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, const std::vector<size_t>& subset_vars, xinfo_sizet& Xorder_full, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline, size_t& N_y, double& cutvalue){
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
 
@@ -2201,6 +2203,9 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, con
         // std::vector<double> loglike_2(loglike.size(), -INFINITY);
 
 
+        xinfo possible_cutpoints;
+
+        ini_xinfo(possible_cutpoints, N_Xorder, p);
 
         if(parallel == false){
 
@@ -2212,6 +2217,12 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, con
                 // }
 
                 create_y_sort(Y_sort, y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i);
+
+
+                create_y_sort_2(Y_sort, possible_cutpoints[i], X_std, y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i, N_y);
+
+
+// cout << possible_cutpoints[i] << endl;
 
                 ypointer = &Y_sort[0];
 
@@ -2291,16 +2302,7 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, con
         if(ind == (N - 1) * p){
             no_split = true;
         }else{
-                    
-            // size_t current_index = Xorder_firstline[split_var];
-            // size_t count = 0;
-            // while(count < split_point){
-            //     current_index = Xorder_next_index[split_var][current_index];
-            //     count ++ ;
-            // }
-
-            // cout << Xorder_std[split_var][split_point] << "  " << Xorder_full[split_var][current_index] << endl;
-
+            cutvalue = possible_cutpoints[split_var][split_point];
         }
 
         if((N - 1)<= 2 * Nmin){
@@ -2328,6 +2330,13 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, con
 
         double Ntau = N_Xorder * tau;
 
+
+        xinfo possible_cutpoints;
+
+        ini_xinfo(possible_cutpoints, Ncutpoints, p);
+
+
+
         if(parallel == false){
 
             bool firstrun = true;   // flag of the first loop
@@ -2344,6 +2353,7 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, con
 
                 create_y_sort(Y_sort, y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i);
 
+                create_y_sort_3(Y_sort, possible_cutpoints[i], X_std, y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i, N_y, candidate_index);
 
                 ypointer = &Y_sort[0];
 
@@ -2364,7 +2374,7 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, con
 
 
                 }
-            }
+            }   
 
 
 
@@ -2404,7 +2414,9 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, con
         split_point = candidate_index[ind % Ncutpoints];
 
         if(ind == (Ncutpoints) * p){no_split = true;}
-
+        else{
+            cutvalue = possible_cutpoints[split_var][ind % Ncutpoints];
+        }
     }
 
     return;

@@ -335,3 +335,60 @@ void create_y_sort(std::vector<double>& Y_sort, const std::vector<double>& y_std
     return;
 }
 
+
+void create_y_sort_2(std::vector<double>& Y_sort, std::vector<double>& possible_cutpoints, const double* X_std, const std::vector<double>& y_std, const xinfo_sizet& Xorder, const xinfo_sizet& Xorder_next_index, const std::vector<size_t>& Xorder_firstline, const size_t& var, const size_t& N_y){
+    // recover sorted Y using Xorder linked list object
+    // only consider variable var
+    size_t current_index = Xorder_firstline[var];
+
+    size_t i = 0;
+    // cout << "Xorder_next" << Xorder_next_index[var] << endl;
+
+    // cout << "xoder" << Xorder[var] << endl;
+
+    // cout << "size of Y_sort " << Y_sort.size() << "  ";
+    while(current_index < UINT_MAX){
+        // cout << "  " << i ;
+        // cout << "  current_index " << current_index;       
+        // cout << " Xorder " << Xorder[var][current_index];
+        possible_cutpoints[i] = *(X_std + N_y * var + Xorder[var][current_index]);
+
+        Y_sort[i] = y_std[Xorder[var][current_index]];
+        current_index = Xorder_next_index[var][current_index];
+        i ++;
+    }
+
+    return;
+}
+
+
+void create_y_sort_3(std::vector<double>& Y_sort, std::vector<double>& possible_cutpoints, const double* X_std, const std::vector<double>& y_std, const xinfo_sizet& Xorder, const xinfo_sizet& Xorder_next_index, const std::vector<size_t>& Xorder_firstline, const size_t& var, const size_t& N_y, std::vector<size_t>& candidate_index){
+    // recover sorted Y using Xorder linked list object
+    // only consider variable var
+    size_t current_index = Xorder_firstline[var];
+
+    size_t i = 0;
+    // cout << "Xorder_next" << Xorder_next_index[var] << endl;
+
+    // cout << "xoder" << Xorder[var] << endl;
+
+    // cout << "size of Y_sort " << Y_sort.size() << "  ";
+    size_t index = 0;
+    while(current_index < UINT_MAX){
+        // cout << "  " << i ;
+        // cout << "  current_index " << current_index;       
+        // cout << " Xorder " << Xorder[var][current_index];
+        Y_sort[i] = y_std[Xorder[var][current_index]];
+        current_index = Xorder_next_index[var][current_index];
+
+        if(index < candidate_index.size() && i == (candidate_index[index] - 1)){
+            possible_cutpoints[index] = *(X_std + N_y * var + Xorder[var][current_index]);
+            index = index + 1;
+        }
+
+        i ++;
+    }
+
+    return;
+}
+

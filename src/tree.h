@@ -54,7 +54,7 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
 
 
 
-void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, const double* X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, size_t N_Xorder, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, const std::vector<size_t>& subset_vars, xinfo_sizet& Xorder_full, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline);
+void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, const double* X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, size_t N_Xorder, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, const std::vector<size_t>& subset_vars, xinfo_sizet& Xorder_full, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline, size_t& N_y, double& cutvalue);
 
 
 void cumulative_sum_std(std::vector<double>& y_cumsum, std::vector<double>& y_cumsum_inv, double& y_sum, double* y, xinfo_sizet& Xorder, size_t& i, size_t& N);
