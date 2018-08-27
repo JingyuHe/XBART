@@ -753,7 +753,7 @@ void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth,
     double yright_mean_std = 0.0;
     auto start = system_clock::now();
 
-    split_xorder_std(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, yleft_mean_std, yright_mean_std, y_std);
+    split_xorder_std(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, yleft_mean_std, yright_mean_std, y_mean, y_std);
 
     auto end = system_clock::now();
 
@@ -893,7 +893,7 @@ void tree::grow_tree_adaptive_std_newXorder(double y_mean, size_t depth, size_t 
     double yright_mean_std = 0.0;
 
     // cout << "ok 1" << endl;
-    split_xorder_std_newXorder(this-> c, split_var, split_point, Xorder_next_index, X_std, N_y, p, N_Xorder, N_Xorder_left, N_Xorder_right, Xorder_firstline, Xorder_left_firstline, Xorder_right_firstline, Xorder_full, yleft_mean_std, yright_mean_std, y_std);
+    split_xorder_std_newXorder(this-> c, split_var, split_point, Xorder_next_index, X_std, N_y, p, N_Xorder, N_Xorder_left, N_Xorder_right, Xorder_firstline, Xorder_left_firstline, Xorder_right_firstline, Xorder_full, yleft_mean_std, yright_mean_std, y_mean, y_std);
 
     // cout << "OK 2" << endl;
 
@@ -1105,7 +1105,7 @@ void tree::grow_tree_adaptive_onestep_std(double y_mean, size_t depth, size_t ma
     double yleft_mean_std = 0.0;
     double yright_mean_std = 0.0;
 
-    split_xorder_std(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, yleft_mean_std, yright_mean_std, y_std);
+    split_xorder_std(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, yleft_mean_std, yright_mean_std, y_mean, y_std);
 
     // double yleft_mean_std = subnode_mean(y_std, Xorder_left_std, split_var);
     // double yright_mean_std = subnode_mean(y_std, Xorder_right_std, split_var);
@@ -1155,7 +1155,7 @@ void split_xorder(arma::umat& Xorder_left, arma::umat& Xorder_right, arma::umat&
 }
 
 
-void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet& Xorder_std, const double* X_std, size_t N_y, size_t p, double& yleft_mean, double& yright_mean, std::vector<double>& y_std){
+void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet& Xorder_std, const double* X_std, size_t N_y, size_t p, double& yleft_mean, double& yright_mean, const double& y_mean, std::vector<double>& y_std){
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
 
@@ -1165,6 +1165,9 @@ void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_st
     size_t right_ix = 0;
     size_t N_Xorder_left = Xorder_left_std[0].size();
     size_t N_Xorder_right = Xorder_right_std[0].size();
+
+    // if the left side is smaller, we only compute sum of it
+    bool compute_left_side = N_Xorder_left < N_Xorder_right;
 
     yleft_mean = 0.0;
     yright_mean = 0.0;
@@ -1186,7 +1189,7 @@ void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_st
                 //     Xorder_left_std[i][left_ix];// = Xorder_std[i][j];
                 //     left_ix = left_ix + 1;
                 // }
-                if(i == split_var){
+                if(i == split_var && compute_left_side){
                     yleft_mean = yleft_mean + y_std[Xorder_std[split_var][j]];
                 }
                 Xorder_left_std[i][left_ix] = Xorder_std[i][j];
@@ -1196,7 +1199,7 @@ void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_st
                 //     // Xorder_right[i][right_ix] = Xorder[i][j];
                 //     right_ix = right_ix + 1;
                 // }
-                if(i == split_var){
+                if(i == split_var && (!compute_left_side)){
                     yright_mean = yright_mean + y_std[Xorder_std[split_var][j]];
                 }
 
@@ -1208,8 +1211,16 @@ void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_st
 
     }
 
-    yright_mean = yright_mean / N_Xorder_right;
-    yleft_mean = yleft_mean / N_Xorder_left;
+    if(compute_left_side){
+        yright_mean = (y_mean * N_Xorder - yleft_mean) / N_Xorder_right;
+        yleft_mean = yleft_mean / N_Xorder_left;
+    }else{
+        yleft_mean = (y_mean * N_Xorder - yright_mean) / N_Xorder_left;
+        yright_mean = yright_mean / N_Xorder_right;
+    }
+
+    // yright_mean = yright_mean / N_Xorder_right;
+    // yleft_mean = yleft_mean / N_Xorder_left;
 
     return;
 }
@@ -1219,11 +1230,13 @@ void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_st
 
 
 
-void split_xorder_std_newXorder(const double& cutvalue, const size_t& split_var, const size_t& split_point, xinfo_sizet& Xorder_next_index, const double* X_std, size_t N_y, size_t p, size_t& N_Xorder, size_t& N_Xorder_left, size_t& N_Xorder_right, std::vector<size_t>& Xorder_firstline, std::vector<size_t>& Xorder_left_firstline, std::vector<size_t>& Xorder_right_firstline, xinfo_sizet& Xorder_std_full, double& y_left_mean, double& y_right_mean, std::vector<double>& y_std){
+void split_xorder_std_newXorder(const double& cutvalue, const size_t& split_var, const size_t& split_point, xinfo_sizet& Xorder_next_index, const double* X_std, size_t N_y, size_t p, size_t& N_Xorder, size_t& N_Xorder_left, size_t& N_Xorder_right, std::vector<size_t>& Xorder_firstline, std::vector<size_t>& Xorder_left_firstline, std::vector<size_t>& Xorder_right_firstline, xinfo_sizet& Xorder_std_full, double& y_left_mean, double& y_right_mean, const double& y_mean, std::vector<double>& y_std){
 
     y_left_mean = 0.0;
     y_right_mean = 0.0;
 
+
+    bool compute_left_side = N_Xorder_left < N_Xorder_right;
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
     size_t left_ix = 0;
@@ -1262,7 +1275,7 @@ void split_xorder_std_newXorder(const double& cutvalue, const size_t& split_var,
             if( *(temp_pointer + Xorder_std_full[i][current_index])<= cutvalue){
                 // cout << "left " << endl;
 
-                if(i == split_var){
+                if(i == split_var && compute_left_side){
                     y_left_mean = y_left_mean + y_std[Xorder_std_full[split_var][current_index]];
                 }
 
@@ -1281,7 +1294,7 @@ void split_xorder_std_newXorder(const double& cutvalue, const size_t& split_var,
                 }
             }else{
 
-                if(i == split_var){
+                if(i == split_var && (! compute_left_side)){
                     y_right_mean = y_right_mean + y_std[Xorder_std_full[split_var][current_index]];
                 }  
                 // cout << "right " << endl;
@@ -1311,9 +1324,13 @@ void split_xorder_std_newXorder(const double& cutvalue, const size_t& split_var,
     }
 
 
-    y_left_mean = y_left_mean / N_Xorder_left;
-    y_right_mean = y_right_mean / N_Xorder_right;
-
+    if(compute_left_side){
+        y_right_mean = (y_mean * N_Xorder - y_left_mean) / N_Xorder_right;
+        y_left_mean = y_left_mean / N_Xorder_left;
+    }else{
+        y_left_mean = (y_mean * N_Xorder - y_right_mean) / N_Xorder_left;
+        y_right_mean = y_right_mean / N_Xorder_right;
+    }
 
     // for(size_t i = 0; i < p; i ++ ){
     //     // cout << Xorder_left_std[i][0] << "   " << Xorder_std[i][Xorder_left_firstline[i]]<< endl;
