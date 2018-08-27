@@ -289,4 +289,10 @@ void create_y_sort(std::vector<double>& Y_sort, const std::vector<double>& y_std
 void create_y_sort_2(std::vector<double>& Y_sort, std::vector<double>& possible_cutpoints, const double* X_std, const std::vector<double>& y_std, const xinfo_sizet& Xorder, const xinfo_sizet& Xorder_next_index, const std::vector<size_t>& Xorder_firstline, const size_t& var, const size_t& N_y);
 void create_y_sort_3(std::vector<double>& Y_sort, std::vector<double>& possible_cutpoints, const double* X_std, const std::vector<double>& y_std, const xinfo_sizet& Xorder, const xinfo_sizet& Xorder_next_index, const std::vector<size_t>& Xorder_firstline, const size_t& var, const size_t& N_y, std::vector<size_t>& candidate_index);
 
+
+void compute_partial_sum(std::vector<double>& Y, xinfo_sizet& Xorder, const size_t& var, std::vector<double>& y_cumsum);
+
+
+
+
 #endif

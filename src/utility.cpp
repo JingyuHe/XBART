@@ -212,7 +212,6 @@ void calculate_y_cumsum_std(const double * y, const size_t N_y, double y_sum, st
     // N is length of y (total)
     // y_cumsum_chunk should be lenght M + 1
     size_t M = y_cumsum.size();
-    assert(y_cumsum.size() == y_cumsum_inv.size());
     size_t ind_ind = 0;
     std::vector<double> y_cumsum_chunk(M + 1);
 
@@ -239,6 +238,10 @@ void calculate_y_cumsum_std(const double * y, const size_t N_y, double y_sum, st
 
     return;
 }
+
+
+
+
 
 void vec_sum(std::vector<double>& vector, double& sum){
     sum = 0.0;
@@ -389,6 +392,20 @@ void create_y_sort_3(std::vector<double>& Y_sort, std::vector<double>& possible_
         i ++;
     }
 
+    return;
+}
+
+
+void compute_partial_sum(std::vector<double>& Y, xinfo_sizet& Xorder, const size_t& var, std::vector<double>& y_cumsum){
+    size_t p = Xorder.size();
+    size_t N = Xorder[0].size();
+
+    // first element
+    y_cumsum[0] = Y[Xorder[var][0]];
+
+    for(size_t q = 1; q < N; q ++ ){
+        y_cumsum[q] = y_cumsum[q - 1] + Y[Xorder[var][q]];
+    }
     return;
 }
 

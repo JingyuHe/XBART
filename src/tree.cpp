@@ -1978,7 +1978,6 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
         std::vector<double> y_cumsum(N_Xorder);
         std::vector<double> y_cumsum_inv(N_Xorder);
 
-
         // std::vector<double> loglike_2(loglike.size(), -INFINITY);
 
 
@@ -1988,12 +1987,15 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
             // for(size_t i = 0; i < p; i++){
             for(auto&& i : subset_vars){
                 // loop over variables
-                for(size_t q = 0;  q < N_Xorder; q++ ){
-                    Y_sort[q] = y_std[Xorder_std[i][q]];
-                }
-                ypointer = &Y_sort[0];
+                // for(size_t q = 0;  q < N_Xorder; q++ ){
+                //     Y_sort[q] = y_std[Xorder_std[i][q]];
+                // }
+                // ypointer = &Y_sort[0];
 
-                std::partial_sum(Y_sort.begin(), Y_sort.end(), y_cumsum.begin());
+                // std::partial_sum(Y_sort.begin(), Y_sort.end(), y_cumsum.begin());
+
+                compute_partial_sum(y_std, Xorder_std, i, y_cumsum);
+
 
                 y_sum = y_cumsum[y_cumsum.size() - 1]; // last one
 
