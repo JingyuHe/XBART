@@ -39,6 +39,8 @@ void calculate_y_cumsum_std(const double * y, const size_t N_y, double y_sum, st
 
 void compute_partial_sum_adaptive(std::vector<double>& y_std, std::vector<size_t>& candidate_index, std::vector<double>& y_cumsum, xinfo_sizet& Xorder_std, const size_t& var);
 
+void compute_partial_sum_adaptive_newXorder(std::vector<double>& y_std, std::vector<size_t>& candidate_index, std::vector<double>& y_cumsum, xinfo_sizet& Xorder_std, const size_t& var, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline, size_t N_Xorder, std::vector<double>& possible_cutpoints, size_t N_y, const double* X_std);
+
 
 
 double subnode_mean(const std::vector<double>& y, xinfo_sizet& Xorder, const size_t& split_var);

@@ -2120,14 +2120,14 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
                 // calculate_y_cumsum_std(ypointer, Y_sort.size(), y_sum, candidate_index, y_cumsum, y_cumsum_inv);
 
 
-                std::fill(y_cumsum.begin(), y_cumsum.end(), 0.0);
+                // std::fill(y_cumsum.begin(), y_cumsum.end(), 0.0);
                 compute_partial_sum_adaptive(y_std, candidate_index, y_cumsum, Xorder_std, i);
 
-                // y_sum = y_cumsum[y_cumsum.size() - 1]; // last one
+                y_sum = y_cumsum[y_cumsum.size() - 1]; // last one
 
-                // for(size_t k = 0; k < Ncutpoints; k ++ ){
-                    // y_cumsum_inv[k] = y_sum - y_cumsum[k];
-                // }
+                for(size_t k = 0; k < Ncutpoints; k ++ ){
+                    y_cumsum_inv[k] = y_sum - y_cumsum[k];
+                }
 
 
 // cout << y_cumsum[1] <<" " <<  y_cumsum2[1] << endl;
@@ -2353,7 +2353,7 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, con
         std::vector<double> y_cumsum(Ncutpoints);
         std::vector<double> y_cumsum_inv(Ncutpoints);
 
-
+        std::vector<double> y_cumsum2(Ncutpoints);
 
         // std::vector<double> loglike_2(loglike.size(), -INFINITY);
 
@@ -2368,7 +2368,7 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, con
 
         ini_xinfo(possible_cutpoints, Ncutpoints, p);
 
-
+        std::vector<double> temp(Ncutpoints);
 
         if(parallel == false){
 
@@ -2381,7 +2381,7 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, con
             for(auto&& i : subset_vars){
 
                 // for(size_t q = 0;  q < N_Xorder; q++ ){
-                //     Y_sort[q] = y_std[Xorder_std[i][q]];
+                    // Y_sort[q] = y_std[Xorder_std[i][q]];
                 // }
 
                 // create_y_sort(Y_sort, y_std, Xorder_full, Xorder_next_index, Xorder_firstline, i);
@@ -2396,6 +2396,16 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, con
                 }
 
                 calculate_y_cumsum_std(ypointer, Y_sort.size(), y_sum, candidate_index, y_cumsum, y_cumsum_inv);
+
+                // std::fill(y_cumsum2.begin(), y_cumsum2.end(), 0.0);
+                compute_partial_sum_adaptive_newXorder(y_std, candidate_index, y_cumsum2, Xorder_full, i, Xorder_next_index, Xorder_firstline, N_Xorder, temp, N_y, X_std);
+
+                // y_sum = y_cumsum[y_cumsum.size() - 1]; // last one
+
+                // for(size_t k = 0; k < N_Xorder; k ++ ){
+                    // y_cumsum_inv[k] = y_sum - y_cumsum[k];
+                // }
+                cout << possible_cutpoints[i] - temp << endl;
 
                 for(size_t j = 0; j < Ncutpoints; j ++ ){
                     // loop over all possible cutpoints

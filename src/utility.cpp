@@ -244,6 +244,7 @@ void compute_partial_sum_adaptive(std::vector<double>& y_std, std::vector<size_t
     size_t M = y_cumsum.size();
     size_t N_Xorder = Xorder_std[0].size();
     size_t ind = 0;
+    y_cumsum[0] = 0.0;
     // size_t N_Xorder = Xorder_std[0].size();
     for(size_t i = 0; i < N_Xorder; i ++ ){
         if(i <= candidate_index[ind]){
@@ -259,7 +260,60 @@ void compute_partial_sum_adaptive(std::vector<double>& y_std, std::vector<size_t
 }
 
 
+void compute_partial_sum_adaptive_newXorder(std::vector<double>& y_std, std::vector<size_t>& candidate_index, std::vector<double>& y_cumsum, xinfo_sizet& Xorder_std, const size_t& var, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline, size_t N_Xorder, std::vector<double>& possible_cutpoints, size_t N_y, const double* X_std){
+    size_t M = y_cumsum.size();
+    
+    size_t current_index = Xorder_firstline[var];
 
+    size_t ind = 0;
+
+    y_cumsum[0] = 0.0;
+
+    for(size_t i = 0; i < N_Xorder; i ++ ){
+        if(i <= candidate_index[ind]){
+            y_cumsum[ind] = y_cumsum[ind] + y_std[Xorder_std[var][current_index]];
+        }else{
+            if(ind < M - 1){
+                ind ++ ;
+            }
+            y_cumsum[ind] = y_cumsum[ind - 1] + y_std[Xorder_std[var][current_index]];
+
+            possible_cutpoints[ind] = *(X_std + N_y * var + Xorder_std[var][current_index]);
+        }
+        current_index = Xorder_next_index[var][current_index];
+
+    }
+
+
+
+    // size_t current_index = Xorder_firstline[var];
+
+    // size_t i = 0;
+    // // cout << "Xorder_next" << Xorder_next_index[var] << endl;
+
+    // // cout << "xoder" << Xorder[var] << endl;
+
+    // // cout << "size of Y_sort " << Y_sort.size() << "  ";
+    // size_t index = 0;
+    // while(current_index < UINT_MAX){
+    //     // cout << "  " << i ;
+    //     // cout << "  current_index " << current_index;       
+    //     // cout << " Xorder " << Xorder[var][current_index];
+    //     Y_sort[i] = y_std[Xorder[var][current_index]];
+    //     current_index = Xorder_next_index[var][current_index];
+
+    //     if(index < candidate_index.size() && i == (candidate_index[index] - 1)){
+    //         possible_cutpoints[index] = *(X_std + N_y * var + Xorder[var][current_index]);
+    //         index = index + 1;
+    //     }
+
+    //     i ++;
+    // }
+
+
+
+    return;
+}
 
 
 void vec_sum(std::vector<double>& vector, double& sum){
