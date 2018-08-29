@@ -22,6 +22,6 @@
 
 #include "common.h"
 
-double rtnorm(double mean, double tau, double sd, rn& gen);
+double rtnorm(double mean, double tau, double sd, rn &gen);
 
 #endif

@@ -17,7 +17,6 @@
  *  https://www.R-project.org/Licenses/GPL-2
  */
 
-
 #ifndef GUARD_common_h
 #define GUARD_common_h
 
@@ -39,17 +38,13 @@
 #include <map>
 #include <climits>
 
-
 using namespace RcppParallel;
-
-
 
 using std::endl;
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::plugins(cpp11)]]
@@ -59,29 +54,19 @@ using std::endl;
 #define printf Rprintf
 #define cout Rcpp::Rcout
 
-
-
 // log(2*pi)
 #define LTPI 1.83787706640934536
 
 #include "rn.h"
 
+std::ostream &operator<<(std::ostream &out, const std::vector<double> &v);
+std::ostream &operator<<(std::ostream &out, const std::vector<size_t> &v);
+std::ostream &operator<<(std::ostream &out, const std::vector<std::vector<double>> &v);
+std::ostream &operator<<(std::ostream &out, const std::vector<std::vector<size_t>> &v);
 
-
-
-std::ostream& operator<< (std::ostream& out, const std::vector<double>& v);
-std::ostream& operator<< (std::ostream& out, const std::vector<size_t>& v);
-std::ostream& operator<< (std::ostream& out, const std::vector< std::vector<double> >& v);
-std::ostream& operator<< (std::ostream& out, const std::vector< std::vector<size_t> >& v);
-
-
-
-
-
-typedef std::vector<double> vec_d; //double vector
-typedef std::vector<vec_d> xinfo; //vector of vectors, will be split rules
+typedef std::vector<double> vec_d;     //double vector
+typedef std::vector<vec_d> xinfo;      //vector of vectors, will be split rules
 typedef std::vector<size_t> vec_sizet; // unsigned int vector
 typedef std::vector<vec_sizet> xinfo_sizet;
-
 
 #endif

@@ -30,23 +30,23 @@ rk_state **states;
 
 void newRNGstates(void)
 {
-  unsigned long s;
-  size_t i;
+    unsigned long s;
+    size_t i;
 
 #ifdef _OPENMP
-  NS = omp_get_max_threads();
+    NS = omp_get_max_threads();
 #else
-  NS = 1;
+    NS = 1;
 #endif
-  states = (rk_state**) malloc(sizeof(rk_state*) * NS);
+    states = (rk_state **)malloc(sizeof(rk_state *) * NS);
 
-  for(i=0; i<NS; i++) {
-    states[i] = (rk_state*) malloc(sizeof(rk_state));
-    s = 10000 * unif_rand();
-    rk_seed(s, states[i]);
-  }
+    for (i = 0; i < NS; i++)
+    {
+        states[i] = (rk_state *)malloc(sizeof(rk_state));
+        s = 10000 * unif_rand();
+        rk_seed(s, states[i]);
+    }
 }
-
 
 /* 
  * deleteRNGstates:
@@ -56,15 +56,15 @@ void newRNGstates(void)
 
 void deleteRNGstates(void)
 {
-  size_t i; //unsigned size_t i;
-  for(i=0; i<NS; i++) {
-    free(states[i]);
-  }
-  free(states); 
-  states = NULL;
-  NS = 0;
+    size_t i; //unsigned size_t i;
+    for (i = 0; i < NS; i++)
+    {
+        free(states[i]);
+    }
+    free(states);
+    states = NULL;
+    NS = 0;
 }
-
 
 /* 
  * runi:
@@ -77,11 +77,9 @@ double runi(rk_state *state)
 {
     unsigned long rv;
     assert(state);
-    rv = rk_random((rk_state*) state);
-    return ((double) rv) / RK_MAX;
+    rv = rk_random((rk_state *)state);
+    return ((double)rv) / RK_MAX;
 }
-
-
 
 /*
  * rnor:
@@ -92,19 +90,19 @@ double runi(rk_state *state)
 
 void rnor(double *x, rk_state *state)
 {
-  double e,v1,v2,w;
+    double e, v1, v2, w;
 
-  do {
-    v1 = 2*runi(state)-1.;
-    v2 = 2*runi(state)-1.;
-    w = v1*v1+v2*v2;
-  } while(w>1.);
+    do
+    {
+        v1 = 2 * runi(state) - 1.;
+        v2 = 2 * runi(state) - 1.;
+        w = v1 * v1 + v2 * v2;
+    } while (w > 1.);
 
-  e = sqrt((-2.*log(w))/w);
-  x[0] = v2*e;
-  x[1] = v1*e;
+    e = sqrt((-2. * log(w)) / w);
+    x[0] = v2 * e;
+    x[1] = v1 * e;
 }
-
 
 /*
  * rexpo:
@@ -113,12 +111,11 @@ void rnor(double *x, rk_state *state)
  * custom state variable 
  */
 
-double rexpo(double scale, rk_state* state)
+double rexpo(double scale, rk_state *state)
 {
     assert(scale > 0);
-    return scale * expo_rand(state); 
+    return scale * expo_rand(state);
 }
-
 
 /*
  * expo_rand:
@@ -132,29 +129,30 @@ double expo_rand(rk_state *state)
     /* The highest n (here 16) is determined by q[n-1] = 1.0 */
     /* within standard precision */
     const static double q[] =
-    {
-        0.6931471805599453,
-        0.9333736875190459,
-        0.9888777961838675,
-        0.9984959252914960,
-        0.9998292811061389,
-        0.9999833164100727,
-        0.9999985691438767,
-        0.9999998906925558,
-        0.9999999924734159,
-        0.9999999995283275,
-        0.9999999999728814,
-        0.9999999999985598,
-        0.9999999999999289,
-        0.9999999999999968,
-        0.9999999999999999,
-        1.0000000000000000
-    };
+        {
+            0.6931471805599453,
+            0.9333736875190459,
+            0.9888777961838675,
+            0.9984959252914960,
+            0.9998292811061389,
+            0.9999833164100727,
+            0.9999985691438767,
+            0.9999998906925558,
+            0.9999999924734159,
+            0.9999999995283275,
+            0.9999999999728814,
+            0.9999999999985598,
+            0.9999999999999289,
+            0.9999999999999968,
+            0.9999999999999999,
+            1.0000000000000000};
 
     double a = 0.;
-    double u = runi(state); 
-    while(u <= 0. || u >= 1.) u = runi(state);
-    for (;;) {
+    double u = runi(state);
+    while (u <= 0. || u >= 1.)
+        u = runi(state);
+    for (;;)
+    {
         u += u;
         if (u > 1.)
             break;
@@ -167,7 +165,8 @@ double expo_rand(rk_state *state)
 
     size_t i = 0;
     double ustar = runi(state), umin = ustar;
-    do {
+    do
+    {
         ustar = runi(state);
         if (umin > ustar)
             umin = ustar;
@@ -175,7 +174,6 @@ double expo_rand(rk_state *state)
     } while (u > q[i]);
     return a + umin * q[0];
 }
-
 
 /*
  * sq:
@@ -185,9 +183,8 @@ double expo_rand(rk_state *state)
 
 double sq(double x)
 {
-  return x*x;
+    return x * x;
 }
-
 
 /*
  * rinvgauss:
@@ -199,18 +196,19 @@ double sq(double x)
 
 double rinvgauss(const double mu, const double lambda)
 {
-  double u, y, x1, mu2, l2;
+    double u, y, x1, mu2, l2;
 
-  y = sq(norm_rand());
-  mu2 = sq(mu);
-  l2 = 2*lambda;
-  x1 = mu + mu2*y/l2 - (mu/l2)* sqrt(4*mu*lambda*y + mu2*sq(y));
+    y = sq(norm_rand());
+    mu2 = sq(mu);
+    l2 = 2 * lambda;
+    x1 = mu + mu2 * y / l2 - (mu / l2) * sqrt(4 * mu * lambda * y + mu2 * sq(y));
 
-  u = unif_rand();
-  if(u <= mu/(mu + x1)) return x1;
-  else return mu2/x1;
+    u = unif_rand();
+    if (u <= mu / (mu + x1))
+        return x1;
+    else
+        return mu2 / x1;
 }
-
 
 /*
  * rtnorm_reject:
@@ -220,28 +218,28 @@ double rinvgauss(const double mu, const double lambda)
  * mean < tau 
  */
 
-double rtnorm_reject(double mean, double tau, double sd, rk_state* state)
+double rtnorm_reject(double mean, double tau, double sd, rk_state *state)
 {
-  double x, z, lambda;
-  //size_t cnt;
+    double x, z, lambda;
+    //size_t cnt;
 
-  /* Christian Robert's way */
-  assert(mean < tau);
-  tau = (tau - mean)/sd;
+    /* Christian Robert's way */
+    assert(mean < tau);
+    tau = (tau - mean) / sd;
 
-  /* optimal exponential rate parameter */
-  lambda = 0.5*(tau + sqrt(sq(tau) + 4.0));
+    /* optimal exponential rate parameter */
+    lambda = 0.5 * (tau + sqrt(sq(tau) + 4.0));
 
-  /* do the rejection sampling */
-  //cnt = 0;
-  do {
-    z = rexpo(1.0/lambda, state) + tau;
-  } while (runi(state) > exp(0.0-0.5*sq(z - lambda)));
+    /* do the rejection sampling */
+    //cnt = 0;
+    do
+    {
+        z = rexpo(1.0 / lambda, state) + tau;
+    } while (runi(state) > exp(0.0 - 0.5 * sq(z - lambda)));
 
-  /* put x back on the right scale */
-  x = z*sd + mean;
+    /* put x back on the right scale */
+    x = z * sd + mean;
 
-  assert(x > 0);
-  return(x);
-
+    assert(x > 0);
+    return (x);
 }

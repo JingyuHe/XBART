@@ -49,7 +49,7 @@
  * 	random_value = rk_random(&state); // Generate random values in [0..RK_MAX]
  * }
  */
- 
+
 /*
  * Useful macro:
  * 	RK_DEV_RANDOM: the device used for random seeding.
@@ -61,7 +61,7 @@
 #ifndef _RANDOMKIT_
 #define _RANDOMKIT_
 
-#define	RK_STATE_LEN 624
+#define RK_STATE_LEN 624
 
 typedef struct rk_state_
 {
@@ -69,11 +69,11 @@ typedef struct rk_state_
 	size_t pos;
 	size_t has_gauss; /* !=0: gauss contains a gaussian deviate */
 	double gauss;
-}
-rk_state;
+} rk_state;
 
-typedef enum {
-	RK_NOERR = 0, /* no error */
+typedef enum
+{
+	RK_NOERR = 0,  /* no error */
 	RK_ENODEV = 1, /* no RK_DEV_RANDOM device */
 	RK_ERR_MAX = 2
 } rk_error;
@@ -85,15 +85,16 @@ extern char *rk_strerror[RK_ERR_MAX];
 #define RK_MAX 0xFFFFFFFFUL
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/*
+	/*
  * Initialize the RNG state using the given seed.
  */
-extern void rk_seed(unsigned long seed, rk_state *state);
+	extern void rk_seed(unsigned long seed, rk_state *state);
 
-/*
+	/*
  * Initialize the RNG state using a random seed.
  * Uses /dev/random or, when unavailable, the clock (see randomkit.c).
  * Returns RK_NOERR when no errors occurs.
@@ -101,39 +102,39 @@ extern void rk_seed(unsigned long seed, rk_state *state);
  * there is no such device). In this case, the RNG was initialized using the
  * clock.
  */
-extern rk_error rk_randomseed(rk_state *state);
+	extern rk_error rk_randomseed(rk_state *state);
 
-/*
+	/*
  * Returns a random unsigned long between 0 and RK_MAX inclusive
  */
-extern unsigned long rk_random(rk_state *state);
+	extern unsigned long rk_random(rk_state *state);
 
-/*
+	/*
  * Returns a random long between 0 and LONG_MAX inclusive
  */
-extern long rk_long(rk_state *state);
+	extern long rk_long(rk_state *state);
 
-/*
+	/*
  * Returns a random unsigned long between 0 and ULONG_MAX inclusive
  */
-extern unsigned long rk_ulong(rk_state *state);
+	extern unsigned long rk_ulong(rk_state *state);
 
-/*
+	/*
  * Returns a random unsigned long between 0 and max inclusive.
  */
-extern unsigned long rk_interval(unsigned long max, rk_state *state);
+	extern unsigned long rk_interval(unsigned long max, rk_state *state);
 
-/*
+	/*
  * Returns a random double between 0.0 and 1.0, 1.0 excluded.
  */
-extern double rk_double(rk_state *state);
+	extern double rk_double(rk_state *state);
 
-/*
+	/*
  * fill the buffer with size random bytes
  */
-extern void rk_fill(void *buffer, size_t size, rk_state *state);
+	extern void rk_fill(void *buffer, size_t size, rk_state *state);
 
-/*
+	/*
  * fill the buffer with randombytes from the random device
  * Returns RK_ENODEV if the device is unavailable, or RK_NOERR if it is
  * On Unix, if strong is defined, RK_DEV_RANDOM is used. If not, RK_DEV_URANDOM
@@ -141,21 +142,21 @@ extern void rk_fill(void *buffer, size_t size, rk_state *state);
  * Warning: on most unixes RK_DEV_RANDOM will wait for enough entropy to answer
  * which can take a very long time on quiet systems.
  */
-extern rk_error rk_devfill(void *buffer, size_t size, size_t strong);
+	extern rk_error rk_devfill(void *buffer, size_t size, size_t strong);
 
-/*
+	/*
  * fill the buffer using rk_devfill if the random device is available and using
  * rk_fill if is is not
  * parameters have the same meaning as rk_fill and rk_devfill
  * Returns RK_ENODEV if the device is unavailable, or RK_NOERR if it is
  */
-extern rk_error rk_altfill(void *buffer, size_t size, size_t strong,
-	rk_state *state);
+	extern rk_error rk_altfill(void *buffer, size_t size, size_t strong,
+							   rk_state *state);
 
-/*
+	/*
  * return a random gaussian deviate with variance unity and zero mean.
  */
-extern double rk_gauss(rk_state *state);
+	extern double rk_gauss(rk_state *state);
 
 #ifdef __cplusplus
 }

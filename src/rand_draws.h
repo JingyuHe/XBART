@@ -32,8 +32,8 @@ void rnor(double *x, rk_state *state);
 double rexpo(double lambda, rk_state *state);
 double sq(double x);
 double rinvgauss(const double mu, const double lambda);
-double rtnorm_reject(double mean, double tau, double sd, rk_state* state);
-double rexpo(double scale, rk_state* state);
+double rtnorm_reject(double mean, double tau, double sd, rk_state *state);
+double rexpo(double scale, rk_state *state);
 double expo_rand(rk_state *state);
 
 #endif
