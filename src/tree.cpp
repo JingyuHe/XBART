@@ -1513,6 +1513,8 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double>& y_
     double sigma2 = pow(sigma, 2);
 
 
+    double loglike_max = -INFINITY;
+
     if( N  <= Ncutpoints + 1 + 2 * Nmin){
 
         // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
@@ -1529,7 +1531,7 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double>& y_
         // initialize log likelihood at -INFINITY
         std::vector<double> loglike((N_Xorder - 1) * p + 1, -INFINITY);
         std::vector<double> y_cumsum(N_Xorder);
-        std::vector<double> y_cumsum_inv(N_Xorder);
+        // std::vector<double> y_cumsum_inv(N_Xorder);
 
         if(parallel == false){
 
@@ -1537,10 +1539,10 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double>& y_
             for(auto&& i : subset_vars){
 
                 y_cumsum[0] = y_std[Xorder_std[i][0]];
-                y_cumsum_inv[0] = y_sum - y_cumsum[0];
+                // y_cumsum_inv[0] = y_sum - y_cumsum[0];
                 for(size_t q = 1; q < N_Xorder; q ++ ){
                     y_cumsum[q] = y_cumsum[q - 1] + y_std[Xorder_std[i][q]];
-                    y_cumsum_inv[q] = y_sum - y_cumsum[q];
+                    // y_cumsum_inv[q] = y_sum - y_cumsum[q];
                 }
 
 
@@ -1549,7 +1551,12 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double>& y_
                     n1tau = (j + 1) * tau; // number of points on left side (x <= cutpoint)
                     n2tau = Ntau - n1tau; // number of points on right side (x > cutpoint)
 
-                    loglike[(N_Xorder-1) * i + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
+                    loglike[(N_Xorder-1) * i + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
+
+
+                    if(loglike[(N_Xorder-1) * i + j] > loglike_max){
+                        loglike_max = loglike[(N_Xorder-1) * i + j];
+                    }
 
 
                 }
@@ -1570,10 +1577,14 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double>& y_
         loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
 
+                    if(loglike[loglike.size() - 1] > loglike_max){
+                        loglike_max = loglike[loglike.size() - 1];
+                    }
 
 
-        // normalize loglike, take exp to likelihood
-        double loglike_max = *std::max_element(loglike.begin(), loglike.end());
+    // if(loglike_max != *std::max_element(loglike.begin(), loglike.end())){
+    //     cout << "loglike_max " <<  loglike_max << " " <<  *std::max_element(loglike.begin(), loglike.end()) << endl;
+    // }
         for(size_t ii = 0; ii < loglike.size(); ii ++ ){
             // if a variable is not selected, take exp will becomes 0
             loglike[ii] = exp(loglike[ii] - loglike_max);
@@ -1620,7 +1631,7 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double>& y_
         std::vector<double> loglike(Ncutpoints * p + 1, -INFINITY);
         std::vector<size_t> candidate_index(Ncutpoints);
         std::vector<double> y_cumsum(Ncutpoints);
-        std::vector<double> y_cumsum_inv(Ncutpoints);
+        // std::vector<double> y_cumsum_inv(Ncutpoints);
 
  
 
@@ -1653,7 +1664,7 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double>& y_
                     }else{
 
                         if(ind < Ncutpoints - 1){
-                                        y_cumsum_inv[ind] = y_sum - y_cumsum[ind];
+                                        // y_cumsum_inv[ind] = y_sum - y_cumsum[ind];
                             ind ++;
                         }
                         y_cumsum[ind] = y_cumsum[ind - 1] + y_std[Xorder_std[i][q]];
@@ -1661,7 +1672,7 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double>& y_
                     }
                 }
 
-                y_cumsum_inv[Ncutpoints - 1] = y_sum - y_cumsum[Ncutpoints - 1];
+                // y_cumsum_inv[Ncutpoints - 1] = y_sum - y_cumsum[Ncutpoints - 1];
 
 
 
@@ -1671,9 +1682,12 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double>& y_
                     // loop over all possible cutpoints
                     n1tau = (candidate_index[j] + 1) * tau; // number of points on left side (x <= cutpoint)
                     n2tau = Ntau - n1tau; // number of points on right side (x > cutpoint)
-                    loglike[(Ncutpoints) * i + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
+                    loglike[(Ncutpoints) * i + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
 
-
+                    
+                    if(loglike[(Ncutpoints) * i + j] > loglike_max){
+                        loglike_max = loglike[(Ncutpoints) * i + j];
+                    }
 
                 }
             }
@@ -1694,11 +1708,21 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double>& y_
         // no split option
         loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
-
+         if(loglike[loglike.size() - 1] > loglike_max){
+                             loglike_max = loglike[loglike.size() - 1];
+                    }
 
         // normalize loglike
-        double loglike_max = *std::max_element(loglike.begin(), loglike.end());
-        for(size_t ii = 0; ii < loglike.size(); ii ++ ){
+        // double loglike_max = *std::max_element(loglike.begin(), loglike.end());
+
+
+
+    // if(loglike_max != *std::max_element(loglike.begin(), loglike.end())){
+    //     cout << "loglike_max " << loglike_max << " " <<  *std::max_element(loglike.begin(), loglike.end()) << endl;
+    // }     
+    
+    
+       for(size_t ii = 0; ii < loglike.size(); ii ++ ){
             loglike[ii] = exp(loglike[ii] - loglike_max);
         }
 
