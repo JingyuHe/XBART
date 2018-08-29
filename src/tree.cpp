@@ -498,8 +498,7 @@ void tree::deathp(tree_p nb, double theta)
 
 
 
-
-void tree::grow_tree_adaptive_std(double y_mean, double y_sum, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double* split_var_count_pointer, size_t& mtry, const std::vector<size_t>& subset_vars, double& run_time){
+void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double* split_var_count_pointer, size_t& mtry, const std::vector<size_t>& subset_vars, double& run_time){
 
 
     // grow a tree, users can control number of split points
@@ -555,11 +554,8 @@ void tree::grow_tree_adaptive_std(double y_mean, double y_sum, size_t depth, siz
     this->sig = sigma;
     bool no_split = false;
 
-    // BART_likelihood_adaptive_std_mtry(y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars);
 
-    BART_likelihood_adaptive_std_mtry_old(y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars);
-
-
+    BART_likelihood_adaptive_std_mtry_old(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars);
 
     if(no_split == true){
         return;
@@ -579,53 +575,39 @@ void tree::grow_tree_adaptive_std(double y_mean, double y_sum, size_t depth, siz
     ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
 
 
+    auto start = system_clock::now();
 
-    double yleft_mean_std = 0.0;
-    double yright_mean_std = 0.0;
-    // auto start = system_clock::now();
+    split_xorder_std_old(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p);
 
-    split_xorder_std_old(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, y_std);
-
-
-    // split_xorder_std(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, yleft_mean_std, yright_mean_std, y_mean, y_std);
-
-    // auto end = system_clock::now();
+    auto end = system_clock::now();
 
 
-    // auto duration = duration_cast<microseconds>(end - start);
+    auto duration = duration_cast<microseconds>(end - start);
 
-    // double running_time = double(duration.count()) * microseconds::period::num / microseconds::period::den ;
+    double running_time = double(duration.count()) * microseconds::period::num / microseconds::period::den ;
 
     // cout << running_time << endl;
 
     // free(Xorder_std);
 
-    // double yleft_mean_std = subnode_mean(y_std, Xorder_left_std, split_var);
-    // double yright_mean_std = subnode_mean(y_std, Xorder_right_std, split_var);
-
-
-
-    double yleft_sum = yleft_mean_std *  (split_point + 1);
-
-    double yright_sum = yright_mean_std * (N_Xorder - split_point - 1);
-
-    // cout << yleft_mean  << " " << yleft_mean_std << " " << yright_mean << " " << yright_mean_std << endl;
+    double yleft_mean_std = subnode_mean(y_std, Xorder_left_std, split_var);
+    double yright_mean_std = subnode_mean(y_std, Xorder_right_std, split_var);
 
     double running_time_left = 0.0;
     double running_time_right = 0.0;
 
     depth = depth + 1;
     tree::tree_p lchild = new tree();
-    lchild->grow_tree_adaptive_std(yleft_mean_std, yleft_sum, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, split_var_count_pointer, mtry, subset_vars, running_time_left);
+    lchild->grow_tree_adaptive_std(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, split_var_count_pointer, mtry, subset_vars, running_time_left);
     tree::tree_p rchild = new tree();
-    rchild->grow_tree_adaptive_std(yright_mean_std, yright_sum, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, split_var_count_pointer, mtry, subset_vars, running_time_right);
+    rchild->grow_tree_adaptive_std(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, split_var_count_pointer, mtry, subset_vars, running_time_right);
 
     lchild -> p = this;
     rchild -> p = this;
     this -> l = lchild;
     this -> r = rchild;
 
-    // run_time = run_time +  running_time + running_time_left + running_time_right;
+    run_time = run_time +  running_time + running_time_left + running_time_right;
 
     return;
 }
@@ -840,7 +822,7 @@ void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_st
 
 
 
-void split_xorder_std_old(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet& Xorder_std, const double* X_std, size_t N_y, size_t p, std::vector<double>& y_std){
+void split_xorder_std_old(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet& Xorder_std, const double* X_std, size_t N_y, size_t p){
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
 
@@ -848,14 +830,6 @@ void split_xorder_std_old(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_righ
     size_t N_Xorder = Xorder_std[0].size();
     size_t left_ix = 0;
     size_t right_ix = 0;
-    size_t N_Xorder_left = Xorder_left_std[0].size();
-    size_t N_Xorder_right = Xorder_right_std[0].size();
-
-    // if the left side is smaller, we only compute sum of it
-    // bool compute_left_side = N_Xorder_left < N_Xorder_right;
-
-    // yleft_mean = 0.0;
-    // yright_mean = 0.0;
 
     double cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
     for(size_t i = 0; i < p; i ++ ){
@@ -874,9 +848,6 @@ void split_xorder_std_old(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_righ
                 //     Xorder_left_std[i][left_ix];// = Xorder_std[i][j];
                 //     left_ix = left_ix + 1;
                 // }
-                // if(i == split_var && compute_left_side){
-                    // yleft_mean = yleft_mean + y_std[Xorder_std[split_var][j]];
-                // }
                 Xorder_left_std[i][left_ix] = Xorder_std[i][j];
                 left_ix = left_ix + 1;
             }else{
@@ -884,10 +855,6 @@ void split_xorder_std_old(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_righ
                 //     // Xorder_right[i][right_ix] = Xorder[i][j];
                 //     right_ix = right_ix + 1;
                 // }
-                // if(i == split_var && (!compute_left_side)){
-                    // yright_mean = yright_mean + y_std[Xorder_std[split_var][j]];
-                // }
-
                 Xorder_right_std[i][right_ix] = Xorder_std[i][j];
                 right_ix = right_ix + 1;
             }
@@ -896,19 +863,9 @@ void split_xorder_std_old(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_righ
 
     }
 
-    // if(compute_left_side){
-    //     yright_mean = (y_mean * N_Xorder - yleft_mean) / N_Xorder_right;
-    //     yleft_mean = yleft_mean / N_Xorder_left;
-    // }else{
-    //     yleft_mean = (y_mean * N_Xorder - yright_mean) / N_Xorder_left;
-    //     yright_mean = yright_mean / N_Xorder_right;
-    // }
-
-    // yright_mean = yright_mean / N_Xorder_right;
-    // yleft_mean = yleft_mean / N_Xorder_left;
-
     return;
 }
+
 
 
 
@@ -1537,11 +1494,7 @@ void BART_likelihood_adaptive_std_mtry(std::vector<double>& y_std, xinfo_sizet& 
 }
 
 
-
-
-
-
-void BART_likelihood_adaptive_std_mtry_old(std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, const std::vector<size_t>& subset_vars){
+void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double>& y_std, xinfo_sizet& Xorder_std, const double* X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, const std::vector<size_t>& subset_vars){
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
 
@@ -1556,7 +1509,7 @@ void BART_likelihood_adaptive_std_mtry_old(std::vector<double>& y_std, xinfo_siz
     size_t ind;
     size_t N_Xorder = N;
 
-    double y_sum;
+    double y_sum2;
     double sigma2 = pow(sigma, 2);
 
 
@@ -1578,28 +1531,18 @@ void BART_likelihood_adaptive_std_mtry_old(std::vector<double>& y_std, xinfo_siz
         std::vector<double> y_cumsum(N_Xorder);
         std::vector<double> y_cumsum_inv(N_Xorder);
 
-
-        // std::vector<double> loglike_2(loglike.size(), -INFINITY);
-
-
-
         if(parallel == false){
 
             // for(size_t i = 0; i < p; i++){
             for(auto&& i : subset_vars){
-                // loop over variables
-                for(size_t q = 0;  q < N_Xorder; q++ ){
-                    Y_sort[q] = y_std[Xorder_std[i][q]];
+
+                y_cumsum[0] = y_std[Xorder_std[i][0]];
+                y_cumsum_inv[0] = y_sum - y_cumsum[0];
+                for(size_t q = 1; q < N_Xorder; q ++ ){
+                    y_cumsum[q] = y_cumsum[q - 1] + y_std[Xorder_std[i][q]];
+                    y_cumsum_inv[q] = y_sum - y_cumsum[q];
                 }
-                ypointer = &Y_sort[0];
 
-                std::partial_sum(Y_sort.begin(), Y_sort.end(), y_cumsum.begin());
-
-                y_sum = y_cumsum[y_cumsum.size() - 1]; // last one
-
-                for(size_t k = 0; k < N_Xorder; k ++ ){
-                    y_cumsum_inv[k] = y_sum - y_cumsum[k];
-                }
 
                 for(size_t j = 0; j < N_Xorder - 1; j ++ ){
                     // loop over all possible cutpoints
@@ -1608,7 +1551,6 @@ void BART_likelihood_adaptive_std_mtry_old(std::vector<double>& y_std, xinfo_siz
 
                     loglike[(N_Xorder-1) * i + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
 
-                    // loglike[(N_Xorder-1) * i + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2)) + 2 * 0.5 * log(sigma2);
 
                 }
             }
@@ -1627,7 +1569,6 @@ void BART_likelihood_adaptive_std_mtry_old(std::vector<double>& y_std, xinfo_siz
 
         loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
-        // loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth) + 0.5 * log(sigma2);
 
 
 
@@ -1681,15 +1622,14 @@ void BART_likelihood_adaptive_std_mtry_old(std::vector<double>& y_std, xinfo_siz
         std::vector<double> y_cumsum(Ncutpoints);
         std::vector<double> y_cumsum_inv(Ncutpoints);
 
-
-
-        // std::vector<double> loglike_2(loglike.size(), -INFINITY);
-
+ 
 
         seq_gen_std(Nmin, N - Nmin, Ncutpoints, candidate_index);
 
 
         double Ntau = N_Xorder * tau;
+
+        // double y_sum2;
 
         if(parallel == false){
 
@@ -1698,20 +1638,34 @@ void BART_likelihood_adaptive_std_mtry_old(std::vector<double>& y_std, xinfo_siz
             double* ypointer;
             double n1tau;
             double n2tau;
-            // for(size_t i = 0; i < p; i ++ ){
             for(auto&& i : subset_vars){
 
-                for(size_t q = 0;  q < N_Xorder; q++ ){
-                    Y_sort[q] = y_std[Xorder_std[i][q]];
-                }
-                ypointer = &Y_sort[0];
+                
+                size_t ind = 0;
+                y_cumsum[0] = 0.0;
+                // size_t N_Xorder = Xorder_std[0].size();
 
-                if(firstrun){
-                    y_sum = sum_vec(Y_sort);
-                    firstrun = false;
+                // cout << y_sum << " " << y_sum2 << endl;
+                for(size_t q = 0; q < N_Xorder; q ++ ){
+                    // cout << ind << " " << Ncutpoints << endl;
+                    if(q <= candidate_index[ind]){
+                        y_cumsum[ind] = y_cumsum[ind] + y_std[Xorder_std[i][q]];
+                    }else{
+
+                        if(ind < Ncutpoints - 1){
+                                        y_cumsum_inv[ind] = y_sum - y_cumsum[ind];
+                            ind ++;
+                        }
+                        y_cumsum[ind] = y_cumsum[ind - 1] + y_std[Xorder_std[i][q]];
+
+                    }
                 }
 
-                calculate_y_cumsum_std(ypointer, Y_sort.size(), y_sum, candidate_index, y_cumsum, y_cumsum_inv);
+                y_cumsum_inv[Ncutpoints - 1] = y_sum - y_cumsum[Ncutpoints - 1];
+
+
+
+
 
                 for(size_t j = 0; j < Ncutpoints; j ++ ){
                     // loop over all possible cutpoints
@@ -1719,7 +1673,6 @@ void BART_likelihood_adaptive_std_mtry_old(std::vector<double>& y_std, xinfo_siz
                     n2tau = Ntau - n1tau; // number of points on right side (x > cutpoint)
                     loglike[(Ncutpoints) * i + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
 
-                    // loglike[(Ncutpoints) * i + j] = - 0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2)) + 2 * 0.5 * log(sigma2);
 
 
                 }
@@ -1742,11 +1695,9 @@ void BART_likelihood_adaptive_std_mtry_old(std::vector<double>& y_std, xinfo_siz
         loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
 
-        // loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, - 1.0 * beta)) - log(alpha) + beta * log(1.0 + depth) + 0.5 * log(sigma2);
 
         // normalize loglike
         double loglike_max = *std::max_element(loglike.begin(), loglike.end());
-        // double loglike_2_max = *std::max_element(loglike_2.begin(), loglike_2.end());
         for(size_t ii = 0; ii < loglike.size(); ii ++ ){
             loglike[ii] = exp(loglike[ii] - loglike_max);
         }
@@ -1768,10 +1719,6 @@ void BART_likelihood_adaptive_std_mtry_old(std::vector<double>& y_std, xinfo_siz
 
     return;
 }
-
-
-
-
 
 
 void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, const double* X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, size_t N_Xorder, double alpha, double beta, bool& no_split, size_t & split_var, size_t & split_point, bool parallel, const std::vector<size_t>& subset_vars, xinfo_sizet& Xorder_full, xinfo_sizet& Xorder_next_index, std::vector<size_t>& Xorder_firstline, size_t& N_y, double& cutvalue){
@@ -2047,6 +1994,8 @@ void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double>& y_std, con
 
     return;
 }
+
+
 
 void cumulative_sum_std(std::vector<double>& y_cumsum, std::vector<double>& y_cumsum_inv, double& y_sum, double* y, xinfo_sizet& Xorder, size_t& i, size_t& N){
     // y_cumsum is the output cumulative sum

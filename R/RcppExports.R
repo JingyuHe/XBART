@@ -9,14 +9,6 @@ predict_tree_std <- function(trees, Xnew) {
     .Call(`_abarth_predict_tree_std`, trees, Xnew)
 }
 
-start_profiler <- function(str) {
-    .Call(`_abarth_start_profiler`, str)
-}
-
-stop_profiler <- function() {
-    .Call(`_abarth_stop_profiler`)
-}
-
 train_forest_root_std <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, mtry = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE) {
     .Call(`_abarth_train_forest_root_std`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, mtry, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel)
 }

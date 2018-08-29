@@ -30,27 +30,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// start_profiler
-SEXP start_profiler(SEXP str);
-RcppExport SEXP _abarth_start_profiler(SEXP strSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type str(strSEXP);
-    rcpp_result_gen = Rcpp::wrap(start_profiler(str));
-    return rcpp_result_gen;
-END_RCPP
-}
-// stop_profiler
-SEXP stop_profiler();
-RcppExport SEXP _abarth_stop_profiler() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(stop_profiler());
-    return rcpp_result_gen;
-END_RCPP
-}
 // train_forest_root_std
 Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t mtry, bool draw_sigma, double kap, double s, bool verbose, bool m_update_sigma, bool draw_mu, bool parallel);
 RcppExport SEXP _abarth_train_forest_root_std(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP LSEXP, SEXP N_sweepsSEXP, SEXP max_depthSEXP, SEXP NminSEXP, SEXP NcutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP mtrySEXP, SEXP draw_sigmaSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP m_update_sigmaSEXP, SEXP draw_muSEXP, SEXP parallelSEXP) {
@@ -115,8 +94,6 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_abarth_predict_tree", (DL_FUNC) &_abarth_predict_tree, 2},
     {"_abarth_predict_tree_std", (DL_FUNC) &_abarth_predict_tree_std, 2},
-    {"_abarth_start_profiler", (DL_FUNC) &_abarth_start_profiler, 1},
-    {"_abarth_stop_profiler", (DL_FUNC) &_abarth_stop_profiler, 0},
     {"_abarth_train_forest_root_std", (DL_FUNC) &_abarth_train_forest_root_std, 20},
     {"_abarth_train_forest_root_std_newXorder", (DL_FUNC) &_abarth_train_forest_root_std_newXorder, 20},
     {NULL, NULL, 0}
