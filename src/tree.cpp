@@ -575,26 +575,57 @@ void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth,
     ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
 
 
-    auto start = system_clock::now();
+system_clock::time_point start;
+system_clock::time_point end;
+
+
+    start = system_clock::now();
 
     split_xorder_std_old(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p);
+    double yleft_mean_std = subnode_mean(y_std, Xorder_left_std, split_var);
+    double yright_mean_std = subnode_mean(y_std, Xorder_right_std, split_var);
 
-    auto end = system_clock::now();
+
+    end = system_clock::now();
 
 
     auto duration = duration_cast<microseconds>(end - start);
 
     double running_time = double(duration.count()) * microseconds::period::num / microseconds::period::den ;
 
-    // cout << running_time << endl;
+
+//     cout << " ----- ---- " << endl;
+//     cout << "running time 1 " << duration.count() << endl;
+
+
+// auto    start = system_clock::now();
+//     double yleft_mean_std = 0.0;
+//     double yright_mean_std = 0.0;
+
+
+//     split_xorder_std(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, yleft_mean_std, yright_mean_std, y_mean, y_std);
+    
+    
+//   auto  end = system_clock::now();
+
+//         auto duration = duration_cast<microseconds>(end - start);
+//     double running_time = double(duration.count()) * microseconds::period::num / microseconds::period::den ;
+
+
+    // duration = duration_cast<microseconds>(end - start);
+    // cout << "running time 2 " << duration.count() << endl;
 
     // free(Xorder_std);
 
-    double yleft_mean_std = subnode_mean(y_std, Xorder_left_std, split_var);
-    double yright_mean_std = subnode_mean(y_std, Xorder_right_std, split_var);
+
+    // cout<< "left " << yleft_mean_std << " " << yleft_mean2 << endl;
+    // cout<< "right "<< yright_mean_std << " " << yright_mean2 << endl;
+
+
 
     double running_time_left = 0.0;
     double running_time_right = 0.0;
+
 
     depth = depth + 1;
     tree::tree_p lchild = new tree();
@@ -771,35 +802,50 @@ void split_xorder_std(xinfo_sizet& Xorder_left_std, xinfo_sizet& Xorder_right_st
         left_ix = 0;
         right_ix = 0;
         const double * temp_pointer = X_std + N_y * split_var;
-        for(size_t j = 0; j < N_Xorder; j ++){
-            // Xorder(j, i), jth row and ith column
-            // look at X(Xorder(j, i), split_var)
-            // X[split_var][Xorder[i][j]]
-            // X[split_var][Xorder[split_var][split_point]]
-            if( *(temp_pointer + Xorder_std[i][j])<= cutvalue){
-                // copy a row
-                // for(size_t k = 0; k < p; k ++){
-                //     Xorder_left_std[i][left_ix];// = Xorder_std[i][j];
-                //     left_ix = left_ix + 1;
-                // }
-                if(i == split_var && compute_left_side){
-                    yleft_mean = yleft_mean + y_std[Xorder_std[split_var][j]];
-                }
-                Xorder_left_std[i][left_ix] = Xorder_std[i][j];
-                left_ix = left_ix + 1;
-            }else{
-                // for(size_t k = 0; k < p; k ++){
-                //     // Xorder_right[i][right_ix] = Xorder[i][j];
-                //     right_ix = right_ix + 1;
-                // }
-                if(i == split_var && (!compute_left_side)){
-                    yright_mean = yright_mean + y_std[Xorder_std[split_var][j]];
-                }
+        if(i == split_var){
+            if(compute_left_side){
+                for(size_t j = 0; j < N_Xorder; j ++){
+                    if( *(temp_pointer + Xorder_std[i][j])<= cutvalue){
+                            yleft_mean = yleft_mean + y_std[Xorder_std[split_var][j]];
+                    
+                        Xorder_left_std[i][left_ix] = Xorder_std[i][j];
+                        left_ix = left_ix + 1;
+                    }else{
+            
+                        Xorder_right_std[i][right_ix] = Xorder_std[i][j];
+                        right_ix = right_ix + 1;
+                    }
 
-                Xorder_right_std[i][right_ix] = Xorder_std[i][j];
-                right_ix = right_ix + 1;
+                }
+            }else{
+                for(size_t j = 0; j < N_Xorder; j ++){
+                    if( *(temp_pointer + Xorder_std[i][j])<= cutvalue){
+
+                        Xorder_left_std[i][left_ix] = Xorder_std[i][j];
+                        left_ix = left_ix + 1;
+                    }else{
+                            yright_mean = yright_mean + y_std[Xorder_std[split_var][j]];
+                        
+
+                        Xorder_right_std[i][right_ix] = Xorder_std[i][j];
+                        right_ix = right_ix + 1;
+                    }
+
+                }
             }
 
+        }else{
+            for(size_t j = 0; j < N_Xorder; j ++){
+                if( *(temp_pointer + Xorder_std[i][j])<= cutvalue){
+                    Xorder_left_std[i][left_ix] = Xorder_std[i][j];
+                    left_ix = left_ix + 1;
+                }else{
+
+                    Xorder_right_std[i][right_ix] = Xorder_std[i][j];
+                    right_ix = right_ix + 1;
+                }
+
+            }
         }
 
     }
