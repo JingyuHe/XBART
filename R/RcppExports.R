@@ -17,22 +17,6 @@ stop_profiler <- function() {
     .Call(`_abarth_stop_profiler`)
 }
 
-singletree <- function(y, X, depth, max_depth = 100L, Nmin = 5L, tau = 10, sigma = 1, alpha = 0.95, beta = 2) {
-    .Call(`_abarth_singletree`, y, X, depth, max_depth, Nmin, tau, sigma, alpha, beta)
-}
-
-train_forest_adaptive <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, draw_sigma, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE) {
-    .Call(`_abarth_train_forest_adaptive`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel)
-}
-
-train_forest <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, alpha, beta, tau, draw_sigma, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE) {
-    .Call(`_abarth_train_forest`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, alpha, beta, tau, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu)
-}
-
-train_forest_root <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, draw_sigma, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE) {
-    .Call(`_abarth_train_forest_root`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel)
-}
-
 train_forest_root_std <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, mtry = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE) {
     .Call(`_abarth_train_forest_root_std`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, mtry, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel)
 }
