@@ -449,29 +449,35 @@ void create_y_sort_3(std::vector<double> &Y_sort, std::vector<double> &possible_
     // only consider variable var
     size_t current_index = Xorder_firstline[var];
 
-    size_t i = 0;
+    size_t i = 0; // loop over y vector
     // cout << "Xorder_next" << Xorder_next_index[var] << endl;
 
     // cout << "xoder" << Xorder[var] << endl;
 
     // cout << "size of Y_sort " << Y_sort.size() << "  ";
-    size_t index = 0;
+    size_t index = 0; // loop over index of possible_cutpoints
     while (current_index < UINT_MAX)
     {
         // cout << "  " << i ;
         // cout << "  current_index " << current_index;
         // cout << " Xorder " << Xorder[var][current_index];
         Y_sort[i] = y_std[Xorder[var][current_index]];
-        current_index = Xorder_next_index[var][current_index];
 
-        if (index < candidate_index.size() && i == (candidate_index[index] - 1))
+        if (index < candidate_index.size() && i == (candidate_index[index]))
         {
             possible_cutpoints[index] = *(X_std + N_y * var + Xorder[var][current_index]);
             index = index + 1;
         }
 
+        current_index = Xorder_next_index[var][current_index];
+
         i++;
     }
+
+
+
+    
+
 
     return;
 }

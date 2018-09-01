@@ -173,6 +173,7 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
 
     std::fill(Xorder_firstline.begin(), Xorder_firstline.end(), 0);
 
+    double y_sum;
     // size_t count = 0;
     for (size_t mc = 0; mc < L; mc++)
     {
@@ -251,7 +252,8 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
 
                 std::fill(Xorder_firstline.begin(), Xorder_firstline.end(), 0);
 
-                trees.t[tree_ind].grow_tree_adaptive_std_newXorder_old(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, N, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_next_index, Xorder_firstline, Xpointer, split_var_count_pointer, mtry, subset_vars, Xorder_std);
+                y_sum = sum_vec(residual_std);
+                trees.t[tree_ind].grow_tree_adaptive_std_newXorder_old(y_sum / (double)N, y_sum, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, N, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_next_index, Xorder_firstline, Xpointer, split_var_count_pointer, mtry, subset_vars, Xorder_std);
 
                 if (verbose == true)
                 {
