@@ -788,7 +788,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, double y_sum, size_t depth,
     this->v = split_var;
     this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
 
-    // cout << "cut value  " << cutvalue << "  " <<  this->c << endl;
+    cout << "cut value  " << cutvalue << "  " <<  this->c  << " variable " << split_var << endl;
 
     split_var_count_pointer[split_var]++;
 
@@ -1949,6 +1949,7 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double> &y_
                             ind++;
                             y_cumsum[ind] = y_cumsum[ind - 1] + y_std[Xorder_std[i][q]];
                         }else{
+                            // have done cumulative sum, do no care about elements after index of last entry of candiate_index
                             break;
                         }
                     }
@@ -2044,13 +2045,14 @@ void BART_likelihood_adaptive_std_mtry_all(double y_sum, std::vector<double> &y_
 
     if (N <= Ncutpoints + 1 + 2 * Nmin)
     {
+        cout << " all " << endl;
 
         // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
 
         // if number of observations is smaller than Ncutpoints, all data are splitpoint candidates
         // note that the first Nmin and last Nmin cannot be splitpoint candidate
 
-        std::vector<double> Y_sort(N_Xorder); // a container for sorted y
+        // std::vector<double> Y_sort(N_Xorder); // a container for sorted y
         double *ypointer;
         double n1tau;
         double n2tau;
@@ -2062,6 +2064,7 @@ void BART_likelihood_adaptive_std_mtry_all(double y_sum, std::vector<double> &y_
         std::vector<double> y_cumsum2(N_Xorder);
         // std::vector<double> y_cumsum_inv(N_Xorder);
 
+        // std::vector<double> Y_sort(N_Xorder);
         xinfo possible_cutpoints;
 
         ini_xinfo(possible_cutpoints, N_Xorder, p);
@@ -2100,8 +2103,6 @@ void BART_likelihood_adaptive_std_mtry_all(double y_sum, std::vector<double> &y_
                     current_index = Xorder_next_index[i][current_index];
                     temp_index ++ ;
                 }
-
-
 
                 for (size_t j = 0; j < N_Xorder - 1; j++)
                 {
@@ -2185,7 +2186,6 @@ void BART_likelihood_adaptive_std_mtry_all(double y_sum, std::vector<double> &y_
 
 
         // cout << "cutvalue " << cutvalue << " " << *(X_std + N_y * split_var + Xorder_std[split_var][split_point]) << endl;
-        cout << " akl " << endl;
     }
     else
     {   cout << " not all " << endl;
@@ -2244,75 +2244,91 @@ void BART_likelihood_adaptive_std_mtry_all(double y_sum, std::vector<double> &y_
                     }
                     else
                     {
-
                         if (ind < Ncutpoints - 1)
                         {
                             // y_cumsum_inv[ind] = y_sum - y_cumsum[ind];
                             ind++;
                             y_cumsum[ind] = y_cumsum[ind - 1] + y_std[Xorder_std[i][q]];
                         }else{
+                            // have done cumulative sum, do no care about elements after index of last entry of candiate_index
                             break;
                         }
                     }
                 }
 
 
-                // current_index = Xorder_firstline[i];
-                // temp_index = 0;
-                // count = 0;
-                // while(current_index < UINT_MAX){
-                //     if(count <= candidate_index[temp_index]){
-                //         y_cumsum2[temp_index] = y_cumsum2[temp_index] + y_std[Xorder_full[i][current_index]];                    
-                //         count ++ ;
-                //     }else{
-                //         temp_index ++ ;
-                //         y_cumsum2[temp_index] = y_cumsum2[temp_index - 1] + y_std[Xorder_full[i][current_index]];                    
-                //         count ++ ;
-                //     }
-                //     current_index = Xorder_next_index[i][current_index];
+
+                // for(size_t q = 0; q < Ncutpoints; q++){
+// cout << "copy x value " <<      *(X_std + N_y * i + Xorder_std[i][candidate_index[q]]) << endl;
                 // }
-
-
+// cout << "+++++++++++" << endl;/
 
                 current_index = Xorder_firstline[i];
-                y_cumsum2[0] = y_std[Xorder_full[i][current_index]];
-                // possible_cutpoints2[i][0] = *(X_std + N_y * i + Xorder_full[i][current_index]);
-                current_index = Xorder_next_index[i][current_index];
                 temp_index = 0;
-                count = 1;
-                while(count <= candidate_index[candidate_index.size() - 1]){
+                count = 0;
+                y_cumsum2[0] = 0;
+                for (size_t q = 0; q < N_Xorder; q++)
+                {
+                // while(current_index < UINT_MAX){
                     if(count <= candidate_index[temp_index]){
-                        y_cumsum2[temp_index] = y_cumsum2[temp_index] + y_std[Xorder_full[i][current_index]]; 
-                        // if( count == candidate_index[temp_index]){
-                        // }
+                        y_cumsum2[temp_index] = y_cumsum2[temp_index] + y_std[Xorder_full[i][current_index]];                    
+                        count ++ ;
+                        if(count == candidate_index[temp_index]){
+                            possible_cutpoints2[i][temp_index] = *(X_std + N_y * i + Xorder_full[i][current_index]);
+                        }
                     }else{
-                        possible_cutpoints2[i][temp_index] = *(X_std + N_y * i + Xorder_full[i][current_index]);
-
-                        temp_index ++ ;
-                        y_cumsum2[temp_index] = y_cumsum2[temp_index - 1] + y_std[Xorder_full[i][current_index]];
-                        // possible_cutpoints2[i][temp_index - 1] = *(X_std + N_y * i + Xorder_full[i][current_index]);
+                        if(temp_index < Ncutpoints - 1){
+                            temp_index ++ ;
+                            y_cumsum2[temp_index] = y_cumsum2[temp_index - 1] + y_std[Xorder_full[i][current_index]];           
+                            count ++ ;
+                        }else{
+                            break;
+                        }
                     }
-                    if(count < N_y - 1){
-                    count ++ ;
-                    }
-                    // cout << count << endl;
                     current_index = Xorder_next_index[i][current_index];
                 }
-                y_cumsum2[temp_index] = y_cumsum2[temp_index] + y_std[Xorder_full[i][current_index]];
-                possible_cutpoints2[i][temp_index] = *(X_std + N_y * i + Xorder_full[i][current_index]);
 
 
 
-    cout << " ----- ----- ----- " << endl;
-            // cout << y_cumsum - y_cumsum2 << endl;
-            cout << "Y sort " << endl;
-            cout << Y_sort << endl;
-            cout << "candidate " << endl;
-            cout << candidate_index << endl;
-            cout << "cumsum " << endl;
-            cout << y_cumsum << endl;
-            cout << "cumsum 2" << endl;
-            cout << y_cumsum2 << endl;
+                // current_index = Xorder_firstline[i];
+                // y_cumsum2[0] = y_std[Xorder_full[i][current_index]];
+                // // possible_cutpoints2[i][0] = *(X_std + N_y * i + Xorder_full[i][current_index]);
+                // current_index = Xorder_next_index[i][current_index];
+                // temp_index = 0;
+                // count = 1;
+                // while(count <= candidate_index[candidate_index.size() - 1]){
+                //     if(count <= candidate_index[temp_index]){
+                //         y_cumsum2[temp_index] = y_cumsum2[temp_index] + y_std[Xorder_full[i][current_index]]; 
+                //         // if( count == candidate_index[temp_index]){
+                //         // }
+                //     }else{
+                //         possible_cutpoints2[i][temp_index] = *(X_std + N_y * i + Xorder_full[i][current_index]);
+
+                //         temp_index ++ ;
+                //         y_cumsum2[temp_index] = y_cumsum2[temp_index - 1] + y_std[Xorder_full[i][current_index]];
+                //         // possible_cutpoints2[i][temp_index - 1] = *(X_std + N_y * i + Xorder_full[i][current_index]);
+                //     }
+                //     if(count < N_y - 1){
+                //     count ++ ;
+                //     }
+                //     // cout << count << endl;
+                //     current_index = Xorder_next_index[i][current_index];
+                // }
+                // y_cumsum2[temp_index] = y_cumsum2[temp_index] + y_std[Xorder_full[i][current_index]];
+                // possible_cutpoints2[i][temp_index] = *(X_std + N_y * i + Xorder_full[i][current_index]);
+
+
+
+    // cout << " ----- ----- ----- " << endl;
+    //         // cout << y_cumsum - y_cumsum2 << endl;
+    //         cout << "Y sort " << endl;
+    //         cout << Y_sort << endl;
+    //         cout << "candidate " << endl;
+    //         cout << candidate_index << endl;
+    //         cout << "cumsum " << endl;
+    //         cout << y_cumsum << endl;
+    //         cout << "cumsum 2" << endl;
+    //         cout << y_cumsum2 << endl;
 
 
                 // y_cumsum_inv[Ncutpoints - 1] = y_sum - y_cumsum[Ncutpoints - 1];
@@ -2373,6 +2389,12 @@ void BART_likelihood_adaptive_std_mtry_all(double y_sum, std::vector<double> &y_
         if (ind == (Ncutpoints)*p)
         {
             no_split = true;
+        }        
+        else
+        {
+            // cout << "ok1 " << endl;
+            // cutvalue = possible_cutpoints2[split_var][ind % Ncutpoints];
+            // cout << "ok2 " << endl;
         }
     }
 
