@@ -181,8 +181,6 @@ Rcpp::List train_forest_root_all(arma::mat y, arma::mat X, arma::mat Xtest, size
     // M, number of trees
     double y_sum;
 
-    double old_time = 0.0;
-    double new_time = 0.0;
     for (size_t mc = 0; mc < L; mc++)
     {
 
@@ -259,12 +257,7 @@ Rcpp::List train_forest_root_all(arma::mat y, arma::mat X, arma::mat Xtest, size
                 std::fill(Xorder_firstline.begin(), Xorder_firstline.end(), 0);
                 y_sum = sum_vec(residual_std);
 
-                // old_time = 0.0;
-                // new_time = 0.0;
-
-                trees.t[tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, y_sum, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, subset_vars, run_time, Xorder_next_index, Xorder_std, Xorder_firstline, old_time, new_time);
-
-
+                trees.t[tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, y_sum, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, subset_vars, run_time, Xorder_next_index, Xorder_std, Xorder_firstline);
 
                 if (verbose == true)
                 {
@@ -310,9 +303,6 @@ Rcpp::List train_forest_root_all(arma::mat y, arma::mat X, arma::mat Xtest, size
             }
         }
     }
-
-    cout << "old time " << old_time << endl;
-    cout << "new time " << new_time << endl;
 
     auto end = system_clock::now();
 
