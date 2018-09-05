@@ -3,11 +3,17 @@
 #include "tree.h"
 #include "treefuns.h"
 #include "forest.h"
+#include <chrono>
+
+using namespace std;
+
+using namespace chrono;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t mtry = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true)
 {
+    auto start = system_clock::now();
 
     size_t N = X.n_rows;
     size_t p = X.n_cols;
@@ -72,10 +78,6 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
         }
     }
 
-    // Xoder_next_index is a matrix, keep track of index of *next* observation in Xorder
-    // for example, if the first element Xorder_next_index[0][0] = 1
-    // it means that the next line follows the first line of Xorder is line 1 of Xorder
-
     size_t MAX_SIZE_T = std::numeric_limits<size_t>::max();
 
     xinfo_sizet Xorder_next_index;
@@ -94,11 +96,6 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
             }
         }
     }
-
-    // create an initialized copy for the Xorder_next_index matrix,
-    // need to restore for each tree
-    // xinfo_sizet Xorder_next_index_backup = Xorder_next_index;
-
     ///////////////////////////////////////////////////////////////////
 
     double *ypointer = &y_std[0];
@@ -169,12 +166,23 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
     subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
     // cout << subset_vars << endl;
 
+    // size_t count = 0;
     std::vector<size_t> Xorder_firstline(p);
 
     std::fill(Xorder_firstline.begin(), Xorder_firstline.end(), 0);
+    double run_time = 0.0;
 
+    // save tree objects to strings
+    // std::stringstream treess;
+    // treess.precision(10);
+    // treess << L << " " << M << " " << p << endl;
+
+    // L, number of samples
+    // M, number of trees
     double y_sum;
-    // size_t count = 0;
+
+    double old_time = 0.0;
+    double new_time = 0.0;
     for (size_t mc = 0; mc < L; mc++)
     {
 
@@ -233,8 +241,6 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
                     subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
                 }
 
-                // recover the Xoder_next_index matrix to initialized value
-
                 for (size_t i = 0; i < N; i++)
                 {
                     for (size_t j = 0; j < p; j++)
@@ -251,9 +257,14 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
                 }
 
                 std::fill(Xorder_firstline.begin(), Xorder_firstline.end(), 0);
-
                 y_sum = sum_vec(residual_std);
-                trees.t[tree_ind].grow_tree_adaptive_std_newXorder_old(y_sum / (double)N, y_sum, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, N, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_next_index, Xorder_firstline, Xpointer, split_var_count_pointer, mtry, subset_vars, Xorder_std);
+
+                // old_time = 0.0;
+                // new_time = 0.0;
+
+                trees.t[tree_ind].grow_tree_adaptive_linkedlist(sum_vec(residual_std) / (double)N, y_sum, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, subset_vars, run_time, Xorder_next_index, Xorder_std, Xorder_firstline, old_time, new_time, N);
+
+
 
                 if (verbose == true)
                 {
@@ -283,6 +294,8 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
 
                 yhat_std = yhat_std + predictions_std[tree_ind];
                 yhat_test_std = yhat_test_std + predictions_test_std[tree_ind];
+
+                // treess << trees.t[tree_ind];
             }
 
             // save predictions to output matrix
@@ -298,7 +311,19 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
         }
     }
 
+    cout << "old time " << old_time << endl;
+    cout << "new time " << new_time << endl;
+
+    auto end = system_clock::now();
+
+    auto duration = duration_cast<microseconds>(end - start);
+
+    cout << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
+
+    cout << "Running time of split Xorder " << run_time << endl;
+
     cout << "Count of splits for each variable " << split_var_count << endl;
 
+    // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
     return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw);
 }
