@@ -785,8 +785,8 @@ void tree::grow_tree_adaptive_std_all(double y_mean, double y_sum, size_t depth,
     // this->v = split_var;
     // v = split_var;
     split_var = v;
-    // c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
-    c = cutvalue;
+    c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+    // c = cutvalue;
     cutvalue2 = cutvalue;
     // this->c = cutvalue2;
     // if(cutvalue != this->c){
@@ -2214,11 +2214,14 @@ void BART_likelihood_adaptive_std_mtry_all(double y_sum, std::vector<double> &y_
         // initialize loglikelihood at -INFINITY
         std::vector<double> loglike(Ncutpoints * p + 1, -INFINITY);
         std::vector<size_t> candidate_index(Ncutpoints);
+        std::vector<size_t> candidate_index2(Ncutpoints + 1); // first element is always 0
         std::vector<double> y_cumsum(Ncutpoints);
         std::vector<double> y_cumsum2(Ncutpoints);
         // std::vector<double> y_cumsum_inv(Ncutpoints);
 
         seq_gen_std(Nmin, N - Nmin, Ncutpoints, candidate_index);
+        seq_gen_std_2(Nmin, N - Nmin, Ncutpoints, candidate_index2);
+        // candidate_index2[0] = -1;
 
         double Ntau = N_Xorder * tau;
 
@@ -2317,10 +2320,47 @@ void BART_likelihood_adaptive_std_mtry_all(double y_sum, std::vector<double> &y_
 
                 end = system_clock::now();
                 auto duration2 = duration_cast<std::chrono::nanoseconds>(end - start);
+
+
+
+                start = system_clock::now();
+                current_index = Xorder_firstline[i];
+                temp_index = 0;
+                y_cumsum2[0] = 0;
+                // current_index = Xorder_next_index[i][current_index];
+                // for(size_t m = 0; m < Ncutpoints; m ++ ){
+                //     // loop for index between candidate_index[m] and candidate_index[m - 1]
+                //     for(size_t q = candidate_index2[m] + 1, q <= candidate_index2[m + 1]; q ++ ){
+                //         y_cumsum2[m] = y_cumsum2[m] + y_std[Xorder_full[i][current_index]];
+                //         current_index = Xorder_next_index[i][current_index];
+                //     }
+                // }
+
+                // first element
+                for(size_t m = 0; m <= candidate_index[0]; m ++ ){
+                    y_cumsum2[0] = y_cumsum2[0] + y_std[Xorder_full[i][current_index]];
+                    current_index = Xorder_next_index[i][current_index];
+                }
+                y_cumsum2[1] = y_cumsum2[0];
+
+                temp_index = 1;
+                for(size_t m = 0; m < Ncutpoints - 2; m ++ ){
+                    for(size_t q = candidate_index[m] + 1; q <= candidate_index[m + 1]; q ++ ){
+                        y_cumsum2[temp_index] = y_cumsum2[temp_index] +  y_std[Xorder_full[i][current_index]];
+                        current_index = Xorder_next_index[i][current_index];
+                    }
+                    temp_index ++ ;
+                    y_cumsum2[temp_index] = y_cumsum2[temp_index - 1];
+                }   
+
+
+
+
                 // cout << "new " << duration2.count() << endl;
                 new_time = new_time + duration2.count() / 1000 ;
                 // cout << "y_sum diff " << sq_vec_diff(y_cumsum, y_cumsum2) << endl;
 
+cout << y_cumsum<< endl;
 
                 for (size_t j = 0; j < Ncutpoints; j++)
                 {
