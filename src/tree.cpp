@@ -774,9 +774,9 @@ void tree::grow_tree_adaptive_std_all(double y_mean, double y_sum, size_t depth,
     double cutvalue = 0.0;
     double cutvalue2 ;
 
-    cout << "ok1 " << endl;
+    // cout << "ok1 " << endl;
     BART_likelihood_adaptive_std_mtry_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, v, split_point, parallel, subset_vars, Xorder_full, Xorder_next_index, Xorder_firstline, N_y, cutvalue, old_time, new_time);
-    cout << "ok2 " << endl;
+    // cout << "ok2 " << endl;
     if (no_split == true)
     {
         return;
@@ -790,7 +790,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, double y_sum, size_t depth,
     cutvalue2 = cutvalue;
     // this->c = cutvalue2;
     // if(cutvalue != this->c){
-        cout << "cut value  " << cutvalue << "  " << c << " variable " << split_var << endl;
+        // cout << "cut value  " << cutvalue << "  " << c << " variable " << split_var << endl;
     // }
     split_var_count_pointer[split_var]++;
 
@@ -2048,7 +2048,7 @@ void BART_likelihood_adaptive_std_mtry_all(double y_sum, std::vector<double> &y_
     system_clock::time_point end;
     if (N <= Ncutpoints + 1 + 2 * Nmin)
     {
-        cout << " all " << endl;
+        // cout << " all " << endl;
 
         // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
 
@@ -2176,7 +2176,7 @@ void BART_likelihood_adaptive_std_mtry_all(double y_sum, std::vector<double> &y_
         {
             no_split = true;
             cutvalue = 0;
-            cout << "no split " << endl;
+            // cout << "no split " << endl;
             return;
         }
 
@@ -2203,24 +2203,24 @@ void BART_likelihood_adaptive_std_mtry_all(double y_sum, std::vector<double> &y_
         {
             no_split = true;
         }
-                        cout << " fine " << endl;
+                        // cout << " fine " << endl;
 
         // cout << "cutvalue " << cutvalue << " " << *(X_std + N_y * split_var + Xorder_std[split_var][split_point]) << endl;
     }
     else
     {
-        cout << " not all " << endl;
+        // cout << " not all " << endl;
 
         // initialize loglikelihood at -INFINITY
         std::vector<double> loglike(Ncutpoints * p + 1, -INFINITY);
         std::vector<size_t> candidate_index(Ncutpoints);
-        std::vector<size_t> candidate_index2(Ncutpoints + 1); // first element is always 0
+        // std::vector<size_t> candidate_index2(Ncutpoints + 1); // first element is always 0
         std::vector<double> y_cumsum(Ncutpoints);
         std::vector<double> y_cumsum2(Ncutpoints);
         // std::vector<double> y_cumsum_inv(Ncutpoints);
 
         seq_gen_std(Nmin, N - Nmin, Ncutpoints, candidate_index);
-        seq_gen_std_2(Nmin, N - Nmin, Ncutpoints, candidate_index2);
+        // seq_gen_std_2(Nmin, N - Nmin, Ncutpoints, candidate_index2);
         // candidate_index2[0] = -1;
 
         double Ntau = N_Xorder * tau;
@@ -2320,7 +2320,7 @@ void BART_likelihood_adaptive_std_mtry_all(double y_sum, std::vector<double> &y_
 
                 end = system_clock::now();
                 auto duration2 = duration_cast<std::chrono::nanoseconds>(end - start);
-
+                old_time = old_time + duration2.count();
 
 
                 start = system_clock::now();
@@ -2344,7 +2344,7 @@ void BART_likelihood_adaptive_std_mtry_all(double y_sum, std::vector<double> &y_
                 y_cumsum2[1] = y_cumsum2[0];
 
                 temp_index = 1;
-                for(size_t m = 0; m < Ncutpoints - 2; m ++ ){
+                for(size_t m = 0; m < Ncutpoints - 1; m ++ ){
                     for(size_t q = candidate_index[m] + 1; q <= candidate_index[m + 1]; q ++ ){
                         y_cumsum2[temp_index] = y_cumsum2[temp_index] +  y_std[Xorder_full[i][current_index]];
                         current_index = Xorder_next_index[i][current_index];
@@ -2356,11 +2356,11 @@ void BART_likelihood_adaptive_std_mtry_all(double y_sum, std::vector<double> &y_
 
 
 
-                // cout << "new " << duration2.count() << endl;
+                cout << "new " << duration2.count() << endl;
                 new_time = new_time + duration2.count() / 1000 ;
                 // cout << "y_sum diff " << sq_vec_diff(y_cumsum, y_cumsum2) << endl;
 
-cout << y_cumsum<< endl;
+// cout << y_cumsum - y_cumsum2 << endl;
 
                 for (size_t j = 0; j < Ncutpoints; j++)
                 {
