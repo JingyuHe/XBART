@@ -771,11 +771,11 @@ void tree::grow_tree_adaptive_std_all(double y_mean, double y_sum, size_t depth,
     sig = sigma;
     bool no_split = false;
 
-    double cutvalue = 0.0;
-    double cutvalue2 ;
+    // double cutvalue = 0.0;
+    // double cutvalue2 ;
 
     // cout << "ok1 " << endl;
-    BART_likelihood_adaptive_std_mtry_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, v, split_point, parallel, subset_vars, Xorder_full, Xorder_next_index, Xorder_firstline, N_y, cutvalue, old_time, new_time);
+    BART_likelihood_adaptive_std_mtry_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, v, split_point, parallel, subset_vars, Xorder_full, Xorder_next_index, Xorder_firstline, N_y, c, old_time, new_time);
     // cout << "ok2 " << endl;
     if (no_split == true)
     {
@@ -785,9 +785,10 @@ void tree::grow_tree_adaptive_std_all(double y_mean, double y_sum, size_t depth,
     // this->v = split_var;
     // v = split_var;
     split_var = v;
-    c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+    // c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+    // cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
     // c = cutvalue;
-    cutvalue2 = cutvalue;
+    // cutvalue2 = cutvalue;
     // this->c = cutvalue2;
     // if(cutvalue != this->c){
         // cout << "cut value  " << cutvalue << "  " << c << " variable " << split_var << endl;
@@ -2367,7 +2368,7 @@ void BART_likelihood_adaptive_std_mtry_all(double y_sum, std::vector<double> &y_
 
 
 
-                cout << "new " << duration2.count() << endl;
+                // cout << "new " << duration2.count() << endl;
                 new_time = new_time + duration2.count() / 1000 ;
                 // cout << "y_sum diff " << sq_vec_diff(y_cumsum, y_cumsum2) << endl;
 
@@ -2433,10 +2434,10 @@ void BART_likelihood_adaptive_std_mtry_all(double y_sum, std::vector<double> &y_
         else
         {
             cutvalue = possible_cutpoints[split_var][ind % Ncutpoints];
-            cout << "cut value  " << cutvalue << "  " << *(X_std + N_y * split_var + Xorder_std[split_var][split_point]) << " variable " << split_var << endl;
+            // cout << "cut value  " << cutvalue << "  " << *(X_std + N_y * split_var + Xorder_std[split_var][split_point]) << " variable " << split_var << endl;
         }
     }
-    cout << " fine fine "<<endl;
+    // cout << " fine fine "<<endl;
     return;
 }
 
