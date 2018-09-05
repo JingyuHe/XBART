@@ -167,9 +167,8 @@ Rcpp::List train_forest_root_all(arma::mat y, arma::mat X, arma::mat Xtest, size
     // cout << subset_vars << endl;
 
     // size_t count = 0;
-    std::vector<size_t> Xorder_firstline(p);
+    std::vector<size_t> Xorder_firstline(p, 0);
 
-    std::fill(Xorder_firstline.begin(), Xorder_firstline.end(), 0);
     double run_time = 0.0;
 
     // save tree objects to strings

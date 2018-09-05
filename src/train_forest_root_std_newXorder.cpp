@@ -167,10 +167,8 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
     // cout << subset_vars << endl;
 
     // size_t count = 0;
-    std::vector<size_t> Xorder_firstline(p);
+    std::vector<size_t> Xorder_firstline(p, 0);
 
-    std::fill(Xorder_firstline.begin(), Xorder_firstline.end(), 0);
-    double run_time = 0.0;
 
     // save tree objects to strings
     // std::stringstream treess;
@@ -181,8 +179,6 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
     // M, number of trees
     double y_sum;
 
-    double old_time = 0.0;
-    double new_time = 0.0;
     for (size_t mc = 0; mc < L; mc++)
     {
 
@@ -259,10 +255,7 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
                 std::fill(Xorder_firstline.begin(), Xorder_firstline.end(), 0);
                 y_sum = sum_vec(residual_std);
 
-                // old_time = 0.0;
-                // new_time = 0.0;
-
-                trees.t[tree_ind].grow_tree_adaptive_linkedlist(sum_vec(residual_std) / (double)N, y_sum, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, subset_vars, run_time, Xorder_next_index, Xorder_std, Xorder_firstline, old_time, new_time, N);
+                trees.t[tree_ind].grow_tree_adaptive_linkedlist(sum_vec(residual_std) / (double)N, y_sum, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xpointer, split_var_count_pointer, mtry, subset_vars, Xorder_next_index, Xorder_std, Xorder_firstline, N);
 
 
 
@@ -311,16 +304,12 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
         }
     }
 
-    cout << "old time " << old_time << endl;
-    cout << "new time " << new_time << endl;
 
     auto end = system_clock::now();
 
     auto duration = duration_cast<microseconds>(end - start);
 
     cout << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
-
-    cout << "Running time of split Xorder " << run_time << endl;
 
     cout << "Count of splits for each variable " << split_var_count << endl;
 

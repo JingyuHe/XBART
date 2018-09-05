@@ -55,7 +55,7 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double> &y_
 
 void BART_likelihood_adaptive_std_mtry_newXorder(std::vector<double> &y_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, size_t N_Xorder, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, xinfo_sizet &Xorder_full, xinfo_sizet &Xorder_next_index, std::vector<size_t> &Xorder_firstline, size_t &N_y, double &cutvalue, double &y_sum);
 
-void BART_likelihood_adaptive_linkedlist(double y_sum, std::vector<double> &y_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, const xinfo_sizet &Xorder_full, xinfo_sizet &Xorder_next_index, std::vector<size_t> Xorder_firstline, size_t& N_y, double& cutvalue, double& old_time, double& new_time, size_t& N_Xorder);
+void BART_likelihood_adaptive_linkedlist(double y_sum, std::vector<double> &y_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, const xinfo_sizet &Xorder_full, xinfo_sizet &Xorder_next_index, std::vector<size_t> Xorder_firstline, size_t& N_y, double& cutvalue, size_t& N_Xorder);
 
 
 void cumulative_sum_std(std::vector<double> &y_cumsum, std::vector<double> &y_cumsum_inv, double &y_sum, double *y, xinfo_sizet &Xorder, size_t &i, size_t &N);
@@ -137,7 +137,7 @@ class tree
 
 
 
-    void grow_tree_adaptive_linkedlist(double y_mean, double y_sum, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double *split_var_count_pointer, size_t &mtry, const std::vector<size_t> &subset_vars, double &run_time, xinfo_sizet &Xorder_next_index, xinfo_sizet &Xorder_full, std::vector<size_t> &Xorder_firstline, double& old_time, double& new_time, size_t& N_Xorder);
+    void grow_tree_adaptive_linkedlist(double y_mean, double y_sum, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, const double *X_std, double *split_var_count_pointer, size_t &mtry, const std::vector<size_t> &subset_vars, xinfo_sizet &Xorder_next_index, xinfo_sizet &Xorder_full, std::vector<size_t> &Xorder_firstline, size_t& N_Xorder);
 
 
 

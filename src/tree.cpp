@@ -815,11 +815,11 @@ void tree::grow_tree_adaptive_std_all(double y_mean, double y_sum, size_t depth,
     //     cout << " ----- ---- " << endl;
     //     cout << "running time 1 " << duration.count() << endl;
 
-    std::vector<size_t> Xorder_right_firstline(p);
-    std::vector<size_t> Xorder_left_firstline(p);
+    std::vector<size_t> Xorder_right_firstline(p, 0);
+    std::vector<size_t> Xorder_left_firstline(p, 0);
 
-    std::fill(Xorder_right_firstline.begin(), Xorder_right_firstline.end(), 0);
-    std::fill(Xorder_left_firstline.begin(), Xorder_left_firstline.end(), 0);
+    // std::fill(Xorder_right_firstline.begin(), Xorder_right_firstline.end(), 0);
+    // std::fill(Xorder_left_firstline.begin(), Xorder_left_firstline.end(), 0);
 
     auto start = system_clock::now();
     double yleft_mean_std = 0.0;
@@ -951,11 +951,11 @@ void tree::grow_tree_adaptive_std_newXorder(double y_mean, double y_sum, size_t 
     // ini_xinfo_sizet(Xorder_right_std, N_Xorder_right, p);
 
     // std::vector<size_t> Xorder_firstline(p);
-    std::vector<size_t> Xorder_right_firstline(p);
-    std::vector<size_t> Xorder_left_firstline(p);
+    std::vector<size_t> Xorder_right_firstline(p, 0);
+    std::vector<size_t> Xorder_left_firstline(p, 0);
 
-    std::fill(Xorder_right_firstline.begin(), Xorder_right_firstline.end(), 0);
-    std::fill(Xorder_left_firstline.begin(), Xorder_left_firstline.end(), 0);
+    // std::fill(Xorder_right_firstline.begin(), Xorder_right_firstline.end(), 0);
+    // std::fill(Xorder_left_firstline.begin(), Xorder_left_firstline.end(), 0);
 
     // cout << "OK 1" << endl;
 
@@ -2839,11 +2839,11 @@ void tree::grow_tree_adaptive_std_newXorder_old(double y_mean, double y_sum, siz
     // ini_xinfo_sizet(Xorder_right_std, N_Xorder_right, p);
 
     // std::vector<size_t> Xorder_firstline(p);
-    std::vector<size_t> Xorder_right_firstline(p);
-    std::vector<size_t> Xorder_left_firstline(p);
+    std::vector<size_t> Xorder_right_firstline(p, 0);
+    std::vector<size_t> Xorder_left_firstline(p, 0);
 
-    std::fill(Xorder_right_firstline.begin(), Xorder_right_firstline.end(), 0);
-    std::fill(Xorder_left_firstline.begin(), Xorder_left_firstline.end(), 0);
+    // std::fill(Xorder_right_firstline.begin(), Xorder_right_firstline.end(), 0);
+    // std::fill(Xorder_left_firstline.begin(), Xorder_left_firstline.end(), 0);
 
     // cout << "OK 1" << endl;
 
@@ -3419,7 +3419,7 @@ void BART_likelihood_adaptive_std_mtry_newXorder_old(double &y_sum, std::vector<
 
 
 // core functions of linkedlist
-void tree::grow_tree_adaptive_linkedlist(double y_mean, double y_sum, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double *split_var_count_pointer, size_t &mtry, const std::vector<size_t> &subset_vars, double &run_time, xinfo_sizet &Xorder_next_index, xinfo_sizet &Xorder_full, std::vector<size_t> &Xorder_firstline, double& old_time, double& new_time, size_t& N_Xorder)
+void tree::grow_tree_adaptive_linkedlist(double y_mean, double y_sum, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, const double *X_std, double *split_var_count_pointer, size_t &mtry, const std::vector<size_t> &subset_vars, xinfo_sizet &Xorder_next_index, xinfo_sizet &Xorder_full, std::vector<size_t> &Xorder_firstline, size_t& N_Xorder)
 {
 
     // grow a tree, users can control number of split points
@@ -3481,7 +3481,7 @@ void tree::grow_tree_adaptive_linkedlist(double y_mean, double y_sum, size_t dep
     // double cutvalue2 ;
 
     // cout << "ok1 " << endl;
-    BART_likelihood_adaptive_linkedlist(y_mean * N_Xorder, y_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, v, split_point, parallel, subset_vars, Xorder_full, Xorder_next_index, Xorder_firstline, N_y, c, old_time, new_time, N_Xorder);
+    BART_likelihood_adaptive_linkedlist(y_mean * N_Xorder, y_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, v, split_point, parallel, subset_vars, Xorder_full, Xorder_next_index, Xorder_firstline, N_y, c, N_Xorder);
     // cout << "ok2 " << endl;
     if (no_split == true)
     {
@@ -3521,27 +3521,27 @@ void tree::grow_tree_adaptive_linkedlist(double y_mean, double y_sum, size_t dep
     //     cout << " ----- ---- " << endl;
     //     cout << "running time 1 " << duration.count() << endl;
 
-    std::vector<size_t> Xorder_right_firstline(p);
-    std::vector<size_t> Xorder_left_firstline(p);
+    std::vector<size_t> Xorder_right_firstline(p, 0);
+    std::vector<size_t> Xorder_left_firstline(p, 0);
 
-    std::fill(Xorder_right_firstline.begin(), Xorder_right_firstline.end(), 0);
-    std::fill(Xorder_left_firstline.begin(), Xorder_left_firstline.end(), 0);
+    // std::fill(Xorder_right_firstline.begin(), Xorder_right_firstline.end(), 0);
+    // std::fill(Xorder_left_firstline.begin(), Xorder_left_firstline.end(), 0);
 
-    auto start = system_clock::now();
+    // auto start = system_clock::now();
     double yleft_mean_std = 0.0;
     double yright_mean_std = 0.0;
-    split_xorder_std(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, yleft_mean_std, yright_mean_std, y_mean, y_std);
-    auto end = system_clock::now();
-    auto duration = duration_cast<std::chrono::nanoseconds>(end - start);
-    old_time = old_time + duration.count() / 1000;
+    // split_xorder_std(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, yleft_mean_std, yright_mean_std, y_mean, y_std);
+    // auto end = system_clock::now();
+    // auto duration = duration_cast<std::chrono::nanoseconds>(end - start);
+    // old_time = old_time + duration.count() / 1000;
 
 
 
-    start = system_clock::now();
+    // start = system_clock::now();
     split_xorder_std_linkedlist(this->c, split_var, split_point, Xorder_next_index, X_std, N_y, p, N_Xorder, N_Xorder_left, N_Xorder_right, Xorder_firstline, Xorder_left_firstline, Xorder_right_firstline, Xorder_full, yleft_mean_std, yright_mean_std, y_mean, y_std);
-    end = system_clock::now();
-    duration = duration_cast<std::chrono::nanoseconds>(end - start);
-    new_time = new_time + duration.count() / 1000;
+    // end = system_clock::now();
+    // duration = duration_cast<std::chrono::nanoseconds>(end - start);
+    // new_time = new_time + duration.count() / 1000;
 
 
 
@@ -3554,27 +3554,24 @@ void tree::grow_tree_adaptive_linkedlist(double y_mean, double y_sum, size_t dep
     double yleft_sum = yleft_mean_std * N_Xorder_left;
     double yright_sum = yright_mean_std * N_Xorder_right;
 
-    double running_time_left = 0.0;
-    double running_time_right = 0.0;
 
     depth = depth + 1;
     tree::tree_p lchild = new tree();
-    lchild->grow_tree_adaptive_linkedlist(yleft_mean_std, yleft_sum, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, split_var_count_pointer, mtry, subset_vars, running_time_left, Xorder_next_index, Xorder_full, Xorder_left_firstline, old_time, new_time, N_Xorder_left);
+    lchild->grow_tree_adaptive_linkedlist(yleft_mean_std, yleft_sum, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, X_std, split_var_count_pointer, mtry, subset_vars, Xorder_next_index, Xorder_full, Xorder_left_firstline, N_Xorder_left);
     tree::tree_p rchild = new tree();
-    rchild->grow_tree_adaptive_linkedlist(yright_mean_std, yright_sum, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, split_var_count_pointer, mtry, subset_vars, running_time_right, Xorder_next_index, Xorder_full, Xorder_right_firstline, old_time, new_time, N_Xorder_right);
+    rchild->grow_tree_adaptive_linkedlist(yright_mean_std, yright_sum, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, X_std, split_var_count_pointer, mtry, subset_vars, Xorder_next_index, Xorder_full, Xorder_right_firstline, N_Xorder_right);
 
     lchild->p = this;
     rchild->p = this;
     this->l = lchild;
     this->r = rchild;
 
-    // run_time = run_time  + running_time_left + running_time_right;
 
     return;
 }
 
 
-void BART_likelihood_adaptive_linkedlist(double y_sum, std::vector<double> &y_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, const xinfo_sizet &Xorder_full, xinfo_sizet &Xorder_next_index, std::vector<size_t> Xorder_firstline, size_t& N_y, double& cutvalue, double& old_time, double& new_time, size_t& N_Xorder)
+void BART_likelihood_adaptive_linkedlist(double y_sum, std::vector<double> &y_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, const xinfo_sizet &Xorder_full, xinfo_sizet &Xorder_next_index, std::vector<size_t> Xorder_firstline, size_t& N_y, double& cutvalue, size_t& N_Xorder)
 {
     // cout << "-------------------------------" << endl;
     // compute BART posterior (loglikelihood + logprior penalty)
@@ -3596,19 +3593,10 @@ void BART_likelihood_adaptive_linkedlist(double y_sum, std::vector<double> &y_st
     double sigma2 = pow(sigma, 2);
 
     double loglike_max = -INFINITY;
-    system_clock::time_point start;
-    system_clock::time_point end;
+
     if (N <= Ncutpoints + 1 + 2 * Nmin)
     {
-        // cout << " all " << endl;
 
-        // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
-
-        // if number of observations is smaller than Ncutpoints, all data are splitpoint candidates
-        // note that the first Nmin and last Nmin cannot be splitpoint candidate
-
-        // std::vector<double> Y_sort(N_Xorder); // a container for sorted y
-        double *ypointer;
         double n1tau;
         double n2tau;
         double Ntau = N_Xorder * tau;
@@ -3621,11 +3609,6 @@ void BART_likelihood_adaptive_linkedlist(double y_sum, std::vector<double> &y_st
 
         ini_xinfo(possible_cutpoints, N_Xorder, p);
 
-        // xinfo possible_cutpoints2;
-        // std::vector<double> Y_sort(N_Xorder);
-        // std::vector<double> y_cumsum2(N_Xorder);
-        // ini_xinfo(possible_cutpoints2, N_Xorder, p);
-        // std::vector<double> y_cumsum_inv(N_Xorder);
 
         size_t current_index;
         size_t temp_index;
@@ -3635,24 +3618,6 @@ void BART_likelihood_adaptive_linkedlist(double y_sum, std::vector<double> &y_st
             // for(size_t i = 0; i < p; i++){
             for (auto &&i : subset_vars)
             {
-
-
-// start = system_clock::now();
-
-                // y_cumsum[0] = y_std[Xorder_std[i][0]];
-                // // y_cumsum_inv[0] = y_sum - y_cumsum[0];
-                // for (size_t q = 1; q < N_Xorder; q++)
-                // {
-                //     y_cumsum[q] = y_cumsum[q - 1] + y_std[Xorder_std[i][q]];
-                //     // y_cumsum_inv[q] = y_sum - y_cumsum[q];
-                // }
-// end = system_clock::now();
-// auto duration = duration_cast<std::chrono::nanoseconds>(end - start);
-// // cout << "old " << duration.count() << endl;
-// old_time = old_time + duration.count() / 1000 ;
-
-
-// start = system_clock::now();
 
                 current_index = Xorder_firstline[i];
                 y_cumsum[0] = y_std[Xorder_full[i][current_index]];
@@ -3666,11 +3631,6 @@ void BART_likelihood_adaptive_linkedlist(double y_sum, std::vector<double> &y_st
                     current_index = Xorder_next_index[i][current_index];
                     temp_index++;
                 }
-// end = system_clock::now();
-
-// auto duration2 = duration_cast<std::chrono::nanoseconds>(end - start);
-// cout << "old " << duration.count() << endl;
-// new_time = new_time + duration2.count() / 1000 ;
 
                 for (size_t j = 0; j < N_Xorder - 1; j++)
                 {
@@ -3761,19 +3721,13 @@ void BART_likelihood_adaptive_linkedlist(double y_sum, std::vector<double> &y_st
     }
     else
     {
-        // cout << " not all " << endl;
 
         // initialize loglikelihood at -INFINITY
         std::vector<double> loglike(Ncutpoints * p + 1, -INFINITY);
         std::vector<size_t> candidate_index(Ncutpoints);
-        // std::vector<size_t> candidate_index2(Ncutpoints + 1); // first element is always 0
         std::vector<double> y_cumsum(Ncutpoints);
-        // std::vector<double> y_cumsum2(Ncutpoints);
-        // std::vector<double> y_cumsum_inv(Ncutpoints);
 
         seq_gen_std(Nmin, N - Nmin, Ncutpoints, candidate_index);
-        // seq_gen_std_2(Nmin, N - Nmin, Ncutpoints, candidate_index2);
-        // candidate_index2[0] = -1;
 
         double Ntau = N_Xorder * tau;
 
@@ -3782,18 +3736,10 @@ void BART_likelihood_adaptive_linkedlist(double y_sum, std::vector<double> &y_st
 
         ini_xinfo(possible_cutpoints, Ncutpoints, p);
 
-
-        // xinfo possible_cutpoints2;
-
-        // ini_xinfo(possible_cutpoints2, Ncutpoints, p);
-
-
         size_t current_index;
         size_t previous_index;
         size_t temp_index;
         size_t count;
-        // std::vector<double> Y_sort(N_Xorder);
-
 
 
         if (parallel == false)
@@ -3807,84 +3753,6 @@ void BART_likelihood_adaptive_linkedlist(double y_sum, std::vector<double> &y_st
             for (auto &&i : subset_vars)
             {
 
-                // start = system_clock::now();
-                // for (size_t q = 0; q < N_Xorder; q++)
-                // {
-                //     Y_sort[q] = y_std[Xorder_std[i][q]];
-                // }
-
-                // size_t ind = 0;
-                // y_cumsum[0] = 0.0;
-                // // size_t N_Xorder = Xorder_std[0].size();
-
-                // // cout << y_sum << " " << y_sum2 << endl;
-                // for (size_t q = 0; q < N_Xorder; q++)
-                // {
-                //     // cout << ind << " " << Ncutpoints << endl;
-                //     if (q <= candidate_index[ind])
-                //     {
-                //         y_cumsum[ind] = y_cumsum[ind] + y_std[Xorder_std[i][q]];
-                //     }
-                //     else
-                //     {
-                //         if (ind < Ncutpoints - 1)
-                //         {
-                //             // y_cumsum_inv[ind] = y_sum - y_cumsum[ind];
-                //             ind++;
-                //             y_cumsum[ind] = y_cumsum[ind - 1] + y_std[Xorder_std[i][q]];
-                //         }
-                //         else
-                //         {
-                //             // have done cumulative sum, do no care about elements after index of last entry of candiate_index
-                //             break;
-                //         }
-                //     }
-                // }
-                // end = system_clock::now();
-                // // cout << "------------------------" << endl;
-                // auto duration = duration_cast<std::chrono::nanoseconds>(end - start);
-                // // cout << "old " << duration.count() << endl;
-                // old_time = old_time + duration.count() / 1000 ;
-
-                // start = system_clock::now();
-                // current_index = Xorder_firstline[i];
-                // temp_index = 0;
-                // // count = 0;
-                // y_cumsum[0] = 0;
-                // for (size_t q = 0; q < N_Xorder; q++)
-                // {
-
-                //     if (q <= candidate_index[temp_index])
-                //     {
-                //         y_cumsum[temp_index] = y_cumsum[temp_index] + y_std[Xorder_full[i][current_index]];
-
-                //     }
-                //     else
-                //     {
-                //             possible_cutpoints[i][temp_index] = *(X_std + N_y * i + Xorder_full[i][current_index]);
-
-                //         if (temp_index < Ncutpoints - 1)
-                //         {
-                //             temp_index++;
-                //             y_cumsum[temp_index] = y_cumsum[temp_index - 1] + y_std[Xorder_full[i][current_index]];
-                //             // count++;
-                //         }
-                //         else
-                //         {
-                //             break;
-                //         }
-                //     }
-                //     current_index = Xorder_next_index[i][current_index];
-                // }
-
-                // end = system_clock::now();
-                // auto duration2 = duration_cast<std::chrono::nanoseconds>(end - start);
-                // old_time = old_time + duration2.count() / 1000;
-
-
-
-
-                start = system_clock::now();
                 current_index = Xorder_firstline[i];
                 temp_index = 0;
                 y_cumsum[0] = 0;
@@ -3907,15 +3775,7 @@ void BART_likelihood_adaptive_linkedlist(double y_sum, std::vector<double> &y_st
                     temp_index ++ ;
                     y_cumsum[temp_index] = y_cumsum[temp_index - 1];
                 }   
-                end = system_clock::now();
-                auto duration2 = duration_cast<std::chrono::nanoseconds>(end - start);
 
-
-                // cout << "new " << duration2.count() << endl;
-                new_time = new_time + duration2.count() / 1000 ;
-                // cout << "y_sum diff " << sq_vec_diff(y_cumsum, y_cumsum2) << endl;
-
-// cout << y_cumsum - y_cumsum2 << endl;
 
                 for (size_t j = 0; j < Ncutpoints; j++)
                 {
@@ -3977,10 +3837,8 @@ void BART_likelihood_adaptive_linkedlist(double y_sum, std::vector<double> &y_st
         else
         {
             cutvalue = possible_cutpoints[split_var][ind % Ncutpoints];
-            // cout << "cut value  " << cutvalue << "  " << *(X_std + N_y * split_var + Xorder_std[split_var][split_point]) << " variable " << split_var << endl;
         }
     }
-    // cout << " fine fine "<<endl;
     return;
 }
 
@@ -4102,58 +3960,6 @@ void split_xorder_std_linkedlist(const double &cutvalue, const size_t &split_var
         y_left_mean = (y_mean * N_Xorder - y_right_mean) / N_Xorder_left;
         y_right_mean = y_right_mean / N_Xorder_right;
     }
-
-    // for(size_t i = 0; i < p; i ++ ){
-    //     // cout << Xorder_left_std[i][0] << "   " << Xorder_std[i][Xorder_left_firstline[i]]<< endl;
-    //     cout << Xorder_next_index[i] << endl;
-    // }
-
-    // // check that Xorder_left_firstline is correct
-    // for(size_t i = 0; i < p; i ++ ){
-    //     cout << Xorder_right_std[i][0] << "   " << Xorder_std[i][Xorder_right_firstline[i]]<< endl;
-    //     // cout << Xorder_next_index[i] << endl;
-    // }
-
-    // cout << "first " << Xorder_right_firstline << endl;
-
-    // cout << Xorder_firstline << endl;
-
-    // cout << "---------------------- RIGHT " << endl;
-
-    // for(size_t j = 0; j < p; j ++ ){
-    //     cout << "variable " << j << endl;
-    //     cout << Xorder_right_std[j] << endl;
-
-    //     current_index = Xorder_right_firstline[j];
-    //     while(current_index < 10000){
-    //         cout << Xorder_std_full[j][current_index] << ", ";
-    //         current_index = Xorder_next_index[j][current_index];
-    //     }
-
-    //     cout << endl;
-
-    // }
-
-    // cout << "---------------------- LEFT " << endl;
-
-    // for(size_t j = 0; j < p; j ++ ){
-    //     cout << "variable " << j << endl;
-    //     cout << Xorder_left_std[j] << endl;
-
-    //     current_index = Xorder_left_firstline[j];
-    //     while(current_index < 10000){
-    //         cout << Xorder_std_full[j][current_index] << "    ";
-    //         current_index = Xorder_next_index[j][current_index];
-    //     }
-
-    //     cout << endl;
-
-    // }
-
-    // cout << "---------------------- Xorder NEXT " << endl;
-    // for(size_t j = 0; j < p ; j ++ ){
-    //     cout << Xorder_next_index[j] << endl;
-    // }
 
     return;
 }
