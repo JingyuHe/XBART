@@ -11,9 +11,13 @@ using namespace chrono;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t mtry = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true)
+Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t K, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t mtry = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true)
 {
     auto start = system_clock::now();
+
+
+    size_t num_trees = M + K;
+
 
     size_t N = X.n_rows;
     size_t p = X.n_cols;
@@ -91,10 +95,10 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
     // save predictions of each tree
     std::vector<std::vector<double>> predictions_std;
-    ini_xinfo(predictions_std, N, M);
+    ini_xinfo(predictions_std, N, num_trees);
 
     xinfo predictions_test_std;
-    ini_xinfo(predictions_test_std, N_test, M);
+    ini_xinfo(predictions_test_std, N_test, num_trees);
 
     std::vector<double> yhat_std(N);
     row_sum(predictions_std, yhat_std);
@@ -105,9 +109,9 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     std::vector<double> residual_std(N);
 
     xinfo sigma_draw_std;
-    ini_xinfo(sigma_draw_std, M, N_sweeps);
+    ini_xinfo(sigma_draw_std, num_trees, N_sweeps);
 
-    forest trees_std(M);
+    forest trees_std(num_trees);
 
     std::vector<double> reshat_std;
     std::vector<double> reshat_test_std;
@@ -118,11 +122,11 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     Rcpp::NumericMatrix yhats_test(N_test, N_sweeps);
 
     // save predictions of each tree
-    Rcpp::NumericMatrix sigma_draw(M, N_sweeps);
+    Rcpp::NumericMatrix sigma_draw(num_trees, N_sweeps);
 
     double sigma;
     // double tau;
-    forest trees(M);
+    forest trees(num_trees);
     std::vector<double> prob(2, 0.5);
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -133,6 +137,9 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     // std::vector<double> split_var_count(p);
     // std::fill(split_var_count.begin(), split_var_count.end(), 1);
     Rcpp::NumericVector split_var_count(p, 1);
+
+    // this count is fixed at 1, always uniform sampling
+    Rcpp::NumericVector split_var_count_uniform(p, 1);
 
     double *split_var_count_pointer = &split_var_count[0];
 
@@ -155,19 +162,19 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     // save tree objects to strings
     // std::stringstream treess;
     // treess.precision(10);
-    // treess << L << " " << M << " " << p << endl;
+    // treess << L << " " << num_trees << " " << p << endl;
 
     // L, number of samples
-    // M, number of trees
+    // num_trees, number of trees
 
     for (size_t mc = 0; mc < L; mc++)
     {
 
         // initialize predcitions and predictions_test
-        for (size_t ii = 0; ii < M; ii++)
+        for (size_t ii = 0; ii < num_trees; ii++)
         {
-            std::fill(predictions_std[ii].begin(), predictions_std[ii].end(), y_mean / (double)M);
-            std::fill(predictions_test_std[ii].begin(), predictions_test_std[ii].end(), y_mean / (double)M);
+            std::fill(predictions_std[ii].begin(), predictions_std[ii].end(), y_mean / (double)num_trees);
+            std::fill(predictions_test_std[ii].begin(), predictions_test_std[ii].end(), y_mean / (double)num_trees);
         }
 
         row_sum(predictions_std, yhat_std);
@@ -185,7 +192,7 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
                 cout << "--------------------------------" << endl;
             }
 
-            for (size_t tree_ind = 0; tree_ind < M; tree_ind++)
+            for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
             {
 
                 // if update sigma based on residual of all m trees
@@ -214,8 +221,13 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
                 yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
 
                 if (mtry != p)
-                {
-                    subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+                {   
+                    if(tree_ind < K){
+                        subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count_uniform));
+
+                    }else{
+                        subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+                    }
                 }
 
                 trees.t[tree_ind].grow_tree_adaptive_std(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, subset_vars, run_time);
