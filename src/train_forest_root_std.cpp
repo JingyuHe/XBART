@@ -137,9 +137,11 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     // std::vector<double> split_var_count(p);
     // std::fill(split_var_count.begin(), split_var_count.end(), 1);
     Rcpp::NumericVector split_var_count(p, 1);
+    Rcpp::NumericVector split_var_count_2(p, 1);
 
     // this count is fixed at 1, always uniform sampling
     Rcpp::NumericVector split_var_count_uniform(p, 1);
+    Rcpp::NumericVector split_var_weight(p, 0);
 
     double *split_var_count_pointer = &split_var_count[0];
 
@@ -152,7 +154,7 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
         var_index_candidate[i] = i;
     }
 
-    subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+    subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count_uniform));
     // cout << subset_vars << endl;
 
     // size_t count = 0;
@@ -226,11 +228,22 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
                         subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count_uniform));
 
                     }else{
-                        subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+                        subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_weight));
                     }
                 }
 
                 trees.t[tree_ind].grow_tree_adaptive_std(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, subset_vars, run_time);
+
+
+                split_var_count_2 = split_var_count_2 + split_var_count;
+
+                for(size_t ll = 0; ll < p; ll ++ ){
+                    if(split_var_count[ll] > 0){
+                        split_var_weight = split_var_weight + 1;
+                    }
+                    split_var_count[ll] = 0;
+                }
+
 
                 if (verbose == true)
                 {
@@ -285,7 +298,9 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
     cout << "Running time of split Xorder " << run_time << endl;
 
-    cout << "Count of splits for each variable " << split_var_count << endl;
+    cout << "Count of splits for each variable " << split_var_count_2 << endl;
+
+    cout << "Final weight " << split_var_weight << endl;
 
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
     return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw);
