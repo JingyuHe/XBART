@@ -183,7 +183,6 @@ void seq_gen_std(size_t start, size_t end, size_t length_out, std::vector<size_t
     return;
 }
 
-
 void seq_gen_std_2(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec)
 {
     // generate a sequence of integers, save in std vector container
@@ -191,14 +190,11 @@ void seq_gen_std_2(size_t start, size_t end, size_t length_out, std::vector<size
 
     for (size_t i = 1; i < length_out + 1; i++)
     {
-        vec[i] = (size_t)incr * (i-1) + start;
+        vec[i] = (size_t)incr * (i - 1) + start;
     }
 
     return;
 }
-
-
-
 
 void calculate_y_cumsum_std(const double *y, const size_t N_y, double y_sum, std::vector<size_t> &ind, std::vector<double> &y_cumsum, std::vector<double> &y_cumsum_inv)
 {
@@ -490,11 +486,6 @@ void create_y_sort_3(std::vector<double> &Y_sort, std::vector<double> &possible_
 
         i++;
     }
-
-
-
-    
-
 
     return;
 }

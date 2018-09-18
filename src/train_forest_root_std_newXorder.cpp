@@ -169,7 +169,6 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
     // size_t count = 0;
     std::vector<size_t> Xorder_firstline(p, 0);
 
-
     // save tree objects to strings
     // std::stringstream treess;
     // treess.precision(10);
@@ -257,8 +256,6 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
 
                 trees.t[tree_ind].grow_tree_adaptive_linkedlist(sum_vec(residual_std) / (double)N, y_sum, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xpointer, split_var_count_pointer, mtry, subset_vars, Xorder_next_index, Xorder_std, Xorder_firstline, N);
 
-
-
                 if (verbose == true)
                 {
                     cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
@@ -303,7 +300,6 @@ Rcpp::List train_forest_root_std_newXorder(arma::mat y, arma::mat X, arma::mat X
             }
         }
     }
-
 
     auto end = system_clock::now();
 

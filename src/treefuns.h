@@ -24,35 +24,32 @@
 
 // [[Rcpp::plugins(cpp11)]]
 
-
 //--------------------------------------------------
 //write cutpoint information to screen
-void prxi(xinfo& xi);
+void prxi(xinfo &xi);
 //--------------------------------------------------
 //evaluate tree tr on grid xi, write to os
-void grm(tree& tr, xinfo& xi, std::ostream& os);
+void grm(tree &tr, xinfo &xi, std::ostream &os);
 //--------------------------------------------------
 //fit tree at matrix of x, matrix is stacked columns x[i,j] is *(x+p*i+j)
-void fit(tree& t, xinfo& xi, size_t p, size_t n, double *x,  double* fv);
-void fit_std(tree& t, size_t p, size_t n, double *x, std::vector<double>& fv);
-void fit_noise_std(tree& t, size_t p, size_t n, double *x, std::vector<double>& fv);
+void fit(tree &t, xinfo &xi, size_t p, size_t n, double *x, double *fv);
+void fit_std(tree &t, size_t p, size_t n, double *x, std::vector<double> &fv);
+void fit_noise_std(tree &t, size_t p, size_t n, double *x, std::vector<double> &fv);
 //--------------------------------------------------
 //does a (bottom) node have variables you can split on?
-bool cansplit(tree::tree_p n, xinfo& xi);
+bool cansplit(tree::tree_p n, xinfo &xi);
 //--------------------------------------------------
 //find variables n can split on, put their indices in goodvars
-void getgoodvars(tree::tree_p n, xinfo& xi,  std::vector<size_t>& goodvars);
+void getgoodvars(tree::tree_p n, xinfo &xi, std::vector<size_t> &goodvars);
 //--------------------------------------------------
-arma::vec fit_new(tree& tree, arma::mat& Xnew);
-arma::vec fit_new_theta_noise(tree& tree, arma::mat& Xnew);
-void fit_new_theta_noise_std(tree& tree, const double* X, size_t p, size_t N, std::vector<double>& output);
-arma::vec fit_new_theta_noise_test(tree& tree, arma::mat& Xnew, const double * X_std, size_t p, size_t N, std::vector<double>& output);
-void fit_new_void(tree& tree, arma::mat& Xnew, arma::mat& pred, size_t& ind);
-double sum_residual_squared(tree& tree, const double* X, const std::vector<double>& y, size_t p);
+arma::vec fit_new(tree &tree, arma::mat &Xnew);
+arma::vec fit_new_theta_noise(tree &tree, arma::mat &Xnew);
+void fit_new_theta_noise_std(tree &tree, const double *X, size_t p, size_t N, std::vector<double> &output);
+arma::vec fit_new_theta_noise_test(tree &tree, arma::mat &Xnew, const double *X_std, size_t p, size_t N, std::vector<double> &output);
+void fit_new_void(tree &tree, arma::mat &Xnew, arma::mat &pred, size_t &ind);
+double sum_residual_squared(tree &tree, const double *X, const std::vector<double> &y, size_t p);
 
-void fit_new_std(tree& tree, const double * X_std, size_t N, size_t p, std::vector<double>& output);
+void fit_new_std(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output);
 // void update_sufficient_stat(tree& tree, arma::mat& y, arma::mat& X, tree::npv& bv, tree::npv& bv2, double& tau, double& sigma, double& alpha, double& beta);
-
-
 
 #endif

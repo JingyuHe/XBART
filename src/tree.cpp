@@ -3928,7 +3928,7 @@ void split_xorder_std_linkedlist(const double &cutvalue, const size_t &split_var
                     else
                     {
 
-                            y_right_mean = y_right_mean + y_std[Xorder_std_full[split_var][current_index]];
+                        y_right_mean = y_right_mean + y_std[Xorder_std_full[split_var][current_index]];
                         // cout << "right " << endl;
                         if (right_ix == 0)
                         {
