@@ -11,7 +11,7 @@ using namespace chrono;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t K, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t mtry = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true)
+Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t K, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, double sigma = 1.0, size_t mtry = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true, bool auto_sample_mtry = true, Rcpp::NumericVector mtry_weights = NULL)
 {
     auto start = system_clock::now();
 
@@ -124,7 +124,7 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     // save predictions of each tree
     Rcpp::NumericMatrix sigma_draw(num_trees, N_sweeps);
 
-    double sigma;
+
     // double tau;
     forest trees(num_trees);
     std::vector<double> prob(2, 0.5);
@@ -156,7 +156,16 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
         var_index_candidate[i] = i;
     }
 
-    subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+
+    // cout << "ok 1" << endl;
+    if(auto_sample_mtry == true){
+        subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+    }else{
+        subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, mtry_weights));
+    }
+
+    // cout << "ok 2" << endl;
+
     // cout << subset_vars << endl;
 
     // size_t count = 0;
@@ -224,17 +233,24 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
                 yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
 
-                if (mtry != p)
-                {   
-                    if(tree_ind < K){
+                if(auto_sample_mtry == true){
 
-                        subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count_uniform));
+                    if (mtry != p)
+                    {   
+                        if(tree_ind < K){
 
-                    }else{
+                            subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count_uniform));
 
-                        subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count_all));
-                    
+                        }else{
+
+                            subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count_all));
+                        
+                        }
                     }
+                }else{
+
+                    subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, mtry_weights));
+                
                 }
 
                 for(size_t ll = 0; ll < p; ll ++ ){
@@ -308,8 +324,10 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
     cout << "Running time of split Xorder " << run_time << endl;
     
+    split_var_count2 = split_var_count2 - 1;
     cout << "raw count of number of splits " << split_var_count2 << endl;
 
+    split_var_count_all = split_var_count_all - 1;
     cout << "final weight (only count 0 / 1 per tree) " << split_var_count_all << endl;
 
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
