@@ -2,7 +2,7 @@ Package: abarth
 Type: Package
 Title: What the Package Does in One 'Title Case' Line
 Version: 1.6
-Date: 2018-08-24
+Date: 2018-09-18
 Author: Your Name
 Maintainer: Your Name <your@email.com>
 Description: One paragraph description of what the package does as one
@@ -11,4 +11,4 @@ License: GPL (>= 2)
 Imports: Rcpp (>= 0.12.13)
 LinkingTo: Rcpp, RcppArmadillo, RcppParallel
 NeedsCompilation: yes
-Packaged: 2018-04-10 20:57:17 UTC; jingyuhe
+Packaged: 2018-09-18 20:35:41 UTC; jingyu

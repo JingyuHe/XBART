@@ -11,7 +11,7 @@ using namespace chrono;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t K, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t mtry = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true)
+Rcpp::List train_forest_root_std_old(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t K, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t mtry = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true)
 {
     auto start = system_clock::now();
 
@@ -138,12 +138,8 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     // std::fill(split_var_count.begin(), split_var_count.end(), 1);
     Rcpp::NumericVector split_var_count(p, 1);
 
-    Rcpp::NumericVector split_var_count2(p, 1);
-
     // this count is fixed at 1, always uniform sampling
     Rcpp::NumericVector split_var_count_uniform(p, 1);
-
-    Rcpp::NumericVector split_var_count_all(p, 1);
 
     double *split_var_count_pointer = &split_var_count[0];
 
@@ -227,38 +223,19 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
                 if (mtry != p)
                 {   
                     if(tree_ind < K){
-
                         subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count_uniform));
 
                     }else{
-
-                        subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count_all));
-                    
+                        subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
                     }
                 }
 
-                for(size_t ll = 0; ll < p; ll ++ ){
-                    split_var_count[ll] = 0;
-                }
-
                 trees.t[tree_ind].grow_tree_adaptive_std(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, subset_vars, run_time);
-
-                // cout << "split_var_count " << split_var_count << endl;
-
-                split_var_count2 = split_var_count2 + split_var_count;
 
                 if (verbose == true)
                 {
                     cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
                 }
-
-                for(size_t ll = 0; ll < p; ll ++ ){
-                    if(split_var_count[ll] > 0){
-                        split_var_count_all[ll] = split_var_count_all[ll] + 1 ;// split_var_count[ll];
-                    }
-                }
-
-                // cout << "split var count all " << split_var_count_all << endl;
 
                 // update prediction of current tree
                 fit_new_std(trees.t[tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
@@ -307,10 +284,8 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     cout << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
 
     cout << "Running time of split Xorder " << run_time << endl;
-    
-    cout << "raw count of number of splits " << split_var_count2 << endl;
 
-    cout << "final weight (only count 0 / 1 per tree) " << split_var_count_all << endl;
+    cout << "Count of splits for each variable " << split_var_count << endl;
 
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
     return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw);
