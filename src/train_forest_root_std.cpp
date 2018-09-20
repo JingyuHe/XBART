@@ -11,7 +11,7 @@ using namespace chrono;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t mtry = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true)
+Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin = 1, size_t mtry = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true)
 {
     auto start = system_clock::now();
 
@@ -20,6 +20,7 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
     size_t N_test = Xtest.n_rows;
 
     assert(mtry <= p);
+    assert(burnin <= N_sweeps);
 
     if (mtry == 0)
     {
@@ -136,8 +137,12 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
     double *split_var_count_pointer = &split_var_count[0];
 
-    std::vector<size_t> subset_vars(mtry);
+
+    // in the burnin samples, use all variables
+    std::vector<size_t> subset_vars(p);
     std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
+    
+    // cout << subset_vars << endl;
 
     Rcpp::IntegerVector var_index_candidate(p);
     for (size_t i = 0; i < p; i++)
@@ -145,7 +150,11 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
         var_index_candidate[i] = i;
     }
 
-    subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+    // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+
+
+    // cout << subset_vars << endl;
+
     // cout << subset_vars << endl;
 
     // size_t count = 0;
@@ -213,10 +222,14 @@ Rcpp::List train_forest_root_std(arma::mat y, arma::mat X, arma::mat Xtest, size
 
                 yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
 
-                if (mtry != p)
+                if ((sweeps > burnin) && (mtry != p))
                 {
                     subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
                 }
+
+                // cout << "variables used " << subset_vars << endl;
+                // cout << "------------------" << endl;
+
 
                 trees.t[tree_ind].grow_tree_adaptive_std(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, subset_vars, run_time);
 
