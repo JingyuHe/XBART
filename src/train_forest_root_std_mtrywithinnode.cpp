@@ -169,6 +169,8 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
     // L, number of samples
     // M, number of trees
 
+    bool use_all = true;
+
     for (size_t mc = 0; mc < L; mc++)
     {
 
@@ -222,16 +224,17 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
 
                 yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
 
-                if ((sweeps > burnin) && (mtry != p))
+                if (use_all && (sweeps > burnin) && (mtry != p))
                 {
-                    subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+                    // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+                    use_all = false;
                 }
 
                 // cout << "variables used " << subset_vars << endl;
                 // cout << "------------------" << endl;
 
 
-                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, subset_vars, run_time, split_var_count, var_index_candidate);
+                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, run_time, split_var_count, var_index_candidate, use_all);
 
                 if (verbose == true)
                 {

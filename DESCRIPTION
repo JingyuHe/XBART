@@ -1,8 +1,8 @@
 Package: abarth
 Type: Package
 Title: What the Package Does in One 'Title Case' Line
-Version: 1.4.2
-Date: 2018-09-20
+Version: 1.4.3
+Date: 2018-09-24
 Author: Your Name
 Maintainer: Your Name <your@email.com>
 Description: One paragraph description of what the package does as one
