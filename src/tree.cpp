@@ -713,6 +713,133 @@ void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth,
     return;
 }
 
+
+void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double *split_var_count_pointer, size_t &mtry, const std::vector<size_t> &subset_vars, double &run_time, Rcpp::NumericVector& split_var_count, Rcpp::IntegerVector &var_index_candidate)
+{
+
+    // grow a tree, users can control number of split points
+
+    size_t N_Xorder = Xorder_std[0].size();
+    size_t p = Xorder_std.size();
+    size_t N_y = y_std.size();
+    size_t ind;
+    size_t split_var;
+    size_t split_point;
+
+    if (N_Xorder <= Nmin)
+    {
+        return;
+    }
+
+    if (depth >= max_depth - 1)
+    {
+        return;
+    }
+
+    // tau is prior VARIANCE, do not take squares
+    // set up random device
+
+    std::default_random_engine generator;
+    std::normal_distribution<double> normal_samp(0.0, 1.0);
+
+    if (draw_mu == true)
+    {
+
+        this->theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2))) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
+        this->theta_noise = this->theta;
+    }
+    else
+    {
+
+        this->theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2));
+        this->theta_noise = this->theta; // identical to theta
+    }
+
+    if (draw_sigma == true)
+    {
+
+        tree::tree_p top_p = this->gettop();
+        // draw sigma use residual of noisy theta
+
+        std::vector<double> reshat_std(N_y);
+        fit_new_theta_noise_std(*top_p, X_std, p, N_y, reshat_std);
+        reshat_std = y_std - reshat_std;
+
+        std::gamma_distribution<double> gamma_samp((N_y + 16) / 2.0, 2.0 / (sum_squared(reshat_std) + 4.0));
+        sigma = 1.0 / gamma_samp(generator);
+    }
+
+    this->sig = sigma;
+    bool no_split = false;
+
+    BART_likelihood_adaptive_std_mtry_old(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars);
+
+    if (no_split == true)
+    {
+        return;
+    }
+
+    this->v = split_var;
+    this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+
+    split_var_count_pointer[split_var]++;
+
+    xinfo_sizet Xorder_left_std;
+    xinfo_sizet Xorder_right_std;
+    ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
+    ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
+
+    // system_clock::time_point start;
+    // system_clock::time_point end;
+    // start = system_clock::now();
+    // split_xorder_std_old(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p);
+    // double yleft_mean_std = subnode_mean(y_std, Xorder_left_std, split_var);
+    // double yright_mean_std = subnode_mean(y_std, Xorder_right_std, split_var);
+    // end = system_clock::now();
+    // auto duration = duration_cast<microseconds>(end - start);
+    // double running_time = double(duration.count()) * microseconds::period::num / microseconds::period::den;
+    //     cout << " ----- ---- " << endl;
+    //     cout << "running time 1 " << duration.count() << endl;
+
+    auto start = system_clock::now();
+    double yleft_mean_std = 0.0;
+    double yright_mean_std = 0.0;
+
+    split_xorder_std(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, yleft_mean_std, yright_mean_std, y_mean, y_std);
+
+    auto end = system_clock::now();
+
+    auto duration = duration_cast<microseconds>(end - start);
+    double running_time = double(duration.count()) * microseconds::period::num / microseconds::period::den;
+
+    // duration = duration_cast<microseconds>(end - start);
+    // cout << "running time 2 " << duration.count() << endl;
+    // free(Xorder_std);
+    // cout<< "left " << yleft_mean_std << " " << yleft_mean2 << endl;
+    // cout<< "right "<< yright_mean_std << " " << yright_mean2 << endl;
+
+    double running_time_left = 0.0;
+    double running_time_right = 0.0;
+
+    depth = depth + 1;
+    tree::tree_p lchild = new tree();
+    lchild->grow_tree_adaptive_std_mtrywithinnode(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, split_var_count_pointer, mtry, subset_vars, running_time_left, split_var_count, var_index_candidate);
+    tree::tree_p rchild = new tree();
+    rchild->grow_tree_adaptive_std_mtrywithinnode(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, split_var_count_pointer, mtry, subset_vars, running_time_right, split_var_count, var_index_candidate);
+
+    lchild->p = this;
+    rchild->p = this;
+    this->l = lchild;
+    this->r = rchild;
+
+    run_time = run_time + running_time + running_time_left + running_time_right;
+
+    return;
+}
+
+
+
+
 void tree::grow_tree_adaptive_std_all(double y_mean, double y_sum, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double *split_var_count_pointer, size_t &mtry, const std::vector<size_t> &subset_vars, double &run_time, xinfo_sizet &Xorder_next_index, xinfo_sizet &Xorder_full, std::vector<size_t> &Xorder_firstline, double &old_time, double &new_time)
 {
 

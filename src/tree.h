@@ -129,6 +129,8 @@ class tree
 
     void grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double *split_var_count_pointer, size_t &mtry, const std::vector<size_t> &subset_vars, double &run_time);
 
+    void grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double *split_var_count_pointer, size_t &mtry, const std::vector<size_t> &subset_vars, double &run_time, Rcpp::NumericVector &split_var_count, Rcpp::IntegerVector &var_index_candidate);
+
     void grow_tree_adaptive_std_all(double y_mean, double y_sum, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double *split_var_count_pointer, size_t &mtry, const std::vector<size_t> &subset_vars, double &run_time, xinfo_sizet& Xorder_next_index, xinfo_sizet& Xorder_full, std::vector<size_t>& Xorder_firstline, double& old_time, double& new_time);
 
 
