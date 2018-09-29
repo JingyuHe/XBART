@@ -513,3 +513,33 @@ void compute_partial_sum(std::vector<double> &Y, xinfo_sizet &Xorder, const size
     }
     return;
 }
+
+
+
+
+void NumericMatrix_row_sum(Rcpp::NumericMatrix &X, Rcpp::NumericVector &output){
+    size_t n = X.nrow();
+    size_t p = X.ncol();
+    std::fill(output.begin(), output.end(), 0.0);
+    for(size_t i = 0; i < n; i ++ ){
+        for(size_t j = 0; j < p; j ++ ){
+            output[i] = output[i] + X(i, j);
+        }
+    }
+}
+
+
+
+void NumericMatrix_col_sum(Rcpp::NumericMatrix &X, Rcpp::NumericVector &output){
+    size_t n = X.nrow();
+    size_t p = X.ncol();
+    std::fill(output.begin(), output.end(), 0.0);
+    for(size_t i = 0; i < p; i ++ ){
+        for(size_t j = 0; j < n; j ++ ){
+            output[i] = output[i] + X(j, i);
+        }
+    }
+    return;
+}
+
+

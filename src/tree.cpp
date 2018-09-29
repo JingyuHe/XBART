@@ -714,7 +714,7 @@ void tree::grow_tree_adaptive_std(double y_mean, size_t depth, size_t max_depth,
 }
 
 
-void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double *split_var_count_pointer, size_t &mtry, double &run_time, Rcpp::NumericVector& split_var_count, Rcpp::IntegerVector &var_index_candidate, bool &use_all)
+void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, Rcpp::IntegerVector &var_index_candidate, bool &use_all, Rcpp::NumericMatrix& split_count_all_tree, Rcpp::NumericVector &mtry_weight_current_tree, Rcpp::NumericVector &split_count_current_tree)
 {
 
     // grow a tree, users can control number of split points
@@ -778,7 +778,8 @@ void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, si
         subset_vars.resize(p);
         std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
     }else{
-        subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+        // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+        subset_vars = Rcpp::as<std::vector<size_t> >(sample(var_index_candidate, mtry, false, mtry_weight_current_tree));
     }
 
     BART_likelihood_adaptive_std_mtry_old(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars);
@@ -791,7 +792,9 @@ void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, si
     this->v = split_var;
     this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
 
-    split_var_count_pointer[split_var]++;
+    // split_var_count_pointer[split_var]++;
+
+    split_count_current_tree[split_var] = split_count_current_tree[split_var] + 1;
 
     xinfo_sizet Xorder_left_std;
     xinfo_sizet Xorder_right_std;
@@ -832,9 +835,9 @@ void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, si
 
     depth = depth + 1;
     tree::tree_p lchild = new tree();
-    lchild->grow_tree_adaptive_std_mtrywithinnode(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, split_var_count_pointer, mtry, running_time_left, split_var_count, var_index_candidate, use_all);
+    lchild->grow_tree_adaptive_std_mtrywithinnode(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, running_time_left, var_index_candidate, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree);
     tree::tree_p rchild = new tree();
-    rchild->grow_tree_adaptive_std_mtrywithinnode(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, split_var_count_pointer, mtry, running_time_right, split_var_count, var_index_candidate, use_all);
+    rchild->grow_tree_adaptive_std_mtrywithinnode(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, running_time_right, var_index_candidate, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree);
 
     lchild->p = this;
     rchild->p = this;

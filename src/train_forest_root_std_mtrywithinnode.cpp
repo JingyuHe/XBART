@@ -133,9 +133,15 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
 
     // std::vector<double> split_var_count(p);
     // std::fill(split_var_count.begin(), split_var_count.end(), 1);
-    Rcpp::NumericVector split_var_count(p, 1);
+    // Rcpp::NumericVector split_var_count(p, 1);
 
-    double *split_var_count_pointer = &split_var_count[0];
+
+    Rcpp::NumericMatrix split_count_all_tree(p, M); // initialize at 0
+    // split_count_all_tree = split_count_all_tree + 1; // initialize at 1
+    Rcpp::NumericVector split_count_current_tree(p, 1);
+    Rcpp::NumericVector mtry_weight_current_tree(p, 1);
+
+    // double *split_var_count_pointer = &split_var_count[0];
 
 
     // in the burnin samples, use all variables
@@ -149,15 +155,6 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
     {
         var_index_candidate[i] = i;
     }
-
-    // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
-
-
-    // cout << subset_vars << endl;
-
-    // cout << subset_vars << endl;
-
-    // size_t count = 0;
 
     double run_time = 0.0;
 
@@ -233,8 +230,21 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
                 // cout << "variables used " << subset_vars << endl;
                 // cout << "------------------" << endl;
 
+                // clear counts of splits for one tree
+                std::fill(split_count_current_tree.begin(), split_count_current_tree.end(), 0.0);
 
-                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, split_var_count_pointer, mtry, run_time, split_var_count, var_index_candidate, use_all);
+                mtry_weight_current_tree = mtry_weight_current_tree - split_count_all_tree(Rcpp::_, tree_ind);
+
+                // cout << "before " << mtry_weight_current_tree << endl;
+
+                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, run_time, var_index_candidate, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree);
+
+                mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
+
+                // cout << "after " << mtry_weight_current_tree << endl; 
+
+                split_count_all_tree(Rcpp::_, tree_ind) = split_count_current_tree; 
+
 
                 if (verbose == true)
                 {
@@ -289,7 +299,7 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
 
     cout << "Running time of split Xorder " << run_time << endl;
 
-    cout << "Count of splits for each variable " << split_var_count << endl;
+    cout << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
     return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw);
