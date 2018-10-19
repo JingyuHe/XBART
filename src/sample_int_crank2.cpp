@@ -247,8 +247,15 @@ std::vector<size_t> sample_int_expjs2(int n, int size, std::vector<double> prob)
 
     // Step 2: For each item v_i ∈ R: Calculate a key k_i = u_i^(1/w),
     // where u_i = random(0, 1)
-    std::vector<double> R = NumericVector(prob.begin(), prob.begin() + size,
-                                          &_runif_to_one_by<double>);
+    // std::vector<double> R = NumericVector(prob.begin(), prob.begin() + size, &_runif_to_one_by<double>);
+
+    std::default_random_engine generator;
+    std::uniform_real_distribution<double> distribution(0.0,1.0);
+
+    std::vector<double> R(size);
+    for(size_t i = 0; i < size; i ++ ){
+        R[i] = std::pow(distribution(generator), 1.0 / prob[i]);
+    }
 
     // Step 3: The threshold T_w is the minimum key of R
     std::vector<double>::iterator T_w = find_min_item(R.begin(), R.end());
@@ -307,5 +314,12 @@ std::vector<size_t> sample_int_expjs2(int n, int size, std::vector<double> prob)
     std::sort(vvx.begin(), vvx.end(), Comp2(R));
 
     // Map to indices in the input array
-    return IntegerVector(vvx.begin(), vvx.end(), Indirection(vx));
+    std::vector<size_t> output(vvx.size());
+
+    for(size_t i = 0; i < vx.size(); i ++ ){
+        output[i] = vvx[vx[i]];
+    }
+
+    // IntegerVector(vvx.begin(), vvx.end(), Indirection(vx));
+    return output;
 }
