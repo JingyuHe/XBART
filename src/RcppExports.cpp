@@ -96,7 +96,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // sample_int_ccrank2
-std::vector<size_t> sample_int_ccrank2(int n, int size, std::vector<double> prob);
+std::vector<double> sample_int_ccrank2(int n, int size, std::vector<double> prob);
 RcppExport SEXP _abarth_sample_int_ccrank2(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

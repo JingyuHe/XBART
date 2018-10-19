@@ -46,12 +46,15 @@ std::vector<size_t> sample_int_crank2(int n, int size, std::vector<double> prob)
 
     // Find the indexes of the first "size" elements under inverted
     // comparison.  Here, vx is zero-based.
+    // IntegerVector vx = seq(0, n - 1);
+
     std::vector<size_t> vx(n);
-    std::iota(vx.begin(), vx.end(), 0);
+    std::iota(vx.begin() + 1, vx.end(), 1);
 
     std::partial_sort(vx.begin(), vx.begin() + size, vx.end(), Comp2(rnd));
 
-    vx = vx + 1;
+    // add one to each element
+    std::transform(std::begin(vx), std::end(vx), std::begin(vx), [](size_t x) { return x + 1.0; });
 
     // Initialize with elements vx[1:size], applying transform "+ 1" --
     // we return one-based values.
@@ -74,7 +77,7 @@ struct UniqueNumber
 };
 
 // [[Rcpp::export(sample_int_ccrank)]]
-std::vector<size_t> sample_int_ccrank2(int n, int size, std::vector<double> prob)
+std::vector<double> sample_int_ccrank2(int n, int size, std::vector<double> prob)
 {
     check_args2(n, size, prob);
 
@@ -97,7 +100,7 @@ std::vector<size_t> sample_int_ccrank2(int n, int size, std::vector<double> prob
     // Initialize with the first "size" elements of vx[1:size], they are already
     // 1-based.
 
-    vx = vx + 1;
+    vx = vx + 1.0;
 
     return vx;
 }
@@ -133,7 +136,10 @@ std::vector<size_t> sample_int_expj2(int n, int size, std::vector<double> prob)
 
     // Corner case
     if (size == 0)
-        return;
+    {
+        std::vector<size_t> output;
+        return output;
+    }
 
     // Step 1: The first m items of V are inserted into R
     // Step 2: For each item v_i ∈ R: Calculate a key k_i = u_i^(1/w),
@@ -183,7 +189,7 @@ std::vector<size_t> sample_int_expj2(int n, int size, std::vector<double> prob)
             // (Mod: Let t_w = log(T_w) * {w_i}, e_2 = log(random(e^{t_w}, 1)) and v_i’s key: k_i = -e_2 / w_i)
             double t_w = -T_w.first * *iprob;
 
-            // draw random uniform distribution here 
+            // draw random uniform distribution here
             double e_2 = std::log(Rf_runif(std::exp(t_w), 1.0));
             double k_i = -e_2 / *iprob;
 
@@ -215,88 +221,91 @@ std::vector<size_t> sample_int_expj2(int n, int size, std::vector<double> prob)
     return ret;
 }
 
-
-
-
-
-
-
 template <class T>
 T _runif_to_one_by(T t) { return std::pow(Rf_runif(0.0, 1.0), 1.0 / t); }
 
 // [[Rcpp::export]]
 std::vector<size_t> sample_int_expjs2(int n, int size, std::vector<double> prob)
 {
-  check_args2(n, size, prob);
+    check_args2(n, size, prob);
 
-  // Corner case
-  if (size == 0)
-    return;
-
-  // Step 1: The first m items of V are inserted into R
-  std::vector<size_t> vx = seq(1, size);
-
-  // Step 2: For each item v_i ∈ R: Calculate a key k_i = u_i^(1/w),
-  // where u_i = random(0, 1)
-  std::vector<double> R = NumericVector(prob.begin(), prob.begin() + size,
-                                  &_runif_to_one_by<double>);
-
-  // Step 3: The threshold T_w is the minimum key of R
-  std::vector<double>::iterator T_w = find_min_item(R.begin(), R.end());
-
-  // Step 4: Repeat Steps 5–10 until the population is exhausted
-  {
-    // Incrementing iprob is part of Step 7
-    for (std::vector<double>::iterator iprob = prob.begin() + size; iprob != prob.end(); ++iprob)
+    // Corner case
+    if (size == 0)
     {
-
-      // Step 5: Let r = random(0, 1) and X_w = log(r) / log(T_w)
-      double X_w = std::log(Rf_runif(0.0, 1.0)) / std::log(*T_w);
-
-      if (X_w < 0)
-        Rcpp::stop("X_w < 0");
-
-      // Step 6: From the current item v_c skip items until item v_i, such that:
-      double w = 0.0;
-
-      // Step 7: w_c + w_{c+1} + ··· + w_{i−1} < X_w <= w_c + w_{c+1} + ··· + w_{i−1} + w_i
-      for (; iprob != prob.end(); ++iprob)
-      {
-        w += *iprob;
-        if (X_w <= w)
-          break;
-      }
-
-      // Step 7: No such item, terminate
-      if (iprob == prob.end())
-        break;
-
-      // Step 9: Let t_w = T_w^{w_i}, r_2 = random(t_w, 1) and v_i’s key: k_i = (r_2)^{1/w_i}
-      // (Mod: Let t_w = log(T_w) * {w_i}, e_2 = log(random(e^{t_w}, 1)) and v_i’s key: k_i = e_2 / w_i)
-      double t_w = std::pow(*T_w, *iprob);
-      if (t_w < 0.0)
-        Rcpp::stop("t_w < 0");
-      if (t_w > 1.0)
-        Rcpp::stop("t_w > 1");
-      double r_2 = Rf_runif(t_w, 1.0);
-      double k_i = std::pow(r_2, 1.0 / *iprob);
-
-      // Step 8: The item in R with the minimum key is replaced by item v_i
-      vx[(size_t)(T_w - R.begin())] = iprob - prob.begin() + 1;
-      *T_w = k_i;
-
-      // Step 10: The new threshold T w is the new minimum key of R
-      T_w = find_min_item(R.begin(), R.end());
+        std::vector<size_t> output;
+        return output;
     }
-  }
 
-  // Create an array of indices in vx
-  std::vector<double> vvx = std::vector<double>(size);
-  std::generate(vvx.begin(), vvx.end(), UniqueNumber(0));
+    // Step 1: The first m items of V are inserted into R
+    // generate a sequence from 1 to size
+    // std::vector<size_t> vx = seq(1, size);
+    std::vector<size_t> vx(size);
 
-  // Sort it according to the key values in the reservoir
-  std::sort(vvx.begin(), vvx.end(), Comp2(R));
+    // if start from 1, vx.begin()
+    // if start from 0, vx.begin() + 1
+    std::iota(vx.begin(), vx.end(), 1);
 
-  // Map to indices in the input array
-  return IntegerVector(vvx.begin(), vvx.end(), Indirection(vx));
+    // Step 2: For each item v_i ∈ R: Calculate a key k_i = u_i^(1/w),
+    // where u_i = random(0, 1)
+    std::vector<double> R = NumericVector(prob.begin(), prob.begin() + size,
+                                          &_runif_to_one_by<double>);
+
+    // Step 3: The threshold T_w is the minimum key of R
+    std::vector<double>::iterator T_w = find_min_item(R.begin(), R.end());
+
+    // Step 4: Repeat Steps 5–10 until the population is exhausted
+    {
+        // Incrementing iprob is part of Step 7
+        for (std::vector<double>::iterator iprob = prob.begin() + size; iprob != prob.end(); ++iprob)
+        {
+
+            // Step 5: Let r = random(0, 1) and X_w = log(r) / log(T_w)
+            double X_w = std::log(Rf_runif(0.0, 1.0)) / std::log(*T_w);
+
+            if (X_w < 0)
+                Rcpp::stop("X_w < 0");
+
+            // Step 6: From the current item v_c skip items until item v_i, such that:
+            double w = 0.0;
+
+            // Step 7: w_c + w_{c+1} + ··· + w_{i−1} < X_w <= w_c + w_{c+1} + ··· + w_{i−1} + w_i
+            for (; iprob != prob.end(); ++iprob)
+            {
+                w += *iprob;
+                if (X_w <= w)
+                    break;
+            }
+
+            // Step 7: No such item, terminate
+            if (iprob == prob.end())
+                break;
+
+            // Step 9: Let t_w = T_w^{w_i}, r_2 = random(t_w, 1) and v_i’s key: k_i = (r_2)^{1/w_i}
+            // (Mod: Let t_w = log(T_w) * {w_i}, e_2 = log(random(e^{t_w}, 1)) and v_i’s key: k_i = e_2 / w_i)
+            double t_w = std::pow(*T_w, *iprob);
+            if (t_w < 0.0)
+                Rcpp::stop("t_w < 0");
+            if (t_w > 1.0)
+                Rcpp::stop("t_w > 1");
+            double r_2 = Rf_runif(t_w, 1.0);
+            double k_i = std::pow(r_2, 1.0 / *iprob);
+
+            // Step 8: The item in R with the minimum key is replaced by item v_i
+            vx[(size_t)(T_w - R.begin())] = iprob - prob.begin() + 1;
+            *T_w = k_i;
+
+            // Step 10: The new threshold T w is the new minimum key of R
+            T_w = find_min_item(R.begin(), R.end());
+        }
+    }
+
+    // Create an array of indices in vx
+    std::vector<double> vvx = std::vector<double>(size);
+    std::generate(vvx.begin(), vvx.end(), UniqueNumber(0));
+
+    // Sort it according to the key values in the reservoir
+    std::sort(vvx.begin(), vvx.end(), Comp2(R));
+
+    // Map to indices in the input array
+    return IntegerVector(vvx.begin(), vvx.end(), Indirection(vx));
 }

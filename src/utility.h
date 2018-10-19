@@ -188,6 +188,31 @@ std::vector<T> operator-(const std::vector<T> &a, const std::vector<T> &b)
     return result;
 }
 
+
+template <typename T>
+std::vector<T> operator/(const std::vector<T> &a, const T &b)
+{
+    std::vector<T> result;
+    for(size_t i = 0; i < a.size(); i++){
+        result[i] = a[i] / b;
+    }
+    return result;
+}
+
+template <typename T>
+std::vector<T> operator+(const std::vector<T> &a, const T &b)
+{
+    std::vector<T> result;
+    for(size_t i = 0; i < a.size(); i++){
+        result[i] = a[i] + b;
+    }
+    return result;
+}
+
+
+
+
+
 // sort std vectors from small to large numbers, return indexes
 std::vector<size_t> sort_indexes(const Rcpp::NumericVector &v);
 
