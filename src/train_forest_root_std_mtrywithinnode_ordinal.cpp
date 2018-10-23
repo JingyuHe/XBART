@@ -97,8 +97,6 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
 
 
 
-
-
     std::vector< std::vector<size_t> > Xorder_ordinal(X.n_cols);
     
     std::vector< std::vector<double> > X_unique_ordinal(X.n_cols);
