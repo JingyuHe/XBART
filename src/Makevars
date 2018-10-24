@@ -5,5 +5,4 @@ CXX=$(CCACHE) g++
 CXX1X=$(CCACHE) g++
 PKG_CPPFLAGS = -I../inst/include -I.
 PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) 
-PKG_LIBS += $(shell ${R_HOME}/bin/Rscript -e "RcppParallel::RcppParallelLibs()")
 CXX_STD = CXX11

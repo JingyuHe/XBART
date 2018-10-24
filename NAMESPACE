@@ -1,7 +1,6 @@
 useDynLib(abarth, .registration=TRUE)
 exportPattern("^[[:alpha:]]+")
 importFrom(Rcpp, evalCpp)
-importFrom(RcppParallel, RcppParallelLibs)
 importFrom(parallel, detectCores)
 importFrom(stats, ar, cor, lm, predict, pnorm, qnorm, qchisq, quantile, residuals, runif, sd)
 importFrom(survival, survfit, Surv)

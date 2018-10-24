@@ -102,22 +102,22 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
     std::vector< std::vector<double> > X_unique_ordinal(X.n_cols);
 
 
-    double current_value;
-    size_t count_unique;
-    cout << *(Xpointer + Xorder_std[0][0]) << endl;
-    for (size_t i = 0; i < p; i ++){
-        current_value = *(Xpointer + i * N + Xorder_std[i][0]);
-        Xorder_ordinal[i].push_back(1);
-        X_unique_ordinal[i].push_back(current_value);
-        for(size_t j = 1; j < N; j ++){
-            if(*(Xpointer + i * N + Xorder_std[i][j]) != current_value){
-                Xorder_ordinal[i][j] ++ ;
-            }else{
-                current_value = *(Xpointer + i * N + Xorder_std[i][j]);
-                X_unique_ordinal[i].push_back(current_value);
-            }
-        }  
-    }
+    // double current_value;
+    // size_t count_unique;
+    // cout << *(Xpointer + Xorder_std[0][0]) << endl;
+    // for (size_t i = 0; i < p; i ++){
+    //     current_value = *(Xpointer + i * N + Xorder_std[i][0]);
+    //     Xorder_ordinal[i].push_back(1);
+    //     X_unique_ordinal[i].push_back(current_value);
+    //     for(size_t j = 1; j < N; j ++){
+    //         if(*(Xpointer + i * N + Xorder_std[i][j]) != current_value){
+    //             Xorder_ordinal[i][j] ++ ;
+    //         }else{
+    //             current_value = *(Xpointer + i * N + Xorder_std[i][j]);
+    //             X_unique_ordinal[i].push_back(current_value);
+    //         }
+    //     }  
+    // }
 
 
 

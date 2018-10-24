@@ -41,23 +41,11 @@ sample_int_expjs2 <- function(n, size, prob) {
     .Call(`_abarth_sample_int_expjs2`, n, size, prob)
 }
 
-train_forest_root_all <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, mtry = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE) {
-    .Call(`_abarth_train_forest_root_all`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, mtry, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel)
-}
-
 train_forest_root_std_mtrywithinnode_ordinal <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE) {
     .Call(`_abarth_train_forest_root_std_mtrywithinnode_ordinal`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel)
 }
 
 train_forest_root_std_mtrywithinnode <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE) {
     .Call(`_abarth_train_forest_root_std_mtrywithinnode`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel)
-}
-
-train_forest_root_std_newXorder <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, mtry = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE) {
-    .Call(`_abarth_train_forest_root_std_newXorder`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, mtry, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel)
-}
-
-train_forest_root_std <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE) {
-    .Call(`_abarth_train_forest_root_std`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel)
 }
 

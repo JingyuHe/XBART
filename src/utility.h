@@ -42,123 +42,123 @@ double subnode_mean(const std::vector<double> &y, xinfo_sizet &Xorder, const siz
 
 double subnode_mean_newXorder(const std::vector<double> &y, const xinfo_sizet &Xorder_full, const xinfo_sizet &Xorder_next_index, const size_t &split_var, const std::vector<size_t> &Xorder_firstline, const size_t &N_Xorder);
 
-struct likelihood_fullset_std : public Worker
-{
-    // input variables, pass by reference
-    const std::vector<double> &y_std;
-    const xinfo_sizet &Xorder_std;
-    const size_t &N_Xorder;
-    const std::vector<size_t> subset_vars;
-    const double &tau;
-    const double &Ntau;
-    const double &sigma2;
-    std::vector<double> &loglike;
+// struct likelihood_fullset_std : public Worker
+// {
+//     // input variables, pass by reference
+//     const std::vector<double> &y_std;
+//     const xinfo_sizet &Xorder_std;
+//     const size_t &N_Xorder;
+//     const std::vector<size_t> subset_vars;
+//     const double &tau;
+//     const double &Ntau;
+//     const double &sigma2;
+//     std::vector<double> &loglike;
 
-    // constructor
-    likelihood_fullset_std(const std::vector<double> &y_std, const xinfo_sizet &Xorder_std, const size_t &N_Xorder, const std::vector<size_t> subset_vars, const double &tau, const double &Ntau, const double &sigma2, std::vector<double> &loglike) : y_std(y_std), Xorder_std(Xorder_std), N_Xorder(N_Xorder), subset_vars(subset_vars), tau(tau), Ntau(Ntau), sigma2(sigma2), loglike(loglike) {}
+//     // constructor
+//     likelihood_fullset_std(const std::vector<double> &y_std, const xinfo_sizet &Xorder_std, const size_t &N_Xorder, const std::vector<size_t> subset_vars, const double &tau, const double &Ntau, const double &sigma2, std::vector<double> &loglike) : y_std(y_std), Xorder_std(Xorder_std), N_Xorder(N_Xorder), subset_vars(subset_vars), tau(tau), Ntau(Ntau), sigma2(sigma2), loglike(loglike) {}
 
-    void operator()(std::size_t begin, std::size_t end)
-    {
-        std::vector<double> y_cumsum(N_Xorder);
-        std::vector<double> y_cumsum_inv(N_Xorder);
-        std::vector<double> Y_sort(N_Xorder);
-        double *ypointer;
-        size_t var_ind;
-        double n1tau;
-        double n2tau;
-        double y_sum;
-        for (size_t i = begin; i < end; i++)
-        {
-            var_ind = subset_vars[i];
-            for (size_t q = 0; q < N_Xorder; q++)
-            {
-                Y_sort[q] = y_std[Xorder_std[var_ind][q]];
-            }
+//     void operator()(std::size_t begin, std::size_t end)
+//     {
+//         std::vector<double> y_cumsum(N_Xorder);
+//         std::vector<double> y_cumsum_inv(N_Xorder);
+//         std::vector<double> Y_sort(N_Xorder);
+//         double *ypointer;
+//         size_t var_ind;
+//         double n1tau;
+//         double n2tau;
+//         double y_sum;
+//         for (size_t i = begin; i < end; i++)
+//         {
+//             var_ind = subset_vars[i];
+//             for (size_t q = 0; q < N_Xorder; q++)
+//             {
+//                 Y_sort[q] = y_std[Xorder_std[var_ind][q]];
+//             }
 
-            ypointer = &Y_sort[0];
+//             ypointer = &Y_sort[0];
 
-            std::partial_sum(Y_sort.begin(), Y_sort.end(), y_cumsum.begin());
+//             std::partial_sum(Y_sort.begin(), Y_sort.end(), y_cumsum.begin());
 
-            y_sum = y_cumsum[y_cumsum.size() - 1];
+//             y_sum = y_cumsum[y_cumsum.size() - 1];
 
-            for (size_t k = 0; k < N_Xorder; k++)
-            {
-                y_cumsum_inv[k] = y_sum - y_cumsum[k];
-            }
+//             for (size_t k = 0; k < N_Xorder; k++)
+//             {
+//                 y_cumsum_inv[k] = y_sum - y_cumsum[k];
+//             }
 
-            for (size_t j = 0; j < N_Xorder - 1; j++)
-            {
-                n1tau = (j + 1) * tau;
-                n2tau = Ntau - n1tau;
-                loglike[(N_Xorder - 1) * var_ind + j] = -0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
-            }
-        }
-        return;
-    }
-};
+//             for (size_t j = 0; j < N_Xorder - 1; j++)
+//             {
+//                 n1tau = (j + 1) * tau;
+//                 n2tau = Ntau - n1tau;
+//                 loglike[(N_Xorder - 1) * var_ind + j] = -0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
+//             }
+//         }
+//         return;
+//     }
+// };
 
-struct likelihood_subset_std : public Worker
-{
-    // input variables, pass by reference
-    const std::vector<double> &y_std;
-    const xinfo_sizet &Xorder_std;
-    const size_t &N_Xorder;
-    const size_t &Ncutpoints;
-    const std::vector<size_t> subset_vars;
-    const double &tau;
-    const double &sigma2;
-    std::vector<size_t> &candidate_index;
-    std::vector<double> &loglike;
+// struct likelihood_subset_std : public Worker
+// {
+//     // input variables, pass by reference
+//     const std::vector<double> &y_std;
+//     const xinfo_sizet &Xorder_std;
+//     const size_t &N_Xorder;
+//     const size_t &Ncutpoints;
+//     const std::vector<size_t> subset_vars;
+//     const double &tau;
+//     const double &sigma2;
+//     std::vector<size_t> &candidate_index;
+//     std::vector<double> &loglike;
 
-    // constructor
-    likelihood_subset_std(const std::vector<double> &y_std, const xinfo_sizet &Xorder_std, const size_t &N_Xorder, size_t &Ncutpoints, const std::vector<size_t> subset_vars, const double &tau, const double &sigma2, std::vector<size_t> &candidate_index, std::vector<double> &loglike) : y_std(y_std), Xorder_std(Xorder_std), N_Xorder(N_Xorder), Ncutpoints(Ncutpoints), subset_vars(subset_vars), tau(tau), sigma2(sigma2), candidate_index(candidate_index), loglike(loglike) {}
+//     // constructor
+//     likelihood_subset_std(const std::vector<double> &y_std, const xinfo_sizet &Xorder_std, const size_t &N_Xorder, size_t &Ncutpoints, const std::vector<size_t> subset_vars, const double &tau, const double &sigma2, std::vector<size_t> &candidate_index, std::vector<double> &loglike) : y_std(y_std), Xorder_std(Xorder_std), N_Xorder(N_Xorder), Ncutpoints(Ncutpoints), subset_vars(subset_vars), tau(tau), sigma2(sigma2), candidate_index(candidate_index), loglike(loglike) {}
 
-    void operator()(std::size_t begin, std::size_t end)
-    {
-        std::vector<double> Y_sort(N_Xorder);
-        double *ypointer;
-        double n1tau;
-        double n2tau;
-        double Ntau = N_Xorder * tau;
-        size_t var_ind;
-        double y_sum = 0.0;
-        std::vector<double> y_cumsum(Ncutpoints);
-        std::vector<double> y_cumsum_inv(Ncutpoints);
+//     void operator()(std::size_t begin, std::size_t end)
+//     {
+//         std::vector<double> Y_sort(N_Xorder);
+//         double *ypointer;
+//         double n1tau;
+//         double n2tau;
+//         double Ntau = N_Xorder * tau;
+//         size_t var_ind;
+//         double y_sum = 0.0;
+//         std::vector<double> y_cumsum(Ncutpoints);
+//         std::vector<double> y_cumsum_inv(Ncutpoints);
 
-        bool firstrun = true; // flag of the first loop
+//         bool firstrun = true; // flag of the first loop
 
-        // for(size_t i = 0; i < p; i ++ ){
-        for (size_t i = begin; i < end; i++)
-        {
+//         // for(size_t i = 0; i < p; i ++ ){
+//         for (size_t i = begin; i < end; i++)
+//         {
 
-            var_ind = subset_vars[i];
+//             var_ind = subset_vars[i];
 
-            for (size_t q = 0; q < N_Xorder; q++)
-            {
-                Y_sort[q] = y_std[Xorder_std[var_ind][q]];
-            }
-            ypointer = &Y_sort[0];
+//             for (size_t q = 0; q < N_Xorder; q++)
+//             {
+//                 Y_sort[q] = y_std[Xorder_std[var_ind][q]];
+//             }
+//             ypointer = &Y_sort[0];
 
-            if (firstrun)
-            {
-                y_sum = sum_vec(Y_sort);
-                firstrun = false;
-            }
+//             if (firstrun)
+//             {
+//                 y_sum = sum_vec(Y_sort);
+//                 firstrun = false;
+//             }
 
-            calculate_y_cumsum_std(ypointer, Y_sort.size(), y_sum, candidate_index, y_cumsum, y_cumsum_inv);
+//             calculate_y_cumsum_std(ypointer, Y_sort.size(), y_sum, candidate_index, y_cumsum, y_cumsum_inv);
 
-            for (size_t j = 0; j < Ncutpoints; j++)
-            {
-                // loop over all possible cutpoints
-                n1tau = (candidate_index[j] + 1) * tau; // number of points on left side (x <= cutpoint)
-                n2tau = Ntau - n1tau;                   // number of points on right side (x > cutpoint)
-                loglike[(Ncutpoints)*var_ind + j] = -0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
-            }
-        }
+//             for (size_t j = 0; j < Ncutpoints; j++)
+//             {
+//                 // loop over all possible cutpoints
+//                 n1tau = (candidate_index[j] + 1) * tau; // number of points on left side (x <= cutpoint)
+//                 n2tau = Ntau - n1tau;                   // number of points on right side (x > cutpoint)
+//                 loglike[(Ncutpoints)*var_ind + j] = -0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_cumsum_inv[j], 2) / (sigma2 * (n2tau + sigma2));
+//             }
+//         }
 
-        return;
-    }
-};
+//         return;
+//     }
+// };
 
 // overload plus for std vectors
 template <typename T>
