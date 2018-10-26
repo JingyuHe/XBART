@@ -183,6 +183,18 @@ void seq_gen_std(size_t start, size_t end, size_t length_out, std::vector<size_t
     return;
 }
 
+void seq_gen_std_ordinal(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec, std::vector<size_t> output){
+    // take a subset of vec, write to output, with fixed length
+    double incr = (double)(end - start) / (double) length_out;
+    size_t temp;
+    for(size_t i = 0; i < length_out; i ++ ){
+        temp = (size_t)incr * i + start;
+        output[i] = vec[temp];
+    }
+    return;
+}
+
+
 
 void seq_gen_std_2(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec)
 {
@@ -329,6 +341,19 @@ void vec_sum(std::vector<double> &vector, double &sum)
     }
     return;
 }
+
+
+void vec_sum_sizet(std::vector<size_t> &vector, size_t &sum)
+{
+    sum = 0;
+    for (size_t i = 0; i < vector.size(); i++)
+    {
+        sum = sum + vector[i];
+    }
+    return;
+}
+
+
 
 double sq_diff_arma_std(arma::vec vec1, std::vector<double> vec2)
 {

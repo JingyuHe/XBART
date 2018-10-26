@@ -35,12 +35,9 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
     arma::umat Xorder(X.n_rows, X.n_cols);
     for (size_t i = 0; i < X.n_cols; i++)
     {
+        // we use sort_index from armadillo to create Xorder
         Xorder.col(i) = arma::sort_index(X.col(i));
     }
-
-
-
-
 
     std::default_random_engine(generator);
 
@@ -83,45 +80,58 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
         }
     }
 
-
-
-
-
-
-
     ///////////////////////////////////////////////////////////////////
 
     double *ypointer = &y_std[0];
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
+    xinfo_sizet X_unique_counts(X.n_cols);
 
+    xinfo X_unique_values(X.n_cols);
+    xinfo_sizet index_changepoint(X.n_cols);
 
-    std::vector< std::vector<size_t> > Xorder_ordinal(X.n_cols);
-    
-    std::vector< std::vector<double> > X_unique_ordinal(X.n_cols);
-
-
-    // double current_value;
-    // size_t count_unique;
-    // cout << *(Xpointer + Xorder_std[0][0]) << endl;
-    // for (size_t i = 0; i < p; i ++){
-    //     current_value = *(Xpointer + i * N + Xorder_std[i][0]);
-    //     Xorder_ordinal[i].push_back(1);
-    //     X_unique_ordinal[i].push_back(current_value);
-    //     for(size_t j = 1; j < N; j ++){
-    //         if(*(Xpointer + i * N + Xorder_std[i][j]) != current_value){
-    //             Xorder_ordinal[i][j] ++ ;
-    //         }else{
-    //             current_value = *(Xpointer + i * N + Xorder_std[i][j]);
-    //             X_unique_ordinal[i].push_back(current_value);
-    //         }
-    //     }  
-    // }
+    Rcpp::IntegerMatrix X_recode(N, p);
+    int *X_recodepointer = &X_recode[0];
 
 
 
+    // stack all variables to one vector
+    // vector of unique values of all variables
+    std::vector<size_t> X_values;
+    // vector of replications of unique values of all variables
+    std::vector<size_t> X_counts;
+    // number of unique values 
+    std::vector<size_t> X_num_unique(p+1);
 
+    size_t total_points;
+
+    unique_value_count(Xpointer, X_recodepointer, X_unique_counts, X_unique_values, index_changepoint, Xorder_std, X_values, X_counts, X_num_unique, total_points);
+
+
+    cout << "raw X" << endl;
+    cout << X_std << endl;
+
+
+    cout << "X, recode" << endl;
+    cout << X_recode << endl;
+
+    cout << "Unique values " << endl;
+    cout << X_unique_values << endl;
+
+    cout << "Unique counts " << endl;
+    cout << X_unique_counts << endl;
+
+
+
+    cout << "X_values " << X_values << endl;
+    cout << "X_counts " << X_counts << endl;
+    cout << "X_num_unique " << X_num_unique << endl;
+    cout << "total points " << total_points << endl;
+
+
+
+ 
     xinfo yhats_std;
     ini_xinfo(yhats_std, N, N_sweeps);
     xinfo yhats_test_std;
@@ -172,7 +182,6 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
     // std::fill(split_var_count.begin(), split_var_count.end(), 1);
     // Rcpp::NumericVector split_var_count(p, 1);
 
-
     Rcpp::NumericMatrix split_count_all_tree(p, M); // initialize at 0
     // split_count_all_tree = split_count_all_tree + 1; // initialize at 1
     Rcpp::NumericVector split_count_current_tree(p, 1);
@@ -180,11 +189,10 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
 
     // double *split_var_count_pointer = &split_var_count[0];
 
-
     // in the burnin samples, use all variables
     std::vector<size_t> subset_vars(p);
     std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
-    
+
     // cout << subset_vars << endl;
 
     Rcpp::IntegerVector var_index_candidate(p);
@@ -204,7 +212,6 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
     // M, number of trees
 
     bool use_all = true;
-
 
     for (size_t mc = 0; mc < L; mc++)
     {
@@ -275,14 +282,13 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
 
                 // cout << "before " << mtry_weight_current_tree << endl;
 
-                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, run_time, var_index_candidate, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree);
+                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode_ordinal(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, X_recodepointer, X_unique_counts, X_unique_values, index_changepoint, mtry, run_time, var_index_candidate, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values, X_counts, X_num_unique);
 
                 mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 
-                // cout << "after " << mtry_weight_current_tree << endl; 
+                // cout << "after " << mtry_weight_current_tree << endl;
 
-                split_count_all_tree(Rcpp::_, tree_ind) = split_count_current_tree; 
-
+                split_count_all_tree(Rcpp::_, tree_ind) = split_count_current_tree;
 
                 if (verbose == true)
                 {

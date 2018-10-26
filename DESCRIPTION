@@ -2,13 +2,13 @@ Package: abarth
 Type: Package
 Title: What the Package Does in One 'Title Case' Line
 Version: 2.2
-Date: 2018-10-22
+Date: 2018-10-24
 Author: Your Name
 Maintainer: Your Name <your@email.com>
 Description: One paragraph description of what the package does as one
         or more full sentences.
 License: GPL (>= 2)
 Imports: Rcpp (>= 0.12.13)
-LinkingTo: Rcpp, RcppArmadillo
+LinkingTo: Rcpp, RcppArmadillo, RcppParallel
 NeedsCompilation: yes
-Packaged: 2018-09-05 20:43:55 UTC; jingyuhe
+Packaged: 2018-10-22 23:40:11 UTC; jingyuhe
