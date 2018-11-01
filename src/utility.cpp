@@ -568,3 +568,18 @@ void NumericMatrix_col_sum(Rcpp::NumericMatrix &X, Rcpp::NumericVector &output){
 }
 
 
+
+
+void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t& start, size_t& end, double& y_sum, const size_t& var){
+    // compute sum of y[Xorder[start:end, var]]
+    size_t loop_count = 0;
+    for(size_t i = start; i <= end; i ++ ){
+        y_sum = y_sum + y[Xorder[var][i]];
+        loop_count ++ ;
+        cout << "Xorder " << Xorder[var][i] << " y value " << y[Xorder[var][i]] << endl;
+    }
+
+    cout << "loop count " << loop_count << endl;
+    return;
+}
+

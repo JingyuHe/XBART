@@ -1304,193 +1304,126 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
     // length of loglike is p * (N - 1) + 1
     // N - 1 has to be greater than 2 * Nmin
 
+    // for ordinal variables, always use all cutpoints
+
     size_t N = Xorder_std[0].size();
     size_t p = Xorder_std.size();
+    size_t ind;
     size_t N_Xorder = N;
-
-    double y_sum2;
-    double sigma2 = pow(sigma, 2);
-
     double loglike_max = -INFINITY;
-
-    size_t total_cutpoints = 0;
-    size_t Ncutpoints_use; // might equal to Ncutpoint, or smaller
-
-    std::vector<size_t> Ncutpoints_each_variable(p);
-
-
-    for(size_t i = 0; i < p; i ++){
-        for(size_t j = X_num_unique[i]; j < X_num_unique[i + 1]; j++){
-            
-        }
-    }
-
-
-
-
-    for (size_t i = 0; i < p; i++)
-    {
-
-        if(index_changepoint[i].size() == 1){
-            Ncutpoints_each_variable[i] = 0;
-        }else{
-            if (index_changepoint[i].size() > Ncutpoints)
-            {
-                Ncutpoints_each_variable[i] = Ncutpoints;
-            }
-            else
-            {
-                Ncutpoints_each_variable[i] = index_changepoint[i].size();
-            }
-        }
-
-    }
-
-    vec_sum_sizet(Ncutpoints_each_variable, total_cutpoints);
-
-    std::vector<double> temp_index(p + 1);  // a cumulative sum of Ncutpoints_each_variable, but start from 0
-    temp_index[0] = 0;
-    for(size_t i = 1; i < p + 1; i++){
-        temp_index[i] = temp_index[i - 1] + Ncutpoints_each_variable[i - 1];
-    }
-
-    cout << "counts " << X_unique_count << endl;
-    cout << Ncutpoints_each_variable << endl;
-    cout << temp_index << endl;
-
-
-    // + 1 for no-split option
-    std::vector<double> loglike(total_cutpoints + 1, -INFINITY);
-    std::vector<size_t> candidate_index;
-
-    bool firstrun = true; // flag of the first loop
-    // std::vector<double> Y_sort(N_Xorder);
-    double *ypointer;
+    double sigma2 = pow(sigma, 2);
+    size_t start;
+    size_t end;
+    size_t end2;
+    double y_cumsum = 0.0;
+    size_t n1;
+    size_t n2;
     double n1tau;
     double n2tau;
-    double Ntau = N_Xorder * tau;
+    double ntau = (double) N_Xorder * tau;
+    std::vector<double> loglikelihood(X_values.size(), -INFINITY);
 
-    std::vector<double> y_cumsum;
 
-    size_t ind;
 
-    for (size_t i = 0; i < p; i++)
-    {
-        // loop over all variables
-        if (index_changepoint[i].size() > Ncutpoints)
-        {
-            // select Ncutpoints
-            seq_gen_std_ordinal(0, index_changepoint[i].size(), Ncutpoints, index_changepoint[i], candidate_index);
-            Ncutpoints_use = Ncutpoints;
-        }
-        else
-        {
-            // use all of them
-            candidate_index = index_changepoint[i];
-            Ncutpoints_use = index_changepoint[i].size();
-        }
+    size_t temp;
+    for(auto &&i : subset_vars){
+        cout << "variable " << i << endl;
+        if(X_num_unique[i] > 1){
+            // more than one unique values
+            start = X_num_unique[i];
+            end = X_num_unique[i+1] - 1; // minus one for indexing starting at 0
+            end2 = end;
 
-        // once we decide list of cutpoints, it's the same as continuous variable case
+            // cout << end2 << endl;
 
-        // calculate cumulative sum
-
-        y_cumsum.resize(Ncutpoints_use);
-
-        ind = 0;
-        y_cumsum[0] = 0.0;
-        // size_t N_Xorder = Xorder_std[0].size();
-
-        // cout << y_sum << " " << y_sum2 << endl;
-        for (size_t q = 0; q < N_Xorder; q++)
-        {
-            // cout << ind << " " << Ncutpoints << endl;
-            if (q <= candidate_index[ind])
-            {
-                y_cumsum[ind] = y_cumsum[ind] + y_std[Xorder_std[i][q]];
+            while(X_counts[end2] == 0){
+                // move backward if the last unique value has zero counts
+                end2 = end2 - 1;
+                // cout << end2 << endl;
             }
-            else
-            {
+            // move backward again, do not consider the last unique value as cutpoint
+            end2 = end2 - 1;
 
-                if (ind < Ncutpoints_use - 1)
-                {
-                    // y_cumsum_inv[ind] = y_sum - y_cumsum[ind];
-                    ind++;
-                    y_cumsum[ind] = y_cumsum[ind - 1] + y_std[Xorder_std[i][q]];
-                }
-                else
-                {
-                    // have done cumulative sum, do no care about elements after index of last entry of candiate_index
-                    break;
+            y_cumsum = 0.0;
+            n1 = 0;
+            cout << "start = " << start << " end2 = " << end2 << endl;
+            for(size_t j = start; j <= end2; j ++){
+                cout << "count " << X_counts[j] << endl;
+
+                if(X_counts[j] != 0){
+                    
+                    
+                    temp = n1 + X_counts[j] - 1;
+                    
+                    cout << "n1 = " << n1 << " temp = " << temp << endl;
+                    partial_sum_y(y_std, Xorder_std, n1, temp, y_cumsum, i);
+
+                    cout << "y_cumsum " << y_cumsum << endl;
+
+                    n1 = n1 + X_counts[j];
+                    n1tau = (double)n1 * tau;
+                    n2tau = ntau - n1tau;
+
+                    loglikelihood[j] = -0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum, 2) / (sigma2 * (n2tau + sigma2));
                 }
             }
-        }
 
-        for (size_t j = 0; j < Ncutpoints_use; j++)
-        {
-            // loop over all possible cutpoints
-            n1tau = (candidate_index[j] + 1) * tau; // number of points on left side (x <= cutpoint)
-            n2tau = Ntau - n1tau;                   // number of points on right side (x > cutpoint)
-            loglike[temp_index[i] + j] = -0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
 
-            if (loglike[temp_index[i] + j] > loglike_max)
-            {
-                loglike_max = loglike[temp_index[i] + j];
-            }
         }
     }
-
-    // no split option
-    loglike[loglike.size() - 1] = log(N_Xorder) + log(p) - 0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+    loglikelihood[loglikelihood.size() - 1] = log(N) + log(p) - 0.5 * log(ntau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (ntau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
 
-    if (loglike[loglike.size() - 1] > loglike_max)
-    {
-        loglike_max = loglike[loglike.size() - 1];
-    }
-
-    for (size_t ii = 0; ii < loglike.size(); ii++)
-    {
-        loglike[ii] = exp(loglike[ii] - loglike_max);
-    }
-
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::discrete_distribution<size_t> d(loglike.begin(), loglike.end());
-    // // sample one index of split point
-    ind = d(gen);
-
-    // split_var = ind / Ncutpoints;
-
-    // split_point = candidate_index[ind % Ncutpoints];
 
 
-    size_t split_point_which_unique_value;
+    // if (loglike[loglike.size() - 1] > loglike_max)
+    // {
+    //     loglike_max = loglike[loglike.size() - 1];
+    // }
 
-    if (ind == (loglike.size() - 1))
-    {
-        no_split = true;
-    }else{
+    // for (size_t ii = 0; ii < loglike.size(); ii++)
+    // {
+    //     loglike[ii] = exp(loglike[ii] - loglike_max);
+    // }
 
-        for(size_t i = 0; i < temp_index.size() - 1; i++){
-            if((ind >= temp_index[i]) && (ind < temp_index[i+1])){
-                split_var = i;
-                split_point_which_unique_value = ind - temp_index[i];
-            }
-        }
-    }
+    // std::random_device rd;
+    // std::mt19937 gen(rd());
+    // std::discrete_distribution<size_t> d(loglike.begin(), loglike.end());
+    // // // sample one index of split point
+    // ind = d(gen);
 
-    split_point = 0;
-    for(size_t i = 0; i <= split_point_which_unique_value; i ++ ){
-        split_point = split_point + X_unique_count[split_var][i];
-    }
+    // // split_var = ind / Ncutpoints;
 
-    split_point = split_point - 1;
+    // // split_point = candidate_index[ind % Ncutpoints];
 
 
-    cout << "sample result " << ind << endl;
-    cout << "split var" << split_var << endl;
-    cout << "split point, unique value" << split_point_which_unique_value << endl;
-    cout << "split point, total index " << split_point << endl;
+    // size_t split_point_which_unique_value;
+
+    // if (ind == (loglike.size() - 1))
+    // {
+    //     no_split = true;
+    // }else{
+
+    //     for(size_t i = 0; i < temp_index.size() - 1; i++){
+    //         if((ind >= temp_index[i]) && (ind < temp_index[i+1])){
+    //             split_var = i;
+    //             split_point_which_unique_value = ind - temp_index[i];
+    //         }
+    //     }
+    // }
+
+    // split_point = 0;
+    // for(size_t i = 0; i <= split_point_which_unique_value; i ++ ){
+    //     split_point = split_point + X_unique_count[split_var][i];
+    // }
+
+    // split_point = split_point - 1;
+
+
+    // cout << "sample result " << ind << endl;
+    // cout << "split var" << split_var << endl;
+    // cout << "split point, unique value" << split_point_which_unique_value << endl;
+    // cout << "split point, total index " << split_point << endl;
 
     return;
 }
