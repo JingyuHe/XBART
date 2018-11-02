@@ -102,11 +102,11 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
     // vector of replications of unique values of all variables
     std::vector<size_t> X_counts;
     // number of unique values 
-    std::vector<size_t> X_num_unique(p+1);
+    std::vector<size_t> variable_ind(p+1);
 
     size_t total_points;
 
-    unique_value_count(Xpointer, X_recodepointer, X_unique_counts, X_unique_values, index_changepoint, Xorder_std, X_values, X_counts, X_num_unique, total_points);
+    unique_value_count(Xpointer, X_recodepointer, X_unique_counts, X_unique_values, index_changepoint, Xorder_std, X_values, X_counts, variable_ind, total_points);
 
 
     cout << "raw X" << endl;
@@ -126,7 +126,7 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
 
     cout << "X_values " << X_values << endl;
     cout << "X_counts " << X_counts << endl;
-    cout << "X_num_unique " << X_num_unique << endl;
+    cout << "variable_ind " << variable_ind << endl;
     cout << "total points " << total_points << endl;
 
 
@@ -282,7 +282,7 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
 
                 // cout << "before " << mtry_weight_current_tree << endl;
 
-                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode_ordinal(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, X_recodepointer, X_unique_counts, X_unique_values, index_changepoint, mtry, run_time, var_index_candidate, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values, X_counts, X_num_unique);
+                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode_ordinal(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, X_recodepointer, X_unique_counts, X_unique_values, index_changepoint, mtry, run_time, var_index_candidate, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values, X_counts, variable_ind);
 
                 mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 

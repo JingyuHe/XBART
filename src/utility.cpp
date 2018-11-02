@@ -583,3 +583,10 @@ void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t& start, s
     return;
 }
 
+
+void partial_sum(std::vector<size_t> &y, size_t &start, size_t &end, size_t &y_sum){
+    for(size_t i = start; i <= end; i ++ ){
+        y_sum = y_sum + y[i];
+    }
+    return;
+}
