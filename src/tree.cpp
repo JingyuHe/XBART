@@ -892,7 +892,7 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t d
 
     cout << "size of left and right " << split_point + 1 << " " << N_Xorder - split_point - 1 << endl;
 
-    split_xorder_std(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, yleft_mean_std, yright_mean_std, y_mean, y_std);
+    split_xorder_std_ordinal(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, yleft_mean_std, yright_mean_std, y_mean, y_std);
 
     cout << "ok4" << endl;
 
@@ -1042,6 +1042,114 @@ void split_xorder_std(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_st
 
     return;
 }
+
+
+
+
+void split_xorder_std_ordinal(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std)
+{
+
+    // when find the split point, split Xorder matrix to two sub matrices for both subnodes
+
+    // preserve order of other variables
+    size_t N_Xorder = Xorder_std[0].size();
+    size_t left_ix = 0;
+    size_t right_ix = 0;
+    size_t N_Xorder_left = Xorder_left_std[0].size();
+    size_t N_Xorder_right = Xorder_right_std[0].size();
+
+    // if the left side is smaller, we only compute sum of it
+    bool compute_left_side = N_Xorder_left < N_Xorder_right;
+
+    yleft_mean = 0.0;
+    yright_mean = 0.0;
+
+    double cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+    for (size_t i = 0; i < p; i++)
+    {
+        // loop over variables
+        left_ix = 0;
+        right_ix = 0;
+        const double *temp_pointer = X_std + N_y * split_var;
+        if (i == split_var)
+        {
+            if (compute_left_side)
+            {
+                for (size_t j = 0; j < N_Xorder; j++)
+                {
+                    if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
+                    {
+                        yleft_mean = yleft_mean + y_std[Xorder_std[split_var][j]];
+
+                        Xorder_left_std[i][left_ix] = Xorder_std[i][j];
+                        left_ix = left_ix + 1;
+                    }
+                    else
+                    {
+
+                        Xorder_right_std[i][right_ix] = Xorder_std[i][j];
+                        right_ix = right_ix + 1;
+                    }
+                }
+            }
+            else
+            {
+                for (size_t j = 0; j < N_Xorder; j++)
+                {
+                    if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
+                    {
+
+                        Xorder_left_std[i][left_ix] = Xorder_std[i][j];
+                        left_ix = left_ix + 1;
+                    }
+                    else
+                    {
+                        yright_mean = yright_mean + y_std[Xorder_std[split_var][j]];
+
+                        Xorder_right_std[i][right_ix] = Xorder_std[i][j];
+                        right_ix = right_ix + 1;
+                    }
+                }
+            }
+        }
+        else
+        {
+            for (size_t j = 0; j < N_Xorder; j++)
+            {
+                if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
+                {
+                    Xorder_left_std[i][left_ix] = Xorder_std[i][j];
+                    left_ix = left_ix + 1;
+                }
+                else
+                {
+
+                    Xorder_right_std[i][right_ix] = Xorder_std[i][j];
+                    right_ix = right_ix + 1;
+                }
+            }
+        }
+    }
+
+    if (compute_left_side)
+    {
+        yright_mean = (y_mean * N_Xorder - yleft_mean) / N_Xorder_right;
+        yleft_mean = yleft_mean / N_Xorder_left;
+    }
+    else
+    {
+        yleft_mean = (y_mean * N_Xorder - yright_mean) / N_Xorder_left;
+        yright_mean = yright_mean / N_Xorder_right;
+    }
+
+    // yright_mean = yright_mean / N_Xorder_right;
+    // yleft_mean = yleft_mean / N_Xorder_left;
+
+    return;
+}
+
+
+
 
 void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars)
 {
@@ -1347,19 +1455,13 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
 
             y_cumsum = 0.0;
             n1 = 0;
-            cout << "start = " << start << " end2 = " << end2 << endl;
             for(size_t j = start; j <= end2; j ++){
-                cout << "count " << X_counts[j] << endl;
-
                 if(X_counts[j] != 0){
                     
                     
                     temp = n1 + X_counts[j] - 1;
-                    
-                    cout << "n1 = " << n1 << " temp = " << temp << endl;
-                    partial_sum_y(y_std, Xorder_std, n1, temp, y_cumsum, i);
 
-                    cout << "y_cumsum " << y_cumsum << endl;
+                    partial_sum_y(y_std, Xorder_std, n1, temp, y_cumsum, i);
 
                     n1 = n1 + X_counts[j];
                     n1tau = (double)n1 * tau;
