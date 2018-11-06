@@ -284,6 +284,9 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
 
                 trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode_ordinal(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, X_recodepointer, X_unique_counts, X_unique_values, index_changepoint, mtry, run_time, var_index_candidate, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values, X_counts, variable_ind);
 
+                    cout << "main split function done" << endl;
+
+
                 mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 
                 // cout << "after " << mtry_weight_current_tree << endl;

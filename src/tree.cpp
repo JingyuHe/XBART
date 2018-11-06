@@ -721,7 +721,7 @@ void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, si
     ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
     ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
 
-    cout << split_point + 1 << " " << N_Xorder - split_point - 1 << endl;
+    cout << "size of two sides " <<split_point + 1 << " " << N_Xorder - split_point - 1 << endl;
 
     // system_clock::time_point start;
     // system_clock::time_point end;
@@ -845,11 +845,16 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t d
     }
     BART_likelihood_adaptive_std_mtry_old_ordinal(y_mean * N_Xorder, y_std, Xorder_std, X_std, X_recodepointer, X_unique_counts, X_unique_values, index_changepoint, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, X_values, X_counts, variable_ind);
 
+    cout <<"ok of BART_likelihood_adaptive_std_mtry_old_ordinal" << endl;
+
     if (no_split == true)
     {
         cout << "no split" << endl;
         return;
     }
+
+    cout << "split var " << split_var << endl;
+    cout << "split point " << split_point << " " << no_split << endl;
 
     this->v = split_var;
     this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
@@ -859,10 +864,16 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t d
 
     split_count_current_tree[split_var] = split_count_current_tree[split_var] + 1;
 
+        cout << "ok of all init" << endl;
+
+
     xinfo_sizet Xorder_left_std;
     xinfo_sizet Xorder_right_std;
     ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
     ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
+
+        cout << "ok of all init2" << endl;
+
 
     // system_clock::time_point start;
     // system_clock::time_point end;
@@ -883,7 +894,14 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t d
     std::vector<size_t> X_counts_left(X_counts.size());
     std::vector<size_t> X_counts_right(X_counts.size());
 
+    cout << X_counts << endl;
+    cout << X_counts_left << endl;
+    cout << X_counts_right << endl;
+
+    cout << "split start " << endl;
     split_xorder_std_ordinal(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, yleft_mean_std, yright_mean_std, y_mean, y_std, X_counts_left, X_counts_right, X_counts, X_values, variable_ind);
+
+    cout << "ok of split" << endl;
 
     auto end = system_clock::now();
 
@@ -1144,10 +1162,10 @@ void split_xorder_std_ordinal(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_
             {
 
 
-                while(*(temp_pointer + Xorder_std[i][j])!= X_counts[X_counts_index]){
-                    // for the current observation, find location of corresponding unique values
-                    X_counts_index ++ ;
-                }
+                // while(*(temp_pointer + Xorder_std[i][j])!= X_counts[X_counts_index]){
+                //     // for the current observation, find location of corresponding unique values
+                //     X_counts_index ++ ;
+                // }
 
 
                 if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
@@ -1155,14 +1173,14 @@ void split_xorder_std_ordinal(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_
                     // go to left side
                     Xorder_left_std[i][left_ix] = Xorder_std[i][j];
                     left_ix = left_ix + 1;
-                    X_counts_left[X_counts_index] ++;
+                    // X_counts_left[X_counts_index] ++;
                 }
                 else
                 {
                     // go to right side
                     Xorder_right_std[i][right_ix] = Xorder_std[i][j];
                     right_ix = right_ix + 1;
-                    X_counts_right[X_counts_index] ++;
+                    // X_counts_right[X_counts_index] ++;
                 }
             }
         }
@@ -1474,7 +1492,7 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
     size_t temp;
     for (auto &&i : subset_vars)
     {
-        cout << "variable " << i << endl;
+        // cout << "variable " << i << endl;
         if (variable_ind[i] > 1)
         {
             // more than one unique values
@@ -1520,6 +1538,9 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
     }
     loglike[loglike.size() - 1] = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
+
+    cout << " ok of loglikelihood " << endl;
+
     // find maximum
     if (loglike[loglike.size() - 1] > loglike_max)
     {
@@ -1538,6 +1559,7 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
     // // sample one index of split point
     ind = d(gen);
 
+ 
     for (size_t i = 0; i < (variable_ind.size() - 1); i++)
     {
         if (variable_ind[i] <= ind && variable_ind[i + 1] > ind)
@@ -1546,6 +1568,9 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
             split_unique_value = ind - variable_ind[i];
         }
     }
+
+
+    cout << X_values << endl;
 
     if (ind == (loglike.size() - 1))
     {
@@ -1559,6 +1584,8 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
         // minus one for correct index (start from 0)
         split_point = split_point - 1;
     }
+
+            cout << "ind " << ind << " " << split_unique_value << " "  << X_values[ind] <<  " " << split_point << endl;
 
     return;
 }
