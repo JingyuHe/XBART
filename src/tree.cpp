@@ -1487,8 +1487,9 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
     double n2tau;
     size_t split_unique_value;
     double ntau = (double)N_Xorder * tau;
-    std::vector<double> loglike(X_values.size(), -INFINITY);
+    std::vector<double> loglike(X_values.size() + 1, -INFINITY);
 
+    cout << "variables to consider " << subset_vars << endl;
     size_t temp;
     for (auto &&i : subset_vars)
     {
@@ -1539,7 +1540,6 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
     loglike[loglike.size() - 1] = log(N) + log(p) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
 
-    cout << " ok of loglikelihood " << endl;
 
     // find maximum
     if (loglike[loglike.size() - 1] > loglike_max)
@@ -1552,6 +1552,7 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
     {
         loglike[ii] = exp(loglike[ii] - loglike_max);
     }
+    cout << " ok of loglikelihood " << loglike << endl;
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -1560,10 +1561,8 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
     ind = d(gen);
 
  
-    for (size_t i = 0; i < (variable_ind.size() - 1); i++)
-    {
-        if (variable_ind[i] <= ind && variable_ind[i + 1] > ind)
-        {
+    for(size_t i = 0; i < (variable_ind.size() - 1); i ++){
+        if(variable_ind[i] <= ind && variable_ind[i + 1] > ind){
             split_var = i;
             split_unique_value = ind - variable_ind[i];
         }
@@ -1573,14 +1572,15 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
     cout << X_values << endl;
 
     if (ind == (loglike.size() - 1))
-    {
+    {   
+        cout << "do not split " << endl;
         no_split = true;
     }
     else
     {
         start = variable_ind[split_var];
         // count how many
-        partial_sum(X_counts, start, ind, split_point);
+        split_point = std::accumulate(X_counts.begin() + start, X_counts.begin() + ind + 1, 0);
         // minus one for correct index (start from 0)
         split_point = split_point - 1;
     }

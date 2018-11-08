@@ -254,8 +254,6 @@ void NumericMatrix_col_sum(Rcpp::NumericMatrix &X, Rcpp::NumericVector &output);
 void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t& start, size_t& end, double& y_sum, const size_t& var);
 
 
-void partial_sum(std::vector<size_t> &y, size_t &start, size_t &end, size_t &y_sum);
-
 
 
 #endif
