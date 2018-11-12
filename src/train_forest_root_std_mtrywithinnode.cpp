@@ -136,10 +136,11 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
     // Rcpp::NumericVector split_var_count(p, 1);
 
 
-    Rcpp::NumericMatrix split_count_all_tree(p, M); // initialize at 0
+    xinfo split_count_all_tree;
+    ini_xinfo(split_count_all_tree, p, M); // initialize at 0
     // split_count_all_tree = split_count_all_tree + 1; // initialize at 1
-    Rcpp::NumericVector split_count_current_tree(p, 1);
-    Rcpp::NumericVector mtry_weight_current_tree(p, 1);
+    std::vector<double> split_count_current_tree(p, 1);
+    std::vector<double> mtry_weight_current_tree(p, 1);
 
     // double *split_var_count_pointer = &split_var_count[0];
 
@@ -148,14 +149,6 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
     std::vector<size_t> subset_vars(p);
     std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
     
-    // cout << subset_vars << endl;
-
-    Rcpp::IntegerVector var_index_candidate(p);
-    for (size_t i = 0; i < p; i++)
-    {
-        var_index_candidate[i] = i;
-    }
-
     double run_time = 0.0;
 
     // save tree objects to strings
@@ -236,17 +229,17 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
                 // clear counts of splits for one tree
                 std::fill(split_count_current_tree.begin(), split_count_current_tree.end(), 0.0);
 
-                mtry_weight_current_tree = mtry_weight_current_tree - split_count_all_tree(Rcpp::_, tree_ind);
+                mtry_weight_current_tree = mtry_weight_current_tree - split_count_all_tree[tree_ind];
 
                 // cout << "before " << mtry_weight_current_tree << endl;
 
-                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, run_time, var_index_candidate, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree);
+                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, run_time, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree);
 
                 mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 
                 // cout << "after " << mtry_weight_current_tree << endl; 
 
-                split_count_all_tree(Rcpp::_, tree_ind) = split_count_current_tree; 
+                split_count_all_tree[tree_ind] = split_count_current_tree; 
 
 
                 if (verbose == true)

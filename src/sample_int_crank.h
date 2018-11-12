@@ -1,3 +1,7 @@
+#ifndef GUARD_sample_int_crank_h
+#define GUARD_sample_int_crank_h
+
+
 #include "utility.h"
 
 using namespace Rcpp;
@@ -36,3 +40,4 @@ IntegerVector sample_int_expjs(int n, int size, NumericVector prob);
 
 
 
+#endif

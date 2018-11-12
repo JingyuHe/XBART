@@ -56,7 +56,7 @@ std::vector<size_t> sample_int_crank2(int n, int size, std::vector<double> prob)
     std::partial_sort(vx.begin(), vx.begin() + size, vx.end(), Comp2(rnd));
 
     // add one to each element
-    std::transform(std::begin(vx), std::end(vx), std::begin(vx), [](size_t x) { return x + 1.0; });
+    std::transform(std::begin(vx), std::end(vx), std::begin(vx), [](size_t x) { return x; });
 
     // Initialize with elements vx[1:size], applying transform "+ 1" --
     // we return one-based values.
