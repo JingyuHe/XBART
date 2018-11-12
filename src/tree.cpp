@@ -858,6 +858,9 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t d
 
     this->v = split_var;
     this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+
+    cout << "split_value " << this-> c << endl;
+
     // this->c = X_unique_values[split_var][split_point];
 
     // split_var_count_pointer[split_var]++;

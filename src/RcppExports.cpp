@@ -134,6 +134,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test
+void test(int n, int size, Rcpp::NumericVector prob);
+RcppExport SEXP _abarth_test(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type prob(probSEXP);
+    test(n, size, prob);
+    return R_NilValue;
+END_RCPP
+}
 // train_forest_root_std_mtrywithinnode_ordinal
 Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin, size_t mtry, bool draw_sigma, double kap, double s, bool verbose, bool m_update_sigma, bool draw_mu, bool parallel);
 RcppExport SEXP _abarth_train_forest_root_std_mtrywithinnode_ordinal(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP LSEXP, SEXP N_sweepsSEXP, SEXP max_depthSEXP, SEXP NminSEXP, SEXP NcutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP draw_sigmaSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP m_update_sigmaSEXP, SEXP draw_muSEXP, SEXP parallelSEXP) {
@@ -208,6 +220,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_abarth_sample_int_ccrank2", (DL_FUNC) &_abarth_sample_int_ccrank2, 3},
     {"_abarth_sample_int_expj2", (DL_FUNC) &_abarth_sample_int_expj2, 3},
     {"_abarth_sample_int_expjs2", (DL_FUNC) &_abarth_sample_int_expjs2, 3},
+    {"_abarth_test", (DL_FUNC) &_abarth_test, 3},
     {"_abarth_train_forest_root_std_mtrywithinnode_ordinal", (DL_FUNC) &_abarth_train_forest_root_std_mtrywithinnode_ordinal, 21},
     {"_abarth_train_forest_root_std_mtrywithinnode", (DL_FUNC) &_abarth_train_forest_root_std_mtrywithinnode, 21},
     {NULL, NULL, 0}

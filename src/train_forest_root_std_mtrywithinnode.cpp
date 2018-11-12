@@ -224,6 +224,9 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
                 if (use_all && (sweeps > burnin) && (mtry != p))
                 {
                     // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+
+                    // subset_vars = sample_int_crank2(p, mtry, split_var_count);
+
                     use_all = false;
                 }
 

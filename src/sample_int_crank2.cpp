@@ -1,20 +1,16 @@
-
-#include "utility.h"
-
-using namespace Rcpp;
-
-#include <queue>
+#include "sample_int_crank.h"
 
 void check_args2(int n, int size, const std::vector<double> &prob)
 {
     if (n < size)
     {
-        Rcpp::stop("cannot take a sample larger than the population");
+        throw std::range_error("cannot take a sample larger than the population");
     }
 
     if (prob.size() != n)
     {
-        Rcpp::stop("incorrect number of probabilities");
+        throw std::range_error("incorrect number of probabilities");
+        return;
     }
 }
 
@@ -42,7 +38,13 @@ std::vector<size_t> sample_int_crank2(int n, int size, std::vector<double> prob)
     //                ~ -Exp(1) / prob
     //                ~ prob / Exp(1)
     // Here, ~ means "doesn't change order statistics".
-    std::vector<double> rnd = prob / M_E;
+    std::vector<double> rnd = prob;
+
+    arn gen;
+
+    for(size_t i = 0; i < rnd.size(); i ++ ){
+        rnd[i] = rnd[i] / gen.exp();
+    }
 
     // Find the indexes of the first "size" elements under inverted
     // comparison.  Here, vx is zero-based.
@@ -269,9 +271,9 @@ std::vector<size_t> sample_int_expjs2(int n, int size, std::vector<double> prob)
             // Step 5: Let r = random(0, 1) and X_w = log(r) / log(T_w)
             double X_w = std::log(Rf_runif(0.0, 1.0)) / std::log(*T_w);
 
-            if (X_w < 0)
-                Rcpp::stop("X_w < 0");
-
+            if (X_w < 0){
+                throw std::range_error("X_w < 0");
+            }
             // Step 6: From the current item v_c skip items until item v_i, such that:
             double w = 0.0;
 
@@ -290,10 +292,12 @@ std::vector<size_t> sample_int_expjs2(int n, int size, std::vector<double> prob)
             // Step 9: Let t_w = T_w^{w_i}, r_2 = random(t_w, 1) and v_i’s key: k_i = (r_2)^{1/w_i}
             // (Mod: Let t_w = log(T_w) * {w_i}, e_2 = log(random(e^{t_w}, 1)) and v_i’s key: k_i = e_2 / w_i)
             double t_w = std::pow(*T_w, *iprob);
-            if (t_w < 0.0)
-                Rcpp::stop("t_w < 0");
-            if (t_w > 1.0)
-                Rcpp::stop("t_w > 1");
+            if (t_w < 0.0){
+                throw std::range_error("t_w < 0");
+            }
+            if (t_w > 1.0){
+                throw std::range_error("t_w > 1");
+            }
             double r_2 = Rf_runif(t_w, 1.0);
             double k_i = std::pow(r_2, 1.0 / *iprob);
 

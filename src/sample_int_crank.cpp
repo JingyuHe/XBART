@@ -1,9 +1,6 @@
 
-#include "utility.h"
+#include "sample_int_crank.h"
 
-using namespace Rcpp;
-
-#include <queue>
 
 void check_args(int n, int size, const NumericVector &prob)
 {
