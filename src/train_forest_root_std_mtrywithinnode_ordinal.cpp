@@ -132,8 +132,6 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
     cout << "total points " << total_points << endl;
 
 
-
- 
     xinfo yhats_std;
     ini_xinfo(yhats_std, N, N_sweeps);
     xinfo yhats_test_std;

@@ -904,6 +904,9 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t d
 
     cout << "ok of split" << endl;
 
+    cout << X_counts_left << endl;
+    cout << X_counts_right << endl;
+
     auto end = system_clock::now();
 
     auto duration = duration_cast<microseconds>(end - start);
@@ -1086,6 +1089,7 @@ void split_xorder_std_ordinal(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_
         start = variable_ind[i];
         end = variable_ind[i+1] - 1;
 
+        cout << "start and end " << start << " " << end << endl;
 
 
         if (i == split_var)
@@ -1153,7 +1157,7 @@ void split_xorder_std_ordinal(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_
         }
         else
         {
-
+            cout << "variable " << i << " " << start <<  endl;
 
             X_counts_index = start;
 
@@ -1161,27 +1165,35 @@ void split_xorder_std_ordinal(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_
             // split other variables, need to compare each row
             for (size_t j = 0; j < N_Xorder; j++)
             {
+                cout << "observation " << j << " " << *(X_std + N_y * i + Xorder_std[i][j]) << endl;
+                // cout << *(X_std + Xorder_std[i][j]) << endl;
 
+                while(*(X_std + N_y * i + Xorder_std[i][j])!= X_values[X_counts_index]){
+                    cout << "X_values[X_counts_index] " << X_values[X_counts_index] << endl;
+                    // for the current observation, find location of corresponding unique values
+                    X_counts_index ++ ;
+                    // cout << "move!" << endl;
+                }
 
-                // while(*(temp_pointer + Xorder_std[i][j])!= X_counts[X_counts_index]){
-                //     // for the current observation, find location of corresponding unique values
-                //     X_counts_index ++ ;
-                // }
+                cout << "aa" << " " << X_counts_index << " " << X_counts[X_counts_index] << endl;
 
-
+                
                 if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
                 {
                     // go to left side
+                    cout << "left " << X_counts_left[X_counts_index] << endl;
                     Xorder_left_std[i][left_ix] = Xorder_std[i][j];
                     left_ix = left_ix + 1;
-                    // X_counts_left[X_counts_index] ++;
+                    X_counts_left[X_counts_index] ++;
                 }
                 else
                 {
                     // go to right side
+                    cout << "right " << X_counts_right[X_counts_index] << endl;
+
                     Xorder_right_std[i][right_ix] = Xorder_std[i][j];
                     right_ix = right_ix + 1;
-                    // X_counts_right[X_counts_index] ++;
+                    X_counts_right[X_counts_index] ++;
                 }
             }
         }
