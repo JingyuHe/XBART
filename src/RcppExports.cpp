@@ -31,119 +31,55 @@ BEGIN_RCPP
 END_RCPP
 }
 // sample_int_crank
-IntegerVector sample_int_crank(int n, int size, NumericVector prob);
+std::vector<size_t> sample_int_crank(int n, int size, std::vector<double> prob);
 RcppExport SEXP _abarth_sample_int_crank(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type prob(probSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type prob(probSEXP);
     rcpp_result_gen = Rcpp::wrap(sample_int_crank(n, size, prob));
     return rcpp_result_gen;
 END_RCPP
 }
 // sample_int_ccrank
-SEXP sample_int_ccrank(int n, int size, NumericVector prob);
+std::vector<double> sample_int_ccrank(int n, int size, std::vector<double> prob);
 RcppExport SEXP _abarth_sample_int_ccrank(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type prob(probSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type prob(probSEXP);
     rcpp_result_gen = Rcpp::wrap(sample_int_ccrank(n, size, prob));
     return rcpp_result_gen;
 END_RCPP
 }
 // sample_int_expj
-IntegerVector sample_int_expj(int n, int size, NumericVector prob);
+std::vector<size_t> sample_int_expj(int n, int size, std::vector<double> prob);
 RcppExport SEXP _abarth_sample_int_expj(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type prob(probSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type prob(probSEXP);
     rcpp_result_gen = Rcpp::wrap(sample_int_expj(n, size, prob));
     return rcpp_result_gen;
 END_RCPP
 }
 // sample_int_expjs
-IntegerVector sample_int_expjs(int n, int size, NumericVector prob);
+std::vector<size_t> sample_int_expjs(int n, int size, std::vector<double> prob);
 RcppExport SEXP _abarth_sample_int_expjs(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type prob(probSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type prob(probSEXP);
     rcpp_result_gen = Rcpp::wrap(sample_int_expjs(n, size, prob));
     return rcpp_result_gen;
-END_RCPP
-}
-// sample_int_crank2
-std::vector<size_t> sample_int_crank2(int n, int size, std::vector<double> prob);
-RcppExport SEXP _abarth_sample_int_crank2(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type prob(probSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_int_crank2(n, size, prob));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_int_ccrank2
-std::vector<double> sample_int_ccrank2(int n, int size, std::vector<double> prob);
-RcppExport SEXP _abarth_sample_int_ccrank2(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type prob(probSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_int_ccrank2(n, size, prob));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_int_expj2
-std::vector<size_t> sample_int_expj2(int n, int size, std::vector<double> prob);
-RcppExport SEXP _abarth_sample_int_expj2(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type prob(probSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_int_expj2(n, size, prob));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_int_expjs2
-std::vector<size_t> sample_int_expjs2(int n, int size, std::vector<double> prob);
-RcppExport SEXP _abarth_sample_int_expjs2(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type prob(probSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_int_expjs2(n, size, prob));
-    return rcpp_result_gen;
-END_RCPP
-}
-// test
-void test(int n, int size, Rcpp::NumericVector prob);
-RcppExport SEXP _abarth_test(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type prob(probSEXP);
-    test(n, size, prob);
-    return R_NilValue;
 END_RCPP
 }
 // train_forest_root_std_mtrywithinnode_ordinal
@@ -216,11 +152,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_abarth_sample_int_ccrank", (DL_FUNC) &_abarth_sample_int_ccrank, 3},
     {"_abarth_sample_int_expj", (DL_FUNC) &_abarth_sample_int_expj, 3},
     {"_abarth_sample_int_expjs", (DL_FUNC) &_abarth_sample_int_expjs, 3},
-    {"_abarth_sample_int_crank2", (DL_FUNC) &_abarth_sample_int_crank2, 3},
-    {"_abarth_sample_int_ccrank2", (DL_FUNC) &_abarth_sample_int_ccrank2, 3},
-    {"_abarth_sample_int_expj2", (DL_FUNC) &_abarth_sample_int_expj2, 3},
-    {"_abarth_sample_int_expjs2", (DL_FUNC) &_abarth_sample_int_expjs2, 3},
-    {"_abarth_test", (DL_FUNC) &_abarth_test, 3},
     {"_abarth_train_forest_root_std_mtrywithinnode_ordinal", (DL_FUNC) &_abarth_train_forest_root_std_mtrywithinnode_ordinal, 21},
     {"_abarth_train_forest_root_std_mtrywithinnode", (DL_FUNC) &_abarth_train_forest_root_std_mtrywithinnode, 21},
     {NULL, NULL, 0}
