@@ -70,6 +70,7 @@
         "numeric": "cpp",
         "optional": "cpp",
         "sstream": "cpp",
-        "streambuf": "cpp"
+        "streambuf": "cpp",
+        "armadillo": "cpp"
     }
 }

@@ -6,8 +6,23 @@
 #include <chrono>
 
 using namespace std;
-
 using namespace chrono;
+
+
+
+
+////////////////////////////////////////////////////////////////////////
+//                                                                    //
+//                                                                    //
+//  Full function, support only categorical variables                 //
+//                                                                    //
+//                                                                    //
+////////////////////////////////////////////////////////////////////////
+
+
+
+
+
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
