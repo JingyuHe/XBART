@@ -103,30 +103,8 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
 
     std::vector<size_t> X_num_unique(p);
 
-    cout << "fine " << endl; 
 
     unique_value_count(Xpointer, X_unique_counts, X_unique_values, Xorder_std, X_values, X_counts, variable_ind, total_points, X_num_unique);
-
-    cout << "fine 2 " << endl;
-
-
-    cout << "raw X" << endl;
-    cout << X_std << endl;
-
-
-
-    cout << "Unique values " << endl;
-    cout << X_unique_values << endl;
-
-    cout << "Unique counts " << endl;
-    cout << X_unique_counts << endl;
-
-
-
-    cout << "X_values " << X_values << endl;
-    cout << "X_counts " << X_counts << endl;
-    cout << "variable_ind " << variable_ind << endl;
-    cout << "total points " << total_points << endl;
 
 
 

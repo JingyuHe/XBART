@@ -1005,7 +1005,6 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t d
 
     if (no_split == true)
     {
-        cout << "no split" << endl;
         return;
     }
 
@@ -1033,9 +1032,7 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t d
     // end = system_clock::now();
     // auto duration = duration_cast<microseconds>(end - start);
     // double running_time = double(duration.count()) * microseconds::period::num / microseconds::period::den;
-    //     cout << " ----- ---- " << endl;
-    //     cout << "running time 1 " << duration.count() << endl;
-
+    
     auto start = system_clock::now();
     double yleft_mean_std = 0.0;
     double yright_mean_std = 0.0;
@@ -1045,15 +1042,12 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t d
     std::vector<size_t> X_num_unique_left(X_num_unique.size());
     std::vector<size_t> X_num_unique_right(X_num_unique.size());
 
-    cout << X_counts << endl;
-    cout << X_counts_left << endl;
-    cout << X_counts_right << endl;
+
 
     split_xorder_std_ordinal(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, yleft_mean_std, yright_mean_std, y_mean, y_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, X_values, variable_ind);
 
 
-    cout << X_counts_left << endl;
-    cout << X_counts_right << endl;
+
 
     auto end = system_clock::now();
 
@@ -1065,12 +1059,6 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t d
     xinfo X_unique_values_left(p);
     xinfo X_unique_values_right(p);
     
-
-    // duration = duration_cast<microseconds>(end - start);
-    // cout << "running time 2 " << duration.count() << endl;
-    // free(Xorder_std);
-    // cout<< "left " << yleft_mean_std << " " << yleft_mean2 << endl;
-    // cout<< "right "<< yright_mean_std << " " << yright_mean2 << endl;
 
     double running_time_left = 0.0;
     double running_time_right = 0.0;
@@ -1756,8 +1744,6 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
         }
     }
 
-
-    cout << X_values << endl;
 
     if (ind == (loglike.size() - 1))
     {   
