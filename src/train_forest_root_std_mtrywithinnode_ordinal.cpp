@@ -89,11 +89,6 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
     xinfo_sizet X_unique_counts(X.n_cols);
 
     xinfo X_unique_values(X.n_cols);
-    xinfo_sizet index_changepoint(X.n_cols);
-
-    Rcpp::IntegerMatrix X_recode(N, p);
-    int *X_recodepointer = &X_recode[0];
-
 
 
     // stack all variables to one vector
@@ -108,15 +103,17 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
 
     std::vector<size_t> X_num_unique(p);
 
-    unique_value_count(Xpointer, X_recodepointer, X_unique_counts, X_unique_values, index_changepoint, Xorder_std, X_values, X_counts, variable_ind, total_points, X_num_unique);
+    cout << "fine " << endl; 
+
+    unique_value_count(Xpointer, X_unique_counts, X_unique_values, Xorder_std, X_values, X_counts, variable_ind, total_points, X_num_unique);
+
+    cout << "fine 2 " << endl;
 
 
     cout << "raw X" << endl;
     cout << X_std << endl;
 
 
-    cout << "X, recode" << endl;
-    cout << X_recode << endl;
 
     cout << "Unique values " << endl;
     cout << X_unique_values << endl;
@@ -130,6 +127,8 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
     cout << "X_counts " << X_counts << endl;
     cout << "variable_ind " << variable_ind << endl;
     cout << "total points " << total_points << endl;
+
+
 
 
     xinfo yhats_std;
@@ -275,9 +274,7 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
 
                 // cout << "before " << mtry_weight_current_tree << endl;
 
-                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode_ordinal(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, X_recodepointer, X_unique_counts, X_unique_values, index_changepoint, mtry, run_time, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values, X_counts, variable_ind, X_num_unique);
-
-                    cout << "main split function done" << endl;
+                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode_ordinal(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, X_unique_counts, X_unique_values, mtry, run_time, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values, X_counts, variable_ind, X_num_unique);
 
 
                 mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;

@@ -921,7 +921,7 @@ void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, si
 
 
 
-void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, const int *X_recodepointer, xinfo_sizet &X_unique_counts, xinfo &X_unique_values, xinfo_sizet &index_changepoint, size_t &mtry, double &run_time, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique)
+void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, xinfo_sizet &X_unique_counts, xinfo &X_unique_values, size_t &mtry, double &run_time, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique)
 {
 
     // grow a tree, users can control number of split points
@@ -1001,9 +1001,7 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t d
         subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
 
     }
-    BART_likelihood_adaptive_std_mtry_old_ordinal(y_mean * N_Xorder, y_std, Xorder_std, X_std, X_recodepointer, X_unique_counts, X_unique_values, index_changepoint, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, X_values, X_counts, variable_ind, X_num_unique);
-
-    cout <<"ok of BART_likelihood_adaptive_std_mtry_old_ordinal---------------------------------" << endl;
+    BART_likelihood_adaptive_std_mtry_old_ordinal(y_mean * N_Xorder, y_std, Xorder_std, X_std, X_unique_counts, X_unique_values, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, X_values, X_counts, variable_ind, X_num_unique);
 
     if (no_split == true)
     {
@@ -1011,13 +1009,8 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t d
         return;
     }
 
-    cout << "split var " << split_var << endl;
-    cout << "split point " << split_point << " " << no_split << endl;
-
     this->v = split_var;
     this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
-
-    cout << "split_value " << this-> c << endl;
 
     // this->c = X_unique_values[split_var][split_point];
 
@@ -1025,15 +1018,10 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t d
 
     split_count_current_tree[split_var] = split_count_current_tree[split_var] + 1;
 
-        cout << "ok of all init" << endl;
-
-
     xinfo_sizet Xorder_left_std;
     xinfo_sizet Xorder_right_std;
     ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
     ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
-
-        cout << "ok of all init2" << endl;
 
 
     // system_clock::time_point start;
@@ -1061,10 +1049,8 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t d
     cout << X_counts_left << endl;
     cout << X_counts_right << endl;
 
-    cout << "split start " << endl;
     split_xorder_std_ordinal(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, yleft_mean_std, yright_mean_std, y_mean, y_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, X_values, variable_ind);
 
-    cout << "ok of split" << endl;
 
     cout << X_counts_left << endl;
     cout << X_counts_right << endl;
@@ -1078,13 +1064,7 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t d
     xinfo_sizet X_unique_counts_right(p);
     xinfo X_unique_values_left(p);
     xinfo X_unique_values_right(p);
-    xinfo_sizet index_changepoint_left(p);
-    xinfo_sizet index_changepoint_right(p);
-
-    // unique_value_count(X_std, X_unique_counts_left, X_unique_values_left, index_changepoint_left, Xorder_left_std);
-    // unique_value_count(X_std, X_unique_counts_right, X_unique_values_right, index_changepoint_right, Xorder_right_std);
-
-    cout << "ok5" << endl;
+    
 
     // duration = duration_cast<microseconds>(end - start);
     // cout << "running time 2 " << duration.count() << endl;
@@ -1097,9 +1077,9 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_ordinal(double y_mean, size_t d
 
     depth = depth + 1;
     tree::tree_p lchild = new tree();
-    lchild->grow_tree_adaptive_std_mtrywithinnode_ordinal(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, X_recodepointer, X_unique_counts_left, X_unique_values_left, index_changepoint_left, mtry, running_time_left, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values, X_counts_left, variable_ind, X_num_unique_left);
+    lchild->grow_tree_adaptive_std_mtrywithinnode_ordinal(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, X_unique_counts_left, X_unique_values_left, mtry, running_time_left, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values, X_counts_left, variable_ind, X_num_unique_left);
     tree::tree_p rchild = new tree();
-    rchild->grow_tree_adaptive_std_mtrywithinnode_ordinal(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, X_recodepointer, X_unique_counts_right, X_unique_values_right, index_changepoint_right, mtry, running_time_right, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values, X_counts_right, variable_ind, X_num_unique_right);
+    rchild->grow_tree_adaptive_std_mtrywithinnode_ordinal(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, X_unique_counts_right, X_unique_values_right, mtry, running_time_right, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values, X_counts_right, variable_ind, X_num_unique_right);
 
     lchild->p = this;
     rchild->p = this;
@@ -1251,9 +1231,6 @@ void split_xorder_std_ordinal(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_
         start = variable_ind[i];
         end = variable_ind[i+1] - 1;
 
-        cout << "start and end " << start << " " << end << endl;
-        cout << variable_ind << endl;
-        cout << i << endl;
 
 
         if (i == split_var)
@@ -1321,7 +1298,6 @@ void split_xorder_std_ordinal(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_
         }
         else
         {
-            cout << "variable " << i << " " << start <<  endl;
 
             X_counts_index = start;
 
@@ -1329,17 +1305,13 @@ void split_xorder_std_ordinal(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_
             // split other variables, need to compare each row
             for (size_t j = 0; j < N_Xorder; j++)
             {
-                cout << "observation " << j << " " << *(X_std + N_y * i + Xorder_std[i][j]) << " " << X_values[X_counts_index] << endl;
                 // cout << *(X_std + Xorder_std[i][j]) << endl;
 
                 while(*(X_std + N_y * i + Xorder_std[i][j])!= X_values[X_counts_index]){
-                    cout << "X_values[X_counts_index] " << X_values[X_counts_index] << endl;
                     // for the current observation, find location of corresponding unique values
                     X_counts_index ++ ;
                     // cout << "move!" << endl;
                 }
-
-                cout << "aa" << " " <<  *(X_std + N_y * i + Xorder_std[i][j])  << " " << X_counts_index << " " << X_values[X_counts_index] << endl;
 
                 
                 if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
@@ -1348,7 +1320,6 @@ void split_xorder_std_ordinal(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_
                     Xorder_left_std[i][left_ix] = Xorder_std[i][j];
                     left_ix = left_ix + 1;
                     X_counts_left[X_counts_index] ++;
-                                        cout << "left " << X_counts_left[X_counts_index] << endl;
 
                 }
                 else
@@ -1358,7 +1329,6 @@ void split_xorder_std_ordinal(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_
                     Xorder_right_std[i][right_ix] = Xorder_std[i][j];
                     right_ix = right_ix + 1;
                     X_counts_right[X_counts_index] ++;
-                                        cout << "right " << X_counts_right[X_counts_index] << endl;
 
                 }
             }
@@ -1650,7 +1620,7 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double> &y_
     return;
 }
 
-void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, const int *X_recodepointer, xinfo_sizet &X_unique_count, xinfo &X_unique_values, xinfo_sizet &index_changepoint, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique)
+void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, xinfo_sizet &X_unique_count, xinfo &X_unique_values, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique)
 {
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
@@ -1663,12 +1633,12 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
 
     // for ordinal variables, always use all cutpoints
 
-    cout << "---------------------------------------------------" << endl;
-    cout << " begin of likelihood computation, print out inputs " << endl;
-    cout << "X_counts " << X_counts << endl;
-    cout << "X_values " << X_values << endl;
-    cout << "variable_ind" << variable_ind << endl;
-    cout << "Xnumunique" << X_num_unique << endl;
+    // cout << "---------------------------------------------------" << endl;
+    // cout << " begin of likelihood computation, print out inputs " << endl;
+    // cout << "X_counts " << X_counts << endl;
+    // cout << "X_values " << X_values << endl;
+    // cout << "variable_ind" << variable_ind << endl;
+    // cout << "Xnumunique" << X_num_unique << endl;
     
 
     size_t N = Xorder_std[0].size();
@@ -1719,8 +1689,6 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
 
             y_cumsum = 0.0;
             n1 = 0;
-
-            cout << "start and end2 " << start << " " << end2 << endl;
 
             for (size_t j = start; j <= end2; j++)
             {
@@ -1811,7 +1779,7 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
     return;
 }
 
-void unique_value_count(const double *Xpointer, int *X_recodepointer, xinfo_sizet &X_unique_count, xinfo &X_unique_values, xinfo_sizet &index_changepoint, xinfo_sizet &Xorder_std, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique)
+void unique_value_count(const double *Xpointer, xinfo_sizet &X_unique_count, xinfo &X_unique_values, xinfo_sizet &Xorder_std, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique)
 {
     size_t N = Xorder_std[0].size();
     size_t p = Xorder_std.size();
@@ -1848,15 +1816,17 @@ void unique_value_count(const double *Xpointer, int *X_recodepointer, xinfo_size
         total_points++;
     }
 
+
     for (size_t i = 0; i < p; i++)
     {
+
         current_value = *(Xpointer + i * N + Xorder_std[i][0]);
 
         // for a new variable, push the first observation automatically
         X_unique_values[i].push_back(current_value);
         X_unique_count[i].push_back(1);
         count_unique = 0;
-        *(X_recodepointer + i * N + Xorder_std[i][0]) = count_unique;
+
 
         for (size_t j = 1; j < N; j++)
         {
@@ -1872,17 +1842,8 @@ void unique_value_count(const double *Xpointer, int *X_recodepointer, xinfo_size
                 count_unique++;
             }
 
-            *(X_recodepointer + i * N + Xorder_std[i][j]) = count_unique;
         }
-        N_unique = X_unique_values[i].size();
-        index_changepoint[i].resize(N_unique - 2);
-        index_changepoint[i][0] = X_unique_count[i][0] + X_unique_count[i][1] - 1; // minus 1 for index, starts from 0
 
-        // index_changepoint[i][0] = X_unique_count[i][0] - 1;
-        for (size_t j = 1; j < N_unique - 2; j++)
-        {
-            index_changepoint[i][j] = index_changepoint[i][j - 1] + X_unique_count[i][j + 1];
-        }
     }
 
     return;
