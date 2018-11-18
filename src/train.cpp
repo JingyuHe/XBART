@@ -10,9 +10,6 @@ using namespace std;
 
 using namespace chrono;
 
-// [[Rcpp::plugins(cpp11)]]
-// [[Rcpp::export]]
-
 
 // Helpers
 struct AbarthParams{
