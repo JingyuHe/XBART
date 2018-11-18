@@ -2039,6 +2039,170 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double> &y_
 
 
 
+// void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, xinfo_sizet &X_unique_count, xinfo &X_unique_values, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique)
+// {
+//     // compute BART posterior (loglikelihood + logprior penalty)
+//     // randomized
+
+//     // subset_vars: a vector of indexes of varibles to consider (like random forest)
+
+//     // use stacked vector loglike instead of a matrix, stacked by column
+//     // length of loglike is p * (N - 1) + 1
+//     // N - 1 has to be greater than 2 * Nmin
+
+//     // for ordinal variables, always use all cutpoints
+
+//     // cout << "---------------------------------------------------" << endl;
+//     // cout << " begin of likelihood computation, print out inputs " << endl;
+//     // cout << "X_counts " << X_counts << endl;
+//     // cout << "X_values " << X_values << endl;
+//     // cout << "variable_ind" << variable_ind << endl;
+//     // cout << "Xnumunique" << X_num_unique << endl;
+    
+
+//     size_t N = Xorder_std[0].size();
+//     size_t p = Xorder_std.size();
+//     size_t ind;
+//     size_t N_Xorder = N;
+//     double loglike_max = -INFINITY;
+//     double sigma2 = pow(sigma, 2);
+//     size_t start;
+//     size_t end;
+//     size_t end2;
+//     double y_cumsum = 0.0;
+//     size_t n1;
+//     size_t n2;
+//     double n1tau;
+//     double n2tau;
+//     double ntau = (double)N_Xorder * tau;
+//     std::vector<double> loglike(X_values.size() + 1, -INFINITY);
+
+//     // cout << "variables to consider " << subset_vars << endl;
+//     size_t temp;
+
+
+//     size_t effective_cutpoints = 0;
+
+//     // ntau = (double) N_Xorder * tau;
+
+//     for (auto &&i : subset_vars)
+//     {
+//         // cout << "variable " << i << endl;
+//         if (X_num_unique[i] > 1)
+//         {
+//             // more than one unique values
+//             start = variable_ind[i];
+//             end = variable_ind[i + 1] - 1; // minus one for indexing starting at 0
+//             end2 = end;
+
+//             // cout << end2 << endl;
+
+//             // cout << "start " << start << endl;
+//             // cout << "end " << end << endl;
+
+//             while (X_counts[end2] == 0)
+//             {
+//                 // move backward if the last unique value has zero counts
+//                 end2 = end2 - 1;
+//                 // cout << end2 << endl;
+//             }
+//             // move backward again, do not consider the last unique value as cutpoint
+//             end2 = end2 - 1;
+
+//             y_cumsum = 0.0;
+//             n1 = 0;
+
+//             for (size_t j = start; j <= end2; j++)
+//             {
+//                                 // cout << "count " << X_counts[j] << endl;
+
+//                 if (X_counts[j] != 0)
+//                 {
+
+//                     temp = n1 + X_counts[j] - 1;
+
+//                     // cout << "----------------------------------" << endl;
+//                     // cout << "n1 = " << n1 << " temp = " << temp << endl;
+
+//                     partial_sum_y(y_std, Xorder_std, n1, temp, y_cumsum, i);
+
+//                     // cout << "y_cumsum " << y_cumsum << endl;
+
+//                     n1 = n1 + X_counts[j];
+//                     n1tau = (double)n1 * tau;
+//                     n2tau = ntau - n1tau;
+
+//                     // cout << "n1tau " << n1tau << " n2 tau " << n2tau << " sigma " << sigma2 << " N " << N_Xorder << endl;
+
+//                     loglike[j] = -0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum, 2) / (sigma2 * (n2tau + sigma2));
+
+//                     effective_cutpoints ++;
+
+//                     // cout << "lll " << loglike[j] << endl;
+
+//                     if (loglike[j] > loglike_max)
+//                     {
+//                         loglike_max = loglike[j];
+//                     }
+//                 }
+//             }
+            
+//         }
+//     }
+//     loglike[loglike.size() - 1] = log(effective_cutpoints) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+
+//     // cout << "likelihood before exp " << loglike << endl;
+
+
+//     // find maximum
+//     if (loglike[loglike.size() - 1] > loglike_max)
+//     {
+//         loglike_max = loglike[loglike.size() - 1];
+//     }
+
+//     // take exp
+//     for (size_t ii = 0; ii < loglike.size(); ii++)
+//     {
+//         loglike[ii] = exp(loglike[ii] - loglike_max);
+//     }
+//     // cout << " ok of loglikelihood " << loglike << endl;
+
+//     std::random_device rd;
+//     std::mt19937 gen(rd());
+//     std::discrete_distribution<size_t> d(loglike.begin(), loglike.end());
+//     // // sample one index of split point
+//     ind = d(gen);
+
+ 
+//     for(size_t i = 0; i < (variable_ind.size() - 1); i ++){
+//         if(variable_ind[i] <= ind && variable_ind[i + 1] > ind){
+//             split_var = i;
+//         }
+//     }
+
+
+//     if (ind == (loglike.size() - 1))
+//     {   
+//         // cout << "do not split " << endl;
+//         no_split = true;
+//         split_var = 0;
+//         split_point = 0;
+//     }
+//     else
+//     {
+//         start = variable_ind[split_var];
+//         // count how many
+//         split_point = std::accumulate(X_counts.begin() + start, X_counts.begin() + ind + 1, 0);
+//         // minus one for correct index (start from 0)
+//         split_point = split_point - 1;
+//     }
+
+
+//     return;
+// }
+
+
+
 void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, xinfo_sizet &X_unique_count, xinfo &X_unique_values, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique)
 {
     // compute BART posterior (loglikelihood + logprior penalty)
@@ -2063,102 +2227,16 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
     size_t N = Xorder_std[0].size();
     size_t p = Xorder_std.size();
     size_t ind;
+    size_t start;
     size_t N_Xorder = N;
     double loglike_max = -INFINITY;
-    double sigma2 = pow(sigma, 2);
-    size_t start;
-    size_t end;
-    size_t end2;
-    double y_cumsum = 0.0;
-    size_t n1;
-    size_t n2;
-    double n1tau;
-    double n2tau;
-    double ntau = (double)N_Xorder * tau;
+    
     std::vector<double> loglike(X_values.size() + 1, -INFINITY);
 
-    // cout << "variables to consider " << subset_vars << endl;
-    size_t temp;
+    double sigma2 = pow(sigma, 2);
+    
+    calculate_loglikelihood_categorical(loglike, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, Ncutpoints, tau, sigma2, loglike_max, X_values, X_counts, variable_ind, X_num_unique);
 
-
-    size_t effective_cutpoints = 0;
-
-    // ntau = (double) N_Xorder * tau;
-
-    for (auto &&i : subset_vars)
-    {
-        // cout << "variable " << i << endl;
-        if (X_num_unique[i] > 1)
-        {
-            // more than one unique values
-            start = variable_ind[i];
-            end = variable_ind[i + 1] - 1; // minus one for indexing starting at 0
-            end2 = end;
-
-            // cout << end2 << endl;
-
-            // cout << "start " << start << endl;
-            // cout << "end " << end << endl;
-
-            while (X_counts[end2] == 0)
-            {
-                // move backward if the last unique value has zero counts
-                end2 = end2 - 1;
-                // cout << end2 << endl;
-            }
-            // move backward again, do not consider the last unique value as cutpoint
-            end2 = end2 - 1;
-
-            y_cumsum = 0.0;
-            n1 = 0;
-
-            for (size_t j = start; j <= end2; j++)
-            {
-                                // cout << "count " << X_counts[j] << endl;
-
-                if (X_counts[j] != 0)
-                {
-
-                    temp = n1 + X_counts[j] - 1;
-
-                    // cout << "----------------------------------" << endl;
-                    // cout << "n1 = " << n1 << " temp = " << temp << endl;
-
-                    partial_sum_y(y_std, Xorder_std, n1, temp, y_cumsum, i);
-
-                    // cout << "y_cumsum " << y_cumsum << endl;
-
-                    n1 = n1 + X_counts[j];
-                    n1tau = (double)n1 * tau;
-                    n2tau = ntau - n1tau;
-
-                    // cout << "n1tau " << n1tau << " n2 tau " << n2tau << " sigma " << sigma2 << " N " << N_Xorder << endl;
-
-                    loglike[j] = -0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum, 2) / (sigma2 * (n2tau + sigma2));
-
-                    effective_cutpoints ++;
-
-                    // cout << "lll " << loglike[j] << endl;
-
-                    if (loglike[j] > loglike_max)
-                    {
-                        loglike_max = loglike[j];
-                    }
-                }
-            }
-            
-        }
-    }
-    loglike[loglike.size() - 1] = log(effective_cutpoints) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
-
-    // cout << "likelihood before exp " << loglike << endl;
-
-
-    // find maximum
-    if (loglike[loglike.size() - 1] > loglike_max)
-    {
-        loglike_max = loglike[loglike.size() - 1];
-    }
 
     // take exp
     for (size_t ii = 0; ii < loglike.size(); ii++)
@@ -2200,6 +2278,11 @@ void BART_likelihood_adaptive_std_mtry_old_ordinal(double y_sum, std::vector<dou
 
     return;
 }
+
+
+
+
+
 
 void unique_value_count(const double *Xpointer, xinfo_sizet &X_unique_count, xinfo &X_unique_values, xinfo_sizet &Xorder_std, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique)
 {
@@ -2390,9 +2473,98 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
 }
 
-// void calculate_loglikelihood_categorical(){
+void calculate_loglikelihood_categorical(std::vector<double> &loglike, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &N_min, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique){
 
-// }
+
+    size_t start;
+    size_t end;
+    size_t end2;
+    double y_cumsum = 0.0;
+    size_t n1;
+    size_t n2;
+    double n1tau;
+    double n2tau;
+    double ntau = (double) N_Xorder * tau;
+    size_t temp;
+    size_t N = N_Xorder;
+
+    size_t effective_cutpoints = 0;
+
+    // ntau = (double) N_Xorder * tau;
+
+    for (auto &&i : subset_vars)
+    {
+        // cout << "variable " << i << endl;
+        if (X_num_unique[i] > 1)
+        {
+            // more than one unique values
+            start = variable_ind[i];
+            end = variable_ind[i + 1] - 1; // minus one for indexing starting at 0
+            end2 = end;
+
+            // cout << end2 << endl;
+
+            // cout << "start " << start << endl;
+            // cout << "end " << end << endl;
+
+            while (X_counts[end2] == 0)
+            {
+                // move backward if the last unique value has zero counts
+                end2 = end2 - 1;
+                // cout << end2 << endl;
+            }
+            // move backward again, do not consider the last unique value as cutpoint
+            end2 = end2 - 1;
+
+            y_cumsum = 0.0;
+            n1 = 0;
+
+            for (size_t j = start; j <= end2; j++)
+            {
+                                // cout << "count " << X_counts[j] << endl;
+
+                if (X_counts[j] != 0)
+                {
+
+                    temp = n1 + X_counts[j] - 1;
+
+                    // cout << "----------------------------------" << endl;
+                    // cout << "n1 = " << n1 << " temp = " << temp << endl;
+
+                    partial_sum_y(y_std, Xorder_std, n1, temp, y_cumsum, i);
+
+                    // cout << "y_cumsum " << y_cumsum << endl;
+
+                    n1 = n1 + X_counts[j];
+                    n1tau = (double)n1 * tau;
+                    n2tau = ntau - n1tau;
+
+                    // cout << "n1tau " << n1tau << " n2 tau " << n2tau << " sigma " << sigma2 << " N " << N_Xorder << endl;
+
+                    loglike[j] = -0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum, 2) / (sigma2 * (n2tau + sigma2));
+
+                    effective_cutpoints ++;
+
+                    // cout << "lll " << loglike[j] << endl;
+
+                    if (loglike[j] > loglike_max)
+                    {
+                        loglike_max = loglike[j];
+                    }
+                }
+            }
+            
+        }
+    }
+    loglike[loglike.size() - 1] = log(effective_cutpoints) - 0.5 * log(N * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+
+    // cout << "likelihood before exp " << loglike << endl;
+    // find maximum
+    if (loglike[loglike.size() - 1] > loglike_max)
+    {
+        loglike_max = loglike[loglike.size() - 1];
+    }
+}
 
 
 #ifndef NoRcpp
