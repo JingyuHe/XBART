@@ -741,7 +741,10 @@ void tree::grow_tree_adaptive_abarth_train(double y_mean, size_t depth, size_t m
     double yleft_mean_std = 0.0;
     double yright_mean_std = 0.0;
 
-    split_xorder_std(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p, 0, yleft_mean_std, yright_mean_std, y_mean, y_std);
+    size_t p_continuous = p;
+    size_t p_categorical = 0;
+
+    split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p, 0, yleft_mean_std, yright_mean_std, y_mean, y_std);
 
     auto end = system_clock::now();
 
@@ -886,7 +889,7 @@ void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, si
     size_t p_continuous = p;
     size_t p_categorical = 0;
 
-    split_xorder_std(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, y_std);
+    split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, y_std);
 
     auto end = system_clock::now();
 
@@ -1033,7 +1036,25 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     double yleft_mean_std = 0.0;
     double yright_mean_std = 0.0;
 
-    split_xorder_std(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, y_std);
+
+    std::vector<size_t> X_counts_left(X_counts.size());
+    std::vector<size_t> X_counts_right(X_counts.size());
+    std::vector<size_t> X_num_unique_left(X_num_unique.size());
+    std::vector<size_t> X_num_unique_right(X_num_unique.size());
+
+    cout << " fine fine " << endl;
+
+
+    split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, y_std);
+
+    cout << " fine fine 2" << endl;
+
+
+    split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, y_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, X_values, variable_ind);
+
+    cout << " fine fine 3" << endl;
+
+
 
     auto end = system_clock::now();
 
@@ -1051,9 +1072,9 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     depth = depth + 1;
     tree::tree_p lchild = new tree();
-    lchild->grow_tree_adaptive_std_all(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, running_time_left, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique);
+    lchild->grow_tree_adaptive_std_all(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, running_time_left, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts_left, variable_ind, X_num_unique_left);
     tree::tree_p rchild = new tree();
-    rchild->grow_tree_adaptive_std_all(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, running_time_right, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique);
+    rchild->grow_tree_adaptive_std_all(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, running_time_right, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts_right, variable_ind, X_num_unique_right);
 
     lchild->p = this;
     rchild->p = this;
@@ -1222,7 +1243,7 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size
     return;
 }
 
-void split_xorder_std(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std)
+void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std)
 {
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
@@ -1240,7 +1261,7 @@ void split_xorder_std(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_st
     yleft_mean = 0.0;
     yright_mean = 0.0;
     double cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
-    for (size_t i = 0; i < p; i++)
+    for (size_t i = 0; i < p_continuous; i++)
     {
         // loop over variables
         left_ix = 0;
@@ -1349,7 +1370,7 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
     
 
     double cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
-    for (size_t i = 0; i < p; i++)
+    for (size_t i = p_continuous; i < p; i++)
     {
         // loop over variables
         left_ix = 0;
@@ -1359,8 +1380,8 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
 
         // index range of X_counts, X_values that are corresponding to current variable
         // start <= i <= end;
-        start = variable_ind[i];
-        end = variable_ind[i+1] - 1;
+        start = variable_ind[i - p_continuous];
+        end = variable_ind[i+1 - p_continuous] - 1;
 
 
 
@@ -1415,12 +1436,12 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
             for(size_t k = start; k <= end; k ++){
                 // loop from start to end!
 
-                if(X_values[k] <= cutvalue){
+                if(X_values[k - p_continuous] <= cutvalue){
                     // smaller than cutvalue, go left
-                    X_counts_left[k] = X_counts[k];
+                    X_counts_left[k - p_continuous] = X_counts[k - p_continuous];
                 }else{
                     // otherwise go right
-                    X_counts_right[k] = X_counts[k];
+                    X_counts_right[k - p_continuous] = X_counts[k - p_continuous];
                 }
             }
 
@@ -1438,7 +1459,7 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
             {
                 // cout << *(X_std + Xorder_std[i][j]) << endl;
 
-                while(*(X_std + N_y * i + Xorder_std[i][j])!= X_values[X_counts_index]){
+                while(*(X_std + N_y * i + Xorder_std[i][j])!= X_values[X_counts_index - p_continuous]){
                     // for the current observation, find location of corresponding unique values
                     X_counts_index ++ ;
                     // cout << "move!" << endl;
@@ -1480,15 +1501,15 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
 
 
     // update X_num_unique
-    for(size_t i = 0; i < p; i ++){
-        start = variable_ind[i];
-        end = variable_ind[i+1] - 1;
+    for(size_t i = p_continuous; i < p; i ++){
+        start = variable_ind[i - p_continuous];
+        end = variable_ind[i+1 - p_continuous] - 1;
         for(size_t j = start; j <= end; j++){
-            if(X_counts_left[j] > 0){
-                X_num_unique_left[i]++;
+            if(X_counts_left[j - p_continuous] > 0){
+                X_num_unique_left[i - p_continuous]++;
             }
-            if(X_counts_right[j] > 0){
-                X_num_unique_right[i]++;
+            if(X_counts_right[j - p_continuous] > 0){
+                X_num_unique_right[i - p_continuous]++;
             }
         }
     }
@@ -1500,6 +1521,10 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
 
     return;
 }
+
+
+
+
 
 // void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars)
 // {
@@ -2390,18 +2415,55 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
 
         cout << "indind" << ind << endl;
 
-        split_var = ind / (N - 1);
-        split_point = ind % (N - 1);
+        // split_var = ind / (N - 1);
+        // split_point = ind % (N - 1);
 
-        if (ind == (N - 1) * p)
-        {
+        // if (ind == (N - 1) * p)
+        // {
+        //     no_split = true;
+        // }else if ((N - 1) <= 2 * Nmin)
+        // {
+        //     no_split = true;
+        // }else{
+
+        // }
+
+
+        if(ind == loglike.size() - 1){
+            // no split
             no_split = true;
-        }else if ((N - 1) <= 2 * Nmin)
-        {
+            split_var = 0;
+            split_point = 0;
+            
+        }else if((N - 1) <= 2 * Nmin){
+            // np split
             no_split = true;
+            split_var = 0;
+            split_point = 0;
+
+        }else if(ind < loglike_start){
+            // split at continuous variable
+            split_var = ind / (N - 1);
+            split_point = ind % (N - 1);
+
         }else{
-
+            // split at categorical variable
+            size_t start;
+            ind = ind - loglike_start;
+            for(size_t i = 0; i < (variable_ind.size() - 1); i ++){
+                if(variable_ind[i] <= ind && variable_ind[i + 1] > ind){
+                    split_var = i;
+                }
+            }
+            start = variable_ind[split_var];
+            // count how many
+            split_point = std::accumulate(X_counts.begin() + start, X_counts.begin() + ind + 1, 0);
+            // minus one for correct index (start from 0)
+            split_point = split_point - 1;
         }
+
+
+
     }
     else
     {
@@ -2449,6 +2511,9 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
         }
 
     }
+
+    cout << "ind ind ok ok " << endl;
+    cout << split_var << " " << split_point << endl;
     return;
 }
 
