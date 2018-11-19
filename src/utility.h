@@ -32,7 +32,7 @@ double sum_vec(std::vector<double> &v);
 void seq_gen(size_t start, size_t end, size_t length_out, arma::uvec &vec);
 
 void seq_gen_std(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec);
-void seq_gen_std_ordinal(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec, std::vector<size_t> output);
+void seq_gen_std_categorical(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec, std::vector<size_t> output);
 
 void seq_gen_std_2(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec);
 

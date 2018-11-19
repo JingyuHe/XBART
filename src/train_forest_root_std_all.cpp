@@ -23,19 +23,25 @@ using namespace chrono;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin = 1, size_t mtry = 0, size_t p_ordinal = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true)
+Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true)
 {
 
     bool categorical_variables = false;
-    if(p_ordinal > 0){
+    if(p_categorical > 0){
         categorical_variables = true;
     }
 
     auto start = system_clock::now();
 
     size_t N = X.n_rows;
+    // number of total variables
     size_t p = X.n_cols;
     size_t N_test = Xtest.n_rows;
+
+    // number of continuous variables
+    size_t p_continuous = p - p_categorical;
+
+    // suppose first p_continuous variables are continuous, then categorical
 
     assert(mtry <= p);
     assert(burnin <= N_sweeps);
@@ -102,6 +108,23 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     double *ypointer = &y_std[0];
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
+
+
+    xinfo_sizet X_unique_counts(p_categorical);
+    xinfo X_unique_values(p_categorical);
+
+    std::vector<size_t> X_values;
+    std::vector<size_t> X_counts;
+    std::vector<size_t> variable_ind(p_categorical + 1);
+
+    size_t total_points;
+
+    std::vector<size_t> X_num_unique(p_categorical);
+
+    unique_value_count2(Xpointer, X_unique_counts, X_unique_values, Xorder_std, X_values, X_counts, variable_ind, total_points, X_num_unique, p_categorical, p_continuous);
+
+
+
 
     xinfo yhats_std;
     ini_xinfo(yhats_std, N, N_sweeps);
@@ -251,7 +274,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
                 // cout << "before " << mtry_weight_current_tree << endl;
 
-                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, run_time, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree);
+                trees.t[tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, run_time, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, X_values, X_counts, variable_ind, X_num_unique);
 
                 mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 

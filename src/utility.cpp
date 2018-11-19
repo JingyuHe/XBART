@@ -183,7 +183,7 @@ void seq_gen_std(size_t start, size_t end, size_t length_out, std::vector<size_t
     return;
 }
 
-void seq_gen_std_ordinal(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec, std::vector<size_t> output){
+void seq_gen_std_categorical(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec, std::vector<size_t> output){
     // take a subset of vec, write to output, with fixed length
     double incr = (double)(end - start) / (double) length_out;
     size_t temp;
