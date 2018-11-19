@@ -119,37 +119,37 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
     unique_value_count(Xpointer, Xorder_std, X_values, X_counts, variable_ind, total_points, X_num_unique);
 
 
-    cout << "X_values" << X_values << endl;
-    cout << "X_counts" << X_counts << endl;
-    cout << "variable_ind " << variable_ind << endl;
-    cout << "X_num_unique " << X_num_unique << endl;
+    // cout << "X_values" << X_values << endl;
+    // cout << "X_counts" << X_counts << endl;
+    // cout << "variable_ind " << variable_ind << endl;
+    // cout << "X_num_unique " << X_num_unique << endl;
 
 
 
-    size_t p_continuous = 1;
-    size_t p_categorical = p - 1;
+    size_t p_continuous = 0;
+    size_t p_categorical = p;
 
 
-    // stack all variables to one vector
-    // vector of unique values of all variables
-    std::vector<size_t> X_values2;
-    // vector of replications of unique values of all variables
-    std::vector<size_t> X_counts2;
-    // number of unique values 
-    std::vector<size_t> variable_ind2(p_categorical + 1);
+    // // stack all variables to one vector
+    // // vector of unique values of all variables
+    // std::vector<size_t> X_values2;
+    // // vector of replications of unique values of all variables
+    // std::vector<size_t> X_counts2;
+    // // number of unique values 
+    // std::vector<size_t> variable_ind2(p_categorical + 1);
 
-    size_t total_points2;
+    // size_t total_points2;
 
-    std::vector<size_t> X_num_unique2(p_categorical);
-
-
-    unique_value_count2(Xpointer, Xorder_std, X_values2, X_counts2, variable_ind2, total_points2, X_num_unique2, p_categorical, p_continuous);
+    // std::vector<size_t> X_num_unique2(p_categorical);
 
 
-    cout << "X_values" << X_values2 << endl;
-    cout << "X_counts" << X_counts2 << endl;
-    cout << "variable_ind " << variable_ind2 << endl;
-    cout << "X_num_unique " << X_num_unique2 << endl;
+    // unique_value_count2(Xpointer, Xorder_std, X_values2, X_counts2, variable_ind2, total_points2, X_num_unique2, p_categorical, p_continuous);
+
+
+    // cout << "X_values" << X_values2 << endl;
+    // cout << "X_counts" << X_counts2 << endl;
+    // cout << "variable_ind " << variable_ind2 << endl;
+    // cout << "X_num_unique " << X_num_unique2 << endl;
 
 
 

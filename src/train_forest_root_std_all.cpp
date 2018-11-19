@@ -122,8 +122,6 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     unique_value_count2(Xpointer, Xorder_std, X_values, X_counts, variable_ind, total_points, X_num_unique, p_categorical, p_continuous);
 
 
-
-
     xinfo yhats_std;
     ini_xinfo(yhats_std, N, N_sweeps);
     xinfo yhats_test_std;
@@ -272,7 +270,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
                 // cout << "before " << mtry_weight_current_tree << endl;
 
-                trees.t[tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, run_time, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, X_values, X_counts, variable_ind, X_num_unique);
+                trees.t[tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, run_time, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique);
 
                 mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 
