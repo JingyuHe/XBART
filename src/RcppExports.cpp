@@ -114,9 +114,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// train_forest_root_std_mtrywithinnode_categorical
-Rcpp::List train_forest_root_std_mtrywithinnode_categorical(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin, size_t mtry, bool draw_sigma, double kap, double s, bool verbose, bool m_update_sigma, bool draw_mu, bool parallel);
-RcppExport SEXP _abarth_train_forest_root_std_mtrywithinnode_categorical(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP LSEXP, SEXP N_sweepsSEXP, SEXP max_depthSEXP, SEXP NminSEXP, SEXP NcutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP draw_sigmaSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP m_update_sigmaSEXP, SEXP draw_muSEXP, SEXP parallelSEXP) {
+// train_forest_root_std_mtrywithinnode_ordinal
+Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin, size_t mtry, bool draw_sigma, double kap, double s, bool verbose, bool m_update_sigma, bool draw_mu, bool parallel);
+RcppExport SEXP _abarth_train_forest_root_std_mtrywithinnode_ordinal(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP LSEXP, SEXP N_sweepsSEXP, SEXP max_depthSEXP, SEXP NminSEXP, SEXP NcutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP draw_sigmaSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP m_update_sigmaSEXP, SEXP draw_muSEXP, SEXP parallelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -141,7 +141,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type m_update_sigma(m_update_sigmaSEXP);
     Rcpp::traits::input_parameter< bool >::type draw_mu(draw_muSEXP);
     Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
-    rcpp_result_gen = Rcpp::wrap(train_forest_root_std_mtrywithinnode_categorical(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel));
+    rcpp_result_gen = Rcpp::wrap(train_forest_root_std_mtrywithinnode_ordinal(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -185,7 +185,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_abarth_sample_int_expj", (DL_FUNC) &_abarth_sample_int_expj, 3},
     {"_abarth_sample_int_expjs", (DL_FUNC) &_abarth_sample_int_expjs, 3},
     {"_abarth_train_forest_root_std_all", (DL_FUNC) &_abarth_train_forest_root_std_all, 22},
-    {"_abarth_train_forest_root_std_mtrywithinnode_categorical", (DL_FUNC) &_abarth_train_forest_root_std_mtrywithinnode_categorical, 21},
+    {"_abarth_train_forest_root_std_mtrywithinnode_ordinal", (DL_FUNC) &_abarth_train_forest_root_std_mtrywithinnode_ordinal, 21},
     {"_abarth_train_forest_root_std_mtrywithinnode", (DL_FUNC) &_abarth_train_forest_root_std_mtrywithinnode, 21},
     {NULL, NULL, 0}
 };

@@ -29,8 +29,8 @@ train_forest_root_std_all <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nm
     .Call(`_abarth_train_forest_root_std_all`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel)
 }
 
-train_forest_root_std_mtrywithinnode_categorical <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE) {
-    .Call(`_abarth_train_forest_root_std_mtrywithinnode_categorical`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel)
+train_forest_root_std_mtrywithinnode_ordinal <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE) {
+    .Call(`_abarth_train_forest_root_std_mtrywithinnode_ordinal`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel)
 }
 
 train_forest_root_std_mtrywithinnode <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE) {
