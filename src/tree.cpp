@@ -998,6 +998,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique);
 
+
     if (no_split == true)
     {
         return;
@@ -1934,7 +1935,10 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double> &y_
 
     loglike[loglike.size() - 1] = 0.0;
 
+
     calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, Ncutpoints, tau, sigma2, loglike_max);
+
+
 
 
     // transfer loglikelihood to likelihood
@@ -2297,13 +2301,46 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
     }
 
 
+    // set the last entry as 0, for no-split option
+    loglike[loglike.size() - 1] = 0.0;
+
 
 
     calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, Ncutpoints, tau, sigma2, loglike_max);
 
+    cout << "continuous part" << endl;
+    for(size_t kk = 0; kk < loglike_start; kk ++){
+        cout << loglike[kk] << " ";
+    }
+    cout << endl;
+    cout << "categorical part "<< endl;
+    for(size_t kk = loglike_start; kk < loglike.size(); kk ++ ){
+        cout << loglike[kk] << " ";
+    }
+    cout << endl;
+
+
+    cout << "subset_vars " << subset_vars << endl;
+
+    cout << "loglike max " << loglike_max << endl;
+    cout << "-----------------------" << endl;
 
     calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, p_categorical, Ncutpoints, tau, sigma2, loglike_max, X_values, X_counts, variable_ind, X_num_unique);
 
+    
+    cout << "continuous part" << endl;
+    for(size_t kk = 0; kk < loglike_start; kk ++){
+        cout << loglike[kk] << " ";
+    }
+    cout << endl;
+    cout << "categorical part "<< endl;
+    for(size_t kk = loglike_start; kk < loglike.size(); kk ++ ){
+        cout << loglike[kk] << " ";
+    }
+    cout << endl;
+    cout << "loglike max " << loglike_max << endl;
+
+    cout << "++++++++++++++++++++++++" << endl;
 
     // transfer loglikelihood to likelihood
     for (size_t ii = 0; ii < loglike.size(); ii++)
@@ -2311,6 +2348,7 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
         // if a variable is not selected, take exp will becomes 0
         loglike[ii] = exp(loglike[ii] - loglike_max);
     }
+
 
 
 
@@ -2350,17 +2388,19 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
 
         ind = d(gen);
 
+        cout << "indind" << ind << endl;
+
         split_var = ind / (N - 1);
         split_point = ind % (N - 1);
 
         if (ind == (N - 1) * p)
         {
             no_split = true;
-        }
-
-        if ((N - 1) <= 2 * Nmin)
+        }else if ((N - 1) <= 2 * Nmin)
         {
             no_split = true;
+        }else{
+
         }
     }
     else
@@ -2377,14 +2417,37 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
         // // sample one index of split point
         ind = d(gen);
 
-        split_var = ind / Ncutpoints;
+        cout << "indindind" << ind << endl;
 
-        split_point = candidate_index[ind % Ncutpoints];
 
-        if (ind == (Ncutpoints)*p)
-        {
+
+        if(ind == loglike.size() - 1){
+            // no split
             no_split = true;
+            split_var = 0;
+            split_point = 0;
+            
+        }else if(ind < loglike_start){
+            // split at continuous variable
+            split_var = ind / Ncutpoints;
+            split_point = candidate_index[ind % Ncutpoints];
+
+        }else{
+            // split at categorical variable
+            size_t start;
+            ind = ind - loglike_start;
+            for(size_t i = 0; i < (variable_ind.size() - 1); i ++){
+                if(variable_ind[i] <= ind && variable_ind[i + 1] > ind){
+                    split_var = i;
+                }
+            }
+            start = variable_ind[split_var];
+            // count how many
+            split_point = std::accumulate(X_counts.begin() + start, X_counts.begin() + ind + 1, 0);
+            // minus one for correct index (start from 0)
+            split_point = split_point - 1;
         }
+
     }
     return;
 }
@@ -2625,7 +2688,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
         if ((i >= p_continuous) && (X_num_unique[i - p_continuous] > 1))
         {
             // more than one unique values
-            start = variable_ind[i];
+            start = variable_ind[i - p_continuous];
             end = variable_ind[i + 1 - p_continuous] - 1; // minus one for indexing starting at 0
             end2 = end;
 
