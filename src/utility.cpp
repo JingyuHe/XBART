@@ -381,6 +381,21 @@ double sq_vec_diff(std::vector<double> &v1, std::vector<double> &v2)
     return output;
 }
 
+
+double sq_vec_diff_sizet(std::vector<size_t> &v1, std::vector<size_t> &v2)
+{
+    assert(v1.size() == v2.size());
+    size_t N = v1.size();
+    double output = 0.0;
+    for (size_t i = 0; i < N; i++)
+    {
+        output = output + pow(v1[i] - v2[i], 2);
+    }
+    return output;
+}
+
+
+
 std::vector<size_t> sort_indexes(const Rcpp::NumericVector &v)
 {
 

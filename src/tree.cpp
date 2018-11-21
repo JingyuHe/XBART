@@ -1054,7 +1054,23 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     cout << " fine fine 3" << endl;
 
+    std::vector<size_t> X_counts_sum = X_counts_left + X_counts_right;
 
+    cout << "X_counts old " << X_counts << endl;
+    cout << "X counts left" << X_counts_left << endl;
+    cout << "X counts right " << X_counts_right << endl;
+
+
+    cout << "X_counts   left   right" << endl;
+    for(size_t kk = 0; kk < X_counts.size(); kk ++ ){
+        cout << X_counts[kk] << "  " << X_counts_left[kk] << "  " << X_counts_right[kk] << endl;
+    }
+
+
+
+    cout << "diff " << sq_vec_diff_sizet(X_counts, X_counts_sum) << endl;
+
+    cout << "---------------------------" << endl;
 
     auto end = system_clock::now();
 
@@ -1217,7 +1233,6 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size
 
 
 
-
     auto end = system_clock::now();
 
     auto duration = duration_cast<microseconds>(end - start);
@@ -1366,7 +1381,8 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
 
     size_t start;
     size_t end;
-
+    
+    cout << "variable ind " << variable_ind << endl;
     
 
     double cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
@@ -1381,6 +1397,7 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
         // index range of X_counts, X_values that are corresponding to current variable
         // start <= i <= end;
         start = variable_ind[i - p_continuous];
+        cout << "start " << start << endl;
         end = variable_ind[i+1 - p_continuous] - 1;
 
 
@@ -1459,7 +1476,7 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
             {
                 // cout << *(X_std + Xorder_std[i][j]) << endl;
 
-                while(*(X_std + N_y * i + Xorder_std[i][j])!= X_values[X_counts_index - p_continuous]){
+                while(*(X_std + N_y * i + Xorder_std[i][j])!= X_values[X_counts_index]){
                     // for the current observation, find location of corresponding unique values
                     X_counts_index ++ ;
                     // cout << "move!" << endl;
@@ -1505,11 +1522,11 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
         start = variable_ind[i - p_continuous];
         end = variable_ind[i+1 - p_continuous] - 1;
         for(size_t j = start; j <= end; j++){
-            if(X_counts_left[j - p_continuous] > 0){
-                X_num_unique_left[i - p_continuous]++;
+            if(X_counts_left[j] > 0){
+                X_num_unique_left[i]++;
             }
-            if(X_counts_right[j - p_continuous] > 0){
-                X_num_unique_right[i - p_continuous]++;
+            if(X_counts_right[j] > 0){
+                X_num_unique_right[i]++;
             }
         }
     }
@@ -2333,37 +2350,37 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
 
     calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, Ncutpoints, tau, sigma2, loglike_max);
 
-    cout << "continuous part" << endl;
-    for(size_t kk = 0; kk < loglike_start; kk ++){
-        cout << loglike[kk] << " ";
-    }
-    cout << endl;
-    cout << "categorical part "<< endl;
-    for(size_t kk = loglike_start; kk < loglike.size(); kk ++ ){
-        cout << loglike[kk] << " ";
-    }
-    cout << endl;
+    // cout << "continuous part" << endl;
+    // for(size_t kk = 0; kk < loglike_start; kk ++){
+    //     cout << loglike[kk] << " ";
+    // }
+    // cout << endl;
+    // cout << "categorical part "<< endl;
+    // for(size_t kk = loglike_start; kk < loglike.size(); kk ++ ){
+    //     cout << loglike[kk] << " ";
+    // }
+    // cout << endl;
 
 
-    cout << "subset_vars " << subset_vars << endl;
+    // cout << "subset_vars " << subset_vars << endl;
 
-    cout << "loglike max " << loglike_max << endl;
-    cout << "-----------------------" << endl;
+    // cout << "loglike max " << loglike_max << endl;
+    // cout << "-----------------------" << endl;
 
     calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, p_categorical, Ncutpoints, tau, sigma2, loglike_max, X_values, X_counts, variable_ind, X_num_unique);
 
     
-    cout << "continuous part" << endl;
-    for(size_t kk = 0; kk < loglike_start; kk ++){
-        cout << loglike[kk] << " ";
-    }
-    cout << endl;
-    cout << "categorical part "<< endl;
-    for(size_t kk = loglike_start; kk < loglike.size(); kk ++ ){
-        cout << loglike[kk] << " ";
-    }
-    cout << endl;
-    cout << "loglike max " << loglike_max << endl;
+    // cout << "continuous part" << endl;
+    // for(size_t kk = 0; kk < loglike_start; kk ++){
+    //     cout << loglike[kk] << " ";
+    // }
+    // cout << endl;
+    // cout << "categorical part "<< endl;
+    // for(size_t kk = loglike_start; kk < loglike.size(); kk ++ ){
+    //     cout << loglike[kk] << " ";
+    // }
+    // cout << endl;
+    // cout << "loglike max " << loglike_max << endl;
 
     cout << "++++++++++++++++++++++++" << endl;
 
