@@ -999,8 +999,9 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     }
 
 
+    cout << "fine " << endl;
     BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique);
-
+    cout << "fine 0 " << endl;
 
     if (no_split == true)
     {
@@ -1042,35 +1043,26 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     std::vector<size_t> X_num_unique_left(X_num_unique.size());
     std::vector<size_t> X_num_unique_right(X_num_unique.size());
 
-    cout << " fine fine " << endl;
-
 
     split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, y_std);
 
-    cout << " fine fine 2" << endl;
 
-
+    cout << "fine 1" << endl;
     split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, y_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, X_values, variable_ind);
-
-    cout << " fine fine 3" << endl;
+    cout << "fine 2" << endl;
 
     std::vector<size_t> X_counts_sum = X_counts_left + X_counts_right;
 
-    cout << "X_counts old " << X_counts << endl;
-    cout << "X counts left" << X_counts_left << endl;
-    cout << "X counts right " << X_counts_right << endl;
+
+    // cout << "X_values   X_counts   left   right" << endl;
+    // for(size_t kk = 0; kk < X_counts.size(); kk ++ ){
+        // cout << X_values[kk] << "  " << X_counts[kk] << "  " << X_counts_left[kk] << "  " << X_counts_right[kk] << endl;
+    // }
 
 
-    cout << "X_counts   left   right" << endl;
-    for(size_t kk = 0; kk < X_counts.size(); kk ++ ){
-        cout << X_counts[kk] << "  " << X_counts_left[kk] << "  " << X_counts_right[kk] << endl;
-    }
+    // cout << "diff " << sq_vec_diff_sizet(X_counts, X_counts_sum) << endl;
 
-
-
-    cout << "diff " << sq_vec_diff_sizet(X_counts, X_counts_sum) << endl;
-
-    cout << "---------------------------" << endl;
+    // cout << "---------------------------" << endl;
 
     auto end = system_clock::now();
 
@@ -1188,6 +1180,8 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size
     }
     BART_likelihood_adaptive_std_mtry_old_categorical(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, X_values, X_counts, variable_ind, X_num_unique);
 
+    cout << "nosplit  " << no_split << endl;
+
     if (no_split == true)
     {
         return;
@@ -1196,6 +1190,8 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size
     this->v = split_var;
     this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
 
+    cout << "split variable" << this->v << endl;
+    cout << "split value " << this-> c << "  " << split_point << endl;
 
     // split_var_count_pointer[split_var]++;
 
@@ -1230,6 +1226,19 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size
     size_t p_categorical = p;
 
     split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, y_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, X_values, variable_ind);
+
+
+    cout << "X_values   X_counts   left   right" << endl;
+    for(size_t kk = 0; kk < X_counts.size(); kk ++ ){
+        cout << X_values[kk] << "  " << X_counts[kk] << "  " << X_counts_left[kk] << "  " << X_counts_right[kk] << endl;
+    }
+
+        std::vector<size_t> X_counts_sum = X_counts_left + X_counts_right;
+
+
+    cout << "diff " << sq_vec_diff_sizet(X_counts, X_counts_sum) << endl;
+
+    cout << "---------------------------" << endl;
 
 
 
@@ -1364,6 +1373,9 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
 
+
+    // cout << "++++++++++++++++++++++++++++++" << endl;
+
     // preserve order of other variables
     size_t N_Xorder = Xorder_std[0].size();
     size_t left_ix = 0;
@@ -1382,10 +1394,18 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
     size_t start;
     size_t end;
     
-    cout << "variable ind " << variable_ind << endl;
+    // cout << "variable ind " << variable_ind << endl;
     
 
     double cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+
+
+    // cout << "split var " << split_var << endl;
+    // cout << "split point index " << split_point << endl;
+    // cout << "split value " << *(X_std + N_y * split_var + Xorder_std[split_var][split_point]) << endl;
+
+
+
     for (size_t i = p_continuous; i < p; i++)
     {
         // loop over variables
@@ -1397,7 +1417,7 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
         // index range of X_counts, X_values that are corresponding to current variable
         // start <= i <= end;
         start = variable_ind[i - p_continuous];
-        cout << "start " << start << endl;
+        // cout << "start " << start << endl;
         end = variable_ind[i+1 - p_continuous] - 1;
 
 
@@ -1407,6 +1427,8 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
             // split the split_variable, only need to find row of cutvalue
 
             // I think this part can be optimizied, we know location of cutvalue (split_value variable)
+
+            // cout << "compute left side " << compute_left_side << endl;
 
             if (compute_left_side)
             {
@@ -1441,7 +1463,6 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
                     else
                     {
                         yright_mean = yright_mean + y_std[Xorder_std[split_var][j]];
-
                         Xorder_right_std[i][right_ix] = Xorder_std[i][j];
                         right_ix = right_ix + 1;
                     }
@@ -1450,15 +1471,26 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
 
             // for the cut variable, it's easy to counts X_counts_left and X_counts_right, simply cut X_counts to two pieces.
 
+start = variable_ind[i - p_continuous];
+        end = variable_ind[i+1 - p_continuous] - 1;
+
+
+// cout << "start and end index " << start << "   " << end << endl;
+
             for(size_t k = start; k <= end; k ++){
                 // loop from start to end!
 
-                if(X_values[k - p_continuous] <= cutvalue){
+                // cout << "X_values " << X_values[k] << "  " << cutvalue << endl;
+
+                if(X_values[k] <= cutvalue){
                     // smaller than cutvalue, go left
-                    X_counts_left[k - p_continuous] = X_counts[k - p_continuous];
+                    X_counts_left[k] = X_counts[k];
+                    // cout << "go left " << X_counts_left[k] << "   " << X_counts[k] << endl;
                 }else{
                     // otherwise go right
-                    X_counts_right[k - p_continuous] = X_counts[k - p_continuous];
+                    X_counts_right[k] = X_counts[k];
+                    // cout << "go right " << X_counts_right[k] << "   " << X_counts[k] << endl;
+
                 }
             }
 
@@ -2382,7 +2414,6 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
     // cout << endl;
     // cout << "loglike max " << loglike_max << endl;
 
-    cout << "++++++++++++++++++++++++" << endl;
 
     // transfer loglikelihood to likelihood
     for (size_t ii = 0; ii < loglike.size(); ii++)
@@ -2429,8 +2460,6 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
         // sample one index of split point
 
         ind = d(gen);
-
-        cout << "indind" << ind << endl;
 
         // split_var = ind / (N - 1);
         // split_point = ind % (N - 1);
@@ -2496,8 +2525,6 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
         // // sample one index of split point
         ind = d(gen);
 
-        cout << "indindind" << ind << endl;
-
 
 
         if(ind == loglike.size() - 1){
@@ -2529,8 +2556,6 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
 
     }
 
-    cout << "ind ind ok ok " << endl;
-    cout << split_var << " " << split_point << endl;
     return;
 }
 
