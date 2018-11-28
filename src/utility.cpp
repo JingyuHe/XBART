@@ -66,10 +66,12 @@ void ini_xinfo_sizet(xinfo_sizet &X, size_t N, size_t p)
     // xinfo_sizet X;
     X.resize(p);
 
+    cout << "ini_xinfo_sizet 1 " << endl;
     for (size_t i = 0; i < p; i++)
     {
         X[i].resize(N);
     }
+    cout << "ini_xinfo_sizet 2 " << endl;
 
     // return std::move(X);
     return;
