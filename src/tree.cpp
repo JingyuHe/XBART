@@ -1008,7 +1008,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique);
 
 
-    cout << "split var " << split_var << "  split point " << split_point << " no split " << no_split << endl;
+    // cout << "split var " << split_var << "  split point " << split_point << " no split " << no_split << endl;
 
     if (no_split == true)
     {
@@ -2401,11 +2401,11 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
     size_t loglike_start;
 
     if(N <= Ncutpoints + 1 + 2 * Nmin){
-        loglike.resize((N_Xorder - 1) * p + X_values.size() + 1, -INFINITY);
-        loglike_start = (N_Xorder - 1) * p;
+        loglike.resize((N_Xorder - 1) * p_continuous + X_values.size() + 1, -INFINITY);
+        loglike_start = (N_Xorder - 1) * p_continuous;
     }else{
-        loglike.resize(Ncutpoints * p + X_values.size() + 1, -INFINITY);
-        loglike_start = Ncutpoints * p;
+        loglike.resize(Ncutpoints * p_continuous + X_values.size() + 1, -INFINITY);
+        loglike_start = Ncutpoints * p_continuous;
     }
 
 
