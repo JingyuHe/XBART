@@ -1031,18 +1031,6 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
     ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
 
-    // system_clock::time_point start;
-    // system_clock::time_point end;
-    // start = system_clock::now();
-    // split_xorder_std_old(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p);
-    // double yleft_mean_std = subnode_mean(y_std, Xorder_left_std, split_var);
-    // double yright_mean_std = subnode_mean(y_std, Xorder_right_std, split_var);
-    // end = system_clock::now();
-    // auto duration = duration_cast<microseconds>(end - start);
-    // double running_time = double(duration.count()) * microseconds::period::num / microseconds::period::den;
-    //     cout << " ----- ---- " << endl;
-    //     cout << "running time 1 " << duration.count() << endl;
-
     auto start = system_clock::now();
     double yleft_mean_std = 0.0;
     double yright_mean_std = 0.0;
@@ -1084,11 +1072,6 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     auto duration = duration_cast<microseconds>(end - start);
     double running_time = double(duration.count()) * microseconds::period::num / microseconds::period::den;
 
-    // duration = duration_cast<microseconds>(end - start);
-    // cout << "running time 2 " << duration.count() << endl;
-    // free(Xorder_std);
-    // cout<< "left " << yleft_mean_std << " " << yleft_mean2 << endl;
-    // cout<< "right "<< yright_mean_std << " " << yright_mean2 << endl;
 
     double running_time_left = 0.0;
     double running_time_right = 0.0;
@@ -1199,7 +1182,6 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size
     }
     BART_likelihood_adaptive_std_mtry_old_categorical(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, X_values, X_counts, variable_ind, X_num_unique);
 
-    cout << "split var " << split_var << "  split point " << split_point << " no split " << no_split << endl;
 
 
     if (no_split == true)
@@ -2316,6 +2298,8 @@ void BART_likelihood_adaptive_std_mtry_old_categorical(double y_sum, std::vector
 
     calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, p_categorical, Ncutpoints, tau, sigma2, loglike_max, X_values, X_counts, variable_ind, X_num_unique);
 
+    cout << "likelihood " << endl;
+    cout << loglike << endl;
 
     // cout << "continuous part" << endl;
     // for(size_t kk = 0; kk < loglike_start; kk ++){
@@ -2408,7 +2392,6 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
         loglike_start = Ncutpoints * p_continuous;
     }
 
-
     // set the last entry as 0, for no-split option
     loglike[loglike.size() - 1] = 0.0;
 
@@ -2451,6 +2434,9 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
     // }
     // cout << endl;
     // cout << "loglike max " << loglike_max << endl;
+
+    cout << "likelihood " << endl;
+    cout << loglike << endl;
 
 
     // transfer loglikelihood to likelihood
@@ -2498,19 +2484,6 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
 
         ind = d(gen);
 
-        // split_var = ind / (N - 1);
-        // split_point = ind % (N - 1);
-
-        // if (ind == (N - 1) * p)
-        // {
-        //     no_split = true;
-        // }else if ((N - 1) <= 2 * Nmin)
-        // {
-        //     no_split = true;
-        // }else{
-
-        // }
-
 
         if(ind == loglike.size() - 1){
             // no split
@@ -2543,6 +2516,7 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
             split_point = std::accumulate(X_counts.begin() + start, X_counts.begin() + ind + 1, 0);
             // minus one for correct index (start from 0)
             split_point = split_point - 1;
+            split_var = split_var + p_continuous;
         }
 
 
@@ -2589,6 +2563,8 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
             split_point = std::accumulate(X_counts.begin() + start, X_counts.begin() + ind + 1, 0);
             // minus one for correct index (start from 0)
             split_point = split_point - 1;
+            split_var = split_var + p_continuous;
+
         }
 
     }
