@@ -21,6 +21,7 @@
 #define GUARD_rtnorm
 
 #include "common.h"
+#include "rn.h" //Added
 
 double rtnorm(double mean, double tau, double sd, rn &gen);
 

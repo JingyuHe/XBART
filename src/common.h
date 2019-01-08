@@ -32,13 +32,13 @@
 #include <string>
 #include <random>
 #include <vector>
-#include <RcppArmadillo.h>
+//#include <RcppArmadillo.h>
 #include <cassert>
-#include <RcppParallel.h>
+//#include <RcppParallel.h>
 #include <map>
 #include <climits>
 
-using namespace RcppParallel;
+//using namespace RcppParallel;
 
 using std::endl;
 
@@ -51,13 +51,13 @@ using std::endl;
 
 // #include <Rcpp.h>
 
-#define printf Rprintf
-#define cout Rcpp::Rcout
+//#define printf Rprintf
+//#define cout Rcpp::Rcout
 
 // log(2*pi)
 #define LTPI 1.83787706640934536
 
-#include "rn.h"
+// #include "rn.h" // Removed
 
 std::ostream &operator<<(std::ostream &out, const std::vector<double> &v);
 std::ostream &operator<<(std::ostream &out, const std::vector<size_t> &v);

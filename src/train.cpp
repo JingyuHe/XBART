@@ -128,6 +128,16 @@ Rcpp::List abarth_train(arma::mat y, arma::mat X, arma::mat Xtest,
     rcpp_to_std(y,X,Xtest,max_depth,y_std,y_mean,X_std,Xtest_std,Xorder_std,max_depth_std);
 
 
+    // TEMP!!!!!!
+    std::vector<double> x_temp(N*p);
+      for(size_t i = 0 ;i<N;i++){
+            for(size_t j = 0;j<p;j++){
+            size_t index = j*N + i;
+            x_temp[index] = X_std(i,j);
+    }
+  }
+
+
     // Assertions
     assert(mtry <= p);
     assert(burnin <= N_sweeps);
@@ -144,7 +154,7 @@ Rcpp::List abarth_train(arma::mat y, arma::mat X, arma::mat Xtest,
 
     // Pointers for data
     double *ypointer = &y_std[0];
-    double *Xpointer = &X_std[0];
+    double *Xpointer = &x_temp[0];//&X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
     // Cpp native objects to return

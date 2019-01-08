@@ -7,25 +7,25 @@
 // double error_function(size_t split_point, arma::vec& y, arma::uvec& Xorder_vec);
 // void search_split_point(arma::uvec& Xorder_vec, arma::vec& y, size_t& split_ind, double& error_split);
 // [[Rcpp::export]]
-Rcpp::List predict_tree_std(Rcpp::List trees, Rcpp::NumericMatrix Xnew)
-{
+// Rcpp::List predict_tree_std(Rcpp::List trees, Rcpp::NumericMatrix Xnew)
+// {
 
-    size_t n = Xnew.nrow();
-    size_t p = Xnew.ncol();
+//     size_t n = Xnew.nrow();
+//     size_t p = Xnew.ncol();
 
-    Rcpp::List output;
-    // reconstruct the tree structure
-    Rcpp::CharacterVector itrees(Rcpp::wrap(trees["trees"]));
+//     Rcpp::List output;
+//     // reconstruct the tree structure
+//     Rcpp::CharacterVector itrees(Rcpp::wrap(trees["trees"]));
 
-    std::string itv(itrees[0]);
+//     std::string itv(itrees[0]);
 
-    std::stringstream ttss(itv);
+//     std::stringstream ttss(itv);
 
-    tree tree_model;
-    ttss >> tree_model;
+//     tree tree_model;
+//     ttss >> tree_model;
 
-    // arma::vec pred = fit_new(tree_model, Xnew);
+//     // arma::vec pred = fit_new(tree_model, Xnew);
 
-    // output["predict"] = pred;
-    return output;
-}
+//     // output["predict"] = pred;
+//     return output;
+// }

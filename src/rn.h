@@ -107,6 +107,46 @@ class arn : public rn
 
 #else // YesRcpp
 
+//abstract random number generator based on C++ <random>
+// class arn : public rn
+// {
+//     //typedefs
+//     typedef std::default_random_engine genD;
+//     typedef std::normal_distribution<double> norD;
+//     typedef std::uniform_real_distribution<double> uniD;
+//     typedef std::chi_squared_distribution<double> chiD;
+
+//   public:
+//     //constructor
+//     arn() {}
+//     arn(unsigned size_t n1, unsigned size_t n2)
+//     {
+//         this->n1 = n1;
+//         this->n2 = n2;
+//     }
+//     //virtual
+//     virtual ~arn() {}
+//     virtual double normal() { return (nor)(gen); }
+//     virtual double uniform() { return (uni)(gen); }
+//     virtual double chi_square() { return (chi)(gen); }
+//     virtual double exp() { return -log(uniform()); }
+//     virtual void set_df(size_t df) { this->df = df; }
+//     size_t get_df() { return df; }
+
+//   private:
+//     size_t df;
+//     unsigned size_t n1, n2;
+//     genD gen;
+//     norD nor;
+//     uniD uni;
+//     chiD chi;
+// };
+
+// Added:
+#include <RcppArmadillo.h>
+#include <RcppParallel.h>
+
+
 //abstract random number generator based on R/Rcpp
 class arn : public rn
 {
@@ -127,6 +167,6 @@ class arn : public rn
     Rcpp::RNGScope RNGstate;
 };
 
-#endif
+ #endif
 
 #endif

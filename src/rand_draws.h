@@ -25,6 +25,10 @@
 #include <stdlib.h>
 #include <assert.h>
 
+// ADDED
+#include <RcppArmadillo.h>
+#include <RcppParallel.h>
+
 void newRNGstates(void);
 void deleteRNGstates(void);
 double runi(rk_state *state);

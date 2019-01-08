@@ -5,11 +5,15 @@
 #include <algorithm>
 #include <functional>
 
-// copy NumericMatrix to STD matrix
-xinfo copy_xinfo(Rcpp::NumericMatrix &X);
 
-// copy IntegerMatrix to STD matrix
-xinfo_sizet copy_xinfo_sizet(Rcpp::IntegerMatrix &X);
+// #include <RcppArmadillo.h>
+// #include <RcppParallel.h>
+
+// copy NumericMatrix to STD matrix
+// xinfo copy_xinfo(Rcpp::NumericMatrix &X);
+
+// // copy IntegerMatrix to STD matrix
+// xinfo_sizet copy_xinfo_sizet(Rcpp::IntegerMatrix &X);
 
 // // initialize STD matrix
 void ini_xinfo(xinfo &X, size_t N, size_t p);
@@ -29,7 +33,7 @@ double sum_squared(std::vector<double> &v);
 
 double sum_vec(std::vector<double> &v);
 
-void seq_gen(size_t start, size_t end, size_t length_out, arma::uvec &vec);
+// void seq_gen(size_t start, size_t end, size_t length_out, arma::uvec &vec);
 
 void seq_gen_std(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec);
 void seq_gen_std_categorical(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec, std::vector<size_t> output);
@@ -216,9 +220,9 @@ std::vector<T> operator+(const std::vector<T> &a, const T &b)
 
 
 
-
-// sort std vectors from small to large numbers, return indexes
-std::vector<size_t> sort_indexes(const Rcpp::NumericVector &v);
+//removed
+// // sort std vectors from small to large numbers, return indexes
+// std::vector<size_t> sort_indexes(const Rcpp::NumericVector &v);
 
 // overload print out for std vectors
 template <typename T>
@@ -233,7 +237,7 @@ std::ostream &operator<<(std::ostream &out, const std::vector<T> &v)
     return out;
 }
 
-double sq_diff_arma_std(arma::vec vec1, std::vector<double> vec2);
+// double sq_diff_arma_std(arma::vec vec1, std::vector<double> vec2);
 double sq_vec_diff(std::vector<double> &v1, std::vector<double> &v2);
 double sq_vec_diff_sizet(std::vector<size_t> &v1, std::vector<size_t> &v2);
 
@@ -249,8 +253,9 @@ void compute_partial_sum(std::vector<double> &Y, xinfo_sizet &Xorder, const size
 
 void compute_partial_sum_newXorder(const std::vector<double> &y_std, const xinfo_sizet &Xorder, const xinfo_sizet &Xorder_next_index, const std::vector<size_t> &Xorder_firstline, const size_t &var, const size_t N_y, std::vector<double> &y_cumsum, std::vector<double> &possible_cutpoints, const double *X_std);
 
-void NumericMatrix_row_sum(Rcpp::NumericMatrix &X, Rcpp::NumericVector &output);
-void NumericMatrix_col_sum(Rcpp::NumericMatrix &X, Rcpp::NumericVector &output);
+// Removed
+// void NumericMatrix_row_sum(Rcpp::NumericMatrix &X, Rcpp::NumericVector &output);
+// void NumericMatrix_col_sum(Rcpp::NumericMatrix &X, Rcpp::NumericVector &output);
 
 
 void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t& start, size_t& end, double& y_sum, const size_t& var);

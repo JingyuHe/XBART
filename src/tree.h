@@ -58,7 +58,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 //BART likelihood function
 //--------------------------------------------------
 //generate a vector of integers
-arma::uvec range(size_t start, size_t end);
+// arma::uvec range(size_t start, size_t end); Removed
 
 //--------------------------------------------------
 //info contained in a node, used by input operator
@@ -137,9 +137,9 @@ class tree
 
     tree_p bn(double *x, xinfo &xi); //find Bottom Node, original BART version
     tree_p bn_std(double *x);        // find Bottom Node, std version, compare
-    tree_p search_bottom(arma::mat &Xnew, const size_t &i);
+    //tree_p search_bottom(arma::mat &Xnew, const size_t &i);
     tree_p search_bottom_std(const double *X, const size_t &i, const size_t &p, const size_t &N);
-    tree_p search_bottom_test(arma::mat &Xnew, const size_t &i, const double *X_std, const size_t &p, const size_t &N);
+    //tree_p search_bottom_test(arma::mat &Xnew, const size_t &i, const double *X_std, const size_t &p, const size_t &N);
     void rg(size_t v, size_t *L, size_t *U); //recursively find region [L,U] for var v
     //node functions--------------------
     size_t nid() const; //nid of a node
@@ -147,9 +147,10 @@ class tree
     char ntype();       //node type t:top, b:bot, n:no grandchildren i:interior (t can be b)
     bool isnog();   
 #ifndef NoRcpp
-    Rcpp::List tree2list(xinfo &xi, double center = 0., double scale = 1.); // create an efficient list from a single tree
+    //REMOVED :
+  //  Rcpp::List tree2list(xinfo &xi, double center = 0., double scale = 1.); // create an efficient list from a single tree
     //tree list2tree(Rcpp::List&, xinfo& xi); // create a tree from a list and an xinfo
-    Rcpp::IntegerVector tree2count(size_t nvar); // for one tree, count the number of branches for each variable
+ //   Rcpp::IntegerVector tree2count(size_t nvar); // for one tree, count the number of branches for each variable
 #endif
   private:
     double theta; //univariate double parameter

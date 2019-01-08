@@ -4,6 +4,10 @@
 
 #include "utility.h"
 
+
+//ADDED
+#include "rn.h"
+
 using namespace Rcpp;
 
 #include <queue>

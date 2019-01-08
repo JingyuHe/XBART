@@ -1,3 +1,4 @@
+
 /*
  *  BART: Bayesian Additive Regression Trees
  *  Copyright (C) 2017 Robert McCulloch and Rodney Sparapani
@@ -19,7 +20,7 @@
 
 #include "tree.h"
 #include "treefuns.h"
-#include <RcppArmadilloExtensions/sample.h>
+// #include <RcppArmadilloExtensions/sample.h>
 #include <chrono>
 
 
@@ -319,28 +320,28 @@ tree::tree_p tree::bn_std(double *x)
     }
 }
 
-tree::tree_p tree::search_bottom(arma::mat &Xnew, const size_t &i)
-{
+// tree::tree_p tree::search_bottom(arma::mat &Xnew, const size_t &i)
+// {
 
-    // v is variable to split, c is raw value
-    // not index in xinfo, so compare x[v] with c directly
-    // only look at the i-th row
+//     // v is variable to split, c is raw value
+//     // not index in xinfo, so compare x[v] with c directly
+//     // only look at the i-th row
 
-    if (l == 0)
-    {
-        return this;
-    } // no children
-    if (arma::as_scalar(Xnew(i, v)) <= c)
-    {
+//     if (l == 0)
+//     {
+//         return this;
+//     } // no children
+//     if (arma::as_scalar(Xnew(i, v)) <= c)
+//     {
 
-        return l->search_bottom(Xnew, i); // if smaller or equal cut point, go to left node
-    }
-    else
-    {
+//         return l->search_bottom(Xnew, i); // if smaller or equal cut point, go to left node
+//     }
+//     else
+//     {
 
-        return r->search_bottom(Xnew, i);
-    }
-}
+//         return r->search_bottom(Xnew, i);
+//     }
+// }
 
 tree::tree_p tree::search_bottom_std(const double *X, const size_t &i, const size_t &p, const size_t &N)
 {
@@ -362,37 +363,37 @@ tree::tree_p tree::search_bottom_std(const double *X, const size_t &i, const siz
     }
 }
 
-tree::tree_p tree::search_bottom_test(arma::mat &Xnew, const size_t &i, const double *X_std, const size_t &p, const size_t &N)
-{
+// tree::tree_p tree::search_bottom_test(arma::mat &Xnew, const size_t &i, const double *X_std, const size_t &p, const size_t &N)
+// {
 
-    // v is variable to split, c is raw value
-    // not index in xinfo, so compare x[v] with c directly
-    // only look at the i-th row
+//     // v is variable to split, c is raw value
+//     // not index in xinfo, so compare x[v] with c directly
+//     // only look at the i-th row
 
-    if (l == 0)
-    {
-        return this;
-    } // no children){
+//     if (l == 0)
+//     {
+//         return this;
+//     } // no children){
 
-    // v is variable to split, c is raw value
-    // not index in xinfo, so compare x[v] with c directly
-    // only look at the i-th row
+//     // v is variable to split, c is raw value
+//     // not index in xinfo, so compare x[v] with c directly
+//     // only look at the i-th row
 
-    if (l == 0)
-    {
-        return this;
-    } // no children
-    if (arma::as_scalar(Xnew(i, v)) <= c)
-    {
+//     if (l == 0)
+//     {
+//         return this;
+//     } // no children
+//     if (arma::as_scalar(Xnew(i, v)) <= c)
+//     {
 
-        return l->search_bottom(Xnew, i); // if smaller or equal cut point, go to left node
-    }
-    else
-    {
+//         return l->search_bottom(Xnew, i); // if smaller or equal cut point, go to left node
+//     }
+//     else
+//     {
 
-        return r->search_bottom(Xnew, i);
-    }
-}
+//         return r->search_bottom(Xnew, i);
+//     }
+// }
 
 //--------------------
 //find region for a given variable
@@ -619,17 +620,17 @@ void cumulative_sum_std(std::vector<double> &y_cumsum, std::vector<double> &y_cu
     return;
 }
 
-arma::uvec range(size_t start, size_t end)
-{
-    // generate integers from start to end
-    size_t N = end - start;
-    arma::uvec output(N);
-    for (size_t i = 0; i < N; i++)
-    {
-        output(i) = start + i;
-    }
-    return output;
-}
+// arma::uvec range(size_t start, size_t end)
+// {
+//     // generate integers from start to end
+//     size_t N = end - start;
+//     arma::uvec output(N);
+//     for (size_t i = 0; i < N; i++)
+//     {
+//         output(i) = start + i;
+//     }
+//     return output;
+// }
 
 
 void tree::grow_tree_adaptive_abarth_train(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, bool &use_all, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree)
@@ -700,9 +701,28 @@ void tree::grow_tree_adaptive_abarth_train(double y_mean, size_t depth, size_t m
     else
     {
         // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+       // std::vector<double> v_float = sample_int_ccrank(p, mtry, mtry_weight_current_tree); 
+       // std::vector<size_t> v_int(v_float.begin(), v_float.end());
+       // subset_vars = v_int; // index start from 0
 
-       subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
-       subset_vars = subset_vars; // index start from 0
+        // Use C Crank
+        std::vector<double> v_float = sample_int_ccrank(p, mtry, mtry_weight_current_tree); 
+
+        // Convert to 0 indexing
+        transform(v_float.begin(), v_float.end(), v_float.begin(),
+        bind2nd(std::plus<double>(), -1.0));   
+
+        // Cast as size_t
+        std::vector<size_t> v_int(v_float.begin() , v_float.end() );
+        subset_vars = v_int; // index start from 0
+
+
+       // subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
+
+        //TEMP ------------------------
+        // subset_vars.resize(p);
+        // std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
+       
     }
     BART_likelihood_adaptive_std_mtry_old(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars);
 
@@ -847,8 +867,23 @@ void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, si
     {
         // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
         // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, mtry_weight_current_tree));
-        subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
-        subset_vars = subset_vars; // index start from 0
+
+        // Get Vector
+        std::vector<double> v_float = sample_int_ccrank(p, mtry, mtry_weight_current_tree); 
+
+        // Convert to 0 indexing
+        transform(v_float.begin(), v_float.end(), v_float.begin(),
+        bind2nd(std::plus<double>(), -1.0));   
+
+        // Cast as size_t
+        std::vector<size_t> v_int(v_float.begin() , v_float.end() );
+        subset_vars = v_int; // index start from 0
+        
+
+        // // //Change
+        // subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
+        // subset_vars = subset_vars; // index start from 0
+
     }
     BART_likelihood_adaptive_std_mtry_old(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars);
 
@@ -1000,8 +1035,23 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     }
     else
     {
+        std::vector<double> v_float = sample_int_ccrank(p, mtry, mtry_weight_current_tree); 
+
+        // Convert to 0 indexing
+        transform(v_float.begin(), v_float.end(), v_float.begin(),
+        bind2nd(std::plus<double>(), -1.0));   
+
+        // Cast as size_t
+        std::vector<size_t> v_int(v_float.begin() , v_float.end() );
+        subset_vars = v_int; // index start from 0
         
-        subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
+        // // Change
+        // subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
+
+
+        // //TEMP ------------------------
+        // subset_vars.resize(p);
+        // std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
     }
 
 
@@ -1167,18 +1217,27 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size
         std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
     }
     else
-    {
-        // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+    {   
 
-        // TEMP ADDED
-        // Rcpp::NumericVector mtry_rcpp(mtry_weight_current_tree.size(),0.0);
-        // for(int i=0;i<mtry_weight_current_tree.size();i++){
-        //     mtry_rcpp[i] = mtry_weight_current_tree[i];
-        // }
+        // Use C Crank
+        std::vector<double> v_float = sample_int_ccrank(p, mtry, mtry_weight_current_tree); 
+
+        // Convert to 0 indexing
+        transform(v_float.begin(), v_float.end(), v_float.begin(),
+        bind2nd(std::plus<double>(), -1.0));   
+
+        // Cast as size_t
+        std::vector<size_t> v_int(v_float.begin() , v_float.end() );
+        subset_vars = v_int; // index start from 0
 
 
-        // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, mtry_weight_current_tree));
-        subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
+        // //Change
+        // subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
+
+        // TEMP --------------------
+
+        // subset_vars.resize(p);
+        // std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
 
     }
     BART_likelihood_adaptive_std_mtry_old_categorical(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, X_values, X_counts, variable_ind, X_num_unique);
@@ -2898,75 +2957,75 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 // this conveniently avoids the need for x.test
 // loosely based on pr()
 // create an efficient list from a single tree
-// tree2list calls itself recursively
-Rcpp::List tree::tree2list(xinfo &xi, double center, double scale)
-{
-    Rcpp::List res;
+// // tree2list calls itself recursively
+// Rcpp::List tree::tree2list(xinfo &xi, double center, double scale)
+// {
+//     Rcpp::List res;
 
-    // five possible scenarios
-    if (l)
-    { // tree has branches
-        //double cut=xi[v][c];
-        size_t var = v, cut = c;
+//     // five possible scenarios
+//     if (l)
+//     { // tree has branches
+//         //double cut=xi[v][c];
+//         size_t var = v, cut = c;
 
-        var++;
-        cut++; // increment from 0-based (C) to 1-based (R) array index
+//         var++;
+//         cut++; // increment from 0-based (C) to 1-based (R) array index
 
-        if (l->l && r->l) // two sub-trees
-            res = Rcpp::List::create(Rcpp::Named("var") = (size_t)var,
-                                     //Rcpp::Named("cut")=cut,
-                                     Rcpp::Named("cut") = (size_t)cut,
-                                     Rcpp::Named("type") = 1,
-                                     Rcpp::Named("left") = l->tree2list(xi, center, scale),
-                                     Rcpp::Named("right") = r->tree2list(xi, center, scale));
-        else if (l->l && !(r->l)) // left sub-tree and right terminal
-            res = Rcpp::List::create(Rcpp::Named("var") = (size_t)var,
-                                     //Rcpp::Named("cut")=cut,
-                                     Rcpp::Named("cut") = (size_t)cut,
-                                     Rcpp::Named("type") = 2,
-                                     Rcpp::Named("left") = l->tree2list(xi, center, scale),
-                                     Rcpp::Named("right") = r->gettheta() * scale + center);
-        else if (!(l->l) && r->l) // left terminal and right sub-tree
-            res = Rcpp::List::create(Rcpp::Named("var") = (size_t)var,
-                                     //Rcpp::Named("cut")=cut,
-                                     Rcpp::Named("cut") = (size_t)cut,
-                                     Rcpp::Named("type") = 3,
-                                     Rcpp::Named("left") = l->gettheta() * scale + center,
-                                     Rcpp::Named("right") = r->tree2list(xi, center, scale));
-        else // no sub-trees
-            res = Rcpp::List::create(Rcpp::Named("var") = (size_t)var,
-                                     //Rcpp::Named("cut")=cut,
-                                     Rcpp::Named("cut") = (size_t)cut,
-                                     Rcpp::Named("type") = 0,
-                                     Rcpp::Named("left") = l->gettheta() * scale + center,
-                                     Rcpp::Named("right") = r->gettheta() * scale + center);
-    }
-    else                                                 // no branches
-        res = Rcpp::List::create(Rcpp::Named("var") = 0, // var=0 means root
-                                 //Rcpp::Named("cut")=0.,
-                                 Rcpp::Named("cut") = 0,
-                                 Rcpp::Named("type") = 0,
-                                 Rcpp::Named("left") = theta * scale + center,
-                                 Rcpp::Named("right") = theta * scale + center);
+//         if (l->l && r->l) // two sub-trees
+//             res = Rcpp::List::create(Rcpp::Named("var") = (size_t)var,
+//                                      //Rcpp::Named("cut")=cut,
+//                                      Rcpp::Named("cut") = (size_t)cut,
+//                                      Rcpp::Named("type") = 1,
+//                                      Rcpp::Named("left") = l->tree2list(xi, center, scale),
+//                                      Rcpp::Named("right") = r->tree2list(xi, center, scale));
+//         else if (l->l && !(r->l)) // left sub-tree and right terminal
+//             res = Rcpp::List::create(Rcpp::Named("var") = (size_t)var,
+//                                      //Rcpp::Named("cut")=cut,
+//                                      Rcpp::Named("cut") = (size_t)cut,
+//                                      Rcpp::Named("type") = 2,
+//                                      Rcpp::Named("left") = l->tree2list(xi, center, scale),
+//                                      Rcpp::Named("right") = r->gettheta() * scale + center);
+//         else if (!(l->l) && r->l) // left terminal and right sub-tree
+//             res = Rcpp::List::create(Rcpp::Named("var") = (size_t)var,
+//                                      //Rcpp::Named("cut")=cut,
+//                                      Rcpp::Named("cut") = (size_t)cut,
+//                                      Rcpp::Named("type") = 3,
+//                                      Rcpp::Named("left") = l->gettheta() * scale + center,
+//                                      Rcpp::Named("right") = r->tree2list(xi, center, scale));
+//         else // no sub-trees
+//             res = Rcpp::List::create(Rcpp::Named("var") = (size_t)var,
+//                                      //Rcpp::Named("cut")=cut,
+//                                      Rcpp::Named("cut") = (size_t)cut,
+//                                      Rcpp::Named("type") = 0,
+//                                      Rcpp::Named("left") = l->gettheta() * scale + center,
+//                                      Rcpp::Named("right") = r->gettheta() * scale + center);
+//     }
+//     else                                                 // no branches
+//         res = Rcpp::List::create(Rcpp::Named("var") = 0, // var=0 means root
+//                                  //Rcpp::Named("cut")=0.,
+//                                  Rcpp::Named("cut") = 0,
+//                                  Rcpp::Named("type") = 0,
+//                                  Rcpp::Named("left") = theta * scale + center,
+//                                  Rcpp::Named("right") = theta * scale + center);
 
-    return res;
-}
+//     return res;
+// }
 
-// for one tree, count the number of branches for each variable
-Rcpp::IntegerVector tree::tree2count(size_t nvar)
-{
-    Rcpp::IntegerVector res(nvar);
+// // for one tree, count the number of branches for each variable
+// Rcpp::IntegerVector tree::tree2count(size_t nvar)
+// {
+//     Rcpp::IntegerVector res(nvar);
 
-    if (l)
-    { // tree branches
-        res[v]++;
+//     if (l)
+//     { // tree branches
+//         res[v]++;
 
-        if (l->l)
-            res += l->tree2count(nvar); // if left sub-tree
-        if (r->l)
-            res += r->tree2count(nvar); // if right sub-tree
-    }                                   // else no branches and nothing to do
+//         if (l->l)
+//             res += l->tree2count(nvar); // if left sub-tree
+//         if (r->l)
+//             res += r->tree2count(nvar); // if right sub-tree
+//     }                                   // else no branches and nothing to do
 
-    return res;
-}
+//     return res;
+// }
 #endif

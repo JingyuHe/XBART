@@ -100,9 +100,9 @@ void fit_std_main_loop(const double *Xpointer,std::vector<double> &y_std,double&
 
             if (verbose == true)
             {
-                cout << "--------------------------------" << endl;
-                cout << "number of sweeps " << sweeps << endl;
-                cout << "--------------------------------" << endl;
+                // cout << "--------------------------------" << endl;
+                // cout << "number of sweeps " << sweeps << endl;
+                // cout << "--------------------------------" << endl;
             }
 
             for (size_t tree_ind = 0; tree_ind < M; tree_ind++)
@@ -167,7 +167,7 @@ void fit_std_main_loop(const double *Xpointer,std::vector<double> &y_std,double&
 
                 if (verbose == true)
                 {
-                    cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
+                    // cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
                 }
 
                 // update prediction of current tree
