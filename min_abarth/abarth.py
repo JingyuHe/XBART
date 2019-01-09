@@ -210,6 +210,9 @@ class Abarth(_object):
     def get_N_sweeps(self):
         return _abarth.Abarth_get_N_sweeps(self)
 
+    def get_burnin(self):
+        return _abarth.Abarth_get_burnin(self)
+
     def fit(self, n):
         return _abarth.Abarth_fit(self, n)
 
@@ -227,6 +230,9 @@ class Abarth(_object):
 
     def fit_predict(self, n, n_y, n_test, size):
         return _abarth.Abarth_fit_predict(self, n, n_y, n_test, size)
+
+    def fit_predict_all(self, n, n_y, n_test, size, p_cat):
+        return _abarth.Abarth_fit_predict_all(self, n, n_y, n_test, size, p_cat)
 
     def get_yhats(self, size):
         return _abarth.Abarth_get_yhats(self, size)
@@ -300,6 +306,12 @@ class Abarth(_object):
 
     def fit_predict_2d(self,x,y,x_test):
         x_pred = self.fit_predict(x,y,x_test,y.shape[0])
+        yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0]).reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
+        return yhats_test
+
+
+    def fit_predict_2d_all(self,x,y,x_test,p_cat=0):
+        x_pred = self.fit_predict_all(x,y,x_test,y.shape[0],p_cat)
         yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0]).reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
         return yhats_test
 

@@ -105,7 +105,7 @@ Rcpp::List train_forest_root_std_mtrywithinnode_ordinal(arma::mat y, arma::mat X
 
     // stack all variables to one vector
     // vector of unique values of all variables
-    std::vector<size_t> X_values;
+    std::vector<double> X_values;
     // vector of replications of unique values of all variables
     std::vector<size_t> X_counts;
     // number of unique values 

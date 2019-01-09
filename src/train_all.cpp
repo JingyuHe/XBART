@@ -7,26 +7,25 @@
 #include "fit_std_main_loop.h"
 
 using namespace std;
-
 using namespace chrono;
 
 
-// Helpers
-struct AbarthParams{
-            size_t M;
-            size_t L;size_t N_sweeps; size_t Nmin; size_t Ncutpoints;
-            size_t burnin; size_t mtry;size_t max_depth_num;
-            double alpha;double beta;double tau;double kap;double s;
-            bool draw_sigma;bool verbose; bool m_update_sigma;
-            bool draw_mu;bool parallel;
-};
 
+////////////////////////////////////////////////////////////////////////
+//                                                                    //
+//                                                                    //
+//  Full function, support both continuous and categorical variables  //
+//                                                                    //
+//                                                                    //
+////////////////////////////////////////////////////////////////////////
 
-
-void rcpp_to_std(arma::mat y, arma::mat X, arma::mat Xtest,arma::mat max_depth,
-    std::vector<double>& y_std,double& y_mean,
-    Rcpp::NumericMatrix& X_std,Rcpp::NumericMatrix& Xtest_std,
-    xinfo_sizet& Xorder_std,xinfo_sizet& max_depth_std){
+void rcpp_to_std2(
+    arma::mat y, arma::mat X, arma::mat Xtest,arma::mat max_depth,
+    std::vector<double>& y_std,double& y_mean
+    ,Rcpp::NumericMatrix& X_std,Rcpp::NumericMatrix& Xtest_std,
+    xinfo_sizet& Xorder_std,xinfo_sizet& max_depth_std
+    )
+{
     // The goal of this function is to convert RCPP object to std objects
 
     // TODO: Refactor to remove N,p,N_test
@@ -93,52 +92,31 @@ void rcpp_to_std(arma::mat y, arma::mat X, arma::mat Xtest,arma::mat max_depth,
     return;
 }
 
-Rcpp::List abarth_train(arma::mat y, arma::mat X, arma::mat Xtest, 
+
+
+
+// [[Rcpp::plugins(cpp11)]]
+// [[Rcpp::export]]
+Rcpp::List abarth_train_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, 
     size_t Nmin, size_t Ncutpoints, double alpha, double beta, 
-    double tau, size_t burnin = 1, size_t mtry = 0, 
-    bool draw_sigma = false, double kap = 16, double s = 4, 
-    bool verbose = false, bool m_update_sigma = false, 
-    bool draw_mu = false, bool parallel = true)
+    double tau, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, 
+    bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false,
+    bool m_update_sigma = false, bool draw_mu = false, bool parallel = true)
 {
-
     
     auto start = system_clock::now();
-    // RCPP -> STD
-    // Container for std types to "return"
+
     size_t N = X.n_rows;
+    // number of total variables
     size_t p = X.n_cols;
     size_t N_test = Xtest.n_rows;
-    // y containers
-    std::vector<double> y_std(N);
-    double y_mean = 0.0;
-    // x containers
-    Rcpp::NumericMatrix X_std(N, p);
-    Rcpp::NumericMatrix Xtest_std(N_test, p);
 
-    // xorder containers
-    xinfo_sizet Xorder_std;
-    ini_xinfo_sizet(Xorder_std, N, p);
+    // number of continuous variables
+    size_t p_continuous = p - p_categorical;
 
-    //max_depth_std container
-    xinfo_sizet max_depth_std;
-    ini_xinfo_sizet(max_depth_std, max_depth.n_rows, max_depth.n_cols);
+    // suppose first p_continuous variables are continuous, then categorical
 
-    // convert rcpp to std
-    rcpp_to_std(y,X,Xtest,max_depth,y_std,y_mean,X_std,Xtest_std,Xorder_std,max_depth_std);
-
-
-    // TEMP!!!!!!
-  //   std::vector<double> x_temp(N*p);
-  //     for(size_t i = 0 ;i<N;i++){
-  //           for(size_t j = 0;j<p;j++){
-  //           size_t index = j*N + i;
-  //           x_temp[index] = X_std(i,j);
-  //   }
-  // }
-
-
-    // Assertions
     assert(mtry <= p);
     assert(burnin <= N_sweeps);
 
@@ -152,12 +130,33 @@ Rcpp::List abarth_train(arma::mat y, arma::mat X, arma::mat Xtest,
         cout << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
     }
 
-    // Pointers for data
+    arma::umat Xorder(X.n_rows, X.n_cols);
+    xinfo_sizet Xorder_std;
+    ini_xinfo_sizet(Xorder_std, N, p);
+
+    std::vector<double> y_std(N);
+    double y_mean = 0.0;
+
+    Rcpp::NumericMatrix X_std(N, p);
+    Rcpp::NumericMatrix Xtest_std(N_test, p);
+
+    xinfo_sizet max_depth_std;
+    ini_xinfo_sizet(max_depth_std, max_depth.n_rows, max_depth.n_cols);
+
+    rcpp_to_std2(y,X,Xtest,max_depth,y_std,y_mean,X_std,Xtest_std,Xorder_std,max_depth_std);
+
+    ///////////////////////////////////////////////////////////////////
+
     double *ypointer = &y_std[0];
-    double *Xpointer = &X_std[0]; // &x_temp[0];
+    double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
-    // Cpp native objects to return
+
+    xinfo yhats_std;
+    ini_xinfo(yhats_std, N, N_sweeps);
+    xinfo yhats_test_std;
+    ini_xinfo(yhats_test_std, N_test, N_sweeps);
+
     xinfo yhats_xinfo;
     ini_xinfo(yhats_xinfo, N, N_sweeps);
 
@@ -167,8 +166,8 @@ Rcpp::List abarth_train(arma::mat y, arma::mat X, arma::mat Xtest,
     xinfo sigma_draw_xinfo;
     ini_xinfo(sigma_draw_xinfo, M, N_sweeps);
 
-  // main fit_std
-  fit_std_main_loop(Xpointer,y_std,y_mean,Xtestpointer,Xorder_std,
+    /////////////////////////////////////////////////////////////////
+    fit_std_main_loop_all(Xpointer,y_std,y_mean,Xtestpointer,Xorder_std,
     N,p,N_test,
    M,  L,  N_sweeps, max_depth_std, // NEED TO CHANGE "max_depth" 
     Nmin,  Ncutpoints,  alpha,  beta, 
@@ -176,12 +175,7 @@ Rcpp::List abarth_train(arma::mat y, arma::mat X, arma::mat Xtest,
      draw_sigma ,  kap ,  s, 
      verbose,  m_update_sigma, 
      draw_mu,  parallel,
-     yhats_xinfo,yhats_test_xinfo,sigma_draw_xinfo);
-
-
-
-    // Convert STD -> RCPP outputs
-
+     yhats_xinfo,yhats_test_xinfo,sigma_draw_xinfo,p_categorical,p_continuous);
 
     // R Objects to Return
     Rcpp::NumericMatrix yhats(N, N_sweeps);
@@ -190,7 +184,7 @@ Rcpp::List abarth_train(arma::mat y, arma::mat X, arma::mat Xtest,
 
 
     // TODO: Make these functions
-    for(size_t i = 0;i<N_test;i++){
+    for(size_t i = 0;i<N;i++){
         for(size_t j =0;j<N_sweeps;j++){
             yhats(i,j) = yhats_xinfo[j][i];
         }
@@ -200,8 +194,8 @@ Rcpp::List abarth_train(arma::mat y, arma::mat X, arma::mat Xtest,
             yhats_test(i,j) = yhats_test_xinfo[j][i];
         }
     }
-    for(size_t i = 0;i<N_test;i++){
-        for(size_t j =0;j<M;j++){
+    for(size_t i = 0;i<M;i++){
+        for(size_t j =0;j<N_sweeps;j++){
             sigma_draw(i,j) = sigma_draw_xinfo[j][i];
         }
     }
@@ -210,7 +204,7 @@ Rcpp::List abarth_train(arma::mat y, arma::mat X, arma::mat Xtest,
 
     auto duration = duration_cast<microseconds>(end - start);
 
-    cout << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
+    // cout << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
 
     // cout << "Running time of split Xorder " << run_time << endl;
 

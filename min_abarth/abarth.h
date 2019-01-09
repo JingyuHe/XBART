@@ -69,6 +69,10 @@ class Abarth{
 			int n_y,double *a_y, // Train Y
 			int n_test,int d_test,double *a_test, // Test X
 			int size, double *arr); // Result 
+		void fit_predict_all(int n,int d,double *a, // Train X 
+			int n_y,double *a_y, // Train Y
+			int n_test,int d_test,double *a_test, // Test X
+			int size, double *arr,size_t p_cat); // Result 
 		void get_yhats(int size, double *arr);
 		void get_yhats_test(int size, double *arr);
 		void get_sigma_draw(int size, double *arr);

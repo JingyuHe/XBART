@@ -91,6 +91,12 @@ def fit_predict_2d(self,x,y,x_test):
     yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0]).reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
     return yhats_test
 %}
+%pythoncode %{
+def fit_predict_2d_all(self,x,y,x_test,p_cat=0):
+    x_pred = self.fit_predict_all(x,y,x_test,y.shape[0],p_cat)
+    yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0]).reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
+    return yhats_test
+%}
 };
 
 %include "abarth.h"
