@@ -30,9 +30,15 @@ class AbarthTesting1(unittest.TestCase):
 	# 	self.model = abarth.Abarth()
 
 	def setUp(self):
-		self.params = OrderedDict([('M',20),('L',1),("N_sweeps",40)
+		# self.params = OrderedDict([('M',20),('L',1),("N_sweeps",40)
+		# 					,("Nmin",1),("Ncutpoints",5)
+		# 					,("alpha",0.95),("beta",1.25 ),("tau",.8),("burnin",5),("mtry",2),("max_depth_num",5),
+		# 					("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",False),
+		# 					("draw_mu",False),("parallel",False)])
+
+		self.params = OrderedDict([('M',1),('L',1),("N_sweeps",2)
 							,("Nmin",1),("Ncutpoints",5)
-							,("alpha",0.95),("beta",1.25 ),("tau",.8),("burnin",5),("mtry",2),("max_depth_num",5),
+							,("alpha",0.95),("beta",1.25 ),("tau",.8),("burnin",0),("mtry",2),("max_depth_num",5),
 							("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",False),
 							("draw_mu",False),("parallel",False)])
 		#self.params["M"] = 50
@@ -97,6 +103,8 @@ class AbarthTesting1(unittest.TestCase):
 		y_pred = self.model.fit_predict(x,y,x_test,n)
 		self.failUnless(isinstance(y_pred, np.ndarray))
 		#self.failUnless(np.array_equal(y_pred,y))
+		print("Test predict")
+
 
 
 		
@@ -106,19 +114,19 @@ class AbarthTesting1(unittest.TestCase):
 		d = 7
 		prob = np.random.uniform(0.2,0.8,d)
 
-  		x = np.empty((n,d))
-  		x[:,0] = np.random.normal(25,10,n)
+		x = np.empty([n,d])
+		x[:,0] = np.random.normal(25,10,n)
   		#x[:,1] = np.random.normal(25,10,n)
-  		for h in range(1,d):
-  			x[:,h] = np.random.binomial(1,prob[h],n)
+		for h in range(1,d):
+			x[:,h] = np.random.binomial(1,prob[h],n)
 
   		
-  		n_test = 1000	
-  		x_test = np.empty((n_test,d))
-  		x_test[:,0] = np.random.normal(25,10,n_test)
+		n_test = 1000	
+		x_test = np.empty((n_test,d))
+		x_test[:,0] = np.random.normal(25,10,n_test)
   		#x_test[:,1] = np.random.normal(25,10,n_test)
-  		for h in range(1,d):
-  			x_test[:,h] = np.random.binomial(1,prob[h],n_test)
+		for h in range(1,d):
+			x_test[:,h] = np.random.binomial(1,prob[h],n_test)
 
 
 		#print(x.shape)
@@ -139,8 +147,21 @@ class AbarthTesting1(unittest.TestCase):
 		x_test_copy = x_test.copy()
 
 		#print(y)
+		self.model.fit_all(x,y,d-1)
 		y_pred = self.model.fit_predict_2d_all(x,y,x_test,d-1)
+
+		assert(np.array_equal(x_test_copy, x_test))
+		y_pred_2 = self.model.predict_2d_all(x_test)
+		assert(np.array_equal(x_test_copy, x_test))
+
+		self.model.fit_2d_all(x,y,d-1)
+		y_pred_3 = self.model.predict_2d_all(x_test)
+		print(y_pred_3.shape)
+		print("fit_pred: " + str(y_pred.shape))
+		print("pred: " + str(y_pred_2.shape))
 		y_hat = y_pred[:,self.params["burnin"]:].mean(axis=1)
+		y_hat_2 = y_pred_2[:,self.params["burnin"]:].mean(axis=1)
+		y_hat_3 = y_pred_3[:,self.params["burnin"]:].mean(axis=1)
 		print("Mean y: " + str(np.mean(y)))
 		
 		print("y_hat: " + str(y_hat[0:10]))
@@ -158,6 +179,9 @@ class AbarthTesting1(unittest.TestCase):
 		print("RMSE RF:"  + str(np.sqrt(np.mean((y_hat_rf-y_test)**2))))
 		print("RMSE GBM:"  + str(np.sqrt(np.mean((y_hat_gbm-y_test)**2))))
 		print("RMSE Abarth:"  + str(np.sqrt(np.mean((y_hat-y_test)**2))))
+		print("RMSE Abarth Pred:"  + str(np.sqrt(np.mean((y_hat_2-y_test)**2))))
+		print("RMSE Abarth Pred v. Reg:"  + str(np.sqrt(np.mean((y_hat_2-y_hat)**2))))
+		print("RMSE Abarth Fit and Pred:"  + str(np.sqrt(np.mean((y_hat_3-y_hat)**2))))
 
 		self.failUnless(np.array_equal(y_copy,y))
 		self.failUnless(np.array_equal(x_copy,x))

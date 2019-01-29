@@ -27,7 +27,10 @@ struct AbarthParams{
 class Abarth{
 	private:
 		AbarthParams params;
+		vector <tree> trees;
+		vector<vector<tree>> trees2; 
 		vec_d y_std;
+		double y_mean;
 		size_t n_train; size_t n_test; size_t d;
 		xinfo yhats_xinfo; xinfo yhats_test_xinfo; xinfo sigma_draw_xinfo;
 		// helper functions
@@ -37,6 +40,7 @@ class Abarth{
 		xinfo np_to_xinfo(int n, int d,double *a);
 		void xinfo_to_np(xinfo x_std,double *arr);
 
+		//= forest(10);
 	
 		// void params_to_struct;
 	public:
@@ -50,8 +54,8 @@ class Abarth{
 				double s , bool verbose , bool m_update_sigma, 
 				bool draw_mu , bool parallel);
 
-		// Destructor
-		~Abarth();
+		// // Destructor
+		//~Abarth();
 
 		// Public Functions 
 		int get_M (void);
@@ -73,6 +77,12 @@ class Abarth{
 			int n_y,double *a_y, // Train Y
 			int n_test,int d_test,double *a_test, // Test X
 			int size, double *arr,size_t p_cat); // Result 
+
+		void predict_all(int n, int d, double *a);//,int size, double *arr);
+		void fit_all(int n,int d,double *a, // Train X 
+      		int n_y,double *a_y, size_t p_cat);
+
+
 		void get_yhats(int size, double *arr);
 		void get_yhats_test(int size, double *arr);
 		void get_sigma_draw(int size, double *arr);

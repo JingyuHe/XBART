@@ -272,7 +272,7 @@ void fit_std_main_loop_all(const double *Xpointer,std::vector<double> &y_std,dou
 
     double sigma;
     // double tau;
-    forest trees(M);
+    //forest trees(M);
     std::vector<double> prob(2, 0.5);
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -441,3 +441,5 @@ void fit_std_main_loop_all(const double *Xpointer,std::vector<double> &y_std,dou
     }
 
 }
+
+

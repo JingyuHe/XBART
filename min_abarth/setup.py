@@ -3,11 +3,14 @@
 """
 setup.py file for SWIG example
 """
-
+import setuptools
 from distutils.core import setup, Extension
 import numpy
 import os
 
+
+# os.environ["CC"] = "g++-4.7" 
+# os.environ["CXX"] = "g++-4.7"
 abarth_module = Extension('_abarth',
                            sources=['abarth_wrap.cxx', 'abarth.cpp',
                                     'utility.cpp','fit_std_main_loop.cpp',
@@ -15,16 +18,21 @@ abarth_module = Extension('_abarth',
                                         "common.cpp" ,   "forest.cpp",    "tree.cpp"
 
                                     ],
-                           extra_compile_args=['-std=c++11',"-larmadillo", "-llapack", "-lblas"]
+                            language= "c++",
+                            #libraries =["/Library/Frameworks/Python.framework/Versions/3.6/lib"],
+                            #include_dirs = ['/Library/Frameworks/Python.framework/Versions/3.6/include/python3.6m'], # temp...
+                            include_dirs = [numpy.get_include(),'.',"src/"],
+                           extra_compile_args=["-mmacosx-version-min=10.9",'-std=gnu++11']#,"-larmadillo", "-llapack", "-lblas"]
                            )
 
 setup (name = 'abarth',
        version = '0.1',
-       author      = "SWIG Docs",
-       description = """Simple swig example from docs""",
+       author      = "Saar Yalov",
+       description = """Abarth project""",
        include_dirs = [numpy.get_include(),'.'],
        ext_modules = [abarth_module],
-       #libraries=['random'],
+      install_requires=['numpy'],
        py_modules = ["abarth"],
+       include_package_data=True
        )
 
