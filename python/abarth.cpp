@@ -218,6 +218,10 @@ void Abarth::fit_predict(int n,int d,double *a, // Train X
       //xinfo yhats_test_xinfo;
       ini_xinfo(this->yhats_test_xinfo, n_test, this->params.N_sweeps);
 
+      xinfo yhats_test_xinfo_2;
+      ini_xinfo(yhats_test_xinfo_2,n_test, this->params.N_sweeps);
+
+
       //xinfo sigma_draw_xinfo;
       ini_xinfo(this->sigma_draw_xinfo, this->params.M, this->params.N_sweeps);
 
@@ -225,10 +229,9 @@ void Abarth::fit_predict(int n,int d,double *a, // Train X
       double *Xpointer = &x_std_2[0];//&x_std[0][0];
       double *Xtestpointer = &x_test_std_2[0];//&x_test_std[0][0];
 
-      // TEST: ERASE LATER
-      // std::vector<double> prob(5, .2);
-      // std::vector<double> temp = sample_int_ccrank(5,5,prob);
 
+      cout << "16th Value of Train: " <<Xpointer[15] <<endl;
+      cout << "16th Value of Test: " <<Xtestpointer[15] <<endl;
       //fit_std_main_loop();
 
       fit_std_main_loop(Xpointer,y_std,y_mean,Xtestpointer, Xorder_std,
@@ -239,12 +242,13 @@ void Abarth::fit_predict(int n,int d,double *a, // Train X
                 this->params.draw_sigma , this->params.kap , this->params.s, 
                 this->params.verbose, this->params.m_update_sigma, 
                 this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,this->yhats_test_xinfo,sigma_draw_xinfo);
+                yhats_xinfo,yhats_test_xinfo_2,sigma_draw_xinfo);
 
-
-
-      std::copy(y_std.begin(), y_std.end(), arr);
-      //std::copy(yhats_xinfo.begin(), yhats_xinfo.end(), arr);
+      cout << "Here!" <<endl;
+      cout << "16th Value of Train: " <<Xpointer[15] <<endl;
+      cout << "16th Value of Test: " <<Xtestpointer[15] <<endl;
+      xinfo_to_np(yhats_test_xinfo_2,arr);
+      //std::copy(y_std.begin(), y_std.end(), arr);
 
         // return;
 

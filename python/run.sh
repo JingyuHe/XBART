@@ -1,4 +1,5 @@
 #! /bin/bash
+cp -r ../src src
 swig -c++ -python abarth.i
 #swig -c++  -includeall  -python abarth.i
 python setup.py build_ext --inplace

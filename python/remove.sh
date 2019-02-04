@@ -14,5 +14,5 @@
 [ -e abarth.pyc ] && rm abarth.pyc
 [ -e abarth_wrap.cxx  ] && rm abarth_wrap.cxx 
 
-[ -e _abarth.cpython-36m-darwin.so ] && rm _abarth.cpython-36m-darwin.so
+[ -e _abarth.cpython-36m-darwin.so ] && rm _abarth.cpython-36m-x86_64-linux-gnu.so
 [ -e __pycache__/abarth.cpython-36.pyc ] && rm __pycache__/abarth.cpython-36.pyc

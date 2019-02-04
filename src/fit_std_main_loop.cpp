@@ -441,6 +441,7 @@ void fit_std_main_loop_all(const double *Xpointer,std::vector<double> &y_std,dou
             // save predictions to output matrix
             // save predictions to output matrix
             yhats_xinfo[sweeps] = yhat_std;
+            cout << "yhat test std "<<yhat_test_std[0] <<endl;
             yhats_test_xinfo[sweeps] = yhat_test_std;
 
             // for (size_t kk = 0; kk < N; kk++)

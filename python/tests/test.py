@@ -48,7 +48,7 @@ class AbarthTesting1(unittest.TestCase):
 		self.params = OrderedDict([('M',1),('L',1),("N_sweeps",2)
 							,("Nmin",1),("Ncutpoints",5)
 							,("alpha",0.95),("beta",1.25 ),("tau",.8),("burnin",0),("mtry",2),("max_depth_num",5),
-							("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",False),
+							("draw_sigma",False),("kap",16),("s",4),("verbose",True),("m_update_sigma",False),
 							("draw_mu",False),("parallel",False)])
 		#self.params["M"] = 50
 		self.model = abarth.Abarth(self.params)
@@ -84,7 +84,7 @@ class AbarthTesting1(unittest.TestCase):
 		x_pred = self.model.predict(x,n)
 		self.failUnless(np.array_equal(x_pred,x))
 
-	@unittest.skip("demonstrating skipping")
+	#@unittest.skip("demonstrating skipping")
 	def test_predict_2(self):
 		n = 100
 		d = 10
@@ -109,7 +109,9 @@ class AbarthTesting1(unittest.TestCase):
 		x_test= np.random.rand(n_test,d_test)
 		
 
-		y_pred = self.model.fit_predict(x,y,x_test,n)
+		y_pred = self.model.fit_predict(x,y,x_test,n_test*self.params["N_sweeps"])
+		print("Here!!!")
+		print(y_pred[0:5])
 		self.failUnless(isinstance(y_pred, np.ndarray))
 		#self.failUnless(np.array_equal(y_pred,y))
 		print("Test predict")
