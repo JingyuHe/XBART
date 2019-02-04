@@ -84,7 +84,7 @@ class AbarthTesting1(unittest.TestCase):
 		x_pred = self.model.predict(x,n)
 		self.failUnless(np.array_equal(x_pred,x))
 
-	#@unittest.skip("demonstrating skipping")
+	@unittest.skip("demonstrating skipping")
 	def test_predict_2(self):
 		n = 100
 		d = 10
