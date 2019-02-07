@@ -53,7 +53,7 @@ tau = .67*np.var(target_train)/m
 params = OrderedDict([('M',m),('L',1),("N_sweeps",40)
 							,("Nmin",1),("Ncutpoints",30)
 							,("alpha",0.95),("beta",5 ),("tau",tau),("burnin",15),("mtry",7),("max_depth_num",50),
-							("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",False),
+							("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",True),
 							("draw_mu",False),("parallel",False)])
 
 # m = 300

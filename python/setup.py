@@ -8,7 +8,7 @@ from setuptools import setup, Extension
 import numpy
 
 from sys import platform
-compile_args = ["-std=gnu++11", "-v","-DNDEBUG"]
+compile_args = ["-std=gnu++11", "-fpic",  "-g"]
 if platform == "darwin":
   compile_args.append("-mmacosx-version-min=10.9") # To ensure gnu+11 and all std libs
 

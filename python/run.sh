@@ -2,5 +2,5 @@
 cp -r ../src .
 swig -c++ -python abarth.i
 #swig -c++  -includeall  -python abarth.i
-python setup.py build_ext --inplace
-python tests/test.py
+/usr/bin/python setup.py build_ext --inplace
+/usr/bin/python tests/test.py

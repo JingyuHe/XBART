@@ -35,8 +35,8 @@ def __convert_params_check_types(self,params):
                         ,("Nmin",1),("Ncutpoints",100) # CHANGE
                         ,("alpha",0.95),("beta",1.25 ),("tau",0.3),# CHANGE
                         ("burnin",15),("mtry",2),("max_depth_num",250), # CHANGE
-                        ("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",False),
-                        ("draw_mu",False),("parallel",False)])
+                        ("draw_sigma",False),("kap",16),("s",4),("verbose",False),
+                        ("m_update_sigma",True), ("draw_mu",True),("parallel",False)])
 
     list_params = []
     for key,value in DEFAULT_PARAMS.items():

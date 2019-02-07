@@ -7,55 +7,26 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
 import time
 
-# def timeit(method):
-#     def timed(*args, **kw):
-#         ts = time.time()
-#         result = method(*args, **kw)
-#         te = time.time()
-#         if 'log_time' in kw:
-#             name = kw.get('log_name', method.__name__.upper())
-#             kw['log_time'][name] = int((te - ts) * 1000)
-#         else:
-#             print '%r  %2.2f ms' % \
-#                   (method.__name__, (te - ts) * 1000)
-#         return result
-#     return timed
-
+# Add Parent Path
 import os,sys,inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir) 
-print(sys.path)
-#sys.path.append('..')
-sys.path.append('python')
-sys.path.append('src')
 
 import abarth
 
 class AbarthTesting1(unittest.TestCase):
 
 
-	# def setUp(self):
-	# 	self.model = abarth.Abarth()
-
 	def setUp(self):
-		# self.params = OrderedDict([('M',20),('L',1),("N_sweeps",40)
-		# 					,("Nmin",1),("Ncutpoints",5)
-		# 					,("alpha",0.95),("beta",1.25 ),("tau",.8),("burnin",5),("mtry",2),("max_depth_num",5),
-		# 					("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",False),
-		# 					("draw_mu",False),("parallel",False)])
-
 		self.params = OrderedDict([('M',1),('L',1),("N_sweeps",2)
 							,("Nmin",1),("Ncutpoints",5)
 							,("alpha",0.95),("beta",1.25 ),("tau",.8),("burnin",0),("mtry",2),("max_depth_num",5),
-							("draw_sigma",False),("kap",16),("s",4),("verbose",True),("m_update_sigma",False),
+							("draw_sigma",False),("kap",16),("s",4),("verbose",True),("m_update_sigma",True),
 							("draw_mu",False),("parallel",False)])
-		#self.params["M"] = 50
 		self.model = abarth.Abarth(self.params)
 		n = 100
 		self.x = np.random.rand(n)
-		#print self.x.shape
-
 
 	def test_constructor_m(self):
 		self.failUnless(self.model.get_M()==self.params["M"])	
@@ -67,7 +38,6 @@ class AbarthTesting1(unittest.TestCase):
 
 	def test_void_fit_2d(self,n=10,d=2):
 		X = np.arange(n*d).reshape(n,d)
-		#print "Fail unless 2d  X_fit's last elements are equal to X"
 		self.failUnless(self.model.fit_x(X) == X[n-1,d-1])
 
 	def test_void_sort_2d(self,n=10,d=2):
@@ -93,33 +63,22 @@ class AbarthTesting1(unittest.TestCase):
 		self.failUnless(isinstance(x_pred, np.ndarray))
 		self.failUnless(np.array_equal(x_pred,x))
 
-	#@unittest.skip("demonstrating skipping")
 	
 	def test_fit_predict(self):
 		n = 1000
 		d = 10
 		x= np.random.rand(n,d)
-		
-
 		y = np.random.rand(n)
 		
-
 		n_test = 100
 		d_test = 10
 		x_test= np.random.rand(n_test,d_test)
 		
 
 		y_pred = self.model.fit_predict(x,y,x_test,n_test*self.params["N_sweeps"])
-		print("Here!!!")
 		print(y_pred[0:5])
 		self.failUnless(isinstance(y_pred, np.ndarray))
-		#self.failUnless(np.array_equal(y_pred,y))
-		print("Test predict")
 
-
-
-		
-	#@timeit
 	def test_fit_predict_discrete_2d(self):
 		n = 1000
 		d = 7
@@ -127,7 +86,6 @@ class AbarthTesting1(unittest.TestCase):
 
 		x = np.empty([n,d])
 		x[:,0] = np.random.normal(25,10,n)
-  		#x[:,1] = np.random.normal(25,10,n)
 		for h in range(1,d):
 			x[:,h] = np.random.binomial(1,prob[h],n)
 
@@ -135,12 +93,10 @@ class AbarthTesting1(unittest.TestCase):
 		n_test = 1000	
 		x_test = np.empty((n_test,d))
 		x_test[:,0] = np.random.normal(25,10,n_test)
-  		#x_test[:,1] = np.random.normal(25,10,n_test)
 		for h in range(1,d):
 			x_test[:,h] = np.random.binomial(1,prob[h],n_test)
 
 
-		#print(x.shape)
 		def discrete_function(x):
 			level =  15 - 20*(x[:,0]-25)**2/1500
 			level = level + 15*np.logical_and(x[:,2], x[:,4]) -10*np.logical_or(x[:,5] , x[:,6])
@@ -157,7 +113,6 @@ class AbarthTesting1(unittest.TestCase):
 		y_copy = y.copy()
 		x_test_copy = x_test.copy()
 
-		#print(y)
 		self.model.fit_all(x,y,d-1)
 		y_pred = self.model.fit_predict_2d_all(x,y,x_test,d-1)
 
@@ -226,6 +181,10 @@ class AbarthTesting1(unittest.TestCase):
 		self.failUnless(np.array_equal(x_copy,x))
 		self.failUnless(np.array_equal(x_test_copy,x_test))
 
+	def test_normal(self):
+		self.model.test_random_generator()
+
+			
 class AbarthExceptionTesting(unittest.TestCase):
 
 	def test_int_as_bad_float(self):
@@ -290,7 +249,3 @@ if __name__ == "__main__":
 	results = runner.run(big_suite)
 	sys.exit(len(results.errors) + len(results.failures))
 
-	# suite = unittest.TestLoader().loadTestsFromTestCase(AbarthTesting1)
-	# #print "Testing Functions of Abarth Module: \n"
-	# result = unittest.TextTestRunner(verbosity=2).run(suite)
-	

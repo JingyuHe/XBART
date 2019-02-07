@@ -534,6 +534,11 @@ void Abarth::xinfo_to_np(xinfo x_std,double *arr){
   return;
 }
 
+void Abarth::test_random_generator(){
+  std::default_random_engine generator;
+  std::normal_distribution<double> normal_samp(0.0,0.0);
 
+  cout << "Random Normal " << normal_samp(generator) <<endl;
+}
 
 

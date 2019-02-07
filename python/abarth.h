@@ -86,4 +86,5 @@ class Abarth{
 		void get_yhats(int size, double *arr);
 		void get_yhats_test(int size, double *arr);
 		void get_sigma_draw(int size, double *arr);
+		void test_random_generator();
 };
