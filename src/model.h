@@ -8,7 +8,7 @@ public:
 	virtual void getSufficientStatistic();
 	virtual void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau, 
 						std::default_random_engine generator,double &theta, double &theta_noise);
-	virtual double lil();
+	virtual double likelihood(double value,double tau,double ntau,double sigma2);
 };
 
 
@@ -30,7 +30,7 @@ public:
 		}
 		return;
 	}
-		double lil(){return 0;}
+		double likelihood(double value,double tau,double ntau,double sigma2){ return -0.5 * log(ntau + sigma2)  + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));}
 };
 
 
