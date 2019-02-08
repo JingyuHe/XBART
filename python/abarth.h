@@ -32,7 +32,8 @@ class Abarth{
 		vec_d y_std;
 		double y_mean;
 		size_t n_train; size_t n_test; size_t d;
-		xinfo yhats_xinfo; xinfo yhats_test_xinfo; xinfo sigma_draw_xinfo;
+		xinfo yhats_xinfo; xinfo yhats_test_xinfo; xinfo sigma_draw_xinfo; xinfo split_count_all_tree;
+		
 		// helper functions
 		vec_d np_to_vec_d(int n,double *a);
 		vec_d np_to_row_major_vec(int n, int d,double *a);
@@ -57,34 +58,31 @@ class Abarth{
 		// // Destructor
 		//~Abarth();
 
-		// Public Functions 
-		int get_M (void);
-		int get_N_sweeps(void){return((int)params.N_sweeps);};
-		int get_burnin(void){return((int)params.burnin);};
-		double fit(int n, double *a);
-		double fit_x(int n, int d, double *a);
+	
 		//void sort_x(int n, int d, double *a);
 		void sort_x(int n,int d,double *a,int size, double *arr);
 
-		void predict(int n,double *a,int size, double *arr);
-		void __predict_2d(int n,int d,double *a,int size, double *arr);
-
-		void fit_predict(int n,int d,double *a, // Train X 
+		void __fit_predict(int n,int d,double *a, // Train X 
 			int n_y,double *a_y, // Train Y
 			int n_test,int d_test,double *a_test, // Test X
 			int size, double *arr); // Result 
-		void fit_predict_all(int n,int d,double *a, // Train X 
+		void __fit_predict_all(int n,int d,double *a, // Train X 
 			int n_y,double *a_y, // Train Y
 			int n_test,int d_test,double *a_test, // Test X
 			int size, double *arr,size_t p_cat); // Result 
 
-		void predict_all(int n, int d, double *a);//,int size, double *arr);
-		void fit_all(int n,int d,double *a, // Train X 
+		void __predict_all(int n, int d, double *a);//,int size, double *arr);
+		void __fit_all(int n,int d,double *a, // Train X 
       		int n_y,double *a_y, size_t p_cat);
 
 
+		// Getters
+		int get_M (void);
+		int get_N_sweeps(void){return((int)params.N_sweeps);};
+		int get_burnin(void){return((int)params.burnin);};
 		void get_yhats(int size, double *arr);
 		void get_yhats_test(int size, double *arr);
 		void get_sigma_draw(int size, double *arr);
+		void get_importance(int size, double *arr);
 		void test_random_generator();
 };

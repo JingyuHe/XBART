@@ -10,8 +10,8 @@ from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 def rmse(y1,y2):
 	return np.sqrt(np.mean((y1-y2)**2))
 
-path = "/Users/saaryalov/DataScienceClubASU/kaggle-house-prices/"
-full_imputed = pd.read_csv(path+'fullimputed.csv')
+
+full_imputed = pd.read_csv('fullimputed.csv')
 del full_imputed['Unnamed: 0']
 dummied = pd.get_dummies(full_imputed)
 
@@ -48,11 +48,11 @@ valid_data_norm = valid_data # pd.concat([cont_train.loc[1300:,] ,cat_train.loc[
 
 train_data.nunique(axis=1)
 
-m = 500
+m = 125
 tau = .67*np.var(target_train)/m
-params = OrderedDict([('M',m),('L',1),("N_sweeps",40)
+params = OrderedDict([('M',m),('L',1),("N_sweeps",50)
 							,("Nmin",1),("Ncutpoints",30)
-							,("alpha",0.95),("beta",5 ),("tau",tau),("burnin",15),("mtry",7),("max_depth_num",50),
+							,("alpha",0.95),("beta",2 ),("tau",tau),("burnin",15),("mtry",7),("max_depth_num",25),
 							("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",True),
 							("draw_mu",False),("parallel",False)])
 
@@ -67,7 +67,7 @@ params = OrderedDict([('M',m),('L',1),("N_sweeps",40)
 print("Abarth...")
 xbart = Abarth(params)
 start = time.time()
-y_pred = xbart.fit_predict_2d_all(train_data_norm.values,target_train.values,
+y_pred = xbart.fit_predict(train_data_norm.values,target_train.values,
 	valid_data_norm.values,cat_train.shape[1])
 end = time.time()
 abarth_time = end-start
@@ -76,10 +76,10 @@ y_hat_xbart = y_pred[:,params["burnin"]:].mean(axis=1)
 print("Abarth Fit Predict Seperate...")
 xbart_2 = Abarth(params)
 start_1 = time.time()
-xbart_2.fit_2d_all(train_data_norm.values,target_train.values,cat_train.shape[1])
+xbart_2.fit(train_data_norm.values,target_train.values,cat_train.shape[1])
 end_1 = time.time()
 start_2 = time.time()
-y_pred_2 = xbart_2.predict_2d_all(valid_data_norm.values)
+y_pred_2 = xbart_2.predict(valid_data_norm.values)
 end_2 = time.time()
 abarth_time_fit = end_1-start_1
 abarth_time_predict = end_2-start_2
@@ -103,7 +103,7 @@ end = time.time()
 rf_time = end-start
 
 
-#print("Xbart rmse:" + str(rmse(y_hat_xbart,target_valid)))
+print("Xbart rmse:" + str(rmse(y_hat_xbart,target_valid)))
 print("Xbart 2 rmse:" + str(rmse(y_hat_xbart_2,target_valid)))
 print("Boosting rmse:" + str(rmse(y_hat_bst,target_valid)))
 print("RandomForest rmse:" + str(rmse(y_hat_rf,target_valid)))
@@ -115,8 +115,8 @@ print("Xbart time seperate:" + str(abarth_time_fit+abarth_time_predict))
 print("Boosting time:" + str(bst_time))
 print("RandomForest time:" + str(rf_time))
 
-train_data_norm.to_csv("house_train.csv");
-valid_data_norm.to_csv("house_valid.csv");
-target_train.to_csv("target_train.csv"); target_valid .to_csv("target_valid.csv");
+# train_data_norm.to_csv("house_train.csv");
+# valid_data_norm.to_csv("house_valid.csv");
+# target_train.to_csv("target_train.csv"); target_valid .to_csv("target_valid.csv");
 
 

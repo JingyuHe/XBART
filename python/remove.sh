@@ -1,6 +1,7 @@
 #! /bin/bash
 [ -e _abarth.so ] && rm _abarth.so 
 [ -e build ] && rm -rf build
+[ -e abarth.egg-info ] && rm -rf abarth.egg-info
 
 [ -e src/abarth.py ] && rm src/abarth.py
 [ -e src/abarth.pyc ] && rm src/abarth.pyc

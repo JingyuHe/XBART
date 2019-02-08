@@ -166,6 +166,9 @@ Rcpp::List abarth_train_all(arma::mat y, arma::mat X, arma::mat Xtest,
     xinfo sigma_draw_xinfo;
     ini_xinfo(sigma_draw_xinfo, M, N_sweeps);
 
+    xinfo split_count_all_tree;
+    ini_xinfo(split_count_all_tree, p, M); // initialize at 0
+
     // Create trees
     vector<vector<tree>> trees2(N_sweeps);
     for(size_t i = 0; i < N_sweeps;i++){
@@ -177,7 +180,8 @@ Rcpp::List abarth_train_all(arma::mat y, arma::mat X, arma::mat Xtest,
     N,p,N_test, M,  L,  N_sweeps, max_depth_std, // NEED TO CHANGE "max_depth" 
     Nmin,  Ncutpoints,  alpha,  beta, tau,  burnin,  mtry, 
     draw_sigma ,  kap ,  s, verbose,  m_update_sigma, draw_mu,  parallel,
-    yhats_xinfo,yhats_test_xinfo,sigma_draw_xinfo,p_categorical,p_continuous,trees2);
+    yhats_xinfo,yhats_test_xinfo,sigma_draw_xinfo, split_count_all_tree,
+    p_categorical,p_continuous,trees2);
 
     // R Objects to Return
     Rcpp::NumericMatrix yhats(N, N_sweeps);

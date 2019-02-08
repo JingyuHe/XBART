@@ -56,20 +56,6 @@ Abarth::Abarth (size_t M ,size_t L ,size_t N_sweeps ,
 int Abarth::get_M(){return((int)params.M);} 
 
 
-// Fitting
-double Abarth::fit(int n,double *a){
-  this->y_std.reserve(n);
-  this->y_std = Abarth::np_to_vec_d(n,a);
-
-  return y_std[n-1];
-}
-
-double Abarth::fit_x(int n,int d,double *a){
-  xinfo x_std = Abarth::np_to_xinfo(n,d,a);
-
-  return x_std[d-1][n-1];
-}
-
 void Abarth::sort_x(int n,int d,double *a,int size, double *arr){
   xinfo x_std = Abarth::np_to_xinfo(n,d,a);
 
@@ -89,68 +75,8 @@ void Abarth::sort_x(int n,int d,double *a,int size, double *arr){
   std::copy(Xorder_std[d-1].begin(), Xorder_std[d-1].end(), arr);
 
 }
-// void Abarth::sort_x(int n,int d,double *a,int size, double *arr){
-//   xinfo x_std = Abarth::np_to_xinfo(n,d,a);
 
-//   // xorder containers
-//   xinfo_sizet Xorder_std;
-//   ini_xinfo_sizet(Xorder_std, n, d);  
-
-//   // TEMP: To test for 
-//   arma::umat Xorder(n, d);
-//   //arma::umat X(n, d);
-//   // Fill
-//   // Fill armadilla
-//   std::vector<double> A_flat;
-//   for (auto vec : x_std) {
-//     for (auto el : vec) {
-//     A_flat.push_back(el);
-//   }
-// }
-// arma::umat X(A_flat);
-
-//   // for(size_t i = 0;i<n;i++){
-//   //       for(size_t j = 0;j<d;j++){
-//   //         //Xorder_std[j][i] = x_std[j][i];
-//   //         X(i,j) = x_std[j][i];
-//   //     }
-//   // }
-// for (size_t i = 0; i < X.n_cols; i++)
-//     {
-//         Xorder.col(i) = arma::sort_index(X.col(i));
-//   }
-
-//     for (size_t i = 0; i < n; i++)
-//     {
-//         for (size_t j = 0; j < d; j++)
-//         {
-//             Xorder_std[j][i] = Xorder(i, j);
-//         }
-//     }  
-//   //   Sort
-//   // for(size_t j =0; j < d;j++){
-//   //         std::sort(Xorder_std[j].begin(), Xorder_std[j].end()); 
-//   //     }
-//   //std::copy(X.col(d-1).begin(), X.col(d-1).end(), arr);
-//   std::copy(Xorder_std[d-1].begin(), Xorder_std[d-1].end(), arr);
-//   //return Xorder_std[d-1][n-1];
-// }
-
-void Abarth::predict(int n,double *a,int size, double *arr){
-  this->y_std.reserve(n);
-  this->y_std = Abarth::np_to_vec_d(n,a);
-  std::copy(y_std.begin(), y_std.end(), arr);
-    
-  return;
-}
-
-void Abarth::__predict_2d(int n,int d,double *a,int size, double *arr){
-  xinfo x_std = Abarth::np_to_xinfo(n,d,a);
-  Abarth::xinfo_to_np(x_std,arr);
-  return;
-}
-
-void Abarth::fit_predict(int n,int d,double *a, // Train X 
+void Abarth::__fit_predict(int n,int d,double *a, // Train X 
       int n_y,double *a_y, // Train Y
       int n_test,int d_test,double *a_test, // Test X
       int size, double *arr){ // Result 
@@ -167,7 +93,7 @@ void Abarth::fit_predict(int n,int d,double *a, // Train X
         }
       y_mean = y_mean/(double)n;
 
-      //   // xorder containers
+      // xorder containers
       xinfo_sizet Xorder_std;
       ini_xinfo_sizet(Xorder_std, n, d);
 
@@ -229,9 +155,6 @@ void Abarth::fit_predict(int n,int d,double *a, // Train X
       double *Xpointer = &x_std_2[0];//&x_std[0][0];
       double *Xtestpointer = &x_test_std_2[0];//&x_test_std[0][0];
 
-
-      cout << "16th Value of Train: " <<Xpointer[15] <<endl;
-      cout << "16th Value of Test: " <<Xtestpointer[15] <<endl;
       //fit_std_main_loop();
 
       fit_std_main_loop(Xpointer,y_std,y_mean,Xtestpointer, Xorder_std,
@@ -244,9 +167,6 @@ void Abarth::fit_predict(int n,int d,double *a, // Train X
                 this->params.draw_mu, this->params.parallel,
                 yhats_xinfo,yhats_test_xinfo_2,sigma_draw_xinfo);
 
-      cout << "Here!" <<endl;
-      cout << "16th Value of Train: " <<Xpointer[15] <<endl;
-      cout << "16th Value of Test: " <<Xtestpointer[15] <<endl;
       xinfo_to_np(yhats_test_xinfo_2,arr);
       //std::copy(y_std.begin(), y_std.end(), arr);
 
@@ -256,7 +176,7 @@ void Abarth::fit_predict(int n,int d,double *a, // Train X
     } 
 
 
-void Abarth::fit_predict_all(int n,int d,double *a, // Train X 
+void Abarth::__fit_predict_all(int n,int d,double *a, // Train X 
       int n_y,double *a_y, // Train Y
       int n_test,int d_test,double *a_test, // Test X
       int size, double *arr,size_t p_cat){ // Result 
@@ -318,26 +238,16 @@ void Abarth::fit_predict_all(int n,int d,double *a, // Train X
 
 
       // Cpp native objects to return
-      xinfo yhats_xinfo; // Temp
-      ini_xinfo(yhats_xinfo, n, this->params.N_sweeps);
-
-      //xinfo yhats_test_xinfo;
+      ini_xinfo(this->yhats_xinfo, n, this->params.N_sweeps);
       ini_xinfo(this->yhats_test_xinfo, n_test, this->params.N_sweeps);
-
-      xinfo sigma_draw_xinfo; // Temp
-      ini_xinfo(sigma_draw_xinfo, this->params.M, this->params.N_sweeps);
+      ini_xinfo(this->sigma_draw_xinfo, this->params.M, this->params.N_sweeps);
+      ini_xinfo(this->split_count_all_tree, d, this->params.M); // initialize at 0
 
       double *ypointer = &a_y[0];//&y_std[0];
       double *Xpointer = &x_std_2[0];//&x_std[0][0];
       double *Xtestpointer = &x_test_std_2[0];//&x_test_std[0][0];
 
-      // TEST: ERASE LATER
-      // std::vector<double> prob(5, .2);
-      // std::vector<double> temp = sample_int_ccrank(5,5,prob);
 
-      //fit_std_main_loop();
-
-      //this->trees(this->params.M);
       fit_std_main_loop_all(Xpointer,y_std,y_mean,Xtestpointer, Xorder_std,
                 n,d,n_test,
                 this->params.M, this->params.L, this->params.N_sweeps, max_depth_std, 
@@ -346,19 +256,15 @@ void Abarth::fit_predict_all(int n,int d,double *a, // Train X
                 this->params.draw_sigma , this->params.kap , this->params.s, 
                 this->params.verbose, this->params.m_update_sigma, 
                 this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,this->yhats_test_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,this->trees2);
+                yhats_xinfo,this->yhats_test_xinfo,sigma_draw_xinfo,split_count_all_tree,
+                p_cat,d-p_cat,this->trees2);
 
 
 
       std::copy(y_std.begin(), y_std.end(), arr);
-      //std::copy(yhats_xinfo.begin(), yhats_xinfo.end(), arr);
-
-        // return;
-
-
     } 
 
-void Abarth::predict_all(int n,int d,double *a){//,int size, double *arr){
+void Abarth::__predict_all(int n,int d,double *a){//,int size, double *arr){
 
   xinfo x_test_std = Abarth::np_to_xinfo(n,d,a);
   vec_d x_test_std_2 = Abarth::xinfo_to_row_major_vec(x_test_std); // INEFFICIENT
@@ -370,16 +276,12 @@ void Abarth::predict_all(int n,int d,double *a){//,int size, double *arr){
   //       this->yhats_test_xinfo,this->trees,this->y_mean); 
   predict_std(Xtestpointer,n,d,this->params.M,this->params.L,this->params.N_sweeps,
         this->yhats_test_xinfo,this->trees2,this->y_mean); 
-
-
 }
 
 
-void Abarth::fit_all(int n,int d,double *a, // Train X 
-      int n_y,double *a_y, size_t p_cat){//,int size, double *arr){
+void Abarth::__fit_all(int n,int d,double *a, 
+      int n_y,double *a_y, size_t p_cat){
   
-
-
       xinfo x_std = Abarth::np_to_xinfo(n,d,a);
       y_std.reserve(n_y);
       y_std = Abarth::np_to_vec_d(n_y,a_y);
@@ -439,7 +341,7 @@ void Abarth::fit_all(int n,int d,double *a, // Train X
 
       xinfo sigma_draw_xinfo; // Temp Change
       ini_xinfo(sigma_draw_xinfo, this->params.M, this->params.N_sweeps);
-
+      ini_xinfo(this->split_count_all_tree, d, this->params.M); // initialize at 0
       double *ypointer = &a_y[0];//&y_std[0];
       double *Xpointer = &x_std_2[0];//&x_std[0][0];
 
@@ -452,8 +354,6 @@ void Abarth::fit_all(int n,int d,double *a, // Train X
                 this->params.verbose, this->params.m_update_sigma, 
                 this->params.draw_mu, this->params.parallel,
                 yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,this->trees2);
-
-
 }    
 
 // Getters
@@ -465,6 +365,9 @@ void Abarth::get_yhats_test(int size,double *arr){
 }
 void Abarth::get_sigma_draw(int size,double *arr){
   xinfo_to_np(this->sigma_draw_xinfo,arr);
+}
+void Abarth::get_importance(int size,double *arr){
+  xinfo_to_np(this->split_count_all_tree,arr);
 }
 
 

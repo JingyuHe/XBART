@@ -12,7 +12,6 @@ import os,sys,inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir) 
-
 import abarth
 
 class AbarthTesting1(unittest.TestCase):
@@ -22,23 +21,14 @@ class AbarthTesting1(unittest.TestCase):
 		self.params = OrderedDict([('M',1),('L',1),("N_sweeps",2)
 							,("Nmin",1),("Ncutpoints",5)
 							,("alpha",0.95),("beta",1.25 ),("tau",.8),("burnin",0),("mtry",2),("max_depth_num",5),
-							("draw_sigma",False),("kap",16),("s",4),("verbose",True),("m_update_sigma",True),
+							("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",True),
 							("draw_mu",False),("parallel",False)])
 		self.model = abarth.Abarth(self.params)
 		n = 100
 		self.x = np.random.rand(n)
 
 	def test_constructor_m(self):
-		self.failUnless(self.model.get_M()==self.params["M"])	
-
-	def test_void_fit_1d(self):
-		fit_x = self.model.fit(self.x)
-		self.failUnless(fit_x==self.x[-1])
-		
-
-	def test_void_fit_2d(self,n=10,d=2):
-		X = np.arange(n*d).reshape(n,d)
-		self.failUnless(self.model.fit_x(X) == X[n-1,d-1])
+		self.failUnless(self.model.get_M()==self.params["M"])			
 
 	def test_void_sort_2d(self,n=10,d=2):
 		X = np.random.rand(n*d).reshape(n,d)
@@ -48,36 +38,20 @@ class AbarthTesting1(unittest.TestCase):
 		self.failUnless(all(sort_x == sort_np))
 		#self.failUnless(self.model.sort_x(X) == np.argsort(X[:,d-1])[n-1])		
 
-	def test_predict(self):
-		n = 100
-		x= np.random.rand(n)
-		x_pred = self.model.predict(x,n)
-		self.failUnless(np.array_equal(x_pred,x))
-
-	@unittest.skip("demonstrating skipping")
-	def test_predict_2(self):
-		n = 100
-		d = 10
-		x= np.random.rand(n,d)
-		y_pred = self.model.predict_2d(x)
-		self.failUnless(isinstance(x_pred, np.ndarray))
-		self.failUnless(np.array_equal(x_pred,x))
-
 	
-	def test_fit_predict(self):
-		n = 1000
-		d = 10
-		x= np.random.rand(n,d)
-		y = np.random.rand(n)
+	# def test_fit_predict(self):
+	# 	n = 1000
+	# 	d = 10
+	# 	x= np.random.rand(n,d)
+	# 	y = np.random.rand(n)
 		
-		n_test = 100
-		d_test = 10
-		x_test= np.random.rand(n_test,d_test)
+	# 	n_test = 100
+	# 	d_test = 10
+	# 	x_test= np.random.rand(n_test,d_test)
 		
 
-		y_pred = self.model.fit_predict(x,y,x_test,n_test*self.params["N_sweeps"])
-		print(y_pred[0:5])
-		self.failUnless(isinstance(y_pred, np.ndarray))
+	# 	y_pred = self.model.fit_predict(x,y,x_test,n_test*self.params["N_sweeps"])
+	# 	self.failUnless(isinstance(y_pred, np.ndarray))
 
 	def test_fit_predict_discrete_2d(self):
 		n = 1000
@@ -113,26 +87,19 @@ class AbarthTesting1(unittest.TestCase):
 		y_copy = y.copy()
 		x_test_copy = x_test.copy()
 
-		self.model.fit_all(x,y,d-1)
-		y_pred = self.model.fit_predict_2d_all(x,y,x_test,d-1)
+		self.model.fit(x,y,d-1)
+		y_pred = self.model.fit_predict(x,y,x_test,d-1)
 
 		assert(np.array_equal(x_test_copy, x_test))
-		y_pred_2 = self.model.predict_2d_all(x_test)
+		y_pred_2 = self.model.predict(x_test)
 		assert(np.array_equal(x_test_copy, x_test))
 
-		self.model.fit_2d_all(x,y,d-1)
-		y_pred_3 = self.model.predict_2d_all(x_test)
-		print(y_pred_3.shape)
-		print("fit_pred: " + str(y_pred.shape))
-		print("pred: " + str(y_pred_2.shape))
+		self.model.fit(x,y,d-1)
+		y_pred_3 = self.model.predict(x_test)
+
 		y_hat = y_pred[:,self.params["burnin"]:].mean(axis=1)
 		y_hat_2 = y_pred_2[:,self.params["burnin"]:].mean(axis=1)
 		y_hat_3 = y_pred_3[:,self.params["burnin"]:].mean(axis=1)
-		print("Mean y: " + str(np.mean(y)))
-		
-		print("y_hat: " + str(y_hat[0:10]))
-		print("y_true :" + str(y_test[0:10]))
-		print("unique values of prediction:"  +str(np.unique(y_pred)))
 
 		reg = RandomForestRegressor(n_estimators=50)
 		reg.fit(x,y)
@@ -164,17 +131,14 @@ class AbarthTesting1(unittest.TestCase):
 		n_test = 1000
 		x_test= np.random.rand(n_test,d)
 		y_test = np.sin(x_test[:,0]**2)+x_test[:,1] + np.random.rand(n_test)
-		y_pred = self.model.fit_predict_2d_all(x,y,x_test)
+		y_pred = self.model.fit_predict(x,y,x_test)
 		y_hat = y_pred[:,self.params["burnin"]:].mean(axis=1)
 
 		x_copy = x.copy()
 		y_copy = y.copy()
 		x_test_copy = x_test.copy()
 
-		print("Mean y: " + str(np.mean(y)))
 		print("RMSE :"  + str(np.sqrt(np.mean((y_hat-y_test)**2))))
-		print("y_hat: " + str(y_hat[0:10]))
-		print("y_true :" + str(y_test[0:10]))
 		##print("unique values of prediction:"  +str(np.unique(y_pred)))
 
 		self.failUnless(np.array_equal(y_copy,y))

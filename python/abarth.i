@@ -78,7 +78,7 @@ def __init__(self,params = {}):
     except __builtin__.Exception:
         self.this = this            
            
-
+    
 %}
 %pythoncode %{
 def predict_2d(self,x):
@@ -87,25 +87,26 @@ def predict_2d(self,x):
 %}
 %pythoncode %{
 def fit_predict_2d(self,x,y,x_test):
-    x_pred = self.fit_predict(x,y,x_test,y.shape[0])
+    x_pred = self.__fit_predict(x,y,x_test,y.shape[0])
     yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0]).reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
     return yhats_test
 %}
 %pythoncode %{
-def fit_predict_2d_all(self,x,y,x_test,p_cat=0):
-    x_pred = self.fit_predict_all(x,y,x_test,y.shape[0],p_cat)
+def fit_predict(self,x,y,x_test,p_cat=0):
+    x_pred = self.__fit_predict_all(x,y,x_test,y.shape[0],p_cat)
     yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0]).reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
     return yhats_test
 %}
 %pythoncode %{
-def predict_2d_all(self,x_test):
-    x_pred = self.predict_all(x_test)
-    yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0]).reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
+def predict(self,x_test):
+    x_pred = self.__predict_all(x_test)
+    yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0])
+    yhats_test = yhats_test.reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
     return yhats_test
 %}
 %pythoncode %{
-def fit_2d_all(self,x,y,p_cat=0):
-    return self.fit_all(x,y,p_cat)
+def fit(self,x,y,p_cat=0):
+    return self.__fit_all(x,y,p_cat)
 %}
 
 };

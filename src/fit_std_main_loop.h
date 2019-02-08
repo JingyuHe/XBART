@@ -22,7 +22,9 @@ void fit_std_main_loop_all(const double *Xpointer,std::vector<double> &y_std,dou
                 bool draw_sigma , double kap , double s, 
                 bool verbose, bool m_update_sigma, 
                 bool draw_mu, bool parallel,
-                xinfo &yhats_xinfo,xinfo &yhats_test_xinfo,xinfo &sigma_draw_xinfo,size_t p_categorical,size_t p_continuous,vector< vector<tree>> &trees);
+                xinfo &yhats_xinfo,xinfo &yhats_test_xinfo,
+                xinfo &sigma_draw_xinfo,  xinfo &split_count_all_tree,
+                size_t p_categorical,size_t p_continuous,vector< vector<tree>> &trees);
 
 void fit_std(const double *Xpointer,std::vector<double> &y_std,double y_mean, xinfo_sizet &Xorder_std,
                 size_t N,size_t p,

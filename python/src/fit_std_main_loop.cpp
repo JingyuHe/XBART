@@ -1,7 +1,9 @@
 #include "fit_std_main_loop.h"
 
 
-void fit_std_main_loop(const double *Xpointer,std::vector<double> &y_std,double& y_mean,const double *Xtestpointer, xinfo_sizet &Xorder_std,
+
+void fit_std_main_loop(const double *Xpointer,std::vector<double> &y_std,double& y_mean,
+    const double *Xtestpointer, xinfo_sizet &Xorder_std,
     size_t N,size_t p,size_t N_test,
     size_t M, size_t L, size_t N_sweeps, xinfo_sizet &max_depth_std, 
     size_t Nmin, size_t Ncutpoints, double alpha, double beta, 
@@ -11,7 +13,7 @@ void fit_std_main_loop(const double *Xpointer,std::vector<double> &y_std,double&
     bool draw_mu, bool parallel,
     xinfo &yhats_xinfo,xinfo &yhats_test_xinfo,xinfo &sigma_draw_xinfo)
 {
-    // Set Random Generator
+    //Set Random Generator
     std::default_random_engine(generator);
 
     std::vector<std::vector<double>> predictions_std;
@@ -214,7 +216,9 @@ void fit_std_main_loop_all(const double *Xpointer,std::vector<double> &y_std,dou
                 bool draw_sigma , double kap , double s, 
                 bool verbose, bool m_update_sigma, 
                 bool draw_mu, bool parallel,
-                xinfo &yhats_xinfo,xinfo &yhats_test_xinfo,xinfo &sigma_draw_xinfo,size_t p_categorical,size_t p_continuous,vector< vector<tree>> &trees)
+                xinfo &yhats_xinfo,xinfo &yhats_test_xinfo,
+                xinfo &sigma_draw_xinfo, xinfo &split_count_all_tree,
+                size_t p_categorical,size_t p_continuous,vector< vector<tree>> &trees)
 {
     bool categorical_variables = false;
     if(p_categorical > 0){
@@ -236,13 +240,6 @@ void fit_std_main_loop_all(const double *Xpointer,std::vector<double> &y_std,dou
     unique_value_count2(Xpointer, Xorder_std, X_values, X_counts, 
         variable_ind, total_points, X_num_unique, p_categorical, p_continuous);
     
-    cout << "X_values" << X_values << endl;
-    cout << "X_counts" << X_counts << endl;
-    cout << "variable_ind " << variable_ind << endl;
-    cout << "X_num_unique " << X_num_unique << endl;
-
-
-
     // save predictions of each tree
     std::vector<std::vector<double>> predictions_std;
     ini_xinfo(predictions_std, N, M);
@@ -285,8 +282,9 @@ void fit_std_main_loop_all(const double *Xpointer,std::vector<double> &y_std,dou
     // Rcpp::NumericVector split_var_count(p, 1);
 
 
-    xinfo split_count_all_tree;
-    ini_xinfo(split_count_all_tree, p, M); // initialize at 0
+    // xinfo split_count_all_tree;
+    // ini_xinfo(split_count_all_tree, p, M); // initialize at 0
+
     // split_count_all_tree = split_count_all_tree + 1; // initialize at 1
     std::vector<double> split_count_current_tree(p, 1);
     std::vector<double> mtry_weight_current_tree(p, 1);
@@ -441,7 +439,6 @@ void fit_std_main_loop_all(const double *Xpointer,std::vector<double> &y_std,dou
             // save predictions to output matrix
             // save predictions to output matrix
             yhats_xinfo[sweeps] = yhat_std;
-            cout << "yhat test std "<<yhat_test_std[0] <<endl;
             yhats_test_xinfo[sweeps] = yhat_test_std;
 
             // for (size_t kk = 0; kk < N; kk++)
