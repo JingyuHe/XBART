@@ -964,7 +964,27 @@ void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, si
 }
 
 
+void sample_pars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau, std::default_random_engine generator,double &theta, double &theta_noise){
 
+    
+    std::normal_distribution<double> normal_samp(0.0, 1.0);
+
+    if (draw_mu == true)
+    {
+
+        theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2))) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
+        theta_noise = theta;
+    }
+    else
+    {
+
+        theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2));
+        theta_noise = theta; // identical to theta
+    }
+
+    return;
+
+}
 
 void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, 
     xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, bool &use_all, xinfo &split_count_all_tree, 
@@ -999,20 +1019,21 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     // set up random device
 
     std::default_random_engine generator;
-    std::normal_distribution<double> normal_samp(0.0, 1.0);
+    sample_pars( draw_mu, y_mean, N_Xorder, sigma, tau, generator, this->theta,  this->theta_noise);
+    // std::normal_distribution<double> normal_samp(0.0, 1.0);
 
-    if (draw_mu == true)
-    {
+    // if (draw_mu == true)
+    // {
 
-        this->theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2))) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-        this->theta_noise = this->theta;
-    }
-    else
-    {
+    //     this->theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2))) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
+    //     this->theta_noise = this->theta;
+    // }
+    // else
+    // {
 
-        this->theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2));
-        this->theta_noise = this->theta; // identical to theta
-    }
+    //     this->theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2));
+    //     this->theta_noise = this->theta; // identical to theta
+    // }
 
     if (draw_sigma == true)
     {
