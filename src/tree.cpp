@@ -2452,7 +2452,7 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
     size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, 
     size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, 
     size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values,//std::vector<size_t> &X_values, 
-    std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique,Model model)
+    std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model &model)
 {
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
