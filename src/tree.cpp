@@ -997,7 +997,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     // set up random device
 
     std::default_random_engine generator;
-    NormalModel model = NormalModel::NormalModel();
+    NormalModel model;
 
     model.samplePars( draw_mu, y_mean, N_Xorder, sigma, tau, generator, 
                       this->theta,  this->theta_noise);
@@ -2099,7 +2099,7 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double> &y_
 
     loglike[loglike.size() - 1] = 0.0;
 
-    NormalModel model = NormalModel::NormalModel();
+    NormalModel model;
     calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p, Ncutpoints, tau, sigma2, loglike_max);
 
 
@@ -2751,7 +2751,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
     size_t N = N_Xorder;
 
-    NormalModel model = NormalModel::NormalModel();
+    NormalModel model;
     if (N <= Ncutpoints + 1 + 2 * Nmin)
     {
         double n1tau;
