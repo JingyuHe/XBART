@@ -3119,6 +3119,7 @@ namespace swig {
 #include "abarth.h"
 
 
+
 #ifndef SWIG_FILE_WITH_INIT
 #define NO_IMPORT_ARRAY
 #endif
@@ -3438,13 +3439,6 @@ SWIGINTERNINLINE PyObject*
   SWIG_From_bool  (bool value)
 {
   return PyBool_FromLong(value ? 1 : 0);
-}
-
-
-SWIGINTERNINLINE PyObject*
-  SWIG_From_int  (int value)
-{
-  return PyInt_FromLong((long) value);
 }
 
 
@@ -3926,6 +3920,13 @@ SWIG_AsVal_int (PyObject * obj, int *val)
     }
   }  
   return res;
+}
+
+
+SWIGINTERNINLINE PyObject*
+  SWIG_From_int  (int value)
+{
+  return PyInt_FromLong((long) value);
 }
 
 #ifdef __cplusplus
@@ -4950,13 +4951,14 @@ SWIGINTERN PyObject *_wrap_new_Abarth__SWIG_1(PyObject *SWIGUNUSEDPARM(self), Py
   double arg8 ;
   size_t arg9 ;
   size_t arg10 ;
-  bool arg11 ;
-  double arg12 ;
+  size_t arg11 ;
+  bool arg12 ;
   double arg13 ;
-  bool arg14 ;
+  double arg14 ;
   bool arg15 ;
   bool arg16 ;
   bool arg17 ;
+  bool arg18 ;
   size_t val1 ;
   int ecode1 = 0 ;
   size_t val2 ;
@@ -4977,13 +4979,13 @@ SWIGINTERN PyObject *_wrap_new_Abarth__SWIG_1(PyObject *SWIGUNUSEDPARM(self), Py
   int ecode9 = 0 ;
   size_t val10 ;
   int ecode10 = 0 ;
-  bool val11 ;
+  size_t val11 ;
   int ecode11 = 0 ;
-  double val12 ;
+  bool val12 ;
   int ecode12 = 0 ;
   double val13 ;
   int ecode13 = 0 ;
-  bool val14 ;
+  double val14 ;
   int ecode14 = 0 ;
   bool val15 ;
   int ecode15 = 0 ;
@@ -4991,6 +4993,8 @@ SWIGINTERN PyObject *_wrap_new_Abarth__SWIG_1(PyObject *SWIGUNUSEDPARM(self), Py
   int ecode16 = 0 ;
   bool val17 ;
   int ecode17 = 0 ;
+  bool val18 ;
+  int ecode18 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -5008,9 +5012,10 @@ SWIGINTERN PyObject *_wrap_new_Abarth__SWIG_1(PyObject *SWIGUNUSEDPARM(self), Py
   PyObject * obj14 = 0 ;
   PyObject * obj15 = 0 ;
   PyObject * obj16 = 0 ;
+  PyObject * obj17 = 0 ;
   Abarth *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOOOOOO:new_Abarth",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13,&obj14,&obj15,&obj16)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOOOOOOO:new_Abarth",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13,&obj14,&obj15,&obj16,&obj17)) SWIG_fail;
   ecode1 = SWIG_AsVal_size_t(obj0, &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "new_Abarth" "', argument " "1"" of type '" "size_t""'");
@@ -5061,26 +5066,26 @@ SWIGINTERN PyObject *_wrap_new_Abarth__SWIG_1(PyObject *SWIGUNUSEDPARM(self), Py
     SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "new_Abarth" "', argument " "10"" of type '" "size_t""'");
   } 
   arg10 = static_cast< size_t >(val10);
-  ecode11 = SWIG_AsVal_bool(obj10, &val11);
+  ecode11 = SWIG_AsVal_size_t(obj10, &val11);
   if (!SWIG_IsOK(ecode11)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "new_Abarth" "', argument " "11"" of type '" "bool""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "new_Abarth" "', argument " "11"" of type '" "size_t""'");
   } 
-  arg11 = static_cast< bool >(val11);
-  ecode12 = SWIG_AsVal_double(obj11, &val12);
+  arg11 = static_cast< size_t >(val11);
+  ecode12 = SWIG_AsVal_bool(obj11, &val12);
   if (!SWIG_IsOK(ecode12)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "new_Abarth" "', argument " "12"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "new_Abarth" "', argument " "12"" of type '" "bool""'");
   } 
-  arg12 = static_cast< double >(val12);
+  arg12 = static_cast< bool >(val12);
   ecode13 = SWIG_AsVal_double(obj12, &val13);
   if (!SWIG_IsOK(ecode13)) {
     SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "new_Abarth" "', argument " "13"" of type '" "double""'");
   } 
   arg13 = static_cast< double >(val13);
-  ecode14 = SWIG_AsVal_bool(obj13, &val14);
+  ecode14 = SWIG_AsVal_double(obj13, &val14);
   if (!SWIG_IsOK(ecode14)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "new_Abarth" "', argument " "14"" of type '" "bool""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "new_Abarth" "', argument " "14"" of type '" "double""'");
   } 
-  arg14 = static_cast< bool >(val14);
+  arg14 = static_cast< double >(val14);
   ecode15 = SWIG_AsVal_bool(obj14, &val15);
   if (!SWIG_IsOK(ecode15)) {
     SWIG_exception_fail(SWIG_ArgError(ecode15), "in method '" "new_Abarth" "', argument " "15"" of type '" "bool""'");
@@ -5096,7 +5101,12 @@ SWIGINTERN PyObject *_wrap_new_Abarth__SWIG_1(PyObject *SWIGUNUSEDPARM(self), Py
     SWIG_exception_fail(SWIG_ArgError(ecode17), "in method '" "new_Abarth" "', argument " "17"" of type '" "bool""'");
   } 
   arg17 = static_cast< bool >(val17);
-  result = (Abarth *)new Abarth(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17);
+  ecode18 = SWIG_AsVal_bool(obj17, &val18);
+  if (!SWIG_IsOK(ecode18)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode18), "in method '" "new_Abarth" "', argument " "18"" of type '" "bool""'");
+  } 
+  arg18 = static_cast< bool >(val18);
+  result = (Abarth *)new Abarth(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_Abarth, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
@@ -5106,14 +5116,14 @@ fail:
 
 SWIGINTERN PyObject *_wrap_new_Abarth(PyObject *self, PyObject *args) {
   Py_ssize_t argc;
-  PyObject *argv[18] = {
+  PyObject *argv[19] = {
     0
   };
   Py_ssize_t ii;
   
   if (!PyTuple_Check(args)) SWIG_fail;
   argc = args ? PyObject_Length(args) : 0;
-  for (ii = 0; (ii < 17) && (ii < argc); ii++) {
+  for (ii = 0; (ii < 18) && (ii < argc); ii++) {
     argv[ii] = PyTuple_GET_ITEM(args,ii);
   }
   if (argc == 1) {
@@ -5124,7 +5134,7 @@ SWIGINTERN PyObject *_wrap_new_Abarth(PyObject *self, PyObject *args) {
       return _wrap_new_Abarth__SWIG_0(self, args);
     }
   }
-  if (argc == 17) {
+  if (argc == 18) {
     int _v;
     {
       int res = SWIG_AsVal_size_t(argv[0], NULL);
@@ -5177,12 +5187,12 @@ SWIGINTERN PyObject *_wrap_new_Abarth(PyObject *self, PyObject *args) {
                       }
                       if (_v) {
                         {
-                          int res = SWIG_AsVal_bool(argv[10], NULL);
+                          int res = SWIG_AsVal_size_t(argv[10], NULL);
                           _v = SWIG_CheckState(res);
                         }
                         if (_v) {
                           {
-                            int res = SWIG_AsVal_double(argv[11], NULL);
+                            int res = SWIG_AsVal_bool(argv[11], NULL);
                             _v = SWIG_CheckState(res);
                           }
                           if (_v) {
@@ -5192,7 +5202,7 @@ SWIGINTERN PyObject *_wrap_new_Abarth(PyObject *self, PyObject *args) {
                             }
                             if (_v) {
                               {
-                                int res = SWIG_AsVal_bool(argv[13], NULL);
+                                int res = SWIG_AsVal_double(argv[13], NULL);
                                 _v = SWIG_CheckState(res);
                               }
                               if (_v) {
@@ -5211,7 +5221,13 @@ SWIGINTERN PyObject *_wrap_new_Abarth(PyObject *self, PyObject *args) {
                                       _v = SWIG_CheckState(res);
                                     }
                                     if (_v) {
-                                      return _wrap_new_Abarth__SWIG_1(self, args);
+                                      {
+                                        int res = SWIG_AsVal_bool(argv[17], NULL);
+                                        _v = SWIG_CheckState(res);
+                                      }
+                                      if (_v) {
+                                        return _wrap_new_Abarth__SWIG_1(self, args);
+                                      }
                                     }
                                   }
                                 }
@@ -5235,232 +5251,12 @@ fail:
   SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'new_Abarth'.\n"
     "  Possible C/C++ prototypes are:\n"
     "    Abarth::Abarth(AbarthParams)\n"
-    "    Abarth::Abarth(size_t,size_t,size_t,size_t,size_t,double,double,double,size_t,size_t,bool,double,double,bool,bool,bool,bool)\n");
+    "    Abarth::Abarth(size_t,size_t,size_t,size_t,size_t,double,double,double,size_t,size_t,size_t,bool,double,double,bool,bool,bool,bool)\n");
   return 0;
 }
 
 
-SWIGINTERN PyObject *_wrap_delete_Abarth(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  Abarth *arg1 = (Abarth *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject * obj0 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"O:delete_Abarth",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, SWIG_POINTER_DISOWN |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_Abarth" "', argument " "1"" of type '" "Abarth *""'"); 
-  }
-  arg1 = reinterpret_cast< Abarth * >(argp1);
-  delete arg1;
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_Abarth_get_M(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  Abarth *arg1 = (Abarth *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject * obj0 = 0 ;
-  int result;
-  
-  if (!PyArg_ParseTuple(args,(char *)"O:Abarth_get_M",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth_get_M" "', argument " "1"" of type '" "Abarth *""'"); 
-  }
-  arg1 = reinterpret_cast< Abarth * >(argp1);
-  result = (int)(arg1)->get_M();
-  resultobj = SWIG_From_int(static_cast< int >(result));
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_Abarth_fit(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  Abarth *arg1 = (Abarth *) 0 ;
-  int arg2 ;
-  double *arg3 = (double *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyArrayObject *array2 = NULL ;
-  int is_new_object2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  double result;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:Abarth_fit",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth_fit" "', argument " "1"" of type '" "Abarth *""'"); 
-  }
-  arg1 = reinterpret_cast< Abarth * >(argp1);
-  {
-    npy_intp size[1] = {
-      -1
-    };
-    array2 = obj_to_array_contiguous_allow_conversion(obj1,
-      NPY_DOUBLE,
-      &is_new_object2);
-    if (!array2 || !require_dimensions(array2, 1) ||
-      !require_size(array2, size, 1)) SWIG_fail;
-    arg2 = (int) array_size(array2,0);
-    arg3 = (double*) array_data(array2);
-  }
-  result = (double)(arg1)->fit(arg2,arg3);
-  resultobj = SWIG_From_double(static_cast< double >(result));
-  {
-    if (is_new_object2 && array2)
-    {
-      Py_DECREF(array2); 
-    }
-  }
-  return resultobj;
-fail:
-  {
-    if (is_new_object2 && array2)
-    {
-      Py_DECREF(array2); 
-    }
-  }
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_Abarth_fit_x(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  Abarth *arg1 = (Abarth *) 0 ;
-  int arg2 ;
-  int arg3 ;
-  double *arg4 = (double *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyArrayObject *array2 = NULL ;
-  int is_new_object2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  double result;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:Abarth_fit_x",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth_fit_x" "', argument " "1"" of type '" "Abarth *""'"); 
-  }
-  arg1 = reinterpret_cast< Abarth * >(argp1);
-  {
-    npy_intp size[2] = {
-      -1, -1 
-    };
-    array2 = obj_to_array_contiguous_allow_conversion(obj1,
-      NPY_DOUBLE,
-      &is_new_object2);
-    if (!array2 || !require_dimensions(array2, 2) ||
-      !require_size(array2, size, 2)) SWIG_fail;
-    arg2 = (int) array_size(array2,0);
-    arg3 = (int) array_size(array2,1);
-    arg4 = (double*) array_data(array2);
-  }
-  result = (double)(arg1)->fit_x(arg2,arg3,arg4);
-  resultobj = SWIG_From_double(static_cast< double >(result));
-  {
-    if (is_new_object2 && array2)
-    {
-      Py_DECREF(array2); 
-    }
-  }
-  return resultobj;
-fail:
-  {
-    if (is_new_object2 && array2)
-    {
-      Py_DECREF(array2); 
-    }
-  }
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_Abarth_predict(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  Abarth *arg1 = (Abarth *) 0 ;
-  int arg2 ;
-  double *arg3 = (double *) 0 ;
-  int arg4 ;
-  double *arg5 = (double *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyArrayObject *array2 = NULL ;
-  int is_new_object2 = 0 ;
-  PyObject *array4 = NULL ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OOO:Abarth_predict",&obj0,&obj1,&obj2)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth_predict" "', argument " "1"" of type '" "Abarth *""'"); 
-  }
-  arg1 = reinterpret_cast< Abarth * >(argp1);
-  {
-    npy_intp size[1] = {
-      -1
-    };
-    array2 = obj_to_array_contiguous_allow_conversion(obj1,
-      NPY_DOUBLE,
-      &is_new_object2);
-    if (!array2 || !require_dimensions(array2, 1) ||
-      !require_size(array2, size, 1)) SWIG_fail;
-    arg2 = (int) array_size(array2,0);
-    arg3 = (double*) array_data(array2);
-  }
-  {
-    npy_intp dims[1];
-    if (!PyInt_Check(obj2))
-    {
-      const char* typestring = pytype_string(obj2);
-      PyErr_Format(PyExc_TypeError,
-        "Int dimension expected.  '%s' given.",
-        typestring);
-      SWIG_fail;
-    }
-    arg4 = (int) PyInt_AsLong(obj2);
-    dims[0] = (npy_intp) arg4;
-    array4 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    if (!array4) SWIG_fail;
-    arg5 = (double*) array_data(array4);
-  }
-  (arg1)->predict(arg2,arg3,arg4,arg5);
-  resultobj = SWIG_Py_Void();
-  {
-    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array4);
-  }
-  {
-    if (is_new_object2 && array2)
-    {
-      Py_DECREF(array2); 
-    }
-  }
-  return resultobj;
-fail:
-  {
-    if (is_new_object2 && array2)
-    {
-      Py_DECREF(array2); 
-    }
-  }
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_Abarth___predict_2d(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Abarth_sort_x(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   Abarth *arg1 = (Abarth *) 0 ;
   int arg2 ;
@@ -5477,10 +5273,10 @@ SWIGINTERN PyObject *_wrap_Abarth___predict_2d(PyObject *SWIGUNUSEDPARM(self), P
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOO:Abarth___predict_2d",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOO:Abarth_sort_x",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth___predict_2d" "', argument " "1"" of type '" "Abarth *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth_sort_x" "', argument " "1"" of type '" "Abarth *""'"); 
   }
   arg1 = reinterpret_cast< Abarth * >(argp1);
   {
@@ -5512,7 +5308,7 @@ SWIGINTERN PyObject *_wrap_Abarth___predict_2d(PyObject *SWIGUNUSEDPARM(self), P
     if (!array5) SWIG_fail;
     arg6 = (double*) array_data(array5);
   }
-  (arg1)->__predict_2d(arg2,arg3,arg4,arg5,arg6);
+  (arg1)->sort_x(arg2,arg3,arg4,arg5,arg6);
   resultobj = SWIG_Py_Void();
   {
     resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array5);
@@ -5535,7 +5331,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_Abarth_fit_predict(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Abarth___fit_predict(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   Abarth *arg1 = (Abarth *) 0 ;
   int arg2 ;
@@ -5563,10 +5359,10 @@ SWIGINTERN PyObject *_wrap_Abarth_fit_predict(PyObject *SWIGUNUSEDPARM(self), Py
   PyObject * obj3 = 0 ;
   PyObject * obj4 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOO:Abarth_fit_predict",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:Abarth___fit_predict",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth_fit_predict" "', argument " "1"" of type '" "Abarth *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth___fit_predict" "', argument " "1"" of type '" "Abarth *""'"); 
   }
   arg1 = reinterpret_cast< Abarth * >(argp1);
   {
@@ -5623,7 +5419,7 @@ SWIGINTERN PyObject *_wrap_Abarth_fit_predict(PyObject *SWIGUNUSEDPARM(self), Py
     if (!array10) SWIG_fail;
     arg11 = (double*) array_data(array10);
   }
-  (arg1)->fit_predict(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
+  (arg1)->__fit_predict(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
   resultobj = SWIG_Py_Void();
   {
     resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array10);
@@ -5666,6 +5462,576 @@ fail:
       Py_DECREF(array7); 
     }
   }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Abarth___fit_predict_all(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Abarth *arg1 = (Abarth *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  double *arg4 = (double *) 0 ;
+  int arg5 ;
+  double *arg6 = (double *) 0 ;
+  int arg7 ;
+  int arg8 ;
+  double *arg9 = (double *) 0 ;
+  int arg10 ;
+  double *arg11 = (double *) 0 ;
+  size_t arg12 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyArrayObject *array2 = NULL ;
+  int is_new_object2 = 0 ;
+  PyArrayObject *array5 = NULL ;
+  int is_new_object5 = 0 ;
+  PyArrayObject *array7 = NULL ;
+  int is_new_object7 = 0 ;
+  PyObject *array10 = NULL ;
+  size_t val12 ;
+  int ecode12 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:Abarth___fit_predict_all",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth___fit_predict_all" "', argument " "1"" of type '" "Abarth *""'"); 
+  }
+  arg1 = reinterpret_cast< Abarth * >(argp1);
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array2 = obj_to_array_contiguous_allow_conversion(obj1,
+      NPY_DOUBLE,
+      &is_new_object2);
+    if (!array2 || !require_dimensions(array2, 2) ||
+      !require_size(array2, size, 2)) SWIG_fail;
+    arg2 = (int) array_size(array2,0);
+    arg3 = (int) array_size(array2,1);
+    arg4 = (double*) array_data(array2);
+  }
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array5 = obj_to_array_contiguous_allow_conversion(obj2,
+      NPY_DOUBLE,
+      &is_new_object5);
+    if (!array5 || !require_dimensions(array5, 1) ||
+      !require_size(array5, size, 1)) SWIG_fail;
+    arg5 = (int) array_size(array5,0);
+    arg6 = (double*) array_data(array5);
+  }
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array7 = obj_to_array_contiguous_allow_conversion(obj3,
+      NPY_DOUBLE,
+      &is_new_object7);
+    if (!array7 || !require_dimensions(array7, 2) ||
+      !require_size(array7, size, 2)) SWIG_fail;
+    arg7 = (int) array_size(array7,0);
+    arg8 = (int) array_size(array7,1);
+    arg9 = (double*) array_data(array7);
+  }
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(obj4))
+    {
+      const char* typestring = pytype_string(obj4);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg10 = (int) PyInt_AsLong(obj4);
+    dims[0] = (npy_intp) arg10;
+    array10 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array10) SWIG_fail;
+    arg11 = (double*) array_data(array10);
+  }
+  ecode12 = SWIG_AsVal_size_t(obj5, &val12);
+  if (!SWIG_IsOK(ecode12)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "Abarth___fit_predict_all" "', argument " "12"" of type '" "size_t""'");
+  } 
+  arg12 = static_cast< size_t >(val12);
+  (arg1)->__fit_predict_all(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array10);
+  }
+  {
+    if (is_new_object2 && array2)
+    {
+      Py_DECREF(array2); 
+    }
+  }
+  {
+    if (is_new_object5 && array5)
+    {
+      Py_DECREF(array5); 
+    }
+  }
+  {
+    if (is_new_object7 && array7)
+    {
+      Py_DECREF(array7); 
+    }
+  }
+  return resultobj;
+fail:
+  {
+    if (is_new_object2 && array2)
+    {
+      Py_DECREF(array2); 
+    }
+  }
+  {
+    if (is_new_object5 && array5)
+    {
+      Py_DECREF(array5); 
+    }
+  }
+  {
+    if (is_new_object7 && array7)
+    {
+      Py_DECREF(array7); 
+    }
+  }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Abarth___predict_all(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Abarth *arg1 = (Abarth *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  double *arg4 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyArrayObject *array2 = NULL ;
+  int is_new_object2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Abarth___predict_all",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth___predict_all" "', argument " "1"" of type '" "Abarth *""'"); 
+  }
+  arg1 = reinterpret_cast< Abarth * >(argp1);
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array2 = obj_to_array_contiguous_allow_conversion(obj1,
+      NPY_DOUBLE,
+      &is_new_object2);
+    if (!array2 || !require_dimensions(array2, 2) ||
+      !require_size(array2, size, 2)) SWIG_fail;
+    arg2 = (int) array_size(array2,0);
+    arg3 = (int) array_size(array2,1);
+    arg4 = (double*) array_data(array2);
+  }
+  (arg1)->__predict_all(arg2,arg3,arg4);
+  resultobj = SWIG_Py_Void();
+  {
+    if (is_new_object2 && array2)
+    {
+      Py_DECREF(array2); 
+    }
+  }
+  return resultobj;
+fail:
+  {
+    if (is_new_object2 && array2)
+    {
+      Py_DECREF(array2); 
+    }
+  }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Abarth___fit_all(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Abarth *arg1 = (Abarth *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  double *arg4 = (double *) 0 ;
+  int arg5 ;
+  double *arg6 = (double *) 0 ;
+  size_t arg7 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyArrayObject *array2 = NULL ;
+  int is_new_object2 = 0 ;
+  PyArrayObject *array5 = NULL ;
+  int is_new_object5 = 0 ;
+  size_t val7 ;
+  int ecode7 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:Abarth___fit_all",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth___fit_all" "', argument " "1"" of type '" "Abarth *""'"); 
+  }
+  arg1 = reinterpret_cast< Abarth * >(argp1);
+  {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array2 = obj_to_array_contiguous_allow_conversion(obj1,
+      NPY_DOUBLE,
+      &is_new_object2);
+    if (!array2 || !require_dimensions(array2, 2) ||
+      !require_size(array2, size, 2)) SWIG_fail;
+    arg2 = (int) array_size(array2,0);
+    arg3 = (int) array_size(array2,1);
+    arg4 = (double*) array_data(array2);
+  }
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array5 = obj_to_array_contiguous_allow_conversion(obj2,
+      NPY_DOUBLE,
+      &is_new_object5);
+    if (!array5 || !require_dimensions(array5, 1) ||
+      !require_size(array5, size, 1)) SWIG_fail;
+    arg5 = (int) array_size(array5,0);
+    arg6 = (double*) array_data(array5);
+  }
+  ecode7 = SWIG_AsVal_size_t(obj3, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Abarth___fit_all" "', argument " "7"" of type '" "size_t""'");
+  } 
+  arg7 = static_cast< size_t >(val7);
+  (arg1)->__fit_all(arg2,arg3,arg4,arg5,arg6,arg7);
+  resultobj = SWIG_Py_Void();
+  {
+    if (is_new_object2 && array2)
+    {
+      Py_DECREF(array2); 
+    }
+  }
+  {
+    if (is_new_object5 && array5)
+    {
+      Py_DECREF(array5); 
+    }
+  }
+  return resultobj;
+fail:
+  {
+    if (is_new_object2 && array2)
+    {
+      Py_DECREF(array2); 
+    }
+  }
+  {
+    if (is_new_object5 && array5)
+    {
+      Py_DECREF(array5); 
+    }
+  }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Abarth_get_M(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Abarth *arg1 = (Abarth *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Abarth_get_M",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth_get_M" "', argument " "1"" of type '" "Abarth *""'"); 
+  }
+  arg1 = reinterpret_cast< Abarth * >(argp1);
+  result = (int)(arg1)->get_M();
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Abarth_get_N_sweeps(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Abarth *arg1 = (Abarth *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Abarth_get_N_sweeps",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth_get_N_sweeps" "', argument " "1"" of type '" "Abarth *""'"); 
+  }
+  arg1 = reinterpret_cast< Abarth * >(argp1);
+  result = (int)(arg1)->get_N_sweeps();
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Abarth_get_burnin(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Abarth *arg1 = (Abarth *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Abarth_get_burnin",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth_get_burnin" "', argument " "1"" of type '" "Abarth *""'"); 
+  }
+  arg1 = reinterpret_cast< Abarth * >(argp1);
+  result = (int)(arg1)->get_burnin();
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Abarth_get_yhats(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Abarth *arg1 = (Abarth *) 0 ;
+  int arg2 ;
+  double *arg3 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *array2 = NULL ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Abarth_get_yhats",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth_get_yhats" "', argument " "1"" of type '" "Abarth *""'"); 
+  }
+  arg1 = reinterpret_cast< Abarth * >(argp1);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(obj1))
+    {
+      const char* typestring = pytype_string(obj1);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg2 = (int) PyInt_AsLong(obj1);
+    dims[0] = (npy_intp) arg2;
+    array2 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array2) SWIG_fail;
+    arg3 = (double*) array_data(array2);
+  }
+  (arg1)->get_yhats(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array2);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Abarth_get_yhats_test(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Abarth *arg1 = (Abarth *) 0 ;
+  int arg2 ;
+  double *arg3 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *array2 = NULL ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Abarth_get_yhats_test",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth_get_yhats_test" "', argument " "1"" of type '" "Abarth *""'"); 
+  }
+  arg1 = reinterpret_cast< Abarth * >(argp1);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(obj1))
+    {
+      const char* typestring = pytype_string(obj1);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg2 = (int) PyInt_AsLong(obj1);
+    dims[0] = (npy_intp) arg2;
+    array2 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array2) SWIG_fail;
+    arg3 = (double*) array_data(array2);
+  }
+  (arg1)->get_yhats_test(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array2);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Abarth_get_sigma_draw(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Abarth *arg1 = (Abarth *) 0 ;
+  int arg2 ;
+  double *arg3 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *array2 = NULL ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Abarth_get_sigma_draw",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth_get_sigma_draw" "', argument " "1"" of type '" "Abarth *""'"); 
+  }
+  arg1 = reinterpret_cast< Abarth * >(argp1);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(obj1))
+    {
+      const char* typestring = pytype_string(obj1);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg2 = (int) PyInt_AsLong(obj1);
+    dims[0] = (npy_intp) arg2;
+    array2 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array2) SWIG_fail;
+    arg3 = (double*) array_data(array2);
+  }
+  (arg1)->get_sigma_draw(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array2);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Abarth_get_importance(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Abarth *arg1 = (Abarth *) 0 ;
+  int arg2 ;
+  double *arg3 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *array2 = NULL ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Abarth_get_importance",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth_get_importance" "', argument " "1"" of type '" "Abarth *""'"); 
+  }
+  arg1 = reinterpret_cast< Abarth * >(argp1);
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(obj1))
+    {
+      const char* typestring = pytype_string(obj1);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg2 = (int) PyInt_AsLong(obj1);
+    dims[0] = (npy_intp) arg2;
+    array2 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array2) SWIG_fail;
+    arg3 = (double*) array_data(array2);
+  }
+  (arg1)->get_importance(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array2);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Abarth_test_random_generator(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Abarth *arg1 = (Abarth *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:Abarth_test_random_generator",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Abarth_test_random_generator" "', argument " "1"" of type '" "Abarth *""'"); 
+  }
+  arg1 = reinterpret_cast< Abarth * >(argp1);
+  (arg1)->test_random_generator();
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_delete_Abarth(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  Abarth *arg1 = (Abarth *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_Abarth",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_Abarth, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_Abarth" "', argument " "1"" of type '" "Abarth *""'"); 
+  }
+  arg1 = reinterpret_cast< Abarth * >(argp1);
+  delete arg1;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
   return NULL;
 }
 
@@ -5719,13 +6085,20 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"delete_AbarthParams", _wrap_delete_AbarthParams, METH_VARARGS, NULL},
 	 { (char *)"AbarthParams_swigregister", AbarthParams_swigregister, METH_VARARGS, NULL},
 	 { (char *)"new_Abarth", _wrap_new_Abarth, METH_VARARGS, NULL},
-	 { (char *)"delete_Abarth", _wrap_delete_Abarth, METH_VARARGS, NULL},
+	 { (char *)"Abarth_sort_x", _wrap_Abarth_sort_x, METH_VARARGS, NULL},
+	 { (char *)"Abarth___fit_predict", _wrap_Abarth___fit_predict, METH_VARARGS, NULL},
+	 { (char *)"Abarth___fit_predict_all", _wrap_Abarth___fit_predict_all, METH_VARARGS, NULL},
+	 { (char *)"Abarth___predict_all", _wrap_Abarth___predict_all, METH_VARARGS, NULL},
+	 { (char *)"Abarth___fit_all", _wrap_Abarth___fit_all, METH_VARARGS, NULL},
 	 { (char *)"Abarth_get_M", _wrap_Abarth_get_M, METH_VARARGS, NULL},
-	 { (char *)"Abarth_fit", _wrap_Abarth_fit, METH_VARARGS, NULL},
-	 { (char *)"Abarth_fit_x", _wrap_Abarth_fit_x, METH_VARARGS, NULL},
-	 { (char *)"Abarth_predict", _wrap_Abarth_predict, METH_VARARGS, NULL},
-	 { (char *)"Abarth___predict_2d", _wrap_Abarth___predict_2d, METH_VARARGS, NULL},
-	 { (char *)"Abarth_fit_predict", _wrap_Abarth_fit_predict, METH_VARARGS, NULL},
+	 { (char *)"Abarth_get_N_sweeps", _wrap_Abarth_get_N_sweeps, METH_VARARGS, NULL},
+	 { (char *)"Abarth_get_burnin", _wrap_Abarth_get_burnin, METH_VARARGS, NULL},
+	 { (char *)"Abarth_get_yhats", _wrap_Abarth_get_yhats, METH_VARARGS, NULL},
+	 { (char *)"Abarth_get_yhats_test", _wrap_Abarth_get_yhats_test, METH_VARARGS, NULL},
+	 { (char *)"Abarth_get_sigma_draw", _wrap_Abarth_get_sigma_draw, METH_VARARGS, NULL},
+	 { (char *)"Abarth_get_importance", _wrap_Abarth_get_importance, METH_VARARGS, NULL},
+	 { (char *)"Abarth_test_random_generator", _wrap_Abarth_test_random_generator, METH_VARARGS, NULL},
+	 { (char *)"delete_Abarth", _wrap_delete_Abarth, METH_VARARGS, NULL},
 	 { (char *)"Abarth_swigregister", Abarth_swigregister, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }
 };

@@ -1,8 +1,11 @@
 %module abarth
 
+
+
 %{
 #define SWIG_FILE_WITH_INIT
 #include "abarth.h"
+
 %}
 
 %include "numpy.i"
@@ -31,9 +34,9 @@ def __convert_params_check_types(self,params):
     DEFAULT_PARAMS = OrderedDict([('M',200),('L',1),("N_sweeps",40)
                         ,("Nmin",1),("Ncutpoints",100) # CHANGE
                         ,("alpha",0.95),("beta",1.25 ),("tau",0.3),# CHANGE
-                        ("burnin",15),("max_depth_num",250),
-                        ("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",False),
-                        ("draw_mu",False),("parallel",False)])
+                        ("burnin",15),("mtry",2),("max_depth_num",250), # CHANGE
+                        ("draw_sigma",False),("kap",16),("s",4),("verbose",False),
+                        ("m_update_sigma",True), ("draw_mu",True),("parallel",False)])
 
     list_params = []
     for key,value in DEFAULT_PARAMS.items():
@@ -82,7 +85,36 @@ def predict_2d(self,x):
 	x_pred = self.__predict_2d(x,x.shape[0]*x.shape[1])
 	return x_pred.reshape(x.shape)
 %}
+%pythoncode %{
+def fit_predict_2d(self,x,y,x_test):
+    x_pred = self.__fit_predict(x,y,x_test,y.shape[0])
+    yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0]).reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
+    return yhats_test
+%}
+%pythoncode %{
+def fit_predict(self,x,y,x_test,p_cat=0):
+    x_pred = self.__fit_predict_all(x,y,x_test,y.shape[0],p_cat)
+    yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0]).reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
+
+    this.importance = self.get_importance(x.shape[1])
+    return yhats_test
+%}
+%pythoncode %{
+def predict(self,x_test):
+    x_pred = self.__predict_all(x_test)
+    yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0])
+    yhats_test = yhats_test.reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
+    return yhats_test
+%}
+%pythoncode %{
+def fit(self,x,y,p_cat=0):
+    return self.__fit_all(x,y,p_cat)
+%}
+
 };
 
 %include "abarth.h"
+
+
+
 

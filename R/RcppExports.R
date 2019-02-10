@@ -9,20 +9,9 @@ predict_tree_std <- function(trees, Xnew) {
     .Call(`_abarth_predict_tree_std`, trees, Xnew)
 }
 
-sample_int_crank <- function(n, size, prob) {
-    .Call(`_abarth_sample_int_crank`, n, size, prob)
-}
 
 sample_int_ccrank <- function(n, size, prob) {
     .Call(`_abarth_sample_int_ccrank`, n, size, prob)
-}
-
-sample_int_expj <- function(n, size, prob) {
-    .Call(`_abarth_sample_int_expj`, n, size, prob)
-}
-
-sample_int_expjs <- function(n, size, prob) {
-    .Call(`_abarth_sample_int_expjs`, n, size, prob)
 }
 
 train_forest_root_std_all <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, p_categorical = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE) {
@@ -37,3 +26,10 @@ train_forest_root_std_mtrywithinnode_ordinal <- function(y, X, Xtest, M, L, N_sw
     .Call(`_abarth_train_forest_root_std_mtrywithinnode_ordinal`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel)
 }
 
+abarth_train <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE) {
+    .Call(`_abarth_train`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel)
+}
+
+abarth_train_all <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, p_categorical = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE) {
+    .Call(`_abarth_train_all`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel)
+}

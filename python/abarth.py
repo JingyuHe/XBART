@@ -201,26 +201,45 @@ class Abarth(_object):
             self.this.append(this)
         except __builtin__.Exception:
             self.this = this
-    __swig_destroy__ = _abarth.delete_Abarth
-    __del__ = lambda self: None
 
-    def get_M(self):
+    def sort_x(self, n: 'int', size: 'int') -> "void":
+        return _abarth.Abarth_sort_x(self, n, size)
+
+    def __fit_predict(self, n: 'int', n_y: 'int', n_test: 'int', size: 'int') -> "void":
+        return _abarth.Abarth___fit_predict(self, n, n_y, n_test, size)
+
+    def __fit_predict_all(self, n: 'int', n_y: 'int', n_test: 'int', size: 'int', p_cat: 'size_t') -> "void":
+        return _abarth.Abarth___fit_predict_all(self, n, n_y, n_test, size, p_cat)
+
+    def __predict_all(self, n: 'int') -> "void":
+        return _abarth.Abarth___predict_all(self, n)
+
+    def __fit_all(self, n: 'int', n_y: 'int', p_cat: 'size_t') -> "void":
+        return _abarth.Abarth___fit_all(self, n, n_y, p_cat)
+
+    def get_M(self) -> "int":
         return _abarth.Abarth_get_M(self)
 
-    def fit(self, n):
-        return _abarth.Abarth_fit(self, n)
+    def get_N_sweeps(self) -> "int":
+        return _abarth.Abarth_get_N_sweeps(self)
 
-    def fit_x(self, n):
-        return _abarth.Abarth_fit_x(self, n)
+    def get_burnin(self) -> "int":
+        return _abarth.Abarth_get_burnin(self)
 
-    def predict(self, n, size):
-        return _abarth.Abarth_predict(self, n, size)
+    def get_yhats(self, size: 'int') -> "void":
+        return _abarth.Abarth_get_yhats(self, size)
 
-    def __predict_2d(self, n, size):
-        return _abarth.Abarth___predict_2d(self, n, size)
+    def get_yhats_test(self, size: 'int') -> "void":
+        return _abarth.Abarth_get_yhats_test(self, size)
 
-    def fit_predict(self, n, n_y, n_test, size):
-        return _abarth.Abarth_fit_predict(self, n, n_y, n_test, size)
+    def get_sigma_draw(self, size: 'int') -> "void":
+        return _abarth.Abarth_get_sigma_draw(self, size)
+
+    def get_importance(self, size: 'int') -> "void":
+        return _abarth.Abarth_get_importance(self, size)
+
+    def test_random_generator(self) -> "void":
+        return _abarth.Abarth_test_random_generator(self)
 
     def __convert_params_check_types(self,params):
     ### This function converts params to list and 
@@ -231,9 +250,9 @@ class Abarth(_object):
         DEFAULT_PARAMS = OrderedDict([('M',200),('L',1),("N_sweeps",40)
                             ,("Nmin",1),("Ncutpoints",100) # CHANGE
                             ,("alpha",0.95),("beta",1.25 ),("tau",0.3),# CHANGE
-                            ("burnin",15),("max_depth_num",250),
-                            ("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",False),
-                            ("draw_mu",False),("parallel",False)])
+                            ("burnin",15),("mtry",2),("max_depth_num",250), # CHANGE
+                            ("draw_sigma",False),("kap",16),("s",4),("verbose",False),
+                            ("m_update_sigma",True), ("draw_mu",True),("parallel",False)])
 
         list_params = []
         for key,value in DEFAULT_PARAMS.items():
@@ -282,6 +301,33 @@ class Abarth(_object):
     	x_pred = self.__predict_2d(x,x.shape[0]*x.shape[1])
     	return x_pred.reshape(x.shape)
 
+
+    def fit_predict_2d(self,x,y,x_test):
+        x_pred = self.__fit_predict(x,y,x_test,y.shape[0])
+        yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0]).reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
+        return yhats_test
+
+
+    def fit_predict(self,x,y,x_test,p_cat=0):
+        x_pred = self.__fit_predict_all(x,y,x_test,y.shape[0],p_cat)
+        yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0]).reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
+
+        this.importance = self.get_importance(x.shape[1])
+        return yhats_test
+
+
+    def predict(self,x_test):
+        x_pred = self.__predict_all(x_test)
+        yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0])
+        yhats_test = yhats_test.reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
+        return yhats_test
+
+
+    def fit(self,x,y,p_cat=0):
+        return self.__fit_all(x,y,p_cat)
+
+    __swig_destroy__ = _abarth.delete_Abarth
+    __del__ = lambda self: None
 Abarth_swigregister = _abarth.Abarth_swigregister
 Abarth_swigregister(Abarth)
 

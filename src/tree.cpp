@@ -1,3 +1,4 @@
+
 /*
  *  BART: Bayesian Additive Regression Trees
  *  Copyright (C) 2017 Robert McCulloch and Rodney Sparapani
@@ -19,7 +20,7 @@
 
 #include "tree.h"
 #include "treefuns.h"
-#include <RcppArmadilloExtensions/sample.h>
+// #include <RcppArmadilloExtensions/sample.h>
 #include <chrono>
 
 
@@ -319,28 +320,28 @@ tree::tree_p tree::bn_std(double *x)
     }
 }
 
-tree::tree_p tree::search_bottom(arma::mat &Xnew, const size_t &i)
-{
+// tree::tree_p tree::search_bottom(arma::mat &Xnew, const size_t &i)
+// {
 
-    // v is variable to split, c is raw value
-    // not index in xinfo, so compare x[v] with c directly
-    // only look at the i-th row
+//     // v is variable to split, c is raw value
+//     // not index in xinfo, so compare x[v] with c directly
+//     // only look at the i-th row
 
-    if (l == 0)
-    {
-        return this;
-    } // no children
-    if (arma::as_scalar(Xnew(i, v)) <= c)
-    {
+//     if (l == 0)
+//     {
+//         return this;
+//     } // no children
+//     if (arma::as_scalar(Xnew(i, v)) <= c)
+//     {
 
-        return l->search_bottom(Xnew, i); // if smaller or equal cut point, go to left node
-    }
-    else
-    {
+//         return l->search_bottom(Xnew, i); // if smaller or equal cut point, go to left node
+//     }
+//     else
+//     {
 
-        return r->search_bottom(Xnew, i);
-    }
-}
+//         return r->search_bottom(Xnew, i);
+//     }
+// }
 
 tree::tree_p tree::search_bottom_std(const double *X, const size_t &i, const size_t &p, const size_t &N)
 {
@@ -362,37 +363,37 @@ tree::tree_p tree::search_bottom_std(const double *X, const size_t &i, const siz
     }
 }
 
-tree::tree_p tree::search_bottom_test(arma::mat &Xnew, const size_t &i, const double *X_std, const size_t &p, const size_t &N)
-{
+// tree::tree_p tree::search_bottom_test(arma::mat &Xnew, const size_t &i, const double *X_std, const size_t &p, const size_t &N)
+// {
 
-    // v is variable to split, c is raw value
-    // not index in xinfo, so compare x[v] with c directly
-    // only look at the i-th row
+//     // v is variable to split, c is raw value
+//     // not index in xinfo, so compare x[v] with c directly
+//     // only look at the i-th row
 
-    if (l == 0)
-    {
-        return this;
-    } // no children){
+//     if (l == 0)
+//     {
+//         return this;
+//     } // no children){
 
-    // v is variable to split, c is raw value
-    // not index in xinfo, so compare x[v] with c directly
-    // only look at the i-th row
+//     // v is variable to split, c is raw value
+//     // not index in xinfo, so compare x[v] with c directly
+//     // only look at the i-th row
 
-    if (l == 0)
-    {
-        return this;
-    } // no children
-    if (arma::as_scalar(Xnew(i, v)) <= c)
-    {
+//     if (l == 0)
+//     {
+//         return this;
+//     } // no children
+//     if (arma::as_scalar(Xnew(i, v)) <= c)
+//     {
 
-        return l->search_bottom(Xnew, i); // if smaller or equal cut point, go to left node
-    }
-    else
-    {
+//         return l->search_bottom(Xnew, i); // if smaller or equal cut point, go to left node
+//     }
+//     else
+//     {
 
-        return r->search_bottom(Xnew, i);
-    }
-}
+//         return r->search_bottom(Xnew, i);
+//     }
+// }
 
 //--------------------
 //find region for a given variable
@@ -619,17 +620,17 @@ void cumulative_sum_std(std::vector<double> &y_cumsum, std::vector<double> &y_cu
     return;
 }
 
-arma::uvec range(size_t start, size_t end)
-{
-    // generate integers from start to end
-    size_t N = end - start;
-    arma::uvec output(N);
-    for (size_t i = 0; i < N; i++)
-    {
-        output(i) = start + i;
-    }
-    return output;
-}
+// arma::uvec range(size_t start, size_t end)
+// {
+//     // generate integers from start to end
+//     size_t N = end - start;
+//     arma::uvec output(N);
+//     for (size_t i = 0; i < N; i++)
+//     {
+//         output(i) = start + i;
+//     }
+//     return output;
+// }
 
 
 void tree::grow_tree_adaptive_abarth_train(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, bool &use_all, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree)
@@ -700,9 +701,28 @@ void tree::grow_tree_adaptive_abarth_train(double y_mean, size_t depth, size_t m
     else
     {
         // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+       // std::vector<double> v_float = sample_int_ccrank(p, mtry, mtry_weight_current_tree); 
+       // std::vector<size_t> v_int(v_float.begin(), v_float.end());
+       // subset_vars = v_int; // index start from 0
 
-       subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
-       subset_vars = subset_vars; // index start from 0
+        // Use C Crank
+        std::vector<double> v_float = sample_int_ccrank(p, mtry, mtry_weight_current_tree); 
+
+        // Convert to 0 indexing
+        transform(v_float.begin(), v_float.end(), v_float.begin(),
+        bind2nd(std::plus<double>(), -1.0));   
+
+        // Cast as size_t
+        std::vector<size_t> v_int(v_float.begin() , v_float.end() );
+        subset_vars = v_int; // index start from 0
+
+
+       // subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
+
+        //TEMP ------------------------
+        // subset_vars.resize(p);
+        // std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
+       
     }
     BART_likelihood_adaptive_std_mtry_old(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars);
 
@@ -847,8 +867,23 @@ void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, si
     {
         // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
         // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, mtry_weight_current_tree));
-        subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
-        subset_vars = subset_vars; // index start from 0
+
+        // Get Vector
+        std::vector<double> v_float = sample_int_ccrank(p, mtry, mtry_weight_current_tree); 
+
+        // Convert to 0 indexing
+        transform(v_float.begin(), v_float.end(), v_float.begin(),
+        bind2nd(std::plus<double>(), -1.0));   
+
+        // Cast as size_t
+        std::vector<size_t> v_int(v_float.begin() , v_float.end() );
+        subset_vars = v_int; // index start from 0
+        
+
+        // // //Change
+        // subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
+        // subset_vars = subset_vars; // index start from 0
+
     }
     BART_likelihood_adaptive_std_mtry_old(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars);
 
@@ -929,9 +964,12 @@ void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, si
 }
 
 
-
-
-void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, bool &categorical_variables, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique)
+void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, 
+    xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, bool &use_all, xinfo &split_count_all_tree, 
+    std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, 
+    bool &categorical_variables, size_t &p_categorical, 
+    size_t &p_continuous, std::vector<double> &X_values,//std::vector<size_t> &X_values, 
+    std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique)
 {
 
     // grow a tree, users can control number of split points
@@ -959,20 +997,10 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     // set up random device
 
     std::default_random_engine generator;
-    std::normal_distribution<double> normal_samp(0.0, 1.0);
+    NormalModel model;
 
-    if (draw_mu == true)
-    {
-
-        this->theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2))) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-        this->theta_noise = this->theta;
-    }
-    else
-    {
-
-        this->theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2));
-        this->theta_noise = this->theta; // identical to theta
-    }
+    model.samplePars( draw_mu, y_mean, N_Xorder, sigma, tau, generator, 
+                      this->theta,  this->theta_noise);
 
     if (draw_sigma == true)
     {
@@ -1000,14 +1028,30 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     }
     else
     {
+        std::vector<double> v_float = sample_int_ccrank(p, mtry, mtry_weight_current_tree); 
+
+        // Convert to 0 indexing
+        transform(v_float.begin(), v_float.end(), v_float.begin(),
+        bind2nd(std::plus<double>(), -1.0));   
+
+        // Cast as size_t
+        std::vector<size_t> v_int(v_float.begin() , v_float.end() );
+        subset_vars = v_int; // index start from 0
         
-        subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
+        // // Change
+        // subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
+
+
+        // //TEMP ------------------------
+        // subset_vars.resize(p);
+        // std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
     }
 
 
  //   cout << "begin calculating likelihood" << endl;
 
-    BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique);
+    BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, 
+        split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique,model);
 
 
 //    cout << "split var " << split_var << "  split point " << split_point << " no split " << no_split << endl;
@@ -1101,7 +1145,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
 
 
-void tree::grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique)
+void tree::grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique)
 {
 
     // grow a tree, users can control number of split points
@@ -1167,18 +1211,27 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size
         std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
     }
     else
-    {
-        // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+    {   
 
-        // TEMP ADDED
-        // Rcpp::NumericVector mtry_rcpp(mtry_weight_current_tree.size(),0.0);
-        // for(int i=0;i<mtry_weight_current_tree.size();i++){
-        //     mtry_rcpp[i] = mtry_weight_current_tree[i];
-        // }
+        // Use C Crank
+        std::vector<double> v_float = sample_int_ccrank(p, mtry, mtry_weight_current_tree); 
+
+        // Convert to 0 indexing
+        transform(v_float.begin(), v_float.end(), v_float.begin(),
+        bind2nd(std::plus<double>(), -1.0));   
+
+        // Cast as size_t
+        std::vector<size_t> v_int(v_float.begin() , v_float.end() );
+        subset_vars = v_int; // index start from 0
 
 
-        // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, mtry_weight_current_tree));
-        subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
+        // //Change
+        // subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
+
+        // TEMP --------------------
+
+        // subset_vars.resize(p);
+        // std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
 
     }
     BART_likelihood_adaptive_std_mtry_old_categorical(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, X_values, X_counts, variable_ind, X_num_unique);
@@ -1393,7 +1446,7 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
     return;
 }
 
-void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, std::vector<size_t> &X_values, std::vector<size_t> &variable_ind)
+void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, std::vector<double> &X_values, std::vector<size_t> &variable_ind)
 {
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
@@ -2046,7 +2099,7 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double> &y_
 
     loglike[loglike.size() - 1] = 0.0;
 
-
+    NormalModel model;
     calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p, Ncutpoints, tau, sigma2, loglike_max);
 
 
@@ -2299,7 +2352,7 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double> &y_
 
 
 
-void BART_likelihood_adaptive_std_mtry_old_categorical(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique)
+void BART_likelihood_adaptive_std_mtry_old_categorical(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique)
 {
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
@@ -2394,7 +2447,12 @@ void BART_likelihood_adaptive_std_mtry_old_categorical(double y_sum, std::vector
 
 
 
-void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique)
+void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, 
+    const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, 
+    size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, 
+    size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, 
+    size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values,//std::vector<size_t> &X_values, 
+    std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model &model)
 {
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
@@ -2592,7 +2650,7 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
 }
 
 
-void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique)
+void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique)
 {
     size_t N = Xorder_std[0].size();
     size_t p = Xorder_std.size();
@@ -2635,7 +2693,8 @@ void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, std::ve
 
 
 
-void unique_value_count2(const double *Xpointer, xinfo_sizet &Xorder_std, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique, size_t &p_categorical, size_t &p_continuous)
+void unique_value_count2(const double *Xpointer, xinfo_sizet &Xorder_std, //std::vector<size_t> &X_values, 
+    std::vector<double> &X_values,std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique, size_t &p_categorical, size_t &p_continuous)
 {
     size_t N = Xorder_std[0].size();
     size_t p = Xorder_std.size();
@@ -2681,13 +2740,18 @@ void unique_value_count2(const double *Xpointer, xinfo_sizet &Xorder_std, std::v
 
 
 
+double likelihood(double value,double tau,double ntau,double sigma2){
+    //return 0.0;
+   return -0.5 * log(ntau + sigma2)  + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
 
+}
 
 void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &Nmin, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max){
 
+
     size_t N = N_Xorder;
 
-
+    NormalModel model;
     if (N <= Ncutpoints + 1 + 2 * Nmin)
     {
         double n1tau;
@@ -2712,7 +2776,9 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     n1tau = (j + 1) * tau; // number of points on left side (x <= cutpoint)
                     n2tau = Ntau - n1tau;  // number of points on right side (x > cutpoint)
 
-                    loglike[(N_Xorder - 1) * i + j] = -0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
+
+                    
+                    loglike[(N_Xorder - 1) * i + j] = model.likelihood(y_cumsum[j],tau,n1tau,sigma2) + model.likelihood(y_sum-y_cumsum[j],tau,n2tau,sigma2);//-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
 
                     if (loglike[(N_Xorder - 1) * i + j] > loglike_max)
                     {
@@ -2723,7 +2789,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         }
 
         
-            loglike[loglike.size() - 1] = log(p)+ log(Ncutpoints)-0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+            loglike[loglike.size() - 1] = log(p)+ log(Ncutpoints)+model.likelihood(y_sum,tau,N_Xorder * tau,sigma2)+ log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - 0.5 * log(sigma2) - log(alpha) + beta * log(1.0 + depth);
         
         if (loglike[loglike.size() - 1] > loglike_max)
         {
@@ -2785,7 +2851,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     // loop over all possible cutpoints
                     n1tau = (candidate_index[j] + 1) * tau; // number of points on left side (x <= cutpoint)
                     n2tau = Ntau - n1tau;                   // number of points on right side (x > cutpoint)
-                    loglike[(Ncutpoints)*i + j] = -0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
+                    loglike[(Ncutpoints)*i + j] =  model.likelihood(y_cumsum[j],tau,n1tau,sigma2) + model.likelihood(y_sum-y_cumsum[j],tau,n2tau,sigma2);//-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
 
                     if (loglike[(Ncutpoints)*i + j] > loglike_max)
                     {
@@ -2797,7 +2863,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         }
 
         
-            loglike[loglike.size() - 1] =   log(p)+ log(Ncutpoints) -0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+            loglike[loglike.size() - 1] =   log(p)+ log(Ncutpoints) + model.likelihood(y_sum,tau,N_Xorder * tau,sigma2) - 0.5 * log(sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
         
 
         if (loglike[loglike.size() - 1] > loglike_max)
@@ -2810,7 +2876,15 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
 }
 
-void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &loglike_start, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &N_min, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, const size_t &p_continuous, size_t &p_categorical, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, std::vector<size_t> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique){
+void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &loglike_start, 
+    const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &N_min, 
+    std::vector<double> &y_std, xinfo_sizet &Xorder_std, 
+    const double &y_sum, const double &beta, const double &alpha, 
+    size_t &depth, const size_t &p, const size_t &p_continuous, 
+    size_t &p_categorical, size_t &Ncutpoints, double &tau, double &sigma2, 
+    double &loglike_max, std::vector<double> &X_values, 
+    std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, 
+    std::vector<size_t> &X_num_unique){
 
     // loglike_start is an index to offset
     // consider loglikelihood start from loglike_start
@@ -2872,7 +2946,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
 					
 
-                    loglike[loglike_start + j] = -0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum, 2) / (sigma2 * (n2tau + sigma2));
+                    loglike[loglike_start + j] = likelihood(y_cumsum,tau,n1tau,sigma2) + likelihood(y_sum-y_cumsum,tau,n2tau,sigma2);//-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum, 2) / (sigma2 * (n2tau + sigma2));
 
 
                     effective_cutpoints ++;
@@ -2898,75 +2972,75 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 // this conveniently avoids the need for x.test
 // loosely based on pr()
 // create an efficient list from a single tree
-// tree2list calls itself recursively
-Rcpp::List tree::tree2list(xinfo &xi, double center, double scale)
-{
-    Rcpp::List res;
+// // tree2list calls itself recursively
+// Rcpp::List tree::tree2list(xinfo &xi, double center, double scale)
+// {
+//     Rcpp::List res;
 
-    // five possible scenarios
-    if (l)
-    { // tree has branches
-        //double cut=xi[v][c];
-        size_t var = v, cut = c;
+//     // five possible scenarios
+//     if (l)
+//     { // tree has branches
+//         //double cut=xi[v][c];
+//         size_t var = v, cut = c;
 
-        var++;
-        cut++; // increment from 0-based (C) to 1-based (R) array index
+//         var++;
+//         cut++; // increment from 0-based (C) to 1-based (R) array index
 
-        if (l->l && r->l) // two sub-trees
-            res = Rcpp::List::create(Rcpp::Named("var") = (size_t)var,
-                                     //Rcpp::Named("cut")=cut,
-                                     Rcpp::Named("cut") = (size_t)cut,
-                                     Rcpp::Named("type") = 1,
-                                     Rcpp::Named("left") = l->tree2list(xi, center, scale),
-                                     Rcpp::Named("right") = r->tree2list(xi, center, scale));
-        else if (l->l && !(r->l)) // left sub-tree and right terminal
-            res = Rcpp::List::create(Rcpp::Named("var") = (size_t)var,
-                                     //Rcpp::Named("cut")=cut,
-                                     Rcpp::Named("cut") = (size_t)cut,
-                                     Rcpp::Named("type") = 2,
-                                     Rcpp::Named("left") = l->tree2list(xi, center, scale),
-                                     Rcpp::Named("right") = r->gettheta() * scale + center);
-        else if (!(l->l) && r->l) // left terminal and right sub-tree
-            res = Rcpp::List::create(Rcpp::Named("var") = (size_t)var,
-                                     //Rcpp::Named("cut")=cut,
-                                     Rcpp::Named("cut") = (size_t)cut,
-                                     Rcpp::Named("type") = 3,
-                                     Rcpp::Named("left") = l->gettheta() * scale + center,
-                                     Rcpp::Named("right") = r->tree2list(xi, center, scale));
-        else // no sub-trees
-            res = Rcpp::List::create(Rcpp::Named("var") = (size_t)var,
-                                     //Rcpp::Named("cut")=cut,
-                                     Rcpp::Named("cut") = (size_t)cut,
-                                     Rcpp::Named("type") = 0,
-                                     Rcpp::Named("left") = l->gettheta() * scale + center,
-                                     Rcpp::Named("right") = r->gettheta() * scale + center);
-    }
-    else                                                 // no branches
-        res = Rcpp::List::create(Rcpp::Named("var") = 0, // var=0 means root
-                                 //Rcpp::Named("cut")=0.,
-                                 Rcpp::Named("cut") = 0,
-                                 Rcpp::Named("type") = 0,
-                                 Rcpp::Named("left") = theta * scale + center,
-                                 Rcpp::Named("right") = theta * scale + center);
+//         if (l->l && r->l) // two sub-trees
+//             res = Rcpp::List::create(Rcpp::Named("var") = (size_t)var,
+//                                      //Rcpp::Named("cut")=cut,
+//                                      Rcpp::Named("cut") = (size_t)cut,
+//                                      Rcpp::Named("type") = 1,
+//                                      Rcpp::Named("left") = l->tree2list(xi, center, scale),
+//                                      Rcpp::Named("right") = r->tree2list(xi, center, scale));
+//         else if (l->l && !(r->l)) // left sub-tree and right terminal
+//             res = Rcpp::List::create(Rcpp::Named("var") = (size_t)var,
+//                                      //Rcpp::Named("cut")=cut,
+//                                      Rcpp::Named("cut") = (size_t)cut,
+//                                      Rcpp::Named("type") = 2,
+//                                      Rcpp::Named("left") = l->tree2list(xi, center, scale),
+//                                      Rcpp::Named("right") = r->gettheta() * scale + center);
+//         else if (!(l->l) && r->l) // left terminal and right sub-tree
+//             res = Rcpp::List::create(Rcpp::Named("var") = (size_t)var,
+//                                      //Rcpp::Named("cut")=cut,
+//                                      Rcpp::Named("cut") = (size_t)cut,
+//                                      Rcpp::Named("type") = 3,
+//                                      Rcpp::Named("left") = l->gettheta() * scale + center,
+//                                      Rcpp::Named("right") = r->tree2list(xi, center, scale));
+//         else // no sub-trees
+//             res = Rcpp::List::create(Rcpp::Named("var") = (size_t)var,
+//                                      //Rcpp::Named("cut")=cut,
+//                                      Rcpp::Named("cut") = (size_t)cut,
+//                                      Rcpp::Named("type") = 0,
+//                                      Rcpp::Named("left") = l->gettheta() * scale + center,
+//                                      Rcpp::Named("right") = r->gettheta() * scale + center);
+//     }
+//     else                                                 // no branches
+//         res = Rcpp::List::create(Rcpp::Named("var") = 0, // var=0 means root
+//                                  //Rcpp::Named("cut")=0.,
+//                                  Rcpp::Named("cut") = 0,
+//                                  Rcpp::Named("type") = 0,
+//                                  Rcpp::Named("left") = theta * scale + center,
+//                                  Rcpp::Named("right") = theta * scale + center);
 
-    return res;
-}
+//     return res;
+// }
 
-// for one tree, count the number of branches for each variable
-Rcpp::IntegerVector tree::tree2count(size_t nvar)
-{
-    Rcpp::IntegerVector res(nvar);
+// // for one tree, count the number of branches for each variable
+// Rcpp::IntegerVector tree::tree2count(size_t nvar)
+// {
+//     Rcpp::IntegerVector res(nvar);
 
-    if (l)
-    { // tree branches
-        res[v]++;
+//     if (l)
+//     { // tree branches
+//         res[v]++;
 
-        if (l->l)
-            res += l->tree2count(nvar); // if left sub-tree
-        if (r->l)
-            res += r->tree2count(nvar); // if right sub-tree
-    }                                   // else no branches and nothing to do
+//         if (l->l)
+//             res += l->tree2count(nvar); // if left sub-tree
+//         if (r->l)
+//             res += r->tree2count(nvar); // if right sub-tree
+//     }                                   // else no branches and nothing to do
 
-    return res;
-}
+//     return res;
+// }
 #endif
