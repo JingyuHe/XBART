@@ -96,7 +96,7 @@ def fit_predict(self,x,y,x_test,p_cat=0):
     x_pred = self.__fit_predict_all(x,y,x_test,y.shape[0],p_cat)
     yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0]).reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
 
-    this.importance = self.get_importance(x.shape[1])
+    self.importance = self.get_importance(x.shape[1])
     return yhats_test
 %}
 %pythoncode %{

@@ -3,6 +3,7 @@
 #include "treefuns.h"
 #include "forest.h"
 #include <chrono>
+#include "model.h"
 
 void fit_std_main_loop(const double *Xpointer,std::vector<double> &y_std,double& y_mean,const double *Xtestpointer, xinfo_sizet &Xorder_std,
                 size_t N,size_t p,size_t N_test,
