@@ -964,34 +964,12 @@ void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, si
 }
 
 
-void sample_pars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau, std::default_random_engine generator,double &theta, double &theta_noise){
-
-    
-    std::normal_distribution<double> normal_samp(0.0, 1.0);
-
-    if (draw_mu == true)
-    {
-
-        theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2))) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-        theta_noise = theta;
-    }
-    else
-    {
-
-        theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2));
-        theta_noise = theta; // identical to theta
-    }
-
-    return;
-
-}
-
 void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, 
     xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, bool &use_all, xinfo &split_count_all_tree, 
     std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, 
     bool &categorical_variables, size_t &p_categorical, 
     size_t &p_continuous, std::vector<double> &X_values,//std::vector<size_t> &X_values, 
-    std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique)
+    std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model * model)
 {
 
     // grow a tree, users can control number of split points
@@ -1019,21 +997,10 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     // set up random device
 
     std::default_random_engine generator;
-    sample_pars( draw_mu, y_mean, N_Xorder, sigma, tau, generator, this->theta,  this->theta_noise);
-    // std::normal_distribution<double> normal_samp(0.0, 1.0);
+    // NormalModel model;
 
-    // if (draw_mu == true)
-    // {
-
-    //     this->theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2))) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-    //     this->theta_noise = this->theta;
-    // }
-    // else
-    // {
-
-    //     this->theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2));
-    //     this->theta_noise = this->theta; // identical to theta
-    // }
+    model -> samplePars( draw_mu, y_mean, N_Xorder, sigma, tau, generator, 
+                      this->theta,  this->theta_noise);
 
     if (draw_sigma == true)
     {
@@ -1083,7 +1050,8 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
  //   cout << "begin calculating likelihood" << endl;
 
-    BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique);
+    BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, 
+        split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, model);
 
 
 //    cout << "split var " << split_var << "  split point " << split_point << " no split " << no_split << endl;
@@ -1158,10 +1126,10 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
 
    tree::tree_p lchild = new tree();
-     lchild->grow_tree_adaptive_std_all(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts_left, variable_ind, X_num_unique_left);
+     lchild->grow_tree_adaptive_std_all(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts_left, variable_ind, X_num_unique_left, model);
 
      tree::tree_p rchild = new tree();
-     rchild->grow_tree_adaptive_std_all(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts_right, variable_ind, X_num_unique_right);
+     rchild->grow_tree_adaptive_std_all(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts_right, variable_ind, X_num_unique_right, model);
 
 
      lchild->p = this;
@@ -2131,8 +2099,8 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double> &y_
 
     loglike[loglike.size() - 1] = 0.0;
 
-
-    calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p, Ncutpoints, tau, sigma2, loglike_max);
+    NormalModel model;
+    calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p, Ncutpoints, tau, sigma2, loglike_max, &model);
 
 
 
@@ -2484,7 +2452,7 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
     size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, 
     size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, 
     size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values,//std::vector<size_t> &X_values, 
-    std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique)
+    std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model* model)
 {
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
@@ -2525,9 +2493,8 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
 
 
  //  if(p_continuous > 0){
-        calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, tau, sigma2, loglike_max);
+    calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, tau, sigma2, loglike_max, model);
  //   }
-
 
 
     if(p_categorical > 0){
@@ -2772,12 +2739,17 @@ void unique_value_count2(const double *Xpointer, xinfo_sizet &Xorder_std, //std:
 
 
 
+double likelihood(double value,double tau,double ntau,double sigma2){
+    //return 0.0;
+   return -0.5 * log(ntau + sigma2)  + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
+
+}
 
 
-void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &Nmin, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max){
+void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &Nmin, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, const Model* model){
+
 
     size_t N = N_Xorder;
-
 
     if (N <= Ncutpoints + 1 + 2 * Nmin)
     {
@@ -2803,7 +2775,9 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     n1tau = (j + 1) * tau; // number of points on left side (x <= cutpoint)
                     n2tau = Ntau - n1tau;  // number of points on right side (x > cutpoint)
 
-                    loglike[(N_Xorder - 1) * i + j] = -0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
+
+                    
+                    loglike[(N_Xorder - 1) * i + j] = model->likelihood(y_cumsum[j],tau,n1tau,sigma2) + model->likelihood(y_sum-y_cumsum[j],tau,n2tau,sigma2);//-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
 
                     if (loglike[(N_Xorder - 1) * i + j] > loglike_max)
                     {
@@ -2814,7 +2788,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         }
 
         
-            loglike[loglike.size() - 1] = log(p)+ log(Ncutpoints)-0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+            loglike[loglike.size() - 1] = log(p)+ log(Ncutpoints)+model->likelihood(y_sum,tau,N_Xorder * tau,sigma2)+ log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - 0.5 * log(sigma2) - log(alpha) + beta * log(1.0 + depth);
         
         if (loglike[loglike.size() - 1] > loglike_max)
         {
@@ -2876,7 +2850,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     // loop over all possible cutpoints
                     n1tau = (candidate_index[j] + 1) * tau; // number of points on left side (x <= cutpoint)
                     n2tau = Ntau - n1tau;                   // number of points on right side (x > cutpoint)
-                    loglike[(Ncutpoints)*i + j] = -0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
+                    loglike[(Ncutpoints)*i + j] =  model->likelihood(y_cumsum[j],tau,n1tau,sigma2) + model->likelihood(y_sum-y_cumsum[j],tau,n2tau,sigma2);//-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
 
                     if (loglike[(Ncutpoints)*i + j] > loglike_max)
                     {
@@ -2888,7 +2862,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         }
 
         
-            loglike[loglike.size() - 1] =   log(p)+ log(Ncutpoints) -0.5 * log(N_Xorder * tau + sigma2) - 0.5 * log(sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (N_Xorder * tau + sigma2)) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+            loglike[loglike.size() - 1] =   log(p)+ log(Ncutpoints) + model->likelihood(y_sum,tau,N_Xorder * tau,sigma2) - 0.5 * log(sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
         
 
         if (loglike[loglike.size() - 1] > loglike_max)
@@ -2900,6 +2874,9 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
     }
 
 }
+
+
+
 
 void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &loglike_start, 
     const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &N_min, 
@@ -2971,7 +2948,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
 					
 
-                    loglike[loglike_start + j] = -0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum, 2) / (sigma2 * (n2tau + sigma2));
+                    loglike[loglike_start + j] = likelihood(y_cumsum,tau,n1tau,sigma2) + likelihood(y_sum-y_cumsum,tau,n2tau,sigma2);//-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum, 2) / (sigma2 * (n2tau + sigma2));
 
 
                     effective_cutpoints ++;

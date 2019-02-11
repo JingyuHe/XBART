@@ -24,6 +24,7 @@ class AbarthTesting1(unittest.TestCase):
 							("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",True),
 							("draw_mu",False),("parallel",False)])
 		self.model = abarth.Abarth(self.params)
+		self.model_2 = abarth.Abarth(self.params)
 		n = 100
 		self.x = np.random.rand(n)
 
@@ -87,15 +88,14 @@ class AbarthTesting1(unittest.TestCase):
 		y_copy = y.copy()
 		x_test_copy = x_test.copy()
 
-		self.model.fit(x,y,d-1)
 		y_pred = self.model.fit_predict(x,y,x_test,d-1)
 
 		assert(np.array_equal(x_test_copy, x_test))
 		y_pred_2 = self.model.predict(x_test)
 		assert(np.array_equal(x_test_copy, x_test))
 
-		self.model.fit(x,y,d-1)
-		y_pred_3 = self.model.predict(x_test)
+		self.model_2.fit(x,y,d-1)
+		y_pred_3 = self.model_2.predict(x_test)
 
 		y_hat = y_pred[:,self.params["burnin"]:].mean(axis=1)
 		y_hat_2 = y_pred_2[:,self.params["burnin"]:].mean(axis=1)
@@ -109,10 +109,11 @@ class AbarthTesting1(unittest.TestCase):
 		gbm.fit(x,y)
 		y_hat_gbm = gbm.predict(x_test)
 
-		print("RMSE RF:"  + str(np.sqrt(np.mean((y_hat_rf-y_test)**2))))
+		print("\nRMSE RF:"  + str(np.sqrt(np.mean((y_hat_rf-y_test)**2))))
 		print("RMSE GBM:"  + str(np.sqrt(np.mean((y_hat_gbm-y_test)**2))))
 		print("RMSE Abarth:"  + str(np.sqrt(np.mean((y_hat-y_test)**2))))
 		print("RMSE Abarth Pred:"  + str(np.sqrt(np.mean((y_hat_2-y_test)**2))))
+		print("RMSE Abarth Fit Pred Seperate:"  + str(np.sqrt(np.mean((y_hat_3-y_test)**2))))
 		print("RMSE Abarth Pred v. Reg:"  + str(np.sqrt(np.mean((y_hat_2-y_hat)**2))))
 		print("RMSE Abarth Fit and Pred:"  + str(np.sqrt(np.mean((y_hat_3-y_hat)**2))))
 
