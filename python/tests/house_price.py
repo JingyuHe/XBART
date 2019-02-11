@@ -64,14 +64,6 @@ params = OrderedDict([('M',m),('L',1),("N_sweeps",50)
 # 							("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",False),
 # 							("draw_mu",False),("parallel",False)])
 
-print("Abarth...")
-xbart = Abarth(params)
-start = time.time()
-y_pred = xbart.fit_predict(train_data_norm.values,target_train.values,
-	valid_data_norm.values,cat_train.shape[1])
-end = time.time()
-abarth_time = end-start
-y_hat_xbart = y_pred[:,params["burnin"]:].mean(axis=1)
 
 print("Abarth Fit Predict Seperate...")
 xbart_2 = Abarth(params)
@@ -84,6 +76,15 @@ end_2 = time.time()
 abarth_time_fit = end_1-start_1
 abarth_time_predict = end_2-start_2
 y_hat_xbart_2 = y_pred_2[:,params["burnin"]:].mean(axis=1)
+
+print("Abarth...")
+xbart = Abarth(params)
+start = time.time()
+y_pred = xbart.fit_predict(train_data_norm.values,target_train.values,
+	valid_data_norm.values,cat_train.shape[1])
+end = time.time()
+abarth_time = end-start
+y_hat_xbart = y_pred[:,params["burnin"]:].mean(axis=1)
 
 
 print("Boosting...")
