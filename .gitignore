@@ -38,3 +38,5 @@
 *.out
 *.app
 
+# Python cache
+python/__pycache__
