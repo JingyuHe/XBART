@@ -71,6 +71,12 @@
         "optional": "cpp",
         "sstream": "cpp",
         "streambuf": "cpp",
-        "armadillo": "cpp"
+        "armadillo": "cpp",
+        "__debug": "cpp",
+        "__mutex_base": "cpp",
+        "__threading_support": "cpp",
+        "cstdarg": "cpp",
+        "cstring": "cpp",
+        "mutex": "cpp"
     }
 }
