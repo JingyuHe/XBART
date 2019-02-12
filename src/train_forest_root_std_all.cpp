@@ -356,7 +356,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     cout << "test of data pointer matrix " << endl;
 
     for(size_t i = 0; i < N; i ++){
-        cout << (*data_pointers[0][i]).theta << endl;
+        cout << (*data_pointers[0][i]).gettheta() << endl;
     }
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
     return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw);

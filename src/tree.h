@@ -149,9 +149,6 @@ class tree
     char ntype();       //node type t:top, b:bot, n:no grandchildren i:interior (t can be b)
     bool isnog();   
 
-  // private?
-    double theta; //univariate double parameter
-
 #ifndef NoRcpp
     //REMOVED :
   //  Rcpp::List tree2list(xinfo &xi, double center = 0., double scale = 1.); // create an efficient list from a single tree
@@ -159,6 +156,8 @@ class tree
  //   Rcpp::IntegerVector tree2count(size_t nvar); // for one tree, count the number of branches for each variable
 #endif
   private:
+
+    double theta; //univariate double parameter
     double theta_noise;
     double sig;
     //rule: left if x[v] < xinfo[v][c]
