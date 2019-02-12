@@ -969,7 +969,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, 
     bool &categorical_variables, size_t &p_categorical, 
     size_t &p_continuous, std::vector<double> &X_values,//std::vector<size_t> &X_values, 
-    std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model * model)
+    std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model * model, matrix<tree::tree_p> &data_pointers, const size_t & tree_ind)
 {
 
     // grow a tree, users can control number of split points
@@ -1058,6 +1058,10 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     if (no_split == true)
     {
+        // if do not split, all data points in this node are in bottom node, update matrix of pointers
+        for(size_t i = 0; i < N_Xorder; i ++ ){
+            data_pointers[tree_ind][Xorder_std[0][i]] = this;
+        }
         return;
     }
 
@@ -1126,10 +1130,10 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
 
    tree::tree_p lchild = new tree();
-     lchild->grow_tree_adaptive_std_all(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts_left, variable_ind, X_num_unique_left, model);
+     lchild->grow_tree_adaptive_std_all(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts_left, variable_ind, X_num_unique_left, model, data_pointers, tree_ind);
 
      tree::tree_p rchild = new tree();
-     rchild->grow_tree_adaptive_std_all(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts_right, variable_ind, X_num_unique_right, model);
+     rchild->grow_tree_adaptive_std_all(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts_right, variable_ind, X_num_unique_right, model, data_pointers, tree_ind);
 
 
      lchild->p = this;

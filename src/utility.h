@@ -1,7 +1,7 @@
 #ifndef GUARD_utility_h
 #define GUARD_utility_h
 
-#include "common.h"
+// #include "common.h"
 #include "tree.h"
 
 #ifndef SWIG
@@ -10,7 +10,15 @@
 #include <iterator>
 #endif
 
+template<typename T>
+void ini_matrix(matrix<T> &matrix, size_t N, size_t p){
+    matrix.resize(p);
 
+    for(size_t i = 0; i < p; i ++ ){
+        matrix[i].resize(N);
+    }
+    return;
+}
 // #include <RcppArmadillo.h>
 // #include <RcppParallel.h>
 

@@ -571,6 +571,10 @@ void fit_std(const double *Xpointer,std::vector<double> &y_std,double y_mean,xin
     // L, number of samples
     // M, number of trees
 
+    matrix<tree::tree_p> data_pointers;
+    ini_matrix(data_pointers, N, M);
+
+
     bool use_all = true;
     for (size_t mc = 0; mc < L; mc++)
     {
@@ -648,7 +652,7 @@ void fit_std(const double *Xpointer,std::vector<double> &y_std,double y_mean,xin
                 //     X_values, X_counts, variable_ind, X_num_unique);
                 NormalModel model;
                 trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, 
-                    X_values, X_counts, variable_ind, X_num_unique,&model);
+                    X_values, X_counts, variable_ind, X_num_unique,&model, data_pointers, tree_ind);
 
                 mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 
