@@ -70,6 +70,7 @@ struct node_info
     std::size_t v;  //variable
     double c;       //cut point // different from BART
     double theta;   //theta
+    std::vector<double> theta_vector;
 };
 
 //--------------------------------------------------
@@ -159,6 +160,8 @@ class tree
 
     double theta; //univariate double parameter
     double theta_noise;
+    std::vector<double> theta_vector;
+
     double sig;
     //rule: left if x[v] < xinfo[v][c]
     size_t v; //index of variable to split
