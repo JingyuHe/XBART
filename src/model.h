@@ -6,6 +6,8 @@
 
 
 class Model{
+private:
+    size_t num_classes;
 public:
 	virtual void getSufficientStatistic() const{return;};
 	virtual void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau, 
@@ -13,12 +15,15 @@ public:
 	virtual double likelihood(double value,double tau,double ntau,double sigma2) const{return 0 ;};
 
 	virtual void updateResidual(const xinfo &predictions_std,size_t tree_ind,size_t M,std::vector<double> &residual_std)const {return;};
+
 };
 
 
 
 
 class NormalModel: public Model{
+private:
+    size_t num_classes = 1;
 public:
 
 		void getSufficientStatistic() const {return;};

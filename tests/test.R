@@ -7,7 +7,7 @@ get_abarth_params <- function(n,d,y){
                        alpha = 0.95,
                        beta = 1.25,
                        mtry = 10,
-                       burnin = 20)
+                       burnin = 15)
   num_tress = abarth_params$M
   abarth_params$max_depth = matrix(50, num_tress, abarth_params$nsweeps)
   abarth_params$Ncutpoints = max(3*floor(sqrt(n)),250);abarth_params$tau = 0.2*var(y)/(0.67*num_tress)

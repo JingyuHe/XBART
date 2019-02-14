@@ -633,7 +633,10 @@ void cumulative_sum_std(std::vector<double> &y_cumsum, std::vector<double> &y_cu
 // }
 
 
-void tree::grow_tree_adaptive_abarth_train(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, bool &use_all, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree)
+void tree::grow_tree_adaptive_abarth_train(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints,
+double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std,
+xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, bool &use_all,
+std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree)
 {
 
     // grow a tree, users can control number of split points
@@ -724,7 +727,8 @@ void tree::grow_tree_adaptive_abarth_train(double y_mean, size_t depth, size_t m
         // std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
        
     }
-    BART_likelihood_adaptive_std_mtry_old(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars);
+    BART_likelihood_adaptive_std_mtry_old(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth,
+    Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars);
 
     if (no_split == true)
     {
@@ -764,7 +768,8 @@ void tree::grow_tree_adaptive_abarth_train(double y_mean, size_t depth, size_t m
     size_t p_continuous = p;
     size_t p_categorical = 0;
 
-    split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p, 0, yleft_mean_std, yright_mean_std, y_mean, y_std);
+    split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p,
+    p, 0, yleft_mean_std, yright_mean_std, y_mean, y_std);
 
     auto end = system_clock::now();
 
@@ -782,9 +787,13 @@ void tree::grow_tree_adaptive_abarth_train(double y_mean, size_t depth, size_t m
 
     depth = depth + 1;
     tree::tree_p lchild = new tree();
-    lchild->grow_tree_adaptive_abarth_train(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, running_time_left, use_all,  mtry_weight_current_tree, split_count_current_tree);
+    lchild->grow_tree_adaptive_abarth_train(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
+     draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, running_time_left, use_all,
+     mtry_weight_current_tree, split_count_current_tree);
     tree::tree_p rchild = new tree();
-    rchild->grow_tree_adaptive_abarth_train(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, running_time_right, use_all, mtry_weight_current_tree, split_count_current_tree);
+    rchild->grow_tree_adaptive_abarth_train(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
+     draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, running_time_right, use_all,
+     mtry_weight_current_tree, split_count_current_tree);
 
     lchild->p = this;
     rchild->p = this;
@@ -798,7 +807,11 @@ void tree::grow_tree_adaptive_abarth_train(double y_mean, size_t depth, size_t m
 
 // void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, Rcpp::IntegerVector &var_index_candidate, bool &use_all, Rcpp::NumericMatrix &split_count_all_tree, Rcpp::NumericVector &mtry_weight_current_tree, Rcpp::NumericVector &split_count_current_tree)
 
-void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree)
+void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, size_t max_depth, size_t Nmin,
+size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel,
+std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, bool &use_all,
+xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree,
+std::vector<double> &split_count_current_tree)
 {
 
     // grow a tree, users can control number of split points
@@ -965,13 +978,22 @@ void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, si
 
 
 void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints,
+
+double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std,
+
     double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std,
+
     xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, bool &use_all, xinfo &split_count_all_tree, 
     std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, 
     bool &categorical_variables, size_t &p_categorical, 
     size_t &p_continuous, std::vector<double> &X_values,//std::vector<size_t> &X_values, 
+
+    std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique,
+    const Model * model, matrix<tree::tree_p> &data_pointers, const size_t & tree_ind)
+
     std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind,
     std::vector<size_t> &X_num_unique, const Model * model, matrix<tree::tree_p> &data_pointers, const size_t & tree_ind)
+
 {
 
     // grow a tree, users can control number of split points
@@ -1052,8 +1074,10 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
  //   cout << "begin calculating likelihood" << endl;
 
-    BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, 
-        split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, model);
+    BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints,
+    alpha, beta, no_split, split_var,
+        split_point, parallel, subset_vars, p_categorical, p_continuous, X_values,
+        X_counts, variable_ind, X_num_unique, model);
 
 
 //    cout << "split var " << split_var << "  split point " << split_point << " no split " << no_split << endl;
