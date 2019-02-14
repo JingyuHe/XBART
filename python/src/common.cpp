@@ -45,3 +45,4 @@ std::ostream &operator<<(std::ostream &out, const std::vector<std::vector<size_t
     }
     return out;
 }
+
