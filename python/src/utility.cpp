@@ -47,6 +47,8 @@
 //     return std::move(Xinfo);
 // }
 
+
+
 void ini_xinfo(xinfo &X, size_t N, size_t p)
 {
     // xinfo X;

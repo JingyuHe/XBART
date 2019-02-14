@@ -1,8 +1,8 @@
 #ifndef GUARD_utility_h
 #define GUARD_utility_h
 
-// #include "common.h"
-#include "tree.h"
+#include "common.h"
+// #include "tree.h"
 
 #ifndef SWIG
 #include <algorithm>
