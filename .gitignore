@@ -3,7 +3,7 @@
 .RData
 .Ruserdata
 .DS_Store
-
+.idea/
 
 # Prerequisites
 *.d
@@ -27,7 +27,7 @@
 *.mod
 *.smod
 
-# Compiled Static libraries
+# Compiled Static librarises
 *.lai
 *.la
 *.a
@@ -43,3 +43,4 @@ python/__pycache__
 
 # Python build artifacts
 python/build
+
