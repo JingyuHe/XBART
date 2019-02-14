@@ -4,17 +4,22 @@
 #include "common.h"
 
 class Model{
+private:
+    size_t num_classes;
 public:
 	virtual void getSufficientStatistic() const{return;};
 	virtual void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau, 
 						std::default_random_engine generator,double &theta, double &theta_noise) const {return;};
 	virtual double likelihood(double value,double tau,double ntau,double sigma2) const{return 0 ;};
+
 };
 
 
 
 
 class NormalModel: public Model{
+private:
+    size_t num_classes = 1;
 public:
 		void getSufficientStatistic() const {return;};
 		void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau, 
