@@ -1,6 +1,8 @@
 #! /bin/bash
 echo Building python
 cd ../python/
+./remove.sh
+./dist_remove.sh
 cp -r ../src .
 ver=$(python -V 2>&1 | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
 if [ "$ver" -lt "27" ]; then
