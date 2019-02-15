@@ -11,11 +11,12 @@ private:
 public:
 	virtual void getSufficientStatistic() const{return;};
 	virtual void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau, 
-						std::default_random_engine generator,double &theta, double &theta_noise) const {return;};
+						std::default_random_engine generator,std::vector<double> &theta_vector) const {return;};
 	virtual double likelihood(double value,double tau,double ntau,double sigma2) const{return 0 ;};
 
 	virtual void updateResidual(const xinfo &predictions_std,size_t tree_ind,size_t M,std::vector<double> &residual_std)const {return;};
 
+    virtual size_t getNumClasses() const{return 0;};
 };
 
 
@@ -28,15 +29,19 @@ public:
 
 		void getSufficientStatistic() const {return;};
 		void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau, 
-						std::default_random_engine generator,double &theta, double &theta_noise) const {
+						std::default_random_engine generator,std::vector<double> &theta_vector) const {
 		std::normal_distribution<double> normal_samp(0.0, 1.0);
     	if (draw_mu == true){
-        	theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2))) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-        	theta_noise = theta;
+
+        	// test result should be theta
+        	theta_vector[0] = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2))) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
+
+
     	}
     	else {
-        	theta = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2));
-        	theta_noise = theta; // identical to theta
+        	// test result should be theta
+        	theta_vector[0]  = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2));
+
 		}
 		return;
 	}
@@ -48,6 +53,8 @@ public:
                     residual_std = residual_std - predictions_std[tree_ind] + predictions_std[next_index];
         		    return;
         }
+
+        size_t getNumClasses() const{return this->num_classes;}
 };
 
 

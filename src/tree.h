@@ -86,21 +86,23 @@ class tree
     friend std::istream &operator>>(std::istream &, tree &);
     //  friend void update_sufficient_stat(tree& tree, arma::mat& y, arma::mat& X, tree::npv& bv, tree::npv& bv2, double& tau, double& sigma, double& alpha, double& beta);
     //contructors,destructors--------------------
-    tree() : theta(0.0), theta_noise(0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
-    tree(const tree &n) : theta(0.0), theta_noise(0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) { cp(this, &n); }
-    tree(double itheta) : theta(itheta), theta_noise(0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
+    tree() : theta(0.0), theta_noise(0.0), theta_vector(1, 0.0),sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
+    tree(const tree &n) : theta(0.0), theta_noise(0.0), theta_vector(1, 0.0),sig(0.0), v(0), c(0), p(0), l(0), r(0) { cp(this, &n); }
+    tree(double itheta) : theta(itheta), theta_noise(0.0), theta_vector(1, 0.0),sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
+
     void tonull(); //like a "clear", null tree has just one node
     ~tree() { tonull(); }
     //operators----------
     tree &operator=(const tree &);
     //interface--------------------
     //set
-    void settheta(double theta) { this->theta = theta; }
+    void settheta(std::vector<double> theta_vector) { this->theta_vector = theta_vector; }
+
     void setv(size_t v) { this->v = v; }
     void setc(size_t c) { this->c = c; }
     //get
-    double gettheta() const { return theta; }
-    double gettheta_noise() const { return theta_noise; }
+    std::vector<double> gettheta_vector() const {return theta_vector;}
+
     double getsig() const { return sig; }
     size_t getv() const { return v; }
     double getc() const { return c; }
@@ -113,10 +115,8 @@ class tree
     size_t treesize();         //number of nodes in tree
     size_t nnogs();            //number of nog nodes (no grandchildren nodes)
     size_t nbots();            //number of bottom nodes
-    bool birth(size_t nid, size_t v, size_t c, double thetal, double thetar);
-    bool death(size_t nid, double theta);
-    void birthp(tree_p np, size_t v, size_t c, double thetal, double thetar);
-    void deathp(tree_p nb, double theta);
+
+
     void getbots(npv &bv);        //get bottom nodes
     void getnogs(npv &nv);        //get nog nodes (no granchildren)
     void getnodes(npv &v);        //get vector of all nodes
@@ -125,17 +125,36 @@ class tree
     //  void grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta);
 
 
-    void grow_tree_adaptive_abarth_train(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, bool &use_all, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree);
+    void grow_tree_adaptive_abarth_train(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints,
+    double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel,
+    std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time,
+     bool &use_all, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree,const Model * model);
 
 //     void grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, Rcpp::IntegerVector &var_index_candidate, bool &use_all, Rcpp::NumericMatrix &split_count_all_tree, Rcpp::NumericVector &mtry_weight_current_tree, Rcpp::NumericVector &split_count_current_tree);
 
-    void grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree);
+    void grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, size_t max_depth, size_t Nmin,
+    size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu,
+    bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry,
+    double &run_time, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree,
+    std::vector<double> &split_count_current_tree,const Model * model);
 
 
-    void grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique);
+    void grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size_t depth, size_t max_depth, size_t Nmin,
+    size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel,
+    std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time,
+    bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree,
+    std::vector<double> &split_count_current_tree, std::vector<double> &X_values, std::vector<size_t> &X_counts,
+    std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model * model);
 
 
-    void grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, bool &categorical_variables, size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model * model, matrix<tree::tree_p> &data_pointers, const size_t & tree_ind);
+    void grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints,
+    double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel,
+    std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, bool &use_all,
+    xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree,
+    std::vector<double> &split_count_current_tree, bool &categorical_variables, size_t &p_categorical,
+    size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts,
+    std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model * model,
+    matrix<tree::tree_p> &data_pointers, const size_t & tree_ind);
 
 
     tree_p bn(double *x, xinfo &xi); //find Bottom Node, original BART version
