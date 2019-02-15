@@ -89,6 +89,8 @@ class tree
     tree() : theta(0.0), theta_noise(0.0), theta_vector(1, 0.0),sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
     tree(const tree &n) : theta(0.0), theta_noise(0.0), theta_vector(1, 0.0),sig(0.0), v(0), c(0), p(0), l(0), r(0) { cp(this, &n); }
     tree(double itheta) : theta(itheta), theta_noise(0.0), theta_vector(1, 0.0),sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
+    tree(size_t num_classes) : theta(0.0), theta_noise(0.0), theta_vector(num_classes, 0.0),sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
+
 
     void tonull(); //like a "clear", null tree has just one node
     ~tree() { tonull(); }

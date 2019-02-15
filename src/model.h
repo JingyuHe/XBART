@@ -6,8 +6,7 @@
 
 
 class Model{
-private:
-    size_t num_classes;
+
 public:
 	virtual void incrementSuffStat() const{return;};
 	virtual void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau, 
@@ -15,9 +14,9 @@ public:
 	virtual double likelihood(double value,double tau,double ntau,double sigma2) const{return 0 ;};
 
 	virtual void updateResidual(const xinfo &predictions_std,size_t tree_ind,size_t M,
-	std::vector<double> &residual_std)const {return;};
+	std::vector<double> &residual_std)const{return;};
 
-    virtual size_t getNumClasses() const{return 0;};
+	virtual size_t getNumClasses() const{return 0;};
 };
 
 

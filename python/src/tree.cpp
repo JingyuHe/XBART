@@ -603,11 +603,11 @@ std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_
     double running_time_right = 0.0;
 
     depth = depth + 1;
-    tree::tree_p lchild = new tree();
+    tree::tree_p lchild = new tree(model -> getNumClasses());
     lchild->grow_tree_adaptive_abarth_train(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
      draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, running_time_left, use_all,
      mtry_weight_current_tree, split_count_current_tree,model);
-    tree::tree_p rchild = new tree();
+    tree::tree_p rchild = new tree(model -> getNumClasses());
     rchild->grow_tree_adaptive_abarth_train(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
      draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, running_time_right, use_all,
      mtry_weight_current_tree, split_count_current_tree,model);
@@ -766,11 +766,11 @@ std::vector<double> &split_count_current_tree,const Model * model)
     depth = depth + 1;
 
 
-    tree::tree_p lchild = new tree();
+    tree::tree_p lchild = new tree(model -> getNumClasses());
     lchild->grow_tree_adaptive_std_mtrywithinnode(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma,
     alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, running_time_left,
     use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree,model);
-    tree::tree_p rchild = new tree();
+    tree::tree_p rchild = new tree(model -> getNumClasses());
     rchild->grow_tree_adaptive_std_mtrywithinnode(yright_mean_std, depth, max_depth, Nmin, Ncutpoints,
     tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry,
     running_time_right, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree,model);
@@ -960,13 +960,13 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
      depth = depth + 1;
 
 
-   tree::tree_p lchild = new tree();
+   tree::tree_p lchild = new tree(model -> getNumClasses());
      lchild->grow_tree_adaptive_std_all(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
      draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, use_all, split_count_all_tree,
      mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous,
      X_values, X_counts_left, variable_ind, X_num_unique_left, model, data_pointers, tree_ind);
 
-     tree::tree_p rchild = new tree();
+     tree::tree_p rchild = new tree(model -> getNumClasses());
      rchild->grow_tree_adaptive_std_all(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
      draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, use_all, split_count_all_tree,
      mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous,
@@ -1143,12 +1143,12 @@ bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double
     double running_time_right = 0.0;
 
     depth = depth + 1;
-    tree::tree_p lchild = new tree();
+    tree::tree_p lchild = new tree(model -> getNumClasses());
     lchild->grow_tree_adaptive_std_mtrywithinnode_categorical(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau,
     sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, running_time_left, use_all,
      split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values,
      X_counts_left, variable_ind, X_num_unique_left,model);
-    tree::tree_p rchild = new tree();
+    tree::tree_p rchild = new tree(model -> getNumClasses());
     rchild->grow_tree_adaptive_std_mtrywithinnode_categorical(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau,
     sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, running_time_right, use_all,
     split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values,
