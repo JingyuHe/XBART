@@ -29,6 +29,8 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
 {
     auto start = system_clock::now();
 
+    NormalModel model;
+
     size_t N = X.n_rows;
     size_t p = X.n_cols;
     size_t N_test = Xtest.n_rows;
@@ -247,7 +249,7 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
 
                 // cout << "before " << mtry_weight_current_tree << endl;
 
-                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, run_time, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree);
+                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, run_time, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, &model);
 
                 mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 

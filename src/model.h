@@ -9,12 +9,13 @@ class Model{
 private:
     size_t num_classes;
 public:
-	virtual void getSufficientStatistic() const{return;};
+	virtual void incrementSuffStat() const{return;};
 	virtual void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau, 
 						std::default_random_engine generator,std::vector<double> &theta_vector) const {return;};
 	virtual double likelihood(double value,double tau,double ntau,double sigma2) const{return 0 ;};
 
-	virtual void updateResidual(const xinfo &predictions_std,size_t tree_ind,size_t M,std::vector<double> &residual_std)const {return;};
+	virtual void updateResidual(const xinfo &predictions_std,size_t tree_ind,size_t M,
+	std::vector<double> &residual_std)const {return;};
 
     virtual size_t getNumClasses() const{return 0;};
 };
@@ -27,7 +28,7 @@ private:
     size_t num_classes = 1;
 public:
 
-		void getSufficientStatistic() const {return;};
+		void incrementSuffStat() const {return;};
 		void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau, 
 						std::default_random_engine generator,std::vector<double> &theta_vector) const {
 		std::normal_distribution<double> normal_samp(0.0, 1.0);
