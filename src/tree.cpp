@@ -728,6 +728,8 @@ void tree::grow_tree_adaptive_abarth_train(double y_mean, size_t depth, size_t m
 
     if (no_split == true)
     {
+        this -> l = 0;
+        this -> r = 0;
         return;
     }
 
@@ -889,6 +891,8 @@ void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, si
 
     if (no_split == true)
     {
+        this -> l = 0;
+        this -> r = 0;
         return;
     }
 
@@ -1062,6 +1066,8 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
         for(size_t i = 0; i < N_Xorder; i ++ ){
             data_pointers[tree_ind][Xorder_std[0][i]] = this;
         }
+        this -> l = 0;
+        this -> r = 0;
         return;
     }
 
@@ -1245,6 +1251,8 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size
     if (no_split == true)
     {
         cout << "no split " << endl;
+        this -> l = 0;
+        this -> r = 0;
         return;
     }
 
