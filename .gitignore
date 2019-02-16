@@ -43,4 +43,5 @@ python/__pycache__
 
 # Python build artifacts
 python/build
+python/src
 
