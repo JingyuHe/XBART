@@ -8,7 +8,10 @@ from setuptools import setup, Extension
 import numpy
 
 from sys import platform
-compile_args = ["-std=gnu++11", "-fpic",  "-g"]
+if platform == "win32":
+  compile_args = []
+else:
+  compile_args = ["-std=gnu++11", "-fpic",  "-g"]
 if platform == "darwin":
   compile_args.append("-mmacosx-version-min=10.9") # To ensure gnu+11 and all std libs
 
@@ -36,7 +39,6 @@ setup (name = 'abarth',
        ext_modules = [abarth_module],
        sources = ["abarth.py"],
        install_requires=['numpy'],
-       py_modules = ["abarth"],
-       include_package_data=True
+       py_modules = ["abarth"]
        )
 
