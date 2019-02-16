@@ -561,6 +561,8 @@ std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_
 
     if (no_split == true)
     {
+        this -> l = 0;
+        this -> r = 0;
         return;
     }
 
@@ -707,6 +709,8 @@ std::vector<double> &split_count_current_tree,const Model * model)
 
     if (no_split == true)
     {
+        this -> l = 0;
+        this -> r = 0;
         return;
     }
 
@@ -890,6 +894,8 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
         for(size_t i = 0; i < N_Xorder; i ++ ){
             data_pointers[tree_ind][Xorder_std[0][i]] = this;
         }
+        this -> l = 0;
+        this -> r = 0;
         return;
     }
 
@@ -1075,6 +1081,8 @@ bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double
     if (no_split == true)
     {
         cout << "no split " << endl;
+        this -> l = 0;
+        this -> r = 0;
         return;
     }
 
