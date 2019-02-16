@@ -107,7 +107,7 @@ void tree::pr(bool pc)
         cout << "tree size: " << treesize() << std::endl;
     cout << pad << "(id,parent): " << id << sp << pid;
     cout << sp << "(v,c): " << v << sp << c;
-    cout << sp << "theta: " << theta;
+    cout << sp << "theta: " << theta_vector;
     cout << sp << "type: " << ntype();
     cout << sp << "depth: " << depth();
     cout << sp << "pointer: " << this << std::endl;
