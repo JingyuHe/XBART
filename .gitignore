@@ -40,8 +40,15 @@
 
 # Python cache
 python/__pycache__
+python/tests/__pycache__
 
 # Python build artifacts
 python/build
 python/src
 
+# Visual Studio 2017 temporary files
+*.vcxproj.user
+vs2017/.vs
+vs2017/Debug
+vs2017/Release
+vs2017/x64

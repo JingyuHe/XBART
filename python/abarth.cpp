@@ -115,7 +115,7 @@ void Abarth::__fit_predict(int n,int d,double *a, // Train X
     vec_d x_test_std_2 = Abarth::xinfo_to_row_major_vec(x_test_std); // INEFFICIENT
 
     // Remove old x_std
-    for(int j; j<d;j++){
+    for(int j = 0; j<d;j++){
       x_std[j].clear();
       x_test_std[j].clear();
       x_std[j].shrink_to_fit();
@@ -215,7 +215,7 @@ void Abarth::__fit_predict_all(int n,int d,double *a, // Train X
     vec_d x_test_std_2 = Abarth::xinfo_to_row_major_vec(x_test_std); // INEFFICIENT
 
     // Remove old x_std
-    for(int j; j<d;j++){
+    for(int j = 0; j<d;j++){
       x_std[j].clear();
       x_test_std[j].clear();
       x_std[j].shrink_to_fit();
@@ -314,7 +314,7 @@ void Abarth::__fit_all(int n,int d,double *a,
     vec_d x_std_2 = Abarth::xinfo_to_row_major_vec(x_std); // INEFFICIENT - For now to include index sorting
 
     // Remove old x_std
-    for(int j; j<d;j++){
+    for(int j = 0; j<d;j++){
       x_std[j].clear();
       x_std[j].shrink_to_fit();
     }

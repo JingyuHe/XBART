@@ -8,6 +8,9 @@
 #include <algorithm>
 #include <functional>
 #include <iterator>
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include <numeric>
 #endif
 
 template<typename T>
