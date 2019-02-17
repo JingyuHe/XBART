@@ -33,26 +33,10 @@ class AbarthTesting1(unittest.TestCase):
 
 	def test_void_sort_2d(self,n=10,d=2):
 		X = np.random.rand(n*d).reshape(n,d)
-		#print "Fail unless 2d  X_fit's last elements are equal to X"
 		sort_np = np.argsort(X[:,d-1])
 		sort_x = self.model.sort_x(X,n).astype(int)
 		self.failUnless(all(sort_x == sort_np))
-		#self.failUnless(self.model.sort_x(X) == np.argsort(X[:,d-1])[n-1])		
 
-	
-	# def test_fit_predict(self):
-	# 	n = 1000
-	# 	d = 10
-	# 	x= np.random.rand(n,d)
-	# 	y = np.random.rand(n)
-		
-	# 	n_test = 100
-	# 	d_test = 10
-	# 	x_test= np.random.rand(n_test,d_test)
-		
-
-	# 	y_pred = self.model.fit_predict(x,y,x_test,n_test*self.params["N_sweeps"])
-	# 	self.failUnless(isinstance(y_pred, np.ndarray))
 
 	def test_fit_predict_discrete_2d(self):
 		n = 1000

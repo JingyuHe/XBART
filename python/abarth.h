@@ -59,7 +59,7 @@ class Abarth{
 		//~Abarth();
 
 	
-		//void sort_x(int n, int d, double *a);
+		// void sort_x(int n, int d, double *a);
 		void sort_x(int n,int d,double *a,int size, double *arr);
 
 		void __fit_predict(int n,int d,double *a, // Train X 
