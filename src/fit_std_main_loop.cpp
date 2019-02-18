@@ -218,7 +218,7 @@ void fit_std_main_loop_all(const double *Xpointer,std::vector<double> &y_std,dou
                 bool draw_mu, bool parallel,
                 xinfo &yhats_xinfo,xinfo &yhats_test_xinfo,
                 xinfo &sigma_draw_xinfo, xinfo &split_count_all_tree,
-                size_t p_categorical,size_t p_continuous,vector< vector<tree>> &trees)
+                size_t p_categorical,size_t p_continuous,vector< vector<tree>> &trees, bool set_random_seed, size_t random_seed)
 {
 
     fit_std(Xpointer,y_std, y_mean,Xorder_std,
@@ -230,7 +230,7 @@ void fit_std_main_loop_all(const double *Xpointer,std::vector<double> &y_std,dou
                  verbose,  m_update_sigma, 
                  draw_mu,  parallel,
                 yhats_xinfo,sigma_draw_xinfo,
-                 p_categorical, p_continuous,trees);
+                 p_categorical, p_continuous,trees, set_random_seed, random_seed);
 
     predict_std(Xtestpointer, N_test, p,M, L,
       N_sweeps,yhats_test_xinfo,trees, y_mean);
@@ -479,7 +479,7 @@ void fit_std(const double *Xpointer,std::vector<double> &y_std,double y_mean,xin
                 bool verbose, bool m_update_sigma, 
                 bool draw_mu, bool parallel,
                 xinfo &yhats_xinfo,xinfo &sigma_draw_xinfo,
-                size_t p_categorical,size_t p_continuous,vector< vector<tree>> &trees)
+                size_t p_categorical,size_t p_continuous,vector< vector<tree>> &trees, bool set_random_seed, size_t random_seed)
 {
     bool categorical_variables = false;
     if(p_categorical > 0){
@@ -539,6 +539,9 @@ void fit_std(const double *Xpointer,std::vector<double> &y_std,double y_mean,xin
     std::vector<double> prob(2, 0.5);
     std::random_device rd;
     std::mt19937 gen(rd());
+    if(set_random_seed){
+        gen.seed(random_seed);
+    }
     std::discrete_distribution<> d(prob.begin(), prob.end());
     // // sample one index of split point
     size_t prune;
@@ -657,7 +660,7 @@ void fit_std(const double *Xpointer,std::vector<double> &y_std,double y_mean,xin
                      draw_mu,  parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree,
                     mtry_weight_current_tree, split_count_current_tree, categorical_variables,
                     p_categorical, p_continuous,  X_values, X_counts, variable_ind,
-                    X_num_unique,&model, data_pointers, tree_ind);
+                    X_num_unique,&model, data_pointers, tree_ind, gen);
 
                 mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 

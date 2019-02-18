@@ -798,7 +798,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     bool &categorical_variables, size_t &p_categorical, 
     size_t &p_continuous, std::vector<double> &X_values,//std::vector<size_t> &X_values,
     std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique,
-    const Model * model, matrix<tree::tree_p> &data_pointers, const size_t & tree_ind)
+    const Model * model, matrix<tree::tree_p> &data_pointers, const size_t & tree_ind, std::mt19937& gen)
 
 
 {
@@ -883,7 +883,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints,
     alpha, beta, no_split, split_var,
         split_point, parallel, subset_vars, p_categorical, p_continuous, X_values,
-        X_counts, variable_ind, X_num_unique, model);
+        X_counts, variable_ind, X_num_unique, model, gen);
 
 
 //    cout << "split var " << split_var << "  split point " << split_point << " no split " << no_split << endl;
@@ -970,13 +970,13 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
      lchild->grow_tree_adaptive_std_all(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
      draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, use_all, split_count_all_tree,
      mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous,
-     X_values, X_counts_left, variable_ind, X_num_unique_left, model, data_pointers, tree_ind);
+     X_values, X_counts_left, variable_ind, X_num_unique_left, model, data_pointers, tree_ind, gen);
 
      tree::tree_p rchild = new tree(model -> getNumClasses());
      rchild->grow_tree_adaptive_std_all(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
      draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, use_all, split_count_all_tree,
      mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous,
-     X_values, X_counts_right, variable_ind, X_num_unique_right, model, data_pointers, tree_ind);
+     X_values, X_counts_right, variable_ind, X_num_unique_right, model, data_pointers, tree_ind, gen);
 
 
      lchild->p = this;
@@ -1730,7 +1730,7 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
     size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, 
     size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, 
     size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values,//std::vector<size_t> &X_values, 
-    std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model* model)
+    std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model* model, std::mt19937& gen)
 
 {
     // compute BART posterior (loglikelihood + logprior penalty)
@@ -1824,8 +1824,8 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
             std::fill(loglike.begin(), loglike.begin() + (N_Xorder - 1) * p_continuous - 1, 0.0);
         }
 
-        std::random_device rd;
-        std::mt19937 gen(rd());
+        // std::random_device rd;
+        // std::mt19937 gen(rd());
         std::discrete_distribution<> d(loglike.begin(), loglike.end());
         // sample one index of split point
 
@@ -1887,8 +1887,8 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
         
         seq_gen_std(Nmin, N - Nmin, Ncutpoints, candidate_index);
 
-        std::random_device rd;
-        std::mt19937 gen(rd());
+        // std::random_device rd;
+        // std::mt19937 gen(rd());
         std::discrete_distribution<size_t> d(loglike.begin(), loglike.end());
         // // sample one index of split point
         ind = d(gen);
