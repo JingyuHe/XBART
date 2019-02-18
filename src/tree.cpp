@@ -2041,12 +2041,12 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         for (auto &&i : subset_vars)
         {
             if(i < p_continuous){
-                y_cumsum[0] = y_std[Xorder_std[i][0]];
-                // y_cumsum_inv[0] = y_sum - y_cumsum[0];
-                for (size_t q = 1; q < N_Xorder; q++)
+                std::vector<size_t>& xorders = Xorder_std[i];
+                double cumsum = 0.0;
+                for (size_t q = 0; q < N_Xorder; q++)
                 {
-                    y_cumsum[q] = y_cumsum[q - 1] + y_std[Xorder_std[i][q]];
-                    // y_cumsum_inv[q] = y_sum - y_cumsum[q];
+                    cumsum += y_std[xorders[q]];
+                    y_cumsum[q] = cumsum;
                 }
 
                 for (size_t j = 0; j < N_Xorder - 1; j++)
@@ -2054,8 +2054,6 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     // loop over all possible cutpoints
                     n1tau = (j + 1) * tau; // number of points on left side (x <= cutpoint)
                     n2tau = Ntau - n1tau;  // number of points on right side (x > cutpoint)
-
-
                     
                     loglike[(N_Xorder - 1) * i + j] = model->likelihood(y_cumsum[j],tau,n1tau,sigma2) + model->likelihood(y_sum-y_cumsum[j],tau,n2tau,sigma2);//-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
 
@@ -2084,9 +2082,6 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
         double Ntau = N_Xorder * tau;
 
-
-        bool firstrun = true; // flag of the first loop
-        double *ypointer;
         double n1tau;
         double n2tau;
 
@@ -2094,30 +2089,22 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         {
 
             if(i < p_continuous){
+                std::vector<size_t>& xorder = Xorder_std[i];
                 size_t ind = 0;
-                y_cumsum[0] = 0.0;
-                // size_t N_Xorder = Xorder_std[0].size();
+                double cumsum = 0.0;
 
-                // cout << y_sum << " " << y_sum2 << endl;
                 for (size_t q = 0; q < N_Xorder; q++)
                 {
-                    // cout << ind << " " << Ncutpoints << endl;
-                    if (q <= candidate_index[ind])
-                    {
-                        y_cumsum[ind] = y_cumsum[ind] + y_std[Xorder_std[i][q]];
-                    }
-                    else
-                    {
+                    cumsum += y_std[xorder[q]];
 
-                        if (ind < Ncutpoints - 1)
+                    if (q >= candidate_index[ind])
+                    {
+                        y_cumsum[ind] = cumsum;
+                        ind++;
+
+                        if(ind >= Ncutpoints)
                         {
-                            // y_cumsum_inv[ind] = y_sum - y_cumsum[ind];
-                            ind++;
-                            y_cumsum[ind] = y_cumsum[ind - 1] + y_std[Xorder_std[i][q]];
-                        }
-                        else
-                        {
-                            // have done cumulative sum, do no care about elements after index of last entry of candiate_index
+                            // have done cumulative sum, do not care about elements after index of last entry of candidate_index
                             break;
                         }
                     }
