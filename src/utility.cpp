@@ -1,5 +1,7 @@
 #include "utility.h"
 
+ThreadPool thread_pool;
+
 // xinfo copy_xinfo(Rcpp::NumericMatrix &X)
 // {
 //     size_t n_row = X.nrow();
