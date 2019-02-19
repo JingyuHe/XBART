@@ -14,14 +14,14 @@
 #include <thread>
 #include <vector>
 
-class ThreadPoolTaskDone 
+class ThreadPoolTaskStatus 
 {
 public:
-    ThreadPoolTaskDone() : done(false) { };
+    ThreadPoolTaskStatus() : done(false) { };
     std::atomic<bool> done;
-    std::condition_variable wake;
+    std::condition_variable changed;
 
-    ThreadPoolTaskDone(const ThreadPoolTaskDone&) = delete; // no copy constructor
+    ThreadPoolTaskStatus(const ThreadPoolTaskStatus&) = delete; // no copy constructor
 };
 
 class ThreadPool 
@@ -44,11 +44,11 @@ public:
             std::bind(std::forward<F>(f), std::forward<Args>(args)...)
             );
 
-        auto done = new ThreadPoolTaskDone;
+        auto status = new ThreadPoolTaskStatus;
 
-        dones_mutex.lock();
-        dones.push(std::shared_ptr<ThreadPoolTaskDone>(done));
-        dones_mutex.unlock();
+        status_mutex.lock();
+        statuses.push(std::shared_ptr<ThreadPoolTaskStatus>(status));
+        status_mutex.unlock();
 
         std::future<return_type> res = sharedf->get_future();
 
@@ -60,13 +60,13 @@ public:
 
         tasks_mutex.lock();
         tasks.emplace(
-            [this, sharedf, done]() // lambda callback to execute the task, called by a worker thread
+            [this, sharedf, status]() // lambda callback to execute the task, called by a worker thread
         {
             (*sharedf)();
-            dones_mutex.lock();
-            done->done = true;
-            done->wake.notify_all();
-            dones_mutex.unlock();
+            status_mutex.lock();
+            status->done = true;
+            status->changed.notify_all();
+            status_mutex.unlock();
         });
         tasks_mutex.unlock();
 
@@ -80,12 +80,12 @@ public:
 
 private:
     std::vector< std::thread > threads;
-    std::queue< std::shared_ptr<ThreadPoolTaskDone> > dones;
+    std::queue< std::shared_ptr<ThreadPoolTaskStatus> > statuses;
     std::queue< std::function<void()> > tasks;
 
     // synchronization
     std::mutex tasks_mutex;
-    std::mutex dones_mutex;
+    std::mutex status_mutex;
     std::condition_variable condition;
     std::atomic<bool> stopping;
 };

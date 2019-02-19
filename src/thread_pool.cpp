@@ -35,12 +35,12 @@ void ThreadPool::start(size_t nthreads)
 
 void ThreadPool::wait()
 {
-    std::unique_lock<std::mutex> lock(this->dones_mutex);
-    while (!dones.empty())
+    std::unique_lock<std::mutex> lock(this->status_mutex);
+    while (!statuses.empty())
     {
-        while (!dones.front()->done)
-            dones.front()->wake.wait(lock);
-        dones.pop();
+        while (!statuses.front()->done)
+            statuses.front()->changed.wait(lock);
+        statuses.pop();
     }
 }
 
