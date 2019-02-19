@@ -9,28 +9,31 @@ void ThreadPool::start(size_t nthreads)
         nthreads = std::thread::hardware_concurrency();
 
     for (size_t i = 0; i < nthreads; ++i)
-        threads.emplace_back( // start a new thread and store the std::thread object in threads
-            [this]() // this lambda is the thread callback
     {
-        for (;;)
-        {
-            std::function<void()> task;
-
-            // The unique_lock only exists in this scope and is unlocked at the end
+        // Start worker threads and store the std::thread objects in threads queue
+        threads.emplace_back( 
+            [this]() // this lambda is the thread callback
             {
-                std::unique_lock<std::mutex> lock(this->tasks_mutex);
-                this->condition.wait(lock,
-                    [this] { return this->stopping || !this->tasks.empty(); });
-                if (this->stopping && this->tasks.empty())
-                    return;
-                task = std::move(this->tasks.front());
-                this->tasks.pop();
-            }
+                for (;;)
+                {
+                    std::function<void()> task;
 
-            task();
-        }
+                    // A new scope to contain the unique_lock required by wait
+                    {
+                        std::unique_lock<std::mutex> lock(this->tasks_mutex);
+                        this->wake_worker.wait(lock,
+                            [this] { return this->stopping || !this->tasks.empty(); });
+                        if (this->stopping && this->tasks.empty())
+                            return;
+                        task = std::move(this->tasks.front());
+                        this->tasks.pop();
+                    }
+
+                    task();
+                }
+            }
+        );
     }
-    );
 }
 
 void ThreadPool::wait()
@@ -48,7 +51,7 @@ void ThreadPool::stop()
 {
     stopping = true;
 
-    condition.notify_all();
+    wake_worker.notify_all();
 
     for (std::thread &t : threads)
         t.join();
