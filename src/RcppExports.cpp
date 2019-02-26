@@ -48,8 +48,8 @@ END_RCPP
 }
 
 // train_forest_root_std_all
-Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin, size_t mtry, size_t p_categorical, bool draw_sigma, double kap, double s, bool verbose, bool m_update_sigma, bool draw_mu, bool parallel);
-RcppExport SEXP _abarth_train_forest_root_std_all(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP LSEXP, SEXP N_sweepsSEXP, SEXP max_depthSEXP, SEXP NminSEXP, SEXP NcutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP draw_sigmaSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP m_update_sigmaSEXP, SEXP draw_muSEXP, SEXP parallelSEXP) {
+Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin, size_t mtry, size_t p_categorical, bool draw_sigma, double kap, double s, bool verbose, bool m_update_sigma, bool draw_mu, bool parallel, bool set_random_seed, size_t random_seed);
+RcppExport SEXP _abarth_train_forest_root_std_all(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP LSEXP, SEXP N_sweepsSEXP, SEXP max_depthSEXP, SEXP NminSEXP, SEXP NcutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP draw_sigmaSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP m_update_sigmaSEXP, SEXP draw_muSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -75,7 +75,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type m_update_sigma(m_update_sigmaSEXP);
     Rcpp::traits::input_parameter< bool >::type draw_mu(draw_muSEXP);
     Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
-    rcpp_result_gen = Rcpp::wrap(train_forest_root_std_all(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel));
+    Rcpp::traits::input_parameter< bool >::type set_random_seed(set_random_seedSEXP);
+    Rcpp::traits::input_parameter< size_t >::type random_seed(random_seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(train_forest_root_std_all(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel, set_random_seed, random_seed)
+    );
     return rcpp_result_gen;
 END_RCPP
 }
@@ -173,8 +176,8 @@ BEGIN_RCPP
 END_RCPP
 }
 
-Rcpp::List abarth_train_all(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin, size_t mtry, size_t p_categorical, bool draw_sigma, double kap, double s, bool verbose, bool m_update_sigma, bool draw_mu, bool parallel);
-RcppExport SEXP _abarth_train_all(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP LSEXP, SEXP N_sweepsSEXP, SEXP max_depthSEXP, SEXP NminSEXP, SEXP NcutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP draw_sigmaSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP m_update_sigmaSEXP, SEXP draw_muSEXP, SEXP parallelSEXP) {
+Rcpp::List abarth_train_all(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin, size_t mtry, size_t p_categorical, bool draw_sigma, double kap, double s, bool verbose, bool m_update_sigma, bool draw_mu, bool parallel, bool set_random_seed, size_t random_seed);
+RcppExport SEXP _abarth_train_all(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP LSEXP, SEXP N_sweepsSEXP, SEXP max_depthSEXP, SEXP NminSEXP, SEXP NcutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP draw_sigmaSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP m_update_sigmaSEXP, SEXP draw_muSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -200,7 +203,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type m_update_sigma(m_update_sigmaSEXP);
     Rcpp::traits::input_parameter< bool >::type draw_mu(draw_muSEXP);
     Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
-    rcpp_result_gen = Rcpp::wrap(abarth_train_all(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel));
+    Rcpp::traits::input_parameter< bool >::type set_random_seed(set_random_seedSEXP);
+    Rcpp::traits::input_parameter< size_t >::type random_seed(random_seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(abarth_train_all(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel, set_random_seed, random_seed));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -209,11 +214,11 @@ static const R_CallMethodDef CallEntries[] = {
     // {"_abarth_predict_tree", (DL_FUNC) &_abarth_predict_tree, 2},
      //{"_abarth_predict_tree_std", (DL_FUNC) &_abarth_predict_tree_std, 2},
     {"_abarth_sample_int_ccrank", (DL_FUNC) &_abarth_sample_int_ccrank, 3},
-    {"_abarth_train_forest_root_std_all", (DL_FUNC) &_abarth_train_forest_root_std_all, 22},
+    {"_abarth_train_forest_root_std_all", (DL_FUNC) &_abarth_train_forest_root_std_all, 24},
     {"_abarth_train_forest_root_std_mtrywithinnode", (DL_FUNC) &_abarth_train_forest_root_std_mtrywithinnode, 21},
     {"_abarth_train_forest_root_std_mtrywithinnode_ordinal", (DL_FUNC) &_abarth_train_forest_root_std_mtrywithinnode_ordinal, 21},
     {"_abarth_train", (DL_FUNC) &_abarth_train, 21},
-    {"_abarth_train_all", (DL_FUNC) &_abarth_train_all, 22},
+    {"_abarth_train_all", (DL_FUNC) &_abarth_train_all, 24},
     {NULL, NULL, 0}
 };
 
