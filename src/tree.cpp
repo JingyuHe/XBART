@@ -477,7 +477,7 @@ void cumulative_sum_std(std::vector<double> &y_cumsum, std::vector<double> &y_cu
 void tree::grow_tree_adaptive_abarth_train(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints,
 double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std,
 xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, bool &use_all,
-std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree,const Model * model)
+std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree,const Model * model, std::mt19937& gen)
 {
 
     // grow a tree, users can control number of split points
@@ -502,8 +502,8 @@ std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_
     // tau is prior VARIANCE, do not take squares
     // set up random device
 
-    std::default_random_engine generator;
-    model -> samplePars( draw_mu, y_mean, N_Xorder, sigma, tau, generator,this->theta_vector);
+    // std::default_random_engine generator;
+    model -> samplePars( draw_mu, y_mean, N_Xorder, sigma, tau, gen,this->theta_vector);
 
 
     if (draw_sigma == true)
@@ -517,7 +517,7 @@ std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_
         reshat_std = y_std - reshat_std;
 
         std::gamma_distribution<double> gamma_samp((N_y + 16) / 2.0, 2.0 / (sum_squared(reshat_std) + 4.0));
-        sigma = 1.0 / gamma_samp(generator);
+        sigma = 1.0 / gamma_samp(gen);
     }
 
     this->sig = sigma;
@@ -608,11 +608,11 @@ std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_
     tree::tree_p lchild = new tree(model -> getNumClasses());
     lchild->grow_tree_adaptive_abarth_train(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
      draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, running_time_left, use_all,
-     mtry_weight_current_tree, split_count_current_tree,model);
+     mtry_weight_current_tree, split_count_current_tree,model,gen);
     tree::tree_p rchild = new tree(model -> getNumClasses());
     rchild->grow_tree_adaptive_abarth_train(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
      draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, running_time_right, use_all,
-     mtry_weight_current_tree, split_count_current_tree,model);
+     mtry_weight_current_tree, split_count_current_tree,model,gen);
 
     lchild->p = this;
     rchild->p = this;
@@ -630,7 +630,7 @@ void tree::grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, si
 size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel,
 std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, bool &use_all,
 xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree,
-std::vector<double> &split_count_current_tree,const Model * model)
+std::vector<double> &split_count_current_tree,const Model * model, std::mt19937& gen)
 {
 
     // grow a tree, users can control number of split points
@@ -655,8 +655,8 @@ std::vector<double> &split_count_current_tree,const Model * model)
     // tau is prior VARIANCE, do not take squares
     // set up random device
 
-    std::default_random_engine generator;
-    model -> samplePars( draw_mu, y_mean, N_Xorder, sigma, tau, generator,this->theta_vector);
+    // std::default_random_engine generator;
+    model -> samplePars( draw_mu, y_mean, N_Xorder, sigma, tau, gen,this->theta_vector);
 
     if (draw_sigma == true)
     {
@@ -669,7 +669,7 @@ std::vector<double> &split_count_current_tree,const Model * model)
         reshat_std = y_std - reshat_std;
 
         std::gamma_distribution<double> gamma_samp((N_y + 16) / 2.0, 2.0 / (sum_squared(reshat_std) + 4.0));
-        sigma = 1.0 / gamma_samp(generator);
+        sigma = 1.0 / gamma_samp(gen);
     }
 
     this->sig = sigma;
@@ -773,11 +773,11 @@ std::vector<double> &split_count_current_tree,const Model * model)
     tree::tree_p lchild = new tree(model -> getNumClasses());
     lchild->grow_tree_adaptive_std_mtrywithinnode(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma,
     alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, running_time_left,
-    use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree,model);
+    use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree,model,gen);
     tree::tree_p rchild = new tree(model -> getNumClasses());
     rchild->grow_tree_adaptive_std_mtrywithinnode(yright_mean_std, depth, max_depth, Nmin, Ncutpoints,
     tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry,
-    running_time_right, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree,model);
+    running_time_right, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree,model,gen);
 
     lchild->p = this;
     rchild->p = this;
@@ -827,10 +827,10 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     // tau is prior VARIANCE, do not take squares
     // set up random device
 
-    std::default_random_engine generator;
+    // std::default_random_engine generator;
     // NormalModel model;
 
-    model -> samplePars( draw_mu, y_mean, N_Xorder, sigma, tau, generator, this->theta_vector);
+    model -> samplePars( draw_mu, y_mean, N_Xorder, sigma, tau, gen, this->theta_vector);
 
     if (draw_sigma == true)
     {
@@ -843,7 +843,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
         reshat_std = y_std - reshat_std;
 
         std::gamma_distribution<double> gamma_samp((N_y + 16) / 2.0, 2.0 / (sum_squared(reshat_std) + 4.0));
-        sigma = 1.0 / gamma_samp(generator);
+        sigma = 1.0 / gamma_samp(gen);
     }
 
     this->sig = sigma;
@@ -997,7 +997,7 @@ size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double b
 bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time,
  bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree,
  std::vector<double> &split_count_current_tree, std::vector<double> &X_values, std::vector<size_t> &X_counts,
- std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique,const Model * model)
+ std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique,const Model * model, std::mt19937& gen)
 {
 
     // grow a tree, users can control number of split points
@@ -1022,8 +1022,8 @@ bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double
     // tau is prior VARIANCE, do not take squares
     // set up random device
 
-    std::default_random_engine generator;
-    model -> samplePars( draw_mu, y_mean, N_Xorder, sigma, tau, generator,this->theta_vector);
+    // std::default_random_engine generator;
+    model -> samplePars( draw_mu, y_mean, N_Xorder, sigma, tau, gen,this->theta_vector);
 
 
     if (draw_sigma == true)
@@ -1037,7 +1037,7 @@ bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double
         reshat_std = y_std - reshat_std;
 
         std::gamma_distribution<double> gamma_samp((N_y + 16) / 2.0, 2.0 / (sum_squared(reshat_std) + 4.0));
-        sigma = 1.0 / gamma_samp(generator);
+        sigma = 1.0 / gamma_samp(gen);
     }
 
     this->sig = sigma;
@@ -1155,12 +1155,12 @@ bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double
     lchild->grow_tree_adaptive_std_mtrywithinnode_categorical(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau,
     sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, running_time_left, use_all,
      split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values,
-     X_counts_left, variable_ind, X_num_unique_left,model);
+     X_counts_left, variable_ind, X_num_unique_left,model,gen);
     tree::tree_p rchild = new tree(model -> getNumClasses());
     rchild->grow_tree_adaptive_std_mtrywithinnode_categorical(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau,
     sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, running_time_right, use_all,
     split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values,
-    X_counts_right, variable_ind, X_num_unique_right,model);
+    X_counts_right, variable_ind, X_num_unique_right,model,gen);
 
     lchild->p = this;
     rchild->p = this;

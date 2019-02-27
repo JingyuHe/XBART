@@ -486,7 +486,7 @@ void fit_std(const double *Xpointer,std::vector<double> &y_std,double y_mean,xin
         categorical_variables = true;
     }
 
-    std::default_random_engine(generator);
+    // std::default_random_engine(generator);
 
     //std::vector<size_t> X_values;
     std::vector<double> X_values;
@@ -615,7 +615,7 @@ void fit_std(const double *Xpointer,std::vector<double> &y_std,double y_mean,xin
 
                     std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std) + s));
 
-                    sigma = 1.0 / sqrt(gamma_samp(generator));
+                    sigma = 1.0 / sqrt(gamma_samp(gen));
 
                     sigma_draw_xinfo[sweeps][tree_ind] = sigma;
                 }
@@ -689,7 +689,7 @@ void fit_std(const double *Xpointer,std::vector<double> &y_std,double y_mean,xin
 
                     std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std) + s));
 
-                    sigma = 1.0 / sqrt(gamma_samp(generator));
+                    sigma = 1.0 / sqrt(gamma_samp(gen));
 
                     sigma_draw_xinfo[sweeps][tree_ind] = sigma;
                 }

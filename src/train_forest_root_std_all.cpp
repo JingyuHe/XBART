@@ -60,7 +60,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
         Xorder.col(i) = arma::sort_index(X.col(i));
     }
 
-    std::default_random_engine(generator);
+    // std::default_random_engine(generator);
 
     ///////////////////////////////////////////////////////////////////
     // inefficient! Need replacement
@@ -251,7 +251,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
                     std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std) + s));
 
-                    sigma = 1.0 / sqrt(gamma_samp(generator));
+                    sigma = 1.0 / sqrt(gamma_samp(gen));
 
                     sigma_draw(tree_ind, sweeps) = sigma;
                 }
@@ -315,7 +315,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
                     std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std) + s));
 
-                    sigma = 1.0 / sqrt(gamma_samp(generator));
+                    sigma = 1.0 / sqrt(gamma_samp(gen));
 
                     sigma_draw(tree_ind, sweeps) = sigma;
                 }

@@ -25,7 +25,7 @@ using namespace chrono;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin = 1, size_t mtry = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true)
+Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin = 1, size_t mtry = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0)
 {
     auto start = system_clock::now();
 
@@ -143,6 +143,9 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
     std::vector<double> prob(2, 0.5);
     std::random_device rd;
     std::mt19937 gen(rd());
+    if(set_random_seed){
+        gen.seed(random_seed);
+    }
     std::discrete_distribution<> d(prob.begin(), prob.end());
     // // sample one index of split point
     size_t prune;
@@ -249,7 +252,7 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
 
                 // cout << "before " << mtry_weight_current_tree << endl;
 
-                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, run_time, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, &model);
+                trees.t[tree_ind].grow_tree_adaptive_std_mtrywithinnode(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, run_time, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, &model, gen);
 
                 mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 
