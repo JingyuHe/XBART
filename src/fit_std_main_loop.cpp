@@ -497,6 +497,8 @@ void fit_std(const double *Xpointer,std::vector<double> &y_std,double y_mean,xin
 
     std::vector<size_t> X_num_unique(p_categorical);
 
+    if(parallel)
+        thread_pool.start();
 
     unique_value_count2(Xpointer, Xorder_std, X_values, X_counts, 
         variable_ind, total_points, X_num_unique, p_categorical, p_continuous);
@@ -719,6 +721,7 @@ void fit_std(const double *Xpointer,std::vector<double> &y_std,double y_mean,xin
             // }
         }
     }
+    thread_pool.stop();
 
 }
 

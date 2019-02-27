@@ -1215,13 +1215,44 @@ size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_m
             }
             
     }
-    for (size_t i = 0; i < p_continuous; i++)
-    {
-        // loop over variables
-        left_ix = 0;
-        right_ix = 0;
-        const double *temp_pointer = X_std + N_y * split_var;
-        if (i == split_var)
+
+   const double *split_var_x_pointer = X_std + N_y * split_var;
+
+   for (size_t i = 0; i < p_continuous; i++) // loop over variables
+   {
+       // lambda callback for multithreading
+       auto split_i = [&, i]()
+       {
+           size_t left_ix = 0;
+           size_t right_ix = 0;
+
+           std::vector<size_t>& xo = Xorder_std[i];
+           std::vector<size_t>& xo_left = Xorder_left_std[i];
+           std::vector<size_t>& xo_right = Xorder_right_std[i];
+
+           for (size_t j = 0; j < N_Xorder; j++)
+           {
+               if (*(split_var_x_pointer + xo[j]) <= cutvalue)
+               {
+                   xo_left[left_ix] = xo[j];
+                   left_ix = left_ix + 1;
+               }
+               else
+               {
+                   xo_right[right_ix] = xo[j];
+                   right_ix = right_ix + 1;
+               }
+           }
+       };
+       if (thread_pool.is_active())
+           thread_pool.add_task(split_i);
+       else
+           split_i();
+   }
+   if (thread_pool.is_active())
+       thread_pool.wait();
+
+/*        if (i == split_var)
         {
             if (compute_left_side)
             {
@@ -1279,7 +1310,7 @@ size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_m
                 }
             }
         }
-    }
+    }*/
 
     if (compute_left_side)
     {
@@ -2076,57 +2107,71 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
     }else{
 
         std::vector<size_t> candidate_index(Ncutpoints);
-        std::vector<double> y_cumsum(Ncutpoints);
 
         seq_gen_std(Nmin, N - Nmin, Ncutpoints, candidate_index);
 
         double Ntau = N_Xorder * tau;
 
-        double n1tau;
-        double n2tau;
+        std::mutex llmax_mutex;
 
         for (auto &&i : subset_vars)
         {
+            if(i < p_continuous) {
 
-            if(i < p_continuous){
-                std::vector<size_t>& xorder = Xorder_std[i];
-                size_t ind = 0;
-                double cumsum = 0.0;
-
-                for (size_t q = 0; q < N_Xorder; q++)
+                // Lambda callback to perform the calculation
+                auto calcllc_i = [i, &loglike, &loglike_max, &Xorder_std, &y_std, &candidate_index, &model, &llmax_mutex, Ncutpoints, N_Xorder, Ntau, tau, sigma2, y_sum]()
                 {
-                    cumsum += y_std[xorder[q]];
+                    std::vector<size_t>& xorder = Xorder_std[i];
+                    size_t ind = 0;
+                    double accum = 0.0;
+                    double llmax = -INFINITY;
+                    std::vector<double> y_cumsum(Ncutpoints);
 
-                    if (q >= candidate_index[ind])
+                    for (size_t q = 0; q < N_Xorder; q++)
                     {
-                        y_cumsum[ind] = cumsum;
-                        ind++;
+                        accum += y_std[xorder[q]];
 
-                        if(ind >= Ncutpoints)
+                        if (q >= candidate_index[ind])
                         {
-                            // have done cumulative sum, do not care about elements after index of last entry of candidate_index
-                            break;
+                            y_cumsum[ind] = accum;
+                            ind++;
+
+                            if (ind >= Ncutpoints)
+                            {
+                                // have done cumulative sum, do not care about elements after index of last entry of candidate_index
+                                break;
+                            }
                         }
                     }
-                }
 
-                // y_cumsum_inv[Ncutpoints - 1] = y_sum - y_cumsum[Ncutpoints - 1];
+                    // y_cumsum_inv[Ncutpoints - 1] = y_sum - y_cumsum[Ncutpoints - 1];
 
-                for (size_t j = 0; j < Ncutpoints; j++)
-                {
-                    // loop over all possible cutpoints
-                    n1tau = (candidate_index[j] + 1) * tau; // number of points on left side (x <= cutpoint)
-                    n2tau = Ntau - n1tau;                   // number of points on right side (x > cutpoint)
-                    loglike[(Ncutpoints)*i + j] =  model->likelihood(y_cumsum[j],tau,n1tau,sigma2) + model->likelihood(y_sum-y_cumsum[j],tau,n2tau,sigma2);//-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
-
-                    if (loglike[(Ncutpoints)*i + j] > loglike_max)
+                    for (size_t j = 0; j < Ncutpoints; j++)
                     {
-                        loglike_max = loglike[(Ncutpoints)*i + j];
-                    }
-                }
-            }
+                        // loop over all possible cutpoints
+                        double n1tau = (candidate_index[j] + 1) * tau; // number of points on left side (x <= cutpoint)
+                        double n2tau = Ntau - n1tau;                   // number of points on right side (x > cutpoint)
+                        loglike[(Ncutpoints)*i + j] = model->likelihood(y_cumsum[j], tau, n1tau, sigma2) + model->likelihood(y_sum - y_cumsum[j], tau, n2tau, sigma2);//-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
 
+                        if (loglike[(Ncutpoints)*i + j] > llmax)
+                        {
+                            llmax = loglike[(Ncutpoints)*i + j];
+                        }
+                    }
+                    llmax_mutex.lock();
+                    if (llmax > loglike_max)
+                        loglike_max = llmax;
+                    llmax_mutex.unlock();
+                };
+
+                if (thread_pool.is_active())
+                    thread_pool.add_task(calcllc_i);
+                else
+                    calcllc_i();
+            }
         }
+        if (thread_pool.is_active())
+            thread_pool.wait();
 
         
             loglike[loglike.size() - 1] =   log(p)+ log(Ncutpoints) + model->likelihood(y_sum,tau,N_Xorder * tau,sigma2) - 0.5 * log(sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
