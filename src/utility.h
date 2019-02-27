@@ -13,11 +13,13 @@
 #include <numeric>
 #endif
 
-template<typename T>
-void ini_matrix(matrix<T> &matrix, size_t N, size_t p){
+template <typename T>
+void ini_matrix(matrix<T> &matrix, size_t N, size_t p)
+{
     matrix.resize(p);
 
-    for(size_t i = 0; i < p; i ++ ){
+    for (size_t i = 0; i < p; i++)
+    {
         matrix[i].resize(N);
     }
     return;
@@ -212,12 +214,12 @@ std::vector<T> operator-(const std::vector<T> &a, const std::vector<T> &b)
     return result;
 }
 
-
 template <typename T>
 std::vector<T> operator/(const std::vector<T> &a, const T &b)
 {
     std::vector<T> result;
-    for(size_t i = 0; i < a.size(); i++){
+    for (size_t i = 0; i < a.size(); i++)
+    {
         result[i] = a[i] / b;
     }
     return result;
@@ -227,14 +229,12 @@ template <typename T>
 std::vector<T> operator+(const std::vector<T> &a, const T &b)
 {
     std::vector<T> result;
-    for(size_t i = 0; i < a.size(); i++){
+    for (size_t i = 0; i < a.size(); i++)
+    {
         result[i] = a[i] + b;
     }
     return result;
 }
-
-
-
 
 //removed
 // // sort std vectors from small to large numbers, return indexes
@@ -255,26 +255,26 @@ std::ostream &operator<<(std::ostream &out, const std::vector<T> &v)
 
 // Added by saar - Sort index
 template <typename T>
-std::vector<size_t> sort_indexes(const std::vector<T> &v) {
+std::vector<size_t> sort_indexes(const std::vector<T> &v)
+{
 
-  // initialize original index locations
-  std::vector<size_t> idx(v.size());
-  iota(idx.begin(), idx.end(), 0);
+    // initialize original index locations
+    std::vector<size_t> idx(v.size());
+    iota(idx.begin(), idx.end(), 0);
 
-  // sort indexes based on comparing values in v
-  sort(idx.begin(), idx.end(),
-    [&v](size_t i1, size_t i2) { 
-        // Compare index values by their respective v values
-        return v[i1] < v[i2]; 
-      }); 
+    // sort indexes based on comparing values in v
+    sort(idx.begin(), idx.end(),
+         [&v](size_t i1, size_t i2) {
+             // Compare index values by their respective v values
+             return v[i1] < v[i2];
+         });
 
-  return idx;
+    return idx;
 }
 
 // double sq_diff_arma_std(arma::vec vec1, std::vector<double> vec2);
 double sq_vec_diff(std::vector<double> &v1, std::vector<double> &v2);
 double sq_vec_diff_sizet(std::vector<size_t> &v1, std::vector<size_t> &v2);
-
 
 void recover_Xorder(xinfo_sizet &Xorder, std::vector<size_t> &Xorder_firstline, xinfo_sizet &Xorder_next_index, xinfo_sizet &Xorder_new);
 
@@ -291,12 +291,8 @@ void compute_partial_sum_newXorder(const std::vector<double> &y_std, const xinfo
 // void NumericMatrix_row_sum(Rcpp::NumericMatrix &X, Rcpp::NumericVector &output);
 // void NumericMatrix_col_sum(Rcpp::NumericMatrix &X, Rcpp::NumericVector &output);
 
-
-void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t& start, size_t& end, double& y_sum, const size_t& var);
-
-
+void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, double &y_sum, const size_t &var);
 
 // void ini_xinfo_tree(std::vector<std::vector <tree>> &trees, size_t Nsweeps, size_t M);
-
 
 #endif

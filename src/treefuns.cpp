@@ -18,7 +18,7 @@
  */
 
 #include "treefuns.h"
- 
+
 using namespace std;
 //--------------------------------------------------
 //write cutpoint information to screen
@@ -34,8 +34,6 @@ void prxi(xinfo &xi)
     cout << "\n\n";
 }
 
-
-
 void fit_new_std(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output)
 {
     tree::tree_p bn;
@@ -47,9 +45,6 @@ void fit_new_std(tree &tree, const double *X_std, size_t N, size_t p, std::vecto
     }
     return;
 }
-
-
-
 
 void fit_new_theta_noise_std(tree &tree, const double *X, size_t p, size_t N, std::vector<double> &output)
 {
@@ -63,4 +58,3 @@ void fit_new_theta_noise_std(tree &tree, const double *X, size_t p, size_t N, st
     }
     return;
 }
-
