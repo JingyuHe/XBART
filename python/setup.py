@@ -19,7 +19,8 @@ abarth_module = Extension('_abarth',
                            sources=['abarth_wrap.cxx', 'abarth.cpp',
                                     "src/utility.cpp",'src/fit_std_main_loop.cpp',
                                       "src/sample_int_crank.cpp",  "src/treefuns.cpp",
-                                        "src/common.cpp" ,   "src/forest.cpp",    "src/tree.cpp",
+                                        "src/common.cpp" ,   "src/forest.cpp",    
+                                        "src/tree.cpp","src/thread_pool.cpp"
 
                                     ],
 
