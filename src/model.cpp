@@ -1,7 +1,6 @@
 #include "model.h"
 
-
-// void NormalModel::samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau, 
+// void NormalModel::samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
 // 						std::default_random_engine generator,double &theta, double &theta_noise){
 // 	std::normal_distribution<double> normal_samp(0.0, 1.0);
 

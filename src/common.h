@@ -69,7 +69,7 @@ typedef std::vector<vec_d> xinfo;      //vector of vectors, will be split rules
 typedef std::vector<size_t> vec_sizet; // unsigned int vector
 typedef std::vector<vec_sizet> xinfo_sizet;
 
-template<typename T>
-using matrix = std::vector< std::vector<T> >;
+template <typename T>
+using matrix = std::vector<std::vector<T>>;
 
 #endif

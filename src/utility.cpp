@@ -49,8 +49,6 @@ ThreadPool thread_pool;
 //     return std::move(Xinfo);
 // }
 
-
-
 void ini_xinfo(xinfo &X, size_t N, size_t p)
 {
     // xinfo X;
@@ -188,18 +186,18 @@ void seq_gen_std(size_t start, size_t end, size_t length_out, std::vector<size_t
     return;
 }
 
-void seq_gen_std_categorical(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec, std::vector<size_t> output){
+void seq_gen_std_categorical(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec, std::vector<size_t> output)
+{
     // take a subset of vec, write to output, with fixed length
-    double incr = (double)(end - start) / (double) length_out;
+    double incr = (double)(end - start) / (double)length_out;
     size_t temp;
-    for(size_t i = 0; i < length_out; i ++ ){
+    for (size_t i = 0; i < length_out; i++)
+    {
         temp = (size_t)incr * i + start;
         output[i] = vec[temp];
     }
     return;
 }
-
-
 
 void seq_gen_std_2(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec)
 {
@@ -208,14 +206,11 @@ void seq_gen_std_2(size_t start, size_t end, size_t length_out, std::vector<size
 
     for (size_t i = 1; i < length_out + 1; i++)
     {
-        vec[i] = (size_t)incr * (i-1) + start;
+        vec[i] = (size_t)incr * (i - 1) + start;
     }
 
     return;
 }
-
-
-
 
 void calculate_y_cumsum_std(const double *y, const size_t N_y, double y_sum, std::vector<size_t> &ind, std::vector<double> &y_cumsum, std::vector<double> &y_cumsum_inv)
 {
@@ -347,7 +342,6 @@ void vec_sum(std::vector<double> &vector, double &sum)
     return;
 }
 
-
 void vec_sum_sizet(std::vector<size_t> &vector, size_t &sum)
 {
     sum = 0;
@@ -357,7 +351,6 @@ void vec_sum_sizet(std::vector<size_t> &vector, size_t &sum)
     }
     return;
 }
-
 
 //Removed
 // double sq_diff_arma_std(arma::vec vec1, std::vector<double> vec2)
@@ -386,7 +379,6 @@ double sq_vec_diff(std::vector<double> &v1, std::vector<double> &v2)
     return output;
 }
 
-
 double sq_vec_diff_sizet(std::vector<size_t> &v1, std::vector<size_t> &v2)
 {
     assert(v1.size() == v2.size());
@@ -398,7 +390,6 @@ double sq_vec_diff_sizet(std::vector<size_t> &v1, std::vector<size_t> &v2)
     }
     return output;
 }
-
 
 //removed
 // std::vector<size_t> sort_indexes(const Rcpp::NumericVector &v)
@@ -536,11 +527,6 @@ void create_y_sort_3(std::vector<double> &Y_sort, std::vector<double> &possible_
         i++;
     }
 
-
-
-    
-
-
     return;
 }
 
@@ -559,8 +545,6 @@ void compute_partial_sum(std::vector<double> &Y, xinfo_sizet &Xorder, const size
     return;
 }
 
-
-
 //Removed
 // void NumericMatrix_row_sum(Rcpp::NumericMatrix &X, Rcpp::NumericVector &output){
 //     size_t n = X.nrow();
@@ -572,8 +556,6 @@ void compute_partial_sum(std::vector<double> &Y, xinfo_sizet &Xorder, const size
 //         }
 //     }
 // }
-
-
 
 // void NumericMatrix_col_sum(Rcpp::NumericMatrix &X, Rcpp::NumericVector &output){
 //     size_t n = X.nrow();
@@ -587,15 +569,14 @@ void compute_partial_sum(std::vector<double> &Y, xinfo_sizet &Xorder, const size
 //     return;
 // }
 
-
-
-
-void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t& start, size_t& end, double& y_sum, const size_t& var){
+void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, double &y_sum, const size_t &var)
+{
     // compute sum of y[Xorder[start:end, var]]
     size_t loop_count = 0;
-    for(size_t i = start; i <= end; i ++ ){
+    for (size_t i = start; i <= end; i++)
+    {
         y_sum = y_sum + y[Xorder[var][i]];
-        loop_count ++ ;
+        loop_count++;
         // cout << "Xorder " << Xorder[var][i] << " y value " << y[Xorder[var][i]] << endl;
     }
 
@@ -604,7 +585,6 @@ void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t& start, s
 
 // void ini_xinfo_tree(std::vector<std::vector <tree>> &trees, size_t Nsweeps, size_t M){
 //     for(size_t i = 0; i < Nsweeps;i++){
-//         trees[i]= vector<tree>(M); 
+//         trees[i]= vector<tree>(M);
 //     }
 // }
-

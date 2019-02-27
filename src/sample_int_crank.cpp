@@ -40,7 +40,7 @@ T _add_one(T t) { return t + 1; }
 //     // Here, ~ means "doesn't change order statistics".
 //     std::vector<double> rnd = prob;
 
-//     arn gen;  
+//     arn gen;
 
 //     for(size_t i = 0; i < rnd.size(); i ++ ){
 //         rnd[i] = rnd[i] / gen.exp();
@@ -104,7 +104,7 @@ std::vector<double> sample_int_ccrank(int n, int size, std::vector<double> prob)
     // Initialize with the first "size" elements of vx[1:size], they are already
     // 1-based.
 
-    vx = vx ;  // Removed + 1.0;
+    vx = vx; // Removed + 1.0;
 
     return vx;
 }

@@ -8,10 +8,6 @@
 using namespace std;
 using namespace chrono;
 
-
-
-
-
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //
 //                                                                    //
@@ -19,9 +15,6 @@ using namespace chrono;
 //                                                                    //
 //                                                                    //
 ////////////////////////////////////////////////////////////////////////
-
-
-
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
@@ -143,7 +136,8 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
     std::vector<double> prob(2, 0.5);
     std::random_device rd;
     std::mt19937 gen(rd());
-    if(set_random_seed){
+    if (set_random_seed)
+    {
         gen.seed(random_seed);
     }
     std::discrete_distribution<> d(prob.begin(), prob.end());
@@ -154,7 +148,6 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
     // std::fill(split_var_count.begin(), split_var_count.end(), 1);
     // Rcpp::NumericVector split_var_count(p, 1);
 
-
     xinfo split_count_all_tree;
     ini_xinfo(split_count_all_tree, p, M); // initialize at 0
     // split_count_all_tree = split_count_all_tree + 1; // initialize at 1
@@ -163,11 +156,10 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
 
     // double *split_var_count_pointer = &split_var_count[0];
 
-
     // in the burnin samples, use all variables
     std::vector<size_t> subset_vars(p);
     std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
-    
+
     double run_time = 0.0;
 
     // save tree objects to strings
@@ -256,10 +248,9 @@ Rcpp::List train_forest_root_std_mtrywithinnode(arma::mat y, arma::mat X, arma::
 
                 mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 
-                // cout << "after " << mtry_weight_current_tree << endl; 
+                // cout << "after " << mtry_weight_current_tree << endl;
 
-                split_count_all_tree[tree_ind] = split_count_current_tree; 
-
+                split_count_all_tree[tree_ind] = split_count_current_tree;
 
                 if (verbose == true)
                 {
