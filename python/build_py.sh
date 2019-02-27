@@ -47,7 +47,7 @@ else
   swig -c++ -python -py3  abarth.i
 fi
 
-if DIST_FLAG;then
+if $DIST_FLAG;then
   $PYTHON_BIN setup.py sdist --formats=gztar,zip bdist_wheel 
   $PYTHON_BIN -m pip install dist/*.tar.gz --user 
 else

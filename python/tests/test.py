@@ -22,7 +22,7 @@ class AbarthTesting1(unittest.TestCase):
 							,("Nmin",1),("Ncutpoints",5)
 							,("alpha",0.95),("beta",1.25 ),("tau",.8),("burnin",0),("mtry",2),("max_depth_num",5),
 							("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",True),
-							("draw_mu",False),("parallel",False)])
+							("draw_mu",False),("parallel",True)])
 		self.model = abarth.Abarth(self.params)
 		self.model_2 = abarth.Abarth(self.params)
 		n = 100
