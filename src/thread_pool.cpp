@@ -11,7 +11,7 @@ void ThreadPool::start(size_t nthreads)
     for (size_t i = 0; i < nthreads; ++i)
     {
         // Start worker threads and store the std::thread objects in threads queue
-        threads.emplace_back( 
+        threads.emplace_back(
             [this]() // this lambda is the thread callback
             {
                 for (;;)
@@ -22,7 +22,7 @@ void ThreadPool::start(size_t nthreads)
                     {
                         std::unique_lock<std::mutex> lock(this->tasks_mutex);
                         this->wake_worker.wait(lock,
-                            [this] { return this->stopping || !this->tasks.empty(); });
+                                               [this] { return this->stopping || !this->tasks.empty(); });
                         if (this->stopping && this->tasks.empty())
                             return;
                         task = std::move(this->tasks.front());
@@ -31,8 +31,7 @@ void ThreadPool::start(size_t nthreads)
 
                     task();
                 }
-            }
-        );
+            });
     }
 }
 

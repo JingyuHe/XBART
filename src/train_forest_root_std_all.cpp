@@ -8,8 +8,6 @@
 using namespace std;
 using namespace chrono;
 
-
-
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //
 //                                                                    //
@@ -18,14 +16,13 @@ using namespace chrono;
 //                                                                    //
 ////////////////////////////////////////////////////////////////////////
 
-
-
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0)
 {
     bool categorical_variables = false;
-    if(p_categorical > 0){
+    if (p_categorical > 0)
+    {
         categorical_variables = true;
     }
 
@@ -107,9 +104,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
-
-
-    std::vector<double> X_values;//std::vector<size_t> X_values;
+    std::vector<double> X_values; //std::vector<size_t> X_values;
     std::vector<size_t> X_counts;
     std::vector<size_t> variable_ind(p_categorical + 1);
 
@@ -117,15 +112,12 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
     std::vector<size_t> X_num_unique(p_categorical);
 
-
     unique_value_count2(Xpointer, Xorder_std, X_values, X_counts, variable_ind, total_points, X_num_unique, p_categorical, p_continuous);
-    
+
     cout << "X_values" << X_values << endl;
     cout << "X_counts" << X_counts << endl;
     cout << "variable_ind " << variable_ind << endl;
     cout << "X_num_unique " << X_num_unique << endl;
-
-
 
     xinfo yhats_std;
     ini_xinfo(yhats_std, N, N_sweeps);
@@ -169,7 +161,8 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     std::vector<double> prob(2, 0.5);
     std::random_device rd;
     std::mt19937 gen(rd());
-    if(set_random_seed){
+    if (set_random_seed)
+    {
         gen.seed(random_seed);
     }
     std::discrete_distribution<> d(prob.begin(), prob.end());
@@ -180,7 +173,6 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     // std::fill(split_var_count.begin(), split_var_count.end(), 1);
     // Rcpp::NumericVector split_var_count(p, 1);
 
-
     xinfo split_count_all_tree;
     ini_xinfo(split_count_all_tree, p, M); // initialize at 0
     // split_count_all_tree = split_count_all_tree + 1; // initialize at 1
@@ -189,11 +181,10 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
     // double *split_var_count_pointer = &split_var_count[0];
 
-
     // in the burnin samples, use all variables
     std::vector<size_t> subset_vars(p);
     std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
-    
+
     double run_time = 0.0;
 
     // save tree objects to strings
@@ -215,7 +206,6 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
     // std::vector<tree> data_pointers;
     // data_pointers.resize(N);
-
 
     for (size_t mc = 0; mc < L; mc++)
     {
@@ -293,10 +283,9 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
                 mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 
-                // cout << "after " << mtry_weight_current_tree << endl; 
+                // cout << "after " << mtry_weight_current_tree << endl;
 
-                split_count_all_tree[tree_ind] = split_count_current_tree; 
-
+                split_count_all_tree[tree_ind] = split_count_current_tree;
 
                 if (verbose == true)
                 {
@@ -352,7 +341,6 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     cout << "Running time of split Xorder " << run_time << endl;
 
     cout << "Count of splits for each variable " << mtry_weight_current_tree << endl;
-
 
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
     return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw);
