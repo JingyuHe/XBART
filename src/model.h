@@ -17,8 +17,10 @@ class Model
 								std::vector<double> &residual_std) const { return; };
 
 	virtual size_t getNumClasses() const { return 0; };
-	void calcSuffStat_continuous(xinfo_sizet &Xorder_std, std::vector<double> &y_cumsum, std::vector<double> &y_std,  const size_t &N_Xorder, const size_t &Ncutpoints, size_t var_index, std::vector<size_t> &candidate_index, bool adaptive_cutpoints) const {
+	virtual void calcSuffStat_continuous(xinfo_sizet &Xorder_std, std::vector<double> &y_cumsum, std::vector<double> &y_std,  const size_t &N_Xorder, const size_t &Ncutpoints, size_t var_index, std::vector<size_t> &candidate_index, bool adaptive_cutpoints) const {
 		return;}
+
+	virtual void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, double &y_sum, const size_t &var) const {return;}
 };
 
 class NormalModel : public Model
@@ -94,6 +96,19 @@ class NormalModel : public Model
 					}
 				}
 			}
+		}
+		return;
+	}
+
+
+	void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, double &y_sum, const size_t &var) const {
+		// compute sum of y[Xorder[start:end, var]]
+		size_t loop_count = 0;
+		for (size_t i = start; i <= end; i++)
+		{
+			y_sum = y_sum + y[Xorder[var][i]];
+			loop_count++;
+			// cout << "Xorder " << Xorder[var][i] << " y value " << y[Xorder[var][i]] << endl;
 		}
 		return;
 	}

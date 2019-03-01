@@ -947,12 +947,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     return;
 }
 
-void tree::grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size_t depth, size_t max_depth,
-                                                             size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu,
-                                                             bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time,
-                                                             bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree,
-                                                             std::vector<double> &split_count_current_tree, std::vector<double> &X_values, std::vector<size_t> &X_counts,
-                                                             std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model *model, std::mt19937 &gen)
+void tree::grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model *model, std::mt19937 &gen)
 {
 
     // grow a tree, users can control number of split points
@@ -1026,7 +1021,9 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size
         // subset_vars.resize(p);
         // std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
     }
-    BART_likelihood_adaptive_std_mtry_old_categorical(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, X_values, X_counts, variable_ind, X_num_unique);
+
+
+    BART_likelihood_adaptive_std_mtry_old_categorical(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, X_values, X_counts, variable_ind, X_num_unique, model);
 
     if (no_split == true)
     {
@@ -1096,15 +1093,9 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size
 
     depth = depth + 1;
     tree::tree_p lchild = new tree(model->getNumClasses());
-    lchild->grow_tree_adaptive_std_mtrywithinnode_categorical(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau,
-                                                              sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, running_time_left, use_all,
-                                                              split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values,
-                                                              X_counts_left, variable_ind, X_num_unique_left, model, gen);
+    lchild->grow_tree_adaptive_std_mtrywithinnode_categorical(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, running_time_left, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values, X_counts_left, variable_ind, X_num_unique_left, model, gen);
     tree::tree_p rchild = new tree(model->getNumClasses());
-    rchild->grow_tree_adaptive_std_mtrywithinnode_categorical(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau,
-                                                              sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, running_time_right, use_all,
-                                                              split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values,
-                                                              X_counts_right, variable_ind, X_num_unique_right, model, gen);
+    rchild->grow_tree_adaptive_std_mtrywithinnode_categorical(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, running_time_right, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, X_values, X_counts_right, variable_ind, X_num_unique_right, model, gen);
 
     lchild->p = this;
     rchild->p = this;
@@ -1116,9 +1107,7 @@ void tree::grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size
     return;
 }
 
-void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var,
-                                 size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous,
-                                 size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std)
+void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std)
 {
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
@@ -1567,7 +1556,7 @@ void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double> &y_
     return;
 }
 
-void BART_likelihood_adaptive_std_mtry_old_categorical(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique)
+void BART_likelihood_adaptive_std_mtry_old_categorical(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model *model)
 {
     // compute BART posterior (loglikelihood + logprior penalty)
     // randomized
@@ -1597,7 +1586,7 @@ void BART_likelihood_adaptive_std_mtry_old_categorical(double y_sum, std::vector
     size_t p_continuous = 0;
     size_t p_categorical = p;
 
-    calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, p_categorical, Ncutpoints, tau, sigma2, loglike_max, X_values, X_counts, variable_ind, X_num_unique);
+    calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, p_categorical, Ncutpoints, tau, sigma2, loglike_max, X_values, X_counts, variable_ind, X_num_unique, model);
 
     cout << "likelihood " << endl;
     cout << loglike << endl;
@@ -1707,7 +1696,7 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
 
     if (p_categorical > 0)
     {
-        calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, p_categorical, Ncutpoints, tau, sigma2, loglike_max, X_values, X_counts, variable_ind, X_num_unique);
+        calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, p_categorical, Ncutpoints, tau, sigma2, loglike_max, X_values, X_counts, variable_ind, X_num_unique, model);
     }
 
     //  cout << "likelihood vector " << loglike << endl;
@@ -2074,15 +2063,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
     }
 }
 
-void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &loglike_start,
-                                         const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &N_min,
-                                         std::vector<double> &y_std, xinfo_sizet &Xorder_std,
-                                         const double &y_sum, const double &beta, const double &alpha,
-                                         size_t &depth, const size_t &p, const size_t &p_continuous,
-                                         size_t &p_categorical, size_t &Ncutpoints, double &tau, double &sigma2,
-                                         double &loglike_max, std::vector<double> &X_values,
-                                         std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind,
-                                         std::vector<size_t> &X_num_unique)
+void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &loglike_start, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &N_min, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, const size_t &p_continuous, size_t &p_categorical, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model *model)
 {
 
     // loglike_start is an index to offset
@@ -2133,7 +2114,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
                     temp = n1 + X_counts[j] - 1;
 
-                    partial_sum_y(y_std, Xorder_std, n1, temp, y_cumsum, i);
+                    model -> calcSuffStat_categorical(y_std, Xorder_std, n1, temp, y_cumsum, i);
 
                     n1 = n1 + X_counts[j];
                     n1tau = (double)n1 * tau;
