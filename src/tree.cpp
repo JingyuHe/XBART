@@ -1960,13 +1960,14 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         {
             if (i < p_continuous)
             {
-                std::vector<size_t> &xorders = Xorder_std[i];
-                double cumsum = 0.0;
-                for (size_t q = 0; q < N_Xorder; q++)
-                {
-                    cumsum += y_std[xorders[q]];
-                    y_cumsum[q] = cumsum;
-                }
+                // std::vector<size_t> &xorders = Xorder_std[i];
+                // double cumsum = 0.0;
+                // for (size_t q = 0; q < N_Xorder; q++)
+                // {
+                //     cumsum += y_std[xorders[q]];
+                //     y_cumsum[q] = cumsum;
+                // }
+                model -> calcSuffStat_continuous(Xorder_std, y_cumsum, N_Xorder, Ncutpoints, true);
 
                 for (size_t j = 0; j < N_Xorder - 1; j++)
                 {
@@ -2009,30 +2010,32 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                 // Lambda callback to perform the calculation
                 auto calcllc_i = [i, &loglike, &loglike_max, &Xorder_std, &y_std, &candidate_index, &model, &llmax_mutex, Ncutpoints, N_Xorder, Ntau, tau, sigma2, y_sum]() {
-                    std::vector<size_t> &xorder = Xorder_std[i];
-                    size_t ind = 0;
-                    double accum = 0.0;
-                    double llmax = -INFINITY;
-                    std::vector<double> y_cumsum(Ncutpoints);
+                std::vector<size_t> &xorder = Xorder_std[i];
+                size_t ind = 0;
+                double accum = 0.0;
+                double llmax = -INFINITY;
+                std::vector<double> y_cumsum(Ncutpoints);
 
-                    for (size_t q = 0; q < N_Xorder; q++)
-                    {
-                        accum += y_std[xorder[q]];
+                    // for (size_t q = 0; q < N_Xorder; q++)
+                    // {
+                    //     accum += y_std[xorder[q]];
 
-                        if (q >= candidate_index[ind])
-                        {
-                            y_cumsum[ind] = accum;
-                            ind++;
+                    //     if (q >= candidate_index[ind])
+                    //     {
+                    //         y_cumsum[ind] = accum;
+                    //         ind++;
 
-                            if (ind >= Ncutpoints)
-                            {
-                                // have done cumulative sum, do not care about elements after index of last entry of candidate_index
-                                break;
-                            }
-                        }
-                    }
+                    //         if (ind >= Ncutpoints)
+                    //         {
+                    //             // have done cumulative sum, do not care about elements after index of last entry of candidate_index
+                    //             break;
+                    //         }
+                    //     }
+                    // }
 
-                    // y_cumsum_inv[Ncutpoints - 1] = y_sum - y_cumsum[Ncutpoints - 1];
+                    model -> calcSuffStat_continuous(Xorder_std, y_cumsum, N_Xorder, Ncutpoints, true);
+
+                    // // y_cumsum_inv[Ncutpoints - 1] = y_sum - y_cumsum[Ncutpoints - 1];
 
                     for (size_t j = 0; j < Ncutpoints; j++)
                     {
