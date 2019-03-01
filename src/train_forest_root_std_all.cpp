@@ -104,7 +104,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
-    std::vector<double> X_values; //std::vector<size_t> X_values;
+    std::vector<double> X_values; 
     std::vector<size_t> X_counts;
     std::vector<size_t> variable_ind(p_categorical + 1);
 
@@ -179,8 +179,6 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     std::vector<double> split_count_current_tree(p, 1);
     std::vector<double> mtry_weight_current_tree(p, 1);
 
-    // double *split_var_count_pointer = &split_var_count[0];
-
     // in the burnin samples, use all variables
     std::vector<size_t> subset_vars(p);
     std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
@@ -204,8 +202,6 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     matrix<tree::tree_p> data_pointers;
     ini_matrix(data_pointers, N, M);
 
-    // std::vector<tree> data_pointers;
-    // data_pointers.resize(N);
 
     for (size_t mc = 0; mc < L; mc++)
     {

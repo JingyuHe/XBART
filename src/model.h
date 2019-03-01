@@ -17,7 +17,8 @@ class Model
 								std::vector<double> &residual_std) const { return; };
 
 	virtual size_t getNumClasses() const { return 0; };
-	void calcSuffStat_continuous(xinfo_sizet &Xorder_std, std::vector<double> &y_cumsum, const size_t &N_Xorder, const size_t &Ncutpoints, bool adaptive_cutpoints) const {return;};
+	void calcSuffStat_continuous(xinfo_sizet &Xorder_std, std::vector<double> &y_cumsum, std::vector<double> &y_std,  const size_t &N_Xorder, const size_t &Ncutpoints, size_t var_index, std::vector<size_t> &candidate_index, bool adaptive_cutpoints) const {
+		return;}
 };
 
 class NormalModel : public Model
@@ -60,9 +61,11 @@ class NormalModel : public Model
 	size_t getNumClasses() const { return this->num_classes; }
 
 
-	void calcSuffStat_continuous(xinfo_sizet &Xorder_std, std::vector<double> &y_cumsum, const size_t &N_Xorder, const size_t &Ncutpoints, bool adaptive_cutpoints) const {
+	void calcSuffStat_continuous(xinfo_sizet &Xorder_std, std::vector<double> &y_cumsum, std::vector<double> &y_std,  const size_t &N_Xorder, const size_t &Ncutpoints, size_t var_index, std::vector<size_t> &candidate_index, bool adaptive_cutpoints) const {
 		// calculate sufficient statistics for continuous variable
-		std::vector<size_t> &xorders = Xorder_std[i];
+
+		//var_index : index of X variable working on
+		std::vector<size_t> &xorders = Xorder_std[var_index];
 		double cumsum = 0.0;
 
 		if(adaptive_cutpoints == false){
@@ -74,9 +77,10 @@ class NormalModel : public Model
 			}
 		}else{
 			// if use adaptive number of split points
+			size_t ind = 0;
 			for (size_t q = 0; q < N_Xorder; q++)
 			{
-				cumsum += y_std[xorder[q]];
+				cumsum += y_std[xorders[q]];
 
 				if (q >= candidate_index[ind])
 				{
