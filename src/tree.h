@@ -37,7 +37,7 @@ void unique_value_count2(const double *Xpointer, xinfo_sizet &Xorder_std, std::v
 
 void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars);
 
-void BART_likelihood_adaptive_std_mtry_old_categorical(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model *model);
+void BART_likelihood_adaptive_std_mtry_old_categorical(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model* model);
 
 void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model *model, std::mt19937 &gen);
 
@@ -141,7 +141,7 @@ public:
                                   xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree,
                                   std::vector<double> &split_count_current_tree, bool &categorical_variables, size_t &p_categorical,
                                   size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts,
-                                  std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, const Model *model,
+                                  std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model,
                                   matrix<tree::tree_p> &data_pointers, const size_t &tree_ind, std::mt19937 &gen);
 
   tree_p bn(double *x, xinfo &xi); //find Bottom Node, original BART version
