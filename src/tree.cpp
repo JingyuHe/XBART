@@ -1957,10 +1957,10 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     calc_suff_continuous(xorder, y_std, candidate_index, j, suff_stat, false);
 
                     // function inside class
-                    model -> calc_suff_continuous(xorder, y_std, candidate_index, j, suff_stat2, false);
+                    suff_stat2 = model -> calc_suff_continuous(xorder, y_std, candidate_index, j, suff_stat2, false);
 
-
-                    cout << "compare suff_stat" << suff_stat << " " << suff_stat2 << endl;
+                    // suff_stat = suff_stat2;
+                    // cout << "compare suff_stat" << suff_stat << " " << suff_stat2 << endl;
                     
                     // loglike[(N_Xorder - 1) * i + j] = model->likelihood(y_cumsum[j], tau, n1tau, sigma2) + model->likelihood(y_sum - y_cumsum[j], tau, n2tau, sigma2); //-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
 
