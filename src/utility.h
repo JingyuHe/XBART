@@ -59,7 +59,7 @@ double sum_vec(std::vector<double> &v);
 void seq_gen_std(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec);
 void seq_gen_std_categorical(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec, std::vector<size_t> output);
 
-void seq_gen_std_2(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec);
+void seq_gen_std2(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec);
 
 void calculate_y_cumsum_std(const double *y, const size_t N_y, double y_sum, std::vector<size_t> &ind, std::vector<double> &y_cumsum, std::vector<double> &y_cumsum_inv);
 

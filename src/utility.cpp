@@ -186,6 +186,21 @@ void seq_gen_std(size_t start, size_t end, size_t length_out, std::vector<size_t
     return;
 }
 
+void seq_gen_std2(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec){
+    // generate a sequence of integers, save in std vector container
+    // different from seq_gen_std
+    // always put the first element 0, actual vector output have length length_out + 1!
+    double incr = (double)(end - start) / (double)length_out;
+
+    vec[0] = 0;
+
+    for(size_t i = 1; i < length_out + 1; i ++){
+        vec[i] = (size_t)incr * (i - 1) + start;
+    }
+
+    return;
+}
+
 void seq_gen_std_categorical(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec, std::vector<size_t> output)
 {
     // take a subset of vec, write to output, with fixed length
@@ -199,18 +214,6 @@ void seq_gen_std_categorical(size_t start, size_t end, size_t length_out, std::v
     return;
 }
 
-void seq_gen_std_2(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec)
-{
-    // generate a sequence of integers, save in std vector container
-    double incr = (double)(end - start) / (double)length_out;
-
-    for (size_t i = 1; i < length_out + 1; i++)
-    {
-        vec[i] = (size_t)incr * (i - 1) + start;
-    }
-
-    return;
-}
 
 void calculate_y_cumsum_std(const double *y, const size_t N_y, double y_sum, std::vector<size_t> &ind, std::vector<double> &y_cumsum, std::vector<double> &y_cumsum_inv)
 {

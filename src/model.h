@@ -24,6 +24,9 @@ class Model
 	// virtual void calcSuffStat_continuous(std::vector<size_t> &xorders, std::vector<double> &y_cumsum, std::vector<double> &y_std,  const size_t &N_Xorder, const size_t &Ncutpoints, std::vector<size_t> &candidate_index, bool adaptive_cutpoints) const {return;};
 	virtual	void calcSuffStat_continuous2(xinfo_sizet &Xorder_std, size_t var_index, std::vector<size_t> &xorders2) const {return;};
 	virtual void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, double &y_sum, const size_t &var) const {return;};
+
+	virtual void calc_suff_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, double &suff_stat, bool adaptive_cutpoint) const {return;};
+
 };
 
 class NormalModel : public Model
@@ -139,6 +142,23 @@ class NormalModel : public Model
 		// }
 		return;
 	}
+
+
+	void calc_suff_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, double &suff_stat, bool adaptive_cutpoint) const {
+
+    if(adaptive_cutpoint){
+        // if use adaptive number of cutpoints, calculated based on vector candidate_index
+        for(size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++){
+            suff_stat += y_std[xorder[q]];
+        }
+    }else{
+        // use all data points as candidates
+        suff_stat += y_std[xorder[index]];
+    }
+    return;
+}
+
+
 
 };
 
