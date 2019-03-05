@@ -1954,17 +1954,17 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     // suff_stat += y_std[xorders[j]];
 
                     // put function outside class
-                    calc_suff_continuous(xorder, y_std, candidate_index, j, suff_stat, false);
+                    // calc_suff_continuous(xorder, y_std, candidate_index, j, suff_stat, false);
 
                     // function inside class
-                    suff_stat2 = model -> calc_suff_continuous(xorder, y_std, candidate_index, j, suff_stat2, false);
+                    suff_stat2 = model -> calc_suff_continuous_model(xorder, y_std, candidate_index, j, suff_stat2, false);
 
                     // suff_stat = suff_stat2;
                     // cout << "compare suff_stat" << suff_stat << " " << suff_stat2 << endl;
                     
                     // loglike[(N_Xorder - 1) * i + j] = model->likelihood(y_cumsum[j], tau, n1tau, sigma2) + model->likelihood(y_sum - y_cumsum[j], tau, n2tau, sigma2); //-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
 
-                    loglike[(N_Xorder - 1) * i + j] = model->likelihood(suff_stat, tau, n1tau, sigma2) + model->likelihood(y_sum - suff_stat, tau, n2tau, sigma2); 
+                    loglike[(N_Xorder - 1) * i + j] = model->likelihood(suff_stat2, tau, n1tau, sigma2) + model->likelihood(y_sum - suff_stat2, tau, n2tau, sigma2); 
 
                     if (loglike[(N_Xorder - 1) * i + j] > loglike_max)
                     {
@@ -2042,6 +2042,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     double accum2 = 0.0;
 
                     double suff_stat = y_std[xorder[0]];
+                    double suff_stat3 = y_std[xorder[0]];
 
                     // cout << "ini value of accum2 " << accum2 << endl;
 
@@ -2053,6 +2054,10 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                         if(suff_stat != y_cumsum[j]){
                             cout << "wrong!" << endl;
                         }
+
+                        suff_stat3 = model -> calc_suff_continuous_model(xorder, y_std, candidate_index2, j, suff_stat3, true);
+
+
                         
                         // loop over all possible cutpoints
                         double n1tau = (candidate_index[j] + 1) * tau;                                                                                                 // number of points on left side (x <= cutpoint)
@@ -2060,7 +2065,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                         // loglike[(Ncutpoints)*i + j] = model->likelihood(y_cumsum[j], tau, n1tau, sigma2) + model->likelihood(y_sum - y_cumsum[j], tau, n2tau, sigma2); //-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
 
 
-                        loglike[(Ncutpoints)*i + j] = model->likelihood(suff_stat, tau, n1tau, sigma2) + model->likelihood(y_sum - suff_stat, tau, n2tau, sigma2);
+                        loglike[(Ncutpoints)*i + j] = model->likelihood(suff_stat3, tau, n1tau, sigma2) + model->likelihood(y_sum - suff_stat3, tau, n2tau, sigma2);
 
                         if (loglike[(Ncutpoints)*i + j] > llmax)
                         {
