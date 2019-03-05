@@ -19,10 +19,7 @@ class Model
 								std::vector<double> &residual_std) const { return; };
 
 	virtual size_t getNumClasses() const { return 0; };
-	// virtual void calcSuffStat_continuous(xinfo_sizet &Xorder_std, std::vector<double> &y_cumsum, std::vector<double> &y_std,  const size_t &N_Xorder, const size_t &Ncutpoints, size_t var_index, std::vector<size_t> &candidate_index, bool adaptive_cutpoints, std::vector<size_t> &xorders2) const { return;};
-
-	// virtual void calcSuffStat_continuous(std::vector<size_t> &xorders, std::vector<double> &y_cumsum, std::vector<double> &y_std,  const size_t &N_Xorder, const size_t &Ncutpoints, std::vector<size_t> &candidate_index, bool adaptive_cutpoints) const {return;};
-	// virtual	void calcSuffStat_continuous2(xinfo_sizet &Xorder_std, size_t var_index, std::vector<size_t> &xorders2) const {return;};
+	
 	virtual double calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, double &suff_stat, const size_t &var) const {return 0.0;};
 
 	virtual double calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, double &suff_stat, bool adaptive_cutpoint) const {return 0.0;};
@@ -68,48 +65,6 @@ class NormalModel : public Model
 
 	size_t getNumClasses() const { return this->num_classes; }
 
-
-	// void calcSuffStat_continuous(xinfo_sizet &Xorder_std, std::vector<double> &y_cumsum, std::vector<double> &y_std,  const size_t &N_Xorder, const size_t &Ncutpoints, size_t var_index, std::vector<size_t> &candidate_index, bool adaptive_cutpoints, std::vector<size_t> &xorders2) const {
-	// // void calcSuffStat_continuous(std::vector<size_t> &xorders, std::vector<double> &y_cumsum, std::vector<double> &y_std,  const size_t &N_Xorder, const size_t &Ncutpoints, std::vector<size_t> &candidate_index, bool adaptive_cutpoints) const {
-	// 	// calculate sufficient statistics for continuous variable
-
-	// 	//var_index : index of X variable working on
-	// 	std::vector<size_t> &xorders = Xorder_std[var_index];
-	// 	double cumsum = 0.0;
-
-	// 	std::cout << "compare " << xorders[1] << std::endl;
-	// 	std::cout << xorders2[1] << std::endl;
-	// 	if(adaptive_cutpoints == false){
-	// 		// if use all data points as split point candidates
-	// 		for (size_t q = 0; q < N_Xorder; q++)
-	// 		{
-	// 			cumsum += y_std[xorders[q]];
-	// 			y_cumsum[q] = cumsum;
-	// 		}
-	// 	}else{
-	// 		// if use adaptive number of split points
-	// 		size_t ind = 0;
-	// 		for (size_t q = 0; q < N_Xorder; q++)
-	// 		{
-	// 			cumsum += y_std[xorders[q]];
-
-	// 			if (q >= candidate_index[ind])
-	// 			{
-	// 				y_cumsum[ind] = cumsum;
-	// 				ind++;
-
-	// 				if (ind >= Ncutpoints)
-	// 				{
-	// 					// have done cumulative sum, do not care about elements after index of last entry of candidate_index
-	// 					break;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// 	return;
-	// }
-
-
 	double calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, double &suff_stat, const size_t &var) const {
 		// compute sum of y[Xorder[start:end, var]]
 		size_t loop_count = 0;
@@ -121,28 +76,6 @@ class NormalModel : public Model
 		}
 		return suff_stat;
 	}
-
-
-	// void calcSuffStat_continuous2(xinfo_sizet &Xorder_std, size_t var_index, std::vector<size_t> &xorders2) const {
-
-	// 	std::vector<size_t> &xorders = Xorder_std[var_index];
-	// 	cout << "oooopppp" << endl;
-	// 	std::cout << "compare " << xorders[1] << std::endl;
-	// 	std::cout << xorders2[1] << std::endl;
-
-	// 	// std::cout << "fine 1" << std::endl;
-	// 	// std::vector<size_t> &xorders = Xorder_std[var_index];
-	// 	// std::cout << "fine 2 " << std::endl;
-	// 	// double cumsum = 0.0;
-	// 	// for (size_t q = 0; q < N_Xorder; q++)
-	// 	// {
-	// 	// 	std::cout << "fine " << q << std::endl;
-	// 	//     cumsum += y_std[xorders[q]];
-	// 	//     y_cumsum[q] = cumsum;
-	// 	// }
-	// 	return;
-	// }
-
 
 	double calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, double &suff_stat, bool adaptive_cutpoint) const {
 
