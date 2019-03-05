@@ -1928,22 +1928,15 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
             if (i < p_continuous)
             {
                 std::vector<size_t> &xorder = Xorder_std[i];
-                double cumsum = 0.0;
-                for (size_t q = 0; q < N_Xorder; q++)
-                {
-                    cumsum += y_std[xorder[q]];
-                    y_cumsum[q] = cumsum;
-                }
-                // cout << "ok 1" << endl;
-                // model -> calcSuffStat_continuous(Xorder_std, y_cumsum, y_std, N_Xorder, Ncutpoints, i, candidate_index, false, xorders);
-                // var_index = i;
-                // model -> calcSuffStat_continuous2(Xorder_std);
-                // cout << xorders[1] << "okoko " << endl;
-                // model->calcSuffStat_continuous2(Xorder_std);
 
-                // cout << "ok 2" << endl;
+                // double cumsum = 0.0;
+                // for (size_t q = 0; q < N_Xorder; q++)
+                // {
+                //     cumsum += y_std[xorder[q]];
+                //     y_cumsum[q] = cumsum;
+                // }
 
-                suff_stat = 0.0;
+                // suff_stat = 0.0;
                 suff_stat2 = 0.0;
                 for (size_t j = 0; j < N_Xorder - 1; j++)
                 {
@@ -1951,17 +1944,12 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     n1tau = (j + 1) * tau; // number of points on left side (x <= cutpoint)
                     n2tau = Ntau - n1tau;  // number of points on right side (x > cutpoint)
 
-                    // suff_stat += y_std[xorders[j]];
-
                     // put function outside class
                     // calc_suff_continuous(xorder, y_std, candidate_index, j, suff_stat, false);
 
                     // function inside class
                     suff_stat2 = model -> calc_suff_continuous_model(xorder, y_std, candidate_index, j, suff_stat2, false);
 
-                    // suff_stat = suff_stat2;
-                    // cout << "compare suff_stat" << suff_stat << " " << suff_stat2 << endl;
-                    
                     // loglike[(N_Xorder - 1) * i + j] = model->likelihood(y_cumsum[j], tau, n1tau, sigma2) + model->likelihood(y_sum - y_cumsum[j], tau, n2tau, sigma2); //-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
 
                     loglike[(N_Xorder - 1) * i + j] = model->likelihood(suff_stat2, tau, n1tau, sigma2) + model->likelihood(y_sum - suff_stat2, tau, n2tau, sigma2); 
@@ -1984,20 +1972,15 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
     else
     {
 
-        std::vector<size_t> candidate_index(Ncutpoints);
+        // std::vector<size_t> candidate_index(Ncutpoints);
+        // seq_gen_std(Nmin, N - Nmin, Ncutpoints, candidate_index);
 
         std::vector<size_t> candidate_index2(Ncutpoints + 1);
-
         seq_gen_std2(Nmin, N - Nmin, Ncutpoints, candidate_index2);
 
-        seq_gen_std(Nmin, N - Nmin, Ncutpoints, candidate_index);
 
         double Ntau = N_Xorder * tau;
 
-            // cout << candidate_index << endl;
-            // cout << "+++++++" << endl;
-            // cout << candidate_index2 << endl;
-            // cout << "-------" << endl;
 
         std::mutex llmax_mutex;
 
@@ -2007,41 +1990,32 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
             {
 
                 // Lambda callback to perform the calculation
-                auto calcllc_i = [i, &loglike, &loglike_max, &Xorder_std, &y_std, &candidate_index, &candidate_index2, &model, &llmax_mutex, Ncutpoints, N_Xorder, Ntau, tau, sigma2, y_sum]() {
+                auto calcllc_i = [i, &loglike, &loglike_max, &Xorder_std, &y_std, &candidate_index2, &model, &llmax_mutex, Ncutpoints, N_Xorder, Ntau, tau, sigma2, y_sum]() {
                 std::vector<size_t> &xorder = Xorder_std[i];
                 double llmax = -INFINITY;
                 std::vector<double> y_cumsum(Ncutpoints);
 
-                size_t ind = 0;
-                double accum = 0.0;
+                // size_t ind = 0;
+                // double accum = 0.0;
 
 
-                    for (size_t q = 0; q < N_Xorder; q++)
-                    {
-                        accum += y_std[xorder[q]];
+                //     for (size_t q = 0; q < N_Xorder; q++)
+                //     {
+                //         accum += y_std[xorder[q]];
 
-                        if (q >= candidate_index[ind])
-                        {
-                            y_cumsum[ind] = accum;
-                            ind++;
+                //         if (q >= candidate_index[ind])
+                //         {
+                //             y_cumsum[ind] = accum;
+                //             ind++;
 
-                            if (ind >= Ncutpoints)
-                            {
-                                // have done cumulative sum, do not care about elements after index of last entry of candidate_index
-                                break;
-                            }
-                        }
-                    }
+                //             if (ind >= Ncutpoints)
+                //             {
+                //                 // have done cumulative sum, do not care about elements after index of last entry of candidate_index
+                //                 break;
+                //             }
+                //         }
+                //     }
 
-                    // model -> calcSuffStat_continuous(Xorder_std, y_cumsum, y_std, N_Xorder, Ncutpoints, i, candidate_index, true, xorder);
-                    // cout << "run calcsuffstat" << endl;
-                    // model -> calcSuffStat_continuous2(Xorder_std, i, xorder);
-
-
-                    size_t ind2 = 0;
-                    double accum2 = 0.0;
-
-                    double suff_stat = y_std[xorder[0]];
                     double suff_stat3 = y_std[xorder[0]];
 
                     // cout << "ini value of accum2 " << accum2 << endl;
@@ -2049,18 +2023,10 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     for (size_t j = 0; j < Ncutpoints; j++)
                     {
 
-                        calc_suff_continuous(xorder, y_std, candidate_index2, j, suff_stat, true);
-
-                        if(suff_stat != y_cumsum[j]){
-                            cout << "wrong!" << endl;
-                        }
-
                         suff_stat3 = model -> calc_suff_continuous_model(xorder, y_std, candidate_index2, j, suff_stat3, true);
 
-
-                        
                         // loop over all possible cutpoints
-                        double n1tau = (candidate_index[j] + 1) * tau;                                                                                                 // number of points on left side (x <= cutpoint)
+                        double n1tau = (candidate_index2[j+1] + 1) * tau;                                                                                                 // number of points on left side (x <= cutpoint)
                         double n2tau = Ntau - n1tau;                                                                                                                   // number of points on right side (x > cutpoint)
                         // loglike[(Ncutpoints)*i + j] = model->likelihood(y_cumsum[j], tau, n1tau, sigma2) + model->likelihood(y_sum - y_cumsum[j], tau, n2tau, sigma2); //-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
 
@@ -2098,19 +2064,19 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
 
 
-void calc_suff_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, double &suff_stat, bool adaptive_cutpoint){
+// void calc_suff_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, double &suff_stat, bool adaptive_cutpoint){
 
-    if(adaptive_cutpoint){
-        // if use adaptive number of cutpoints, calculated based on vector candidate_index
-        for(size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++){
-            suff_stat += y_std[xorder[q]];
-        }
-    }else{
-        // use all data points as candidates
-        suff_stat += y_std[xorder[index]];
-    }
-    return;
-}
+//     if(adaptive_cutpoint){
+//         // if use adaptive number of cutpoints, calculated based on vector candidate_index
+//         for(size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++){
+//             suff_stat += y_std[xorder[q]];
+//         }
+//     }else{
+//         // use all data points as candidates
+//         suff_stat += y_std[xorder[index]];
+//     }
+//     return;
+// }
 
 
 
