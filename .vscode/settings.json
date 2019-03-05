@@ -77,6 +77,8 @@
         "__threading_support": "cpp",
         "cstdarg": "cpp",
         "cstring": "cpp",
-        "mutex": "cpp"
+        "mutex": "cpp",
+        "condition_variable": "cpp",
+        "thread": "cpp"
     }
 }
