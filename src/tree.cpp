@@ -1902,19 +1902,23 @@ void unique_value_count2(const double *Xpointer, xinfo_sizet &Xorder_std, //std:
     return;
 }
 
-double likelihood(double value, double tau, double ntau, double sigma2)
-{
-    //return 0.0;
-    return -0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
-}
+// double likelihood(double value, double tau, double ntau, double sigma2)
+// {
+//     //return 0.0;
+//     return -0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
+// }
 
 void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &Nmin, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, const Model *model)
 {
 
     size_t N = N_Xorder;
     size_t var_index;
-    double suff_stat;
-    double suff_stat2;
+    // double suff_stat;
+    // double suff_stat2;
+    std::vector<double> suff_stat2_vec(model -> getDimSuffstat());
+    std::vector<double> y_sum_vec(model -> getDimSuffstat(), y_sum);
+    // std::fill(y_sum_vec.begin(), y_sum_vec.end(), y_sum);
+
     if (N <= Ncutpoints + 1 + 2 * Nmin)
     {
         double n1tau;
@@ -1937,7 +1941,8 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                 // }
 
                 // suff_stat = 0.0;
-                suff_stat2 = 0.0;
+                // suff_stat2 = 0.0;
+                std::fill(suff_stat2_vec.begin(), suff_stat2_vec.end(), 0.0);
                 for (size_t j = 0; j < N_Xorder - 1; j++)
                 {
                     // loop over all possible cutpoints
@@ -1948,11 +1953,19 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     // calc_suff_continuous(xorder, y_std, candidate_index, j, suff_stat, false);
 
                     // function inside class
-                    suff_stat2 = model -> calcSuffStat_continuous(xorder, y_std, candidate_index, j, suff_stat2, false);
+                    // suff_stat2 = model -> calcSuffStat_continuous(xorder, y_std, candidate_index, j, suff_stat2, false);
+
+                    suff_stat2_vec = model -> calcSuffStat_continuous_vec(xorder, y_std, candidate_index, j, suff_stat2_vec, false);
+
+                    // cout << "suff " << suff_stat2 << " " << suff_stat2_vec << endl;
+                    // cout << "------------" << endl;
 
                     // loglike[(N_Xorder - 1) * i + j] = model->likelihood(y_cumsum[j], tau, n1tau, sigma2) + model->likelihood(y_sum - y_cumsum[j], tau, n2tau, sigma2); //-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
 
-                    loglike[(N_Xorder - 1) * i + j] = model->likelihood(suff_stat2, tau, n1tau, sigma2) + model->likelihood(y_sum - suff_stat2, tau, n2tau, sigma2); 
+                    // loglike[(N_Xorder - 1) * i + j] = model->likelihood(suff_stat2, tau, n1tau, sigma2) + model->likelihood(y_sum - suff_stat2, tau, n2tau, sigma2); 
+
+
+                    loglike[(N_Xorder - 1) * i + j] = model->likelihood_vec(suff_stat2_vec, tau, n1tau, sigma2) + model->likelihood_vec(y_sum_vec - suff_stat2_vec, tau, n2tau, sigma2); 
 
                     if (loglike[(N_Xorder - 1) * i + j] > loglike_max)
                     {
@@ -1962,7 +1975,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
             }
         }
 
-        loglike[loglike.size() - 1] = log(p) + log(Ncutpoints) + model->likelihood(y_sum, tau, N_Xorder * tau, sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - 0.5 * log(sigma2) - log(alpha) + beta * log(1.0 + depth);
+        loglike[loglike.size() - 1] = log(p) + log(Ncutpoints) + model->likelihood_vec(y_sum_vec, tau, N_Xorder * tau, sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - 0.5 * log(sigma2) - log(alpha) + beta * log(1.0 + depth);
 
         if (loglike[loglike.size() - 1] > loglike_max)
         {
@@ -2016,14 +2029,19 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                 //         }
                 //     }
 
-                    double suff_stat3 = y_std[xorder[0]];
+                    // double suff_stat3 = y_std[xorder[0]];
+                    std::vector<double> suff_stat3_vec(model -> getDimSuffstat(), y_std[xorder[0]]);
+                    std::vector<double> y_sum_vec(model -> getDimSuffstat(), y_sum);
+                    
 
                     // cout << "ini value of accum2 " << accum2 << endl;
 
                     for (size_t j = 0; j < Ncutpoints; j++)
                     {
 
-                        suff_stat3 = model -> calcSuffStat_continuous(xorder, y_std, candidate_index2, j, suff_stat3, true);
+                        // suff_stat3 = model -> calcSuffStat_continuous(xorder, y_std, candidate_index2, j, suff_stat3, true);
+
+                        suff_stat3_vec = model -> calcSuffStat_continuous_vec(xorder, y_std, candidate_index2, j, suff_stat3_vec, true);
 
                         // loop over all possible cutpoints
                         double n1tau = (candidate_index2[j+1] + 1) * tau;                                                                                                 // number of points on left side (x <= cutpoint)
@@ -2031,7 +2049,10 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                         // loglike[(Ncutpoints)*i + j] = model->likelihood(y_cumsum[j], tau, n1tau, sigma2) + model->likelihood(y_sum - y_cumsum[j], tau, n2tau, sigma2); //-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum[j], 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum[j], 2) / (sigma2 * (n2tau + sigma2));
 
 
-                        loglike[(Ncutpoints)*i + j] = model->likelihood(suff_stat3, tau, n1tau, sigma2) + model->likelihood(y_sum - suff_stat3, tau, n2tau, sigma2);
+                        // loglike[(Ncutpoints)*i + j] = model->likelihood(suff_stat3, tau, n1tau, sigma2) + model->likelihood(y_sum - suff_stat3, tau, n2tau, sigma2);
+
+
+                        loglike[(Ncutpoints)*i + j] = model->likelihood_vec(suff_stat3_vec, tau, n1tau, sigma2) + model->likelihood_vec(y_sum_vec - suff_stat3_vec, tau, n2tau, sigma2);
 
                         if (loglike[(Ncutpoints)*i + j] > llmax)
                         {
@@ -2053,7 +2074,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         if (thread_pool.is_active())
             thread_pool.wait();
 
-        loglike[loglike.size() - 1] = log(p) + log(Ncutpoints) + model->likelihood(y_sum, tau, N_Xorder * tau, sigma2) - 0.5 * log(sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+        loglike[loglike.size() - 1] = log(p) + log(Ncutpoints) + model->likelihood_vec(y_sum_vec, tau, N_Xorder * tau, sigma2) - 0.5 * log(sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
         if (loglike[loglike.size() - 1] > loglike_max)
         {
@@ -2100,6 +2121,9 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
     size_t effective_cutpoints = 0;
 
+    std::vector<double> suff_stat(model -> getDimSuffstat(), 0.0);
+    std::vector<double> y_sum_vec(model -> getDimSuffstat(), y_sum);
+
     for (auto &&i : subset_vars)
     {
 
@@ -2121,6 +2145,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
             end2 = end2 - 1;
 
             y_cumsum = 0.0;
+            std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
             n1 = 0;
 
             for (size_t j = start; j <= end2; j++)
@@ -2131,15 +2156,19 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
                     temp = n1 + X_counts[j] - 1;
 
-                    y_cumsum = model -> calcSuffStat_categorical(y_std, Xorder_std, n1, temp, y_cumsum, i);
+                    // y_cumsum = model -> calcSuffStat_categorical(y_std, Xorder_std, n1, temp, y_cumsum, i);
                     // partial_sum_y(y_std, Xorder_std, n1, temp, y_cumsum, i);
+
+                    suff_stat = model -> calcSuffStat_categorical_vec(y_std, Xorder_std, n1, temp, suff_stat, i);
 
 
                     n1 = n1 + X_counts[j];
                     n1tau = (double)n1 * tau;
                     n2tau = ntau - n1tau;
 
-                    loglike[loglike_start + j] = likelihood(y_cumsum, tau, n1tau, sigma2) + likelihood(y_sum - y_cumsum, tau, n2tau, sigma2); //-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum, 2) / (sigma2 * (n2tau + sigma2));
+                    // loglike[loglike_start + j] = model -> likelihood(y_cumsum, tau, n1tau, sigma2) + model -> likelihood(y_sum - y_cumsum, tau, n2tau, sigma2); //-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum, 2) / (sigma2 * (n2tau + sigma2));
+
+                    loglike[loglike_start + j] = model -> likelihood_vec(suff_stat, tau, n1tau, sigma2) + model -> likelihood_vec(y_sum_vec - suff_stat, tau, n2tau, sigma2);
 
                     effective_cutpoints++;
 
