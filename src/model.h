@@ -9,32 +9,42 @@ using namespace std;
 class Model
 {
 
-  public:
+private:
+	size_t num_classes;
+	size_t dim_suffstat;
+public:
 	virtual void incrementSuffStat() const { return; };
 	virtual void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
-							std::mt19937 &generator, std::vector<double> &theta_vector) const { return; };
+													std::mt19937 &generator, std::vector<double> &theta_vector) const { return; };
 	virtual double likelihood(double value, double tau, double ntau, double sigma2) const { return 0; };
 
 	virtual void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M,
-								std::vector<double> &residual_std) const { return; };
+															std::vector<double> &residual_std) const { return; };
 
 	virtual size_t getNumClasses() const { return 0; };
-	
-	virtual double calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, double &suff_stat, const size_t &var) const {return 0.0;};
+	virtual size_t getDimSuffstat() const { return 0; };
 
-	virtual double calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, double &suff_stat, bool adaptive_cutpoint) const {return 0.0;};
+	virtual double calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, double &suff_stat, const size_t &var) const { return 0.0; };
 
+	virtual double calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, double &suff_stat, bool adaptive_cutpoint) const { return 0.0; };
+
+	virtual std::vector<double> calcSuffStat_continuous_vec(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, std::vector<double> suff_stat, bool adaptive_cutpoint) const {return std::vector<double>(); };
+
+	virtual 	std::vector<double> calcSuffStat_categorical_vec(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, std::vector<double> suff_stat, const size_t &var) const {return std::vector<double>();};
+
+	virtual double likelihood_vec(std::vector<double> value, double tau, double ntau, double sigma2) const { return 0; };
 };
 
 class NormalModel : public Model
 {
-  private:
+private:
 	size_t num_classes = 1;
+	size_t dim_suffstat = 1;
 
-  public:
+public:
 	void incrementSuffStat() const { return; };
 	void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
-					std::mt19937 &generator, std::vector<double> &theta_vector) const
+									std::mt19937 &generator, std::vector<double> &theta_vector) const
 	{
 		std::normal_distribution<double> normal_samp(0.0, 1.0);
 		if (draw_mu == true)
@@ -64,8 +74,10 @@ class NormalModel : public Model
 	}
 
 	size_t getNumClasses() const { return this->num_classes; }
+	size_t getDimSuffstat() const { return this->dim_suffstat; }
 
-	double calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, double &suff_stat, const size_t &var) const {
+	double calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, double &suff_stat, const size_t &var) const
+	{
 		// compute sum of y[Xorder[start:end, var]]
 		size_t loop_count = 0;
 		for (size_t i = start; i <= end; i++)
@@ -77,21 +89,59 @@ class NormalModel : public Model
 		return suff_stat;
 	}
 
-	double calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, double &suff_stat, bool adaptive_cutpoint) const {
+	double calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, double &suff_stat, bool adaptive_cutpoint) const
+	{
 
-    if(adaptive_cutpoint){
-        // if use adaptive number of cutpoints, calculated based on vector candidate_index
-        for(size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++){
-            suff_stat += y_std[xorder[q]];
-        }
-    }else{
-        // use all data points as candidates
-        suff_stat += y_std[xorder[index]];
-    }
-    return suff_stat;
-}
+		if (adaptive_cutpoint)
+		{
+			// if use adaptive number of cutpoints, calculated based on vector candidate_index
+			for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
+			{
+				suff_stat += y_std[xorder[q]];
+			}
+		}
+		else
+		{
+			// use all data points as candidates
+			suff_stat += y_std[xorder[index]];
+		}
+		return suff_stat;
+	}
 
 
+	std::vector<double> calcSuffStat_continuous_vec(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, std::vector<double> suff_stat, bool adaptive_cutpoint) const
+	{
+
+		if (adaptive_cutpoint)
+		{
+			// if use adaptive number of cutpoints, calculated based on vector candidate_index
+			for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
+			{
+				suff_stat[0] += y_std[xorder[q]];
+			}
+		}
+		else
+		{
+			// use all data points as candidates
+			suff_stat[0] += y_std[xorder[index]];
+		}
+		return suff_stat;
+	}
+
+	std::vector<double> calcSuffStat_categorical_vec(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, std::vector<double> suff_stat, const size_t &var) const
+	{
+		// compute sum of y[Xorder[start:end, var]]
+		size_t loop_count = 0;
+		for (size_t i = start; i <= end; i++)
+		{
+			suff_stat[0] += y[Xorder[var][i]];
+			loop_count++;
+			// cout << "Xorder " << Xorder[var][i] << " y value " << y[Xorder[var][i]] << endl;
+		}
+		return suff_stat;
+	}
+
+	double likelihood_vec(std::vector<double> value, double tau, double ntau, double sigma2) const { return -0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value[0], 2) / (sigma2 * (ntau + sigma2)); }
 
 };
 
