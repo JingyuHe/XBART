@@ -488,6 +488,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
     // cout << "X_num_unique " << X_num_unique << endl;
 
     NormalModel model;
+    model.suff_stat_init();
 
     // save predictions of each tree
     xinfo predictions_std;
