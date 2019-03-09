@@ -196,6 +196,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     bool use_all = true;
 
     NormalModel model;
+    model.suff_stat_init();
 
     // initialize a matrix to save pointers to node for each data point
 
