@@ -12,8 +12,7 @@ import os,sys,inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir) 
-sys.path.append(parentdir+"/python")
-import XBART
+import xbart
 
 class XBARTTesting1(unittest.TestCase):
 
@@ -23,9 +22,9 @@ class XBARTTesting1(unittest.TestCase):
 							,("Nmin",1),("Ncutpoints",5)
 							,("alpha",0.95),("beta",1.25 ),("tau",.8),("burnin",0),("mtry",2),("max_depth_num",5),
 							("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",True),
-							("draw_mu",False),("parallel",False)])
-		self.model = XBART.XBART(self.params)
-		self.model_2 = XBART.XBART(self.params)
+							("draw_mu",False),("parallel",True),("seed",10)])
+		self.model = xbart.XBART(self.params)
+		self.model_2 = xbart.XBART(self.params)
 		n = 100
 		self.x = np.random.rand(n)
 
@@ -34,26 +33,10 @@ class XBARTTesting1(unittest.TestCase):
 
 	def test_void_sort_2d(self,n=10,d=2):
 		X = np.random.rand(n*d).reshape(n,d)
-		#print "Fail unless 2d  X_fit's last elements are equal to X"
 		sort_np = np.argsort(X[:,d-1])
 		sort_x = self.model.sort_x(X,n).astype(int)
 		self.failUnless(all(sort_x == sort_np))
-		#self.failUnless(self.model.sort_x(X) == np.argsort(X[:,d-1])[n-1])		
 
-	
-	# def test_fit_predict(self):
-	# 	n = 1000
-	# 	d = 10
-	# 	x= np.random.rand(n,d)
-	# 	y = np.random.rand(n)
-		
-	# 	n_test = 100
-	# 	d_test = 10
-	# 	x_test= np.random.rand(n_test,d_test)
-		
-
-	# 	y_pred = self.model.fit_predict(x,y,x_test,n_test*self.params["N_sweeps"])
-	# 	self.failUnless(isinstance(y_pred, np.ndarray))
 
 	def test_fit_predict_discrete_2d(self):
 		n = 1000
@@ -156,48 +139,48 @@ class XBARTExceptionTesting(unittest.TestCase):
 	def test_int_as_bad_float(self):
 		with self.assertRaises(TypeError):
 			params = {"M":5.1}
-			XBART.XBART(params)
+			xbart.XBART(params)
 
 	def test_int_as_bad_string(self):
 		with self.assertRaises(TypeError):
 			params = {"M":"5.1"}
-			XBART.XBART(params)		
+			xbart.XBART(params)
 
 	def test_int_as_good_float(self):
 		params = {"M":5.0}
-		XBART.XBART(params)
+		xbart.XBART(params)
 
 	def test_float_good_int(self):	
 		params = {"alpha":5}
-		XBART.XBART(params)
+		xbart.XBART(params)
 
 	def test_float_bad_string(self):
 		with self.assertRaises(TypeError):	
 			params = {"alpha":"5"}
-			XBART.XBART(params)
+			xbart.XBART(params)
 
 	def test_bool_with_bad_int(self):
 		with self.assertRaises(TypeError):
 			params = {"m_update_sigma":2}
-			XBART.XBART(params)
+			xbart.XBART(params)
 
 	def test_bool_with_bad_float(self):
 		with self.assertRaises(TypeError):
 			params = {"m_update_sigma":2.2}
-			XBART.XBART(params)
+			xbart.XBART(params)
 	
 	def test_bool_with_bad_string(self):
 		with self.assertRaises(TypeError):
 			params = {"m_update_sigma":"2"}
-			XBART.XBART(params)
+			xbart.XBART(params)
 
 	def test_bool_with_good_int(self):
 		params = {"m_update_sigma":0}
-		XBART.XBART(params)
+		xbart.XBART(params)
 
 	def test_bool_with_good_float(self):
 		params = {"m_update_sigma":0.0}
-		XBART.XBART(params)
+		xbart.XBART(params)
 
 if __name__ == "__main__":
 	test_classes_to_run = [XBARTTesting1, XBARTExceptionTesting]

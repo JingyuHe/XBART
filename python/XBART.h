@@ -21,7 +21,7 @@ struct XBARTParams{
 			size_t burnin; size_t mtry;size_t max_depth_num;
 			double alpha;double beta;double tau;double kap;double s;
 			bool draw_sigma;bool verbose; bool m_update_sigma;
-			bool draw_mu;bool parallel;
+			bool draw_mu;bool parallel;int seed;
 };
 
 class XBART{
@@ -40,6 +40,7 @@ class XBART{
 		vec_d xinfo_to_row_major_vec(xinfo x_std);
 		xinfo np_to_xinfo(int n, int d,double *a);
 		void xinfo_to_np(xinfo x_std,double *arr);
+		size_t seed; bool seed_flag;
 
 		//= forest(10);
 	
@@ -53,7 +54,7 @@ class XBART{
 				size_t burnin, size_t mtry ,
 				size_t max_depth_num , bool draw_sigma , double kap , 
 				double s , bool verbose , bool m_update_sigma, 
-				bool draw_mu , bool parallel);
+				bool draw_mu , bool parallel,int seed);
 
 		// // Destructor
 		//~XBART();
@@ -62,10 +63,6 @@ class XBART{
 		// void sort_x(int n, int d, double *a);
 		void sort_x(int n,int d,double *a,int size, double *arr);
 
-		void __fit_predict(int n,int d,double *a, // Train X 
-			int n_y,double *a_y, // Train Y
-			int n_test,int d_test,double *a_test, // Test X
-			int size, double *arr); // Result 
 		void __fit_predict_all(int n,int d,double *a, // Train X 
 			int n_y,double *a_y, // Train Y
 			int n_test,int d_test,double *a_test, // Test X

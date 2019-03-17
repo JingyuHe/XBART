@@ -1,10 +1,10 @@
-%module XBART
+%module xbart
 
 
 
 %{
 #define SWIG_FILE_WITH_INIT
-#include "XBART.h"
+#include "xbart.h"
 
 %}
 
@@ -36,7 +36,8 @@ def __convert_params_check_types(self,params):
                         ,("alpha",0.95),("beta",1.25 ),("tau",0.3),# CHANGE
                         ("burnin",15),("mtry",2),("max_depth_num",250), # CHANGE
                         ("draw_sigma",False),("kap",16),("s",4),("verbose",False),
-                        ("m_update_sigma",True), ("draw_mu",True),("parallel",False)])
+                        ("m_update_sigma",True), ("draw_mu",True),
+                        ("parallel",False),("seed",0)])
 
     list_params = []
     for key,value in DEFAULT_PARAMS.items():
@@ -70,7 +71,7 @@ def __init__(self,params = {}):
 
     assert isinstance(params, collections.Mapping), "params must be dictionary like"
 
-    this = _XBART.new_XBART(*self.__convert_params_check_types(params))
+    this = _xbart.new_XBART(*self.__convert_params_check_types(params))
 
 # init
     try:
@@ -113,7 +114,7 @@ def fit(self,x,y,p_cat=0):
 
 };
 
-%include "XBART.h"
+%include "xbart.h"
 
 
 
