@@ -44,18 +44,12 @@ bool cansplit(tree::tree_p n, xinfo &xi);
 void getgoodvars(tree::tree_p n, xinfo &xi, std::vector<size_t> &goodvars);
 //--------------------------------------------------
 
-// Removed
-// arma::vec fit_new(tree& tree, arma::mat& Xnew);
-// arma::vec fit_new_theta_noise(tree& tree, arma::mat& Xnew);
 void fit_new_theta_noise_std(tree &tree, const double *X, size_t p, size_t N, std::vector<double> &output);
 
-// REmoved
-//arma::vec fit_new_theta_noise_test(tree& tree, arma::mat& Xnew, const double * X_std, size_t p, size_t N, std::vector<double>& output);
 
 //void fit_new_void(tree& tree, arma::mat& Xnew, arma::mat& pred, size_t& ind);
 double sum_residual_squared(tree &tree, const double *X, const std::vector<double> &y, size_t p);
 
 void fit_new_std(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output);
-// void update_sufficient_stat(tree& tree, arma::mat& y, arma::mat& X, tree::npv& bv, tree::npv& bv2, double& tau, double& sigma, double& alpha, double& beta);
 
 #endif
