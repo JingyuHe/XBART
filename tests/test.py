@@ -13,9 +13,9 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir) 
 sys.path.append(parentdir+"/python")
-import abarth
+import XBART
 
-class AbarthTesting1(unittest.TestCase):
+class XBARTTesting1(unittest.TestCase):
 
 
 	def setUp(self):
@@ -24,8 +24,8 @@ class AbarthTesting1(unittest.TestCase):
 							,("alpha",0.95),("beta",1.25 ),("tau",.8),("burnin",0),("mtry",2),("max_depth_num",5),
 							("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",True),
 							("draw_mu",False),("parallel",False)])
-		self.model = abarth.Abarth(self.params)
-		self.model_2 = abarth.Abarth(self.params)
+		self.model = XBART.XBART(self.params)
+		self.model_2 = XBART.XBART(self.params)
 		n = 100
 		self.x = np.random.rand(n)
 
@@ -112,11 +112,11 @@ class AbarthTesting1(unittest.TestCase):
 
 		print("\nRMSE RF:"  + str(np.sqrt(np.mean((y_hat_rf-y_test)**2))))
 		print("RMSE GBM:"  + str(np.sqrt(np.mean((y_hat_gbm-y_test)**2))))
-		print("RMSE Abarth:"  + str(np.sqrt(np.mean((y_hat-y_test)**2))))
-		print("RMSE Abarth Pred:"  + str(np.sqrt(np.mean((y_hat_2-y_test)**2))))
-		print("RMSE Abarth Fit Pred Seperate:"  + str(np.sqrt(np.mean((y_hat_3-y_test)**2))))
-		print("RMSE Abarth Pred v. Reg:"  + str(np.sqrt(np.mean((y_hat_2-y_hat)**2))))
-		print("RMSE Abarth Fit and Pred:"  + str(np.sqrt(np.mean((y_hat_3-y_hat)**2))))
+		print("RMSE XBART:"  + str(np.sqrt(np.mean((y_hat-y_test)**2))))
+		print("RMSE XBART Pred:"  + str(np.sqrt(np.mean((y_hat_2-y_test)**2))))
+		print("RMSE XBART Fit Pred Seperate:"  + str(np.sqrt(np.mean((y_hat_3-y_test)**2))))
+		print("RMSE XBART Pred v. Reg:"  + str(np.sqrt(np.mean((y_hat_2-y_hat)**2))))
+		print("RMSE XBART Fit and Pred:"  + str(np.sqrt(np.mean((y_hat_3-y_hat)**2))))
 
 		self.failUnless(np.array_equal(y_copy,y))
 		self.failUnless(np.array_equal(x_copy,x))
@@ -151,56 +151,56 @@ class AbarthTesting1(unittest.TestCase):
 		self.model.test_random_generator()
 
 			
-class AbarthExceptionTesting(unittest.TestCase):
+class XBARTExceptionTesting(unittest.TestCase):
 
 	def test_int_as_bad_float(self):
 		with self.assertRaises(TypeError):
 			params = {"M":5.1}
-			abarth.Abarth(params)
+			XBART.XBART(params)
 
 	def test_int_as_bad_string(self):
 		with self.assertRaises(TypeError):
 			params = {"M":"5.1"}
-			abarth.Abarth(params)		
+			XBART.XBART(params)		
 
 	def test_int_as_good_float(self):
 		params = {"M":5.0}
-		abarth.Abarth(params)
+		XBART.XBART(params)
 
 	def test_float_good_int(self):	
 		params = {"alpha":5}
-		abarth.Abarth(params)
+		XBART.XBART(params)
 
 	def test_float_bad_string(self):
 		with self.assertRaises(TypeError):	
 			params = {"alpha":"5"}
-			abarth.Abarth(params)
+			XBART.XBART(params)
 
 	def test_bool_with_bad_int(self):
 		with self.assertRaises(TypeError):
 			params = {"m_update_sigma":2}
-			abarth.Abarth(params)
+			XBART.XBART(params)
 
 	def test_bool_with_bad_float(self):
 		with self.assertRaises(TypeError):
 			params = {"m_update_sigma":2.2}
-			abarth.Abarth(params)
+			XBART.XBART(params)
 	
 	def test_bool_with_bad_string(self):
 		with self.assertRaises(TypeError):
 			params = {"m_update_sigma":"2"}
-			abarth.Abarth(params)
+			XBART.XBART(params)
 
 	def test_bool_with_good_int(self):
 		params = {"m_update_sigma":0}
-		abarth.Abarth(params)
+		XBART.XBART(params)
 
 	def test_bool_with_good_float(self):
 		params = {"m_update_sigma":0.0}
-		abarth.Abarth(params)
+		XBART.XBART(params)
 
 if __name__ == "__main__":
-	test_classes_to_run = [AbarthTesting1, AbarthExceptionTesting]
+	test_classes_to_run = [XBARTTesting1, XBARTExceptionTesting]
 
 	loader = unittest.TestLoader()
 

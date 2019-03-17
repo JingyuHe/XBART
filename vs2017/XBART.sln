@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.421
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "abarth", "abarth.vcxproj", "{A188B047-ABD0-4E04-BBA4-059E07518329}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XBART", "XBART.vcxproj", "{A188B047-ABD0-4E04-BBA4-059E07518329}"
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "tests", "tests.pyproj", "{F0EB47DF-5D88-452F-85DF-A77A3F771247}"
 EndProject

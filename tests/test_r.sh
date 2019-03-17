@@ -1,8 +1,8 @@
 #! /bin/bash
 echo Building R
 cd ../../
-R CMD REMOVE abarth
-R CMD INSTALL abarth
-cd abarth/tests/
+R CMD REMOVE XBART
+R CMD INSTALL XBART
+cd XBART/tests/
 echo Testing R
 Rscript test.R

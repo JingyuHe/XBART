@@ -15,8 +15,8 @@ else:
 if platform == "darwin":
   compile_args.append("-mmacosx-version-min=10.9") # To ensure gnu+11 and all std libs
 
-abarth_module = Extension('_abarth',
-                           sources=['abarth_wrap.cxx', 'abarth.cpp',
+XBART_module = Extension('_XBART',
+                           sources=['XBART_wrap.cxx', 'XBART.cpp',
                                     "src/utility.cpp",'src/fit_std_main_loop.cpp',
                                       "src/sample_int_crank.cpp",  "src/treefuns.cpp",
                                         "src/common.cpp" ,   "src/forest.cpp",    
@@ -32,14 +32,14 @@ abarth_module = Extension('_abarth',
                            extra_compile_args=compile_args#,"-larmadillo", "-llapack", "-lblas"]
                            )
 
-setup (name = 'abarth',
+setup (name = 'XBART',
        version = '0.01',
        author      = "Saar Yalov",
-       description = """Abarth project""",
+       description = """XBART project""",
        include_dirs = [numpy.get_include(),'.',"src"],
-       ext_modules = [abarth_module],
-       sources = ["abarth.py"],
+       ext_modules = [XBART_module],
+       sources = ["XBART.py"],
        install_requires=['numpy'],
-       py_modules = ["abarth"]
+       py_modules = ["XBART"]
        )
 

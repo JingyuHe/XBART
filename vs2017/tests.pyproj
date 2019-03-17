@@ -26,8 +26,8 @@
     <Compile Include="test.py" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\vs2017\abarth.vcxproj">
-      <Name>abarth</Name>
+    <ProjectReference Include="..\..\vs2017\XBART.vcxproj">
+      <Name>XBART</Name>
       <Project>{a188b047-abd0-4e04-bba4-059e07518329}</Project>
       <Private>True</Private>
     </ProjectReference>

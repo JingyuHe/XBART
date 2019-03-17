@@ -15,7 +15,7 @@ typedef std::vector<vec_d> xinfo;
 
 
 
-struct AbarthParams{
+struct XBARTParams{
 			size_t M;
 			size_t L;size_t N_sweeps; size_t Nmin; size_t Ncutpoints;
 			size_t burnin; size_t mtry;size_t max_depth_num;
@@ -24,9 +24,9 @@ struct AbarthParams{
 			bool draw_mu;bool parallel;
 };
 
-class Abarth{
+class XBART{
 	private:
-		AbarthParams params;
+		XBARTParams params;
 		vector <tree> trees;
 		vector<vector<tree>> trees2; 
 		vec_d y_std;
@@ -46,8 +46,8 @@ class Abarth{
 		// void params_to_struct;
 	public:
 		// Constructors 
-		Abarth (AbarthParams params);
-		Abarth (size_t M ,size_t L ,size_t N_sweeps ,
+		XBART (XBARTParams params);
+		XBART (size_t M ,size_t L ,size_t N_sweeps ,
 				size_t Nmin , size_t Ncutpoints , //CHANGE 
 				double alpha , double beta , double tau , //CHANGE!
 				size_t burnin, size_t mtry ,
@@ -56,7 +56,7 @@ class Abarth{
 				bool draw_mu , bool parallel);
 
 		// // Destructor
-		//~Abarth();
+		//~XBART();
 
 	
 		// void sort_x(int n, int d, double *a);

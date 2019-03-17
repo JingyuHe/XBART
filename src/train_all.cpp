@@ -89,7 +89,7 @@ void rcpp_to_std2(
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List abarth_train_all(arma::mat y, arma::mat X, arma::mat Xtest,
+Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
                             size_t M, size_t L, size_t N_sweeps, arma::mat max_depth,
                             size_t Nmin, size_t Ncutpoints, double alpha, double beta,
                             double tau, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,
