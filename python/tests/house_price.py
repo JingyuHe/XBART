@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from abarth import Abarth
+from XBART import XBART
 from collections import OrderedDict
 import time
 
@@ -65,25 +65,25 @@ params = OrderedDict([('M',m),('L',1),("N_sweeps",50)
 # 							("draw_mu",False),("parallel",False)])
 
 
-print("Abarth Fit Predict Seperate...")
-xbart_2 = Abarth(params)
+print("XBART Fit Predict Seperate...")
+xbart_2 = XBART(params)
 start_1 = time.time()
 xbart_2.fit(train_data_norm.values,target_train.values,cat_train.shape[1])
 end_1 = time.time()
 start_2 = time.time()
 y_pred_2 = xbart_2.predict(valid_data_norm.values)
 end_2 = time.time()
-abarth_time_fit = end_1-start_1
-abarth_time_predict = end_2-start_2
+XBART_time_fit = end_1-start_1
+XBART_time_predict = end_2-start_2
 y_hat_xbart_2 = y_pred_2[:,params["burnin"]:].mean(axis=1)
 
-print("Abarth...")
-xbart = Abarth(params)
+print("XBART...")
+xbart = XBART(params)
 start = time.time()
 y_pred = xbart.fit_predict(train_data_norm.values,target_train.values,
 	valid_data_norm.values,cat_train.shape[1])
 end = time.time()
-abarth_time = end-start
+XBART_time = end-start
 y_hat_xbart = y_pred[:,params["burnin"]:].mean(axis=1)
 
 
@@ -109,10 +109,10 @@ print("Xbart 2 rmse:" + str(rmse(y_hat_xbart_2,target_valid)))
 print("Boosting rmse:" + str(rmse(y_hat_bst,target_valid)))
 print("RandomForest rmse:" + str(rmse(y_hat_rf,target_valid)))
 
-print("Xbart time:" + str(abarth_time))
-print("Xbart time fit:" + str(abarth_time_fit))
-print("Xbart time predict:" + str(abarth_time_predict))
-print("Xbart time seperate:" + str(abarth_time_fit+abarth_time_predict))
+print("Xbart time:" + str(XBART_time))
+print("Xbart time fit:" + str(XBART_time_fit))
+print("Xbart time predict:" + str(XBART_time_predict))
+print("Xbart time seperate:" + str(XBART_time_fit+XBART_time_predict))
 print("Boosting time:" + str(bst_time))
 print("RandomForest time:" + str(rf_time))
 

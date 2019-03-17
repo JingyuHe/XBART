@@ -10,7 +10,7 @@ import warnings
 warnings.filterwarnings('ignore')
 np.random.seed(4590)
 
-from abarth import Abarth
+from XBART import XBART
 
 print("Reading Data...")
 path = "/Users/saaryalov/Kaggle/ELO/saar_model/Data_2/"
@@ -99,7 +99,7 @@ oof = np.zeros(len(df_train))
 predictions = np.zeros(len(df_test))
 
 
-xbart = Abarth(params)
+xbart = XBART(params)
 # xbart.fit_2d_all(df_train[features].values,target.values,len(cat))
 # predictions += xbart.predict_2d_all(df_test[features].values)[:,params["burnin"]:].mean(axis=1)
 for fold_, (trn_idx, val_idx) in enumerate(folds.split(df_train)):

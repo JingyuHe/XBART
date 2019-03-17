@@ -1,4 +1,4 @@
-library(abarth)
+library(XBART)
 library(xgboost)
 library(dbarts)
 library(ranger)
@@ -65,7 +65,7 @@ level = level*(2*x[,4]-1)
 # }
 
 #####################################################
-# ABARTH
+# XBART
 
 ntrue = n
 mtry = min(floor(sqrt(d)),20)
@@ -129,7 +129,7 @@ yhatLL.train = apply(fit$yhats[,burnin:nsweeps],1,mean)
 rmseLL = sqrt(mean((ftest - yhatLL.test)^2))
 
 
-#plot(ftest, yhatLL.test,pch=20, main = "ABARTH")
+#plot(ftest, yhatLL.test,pch=20, main = "XBART")
 #abline(0,1)
 
 
@@ -137,7 +137,7 @@ rmseLL = sqrt(mean((ftest - yhatLL.test)^2))
 RMSE2 = sqrt(mean((ftest - yhatLL.test)^2))
 
 t3 = proc.time()
-fit2 = abarth_train_all(as.matrix(y), as.matrix(x), as.matrix(xtest), M, L, nsweeps, max_depth, Nmin, alpha = alpha, beta = beta, p_categorical = dim(x)[2], tau = tau, s= 1,kap = 1, mtry = mtry, burnin = burnin, m_update_sigma = TRUE,draw_mu= TRUE, Ncutpoints = Ncutpoints, parallel = FALSE)
+fit2 = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), M, L, nsweeps, max_depth, Nmin, alpha = alpha, beta = beta, p_categorical = dim(x)[2], tau = tau, s= 1,kap = 1, mtry = mtry, burnin = burnin, m_update_sigma = TRUE,draw_mu= TRUE, Ncutpoints = Ncutpoints, parallel = FALSE)
 t3 = proc.time() - t3
 
 
@@ -147,17 +147,17 @@ RMSE3 = sqrt(mean((ftest - yhatLL.test_2)^2))
 
 RMSE_OF_FITS = sqrt(mean((yhatLL.test - yhatLL.test_2)^2))
 
-cat("RMSE of ABARTH Orignal ", RMSE2, " running time ", t2, "\n")
-cat("RMSE of ABARTH Refactor ", RMSE3, " running time ", t3, "\n")
+cat("RMSE of XBART Orignal ", RMSE2, " running time ", t2, "\n")
+cat("RMSE of XBART Refactor ", RMSE3, " running time ", t3, "\n")
 cat("RMSE of fits: ",RMSE_OF_FITS, "\n")
 old_rmse[i] = RMSE2
 new_rmse[i] = RMSE3
 }
 
-cat("Mean RMSE of ABARTH Orignal ", mean(old_rmse), " running time ", t2, "\n")
-cat("Mean RMSE of ABARTH Refactor ", mean(new_rmse), " running time ", t2, "\n")
+cat("Mean RMSE of XBART Orignal ", mean(old_rmse), " running time ", t2, "\n")
+cat("Mean RMSE of XBART Refactor ", mean(new_rmse), " running time ", t2, "\n")
 cat("Percentage of time NEW RMSE higher than OLD ", mean(new_rmse>old_rmse) , "\n")
 
-cat("Var RMSE of ABARTH Orignal ", var(old_rmse), " running time ", t2, "\n")
-cat("Var RMSE of ABARTH Refactor ", var(new_rmse), " running time ", t2, "\n")
+cat("Var RMSE of XBART Orignal ", var(old_rmse), " running time ", t2, "\n")
+cat("Var RMSE of XBART Refactor ", var(new_rmse), " running time ", t2, "\n")
 

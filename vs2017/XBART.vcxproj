@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\python\abarth.cpp" />
-    <ClCompile Include="..\python\abarth_wrap.cxx" />
+    <ClCompile Include="..\python\XBART.cpp" />
+    <ClCompile Include="..\python\XBART_wrap.cxx" />
     <ClCompile Include="..\src\common.cpp" />
     <ClCompile Include="..\src\fit_std_main_loop.cpp" />
     <ClCompile Include="..\src\forest.cpp" />
@@ -42,11 +42,11 @@
     <ClInclude Include="..\src\utility.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\python\abarth.py" />
+    <None Include="..\python\XBART.py" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A188B047-ABD0-4E04-BBA4-059E07518329}</ProjectGuid>
-    <RootNamespace>abarth</RootNamespace>
+    <RootNamespace>XBART</RootNamespace>
     <PythonVersion>3.6</PythonVersion>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -120,34 +120,34 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <TargetName>_abarth$(PythonDebugSuffix)</TargetName>
+    <TargetName>_XBART$(PythonDebugSuffix)</TargetName>
     <TargetExt>.pyd</TargetExt>
     <LocalDebuggerCommand>$(PythonDExe)</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>-i -c "print('&gt;&gt;&gt; import abarth'); import abarth"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-i -c "print('&gt;&gt;&gt; import XBART'); import XBART"</LocalDebuggerCommandArguments>
     <LocalDebuggerEnvironment>PYTHONPATH=$(OutDir)</LocalDebuggerEnvironment>
     <DebuggerFlavor>$(DefaultDebuggerFlavor)</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <TargetName>_abarth</TargetName>
+    <TargetName>_XBART</TargetName>
     <TargetExt>.pyd</TargetExt>
     <LocalDebuggerCommand>$(PythonExe)</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>-i -c "print('&gt;&gt;&gt; import abarth'); import abarth"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-i -c "print('&gt;&gt;&gt; import XBART'); import XBART"</LocalDebuggerCommandArguments>
     <LocalDebuggerEnvironment>PYTHONPATH=$(OutDir)</LocalDebuggerEnvironment>
     <DebuggerFlavor>$(DefaultDebuggerFlavor)</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>_abarth$(PythonDebugSuffix)</TargetName>
+    <TargetName>_XBART$(PythonDebugSuffix)</TargetName>
     <TargetExt>.pyd</TargetExt>
     <LocalDebuggerCommand>$(PythonDExe)</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>-i -c "print('&gt;&gt;&gt; import abarth'); import abarth"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-i -c "print('&gt;&gt;&gt; import XBART'); import XBART"</LocalDebuggerCommandArguments>
     <LocalDebuggerEnvironment>PYTHONPATH=$(OutDir)</LocalDebuggerEnvironment>
     <DebuggerFlavor>$(DefaultDebuggerFlavor)</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>_abarth</TargetName>
+    <TargetName>_XBART</TargetName>
     <TargetExt>.pyd</TargetExt>
     <LocalDebuggerCommand>$(PythonExe)</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>-i -c "print('&gt;&gt;&gt; import abarth'); import abarth"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-i -c "print('&gt;&gt;&gt; import XBART'); import XBART"</LocalDebuggerCommandArguments>
     <LocalDebuggerEnvironment>PYTHONPATH=$(OutDir)</LocalDebuggerEnvironment>
     <DebuggerFlavor>$(DefaultDebuggerFlavor)</DebuggerFlavor>
   </PropertyGroup>

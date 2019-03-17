@@ -35,16 +35,16 @@ fi
 
 ./remove.sh
 ./dist_remove.sh
-$PYTHON_BIN -m pip uninstall abarth 
+$PYTHON_BIN -m pip uninstall XBART 
 cp -r ../src .
 
 ver=$($PYTHON_BIN -V 2>&1 | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
 if [ "$ver" -le "27" ]; then
     echo "Running script with python $ver" 
-    swig -c++ -python abarth.i
+    swig -c++ -python XBART.i
 else
   echo "Running script with python $ver" 
-  swig -c++ -python -py3  abarth.i
+  swig -c++ -python -py3  XBART.i
 fi
 
 if $DIST_FLAG;then

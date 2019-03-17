@@ -32,7 +32,7 @@ p <- length(treedraws$cutpoints)
 if(p!=nrow(x.test))
     stop(paste0('The number of columns in x.test must be equal to ', p))
 
-res = .Call(abarth:::"cpwbart",
+res = .Call(XBART:::"cpwbart",
    treedraws,	#trees list returned as returned from fbart
    x.test,      #the test x.
    mc.cores   	#thread count

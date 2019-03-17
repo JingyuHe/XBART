@@ -9,12 +9,12 @@ if _swig_python_version_info >= (2, 7, 0):
     def swig_import_helper():
         import importlib
         pkg = __name__.rpartition('.')[0]
-        mname = '.'.join((pkg, '_abarth')).lstrip('.')
+        mname = '.'.join((pkg, '_XBART')).lstrip('.')
         try:
             return importlib.import_module(mname)
         except ImportError:
-            return importlib.import_module('_abarth')
-    _abarth = swig_import_helper()
+            return importlib.import_module('_XBART')
+    _XBART = swig_import_helper()
     del swig_import_helper
 elif _swig_python_version_info >= (2, 6, 0):
     def swig_import_helper():
@@ -22,20 +22,20 @@ elif _swig_python_version_info >= (2, 6, 0):
         import imp
         fp = None
         try:
-            fp, pathname, description = imp.find_module('_abarth', [dirname(__file__)])
+            fp, pathname, description = imp.find_module('_XBART', [dirname(__file__)])
         except ImportError:
-            import _abarth
-            return _abarth
+            import _XBART
+            return _XBART
         try:
-            _mod = imp.load_module('_abarth', fp, pathname, description)
+            _mod = imp.load_module('_XBART', fp, pathname, description)
         finally:
             if fp is not None:
                 fp.close()
         return _mod
-    _abarth = swig_import_helper()
+    _XBART = swig_import_helper()
     del swig_import_helper
 else:
-    import _abarth
+    import _XBART
 del _swig_python_version_info
 
 try:
@@ -98,148 +98,148 @@ except __builtin__.Exception:
 
 import collections
 
-class AbarthParams(_object):
+class XBARTParams(_object):
     __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, AbarthParams, name, value)
+    __setattr__ = lambda self, name, value: _swig_setattr(self, XBARTParams, name, value)
     __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, AbarthParams, name)
+    __getattr__ = lambda self, name: _swig_getattr(self, XBARTParams, name)
     __repr__ = _swig_repr
-    __swig_setmethods__["M"] = _abarth.AbarthParams_M_set
-    __swig_getmethods__["M"] = _abarth.AbarthParams_M_get
+    __swig_setmethods__["M"] = _XBART.XBARTParams_M_set
+    __swig_getmethods__["M"] = _XBART.XBARTParams_M_get
     if _newclass:
-        M = _swig_property(_abarth.AbarthParams_M_get, _abarth.AbarthParams_M_set)
-    __swig_setmethods__["L"] = _abarth.AbarthParams_L_set
-    __swig_getmethods__["L"] = _abarth.AbarthParams_L_get
+        M = _swig_property(_XBART.XBARTParams_M_get, _XBART.XBARTParams_M_set)
+    __swig_setmethods__["L"] = _XBART.XBARTParams_L_set
+    __swig_getmethods__["L"] = _XBART.XBARTParams_L_get
     if _newclass:
-        L = _swig_property(_abarth.AbarthParams_L_get, _abarth.AbarthParams_L_set)
-    __swig_setmethods__["N_sweeps"] = _abarth.AbarthParams_N_sweeps_set
-    __swig_getmethods__["N_sweeps"] = _abarth.AbarthParams_N_sweeps_get
+        L = _swig_property(_XBART.XBARTParams_L_get, _XBART.XBARTParams_L_set)
+    __swig_setmethods__["N_sweeps"] = _XBART.XBARTParams_N_sweeps_set
+    __swig_getmethods__["N_sweeps"] = _XBART.XBARTParams_N_sweeps_get
     if _newclass:
-        N_sweeps = _swig_property(_abarth.AbarthParams_N_sweeps_get, _abarth.AbarthParams_N_sweeps_set)
-    __swig_setmethods__["Nmin"] = _abarth.AbarthParams_Nmin_set
-    __swig_getmethods__["Nmin"] = _abarth.AbarthParams_Nmin_get
+        N_sweeps = _swig_property(_XBART.XBARTParams_N_sweeps_get, _XBART.XBARTParams_N_sweeps_set)
+    __swig_setmethods__["Nmin"] = _XBART.XBARTParams_Nmin_set
+    __swig_getmethods__["Nmin"] = _XBART.XBARTParams_Nmin_get
     if _newclass:
-        Nmin = _swig_property(_abarth.AbarthParams_Nmin_get, _abarth.AbarthParams_Nmin_set)
-    __swig_setmethods__["Ncutpoints"] = _abarth.AbarthParams_Ncutpoints_set
-    __swig_getmethods__["Ncutpoints"] = _abarth.AbarthParams_Ncutpoints_get
+        Nmin = _swig_property(_XBART.XBARTParams_Nmin_get, _XBART.XBARTParams_Nmin_set)
+    __swig_setmethods__["Ncutpoints"] = _XBART.XBARTParams_Ncutpoints_set
+    __swig_getmethods__["Ncutpoints"] = _XBART.XBARTParams_Ncutpoints_get
     if _newclass:
-        Ncutpoints = _swig_property(_abarth.AbarthParams_Ncutpoints_get, _abarth.AbarthParams_Ncutpoints_set)
-    __swig_setmethods__["burnin"] = _abarth.AbarthParams_burnin_set
-    __swig_getmethods__["burnin"] = _abarth.AbarthParams_burnin_get
+        Ncutpoints = _swig_property(_XBART.XBARTParams_Ncutpoints_get, _XBART.XBARTParams_Ncutpoints_set)
+    __swig_setmethods__["burnin"] = _XBART.XBARTParams_burnin_set
+    __swig_getmethods__["burnin"] = _XBART.XBARTParams_burnin_get
     if _newclass:
-        burnin = _swig_property(_abarth.AbarthParams_burnin_get, _abarth.AbarthParams_burnin_set)
-    __swig_setmethods__["mtry"] = _abarth.AbarthParams_mtry_set
-    __swig_getmethods__["mtry"] = _abarth.AbarthParams_mtry_get
+        burnin = _swig_property(_XBART.XBARTParams_burnin_get, _XBART.XBARTParams_burnin_set)
+    __swig_setmethods__["mtry"] = _XBART.XBARTParams_mtry_set
+    __swig_getmethods__["mtry"] = _XBART.XBARTParams_mtry_get
     if _newclass:
-        mtry = _swig_property(_abarth.AbarthParams_mtry_get, _abarth.AbarthParams_mtry_set)
-    __swig_setmethods__["max_depth_num"] = _abarth.AbarthParams_max_depth_num_set
-    __swig_getmethods__["max_depth_num"] = _abarth.AbarthParams_max_depth_num_get
+        mtry = _swig_property(_XBART.XBARTParams_mtry_get, _XBART.XBARTParams_mtry_set)
+    __swig_setmethods__["max_depth_num"] = _XBART.XBARTParams_max_depth_num_set
+    __swig_getmethods__["max_depth_num"] = _XBART.XBARTParams_max_depth_num_get
     if _newclass:
-        max_depth_num = _swig_property(_abarth.AbarthParams_max_depth_num_get, _abarth.AbarthParams_max_depth_num_set)
-    __swig_setmethods__["alpha"] = _abarth.AbarthParams_alpha_set
-    __swig_getmethods__["alpha"] = _abarth.AbarthParams_alpha_get
+        max_depth_num = _swig_property(_XBART.XBARTParams_max_depth_num_get, _XBART.XBARTParams_max_depth_num_set)
+    __swig_setmethods__["alpha"] = _XBART.XBARTParams_alpha_set
+    __swig_getmethods__["alpha"] = _XBART.XBARTParams_alpha_get
     if _newclass:
-        alpha = _swig_property(_abarth.AbarthParams_alpha_get, _abarth.AbarthParams_alpha_set)
-    __swig_setmethods__["beta"] = _abarth.AbarthParams_beta_set
-    __swig_getmethods__["beta"] = _abarth.AbarthParams_beta_get
+        alpha = _swig_property(_XBART.XBARTParams_alpha_get, _XBART.XBARTParams_alpha_set)
+    __swig_setmethods__["beta"] = _XBART.XBARTParams_beta_set
+    __swig_getmethods__["beta"] = _XBART.XBARTParams_beta_get
     if _newclass:
-        beta = _swig_property(_abarth.AbarthParams_beta_get, _abarth.AbarthParams_beta_set)
-    __swig_setmethods__["tau"] = _abarth.AbarthParams_tau_set
-    __swig_getmethods__["tau"] = _abarth.AbarthParams_tau_get
+        beta = _swig_property(_XBART.XBARTParams_beta_get, _XBART.XBARTParams_beta_set)
+    __swig_setmethods__["tau"] = _XBART.XBARTParams_tau_set
+    __swig_getmethods__["tau"] = _XBART.XBARTParams_tau_get
     if _newclass:
-        tau = _swig_property(_abarth.AbarthParams_tau_get, _abarth.AbarthParams_tau_set)
-    __swig_setmethods__["kap"] = _abarth.AbarthParams_kap_set
-    __swig_getmethods__["kap"] = _abarth.AbarthParams_kap_get
+        tau = _swig_property(_XBART.XBARTParams_tau_get, _XBART.XBARTParams_tau_set)
+    __swig_setmethods__["kap"] = _XBART.XBARTParams_kap_set
+    __swig_getmethods__["kap"] = _XBART.XBARTParams_kap_get
     if _newclass:
-        kap = _swig_property(_abarth.AbarthParams_kap_get, _abarth.AbarthParams_kap_set)
-    __swig_setmethods__["s"] = _abarth.AbarthParams_s_set
-    __swig_getmethods__["s"] = _abarth.AbarthParams_s_get
+        kap = _swig_property(_XBART.XBARTParams_kap_get, _XBART.XBARTParams_kap_set)
+    __swig_setmethods__["s"] = _XBART.XBARTParams_s_set
+    __swig_getmethods__["s"] = _XBART.XBARTParams_s_get
     if _newclass:
-        s = _swig_property(_abarth.AbarthParams_s_get, _abarth.AbarthParams_s_set)
-    __swig_setmethods__["draw_sigma"] = _abarth.AbarthParams_draw_sigma_set
-    __swig_getmethods__["draw_sigma"] = _abarth.AbarthParams_draw_sigma_get
+        s = _swig_property(_XBART.XBARTParams_s_get, _XBART.XBARTParams_s_set)
+    __swig_setmethods__["draw_sigma"] = _XBART.XBARTParams_draw_sigma_set
+    __swig_getmethods__["draw_sigma"] = _XBART.XBARTParams_draw_sigma_get
     if _newclass:
-        draw_sigma = _swig_property(_abarth.AbarthParams_draw_sigma_get, _abarth.AbarthParams_draw_sigma_set)
-    __swig_setmethods__["verbose"] = _abarth.AbarthParams_verbose_set
-    __swig_getmethods__["verbose"] = _abarth.AbarthParams_verbose_get
+        draw_sigma = _swig_property(_XBART.XBARTParams_draw_sigma_get, _XBART.XBARTParams_draw_sigma_set)
+    __swig_setmethods__["verbose"] = _XBART.XBARTParams_verbose_set
+    __swig_getmethods__["verbose"] = _XBART.XBARTParams_verbose_get
     if _newclass:
-        verbose = _swig_property(_abarth.AbarthParams_verbose_get, _abarth.AbarthParams_verbose_set)
-    __swig_setmethods__["m_update_sigma"] = _abarth.AbarthParams_m_update_sigma_set
-    __swig_getmethods__["m_update_sigma"] = _abarth.AbarthParams_m_update_sigma_get
+        verbose = _swig_property(_XBART.XBARTParams_verbose_get, _XBART.XBARTParams_verbose_set)
+    __swig_setmethods__["m_update_sigma"] = _XBART.XBARTParams_m_update_sigma_set
+    __swig_getmethods__["m_update_sigma"] = _XBART.XBARTParams_m_update_sigma_get
     if _newclass:
-        m_update_sigma = _swig_property(_abarth.AbarthParams_m_update_sigma_get, _abarth.AbarthParams_m_update_sigma_set)
-    __swig_setmethods__["draw_mu"] = _abarth.AbarthParams_draw_mu_set
-    __swig_getmethods__["draw_mu"] = _abarth.AbarthParams_draw_mu_get
+        m_update_sigma = _swig_property(_XBART.XBARTParams_m_update_sigma_get, _XBART.XBARTParams_m_update_sigma_set)
+    __swig_setmethods__["draw_mu"] = _XBART.XBARTParams_draw_mu_set
+    __swig_getmethods__["draw_mu"] = _XBART.XBARTParams_draw_mu_get
     if _newclass:
-        draw_mu = _swig_property(_abarth.AbarthParams_draw_mu_get, _abarth.AbarthParams_draw_mu_set)
-    __swig_setmethods__["parallel"] = _abarth.AbarthParams_parallel_set
-    __swig_getmethods__["parallel"] = _abarth.AbarthParams_parallel_get
+        draw_mu = _swig_property(_XBART.XBARTParams_draw_mu_get, _XBART.XBARTParams_draw_mu_set)
+    __swig_setmethods__["parallel"] = _XBART.XBARTParams_parallel_set
+    __swig_getmethods__["parallel"] = _XBART.XBARTParams_parallel_get
     if _newclass:
-        parallel = _swig_property(_abarth.AbarthParams_parallel_get, _abarth.AbarthParams_parallel_set)
+        parallel = _swig_property(_XBART.XBARTParams_parallel_get, _XBART.XBARTParams_parallel_set)
 
     def __init__(self):
-        this = _abarth.new_AbarthParams()
+        this = _XBART.new_XBARTParams()
         try:
             self.this.append(this)
         except __builtin__.Exception:
             self.this = this
-    __swig_destroy__ = _abarth.delete_AbarthParams
+    __swig_destroy__ = _XBART.delete_XBARTParams
     __del__ = lambda self: None
-AbarthParams_swigregister = _abarth.AbarthParams_swigregister
-AbarthParams_swigregister(AbarthParams)
+XBARTParams_swigregister = _XBART.XBARTParams_swigregister
+XBARTParams_swigregister(XBARTParams)
 
-class Abarth(_object):
+class XBART(_object):
     __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, Abarth, name, value)
+    __setattr__ = lambda self, name, value: _swig_setattr(self, XBART, name, value)
     __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, Abarth, name)
+    __getattr__ = lambda self, name: _swig_getattr(self, XBART, name)
     __repr__ = _swig_repr
 
     def __init__(self, *args):
-        this = _abarth.new_Abarth(*args)
+        this = _XBART.new_XBART(*args)
         try:
             self.this.append(this)
         except __builtin__.Exception:
             self.this = this
 
     def sort_x(self, n: 'int', size: 'int') -> "void":
-        return _abarth.Abarth_sort_x(self, n, size)
+        return _XBART.XBART_sort_x(self, n, size)
 
     def __fit_predict(self, n: 'int', n_y: 'int', n_test: 'int', size: 'int') -> "void":
-        return _abarth.Abarth___fit_predict(self, n, n_y, n_test, size)
+        return _XBART.XBART___fit_predict(self, n, n_y, n_test, size)
 
     def __fit_predict_all(self, n: 'int', n_y: 'int', n_test: 'int', size: 'int', p_cat: 'size_t') -> "void":
-        return _abarth.Abarth___fit_predict_all(self, n, n_y, n_test, size, p_cat)
+        return _XBART.XBART___fit_predict_all(self, n, n_y, n_test, size, p_cat)
 
     def __predict_all(self, n: 'int') -> "void":
-        return _abarth.Abarth___predict_all(self, n)
+        return _XBART.XBART___predict_all(self, n)
 
     def __fit_all(self, n: 'int', n_y: 'int', p_cat: 'size_t') -> "void":
-        return _abarth.Abarth___fit_all(self, n, n_y, p_cat)
+        return _XBART.XBART___fit_all(self, n, n_y, p_cat)
 
     def get_M(self) -> "int":
-        return _abarth.Abarth_get_M(self)
+        return _XBART.XBART_get_M(self)
 
     def get_N_sweeps(self) -> "int":
-        return _abarth.Abarth_get_N_sweeps(self)
+        return _XBART.XBART_get_N_sweeps(self)
 
     def get_burnin(self) -> "int":
-        return _abarth.Abarth_get_burnin(self)
+        return _XBART.XBART_get_burnin(self)
 
     def get_yhats(self, size: 'int') -> "void":
-        return _abarth.Abarth_get_yhats(self, size)
+        return _XBART.XBART_get_yhats(self, size)
 
     def get_yhats_test(self, size: 'int') -> "void":
-        return _abarth.Abarth_get_yhats_test(self, size)
+        return _XBART.XBART_get_yhats_test(self, size)
 
     def get_sigma_draw(self, size: 'int') -> "void":
-        return _abarth.Abarth_get_sigma_draw(self, size)
+        return _XBART.XBART_get_sigma_draw(self, size)
 
     def get_importance(self, size: 'int') -> "void":
-        return _abarth.Abarth_get_importance(self, size)
+        return _XBART.XBART_get_importance(self, size)
 
     def test_random_generator(self) -> "void":
-        return _abarth.Abarth_test_random_generator(self)
+        return _XBART.XBART_test_random_generator(self)
 
     def __convert_params_check_types(self,params):
     ### This function converts params to list and 
@@ -286,7 +286,7 @@ class Abarth(_object):
 
         assert isinstance(params, collections.Mapping), "params must be dictionary like"
 
-        this = _abarth.new_Abarth(*self.__convert_params_check_types(params))
+        this = _XBART.new_XBART(*self.__convert_params_check_types(params))
 
     # init
         try:
@@ -326,10 +326,10 @@ class Abarth(_object):
     def fit(self,x,y,p_cat=0):
         return self.__fit_all(x,y,p_cat)
 
-    __swig_destroy__ = _abarth.delete_Abarth
+    __swig_destroy__ = _XBART.delete_XBART
     __del__ = lambda self: None
-Abarth_swigregister = _abarth.Abarth_swigregister
-Abarth_swigregister(Abarth)
+XBART_swigregister = _XBART.XBART_swigregister
+XBART_swigregister(XBART)
 
 # This file is compatible with both classic and new-style classes.
 
