@@ -9,7 +9,7 @@ function usage(){
     
     options:
     -p|--python : path to python bin 
-    -d| --dist  : include if building dist
+    -d|--dist  : include if building dist
     -h|--help   : see documantation
 
 ENDUSAGE
@@ -35,16 +35,16 @@ fi
 
 ./remove.sh
 ./dist_remove.sh
-$PYTHON_BIN -m pip uninstall XBART 
+$PYTHON_BIN -m pip uninstall xbart 
 cp -r ../src .
 
 ver=$($PYTHON_BIN -V 2>&1 | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
 if [ "$ver" -le "27" ]; then
     echo "Running script with python $ver" 
-    swig -c++ -python XBART.i
+    swig -c++ -python xbart.i
 else
   echo "Running script with python $ver" 
-  swig -c++ -python -py3  XBART.i
+  swig -c++ -python -py3  xbart.i
 fi
 
 if $DIST_FLAG;then
