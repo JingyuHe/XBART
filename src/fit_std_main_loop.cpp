@@ -133,10 +133,6 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
             for (size_t tree_ind = 0; tree_ind < M; tree_ind++)
             {
 
-                if (sweeps == 0 && tree_ind == 0)
-                {
-                    cout << "sss" << sum_squared(residual_std) << endl;
-                }
                 // if update sigma based on residual of all m trees
                 if (m_update_sigma == true)
                 {
@@ -172,12 +168,6 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
 
                 mtry_weight_current_tree = mtry_weight_current_tree - split_count_all_tree[tree_ind];
 
-                if (sweeps == 0 && tree_ind == 0)
-                {
-                    cout << "first input " << endl;
-                    cout << sigma << endl;
-                    cout << residual_std[0] << "  " << residual_std[1] << "  " << residual_std[3] << endl;
-                }
 
                 trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, &model, data_pointers, tree_ind, gen);
 
@@ -190,12 +180,6 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
                 fit_new_std(trees[sweeps][tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
 
                 // update prediction of current tree, test set
-                if (sweeps == 0 && tree_ind == 0)
-                {
-                    cout << "tree " << tree_ind << " size is " << trees[sweeps][tree_ind].treesize() << endl;
-                    cout << "test output " << endl;
-                    cout << predictions_std[tree_ind][0] << "  " << predictions_std[tree_ind][1] << "  " << predictions_std[tree_ind][3] << endl;
-                }
 
                 // update sigma based on residual of m - 1 trees, residual_theta_noise
                 if (m_update_sigma == false)

@@ -104,7 +104,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
-    std::vector<double> X_values; 
+    std::vector<double> X_values;
     std::vector<size_t> X_counts;
     std::vector<size_t> variable_ind(p_categorical + 1);
 
@@ -113,11 +113,6 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     std::vector<size_t> X_num_unique(p_categorical);
 
     unique_value_count(Xpointer, Xorder_std, X_values, X_counts, variable_ind, total_points, X_num_unique, p_categorical, p_continuous);
-
-    cout << "X_values" << X_values << endl;
-    cout << "X_counts" << X_counts << endl;
-    cout << "variable_ind " << variable_ind << endl;
-    cout << "X_num_unique " << X_num_unique << endl;
 
     xinfo yhats_std;
     ini_xinfo(yhats_std, N, N_sweeps);
@@ -205,10 +200,10 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
     // Create trees
     std::vector<std::vector<tree>> trees(N_sweeps);
-    for(size_t i = 0; i < N_sweeps;i++){
-        trees[i]= vector<tree>(M); 
+    for (size_t i = 0; i < N_sweeps; i++)
+    {
+        trees[i] = vector<tree>(M);
     }
-
 
     for (size_t mc = 0; mc < L; mc++)
     {
@@ -237,9 +232,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
             for (size_t tree_ind = 0; tree_ind < M; tree_ind++)
             {
-                if(sweeps == 0 && tree_ind == 0){
-                    cout << "sss" << sum_squared(residual_std) << endl;
-                }
+
                 // if update sigma based on residual of all m trees
                 if (m_update_sigma == true)
                 {
@@ -267,32 +260,13 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
                 if (use_all && (sweeps > burnin) && (mtry != p))
                 {
-                    // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
-
-                    // subset_vars = sample_int_crank2(p, mtry, split_var_count);
 
                     use_all = false;
                 }
-
-                // cout << "variables used " << subset_vars << endl;
-                // cout << "------------------" << endl;
-
                 // clear counts of splits for one tree
                 std::fill(split_count_current_tree.begin(), split_count_current_tree.end(), 0.0);
 
                 mtry_weight_current_tree = mtry_weight_current_tree - split_count_all_tree[tree_ind];
-
-                // cout << "before " << mtry_weight_current_tree << endl;
-
-
-                if(sweeps == 0 && tree_ind == 0){
-                    cout << "first input " << endl;
-                    cout << sigma << endl;
-                    cout << residual_std[0] << "  " << residual_std[1] << "  " << residual_std[3] << endl;
-                }
-
-
-
 
                 trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth(tree_ind, sweeps), Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, &model, data_pointers, tree_ind, gen);
 
@@ -309,12 +283,6 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
                 // update prediction of current tree
                 fit_new_std(trees[sweeps][tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
-
-            if(sweeps == 0 && tree_ind == 0){
-                    cout << "tree " << tree_ind << " size is " << trees[sweeps][tree_ind].treesize() << endl;
-                    cout << "test output " << endl;
-                    cout << predictions_std[tree_ind][0] << "  " << predictions_std[tree_ind][1] << "  " << predictions_std[tree_ind][3] << endl;
-                }
 
                 // update prediction of current tree, test set
                 fit_new_std(trees[sweeps][tree_ind], Xtestpointer, N_test, p, predictions_test_std[tree_ind]);
