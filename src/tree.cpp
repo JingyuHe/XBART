@@ -1161,47 +1161,7 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
     return;
 }
 
-void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique)
-{
-    size_t N = Xorder_std[0].size();
-    size_t p = Xorder_std.size();
-    double current_value = 0.0;
-    size_t count_unique = 0;
-    size_t N_unique;
-    variable_ind[0] = 0;
-
-    total_points = 0;
-    for (size_t i = 0; i < p; i++)
-    {
-        X_counts.push_back(1);
-        current_value = *(Xpointer + i * N + Xorder_std[i][0]);
-        X_values.push_back(current_value);
-        count_unique = 1;
-
-        for (size_t j = 1; j < N; j++)
-        {
-            if (*(Xpointer + i * N + Xorder_std[i][j]) == current_value)
-            {
-                X_counts[total_points]++;
-            }
-            else
-            {
-                current_value = *(Xpointer + i * N + Xorder_std[i][j]);
-                X_values.push_back(current_value);
-                X_counts.push_back(1);
-                count_unique++;
-                total_points++;
-            }
-        }
-        variable_ind[i + 1] = count_unique + variable_ind[i];
-        X_num_unique[i] = count_unique;
-        total_points++;
-    }
-
-    return;
-}
-
-void unique_value_count2(const double *Xpointer, xinfo_sizet &Xorder_std, //std::vector<size_t> &X_values,
+void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, //std::vector<size_t> &X_values,
                          std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique, size_t &p_categorical, size_t &p_continuous)
 {
     size_t N = Xorder_std[0].size();

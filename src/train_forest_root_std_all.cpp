@@ -112,7 +112,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
     std::vector<size_t> X_num_unique(p_categorical);
 
-    unique_value_count2(Xpointer, Xorder_std, X_values, X_counts, variable_ind, total_points, X_num_unique, p_categorical, p_continuous);
+    unique_value_count(Xpointer, Xorder_std, X_values, X_counts, variable_ind, total_points, X_num_unique, p_categorical, p_continuous);
 
     cout << "X_values" << X_values << endl;
     cout << "X_counts" << X_counts << endl;

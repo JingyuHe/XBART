@@ -57,7 +57,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
     if (parallel)
         thread_pool.start();
 
-    unique_value_count2(Xpointer, Xorder_std, X_values, X_counts,
+    unique_value_count(Xpointer, Xorder_std, X_values, X_counts,
                         variable_ind, total_points, X_num_unique, p_categorical, p_continuous);
 
     NormalModel model;
