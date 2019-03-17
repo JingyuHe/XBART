@@ -88,7 +88,7 @@ std::vector<double> sample_int_ccrank(int n, int size, std::vector<double> prob)
     //                ~ -Exp(1) / prob
     //                ~ prob / Exp(1)
     // Here, ~ means "doesn't change order statistics".
-    std::vector<double> rnd = std::vector<double>(n + 1);
+    std::vector<double> rnd(n + 1);
     //std::vector<double> rnd = std::vector<double>(n );
 
     // Already shift by one, rnd[0] is uninitialized (and never accessed)

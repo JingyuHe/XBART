@@ -1,22 +1,3 @@
-/*
- *  BART: Bayesian Additive Regression Trees
- *  Copyright (C) 2017 Robert McCulloch and Rodney Sparapani
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, a copy is available at
- *  https://www.R-project.org/Licenses/GPL-2
- */
-
 #ifndef GUARD_tree_h
 #define GUARD_tree_h
 
@@ -31,13 +12,7 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
 
 void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, std::vector<double> &X_values, std::vector<size_t> &variable_ind);
 
-void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique);
-
-void unique_value_count2(const double *Xpointer, xinfo_sizet &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique, size_t &p_categorical, size_t &p_continuous);
-
-void BART_likelihood_adaptive_std_mtry_old(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars);
-
-void BART_likelihood_adaptive_std_mtry_old_categorical(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model* model);
+void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique, size_t &p_categorical, size_t &p_continuous);
 
 void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model, std::mt19937 &gen);
 
@@ -48,7 +23,6 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &loglike_start, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &N_min, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, const size_t &p_continuous, size_t &p_categorical, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model);
 
 
-// void calc_suff_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, double &suff_stat, bool adaptive_cutpoint);
 
 //--------------------------------------------------
 //BART likelihood function
@@ -76,9 +50,9 @@ public:
   typedef const tree *tree_cp;
   typedef std::vector<tree_p> npv;
   typedef std::vector<tree_cp> cnpv;
+  std::vector<double> theta_vector;
   //friends--------------------
   friend std::istream &operator>>(std::istream &, tree &);
-  //  friend void update_sufficient_stat(tree& tree, arma::mat& y, arma::mat& X, tree::npv& bv, tree::npv& bv2, double& tau, double& sigma, double& alpha, double& beta);
   //contructors,destructors--------------------
   tree() : theta(0.0), theta_noise(0.0), theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
   tree(const tree &n) : theta(0.0), theta_noise(0.0), theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) { cp(this, &n); }
@@ -98,6 +72,9 @@ public:
   //get
   std::vector<double> gettheta_vector() const { return theta_vector; }
 
+  double gettheta() const {return theta;}
+  double gettheta_noise() const {return theta_noise;}
+
   double getsig() const { return sig; }
   size_t getv() const { return v; }
   double getc() const { return c; }
@@ -116,36 +93,8 @@ public:
   void getnodes(npv &v);        //get vector of all nodes
   void getnodes(cnpv &v) const; //get vector of all nodes (const)
   tree_p gettop();              // get pointer to the top node
-  //  void grow_tree(arma::vec& y, double y_mean, arma::umat& Xorder, arma::mat& X, size_t depth, size_t max_depth, size_t Nmin, double tau, double sigma, double alpha, double beta);
 
-  void grow_tree_adaptive_abarth_train(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints,
-                                       double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel,
-                                       std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time,
-                                       bool &use_all, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, Model *model, std::mt19937 &gen);
-
-  //     void grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time, Rcpp::IntegerVector &var_index_candidate, bool &use_all, Rcpp::NumericMatrix &split_count_all_tree, Rcpp::NumericVector &mtry_weight_current_tree, Rcpp::NumericVector &split_count_current_tree);
-
-  void grow_tree_adaptive_std_mtrywithinnode(double y_mean, size_t depth, size_t max_depth, size_t Nmin,
-                                             size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu,
-                                             bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry,
-                                             double &run_time, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree,
-                                             std::vector<double> &split_count_current_tree, Model *model, std::mt19937 &gen);
-
-  void grow_tree_adaptive_std_mtrywithinnode_categorical(double y_mean, size_t depth, size_t max_depth, size_t Nmin,
-                                                         size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel,
-                                                         std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, double &run_time,
-                                                         bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree,
-                                                         std::vector<double> &split_count_current_tree, std::vector<double> &X_values, std::vector<size_t> &X_counts,
-                                                         std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model, std::mt19937 &gen);
-
-  void grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints,
-                                  double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel,
-                                  std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, bool &use_all,
-                                  xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree,
-                                  std::vector<double> &split_count_current_tree, bool &categorical_variables, size_t &p_categorical,
-                                  size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts,
-                                  std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model,
-                                  matrix<tree::tree_p> &data_pointers, const size_t &tree_ind, std::mt19937 &gen);
+  void grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, bool &categorical_variables, size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model, matrix<tree::tree_p> &data_pointers, const size_t &tree_ind, std::mt19937 &gen);
 
   tree_p bn(double *x, xinfo &xi); //find Bottom Node, original BART version
   tree_p bn_std(double *x);        // find Bottom Node, std version, compare
@@ -160,15 +109,11 @@ public:
   bool isnog();
 
 #ifndef NoRcpp
-  //REMOVED :
-  //  Rcpp::List tree2list(xinfo &xi, double center = 0., double scale = 1.); // create an efficient list from a single tree
-  //tree list2tree(Rcpp::List&, xinfo& xi); // create a tree from a list and an xinfo
-  //   Rcpp::IntegerVector tree2count(size_t nvar); // for one tree, count the number of branches for each variable
 #endif
 private:
   double theta; //univariate double parameter
   double theta_noise;
-  std::vector<double> theta_vector;
+
 
   double sig;
   //rule: left if x[v] < xinfo[v][c]
