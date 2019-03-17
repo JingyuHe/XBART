@@ -476,7 +476,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
     size_t N_y = y_std.size();
-    size_t ind;
+    // size_t ind;
     size_t split_var;
     size_t split_point;
 
@@ -641,8 +641,6 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
 
     // preserve order of other variables
     size_t N_Xorder = Xorder_std[0].size();
-    size_t left_ix = 0;
-    size_t right_ix = 0;
     size_t N_Xorder_left = Xorder_left_std[0].size();
     size_t N_Xorder_right = Xorder_right_std[0].size();
 
@@ -984,7 +982,7 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
     size_t ind;
     size_t N_Xorder = N;
 
-    double y_sum2;
+    // double y_sum2;
     double sigma2 = pow(sigma, 2);
 
     double loglike_max = -INFINITY;
@@ -1164,7 +1162,7 @@ void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, //std::
     size_t p = Xorder_std.size();
     double current_value = 0.0;
     size_t count_unique = 0;
-    size_t N_unique;
+    // size_t N_unique;
     variable_ind[0] = 0;
 
     total_points = 0;
@@ -1205,7 +1203,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 {
 
     size_t N = N_Xorder;
-    size_t var_index;
+    // size_t var_index;
 
     if (N <= Ncutpoints + 1 + 2 * Nmin)
     {
@@ -1331,12 +1329,12 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
     size_t end2;
     double y_cumsum = 0.0;
     size_t n1;
-    size_t n2;
+    // size_t n2;
     double n1tau;
     double n2tau;
     double ntau = (double)N_Xorder * tau;
     size_t temp;
-    size_t N = N_Xorder;
+    // size_t N = N_Xorder;
 
     size_t effective_cutpoints = 0;
 

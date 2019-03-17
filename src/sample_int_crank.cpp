@@ -7,7 +7,7 @@ void check_args(int n, int size, const std::vector<double> &prob)
         throw std::range_error("cannot take a sample larger than the population");
     }
 
-    if (prob.size() != n)
+    if (prob.size() != (size_t) n)
     {
         throw std::range_error("incorrect number of probabilities");
         return;

@@ -139,7 +139,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
 
     ///////////////////////////////////////////////////////////////////
 
-    double *ypointer = &y_std[0];
+    // double *ypointer = &y_std[0];
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 

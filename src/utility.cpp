@@ -312,7 +312,7 @@ double sq_vec_diff_sizet(std::vector<size_t> &v1, std::vector<size_t> &v2)
 void recover_Xorder(xinfo_sizet &Xorder, std::vector<size_t> &Xorder_firstline, xinfo_sizet &Xorder_next_index, xinfo_sizet &Xorder_new)
 {
     size_t p = Xorder.size();
-    size_t n = Xorder[0].size();
+    // size_t n = Xorder[0].size();
     size_t current_index;
     std::vector<size_t> temp;
 
@@ -419,7 +419,7 @@ void create_y_sort_3(std::vector<double> &Y_sort, std::vector<double> &possible_
 
 void compute_partial_sum(std::vector<double> &Y, xinfo_sizet &Xorder, const size_t &var, std::vector<double> &y_cumsum)
 {
-    size_t p = Xorder.size();
+    // size_t p = Xorder.size();
     size_t N = Xorder[0].size();
 
     // first element

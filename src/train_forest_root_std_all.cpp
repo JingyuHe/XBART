@@ -100,7 +100,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
     ///////////////////////////////////////////////////////////////////
 
-    double *ypointer = &y_std[0];
+    // double *ypointer = &y_std[0];
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
@@ -162,7 +162,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     }
     std::discrete_distribution<> d(prob.begin(), prob.end());
     // // sample one index of split point
-    size_t prune;
+    // size_t prune;
 
     // std::vector<double> split_var_count(p);
     // std::fill(split_var_count.begin(), split_var_count.end(), 1);
