@@ -110,7 +110,7 @@ class NormalModel : public Model
 		size_t loop_count = 0;
 		for (size_t i = start; i <= end; i++)
 		{
-			suff_stat_model[0] += y[Xorder[var][i]];
+			suff_stat_model[0] = suff_stat_model[0] + y[Xorder[var][i]];
 			loop_count++;
 			// cout << "Xorder " << Xorder[var][i] << " y value " << y[Xorder[var][i]] << endl;
 		}

@@ -1006,6 +1006,9 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
     // set the last entry as 0, for no-split option
     loglike[loglike.size() - 1] = 0.0;
 
+    // count number of effective cutpoinst for categorical variables
+    size_t effective_cutpoints_categorical = 0;
+
     //  if(p_continuous > 0){
     calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, tau, sigma2, loglike_max, model);
     //   }
@@ -1016,13 +1019,15 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
     }
 
     //  cout << "likelihood vector " << loglike << endl;
-
+    // cout << "loglike " << loglike << endl;
+    // cout << "--------------------" << endl;
     // transfer loglikelihood to likelihood
     for (size_t ii = 0; ii < loglike.size(); ii++)
     {
         // if a variable is not selected, take exp will becomes 0
         loglike[ii] = exp(loglike[ii] - loglike_max);
     }
+
 
     // sampling cutpoints
     if (N <= Ncutpoints + 1 + 2 * Nmin)
@@ -1344,6 +1349,8 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
     for (auto &&i : subset_vars)
     {
 
+        effective_cutpoints = 0;
+
         // cout << "variable " << i << endl;
         if ((i >= p_continuous) && (X_num_unique[i - p_continuous] > 1))
         {
@@ -1362,6 +1369,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
             end2 = end2 - 1;
 
             y_cumsum = 0.0;
+            model->suff_stat_fill(0.0);
             std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
             n1 = 0;
 
@@ -1370,6 +1378,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
                 if (X_counts[j] != 0)
                 {
+                    effective_cutpoints++;
 
                     temp = n1 + X_counts[j] - 1;
 
@@ -1384,9 +1393,8 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
                     // loglike[loglike_start + j] = model -> likelihood(y_cumsum, tau, n1tau, sigma2) + model -> likelihood(y_sum - y_cumsum, tau, n2tau, sigma2); //-0.5 * log(n1tau + sigma2) - 0.5 * log(n2tau + sigma2) + 0.5 * tau * pow(y_cumsum, 2) / (sigma2 * (n1tau + sigma2)) + 0.5 * tau * pow(y_sum - y_cumsum, 2) / (sigma2 * (n2tau + sigma2));
 
-                    loglike[loglike_start + j] = model->likelihood(tau, n1tau, sigma2, y_sum, false) + model->likelihood(tau, n2tau, sigma2, y_sum, true);
+                    loglike[loglike_start + j] = model->likelihood(tau, n1tau, sigma2, y_sum, false) + model->likelihood(tau, n2tau, sigma2, y_sum, true) + log(Ncutpoints) - log(effective_cutpoints);
 
-                    effective_cutpoints++;
 
                     // cout << "lll " << loglike[j] << endl;
 
