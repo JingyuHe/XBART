@@ -46,6 +46,7 @@ public:
 	virtual void calcSuffStat_continuous_vec_class(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint) {return;};
 	virtual double likelihood_vec_class(double y_sum, double tau, double ntau, double sigma2, bool left_side) const {return 0.0;};
 	virtual double likelihood_vec_test(double tau, double ntau, double sigma2, double y_sum, bool left_side) const {return 0.0;};
+	virtual double likelihood_no_split(double value, double tau, double ntau, double sigma2) const { return 0.0;};
 };
 
 class NormalModel : public Model
@@ -234,6 +235,12 @@ public:
 		} 
 	}
 
+	double likelihood_no_split(double value, double tau, double ntau, double sigma2) const { 
+		// the likelihood of no-split option is a bit different from others
+		// because the sufficient statistics is y_sum here
+		// write a separate function, more flexibility
+		return -0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2)); 
+	}
 };
 
 #endif
