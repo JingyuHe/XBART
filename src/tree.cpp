@@ -548,7 +548,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     //   cout << "begin calculating likelihood" << endl;
 
-    BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, model, gen);
+    BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, mtry, X_values, X_counts, variable_ind, X_num_unique, model, gen);
 
     //    cout << "split var " << split_var << "  split point " << split_point << " no split " << no_split << endl;
 
@@ -965,7 +965,7 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
     return;
 }
 
-void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model, std::mt19937 &gen)
+void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, size_t &mtry, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model, std::mt19937 &gen)
 
 {
     // compute BART posterior (loglikelihood + logprior penalty)
@@ -981,6 +981,7 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
     size_t p = Xorder_std.size();
     size_t ind;
     size_t N_Xorder = N;
+    size_t total_categorical_split_candidates = 0;
 
     // double y_sum2;
     double sigma2 = pow(sigma, 2);
@@ -1009,25 +1010,31 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
     // count number of effective cutpoinst for categorical variables
     size_t effective_cutpoints_categorical = 0;
 
-    //  if(p_continuous > 0){
-    calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, tau, sigma2, loglike_max, model);
-    //   }
+    if (p_continuous > 0)
+    {
+        // if using continuous variables, calculating its likelihood
+        calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, mtry, tau, sigma2, loglike_max, model);
+    }
 
     if (p_categorical > 0)
     {
-        calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, p_categorical, Ncutpoints, tau, sigma2, loglike_max, X_values, X_counts, variable_ind, X_num_unique, model);
+        // categorical variables
+        calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, p_categorical, Ncutpoints, mtry, total_categorical_split_candidates, tau, sigma2, loglike_max, X_values, X_counts, variable_ind, X_num_unique, model);
     }
 
-    //  cout << "likelihood vector " << loglike << endl;
-    // cout << "loglike " << loglike << endl;
-    // cout << "--------------------" << endl;
+    cout << "total candidates " << total_categorical_split_candidates << endl;
+
+    calculate_likelihood_no_split(loglike, N_Xorder, Nmin, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, tau, sigma2, loglike_max, model, mtry, total_categorical_split_candidates);
+
+     cout << "likelihood vector " << loglike << endl;
+    cout << "loglike " << loglike << endl;
+    cout << "--------------------" << endl;
     // transfer loglikelihood to likelihood
     for (size_t ii = 0; ii < loglike.size(); ii++)
     {
         // if a variable is not selected, take exp will becomes 0
         loglike[ii] = exp(loglike[ii] - loglike_max);
     }
-
 
     // sampling cutpoints
     if (N <= Ncutpoints + 1 + 2 * Nmin)
@@ -1204,7 +1211,7 @@ void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, //std::
     return;
 }
 
-void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &Nmin, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, Model *model)
+void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &Nmin, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, size_t &mtry, double &tau, double &sigma2, double &loglike_max, Model *model)
 {
 
     size_t N = N_Xorder;
@@ -1220,12 +1227,12 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
         for (auto &&i : subset_vars)
         {
-            if (i < p_continuous)
+            if (i < p_continuous)   // make sure it's continuous variable
             {
                 std::vector<size_t> &xorder = Xorder_std[i];
 
                 model->suff_stat_fill(0.0);
-                
+
                 for (size_t j = 0; j < N_Xorder - 1; j++)
                 {
                     // loop over all possible cutpoints
@@ -1247,12 +1254,12 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
             }
         }
 
-        loglike[loglike.size() - 1] = log(p) + log(Ncutpoints) + model->likelihood_no_split(y_sum, tau, N_Xorder * tau, sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - 0.5 * log(sigma2) - log(alpha) + beta * log(1.0 + depth);
+        // loglike[loglike.size() - 1] = log(p) + log(Ncutpoints) + model->likelihood_no_split(y_sum, tau, N_Xorder * tau, sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - 0.5 * log(sigma2) - log(alpha) + beta * log(1.0 + depth);
 
-        if (loglike[loglike.size() - 1] > loglike_max)
-        {
-            loglike_max = loglike[loglike.size() - 1];
-        }
+        // if (loglike[loglike.size() - 1] > loglike_max)
+        // {
+        //     loglike_max = loglike[loglike.size() - 1];
+        // }
     }
     else
     {
@@ -1314,16 +1321,16 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         if (thread_pool.is_active())
             thread_pool.wait();
 
-        loglike[loglike.size() - 1] = log(p) + log(Ncutpoints) + model->likelihood_no_split(y_sum, tau, N_Xorder * tau, sigma2) - 0.5 * log(sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+        // loglike[loglike.size() - 1] = log(p) + log(Ncutpoints) + model->likelihood_no_split(y_sum, tau, N_Xorder * tau, sigma2) - 0.5 * log(sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
-        if (loglike[loglike.size() - 1] > loglike_max)
-        {
-            loglike_max = loglike[loglike.size() - 1];
-        }
+        // if (loglike[loglike.size() - 1] > loglike_max)
+        // {
+        //     loglike_max = loglike[loglike.size() - 1];
+        // }
     }
 }
 
-void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &loglike_start, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &N_min, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, const size_t &p_continuous, size_t &p_categorical, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model)
+void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &loglike_start, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &N_min, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, const size_t &p_continuous, size_t &p_categorical, size_t &Ncutpoints, size_t &mtry, size_t &total_categorical_split_candidates, double &tau, double &sigma2, double &loglike_max, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model)
 {
 
     // loglike_start is an index to offset
@@ -1348,12 +1355,14 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
     for (auto &&i : subset_vars)
     {
-
+        total_categorical_split_candidates += effective_cutpoints;
         effective_cutpoints = 0;
 
         // cout << "variable " << i << endl;
         if ((i >= p_continuous) && (X_num_unique[i - p_continuous] > 1))
         {
+            // i >= p_continuous, make sure it's categorical variable
+
             // more than one unique values
             start = variable_ind[i - p_continuous];
             end = variable_ind[i + 1 - p_continuous] - 1; // minus one for indexing starting at 0
@@ -1378,6 +1387,8 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
                 if (X_counts[j] != 0)
                 {
+                    // if there exists possible split point
+
                     effective_cutpoints++;
 
                     temp = n1 + X_counts[j] - 1;
@@ -1395,7 +1406,6 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
                     loglike[loglike_start + j] = model->likelihood(tau, n1tau, sigma2, y_sum, false) + model->likelihood(tau, n2tau, sigma2, y_sum, true) + log(Ncutpoints) - log(effective_cutpoints);
 
-
                     // cout << "lll " << loglike[j] << endl;
 
                     if (loglike[loglike_start + j] > loglike_max)
@@ -1405,6 +1415,42 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                 }
             }
         }
+    }
+
+    // add counts of the last variable
+    total_categorical_split_candidates += effective_cutpoints;
+
+}
+
+void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, size_t &Nmin, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, Model *model, size_t &mtry, size_t &total_categorical_split_candidates)
+{
+
+    loglike[loglike.size() - 1] = model->likelihood_no_split(y_sum, tau, N_Xorder * tau, sigma2) - 0.5 * log(sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+
+    // then adjust according to number of variables and split points
+
+    if (p_continuous > 0)
+    {
+        // if using continuous variable
+        if (N_Xorder <= Ncutpoints + 1 + 2 * Nmin)
+        {
+            loglike[loglike.size() - 1] += log(p) + log(Ncutpoints);
+        }
+        else
+        {
+            loglike[loglike.size() - 1] += log(p) + log(Ncutpoints);
+        }
+    }
+
+    if (p > p_continuous)
+    {
+        // if using categorical variables
+        loglike[loglike.size() - 1] += log(total_categorical_split_candidates);
+    }
+
+    if (loglike[loglike.size() - 1] > loglike_max)
+    {
+        loglike_max = loglike[loglike.size() - 1];
     }
 }
 
