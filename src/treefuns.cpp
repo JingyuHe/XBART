@@ -42,7 +42,7 @@ void fit_new_std(tree &tree, const double *X_std, size_t N, size_t p, std::vecto
         bn = tree.search_bottom_std(X_std, i, p, N);
         //output[i] = bn->gettheta();
         // output[i] = bn->gettheta_vector()[0];
-        output[i] = bn -> theta_vector[0];
+        output[i] = bn->theta_vector[0];
     }
     return;
 }
@@ -56,7 +56,7 @@ void fit_new_theta_noise_std(tree &tree, const double *X, size_t p, size_t N, st
         // Add a loop?
         //output[i] = bn->gettheta_noise();
         // output[i] = bn->gettheta_vector()[0];
-        output[i] = bn -> theta_vector[0];
+        output[i] = bn->theta_vector[0];
     }
     return;
 }
