@@ -7,14 +7,14 @@ CFLAGS  = -c -fPIC -g
 
 all: main.so
 
-main.so: common.o sample_int_crank.o tree.o treefuns.o utility.o fit_std_main_loop.o forest.o abarth.o
-	$(CC) $(CXX_STD) -fPIC -g  -shared  -o common.o sample_int_crank.o tree.o treefuns.o utility.o fit_std_main_loop.o forest.o abarth.o  
+main.so: common.o sample_int_crank.o tree.o treefuns.o utility.o fit_std_main_loop.o forest.o XBART.o
+	$(CC) $(CXX_STD) -fPIC -g  -shared  -o common.o sample_int_crank.o tree.o treefuns.o utility.o fit_std_main_loop.o forest.o XBART.o  
 
 common.o: common.cpp
 	$(CC) $(CFLAGS) $(CXX_STD)  common.cpp
 
-abarth.o: abarth.cpp
-	$(CC) $(CFLAGS) $(CXX_STD)  abarth.cpp
+XBART.o: XBART.cpp
+	$(CC) $(CFLAGS) $(CXX_STD)  XBART.cpp
 
 sample_int_crank.o: sample_int_crank.cpp
 	$(CC) $(CFLAGS) $(CXX_STD)  sample_int_crank.cpp

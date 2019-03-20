@@ -1,6 +1,6 @@
 ### Helpers
-get_abarth_params <- function(n,d,y){
-  abarth_params = list(M = floor(0.5*log(n)^(log(log(n)))),
+get_XBART_params <- function(n,d,y){
+  XBART_params = list(M = floor(0.5*log(n)^(log(log(n)))),
                        L = 1,
                        nsweeps = 50,
                        Nmin = 1,
@@ -8,14 +8,14 @@ get_abarth_params <- function(n,d,y){
                        beta = 1.25,
                        mtry = 10,
                        burnin = 15)
-  num_tress = abarth_params$M
-  abarth_params$max_depth = matrix(50, num_tress, abarth_params$nsweeps)
-  abarth_params$Ncutpoints = max(3*floor(sqrt(n)),250);abarth_params$tau = 0.2*var(y)/(0.67*num_tress)
-  return(abarth_params)
+  num_tress = XBART_params$M
+  XBART_params$max_depth = matrix(50, num_tress, XBART_params$nsweeps)
+  XBART_params$Ncutpoints = max(3*floor(sqrt(n)),250);XBART_params$tau = 0.2*var(y)/(0.67*num_tress)
+  return(XBART_params)
 }
 
 
-library(abarth)
+library(XBART)
 
 d = 12
 n = 10000
@@ -38,7 +38,7 @@ sigma = 0.1*sd(ftrue)
 y = ftrue + sigma*rnorm(n)
 y_test = ftest + sigma*rnorm(nt)
 
-params = get_abarth_params(n,d,y)
+params = get_XBART_params(n,d,y)
 
 
 fit2 = train_forest_root_std_all(as.matrix(y), as.matrix(x), as.matrix(xtest), params$M, params$L, params$nsweeps, params$max_depth, 
@@ -47,7 +47,7 @@ fit2 = train_forest_root_std_all(as.matrix(y), as.matrix(x), as.matrix(xtest), p
                                                   Ncutpoints = params$Ncutpoints, parallel = FALSE)
 yhat.2 = apply(fit2$yhats_test[,params$burnin:params$nsweeps],1,mean)
 
-fit = abarth_train_all(as.matrix(y), as.matrix(x), as.matrix(xtest), params$M, params$L, params$nsweeps, params$max_depth, 
+fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), params$M, params$L, params$nsweeps, params$max_depth, 
                                                   params$Nmin, alpha = params$alpha, beta = params$beta, tau = params$tau, s= 1,kap = 1, 
                                                   mtry = params$mtry, draw_sigma = FALSE, m_update_sigma = TRUE,draw_mu= TRUE, 
                                                   Ncutpoints = params$Ncutpoints, parallel = FALSE)

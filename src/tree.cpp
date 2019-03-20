@@ -390,7 +390,6 @@ std::istream &operator>>(std::istream &is, tree &t)
     is >> nn;
     if (!is)
     {
-        //cout << ">> error: unable to read number of nodes" << endl;
         return is;
     }
 
@@ -403,19 +402,16 @@ std::istream &operator>>(std::istream &is, tree &t)
         is >> nv[i].id >> nv[i].v >> nv[i].c >> nv[i].theta_vector[0]; // Only works on first theta for now, fix latex if needed
         if (!is)
         {
-            //cout << ">> error: unable to read node info, on node  " << i+1 << endl;
             return is;
         }
     }
 
     //first node has to be the top one
-    pts[1] = &t; //careful! this is not the first pts, it is pointer of id 1.
+    pts[1] = &t; //be careful! this is not the first pts, it is pointer of id 1.
     t.setv(nv[0].v);
     t.setc(nv[0].c);
     t.settheta(nv[0].theta_vector);
     t.p = 0;
-
-    // cout << "nvszie " << nv.size() << endl;
 
     //now loop through the rest of the nodes knowing parent is already there.
     for (size_t i = 1; i != nv.size(); i++)
@@ -479,7 +475,6 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     size_t split_var;
     size_t split_point;
 
-    //  cout << "number of observation in current node " << N_Xorder << endl;
 
     if (N_Xorder <= Nmin)
     {
@@ -492,10 +487,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     }
 
     // tau is prior VARIANCE, do not take squares
-    // set up random device
 
-    // std::default_random_engine generator;
-    // NormalModel model;
 
     model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, gen, this->theta_vector);
 
@@ -543,7 +535,6 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
         // std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
     }
 
-    //   cout << "begin calculating likelihood" << endl;
 
     BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, model, gen, mtry);
 
@@ -559,13 +550,10 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
         return;
     }
 
-    // split_var = 0;
-    // split_point = 5;
 
     this->v = split_var;
     this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
 
-    // split_var_count_pointer[split_var]++;
 
     split_count_current_tree[split_var] = split_count_current_tree[split_var] + 1;
 
@@ -580,7 +568,6 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     std::vector<size_t> X_num_unique_left(X_num_unique.size());
     std::vector<size_t> X_num_unique_right(X_num_unique.size());
 
-    //   cout << "Xorder split categorical " << endl;
 
     std::vector<size_t> X_counts_left(X_counts.size());
     std::vector<size_t> X_counts_right(X_counts.size());
@@ -614,7 +601,6 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     this->l = lchild;
     this->r = rchild;
 
-    //    cout << "finish growing (last line of the function) " << endl;
     return;
 }
 
@@ -693,65 +679,6 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
     if (thread_pool.is_active())
         thread_pool.wait();
 
-    /*        if (i == split_var)
-        {
-            if (compute_left_side)
-            {
-                for (size_t j = 0; j < N_Xorder; j++)
-                {
-                    if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
-                    {
-                     //   yleft_mean = yleft_mean + y_std[Xorder_std[split_var][j]];
-
-                        Xorder_left_std[i][left_ix] = Xorder_std[i][j];
-                        left_ix = left_ix + 1;
-                    }
-                    else
-                    {
-
-                        Xorder_right_std[i][right_ix] = Xorder_std[i][j];
-                        right_ix = right_ix + 1;
-                    }
-                }
-            }
-            else
-            {
-                for (size_t j = 0; j < N_Xorder; j++)
-                {
-                    if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
-                    {
-
-                        Xorder_left_std[i][left_ix] = Xorder_std[i][j];
-                        left_ix = left_ix + 1;
-                    }
-                    else
-                    {
-                   //     yright_mean = yright_mean + y_std[Xorder_std[split_var][j]];
-
-                        Xorder_right_std[i][right_ix] = Xorder_std[i][j];
-                        right_ix = right_ix + 1;
-                    }
-                }
-            }
-        }
-        else
-        {
-            for (size_t j = 0; j < N_Xorder; j++)
-            {
-                if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
-                {
-                    Xorder_left_std[i][left_ix] = Xorder_std[i][j];
-                    left_ix = left_ix + 1;
-                }
-                else
-                {
-
-                    Xorder_right_std[i][right_ix] = Xorder_std[i][j];
-                    right_ix = right_ix + 1;
-                }
-            }
-        }
-    }*/
 
     if (compute_left_side)
     {
@@ -790,8 +717,6 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
     size_t start;
     size_t end;
 
-    // cout << "variable ind " << variable_ind << endl;
-
     double cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
 
     for (size_t i = p_continuous; i < p; i++)
@@ -814,6 +739,20 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
             // I think this part can be optimizied, we know location of cutvalue (split_value variable)
 
             // cout << "compute left side " << compute_left_side << endl;
+
+        ///////////////////////////////////////////////////////////
+        //
+        // We should be able to run this part in parallel
+        //
+        //  just like split_xorder_std_continuous
+        //
+        ///////////////////////////////////////////////////////////
+
+
+
+
+
+
 
             if (compute_left_side)
             {
@@ -972,6 +911,8 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
 
     size_t loglike_start;
 
+
+    // decide lenght of loglike vector
     if (N <= Ncutpoints + 1 + 2 * Nmin)
     {
         loglike.resize((N_Xorder - 1) * p_continuous + X_values.size() + 1, -INFINITY);
@@ -983,6 +924,8 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
         loglike_start = Ncutpoints * p_continuous;
     }
 
+
+    // calculate for each cases
     if (p_continuous > 0)
     {
         calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, tau, sigma2, loglike_max, model, mtry);
@@ -993,6 +936,7 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
         calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, p_categorical, Ncutpoints, tau, sigma2, loglike_max, X_values, X_counts, variable_ind, X_num_unique, model, mtry, total_categorical_split_candidates);
     }
 
+    // calculate likelihood of no-split option
     calculate_likelihood_no_split(loglike, N_Xorder, Nmin, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, tau, sigma2, loglike_max, model, mtry, total_categorical_split_candidates);
 
     // transfer loglikelihood to likelihood
@@ -1026,14 +970,10 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
         }
         else
         {
-            //  no_split = true;
-            // return;
             // do not use all continuous variables
             std::fill(loglike.begin(), loglike.begin() + (N_Xorder - 1) * p_continuous - 1, 0.0);
         }
 
-        // std::random_device rd;
-        // std::mt19937 gen(rd());
         std::discrete_distribution<> d(loglike.begin(), loglike.end());
         // sample one index of split point
 
@@ -1094,8 +1034,6 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
 
         seq_gen_std(Nmin, N - Nmin, Ncutpoints, candidate_index);
 
-        // std::random_device rd;
-        // std::mt19937 gen(rd());
         std::discrete_distribution<size_t> d(loglike.begin(), loglike.end());
         // // sample one index of split point
         ind = d(gen);
@@ -1226,18 +1164,19 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
     size_t N = N_Xorder;
     size_t var_index;
-    // double suff_stat;
-    // double suff_stat2;
-    // std::vector<double> suff_stat2_vec(model -> getDimSuffstat());
-    // std::vector<double> y_sum_vec(model -> getDimSuffstat(), y_sum);
-    // std::fill(y_sum_vec.begin(), y_sum_vec.end(), y_sum);
 
     if (N <= Ncutpoints + 1 + 2 * Nmin)
     {
+        // if we only have a few data observations in current node
+        // use all of them as cutpoint candidates
+
+
         double n1tau;
         double n2tau;
         double Ntau = N_Xorder * tau;
-        // std::vector<double> y_cumsum(N_Xorder);
+
+        // to have a generalized function, have to pass an empty candidate_index object for this case
+        // is there any smarter way to do it?
         std::vector<size_t> candidate_index(1);
 
         for (auto &&i : subset_vars)
@@ -1249,15 +1188,26 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                 // initialize sufficient statistics
                 model->suff_stat_fill(0.0);
 
+
+        ////////////////////////////////////////////////////////////////
+        //
+        //  This part can be run in parallel, just like continuous case below, Ncutpoint case
+        //
+        //  If run in parallel, need to redefine model class for each thread
+        //
+        ////////////////////////////////////////////////////////////////
+        
+
+
                 for (size_t j = 0; j < N_Xorder - 1; j++)
                 {
                     // loop over all possible cutpoints
                     n1tau = (j + 1) * tau; // number of points on left side (x <= cutpoint)
                     n2tau = Ntau - n1tau;  // number of points on right side (x > cutpoint)
 
-                    model->calcSuffStat_continuous_vec_class(xorder, y_std, candidate_index, j, false);
+                    model->calcSuffStat_continuous(xorder, y_std, candidate_index, j, false);
 
-                    loglike[(N_Xorder - 1) * i + j] = model->likelihood_vec_test(tau, n1tau, sigma2, y_sum, true) + model->likelihood_vec_test(tau, n2tau, sigma2, y_sum, false);
+                    loglike[(N_Xorder - 1) * i + j] = model->likelihood(tau, n1tau, sigma2, y_sum, true) + model->likelihood(tau, n2tau, sigma2, y_sum, false);
 
                     if (loglike[(N_Xorder - 1) * i + j] > loglike_max)
                     {
@@ -1270,8 +1220,9 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
     else
     {
 
-        // std::vector<size_t> candidate_index(Ncutpoints);
-        // seq_gen_std(Nmin, N - Nmin, Ncutpoints, candidate_index);
+
+        // otherwise, adaptive number of cutpoints
+        // use Ncutpoints
 
         std::vector<size_t> candidate_index2(Ncutpoints + 1);
         seq_gen_std2(Nmin, N - Nmin, Ncutpoints, candidate_index2);
@@ -1298,13 +1249,13 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                     for (size_t j = 0; j < Ncutpoints; j++)
                     {
-                        model_temp.calcSuffStat_continuous_vec_class(xorder, y_std, candidate_index2, j, true);
+                        model_temp.calcSuffStat_continuous(xorder, y_std, candidate_index2, j, true);
 
                         // loop over all possible cutpoints
                         double n1tau = (candidate_index2[j + 1] + 1) * tau; // number of points on left side (x <= cutpoint)
                         double n2tau = Ntau - n1tau;                        // number of points on right side (x > cutpoint)
 
-                        loglike[(Ncutpoints)*i + j] = model_temp.likelihood_vec_test(tau, n1tau, sigma2, y_sum, true) + model_temp.likelihood_vec_test(tau, n2tau, sigma2, y_sum, false);
+                        loglike[(Ncutpoints)*i + j] = model_temp.likelihood(tau, n1tau, sigma2, y_sum, true) + model_temp.likelihood(tau, n2tau, sigma2, y_sum, false);
 
                         if (loglike[(Ncutpoints)*i + j] > llmax)
                         {
@@ -1348,9 +1299,6 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
     size_t effective_cutpoints = 0;
 
-    std::vector<double> suff_stat(model->getDimSuffstat(), 0.0);
-    std::vector<double> y_sum_vec(model->getDimSuffstat(), y_sum);
-
     for (auto &&i : subset_vars)
     {
 
@@ -1372,7 +1320,17 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
             end2 = end2 - 1;
 
             y_cumsum = 0.0;
-            std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
+            model -> suff_stat_fill(0.0); // initialize sufficient statistics
+
+
+
+        ////////////////////////////////////////////////////////////////
+        //
+        //  This part can be run in parallel, just like continuous case
+        //
+        //  If run in parallel, need to redefine model class for each thread
+        //
+        ////////////////////////////////////////////////////////////////
             
             n1 = 0;
 
@@ -1384,25 +1342,17 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
                     temp = n1 + X_counts[j] - 1;
 
-                    // y_cumsum = model -> calcSuffStat_categorical(y_std, Xorder_std, n1, temp, y_cumsum, i);
-                    // partial_sum_y(y_std, Xorder_std, n1, temp, y_cumsum, i);
-
-                    suff_stat = model->calcSuffStat_categorical_vec(y_std, Xorder_std, n1, temp, suff_stat, i);
-
-                    // model -> calcSuffStat_categorical_vec_class(y_std, Xorder_std, start, end, i);
-
-                    // cout << "compare " << suff_stat << endl;
-                    // model -> printSuffstat();
+                    // modify sufficient statistics vector directly inside model class
+                    model -> calcSuffStat_categorical(y_std, Xorder_std, n1, temp, i);
 
                     n1 = n1 + X_counts[j];
                     n1tau = (double)n1 * tau;
                     n2tau = ntau - n1tau;
 
-                    loglike[loglike_start + j] = model->likelihood_vec(suff_stat, tau, n1tau, sigma2) + model->likelihood_vec(y_sum_vec - suff_stat, tau, n2tau, sigma2);
+                    loglike[loglike_start + j] = model -> likelihood(tau, n1tau, sigma2, y_sum, true) + model -> likelihood(tau, n2tau, sigma2, y_sum, false);
 
+                    // count total number of cutpoint candidates
                     effective_cutpoints++;
-
-                    // cout << "lll " << loglike[j] << endl;
 
                     if (loglike[loglike_start + j] > loglike_max)
                     {
@@ -1421,7 +1371,28 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
 
     // then adjust according to number of variables and split points
 
+
+    ////////////////////////////////////////////////////////////////
+    //
+    //  For now, I didn't test much weights, but set it as p * Ncutpoints for all cases
+    //
+    //  BE CAREFUL, p is total number of variables, p = p_continuous + p_categorical
+    //
+    //  We might want to scale by mtry, the actual number of variables used in the current fit
+    //
+    //  WARNING, you need to consider weighting for both continuous and categorical variables here
+    //
+    //  This is the only function calculating no-split likelihood
+    // 
+    ////////////////////////////////////////////////////////////////
+
+
     loglike[loglike.size() - 1] += log(p) + log(Ncutpoints);
+
+
+    ////////////////////////////////////////////////////////////////
+    // The loop below might be useful when test different weights
+
 
     // if (p_continuous > 0)
     // {
@@ -1445,6 +1416,9 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
 
     // loglike[loglike.size() - 1] += log(p - p_continuous) + log(Ncutpoints);
 
+
+
+    // this is important, update maximum of loglike vector
     if (loglike[loglike.size() - 1] > loglike_max)
     {
         loglike_max = loglike[loglike.size() - 1];

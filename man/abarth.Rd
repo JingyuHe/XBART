@@ -1,6 +1,6 @@
-\name{abarth-package}
-\alias{abarth-package}
-\alias{abarth}
+\name{XBART-package}
+\alias{XBART-package}
+\alias{XBART}
 \docType{package}
 \title{
   A short title line describing what the package does

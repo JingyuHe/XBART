@@ -1,10 +1,10 @@
-%module abarth
+%module XBART
 
 
 
 %{
 #define SWIG_FILE_WITH_INIT
-#include "abarth.h"
+#include "XBART.h"
 
 %}
 
@@ -23,7 +23,7 @@ import_array();
 %pythoncode %{
 import collections
 %}
-%extend Abarth{
+%extend XBART{
 %pythoncode %{
 def __convert_params_check_types(self,params):
 ### This function converts params to list and 
@@ -70,7 +70,7 @@ def __init__(self,params = {}):
 
     assert isinstance(params, collections.Mapping), "params must be dictionary like"
 
-    this = _abarth.new_Abarth(*self.__convert_params_check_types(params))
+    this = _XBART.new_XBART(*self.__convert_params_check_types(params))
 
 # init
     try:
@@ -113,7 +113,7 @@ def fit(self,x,y,p_cat=0):
 
 };
 
-%include "abarth.h"
+%include "XBART.h"
 
 
 

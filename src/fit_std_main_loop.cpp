@@ -147,7 +147,7 @@ void fit_std_main_loop(const double *Xpointer, std::vector<double> &y_std, doubl
 
     //             // cout << "before " << mtry_weight_current_tree << endl;
 
-    //             trees.t[tree_ind].grow_tree_adaptive_abarth_train(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, run_time, use_all, mtry_weight_current_tree, split_count_current_tree);
+    //             trees.t[tree_ind].grow_tree_adaptive_XBART_train(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, run_time, use_all, mtry_weight_current_tree, split_count_current_tree);
 
     //             mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 

@@ -1,4 +1,4 @@
-useDynLib(abarth, .registration=TRUE)
+useDynLib(XBART, .registration=TRUE)
 exportPattern("^[[:alpha:]]+")
 importFrom(Rcpp, evalCpp)
 importFrom(RcppParallel, RcppParallelLibs)

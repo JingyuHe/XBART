@@ -2,16 +2,16 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 predict_tree <- function(trees, Xnew) {
-    .Call(`_abarth_predict_tree`, trees, Xnew)
+    .Call(`_XBART_predict_tree`, trees, Xnew)
 }
 
 predict_tree_std <- function(trees, Xnew) {
-    .Call(`_abarth_predict_tree_std`, trees, Xnew)
+    .Call(`_XBART_predict_tree_std`, trees, Xnew)
 }
 
 
 sample_int_ccrank <- function(n, size, prob) {
-    .Call(`_abarth_sample_int_ccrank`, n, size, prob)
+    .Call(`_XBART_sample_int_ccrank`, n, size, prob)
 }
 
 train_forest_root_std_all <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, p_categorical = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE, random_seed = NULL) {
@@ -25,10 +25,10 @@ train_forest_root_std_all <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nm
         set_random_seed = TRUE
     }
 
-    .Call(`_abarth_train_forest_root_std_all`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel, set_random_seed, random_seed)
+    .Call(`_XBART_train_forest_root_std_all`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel, set_random_seed, random_seed)
 }
 
-abarth_train_all <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, p_categorical = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE, random_seed = NULL) {
+XBART <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, p_categorical = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE, random_seed = NULL) {
 
 
 
@@ -41,5 +41,5 @@ abarth_train_all <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutp
 
 
 
-    .Call(`_abarth_train_all`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel, set_random_seed, random_seed)
+    .Call(`_XBART`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel, set_random_seed, random_seed)
 }
