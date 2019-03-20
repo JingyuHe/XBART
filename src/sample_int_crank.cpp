@@ -28,41 +28,6 @@ T _divide_by_rexp(T t) { return t / M_E; }
 template <class T>
 T _add_one(T t) { return t + 1; }
 
-// // [[Rcpp::export(sample_int_crank)]]
-// std::vector<size_t> sample_int_crank(int n, int size, std::vector<double> prob)
-// {
-//     check_args(n, size, prob);
-
-//     // We need the last "size" elements of
-//     // U ^ (1 / prob) ~ log(U) / prob
-//     //                ~ -Exp(1) / prob
-//     //                ~ prob / Exp(1)
-//     // Here, ~ means "doesn't change order statistics".
-//     std::vector<double> rnd = prob;
-
-//     arn gen;
-
-//     for(size_t i = 0; i < rnd.size(); i ++ ){
-//         rnd[i] = rnd[i] / gen.exp();
-//     }
-
-//     // Find the indexes of the first "size" elements under inverted
-//     // comparison.  Here, vx is zero-based.
-//     // IntegerVector vx = seq(0, n - 1);
-
-//     std::vector<size_t> vx(n);
-//     std::iota(vx.begin() + 1, vx.end(), 1);
-
-//     std::partial_sort(vx.begin(), vx.begin() + size, vx.end(), Comp(rnd));
-
-//     // add one to each element
-//     std::transform(std::begin(vx), std::end(vx), std::begin(vx), [](size_t x) { return x; });
-
-//     // Initialize with elements vx[1:size], applying transform "+ 1" --
-//     // we return one-based values.
-//     return vx;
-// }
-
 struct CComp
 {
     CComp(const std::vector<double> &v) : _v(v) {}

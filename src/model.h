@@ -43,7 +43,6 @@ class Model
 
 	virtual void calcSuffStat_categorical_vec_class(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var) { return; };
 	virtual void calcSuffStat_continuous_vec_class(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint) { return; };
-	virtual double likelihood_vec_class(double y_sum, double tau, double ntau, double sigma2, bool left_side) const { return 0.0; };
 	virtual double likelihood_vec_test(double tau, double ntau, double sigma2, double y_sum, bool left_side) const { return 0.0; };
 	virtual double likelihood_no_split(double value, double tau, double ntau, double sigma2) const { return 0.0; };
 };
@@ -210,20 +209,6 @@ class NormalModel : public Model
 			suff_stat_model[0] += y_std[xorder[index]];
 		}
 		return;
-	}
-
-	double likelihood_vec_class(double y_sum, double tau, double ntau, double sigma2, bool left_side) const
-	{
-		if (left_side)
-		{
-			// cout << "left comparison " << value[0] << "  " << suff_stat_model[0] << endl;
-			return -0.5 * log(ntau + sigma2) + 0.5 * tau * pow(suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
-		}
-		else
-		{
-			// cout << "right comparison " << value[0] << " " << suff_stat_model[0] << endl;
-			return -0.5 * log(ntau + sigma2) + 0.5 * tau * pow(y_sum - suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
-		}
 	}
 
 	double likelihood_vec_test(double tau, double ntau, double sigma2, double y_sum, bool left_side) const

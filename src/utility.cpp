@@ -2,53 +2,6 @@
 
 ThreadPool thread_pool;
 
-// xinfo copy_xinfo(Rcpp::NumericMatrix &X)
-// {
-//     size_t n_row = X.nrow();
-//     size_t n_col = X.ncol();
-
-//     xinfo Xinfo;
-
-//     //stacked by column
-//     Xinfo.resize(n_col);
-
-//     //copy to std matrix
-//     for (size_t i = 0; i < n_col; i++)
-//     {
-//         Xinfo[i].resize(n_row);
-//         for (size_t j = 0; j < n_row; j++)
-//         {
-//             Xinfo[i][j] = X(j, i);
-//         }
-//     }
-
-//     // std::move to avoid copying
-//     return std::move(Xinfo);
-// }
-
-// xinfo_sizet copy_xinfo_sizet(Rcpp::IntegerMatrix &X)
-// {
-//     size_t n_row = X.nrow();
-//     size_t n_col = X.ncol();
-
-//     xinfo_sizet Xinfo;
-
-//     //stacked by column
-//     Xinfo.resize(n_col);
-
-//     //copy to std matrix
-//     for (size_t i = 0; i < n_col; i++)
-//     {
-//         Xinfo[i].resize(n_row);
-//         for (size_t j = 0; j < n_row; j++)
-//         {
-//             Xinfo[i][j] = X(j, i);
-//         }
-//     }
-//     // std::move to avoid copying
-//     return std::move(Xinfo);
-// }
-
 void ini_xinfo(xinfo &X, size_t N, size_t p)
 {
     // xinfo X;
@@ -158,20 +111,6 @@ double sum_vec(std::vector<double> &v)
     }
     return output;
 }
-
-//Removed
-// void seq_gen(size_t start, size_t end, size_t length_out, arma::uvec &vec)
-// {
-//     // generate a sequence of INTEGERS
-//     double incr = (double)(end - start) / (double)length_out;
-
-//     for (size_t i = 0; i < length_out; i++)
-//     {
-//         vec[i] = (size_t)incr * i + start;
-//     }
-
-//     return;
-// }
 
 void seq_gen_std(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec)
 {
@@ -308,31 +247,6 @@ void compute_partial_sum_adaptive_newXorder(std::vector<double> &y_std, std::vec
         }
         current_index = Xorder_next_index[var][current_index];
     }
-
-    // size_t current_index = Xorder_firstline[var];
-
-    // size_t i = 0;
-    // // cout << "Xorder_next" << Xorder_next_index[var] << endl;
-
-    // // cout << "xoder" << Xorder[var] << endl;
-
-    // // cout << "size of Y_sort " << Y_sort.size() << "  ";
-    // size_t index = 0;
-    // while(current_index < UINT_MAX){
-    //     // cout << "  " << i ;
-    //     // cout << "  current_index " << current_index;
-    //     // cout << " Xorder " << Xorder[var][current_index];
-    //     Y_sort[i] = y_std[Xorder[var][current_index]];
-    //     current_index = Xorder_next_index[var][current_index];
-
-    //     if(index < candidate_index.size() && i == (candidate_index[index] - 1)){
-    //         possible_cutpoints[index] = *(X_std + N_y * var + Xorder[var][current_index]);
-    //         index = index + 1;
-    //     }
-
-    //     i ++;
-    // }
-
     return;
 }
 
@@ -355,21 +269,6 @@ void vec_sum_sizet(std::vector<size_t> &vector, size_t &sum)
     }
     return;
 }
-
-//Removed
-// double sq_diff_arma_std(arma::vec vec1, std::vector<double> vec2)
-// {
-//     // compute squared difference between an armadillo vector and a std vector
-//     // for debug use
-//     assert(vec1.n_elem == vec2.size());
-//     size_t N = vec1.n_elem;
-//     double output = 0.0;
-//     for (size_t i = 0; i < N; i++)
-//     {
-//         output = output + pow(arma::as_scalar(vec1(i)) - vec2[i], 2);
-//     }
-//     return output;
-// }
 
 double sq_vec_diff(std::vector<double> &v1, std::vector<double> &v2)
 {
@@ -395,21 +294,6 @@ double sq_vec_diff_sizet(std::vector<size_t> &v1, std::vector<size_t> &v2)
     return output;
 }
 
-//removed
-// std::vector<size_t> sort_indexes(const Rcpp::NumericVector &v)
-// {
-
-//     // initialize original index locations
-//     std::vector<size_t> idx(v.size());
-//     iota(idx.begin(), idx.end(), 0);
-
-//     // sort indexes based on comparing values in v
-//     sort(idx.begin(), idx.end(),
-//          [&v](size_t i1, size_t i2) { return v(i1) < v(i2); });
-
-//     return idx;
-// }
-
 void recover_Xorder(xinfo_sizet &Xorder, std::vector<size_t> &Xorder_firstline, xinfo_sizet &Xorder_next_index, xinfo_sizet &Xorder_new)
 {
     size_t p = Xorder.size();
@@ -417,20 +301,16 @@ void recover_Xorder(xinfo_sizet &Xorder, std::vector<size_t> &Xorder_firstline, 
     size_t current_index;
     std::vector<size_t> temp;
 
-    // size_t MAX_SIZE_T = std::numeric_limits<size_t>::max();
-
     for (size_t i = 0; i < p; i++)
     {
         current_index = Xorder_firstline[i];
         temp.clear();
         while (current_index < UINT_MAX)
         {
-            // cout << Xorder[i][current_index] << endl;
             temp.push_back(Xorder[i][current_index]);
             current_index = Xorder_next_index[i][current_index];
         }
         Xorder_new[i] = temp;
-        // cout << temp << endl;
     }
     return;
 }
@@ -442,16 +322,8 @@ void create_y_sort(std::vector<double> &Y_sort, const std::vector<double> &y_std
     size_t current_index = Xorder_firstline[var];
 
     size_t i = 0;
-    // cout << "Xorder_next" << Xorder_next_index[var] << endl;
-
-    // cout << "xoder" << Xorder[var] << endl;
-
-    // cout << "size of Y_sort " << Y_sort.size() << "  ";
     while (current_index < UINT_MAX)
     {
-        // cout << "  " << i ;
-        // cout << "  current_index " << current_index;
-        // cout << " Xorder " << Xorder[var][current_index];
         Y_sort[i] = y_std[Xorder[var][current_index]];
         current_index = Xorder_next_index[var][current_index];
         i++;
@@ -507,17 +379,9 @@ void create_y_sort_3(std::vector<double> &Y_sort, std::vector<double> &possible_
     size_t current_index = Xorder_firstline[var];
 
     size_t i = 0; // loop over y vector
-    // cout << "Xorder_next" << Xorder_next_index[var] << endl;
-
-    // cout << "xoder" << Xorder[var] << endl;
-
-    // cout << "size of Y_sort " << Y_sort.size() << "  ";
     size_t index = 0; // loop over index of possible_cutpoints
     while (current_index < UINT_MAX)
     {
-        // cout << "  " << i ;
-        // cout << "  current_index " << current_index;
-        // cout << " Xorder " << Xorder[var][current_index];
         Y_sort[i] = y_std[Xorder[var][current_index]];
 
         if (index < candidate_index.size() && i == (candidate_index[index]))
@@ -549,30 +413,6 @@ void compute_partial_sum(std::vector<double> &Y, xinfo_sizet &Xorder, const size
     return;
 }
 
-//Removed
-// void NumericMatrix_row_sum(Rcpp::NumericMatrix &X, Rcpp::NumericVector &output){
-//     size_t n = X.nrow();
-//     size_t p = X.ncol();
-//     std::fill(output.begin(), output.end(), 0.0);
-//     for(size_t i = 0; i < n; i ++ ){
-//         for(size_t j = 0; j < p; j ++ ){
-//             output[i] = output[i] + X(i, j);
-//         }
-//     }
-// }
-
-// void NumericMatrix_col_sum(Rcpp::NumericMatrix &X, Rcpp::NumericVector &output){
-//     size_t n = X.nrow();
-//     size_t p = X.ncol();
-//     std::fill(output.begin(), output.end(), 0.0);
-//     for(size_t i = 0; i < p; i ++ ){
-//         for(size_t j = 0; j < n; j ++ ){
-//             output[i] = output[i] + X(j, i);
-//         }
-//     }
-//     return;
-// }
-
 void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, double &y_sum, const size_t &var)
 {
     // compute sum of y[Xorder[start:end, var]]
@@ -581,14 +421,7 @@ void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, s
     {
         y_sum = y_sum + y[Xorder[var][i]];
         loop_count++;
-        // cout << "Xorder " << Xorder[var][i] << " y value " << y[Xorder[var][i]] << endl;
     }
 
     return;
 }
-
-// void ini_xinfo_tree(std::vector<std::vector <tree>> &trees, size_t Nsweeps, size_t M){
-//     for(size_t i = 0; i < Nsweeps;i++){
-//         trees[i]= vector<tree>(M);
-//     }
-// }
