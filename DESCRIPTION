@@ -1,14 +1,12 @@
 Package: XBART
 Type: Package
-Title: What the Package Does in One 'Title Case' Line
-Version: 2.5
-Date: 2018-12-03
-Author: Your Name
-Maintainer: Your Name <your@email.com>
-Description: One paragraph description of what the package does as one
-        or more full sentences.
+Title: XBART: Accelerated Bayesian Additive Regression Trees
+Version: 1.0
+Date: 2019-03-20
+Author: Jingyu He, Saar Yalov, P. Richard Hahn
+Maintainer: Jingyu He <jingyu.he@chicagobooth.edu>
+Description: A high efficiency fitting algorithm of Bayesian additive regression trees (BART).
 License: GPL (>= 2)
 Imports: Rcpp (>= 0.12.13)
-LinkingTo: Rcpp, RcppArmadillo, RcppParallel
+LinkingTo: Rcpp, RcppArmadillo
 NeedsCompilation: yes
-Packaged: 2018-10-22 23:40:11 UTC; jingyuhe
