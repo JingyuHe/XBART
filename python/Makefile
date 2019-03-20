@@ -13,7 +13,7 @@ main.so: common.o sample_int_crank.o tree.o treefuns.o utility.o fit_std_main_lo
 common.o: common.cpp
 	$(CC) $(CFLAGS) $(CXX_STD)  common.cpp
 
-XBART.o: XBART.cpp
+xbart.o: xbart.cpp
 	$(CC) $(CFLAGS) $(CXX_STD)  XBART.cpp
 
 sample_int_crank.o: sample_int_crank.cpp

@@ -21,7 +21,7 @@ XBART::XBART (size_t M ,size_t L ,size_t N_sweeps ,
         size_t burnin, 
         size_t mtry , size_t max_depth_num,bool draw_sigma , double kap , 
         double s , bool verbose , bool m_update_sigma, 
-        bool draw_mu , bool parallel){
+        bool draw_mu , bool parallel,int seed){
   this->params.M = M; 
   this->params.L = L;
   this->params.N_sweeps = N_sweeps;
@@ -42,6 +42,18 @@ XBART::XBART (size_t M ,size_t L ,size_t N_sweeps ,
   this->params.parallel=parallel;
   this->trees = vector<tree>(M);
   this->trees2 = vector< vector<tree>> (N_sweeps);
+
+  // handling seed
+  
+  if(seed == -1){
+    this->seed_flag = false;
+    this->seed = 0;
+  }else{
+    this->seed_flag = true; 
+    this->seed = (size_t)seed;
+  }
+
+  
   // Create trees3
   for(size_t i = 0; i < N_sweeps;i++){
         this->trees2[i]= vector<tree>(M); 
@@ -76,104 +88,6 @@ void XBART::sort_x(int n,int d,double *a,int size, double *arr){
 
 }
 
-void XBART::__fit_predict(int n,int d,double *a, // Train X 
-      int n_y,double *a_y, // Train Y
-      int n_test,int d_test,double *a_test, // Test X
-      int size, double *arr){ // Result 
-
-      xinfo x_std = XBART::np_to_xinfo(n,d,a);
-      xinfo x_test_std = XBART::np_to_xinfo(n_test,d_test,a_test);
-      this->y_std.reserve(n_y);
-      this->y_std = XBART::np_to_vec_d(n_y,a_y);
-                
-      // Calculate y_mean
-      double y_mean = 0.0;
-      for (size_t i = 0; i < n; i++){
-          y_mean = y_mean + y_std[i];
-        }
-      y_mean = y_mean/(double)n;
-
-      // xorder containers
-      xinfo_sizet Xorder_std;
-      ini_xinfo_sizet(Xorder_std, n, d);
-
-      // Create  xorder
-      // MAKE MORE EFFICIENT! 
-      // TODO: Figure out away of working on row major std::vectors
-      // Fill in 
-      for (size_t j = 0; j < d; j++){  
-        std::vector <double> x_temp (n); 
-        std::copy (x_std[j].begin(), x_std[j].end(), x_temp.begin());
-        std::vector<size_t> temp = sort_indexes(x_temp);
-        for (size_t i = 0; i < n; i++)
-        {
-            Xorder_std[j][i] = temp[i];
-        }
-    }
-    // Create new x_std's that are row major
-    vec_d x_std_2 = XBART::xinfo_to_row_major_vec(x_std); // INEFFICIENT - For now to include index sorting
-    vec_d x_test_std_2 = XBART::xinfo_to_row_major_vec(x_test_std); // INEFFICIENT
-
-    // Remove old x_std
-    for(int j = 0; j<d;j++){
-      x_std[j].clear();
-      x_test_std[j].clear();
-      x_std[j].shrink_to_fit();
-      x_test_std[j].shrink_to_fit();
-    }
-    x_std.clear();x_test_std.clear();
-    x_std.shrink_to_fit();x_test_std.shrink_to_fit();
-
-
-      // // //max_depth_std container
-      xinfo_sizet max_depth_std;
-
-      ini_xinfo_sizet(max_depth_std, this->params.M, this->params.N_sweeps);
-      // Fill with max Depth Value
-      for(size_t i = 0; i < this->params.M; i++){
-        for(size_t j = 0;j < this->params.N_sweeps; j++){
-          max_depth_std[j][i] = this->params.max_depth_num;
-        }
-      }
-
-
-      // Cpp native objects to return
-      //xinfo yhats_xinfo;
-      ini_xinfo(this->yhats_xinfo, n, this->params.N_sweeps);
-
-      //xinfo yhats_test_xinfo;
-      ini_xinfo(this->yhats_test_xinfo, n_test, this->params.N_sweeps);
-
-      xinfo yhats_test_xinfo_2;
-      ini_xinfo(yhats_test_xinfo_2,n_test, this->params.N_sweeps);
-
-
-      //xinfo sigma_draw_xinfo;
-      ini_xinfo(this->sigma_draw_xinfo, this->params.M, this->params.N_sweeps);
-
-      double *ypointer = &a_y[0];//&y_std[0];
-      double *Xpointer = &x_std_2[0];//&x_std[0][0];
-      double *Xtestpointer = &x_test_std_2[0];//&x_test_std[0][0];
-
-      //fit_std_main_loop();
-
-      fit_std_main_loop(Xpointer,y_std,y_mean,Xtestpointer, Xorder_std,
-                n,d,n_test,
-                this->params.M, this->params.L, this->params.N_sweeps, max_depth_std, 
-                this->params.Nmin, this->params.Ncutpoints, this->params.alpha, this->params.beta, 
-                this->params.tau, this->params.burnin, this->params.mtry, 
-                this->params.draw_sigma , this->params.kap , this->params.s, 
-                this->params.verbose, this->params.m_update_sigma, 
-                this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,yhats_test_xinfo_2,sigma_draw_xinfo);
-
-      xinfo_to_np(yhats_test_xinfo_2,arr);
-      //std::copy(y_std.begin(), y_std.end(), arr);
-
-        // return;
-
-
-    } 
 
 
 void XBART::__fit_predict_all(int n,int d,double *a, // Train X 
@@ -257,7 +171,7 @@ void XBART::__fit_predict_all(int n,int d,double *a, // Train X
                 this->params.verbose, this->params.m_update_sigma, 
                 this->params.draw_mu, this->params.parallel,
                 yhats_xinfo,this->yhats_test_xinfo,sigma_draw_xinfo,split_count_all_tree,
-                p_cat,d-p_cat,this->trees2);
+                p_cat,d-p_cat,this->trees2,this->seed_flag, this->seed);
 
 
 
@@ -345,15 +259,15 @@ void XBART::__fit_all(int n,int d,double *a,
       double *ypointer = &a_y[0];//&y_std[0];
       double *Xpointer = &x_std_2[0];//&x_std[0][0];
 
-  fit_std(Xpointer,y_std,y_mean, Xorder_std,
-                n,d,
+  fit_std(Xpointer,y_std,y_mean, Xorder_std,n,d,
                 this->params.M, this->params.L, this->params.N_sweeps, max_depth_std, 
-                this->params.Nmin, this->params.Ncutpoints, this->params.alpha, this->params.beta, 
-                this->params.tau, this->params.burnin, this->params.mtry, 
-                this->params.draw_sigma , this->params.kap , this->params.s, 
-                this->params.verbose, this->params.m_update_sigma, 
+                this->params.Nmin, this->params.Ncutpoints, this->params.alpha, 
+                this->params.beta, this->params.tau, this->params.burnin, 
+                this->params.mtry, this->params.draw_sigma , this->params.kap , 
+                this->params.s, this->params.verbose, this->params.m_update_sigma, 
                 this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,this->trees2);
+                yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,this->trees2,
+                this->seed_flag, this->seed);
 }    
 
 // Getters
