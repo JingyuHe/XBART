@@ -167,7 +167,6 @@ class NormalModel : public Model
 		{
 			suff_stat[0] += y[Xorder[var][i]];
 			loop_count++;
-			// cout << "Xorder " << Xorder[var][i] << " y value " << y[Xorder[var][i]] << endl;
 		}
 		return suff_stat;
 	}
@@ -187,7 +186,6 @@ class NormalModel : public Model
 		{
 			suff_stat_model[0] += y[Xorder[var][i]];
 			loop_count++;
-			// cout << "Xorder " << Xorder[var][i] << " y value " << y[Xorder[var][i]] << endl;
 		}
 		return;
 	}

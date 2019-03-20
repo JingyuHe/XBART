@@ -1246,23 +1246,8 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
             {
                 std::vector<size_t> &xorder = Xorder_std[i];
 
-                // double cumsum = 0.0;
-                // for (size_t q = 0; q < N_Xorder; q++)
-                // {
-                //     cumsum += y_std[xorder[q]];
-                //     y_cumsum[q] = cumsum;
-                // }
-
-                // suff_stat = 0.0;
-                // suff_stat2 = 0.0;
-                // std::fill(suff_stat2_vec.begin(), suff_stat2_vec.end(), 0.0);
-
-                // cout << "before reset " << endl;
-                // model -> printSuffstat();
+                // initialize sufficient statistics
                 model->suff_stat_fill(0.0);
-                // cout << "after reset" << endl;
-                // model -> printSuffstat();
-                // cout << "----" << endl;
 
                 for (size_t j = 0; j < N_Xorder - 1; j++)
                 {
@@ -1281,13 +1266,6 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                 }
             }
         }
-
-        // loglike[loglike.size() - 1] = log(p) + log(Ncutpoints) + model->likelihood(y_sum, tau, N_Xorder * tau, sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - 0.5 * log(sigma2) - log(alpha) + beta * log(1.0 + depth);
-
-        // if (loglike[loglike.size() - 1] > loglike_max)
-        // {
-        //     loglike_max = loglike[loglike.size() - 1];
-        // }
     }
     else
     {
@@ -1347,13 +1325,6 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         }
         if (thread_pool.is_active())
             thread_pool.wait();
-
-        // loglike[loglike.size() - 1] = log(p) + log(Ncutpoints) + model->likelihood(y_sum, tau, N_Xorder * tau, sigma2) - 0.5 * log(sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
-
-        // if (loglike[loglike.size() - 1] > loglike_max)
-        // {
-        //     loglike_max = loglike[loglike.size() - 1];
-        // }
     }
 }
 
@@ -1402,6 +1373,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
             y_cumsum = 0.0;
             std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
+            
             n1 = 0;
 
             for (size_t j = start; j <= end2; j++)
@@ -1416,6 +1388,11 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                     // partial_sum_y(y_std, Xorder_std, n1, temp, y_cumsum, i);
 
                     suff_stat = model->calcSuffStat_categorical_vec(y_std, Xorder_std, n1, temp, suff_stat, i);
+
+                    // model -> calcSuffStat_categorical_vec_class(y_std, Xorder_std, start, end, i);
+
+                    // cout << "compare " << suff_stat << endl;
+                    // model -> printSuffstat();
 
                     n1 = n1 + X_counts[j];
                     n1tau = (double)n1 * tau;
