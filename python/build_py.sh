@@ -1,6 +1,7 @@
 #! /bin/bash
 PYTHON_BIN=python
 DIST_FLAG=false
+SWIG_FLAG=false
 
 function usage(){
     cat << ENDUSAGE
@@ -10,7 +11,8 @@ function usage(){
     options:
     -p|--python : path to python bin 
     -d|--dist  : include if building dist
-    -h|--help   : see documantation
+    -h|--help  : see documantation
+    -s|--swig  : Run SIWG
 
 ENDUSAGE
 }
@@ -21,6 +23,7 @@ do
       -p|--python) PYTHON_BIN=$2;shift;;
       -h|--help) usage; exit; ;;
       -d|--dist) DIST_FLAG=true;shift;;
+      -s|--swig) SWIG_FLAG=true;shift;;
       -*|--*) printf "\n\n   ERROR: Unsupported option $1\n\n"; usage; exit; ;;
     esac
     shift
@@ -39,12 +42,20 @@ $PYTHON_BIN -m pip uninstall xbart
 cp -r ../src .
 
 ver=$($PYTHON_BIN -V 2>&1 | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
-if [ "$ver" -le "27" ]; then
+if $SWIG_FLAG;then
+
+  # remove swig files
+  [ -e XBART.py ] && rm XBART.py
+  [ -e XBART.pyc ] && rm XBART.pyc
+  [ -e XBART_wrap.cxx  ] && rm XBART_wrap.cxx 
+
+  if [ "$ver" -le "27" ]; then
+      echo "Running script with python $ver" 
+      swig -c++ -python xbart.i
+  else
     echo "Running script with python $ver" 
-    swig -c++ -python xbart.i
-else
-  echo "Running script with python $ver" 
-  swig -c++ -python -py3  xbart.i
+    swig -c++ -python -py3  xbart.i
+  fi
 fi
 
 if $DIST_FLAG;then
