@@ -7,7 +7,7 @@ void check_args(int n, int size, const std::vector<double> &prob)
         throw std::range_error("cannot take a sample larger than the population");
     }
 
-    if (prob.size() != n)
+    if (prob.size() != (size_t) n)
     {
         throw std::range_error("incorrect number of probabilities");
         return;
@@ -53,7 +53,7 @@ std::vector<double> sample_int_ccrank(int n, int size, std::vector<double> prob)
     //                ~ -Exp(1) / prob
     //                ~ prob / Exp(1)
     // Here, ~ means "doesn't change order statistics".
-    std::vector<double> rnd = std::vector<double>(n + 1);
+    std::vector<double> rnd(n + 1);
     //std::vector<double> rnd = std::vector<double>(n );
 
     // Already shift by one, rnd[0] is uninitialized (and never accessed)
