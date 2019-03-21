@@ -27,6 +27,7 @@ void ini_matrix(matrix<T> &matrix, size_t N, size_t p)
     }
     return;
 }
+
 // // initialize STD matrix
 void ini_xinfo(xinfo &X, size_t N, size_t p);
 
@@ -44,8 +45,6 @@ void vec_sum_sizet(std::vector<size_t> &vector, size_t &sum);
 double sum_squared(std::vector<double> &v);
 
 double sum_vec(std::vector<double> &v);
-
-// void seq_gen(size_t start, size_t end, size_t length_out, arma::uvec &vec);
 
 void seq_gen_std(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec);
 void seq_gen_std_categorical(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec, std::vector<size_t> output);

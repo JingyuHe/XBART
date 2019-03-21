@@ -112,20 +112,6 @@ double sum_vec(std::vector<double> &v)
     return output;
 }
 
-//Removed
-// void seq_gen(size_t start, size_t end, size_t length_out, arma::uvec &vec)
-// {
-//     // generate a sequence of INTEGERS
-//     double incr = (double)(end - start) / (double)length_out;
-
-//     for (size_t i = 0; i < length_out; i++)
-//     {
-//         vec[i] = (size_t)incr * i + start;
-//     }
-
-//     return;
-// }
-
 void seq_gen_std(size_t start, size_t end, size_t length_out, std::vector<size_t> &vec)
 {
     // generate a sequence of integers, save in std vector container
@@ -316,20 +302,16 @@ void recover_Xorder(xinfo_sizet &Xorder, std::vector<size_t> &Xorder_firstline, 
     size_t current_index;
     std::vector<size_t> temp;
 
-    // size_t MAX_SIZE_T = std::numeric_limits<size_t>::max();
-
     for (size_t i = 0; i < p; i++)
     {
         current_index = Xorder_firstline[i];
         temp.clear();
         while (current_index < UINT_MAX)
         {
-            // cout << Xorder[i][current_index] << endl;
             temp.push_back(Xorder[i][current_index]);
             current_index = Xorder_next_index[i][current_index];
         }
         Xorder_new[i] = temp;
-        // cout << temp << endl;
     }
     return;
 }
@@ -397,7 +379,7 @@ void create_y_sort_3(std::vector<double> &Y_sort, std::vector<double> &possible_
     // only consider variable var
     size_t current_index = Xorder_firstline[var];
 
-    size_t i = 0;     // loop over y vector
+    size_t i = 0; // loop over y vector
     size_t index = 0; // loop over index of possible_cutpoints
     while (current_index < UINT_MAX)
     {
@@ -440,7 +422,6 @@ void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, s
     {
         y_sum = y_sum + y[Xorder[var][i]];
         loop_count++;
-        // cout << "Xorder " << Xorder[var][i] << " y value " << y[Xorder[var][i]] << endl;
     }
 
     return;

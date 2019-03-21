@@ -2,10 +2,10 @@ Package: XBART
 Type: Package
 Title: XBART: Accelerated Bayesian Additive Regression Trees
 Version: 1.0
-Date: 2019-03-16
+Date: 2019-03-20
 Author: Jingyu He, Saar Yalov, P. Richard Hahn
 Maintainer: Jingyu He <jingyu.he@chicagobooth.edu>
-Description: A modified version of BART that is amenable to fast posterior estimation.
+Description: A high efficiency fitting algorithm of Bayesian additive regression trees (BART).
 License: GPL (>= 2)
 Imports: Rcpp (>= 0.12.13)
 LinkingTo: Rcpp, RcppArmadillo

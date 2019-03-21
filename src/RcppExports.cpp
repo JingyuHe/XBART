@@ -82,8 +82,6 @@ RcppExport SEXP _XBART_train_forest_root_std_all(SEXP ySEXP, SEXP XSEXP, SEXP Xt
     return rcpp_result_gen;
     END_RCPP
 }
-
-
 Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin, size_t mtry, size_t p_categorical, bool draw_sigma, double kap, double s, bool verbose, bool m_update_sigma, bool draw_mu, bool parallel, bool set_random_seed, size_t random_seed);
 RcppExport SEXP _XBART(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP LSEXP, SEXP N_sweepsSEXP, SEXP max_depthSEXP, SEXP NminSEXP, SEXP NcutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP draw_sigmaSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP m_update_sigmaSEXP, SEXP draw_muSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP)
 {
@@ -120,8 +118,6 @@ RcppExport SEXP _XBART(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP 
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    // {"_XBART_predict_tree", (DL_FUNC) &_XBART_predict_tree, 2},
-    //{"_XBART_predict_tree_std", (DL_FUNC) &_XBART_predict_tree_std, 2},
     {"_XBART_sample_int_ccrank", (DL_FUNC)&_XBART_sample_int_ccrank, 3},
     {"_XBART_train_forest_root_std_all", (DL_FUNC)&_XBART_train_forest_root_std_all, 24},
     {"_XBART", (DL_FUNC)&_XBART, 24},

@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from XBART import XBART
+from xbart import XBART
 from collections import OrderedDict
 import time
 
@@ -68,6 +68,7 @@ params = OrderedDict([('M',m),('L',1),("N_sweeps",50)
 print("XBART Fit Predict Seperate...")
 xbart_2 = XBART(params)
 start_1 = time.time()
+print("Cat Shape " + str(cat_train.shape[1]))
 xbart_2.fit(train_data_norm.values,target_train.values,cat_train.shape[1])
 end_1 = time.time()
 start_2 = time.time()
