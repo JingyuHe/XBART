@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 //#endif 
-#include "XBART.h"
+#include "xbart.h"
 #include <utility.h>
 #include <forest.h>
 
