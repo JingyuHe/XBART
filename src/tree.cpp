@@ -1425,5 +1425,9 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
     }
 }
 
+void tree::tree_to_lisp(){
+    return
+}
+
 #ifndef NoRcpp
 #endif

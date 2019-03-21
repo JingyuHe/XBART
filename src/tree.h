@@ -45,6 +45,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
 void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, size_t &Nmin, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, Model *model, size_t &mtry, size_t &total_categorical_split_candidates);
 
+
 // void calc_suff_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, double &suff_stat, bool adaptive_cutpoint);
 
 //--------------------------------------------------
@@ -134,6 +135,8 @@ class tree
     size_t depth();     //depth of a node
     char ntype();       //node type t:top, b:bot, n:no grandchildren i:interior (t can be b)
     bool isnog();
+
+    void tree_to_list();
 
 #ifndef NoRcpp
 #endif

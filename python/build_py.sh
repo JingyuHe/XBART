@@ -12,7 +12,7 @@ function usage(){
     -p|--python : path to python bin 
     -d|--dist  : include if building dist
     -h|--help  : see documantation
-    -s|--swig  : Run SIWG
+    -s|--swig  : Run SIWG - important if changing xbart.* files
 
 ENDUSAGE
 }
