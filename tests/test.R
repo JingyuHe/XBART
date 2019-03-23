@@ -41,22 +41,32 @@ y_test = ftest + sigma*rnorm(nt)
 params = get_XBART_params(n,d,y)
 
 
-fit2 = train_forest_root_std_all(as.matrix(y), as.matrix(x), as.matrix(xtest), params$M, params$L, params$nsweeps, params$max_depth, 
-                                                  params$Nmin, alpha = params$alpha, beta = params$beta, tau = params$tau, s= 1,kap = 1, 
-                                                  mtry = params$mtry, draw_sigma = FALSE, m_update_sigma = TRUE,draw_mu= TRUE, 
-                                                  Ncutpoints = params$Ncutpoints, parallel = FALSE)
-yhat.2 = apply(fit2$yhats_test[,params$burnin:params$nsweeps],1,mean)
+# fit2 = train_forest_root_std_all(as.matrix(y), as.matrix(x), as.matrix(xtest), params$M, params$L, params$nsweeps, params$max_depth, 
+#                                                   params$Nmin, alpha = params$alpha, beta = params$beta, tau = params$tau, s= 1,kap = 1, 
+#                                                   mtry = params$mtry, draw_sigma = FALSE, m_update_sigma = TRUE,draw_mu= TRUE, 
+#                                                   Ncutpoints = params$Ncutpoints, parallel = FALSE)
+# yhat.2 = apply(fit2$yhats_test[,params$burnin:params$nsweeps],1,mean)
 
+before = as.matrix(xtest)
 fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), params$M, params$L, params$nsweeps, params$max_depth, 
                                                   params$Nmin, alpha = params$alpha, beta = params$beta, tau = params$tau, s= 1,kap = 1, 
                                                   mtry = params$mtry, draw_sigma = FALSE, m_update_sigma = TRUE,draw_mu= TRUE, 
-                                                  Ncutpoints = params$Ncutpoints, parallel = FALSE)
+                                                  Ncutpoints = params$Ncutpoints, parallel = FALSE,random_seed=100)
 yhat.1 = apply(fit$yhats_test[,params$burnin:params$nsweeps],1,mean)
-print(yhat.1[0:10])
+
+pred = XBART.predict(fit,as.matrix(xtest))
+yhat.pred = apply(pred$yhats[,params$burnin:params$nsweeps],1,mean)
+after = as.matrix(xtest)
+print(all(before == after))
+
+
 
 
 print(paste("rmse of fits: ",sqrt((sum(yhat.1-yhat.2)^2))))
+print(paste("rmse of fit new predict: ",sqrt((sum(yhat.pred-y_test)^2))))
 print(paste("rmse of fit new: ",sqrt((sum(yhat.1-y_test)^2))))
 print(paste("rmse of fit old: ",sqrt((sum(yhat.2-y_test)^2))))
+
+
 
 
