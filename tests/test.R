@@ -62,10 +62,10 @@ print(all(before == after))
 
 
 
-print(paste("rmse of fits: ",sqrt((sum(yhat.1-yhat.2)^2))))
-print(paste("rmse of fit new predict: ",sqrt((sum(yhat.pred-y_test)^2))))
-print(paste("rmse of fit new: ",sqrt((sum(yhat.1-y_test)^2))))
-print(paste("rmse of fit old: ",sqrt((sum(yhat.2-y_test)^2))))
+print(paste("rmse of fits: ",sqrt((mean(yhat.1-yhat.2)^2))))
+print(paste("rmse of fit new predict: ",sqrt((mean(yhat.pred-y_test)^2))))
+print(paste("rmse of fit new: ",sqrt((mean(yhat.1-y_test)^2))))
+print(paste("rmse of fit old: ",sqrt((mean(yhat.2-y_test)^2))))
 
 
 
