@@ -45,6 +45,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
 void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, size_t &Nmin, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, Model *model, size_t &mtry, size_t &total_categorical_split_candidates);
 
+
 // void calc_suff_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, double &suff_stat, bool adaptive_cutpoint);
 
 //--------------------------------------------------
@@ -68,6 +69,7 @@ struct node_info
 class tree
 {
   public:
+    // std::vector<double> theta_vector;
     std::vector<double> theta_vector;
 
     //typedefs--------------------
@@ -92,6 +94,9 @@ class tree
     //set
     void settheta(std::vector<double> theta_vector) { this->theta_vector = theta_vector; }
 
+
+
+
     void setv(size_t v) { this->v = v; }
     void setc(size_t c) { this->c = c; }
     //get
@@ -100,6 +105,7 @@ class tree
     double getsig() const { return sig; }
     size_t getv() const { return v; }
     double getc() const { return c; }
+
     tree_p getp() { return p; }
     tree_p getl() { return l; }
     tree_p getr() { return r; }
@@ -135,11 +141,16 @@ class tree
     char ntype();       //node type t:top, b:bot, n:no grandchildren i:interior (t can be b)
     bool isnog();
 
+    std::string tree_to_lisp();
+    void lisp_to_tree(std::string &lisp);
+
+
 #ifndef NoRcpp
 #endif
   private:
     double theta; //univariate double parameter
     double theta_noise;
+    
 
     double sig;
     //rule: left if x[v] < xinfo[v][c]

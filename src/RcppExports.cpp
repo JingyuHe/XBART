@@ -3,6 +3,8 @@
 
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
+#include <tree.h>
+
 
 using namespace Rcpp;
 
@@ -117,10 +119,27 @@ RcppExport SEXP _XBART(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP 
     END_RCPP
 }
 
+Rcpp::List xbart_predict(arma::mat X,size_t L ,double y_mean,Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt);
+RcppExport SEXP _xbart_predict(SEXP XSEXP,SEXP LSEXP,SEXP y_meanSEXP,SEXP tree_pntSEXP){
+    BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter<arma::mat>::type X(XSEXP);
+    Rcpp::traits::input_parameter<size_t>::type L(LSEXP);
+    Rcpp::traits::input_parameter<double>::type y_mean(y_meanSEXP);
+    Rcpp::traits::input_parameter<Rcpp::XPtr<std::vector<std::vector<tree>>>>::type tree_pnt(tree_pntSEXP);
+    rcpp_result_gen = Rcpp::wrap(xbart_predict(X,L,y_mean,tree_pnt));
+    return rcpp_result_gen;
+    END_RCPP
+
+}
+
+
 static const R_CallMethodDef CallEntries[] = {
     {"_XBART_sample_int_ccrank", (DL_FUNC)&_XBART_sample_int_ccrank, 3},
     {"_XBART_train_forest_root_std_all", (DL_FUNC)&_XBART_train_forest_root_std_all, 24},
     {"_XBART", (DL_FUNC)&_XBART, 24},
+    {"_xbart_predict", (DL_FUNC)&_xbart_predict, 4},
     {NULL, NULL, 0}};
 
 RcppExport void R_init_XBART(DllInfo *dll)
