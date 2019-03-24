@@ -365,6 +365,65 @@ void tree::cp(tree_p n, tree_cp o)
         cp(n->r, o->r);
     }
 }
+
+
+std::string tree::tree_to_lisp()
+{
+    std::string result = "(" +std::to_string(this->v) + "," +std::to_string(this->c) + ",";
+    result += "[" + std::to_string(theta_vector[0]);
+
+    if(theta_vector.size() >1){
+        for(size_t i=0;i<theta_vector.size();i++){
+        result += ","+ std::to_string(theta_vector[i]);
+        }
+    }
+    result += "]";
+
+
+
+    if (l){
+        result += "," + l->tree_to_lisp(); 
+    }
+    if (r){
+        result += "," + r->tree_to_lisp(); 
+    }
+
+    
+    return result+")";
+}
+
+void tree::lisp_to_tree(std::string &lisp)
+{
+
+    std::string result = "(" +std::to_string(this->v) + "," +std::to_string(this->c) + ",";
+    result += "[" + std::to_string(theta_vector[0]);
+
+    if(theta_vector.size() >1){
+        for(size_t i=0;i<theta_vector.size();i++){
+        result += ","+ std::to_string(theta_vector[i]);
+        }
+    }
+    result += "]";
+
+
+
+    if (l){
+        result += "," + l->tree_to_lisp(); 
+    }
+    if (r){
+        result += "," + r->tree_to_lisp(); 
+    }
+
+    result += ")";
+    return;
+}
+
+
+
+
+    
+
+
 //--------------------------------------------------
 //operators
 tree &tree::operator=(const tree &rhs)
@@ -435,6 +494,8 @@ std::istream &operator>>(std::istream &is, tree &t)
     }
     return is;
 }
+
+
 
 void cumulative_sum_std(std::vector<double> &y_cumsum, std::vector<double> &y_cumsum_inv, double &y_sum, double *y, xinfo_sizet &Xorder, size_t &i, size_t &N)
 {
@@ -1425,9 +1486,7 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
     }
 }
 
-void tree::tree_to_lisp(){
-    return
-}
+
 
 #ifndef NoRcpp
 #endif

@@ -6,6 +6,7 @@
 #include <chrono>
 #include "fit_std_main_loop.h"
 
+
 using namespace std;
 using namespace chrono;
 
@@ -160,12 +161,17 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     xinfo split_count_all_tree;
     ini_xinfo(split_count_all_tree, p, M); // initialize at 0
 
-    // Create trees
-    vector<vector<tree>> trees2(N_sweeps);
+    // // Create trees
+    vector<vector<tree>>* trees2 = new vector<vector<tree>>(N_sweeps);
     for (size_t i = 0; i < N_sweeps; i++)
     {
-        trees2[i] = vector<tree>(M);
+        (*trees2)[i] = vector<tree>(M);
     }
+
+    // Forests *forests = new Forests(y_mean,p,L,M,N_sweeps);
+
+
+
 
     /////////////////////////////////////////////////////////////////
     fit_std_main_loop_all(Xpointer, y_std, y_mean, Xtestpointer, Xorder_std,
@@ -173,12 +179,21 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
                           Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry,
                           draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel,
                           yhats_xinfo, yhats_test_xinfo, sigma_draw_xinfo, split_count_all_tree,
-                          p_categorical, p_continuous, trees2, set_random_seed, random_seed);
+                          p_categorical, p_continuous, *trees2, set_random_seed, random_seed);
 
-    // R Objects to Return
+
+
+   
+    // R Objects to Return    
     Rcpp::NumericMatrix yhats(N, N_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, N_sweeps);
     Rcpp::NumericMatrix sigma_draw(M, N_sweeps); // save predictions of each tree
+    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2,true);
+
+
+
+
+
 
     // TODO: Make these functions
     for (size_t i = 0; i < N; i++)
@@ -214,5 +229,11 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     // cout << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
-    return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw);
+    return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, 
+        Rcpp::Named("sigma") = sigma_draw
+        ,Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt")= tree_pnt, 
+                                                       Rcpp::Named("y_mean") = y_mean,
+                                                       Rcpp::Named("p")=p,
+                                                       Rcpp::Named("L")=L)
+        );
 }

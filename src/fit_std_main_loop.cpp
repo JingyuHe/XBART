@@ -667,6 +667,7 @@ void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t M, 
 
     std::vector<double> yhat_test_std(N_test);
     row_sum(predictions_test_std, yhat_test_std);
+
     for (size_t mc = 0; mc < L; mc++)
     {
         // initialize predcitions and predictions_test
@@ -676,15 +677,20 @@ void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t M, 
         }
         row_sum(predictions_test_std, yhat_test_std);
 
+
         for (size_t sweeps = 0; sweeps < N_sweeps; sweeps++)
         {
             for (size_t tree_ind = 0; tree_ind < M; tree_ind++)
             {
+                
                 yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
                 fit_new_std(trees[sweeps][tree_ind], Xtestpointer, N_test, p, predictions_test_std[tree_ind]);
                 yhat_test_std = yhat_test_std + predictions_test_std[tree_ind];
+
+
             }
             yhats_test_xinfo[sweeps] = yhat_test_std;
+
         }
     }
 }

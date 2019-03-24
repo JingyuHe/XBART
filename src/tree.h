@@ -69,6 +69,7 @@ struct node_info
 class tree
 {
   public:
+    // std::vector<double> theta_vector;
     std::vector<double> theta_vector;
 
     //typedefs--------------------
@@ -93,6 +94,9 @@ class tree
     //set
     void settheta(std::vector<double> theta_vector) { this->theta_vector = theta_vector; }
 
+
+
+
     void setv(size_t v) { this->v = v; }
     void setc(size_t c) { this->c = c; }
     //get
@@ -101,6 +105,7 @@ class tree
     double getsig() const { return sig; }
     size_t getv() const { return v; }
     double getc() const { return c; }
+
     tree_p getp() { return p; }
     tree_p getl() { return l; }
     tree_p getr() { return r; }
@@ -136,13 +141,16 @@ class tree
     char ntype();       //node type t:top, b:bot, n:no grandchildren i:interior (t can be b)
     bool isnog();
 
-    void tree_to_list();
+    std::string tree_to_lisp();
+    void lisp_to_tree(std::string &lisp);
+
 
 #ifndef NoRcpp
 #endif
   private:
     double theta; //univariate double parameter
     double theta_noise;
+    
 
     double sig;
     //rule: left if x[v] < xinfo[v][c]
