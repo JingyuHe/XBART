@@ -41,11 +41,11 @@ y_test = ftest + sigma*rnorm(nt)
 params = get_XBART_params(n,d,y)
 
 
-# fit2 = train_forest_root_std_all(as.matrix(y), as.matrix(x), as.matrix(xtest), params$M, params$L, params$nsweeps, params$max_depth, 
-#                                                   params$Nmin, alpha = params$alpha, beta = params$beta, tau = params$tau, s= 1,kap = 1, 
-#                                                   mtry = params$mtry, draw_sigma = FALSE, m_update_sigma = TRUE,draw_mu= TRUE, 
-#                                                   Ncutpoints = params$Ncutpoints, parallel = FALSE)
-# yhat.2 = apply(fit2$yhats_test[,params$burnin:params$nsweeps],1,mean)
+fit2 = train_forest_root_std_all(as.matrix(y), as.matrix(x), as.matrix(xtest), params$M, params$L, params$nsweeps, params$max_depth, 
+                                                  params$Nmin, alpha = params$alpha, beta = params$beta, tau = params$tau, s= 1,kap = 1, 
+                                                  mtry = params$mtry, draw_sigma = FALSE, m_update_sigma = TRUE,draw_mu= TRUE, 
+                                                  Ncutpoints = params$Ncutpoints, parallel = FALSE)
+yhat.2 = apply(fit2$yhats_test[,params$burnin:params$nsweeps],1,mean)
 
 before = as.matrix(xtest)
 fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), params$M, params$L, params$nsweeps, params$max_depth, 
