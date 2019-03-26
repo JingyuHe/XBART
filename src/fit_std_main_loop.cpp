@@ -559,8 +559,10 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
             std::fill(predictions_std[ii].begin(), predictions_std[ii].end(), y_mean / (double)M);
         }
 
+        // Set yhat_std to mean 
         row_sum(predictions_std, yhat_std);
 
+        // Residual for 0th tree 
         residual_std = y_std - yhat_std + predictions_std[0];
 
         for (size_t sweeps = 0; sweeps < N_sweeps; sweeps++)
@@ -580,7 +582,9 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
                 if (m_update_sigma == true)
                 {
 
-                    std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std) + s));
+                    std::vector<double> residual_std_full = residual_std - predictions_std[tree_ind];
+
+                    std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std_full) + s));
 
                     sigma = 1.0 / sqrt(gamma_samp(gen));
 
@@ -630,6 +634,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
                 if (m_update_sigma == false)
                 {
 
+                    
                     std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std) + s));
 
                     sigma = 1.0 / sqrt(gamma_samp(gen));
