@@ -599,6 +599,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, model, gen, mtry);
 
+
     if (no_split == true)
     {
         // if do not split, all data points in this node are in bottom node, update matrix of pointers
@@ -614,6 +615,23 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     this->v = split_var;
     this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+
+
+    // Update Cutpoint to be a true seperating point
+    // Increase split_point (index) until it is no longer equal to cutpoint value
+    while( *(X_std + N_y * split_var + Xorder_std[split_var][split_point+1]) == this->c & (split_point < N_Xorder -1)){
+        split_point = split_point +1;
+    }
+
+
+    // double next_cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point+1]);
+    // bool is_done = next_cutvalue == this->c;
+    // while( is_done & (split_point < N_y-1)){
+    //     split_point++; // Increase 
+    //     next_cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]); 
+    //     is_done = next_cutvalue == this->c;
+    //     std::cout << "IstTrue:" << is_done <<"Updated cutvalue: " << next_cutvalue << " Original Cutvalue: " << this->c << endl; 
+    // }
 
 
     split_count_current_tree[split_var] = split_count_current_tree[split_var] + 1;
