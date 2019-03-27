@@ -14,6 +14,10 @@ get_XBART_params <- function(n,d,y){
   return(XBART_params)
 }
 
+rmse <-function(y1,y2){
+  sqrt( mean( (y1-y2)^2 ))
+}
+
 
 library(XBART)
 
@@ -62,10 +66,10 @@ print(all(before == after))
 
 
 
-print(paste("rmse of fits: ",sqrt((mean(yhat.1-yhat.2)^2))))
-print(paste("rmse of fit new predict: ",sqrt((mean(yhat.pred-y_test)^2))))
-print(paste("rmse of fit new: ",sqrt((mean(yhat.1-y_test)^2))))
-print(paste("rmse of fit old: ",sqrt((mean(yhat.2-y_test)^2))))
+print(paste("rmse of fits: ", rmse(yhat.1,yhat.2) ))
+print(paste("rmse of fit new predict: ", rmse(yhat.pred,ftest) ))
+print(paste("rmse of fit new: ",rmse(yhat.1,ftest) ))
+print(paste("rmse of fit old: ",rmse(yhat.2,ftest) ))
 
 
 
