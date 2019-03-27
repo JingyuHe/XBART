@@ -624,16 +624,6 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     }
 
 
-    // double next_cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point+1]);
-    // bool is_done = next_cutvalue == this->c;
-    // while( is_done & (split_point < N_y-1)){
-    //     split_point++; // Increase 
-    //     next_cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]); 
-    //     is_done = next_cutvalue == this->c;
-    //     std::cout << "IstTrue:" << is_done <<"Updated cutvalue: " << next_cutvalue << " Original Cutvalue: " << this->c << endl; 
-    // }
-
-
     split_count_current_tree[split_var] = split_count_current_tree[split_var] + 1;
 
     xinfo_sizet Xorder_left_std;
