@@ -1,17 +1,12 @@
 \name{XBART}
 \alias{XBART}
-\title{XBART: Accelerated Bayesian Additive Regression Trees
-}
+\title{XBART: Accelerated Bayesian Additive Regression Trees}
 \description{
     Main function to fit XBART model.
 }
 \usage{
 \method{XBART}{default}(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, p_categorical = 0L, draw_sigma = FALSE, kap = 16, s = 4, verbose = FALSE, m_update_sigma = FALSE, draw_mu = FALSE, parallel = TRUE, random_seed = NULL, ...)
 }
-
-
-
-
 \arguments{
   \item{Y}{\code{matrix} of inputs \code{Y}. Response variable. }
   \item{X}{\code{matrix} of inputs \code{X}. Regressors. }
@@ -28,13 +23,13 @@
   \item{burnin}{Number of burn-in sweeps.}
   \item{mtry}{Number of varaibles considered in each split. Like random forest.}
   \item{p_categorical}{Number of categorical regressors. (\code{X} and \code{Xtest}).}
-  \item{draw_sigma}{Bool, if \code{TRUE}, sample residual standard deviation \equ{\sigma}.}
+  \item{draw_sigma}{Bool, if \code{TRUE}, sample residual standard deviation \eqn{\sigma}.}
   \item{kap}{Prior parameter of \eqn{\sigma}.}
   \item{s}{Prior parameter of \eqn{\sigma}.}
   \item{verbose}{If \code{TRUE}, print the progress on screen.}
   \item{m_update_sigma}{If \code{TRUE}, draw \eqn{\sigma} based on residual of \code{M} trees, otherwise based on \code{M - 1} trees. Set it as \code{TRUE}.}
   \item{draw_mu}{If \code{TRUE}, sample leaf parameter, otherwise use simple average of data.}
-  \item{parallel}{If \code{TRUE, do computation in parallel.}
+  \item{parallel}{If \code{TRUE}, do computation in parallel.}
   \item{random_seed}{Random seed, should be a positive integer.}
   \item{...}{optional parameters to be passed to the low level function \code{XBART}.}
 }
@@ -64,6 +59,6 @@
 
 
 }
-}
+
 
 \keyword{XBART}
