@@ -34,20 +34,20 @@ using namespace Rcpp;
 // END_RCPP
 // }
 
-// sample_int_ccrank
-std::vector<double> sample_int_ccrank(int n, int size, std::vector<double> prob);
-RcppExport SEXP _XBART_sample_int_ccrank(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP)
-{
-    BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter<int>::type n(nSEXP);
-    Rcpp::traits::input_parameter<int>::type size(sizeSEXP);
-    Rcpp::traits::input_parameter<std::vector<double>>::type prob(probSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_int_ccrank(n, size, prob));
-    return rcpp_result_gen;
-    END_RCPP
-}
+// // sample_int_ccrank
+// std::vector<double> sample_int_ccrank(int n, int size, std::vector<double> prob);
+// RcppExport SEXP _XBART_sample_int_ccrank(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP)
+// {
+//     BEGIN_RCPP
+//     Rcpp::RObject rcpp_result_gen;
+//     Rcpp::RNGScope rcpp_rngScope_gen;
+//     Rcpp::traits::input_parameter<int>::type n(nSEXP);
+//     Rcpp::traits::input_parameter<int>::type size(sizeSEXP);
+//     Rcpp::traits::input_parameter<std::vector<double>>::type prob(probSEXP);
+//     rcpp_result_gen = Rcpp::wrap(sample_int_ccrank(n, size, prob));
+//     return rcpp_result_gen;
+//     END_RCPP
+// }
 
 // train_forest_root_std_all
 Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin, size_t mtry, size_t p_categorical, bool draw_sigma, double kap, double s, bool verbose, bool m_update_sigma, bool draw_mu, bool parallel, bool set_random_seed, size_t random_seed);
@@ -136,7 +136,7 @@ RcppExport SEXP _xbart_predict(SEXP XSEXP,SEXP LSEXP,SEXP y_meanSEXP,SEXP tree_p
 
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_XBART_sample_int_ccrank", (DL_FUNC)&_XBART_sample_int_ccrank, 3},
+    // {"_XBART_sample_int_ccrank", (DL_FUNC)&_XBART_sample_int_ccrank, 3},
     {"_XBART_train_forest_root_std_all", (DL_FUNC)&_XBART_train_forest_root_std_all, 24},
     {"_XBART", (DL_FUNC)&_XBART, 24},
     {"_xbart_predict", (DL_FUNC)&_xbart_predict, 4},
