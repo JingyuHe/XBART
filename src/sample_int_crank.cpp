@@ -43,7 +43,6 @@ struct UniqueNumber
     int operator()() { return current++; }
 };
 
-// [[Rcpp::export(sample_int_ccrank)]]
 std::vector<double> sample_int_ccrank(int n, int size, std::vector<double> prob)
 {
     check_args(n, size, prob);
