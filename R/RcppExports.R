@@ -61,5 +61,13 @@ XBART <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alph
         set_random_seed = TRUE
     }
 
-    .Call(`_XBART`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel, set_random_seed, random_seed)
+    obj = .Call(`_XBART`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel, set_random_seed, random_seed)
+    class(obj) = "XBART"
+    return(obj)
+}
+
+
+predict.XBART <- function(model, X) {
+
+    .Call(`_xbart_predict`, X,model$model_list$L,model$model_list$y_mean ,model$model_list$tree_pnt) # model$tree_pnt
 }
