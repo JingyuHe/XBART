@@ -24,9 +24,12 @@ library(dbarts)
 
 
 d = 20 # number of TOTAL variables
-dcat = 20 # number of categorical variables
-
+dcat = 10 # number of categorical variables
 # must be d >= dcat
+
+# (X_continuous, X_categorical), 10 and 10 for each case, 20 in total
+
+
 
 n = 5000 # size of training set
 nt = 1000 # size of testing set
@@ -114,10 +117,17 @@ fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat,
             mtry = params$mtry, draw_sigma = FALSE, m_update_sigma = TRUE, draw_mu = TRUE,
             Ncutpoints = params$Ncutpoints, parallel = parl)
 
+################################
+# two ways to predict on testing set
 
+# 1. set xtest as input to main fitting function
 fhat.1 = apply(fit$yhats_test[, params$burnin:params$nsweeps], 1, mean)
 time = proc.time() - time
 print(time[3])
+
+# 2. a separate predict function
+pred = predict(fit, xtest)
+pred = rowMeans(pred[, params$burnin:params$nsweeps])
 
 time_XBART = round(time[3], 3)
 

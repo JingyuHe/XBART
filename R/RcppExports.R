@@ -1,10 +1,10 @@
-predict_tree <- function(trees, Xnew, ...) {
-    .Call(`_XBART_predict_tree`, trees, Xnew)
-}
+# predict_tree <- function(trees, Xnew, ...) {
+#     .Call(`_XBART_predict_tree`, trees, Xnew)
+# }
 
-predict_tree_std <- function(trees, Xnew, ...) {
-    .Call(`_XBART_predict_tree_std`, trees, Xnew)
-}
+# predict_tree_std <- function(trees, Xnew, ...) {
+#     .Call(`_XBART_predict_tree_std`, trees, Xnew)
+# }
 
 # sample_int_ccrank <- function(n, size, prob) {
 #     .Call(`_XBART_sample_int_ccrank`, n, size, prob)
@@ -68,6 +68,7 @@ XBART <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alph
 
 
 predict.XBART <- function(model, X) {
-
-    .Call(`_xbart_predict`, X,model$model_list$L,model$model_list$y_mean ,model$model_list$tree_pnt) # model$tree_pnt
+    obj = .Call(`_xbart_predict`, X,model$model_list$L,model$model_list$y_mean ,model$model_list$tree_pnt) # model$tree_pnt
+    obj = as.matrix(obj$yhats)
+    return(obj)
 }
