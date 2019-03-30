@@ -131,33 +131,17 @@ pred = rowMeans(pred[, params$burnin:params$nsweeps])
 
 time_XBART = round(time[3], 3)
 
-#######################################################################
-# XBART, old function call, identical algorithm
-if (1) {
-  time = proc.time()
-  fit2 = train_forest_root_std_all(as.matrix(y), as.matrix(x), as.matrix(xtest), params$M, params$L, p_categorical = dcat, params$nsweeps, params$max_depth,
-                                 params$Nmin, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1,
-                                 mtry = params$mtry, draw_sigma = FALSE, m_update_sigma = TRUE, draw_mu = TRUE,
-                                 Ncutpoints = params$Ncutpoints, parallel = parl)
-  fhat.2 = apply(fit2$yhats_test[, params$burnin:params$nsweeps], 1, mean)
-  time = proc.time() - time
-  print(time[3])
-}
-time_XBART_old = round(time[3], 3)
 
 
 #######################################################################
 # print
 print(paste("rmse of fit xbart: ", round(sqrt(mean((fhat.1 - ftest) ^ 2)), digits = 4)))
-print(paste("rmse of fit xbart, old function call: ", round(sqrt(mean((fhat.2 - ftest) ^ 2)), digits = 4)))
 print(paste("rmse of fit dbart: ", round(sqrt(mean((fhat.db - ftest) ^ 2)), digits = 4)))
 
 print(paste("running time, dbarts", time_dbarts))
 print(paste("running time, XBART", time_XBART))
-print(paste("running time, XBART old function call", time_XBART_old))
 
 plot(ftest, fhat.db, pch = 20, col = 'orange')
 points(ftest, fhat.1, pch = 20, col = 'slategray')
-points(ftest, fhat.2, pch = 20, col = 'cyan')
-legend("topleft", c("dbarts", "XBART", "XBART.old"), col = c("orange", "slategray", "cyan"), pch = c(20, 20, 20))
+legend("topleft", c("dbarts", "XBART"), col = c("orange", "slategray"), pch = c(20, 20))
 
