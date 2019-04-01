@@ -9,12 +9,12 @@ if _swig_python_version_info >= (2, 7, 0):
     def swig_import_helper():
         import importlib
         pkg = __name__.rpartition('.')[0]
-        mname = '.'.join((pkg, '_xbart')).lstrip('.')
+        mname = '.'.join((pkg, '_xbart_')).lstrip('.')
         try:
             return importlib.import_module(mname)
         except ImportError:
-            return importlib.import_module('_xbart')
-    _xbart = swig_import_helper()
+            return importlib.import_module('_xbart_')
+    _xbart_ = swig_import_helper()
     del swig_import_helper
 elif _swig_python_version_info >= (2, 6, 0):
     def swig_import_helper():
@@ -22,20 +22,20 @@ elif _swig_python_version_info >= (2, 6, 0):
         import imp
         fp = None
         try:
-            fp, pathname, description = imp.find_module('_xbart', [dirname(__file__)])
+            fp, pathname, description = imp.find_module('_xbart_', [dirname(__file__)])
         except ImportError:
-            import _xbart
-            return _xbart
+            import _xbart_
+            return _xbart_
         try:
-            _mod = imp.load_module('_xbart', fp, pathname, description)
+            _mod = imp.load_module('_xbart_', fp, pathname, description)
         finally:
             if fp is not None:
                 fp.close()
         return _mod
-    _xbart = swig_import_helper()
+    _xbart_ = swig_import_helper()
     del swig_import_helper
 else:
-    import _xbart
+    import _xbart_
 del _swig_python_version_info
 
 try:
@@ -98,149 +98,149 @@ except __builtin__.Exception:
 
 import collections
 
-class XBARTParams(_object):
+class XBARTcppParams(_object):
     __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, XBARTParams, name, value)
+    __setattr__ = lambda self, name, value: _swig_setattr(self, XBARTcppParams, name, value)
     __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, XBARTParams, name)
+    __getattr__ = lambda self, name: _swig_getattr(self, XBARTcppParams, name)
     __repr__ = _swig_repr
-    __swig_setmethods__["M"] = _xbart.XBARTParams_M_set
-    __swig_getmethods__["M"] = _xbart.XBARTParams_M_get
+    __swig_setmethods__["M"] = _xbart_.XBARTcppParams_M_set
+    __swig_getmethods__["M"] = _xbart_.XBARTcppParams_M_get
     if _newclass:
-        M = _swig_property(_xbart.XBARTParams_M_get, _xbart.XBARTParams_M_set)
-    __swig_setmethods__["L"] = _xbart.XBARTParams_L_set
-    __swig_getmethods__["L"] = _xbart.XBARTParams_L_get
+        M = _swig_property(_xbart_.XBARTcppParams_M_get, _xbart_.XBARTcppParams_M_set)
+    __swig_setmethods__["L"] = _xbart_.XBARTcppParams_L_set
+    __swig_getmethods__["L"] = _xbart_.XBARTcppParams_L_get
     if _newclass:
-        L = _swig_property(_xbart.XBARTParams_L_get, _xbart.XBARTParams_L_set)
-    __swig_setmethods__["N_sweeps"] = _xbart.XBARTParams_N_sweeps_set
-    __swig_getmethods__["N_sweeps"] = _xbart.XBARTParams_N_sweeps_get
+        L = _swig_property(_xbart_.XBARTcppParams_L_get, _xbart_.XBARTcppParams_L_set)
+    __swig_setmethods__["N_sweeps"] = _xbart_.XBARTcppParams_N_sweeps_set
+    __swig_getmethods__["N_sweeps"] = _xbart_.XBARTcppParams_N_sweeps_get
     if _newclass:
-        N_sweeps = _swig_property(_xbart.XBARTParams_N_sweeps_get, _xbart.XBARTParams_N_sweeps_set)
-    __swig_setmethods__["Nmin"] = _xbart.XBARTParams_Nmin_set
-    __swig_getmethods__["Nmin"] = _xbart.XBARTParams_Nmin_get
+        N_sweeps = _swig_property(_xbart_.XBARTcppParams_N_sweeps_get, _xbart_.XBARTcppParams_N_sweeps_set)
+    __swig_setmethods__["Nmin"] = _xbart_.XBARTcppParams_Nmin_set
+    __swig_getmethods__["Nmin"] = _xbart_.XBARTcppParams_Nmin_get
     if _newclass:
-        Nmin = _swig_property(_xbart.XBARTParams_Nmin_get, _xbart.XBARTParams_Nmin_set)
-    __swig_setmethods__["Ncutpoints"] = _xbart.XBARTParams_Ncutpoints_set
-    __swig_getmethods__["Ncutpoints"] = _xbart.XBARTParams_Ncutpoints_get
+        Nmin = _swig_property(_xbart_.XBARTcppParams_Nmin_get, _xbart_.XBARTcppParams_Nmin_set)
+    __swig_setmethods__["Ncutpoints"] = _xbart_.XBARTcppParams_Ncutpoints_set
+    __swig_getmethods__["Ncutpoints"] = _xbart_.XBARTcppParams_Ncutpoints_get
     if _newclass:
-        Ncutpoints = _swig_property(_xbart.XBARTParams_Ncutpoints_get, _xbart.XBARTParams_Ncutpoints_set)
-    __swig_setmethods__["burnin"] = _xbart.XBARTParams_burnin_set
-    __swig_getmethods__["burnin"] = _xbart.XBARTParams_burnin_get
+        Ncutpoints = _swig_property(_xbart_.XBARTcppParams_Ncutpoints_get, _xbart_.XBARTcppParams_Ncutpoints_set)
+    __swig_setmethods__["burnin"] = _xbart_.XBARTcppParams_burnin_set
+    __swig_getmethods__["burnin"] = _xbart_.XBARTcppParams_burnin_get
     if _newclass:
-        burnin = _swig_property(_xbart.XBARTParams_burnin_get, _xbart.XBARTParams_burnin_set)
-    __swig_setmethods__["mtry"] = _xbart.XBARTParams_mtry_set
-    __swig_getmethods__["mtry"] = _xbart.XBARTParams_mtry_get
+        burnin = _swig_property(_xbart_.XBARTcppParams_burnin_get, _xbart_.XBARTcppParams_burnin_set)
+    __swig_setmethods__["mtry"] = _xbart_.XBARTcppParams_mtry_set
+    __swig_getmethods__["mtry"] = _xbart_.XBARTcppParams_mtry_get
     if _newclass:
-        mtry = _swig_property(_xbart.XBARTParams_mtry_get, _xbart.XBARTParams_mtry_set)
-    __swig_setmethods__["max_depth_num"] = _xbart.XBARTParams_max_depth_num_set
-    __swig_getmethods__["max_depth_num"] = _xbart.XBARTParams_max_depth_num_get
+        mtry = _swig_property(_xbart_.XBARTcppParams_mtry_get, _xbart_.XBARTcppParams_mtry_set)
+    __swig_setmethods__["max_depth_num"] = _xbart_.XBARTcppParams_max_depth_num_set
+    __swig_getmethods__["max_depth_num"] = _xbart_.XBARTcppParams_max_depth_num_get
     if _newclass:
-        max_depth_num = _swig_property(_xbart.XBARTParams_max_depth_num_get, _xbart.XBARTParams_max_depth_num_set)
-    __swig_setmethods__["alpha"] = _xbart.XBARTParams_alpha_set
-    __swig_getmethods__["alpha"] = _xbart.XBARTParams_alpha_get
+        max_depth_num = _swig_property(_xbart_.XBARTcppParams_max_depth_num_get, _xbart_.XBARTcppParams_max_depth_num_set)
+    __swig_setmethods__["alpha"] = _xbart_.XBARTcppParams_alpha_set
+    __swig_getmethods__["alpha"] = _xbart_.XBARTcppParams_alpha_get
     if _newclass:
-        alpha = _swig_property(_xbart.XBARTParams_alpha_get, _xbart.XBARTParams_alpha_set)
-    __swig_setmethods__["beta"] = _xbart.XBARTParams_beta_set
-    __swig_getmethods__["beta"] = _xbart.XBARTParams_beta_get
+        alpha = _swig_property(_xbart_.XBARTcppParams_alpha_get, _xbart_.XBARTcppParams_alpha_set)
+    __swig_setmethods__["beta"] = _xbart_.XBARTcppParams_beta_set
+    __swig_getmethods__["beta"] = _xbart_.XBARTcppParams_beta_get
     if _newclass:
-        beta = _swig_property(_xbart.XBARTParams_beta_get, _xbart.XBARTParams_beta_set)
-    __swig_setmethods__["tau"] = _xbart.XBARTParams_tau_set
-    __swig_getmethods__["tau"] = _xbart.XBARTParams_tau_get
+        beta = _swig_property(_xbart_.XBARTcppParams_beta_get, _xbart_.XBARTcppParams_beta_set)
+    __swig_setmethods__["tau"] = _xbart_.XBARTcppParams_tau_set
+    __swig_getmethods__["tau"] = _xbart_.XBARTcppParams_tau_get
     if _newclass:
-        tau = _swig_property(_xbart.XBARTParams_tau_get, _xbart.XBARTParams_tau_set)
-    __swig_setmethods__["kap"] = _xbart.XBARTParams_kap_set
-    __swig_getmethods__["kap"] = _xbart.XBARTParams_kap_get
+        tau = _swig_property(_xbart_.XBARTcppParams_tau_get, _xbart_.XBARTcppParams_tau_set)
+    __swig_setmethods__["kap"] = _xbart_.XBARTcppParams_kap_set
+    __swig_getmethods__["kap"] = _xbart_.XBARTcppParams_kap_get
     if _newclass:
-        kap = _swig_property(_xbart.XBARTParams_kap_get, _xbart.XBARTParams_kap_set)
-    __swig_setmethods__["s"] = _xbart.XBARTParams_s_set
-    __swig_getmethods__["s"] = _xbart.XBARTParams_s_get
+        kap = _swig_property(_xbart_.XBARTcppParams_kap_get, _xbart_.XBARTcppParams_kap_set)
+    __swig_setmethods__["s"] = _xbart_.XBARTcppParams_s_set
+    __swig_getmethods__["s"] = _xbart_.XBARTcppParams_s_get
     if _newclass:
-        s = _swig_property(_xbart.XBARTParams_s_get, _xbart.XBARTParams_s_set)
-    __swig_setmethods__["draw_sigma"] = _xbart.XBARTParams_draw_sigma_set
-    __swig_getmethods__["draw_sigma"] = _xbart.XBARTParams_draw_sigma_get
+        s = _swig_property(_xbart_.XBARTcppParams_s_get, _xbart_.XBARTcppParams_s_set)
+    __swig_setmethods__["draw_sigma"] = _xbart_.XBARTcppParams_draw_sigma_set
+    __swig_getmethods__["draw_sigma"] = _xbart_.XBARTcppParams_draw_sigma_get
     if _newclass:
-        draw_sigma = _swig_property(_xbart.XBARTParams_draw_sigma_get, _xbart.XBARTParams_draw_sigma_set)
-    __swig_setmethods__["verbose"] = _xbart.XBARTParams_verbose_set
-    __swig_getmethods__["verbose"] = _xbart.XBARTParams_verbose_get
+        draw_sigma = _swig_property(_xbart_.XBARTcppParams_draw_sigma_get, _xbart_.XBARTcppParams_draw_sigma_set)
+    __swig_setmethods__["verbose"] = _xbart_.XBARTcppParams_verbose_set
+    __swig_getmethods__["verbose"] = _xbart_.XBARTcppParams_verbose_get
     if _newclass:
-        verbose = _swig_property(_xbart.XBARTParams_verbose_get, _xbart.XBARTParams_verbose_set)
-    __swig_setmethods__["m_update_sigma"] = _xbart.XBARTParams_m_update_sigma_set
-    __swig_getmethods__["m_update_sigma"] = _xbart.XBARTParams_m_update_sigma_get
+        verbose = _swig_property(_xbart_.XBARTcppParams_verbose_get, _xbart_.XBARTcppParams_verbose_set)
+    __swig_setmethods__["m_update_sigma"] = _xbart_.XBARTcppParams_m_update_sigma_set
+    __swig_getmethods__["m_update_sigma"] = _xbart_.XBARTcppParams_m_update_sigma_get
     if _newclass:
-        m_update_sigma = _swig_property(_xbart.XBARTParams_m_update_sigma_get, _xbart.XBARTParams_m_update_sigma_set)
-    __swig_setmethods__["draw_mu"] = _xbart.XBARTParams_draw_mu_set
-    __swig_getmethods__["draw_mu"] = _xbart.XBARTParams_draw_mu_get
+        m_update_sigma = _swig_property(_xbart_.XBARTcppParams_m_update_sigma_get, _xbart_.XBARTcppParams_m_update_sigma_set)
+    __swig_setmethods__["draw_mu"] = _xbart_.XBARTcppParams_draw_mu_set
+    __swig_getmethods__["draw_mu"] = _xbart_.XBARTcppParams_draw_mu_get
     if _newclass:
-        draw_mu = _swig_property(_xbart.XBARTParams_draw_mu_get, _xbart.XBARTParams_draw_mu_set)
-    __swig_setmethods__["parallel"] = _xbart.XBARTParams_parallel_set
-    __swig_getmethods__["parallel"] = _xbart.XBARTParams_parallel_get
+        draw_mu = _swig_property(_xbart_.XBARTcppParams_draw_mu_get, _xbart_.XBARTcppParams_draw_mu_set)
+    __swig_setmethods__["parallel"] = _xbart_.XBARTcppParams_parallel_set
+    __swig_getmethods__["parallel"] = _xbart_.XBARTcppParams_parallel_get
     if _newclass:
-        parallel = _swig_property(_xbart.XBARTParams_parallel_get, _xbart.XBARTParams_parallel_set)
-    __swig_setmethods__["seed"] = _xbart.XBARTParams_seed_set
-    __swig_getmethods__["seed"] = _xbart.XBARTParams_seed_get
+        parallel = _swig_property(_xbart_.XBARTcppParams_parallel_get, _xbart_.XBARTcppParams_parallel_set)
+    __swig_setmethods__["seed"] = _xbart_.XBARTcppParams_seed_set
+    __swig_getmethods__["seed"] = _xbart_.XBARTcppParams_seed_get
     if _newclass:
-        seed = _swig_property(_xbart.XBARTParams_seed_get, _xbart.XBARTParams_seed_set)
+        seed = _swig_property(_xbart_.XBARTcppParams_seed_get, _xbart_.XBARTcppParams_seed_set)
 
     def __init__(self):
-        this = _xbart.new_XBARTParams()
+        this = _xbart_.new_XBARTcppParams()
         try:
             self.this.append(this)
         except __builtin__.Exception:
             self.this = this
-    __swig_destroy__ = _xbart.delete_XBARTParams
+    __swig_destroy__ = _xbart_.delete_XBARTcppParams
     __del__ = lambda self: None
-XBARTParams_swigregister = _xbart.XBARTParams_swigregister
-XBARTParams_swigregister(XBARTParams)
+XBARTcppParams_swigregister = _xbart_.XBARTcppParams_swigregister
+XBARTcppParams_swigregister(XBARTcppParams)
 
-class XBART(_object):
+class XBARTcpp(_object):
     __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, XBART, name, value)
+    __setattr__ = lambda self, name, value: _swig_setattr(self, XBARTcpp, name, value)
     __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, XBART, name)
+    __getattr__ = lambda self, name: _swig_getattr(self, XBARTcpp, name)
     __repr__ = _swig_repr
 
     def __init__(self, *args):
-        this = _xbart.new_XBART(*args)
+        this = _xbart_.new_XBARTcpp(*args)
         try:
             self.this.append(this)
         except __builtin__.Exception:
             self.this = this
 
     def sort_x(self, n: 'int', size: 'int') -> "void":
-        return _xbart.XBART_sort_x(self, n, size)
+        return _xbart_.XBARTcpp_sort_x(self, n, size)
 
     def __fit_predict_all(self, n: 'int', n_y: 'int', n_test: 'int', size: 'int', p_cat: 'size_t') -> "void":
-        return _xbart.XBART___fit_predict_all(self, n, n_y, n_test, size, p_cat)
+        return _xbart_.XBARTcpp___fit_predict_all(self, n, n_y, n_test, size, p_cat)
 
     def __predict_all(self, n: 'int') -> "void":
-        return _xbart.XBART___predict_all(self, n)
+        return _xbart_.XBARTcpp___predict_all(self, n)
 
     def __fit_all(self, n: 'int', n_y: 'int', p_cat: 'size_t') -> "void":
-        return _xbart.XBART___fit_all(self, n, n_y, p_cat)
+        return _xbart_.XBARTcpp___fit_all(self, n, n_y, p_cat)
 
     def get_M(self) -> "int":
-        return _xbart.XBART_get_M(self)
+        return _xbart_.XBARTcpp_get_M(self)
 
     def get_N_sweeps(self) -> "int":
-        return _xbart.XBART_get_N_sweeps(self)
+        return _xbart_.XBARTcpp_get_N_sweeps(self)
 
     def get_burnin(self) -> "int":
-        return _xbart.XBART_get_burnin(self)
+        return _xbart_.XBARTcpp_get_burnin(self)
 
     def get_yhats(self, size: 'int') -> "void":
-        return _xbart.XBART_get_yhats(self, size)
+        return _xbart_.XBARTcpp_get_yhats(self, size)
 
     def get_yhats_test(self, size: 'int') -> "void":
-        return _xbart.XBART_get_yhats_test(self, size)
+        return _xbart_.XBARTcpp_get_yhats_test(self, size)
 
     def get_sigma_draw(self, size: 'int') -> "void":
-        return _xbart.XBART_get_sigma_draw(self, size)
+        return _xbart_.XBARTcpp_get_sigma_draw(self, size)
 
     def get_importance(self, size: 'int') -> "void":
-        return _xbart.XBART_get_importance(self, size)
+        return _xbart_.XBARTcpp_get_importance(self, size)
 
     def test_random_generator(self) -> "void":
-        return _xbart.XBART_test_random_generator(self)
+        return _xbart_.XBARTcpp_test_random_generator(self)
 
     def __convert_params_check_types(self,params):
     ### This function converts params to list and 
@@ -288,14 +288,29 @@ class XBART(_object):
 
         assert isinstance(params, collections.Mapping), "params must be dictionary like"
 
-        this = _xbart.new_XBART(*self.__convert_params_check_types(params))
+        this = __xbart_cpp.new_XBARTcpp(*self.__convert_params_check_types(params))
 
     # init
         try:
             self.this.append(this)
         except __builtin__.Exception:
-            self.this = this            
+            self.this = this   
 
+    def __init__(self,num_trees= 200, l = 1 ,num_sweeps = 40, n_min =1,
+                    num_cutpoints=100,alpha=0.95,beta = 1.25, tau = 0.3,
+                    burnin = 15, mtry = 1, max_depth_num = 250,
+                    draw_sigma= False,kap= 16,s = 4,verbose=False,
+                    m_update_sigma = True, draw_mu = True,
+                    parallel=False,seed=0):  
+
+        this = __xbart_cpp.new_XBARTcpp(num_trees,l,num_sweeps,n_min,num_cutpoints,
+                alpha,beta, tau,burnin, mtry, max_depth_num,draw_sigma,kap,s,
+                verbose,m_update_sigma, draw_mu,parallel,seed)  
+    # init
+        try:
+            self.this.append(this)
+        except __builtin__.Exception:
+            self.this = this  
 
 
 
@@ -328,10 +343,10 @@ class XBART(_object):
     def fit(self,x,y,p_cat=0):
         return self.__fit_all(x,y,p_cat)
 
-    __swig_destroy__ = _xbart.delete_XBART
+    __swig_destroy__ = _xbart_.delete_XBARTcpp
     __del__ = lambda self: None
-XBART_swigregister = _xbart.XBART_swigregister
-XBART_swigregister(XBART)
+XBARTcpp_swigregister = _xbart_.XBARTcpp_swigregister
+XBARTcpp_swigregister(XBARTcpp)
 
 # This file is compatible with both classic and new-style classes.
 

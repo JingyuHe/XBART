@@ -15,8 +15,8 @@ else:
 if platform == "darwin":
   compile_args.append("-mmacosx-version-min=10.9") # To ensure gnu+11 and all std libs
 
-XBART_module = Extension('_xbart',
-                           sources=['xbart_wrap.cxx', 'xbart.cpp',
+XBART_module = Extension('_xbart_',
+                           sources=['xbart__wrap.cxx', 'xbart_.cpp',
                                     "src/utility.cpp",'src/fit_std_main_loop.cpp',
                                       "src/sample_int_crank.cpp",  "src/treefuns.cpp",
                                         "src/common.cpp" ,   "src/forest.cpp",    
@@ -26,8 +26,6 @@ XBART_module = Extension('_xbart',
 
 
                             language= "c++",
-                            #libraries =["/Library/Frameworks/Python.framework/Versions/3.6/lib"],
-                            #include_dirs = ['/Library/Frameworks/Python.framework/Versions/3.6/include/python3.6m'], # temp...
                             include_dirs = [numpy.get_include(),'.', "src"],
                            extra_compile_args=compile_args#,"-larmadillo", "-llapack", "-lblas"]
                            )
@@ -38,7 +36,7 @@ setup (name = 'xbart',
        description = """XBART project""",
        include_dirs = [numpy.get_include(),'.',"src"],
        ext_modules = [XBART_module],
-       sources = ["xbart.py"],
+       sources = ["xbart_.py"],
        install_requires=['numpy'],
        py_modules = ["xbart"]
        )

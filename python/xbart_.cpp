@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 //#endif 
-#include "xbart.h"
+#include "xbart_.h"
 #include <utility.h>
 #include <forest.h>
 
@@ -12,10 +12,10 @@
 using namespace std;
 
 // Constructors
-XBART::XBART(XBARTParams params){
+XBARTcpp::XBARTcpp(XBARTcppParams params){
 	this->params = params;		
 }
-XBART::XBART (size_t M ,size_t L ,size_t N_sweeps ,
+XBARTcpp::XBARTcpp (size_t M ,size_t L ,size_t N_sweeps ,
         size_t Nmin , size_t Ncutpoints , //CHANGE 
         double alpha , double beta , double tau , //CHANGE!
         size_t burnin, 
@@ -62,14 +62,14 @@ XBART::XBART (size_t M ,size_t L ,size_t N_sweeps ,
 }
 
 // Destructor
-// XBART::~XBART(){}
+// XBARTcpp::~XBARTcpp(){}
 
 // Getter
-int XBART::get_M(){return((int)params.M);} 
+int XBARTcpp::get_M(){return((int)params.M);} 
 
 
-void XBART::sort_x(int n,int d,double *a,int size, double *arr){
-  xinfo x_std = XBART::np_to_xinfo(n,d,a);
+void XBARTcpp::sort_x(int n,int d,double *a,int size, double *arr){
+  xinfo x_std = XBARTcpp::np_to_xinfo(n,d,a);
 
   xinfo_sizet Xorder_std;
   ini_xinfo_sizet(Xorder_std, n, d);  
@@ -90,15 +90,15 @@ void XBART::sort_x(int n,int d,double *a,int size, double *arr){
 
 
 
-void XBART::__fit_predict_all(int n,int d,double *a, // Train X 
+void XBARTcpp::__fit_predict_all(int n,int d,double *a, // Train X 
       int n_y,double *a_y, // Train Y
       int n_test,int d_test,double *a_test, // Test X
       int size, double *arr,size_t p_cat){ // Result 
 
-      xinfo x_std = XBART::np_to_xinfo(n,d,a);
-      xinfo x_test_std = XBART::np_to_xinfo(n_test,d_test,a_test);
+      xinfo x_std = XBARTcpp::np_to_xinfo(n,d,a);
+      xinfo x_test_std = XBARTcpp::np_to_xinfo(n_test,d_test,a_test);
       y_std.reserve(n_y);
-      y_std = XBART::np_to_vec_d(n_y,a_y);
+      y_std = XBARTcpp::np_to_vec_d(n_y,a_y);
                 
       // Calculate y_mean
       double y_mean = 0.0;
@@ -125,8 +125,8 @@ void XBART::__fit_predict_all(int n,int d,double *a, // Train X
         }
     }
     // Create new x_std's that are row major
-    vec_d x_std_2 = XBART::xinfo_to_row_major_vec(x_std); // INEFFICIENT - For now to include index sorting
-    vec_d x_test_std_2 = XBART::xinfo_to_row_major_vec(x_test_std); // INEFFICIENT
+    vec_d x_std_2 = XBARTcpp::xinfo_to_row_major_vec(x_std); // INEFFICIENT - For now to include index sorting
+    vec_d x_test_std_2 = XBARTcpp::xinfo_to_row_major_vec(x_test_std); // INEFFICIENT
 
     // Remove old x_std
     for(int j = 0; j<d;j++){
@@ -178,10 +178,10 @@ void XBART::__fit_predict_all(int n,int d,double *a, // Train X
       std::copy(y_std.begin(), y_std.end(), arr);
     } 
 
-void XBART::__predict_all(int n,int d,double *a){//,int size, double *arr){
+void XBARTcpp::__predict_all(int n,int d,double *a){//,int size, double *arr){
 
-  xinfo x_test_std = XBART::np_to_xinfo(n,d,a);
-  vec_d x_test_std_2 = XBART::xinfo_to_row_major_vec(x_test_std); // INEFFICIENT
+  xinfo x_test_std = XBARTcpp::np_to_xinfo(n,d,a);
+  vec_d x_test_std_2 = XBARTcpp::xinfo_to_row_major_vec(x_test_std); // INEFFICIENT
 
   ini_xinfo(this->yhats_test_xinfo, n, this->params.N_sweeps);
 
@@ -193,12 +193,12 @@ void XBART::__predict_all(int n,int d,double *a){//,int size, double *arr){
 }
 
 
-void XBART::__fit_all(int n,int d,double *a, 
+void XBARTcpp::__fit_all(int n,int d,double *a, 
       int n_y,double *a_y, size_t p_cat){
   
-      xinfo x_std = XBART::np_to_xinfo(n,d,a);
+      xinfo x_std = XBARTcpp::np_to_xinfo(n,d,a);
       y_std.reserve(n_y);
-      y_std = XBART::np_to_vec_d(n_y,a_y);
+      y_std = XBARTcpp::np_to_vec_d(n_y,a_y);
                 
       // Calculate y_mean
       double y_mean = 0.0;
@@ -225,7 +225,7 @@ void XBART::__fit_all(int n,int d,double *a,
         }
     }
     // Create new x_std's that are row major
-    vec_d x_std_2 = XBART::xinfo_to_row_major_vec(x_std); // INEFFICIENT - For now to include index sorting
+    vec_d x_std_2 = XBARTcpp::xinfo_to_row_major_vec(x_std); // INEFFICIENT - For now to include index sorting
 
     // Remove old x_std
     for(int j = 0; j<d;j++){
@@ -271,16 +271,16 @@ void XBART::__fit_all(int n,int d,double *a,
 }    
 
 // Getters
-void XBART::get_yhats(int size,double *arr){
+void XBARTcpp::get_yhats(int size,double *arr){
   xinfo_to_np(this->yhats_xinfo,arr);
 }
-void XBART::get_yhats_test(int size,double *arr){
+void XBARTcpp::get_yhats_test(int size,double *arr){
   xinfo_to_np(this->yhats_test_xinfo,arr);
 }
-void XBART::get_sigma_draw(int size,double *arr){
+void XBARTcpp::get_sigma_draw(int size,double *arr){
   xinfo_to_np(this->sigma_draw_xinfo,arr);
 }
-void XBART::get_importance(int size,double *arr){
+void XBARTcpp::get_importance(int size,double *arr){
   xinfo_to_np(this->split_count_all_tree,arr);
 }
 
@@ -289,7 +289,7 @@ void XBART::get_importance(int size,double *arr){
 // Private Helper Functions 
 
 // Numpy 1D array to vec_d - std_vector of doubles
-vec_d XBART::np_to_vec_d(int n,double *a){
+vec_d XBARTcpp::np_to_vec_d(int n,double *a){
   vec_d y_std(n,0);
   for (size_t i = 0; i < n; i++){
       y_std[i] = a[i];
@@ -297,7 +297,7 @@ vec_d XBART::np_to_vec_d(int n,double *a){
   return y_std;
 }
 
-vec_d XBART::np_to_row_major_vec(int n, int d,double *a){
+vec_d XBARTcpp::np_to_row_major_vec(int n, int d,double *a){
   // 
   vec_d x_std(n*d,0);
   // Fill in Values of xinfo from array 
@@ -312,7 +312,7 @@ vec_d XBART::np_to_row_major_vec(int n, int d,double *a){
   return x_std;
 }
 
-vec_d XBART::xinfo_to_row_major_vec(xinfo x_std){
+vec_d XBARTcpp::xinfo_to_row_major_vec(xinfo x_std){
   size_t n = (size_t)x_std[0].size();
   size_t d = (size_t)x_std.size();
   vec_d x_std_2(n*d,0);
@@ -327,7 +327,7 @@ vec_d XBART::xinfo_to_row_major_vec(xinfo x_std){
 }
 
 // Numpy 2D Array to xinfo- nested std vectors of doubles
-xinfo XBART::np_to_xinfo(int n, int d,double *a){
+xinfo XBARTcpp::np_to_xinfo(int n, int d,double *a){
   // 
   xinfo x_std(d, vector<double> (n, 0));
   // Fill in Values of xinfo from array 
@@ -340,7 +340,7 @@ xinfo XBART::np_to_xinfo(int n, int d,double *a){
   return x_std;
 }
 
-void XBART::xinfo_to_np(xinfo x_std,double *arr){
+void XBARTcpp::xinfo_to_np(xinfo x_std,double *arr){
   // Fill in array values from xinfo
   for(size_t i = 0 ,n = (size_t)x_std[0].size();i<n;i++){
     for(size_t j = 0,d = (size_t)x_std.size();j<d;j++){
@@ -351,7 +351,7 @@ void XBART::xinfo_to_np(xinfo x_std,double *arr){
   return;
 }
 
-void XBART::test_random_generator(){
+void XBARTcpp::test_random_generator(){
   std::default_random_engine generator;
   std::normal_distribution<double> normal_samp(0.0,0.0);
 

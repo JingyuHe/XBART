@@ -15,7 +15,7 @@ typedef std::vector<vec_d> xinfo;
 
 
 
-struct XBARTParams{
+struct XBARTcppParams{
 			size_t M;
 			size_t L;size_t N_sweeps; size_t Nmin; size_t Ncutpoints;
 			size_t burnin; size_t mtry;size_t max_depth_num;
@@ -24,9 +24,9 @@ struct XBARTParams{
 			bool draw_mu;bool parallel;int seed;
 };
 
-class XBART{
+class XBARTcpp{
 	private:
-		XBARTParams params;
+		XBARTcppParams params;
 		vector <tree> trees;
 		vector<vector<tree>> trees2; 
 		vec_d y_std;
@@ -47,8 +47,8 @@ class XBART{
 		// void params_to_struct;
 	public:
 		// Constructors 
-		XBART (XBARTParams params);
-		XBART (size_t M ,size_t L ,size_t N_sweeps ,
+		XBARTcpp (XBARTcppParams params);
+		XBARTcpp (size_t M ,size_t L ,size_t N_sweeps ,
 				size_t Nmin , size_t Ncutpoints , //CHANGE 
 				double alpha , double beta , double tau , //CHANGE!
 				size_t burnin, size_t mtry ,
@@ -57,7 +57,7 @@ class XBART{
 				bool draw_mu , bool parallel,int seed);
 
 		// // Destructor
-		//~XBART();
+		//~XBARTcpp();
 
 	
 		// void sort_x(int n, int d, double *a);

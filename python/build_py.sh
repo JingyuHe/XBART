@@ -37,7 +37,6 @@ then
 fi
 
 ./remove.sh
-./dist_remove.sh
 $PYTHON_BIN -m pip uninstall xbart 
 cp -r ../src .
 
@@ -51,10 +50,10 @@ if $SWIG_FLAG;then
 
   if [ "$ver" -le "27" ]; then
       echo "Running script with python $ver" 
-      swig -c++ -python xbart.i
+      swig -c++ -python xbart_.i
   else
     echo "Running script with python $ver" 
-    swig -c++ -python -py3  xbart.i
+    swig -c++ -python -py3  xbart_.i
   fi
 fi
 

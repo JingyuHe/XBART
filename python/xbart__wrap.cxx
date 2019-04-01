@@ -3003,8 +3003,8 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 
 /* -------- TYPES TABLE (BEGIN) -------- */
 
-#define SWIGTYPE_p_XBART swig_types[0]
-#define SWIGTYPE_p_XBARTParams swig_types[1]
+#define SWIGTYPE_p_XBARTcpp swig_types[0]
+#define SWIGTYPE_p_XBARTcppParams swig_types[1]
 #define SWIGTYPE_p_char swig_types[2]
 #define SWIGTYPE_p_double swig_types[3]
 #define SWIGTYPE_p_std__vectorT_double_t swig_types[4]
@@ -3023,16 +3023,16 @@ static swig_module_info swig_module = {swig_types, 6, 0, 0, 0, 0};
 #endif
 
 /*-----------------------------------------------
-              @(target):= _xbart.so
+              @(target):= _xbart_.so
   ------------------------------------------------*/
 #if PY_VERSION_HEX >= 0x03000000
-#  define SWIG_init    PyInit__xbart
+#  define SWIG_init    PyInit__xbart_
 
 #else
-#  define SWIG_init    init_xbart
+#  define SWIG_init    init_xbart_
 
 #endif
-#define SWIG_name    "_xbart"
+#define SWIG_name    "_xbart_"
 
 #define SWIGVERSION 0x030012 
 #define SWIG_VERSION SWIGVERSION
@@ -3116,7 +3116,7 @@ namespace swig {
 
 
 #define SWIG_FILE_WITH_INIT
-#include "xbart.h"
+#include "xbart_.h"
 
 
 
@@ -3932,9 +3932,9 @@ SWIGINTERNINLINE PyObject*
 #ifdef __cplusplus
 extern "C" {
 #endif
-SWIGINTERN PyObject *_wrap_XBARTParams_M_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_M_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   size_t arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3943,15 +3943,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_M_set(PyObject *SWIGUNUSEDPARM(self), PyO
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_M_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_M_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_M_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_M_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_M_set" "', argument " "2"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_M_set" "', argument " "2"" of type '" "size_t""'");
   } 
   arg2 = static_cast< size_t >(val2);
   if (arg1) (arg1)->M = arg2;
@@ -3962,20 +3962,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_M_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_M_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   size_t result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_M_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_M_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_M_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_M_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result =  ((arg1)->M);
   resultobj = SWIG_From_size_t(static_cast< size_t >(result));
   return resultobj;
@@ -3984,9 +3984,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_L_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_L_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   size_t arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3995,15 +3995,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_L_set(PyObject *SWIGUNUSEDPARM(self), PyO
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_L_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_L_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_L_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_L_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_L_set" "', argument " "2"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_L_set" "', argument " "2"" of type '" "size_t""'");
   } 
   arg2 = static_cast< size_t >(val2);
   if (arg1) (arg1)->L = arg2;
@@ -4014,20 +4014,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_L_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_L_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   size_t result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_L_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_L_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_L_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_L_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result =  ((arg1)->L);
   resultobj = SWIG_From_size_t(static_cast< size_t >(result));
   return resultobj;
@@ -4036,9 +4036,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_N_sweeps_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_N_sweeps_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   size_t arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4047,15 +4047,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_N_sweeps_set(PyObject *SWIGUNUSEDPARM(sel
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_N_sweeps_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_N_sweeps_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_N_sweeps_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_N_sweeps_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_N_sweeps_set" "', argument " "2"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_N_sweeps_set" "', argument " "2"" of type '" "size_t""'");
   } 
   arg2 = static_cast< size_t >(val2);
   if (arg1) (arg1)->N_sweeps = arg2;
@@ -4066,20 +4066,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_N_sweeps_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_N_sweeps_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   size_t result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_N_sweeps_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_N_sweeps_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_N_sweeps_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_N_sweeps_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result =  ((arg1)->N_sweeps);
   resultobj = SWIG_From_size_t(static_cast< size_t >(result));
   return resultobj;
@@ -4088,9 +4088,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_Nmin_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_Nmin_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   size_t arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4099,15 +4099,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_Nmin_set(PyObject *SWIGUNUSEDPARM(self), 
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_Nmin_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_Nmin_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_Nmin_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_Nmin_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_Nmin_set" "', argument " "2"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_Nmin_set" "', argument " "2"" of type '" "size_t""'");
   } 
   arg2 = static_cast< size_t >(val2);
   if (arg1) (arg1)->Nmin = arg2;
@@ -4118,20 +4118,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_Nmin_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_Nmin_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   size_t result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_Nmin_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_Nmin_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_Nmin_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_Nmin_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result =  ((arg1)->Nmin);
   resultobj = SWIG_From_size_t(static_cast< size_t >(result));
   return resultobj;
@@ -4140,9 +4140,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_Ncutpoints_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_Ncutpoints_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   size_t arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4151,15 +4151,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_Ncutpoints_set(PyObject *SWIGUNUSEDPARM(s
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_Ncutpoints_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_Ncutpoints_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_Ncutpoints_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_Ncutpoints_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_Ncutpoints_set" "', argument " "2"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_Ncutpoints_set" "', argument " "2"" of type '" "size_t""'");
   } 
   arg2 = static_cast< size_t >(val2);
   if (arg1) (arg1)->Ncutpoints = arg2;
@@ -4170,20 +4170,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_Ncutpoints_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_Ncutpoints_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   size_t result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_Ncutpoints_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_Ncutpoints_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_Ncutpoints_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_Ncutpoints_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result =  ((arg1)->Ncutpoints);
   resultobj = SWIG_From_size_t(static_cast< size_t >(result));
   return resultobj;
@@ -4192,9 +4192,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_burnin_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_burnin_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   size_t arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4203,15 +4203,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_burnin_set(PyObject *SWIGUNUSEDPARM(self)
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_burnin_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_burnin_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_burnin_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_burnin_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_burnin_set" "', argument " "2"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_burnin_set" "', argument " "2"" of type '" "size_t""'");
   } 
   arg2 = static_cast< size_t >(val2);
   if (arg1) (arg1)->burnin = arg2;
@@ -4222,20 +4222,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_burnin_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_burnin_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   size_t result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_burnin_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_burnin_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_burnin_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_burnin_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result =  ((arg1)->burnin);
   resultobj = SWIG_From_size_t(static_cast< size_t >(result));
   return resultobj;
@@ -4244,9 +4244,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_mtry_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_mtry_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   size_t arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4255,15 +4255,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_mtry_set(PyObject *SWIGUNUSEDPARM(self), 
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_mtry_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_mtry_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_mtry_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_mtry_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_mtry_set" "', argument " "2"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_mtry_set" "', argument " "2"" of type '" "size_t""'");
   } 
   arg2 = static_cast< size_t >(val2);
   if (arg1) (arg1)->mtry = arg2;
@@ -4274,20 +4274,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_mtry_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_mtry_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   size_t result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_mtry_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_mtry_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_mtry_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_mtry_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result =  ((arg1)->mtry);
   resultobj = SWIG_From_size_t(static_cast< size_t >(result));
   return resultobj;
@@ -4296,9 +4296,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_max_depth_num_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_max_depth_num_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   size_t arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4307,15 +4307,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_max_depth_num_set(PyObject *SWIGUNUSEDPAR
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_max_depth_num_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_max_depth_num_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_max_depth_num_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_max_depth_num_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_max_depth_num_set" "', argument " "2"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_max_depth_num_set" "', argument " "2"" of type '" "size_t""'");
   } 
   arg2 = static_cast< size_t >(val2);
   if (arg1) (arg1)->max_depth_num = arg2;
@@ -4326,20 +4326,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_max_depth_num_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_max_depth_num_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   size_t result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_max_depth_num_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_max_depth_num_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_max_depth_num_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_max_depth_num_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result =  ((arg1)->max_depth_num);
   resultobj = SWIG_From_size_t(static_cast< size_t >(result));
   return resultobj;
@@ -4348,9 +4348,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_alpha_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_alpha_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   double arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4359,15 +4359,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_alpha_set(PyObject *SWIGUNUSEDPARM(self),
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_alpha_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_alpha_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_alpha_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_alpha_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_alpha_set" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_alpha_set" "', argument " "2"" of type '" "double""'");
   } 
   arg2 = static_cast< double >(val2);
   if (arg1) (arg1)->alpha = arg2;
@@ -4378,20 +4378,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_alpha_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_alpha_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   double result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_alpha_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_alpha_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_alpha_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_alpha_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result = (double) ((arg1)->alpha);
   resultobj = SWIG_From_double(static_cast< double >(result));
   return resultobj;
@@ -4400,9 +4400,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_beta_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_beta_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   double arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4411,15 +4411,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_beta_set(PyObject *SWIGUNUSEDPARM(self), 
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_beta_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_beta_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_beta_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_beta_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_beta_set" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_beta_set" "', argument " "2"" of type '" "double""'");
   } 
   arg2 = static_cast< double >(val2);
   if (arg1) (arg1)->beta = arg2;
@@ -4430,20 +4430,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_beta_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_beta_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   double result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_beta_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_beta_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_beta_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_beta_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result = (double) ((arg1)->beta);
   resultobj = SWIG_From_double(static_cast< double >(result));
   return resultobj;
@@ -4452,9 +4452,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_tau_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_tau_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   double arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4463,15 +4463,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_tau_set(PyObject *SWIGUNUSEDPARM(self), P
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_tau_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_tau_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_tau_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_tau_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_tau_set" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_tau_set" "', argument " "2"" of type '" "double""'");
   } 
   arg2 = static_cast< double >(val2);
   if (arg1) (arg1)->tau = arg2;
@@ -4482,20 +4482,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_tau_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_tau_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   double result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_tau_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_tau_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_tau_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_tau_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result = (double) ((arg1)->tau);
   resultobj = SWIG_From_double(static_cast< double >(result));
   return resultobj;
@@ -4504,9 +4504,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_kap_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_kap_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   double arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4515,15 +4515,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_kap_set(PyObject *SWIGUNUSEDPARM(self), P
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_kap_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_kap_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_kap_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_kap_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_kap_set" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_kap_set" "', argument " "2"" of type '" "double""'");
   } 
   arg2 = static_cast< double >(val2);
   if (arg1) (arg1)->kap = arg2;
@@ -4534,20 +4534,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_kap_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_kap_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   double result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_kap_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_kap_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_kap_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_kap_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result = (double) ((arg1)->kap);
   resultobj = SWIG_From_double(static_cast< double >(result));
   return resultobj;
@@ -4556,9 +4556,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_s_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_s_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   double arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4567,15 +4567,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_s_set(PyObject *SWIGUNUSEDPARM(self), PyO
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_s_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_s_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_s_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_s_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_double(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_s_set" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_s_set" "', argument " "2"" of type '" "double""'");
   } 
   arg2 = static_cast< double >(val2);
   if (arg1) (arg1)->s = arg2;
@@ -4586,20 +4586,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_s_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_s_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   double result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_s_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_s_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_s_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_s_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result = (double) ((arg1)->s);
   resultobj = SWIG_From_double(static_cast< double >(result));
   return resultobj;
@@ -4608,9 +4608,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_draw_sigma_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_draw_sigma_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   bool arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4619,15 +4619,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_draw_sigma_set(PyObject *SWIGUNUSEDPARM(s
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_draw_sigma_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_draw_sigma_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_draw_sigma_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_draw_sigma_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_bool(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_draw_sigma_set" "', argument " "2"" of type '" "bool""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_draw_sigma_set" "', argument " "2"" of type '" "bool""'");
   } 
   arg2 = static_cast< bool >(val2);
   if (arg1) (arg1)->draw_sigma = arg2;
@@ -4638,20 +4638,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_draw_sigma_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_draw_sigma_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   bool result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_draw_sigma_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_draw_sigma_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_draw_sigma_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_draw_sigma_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result = (bool) ((arg1)->draw_sigma);
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
@@ -4660,9 +4660,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_verbose_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_verbose_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   bool arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4671,15 +4671,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_verbose_set(PyObject *SWIGUNUSEDPARM(self
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_verbose_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_verbose_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_verbose_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_verbose_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_bool(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_verbose_set" "', argument " "2"" of type '" "bool""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_verbose_set" "', argument " "2"" of type '" "bool""'");
   } 
   arg2 = static_cast< bool >(val2);
   if (arg1) (arg1)->verbose = arg2;
@@ -4690,20 +4690,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_verbose_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_verbose_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   bool result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_verbose_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_verbose_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_verbose_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_verbose_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result = (bool) ((arg1)->verbose);
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
@@ -4712,9 +4712,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_m_update_sigma_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_m_update_sigma_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   bool arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4723,15 +4723,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_m_update_sigma_set(PyObject *SWIGUNUSEDPA
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_m_update_sigma_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_m_update_sigma_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_m_update_sigma_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_m_update_sigma_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_bool(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_m_update_sigma_set" "', argument " "2"" of type '" "bool""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_m_update_sigma_set" "', argument " "2"" of type '" "bool""'");
   } 
   arg2 = static_cast< bool >(val2);
   if (arg1) (arg1)->m_update_sigma = arg2;
@@ -4742,20 +4742,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_m_update_sigma_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_m_update_sigma_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   bool result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_m_update_sigma_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_m_update_sigma_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_m_update_sigma_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_m_update_sigma_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result = (bool) ((arg1)->m_update_sigma);
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
@@ -4764,9 +4764,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_draw_mu_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_draw_mu_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   bool arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4775,15 +4775,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_draw_mu_set(PyObject *SWIGUNUSEDPARM(self
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_draw_mu_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_draw_mu_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_draw_mu_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_draw_mu_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_bool(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_draw_mu_set" "', argument " "2"" of type '" "bool""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_draw_mu_set" "', argument " "2"" of type '" "bool""'");
   } 
   arg2 = static_cast< bool >(val2);
   if (arg1) (arg1)->draw_mu = arg2;
@@ -4794,20 +4794,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_draw_mu_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_draw_mu_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   bool result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_draw_mu_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_draw_mu_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_draw_mu_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_draw_mu_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result = (bool) ((arg1)->draw_mu);
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
@@ -4816,9 +4816,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_parallel_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_parallel_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   bool arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4827,15 +4827,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_parallel_set(PyObject *SWIGUNUSEDPARM(sel
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_parallel_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_parallel_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_parallel_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_parallel_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_bool(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_parallel_set" "', argument " "2"" of type '" "bool""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_parallel_set" "', argument " "2"" of type '" "bool""'");
   } 
   arg2 = static_cast< bool >(val2);
   if (arg1) (arg1)->parallel = arg2;
@@ -4846,20 +4846,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_parallel_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_parallel_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   bool result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_parallel_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_parallel_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_parallel_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_parallel_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result = (bool) ((arg1)->parallel);
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
@@ -4868,9 +4868,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_seed_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_seed_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   int arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4879,15 +4879,15 @@ SWIGINTERN PyObject *_wrap_XBARTParams_seed_set(PyObject *SWIGUNUSEDPARM(self), 
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTParams_seed_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcppParams_seed_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_seed_set" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_seed_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_int(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTParams_seed_set" "', argument " "2"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_seed_set" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
   if (arg1) (arg1)->seed = arg2;
@@ -4898,20 +4898,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTParams_seed_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_seed_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   int result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTParams_seed_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcppParams_seed_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTParams_seed_get" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_seed_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   result = (int) ((arg1)->seed);
   resultobj = SWIG_From_int(static_cast< int >(result));
   return resultobj;
@@ -4920,32 +4920,32 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_new_XBARTParams(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_new_XBARTcppParams(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *result = 0 ;
+  XBARTcppParams *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)":new_XBARTParams")) SWIG_fail;
-  result = (XBARTParams *)new XBARTParams();
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_XBARTParams, SWIG_POINTER_NEW |  0 );
+  if (!PyArg_ParseTuple(args,(char *)":new_XBARTcppParams")) SWIG_fail;
+  result = (XBARTcppParams *)new XBARTcppParams();
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_XBARTcppParams, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_delete_XBARTParams(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_delete_XBARTcppParams(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams *arg1 = (XBARTParams *) 0 ;
+  XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:delete_XBARTParams",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTParams, SWIG_POINTER_DISOWN |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_XBARTcppParams",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcppParams, SWIG_POINTER_DISOWN |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_XBARTParams" "', argument " "1"" of type '" "XBARTParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_XBARTcppParams" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
-  arg1 = reinterpret_cast< XBARTParams * >(argp1);
+  arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   delete arg1;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -4954,44 +4954,44 @@ fail:
 }
 
 
-SWIGINTERN PyObject *XBARTParams_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *XBARTcppParams_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *obj;
   if (!PyArg_ParseTuple(args,(char *)"O:swigregister", &obj)) return NULL;
-  SWIG_TypeNewClientData(SWIGTYPE_p_XBARTParams, SWIG_NewClientData(obj));
+  SWIG_TypeNewClientData(SWIGTYPE_p_XBARTcppParams, SWIG_NewClientData(obj));
   return SWIG_Py_Void();
 }
 
-SWIGINTERN PyObject *_wrap_new_XBART__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_new_XBARTcpp__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBARTParams arg1 ;
+  XBARTcppParams arg1 ;
   void *argp1 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  XBART *result = 0 ;
+  XBARTcpp *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:new_XBART",&obj0)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"O:new_XBARTcpp",&obj0)) SWIG_fail;
   {
-    res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_XBARTParams,  0  | 0);
+    res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_XBARTcppParams,  0  | 0);
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_XBART" "', argument " "1"" of type '" "XBARTParams""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_XBARTcpp" "', argument " "1"" of type '" "XBARTcppParams""'"); 
     }  
     if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "new_XBART" "', argument " "1"" of type '" "XBARTParams""'");
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "new_XBARTcpp" "', argument " "1"" of type '" "XBARTcppParams""'");
     } else {
-      XBARTParams * temp = reinterpret_cast< XBARTParams * >(argp1);
+      XBARTcppParams * temp = reinterpret_cast< XBARTcppParams * >(argp1);
       arg1 = *temp;
       if (SWIG_IsNewObj(res1)) delete temp;
     }
   }
-  result = (XBART *)new XBART(arg1);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_XBART, SWIG_POINTER_NEW |  0 );
+  result = (XBARTcpp *)new XBARTcpp(arg1);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_XBARTcpp, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_new_XBART__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_new_XBARTcpp__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   size_t arg1 ;
   size_t arg2 ;
@@ -5069,113 +5069,113 @@ SWIGINTERN PyObject *_wrap_new_XBART__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyO
   PyObject * obj16 = 0 ;
   PyObject * obj17 = 0 ;
   PyObject * obj18 = 0 ;
-  XBART *result = 0 ;
+  XBARTcpp *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOOOOOOOO:new_XBART",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13,&obj14,&obj15,&obj16,&obj17,&obj18)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOOOOOOOO:new_XBARTcpp",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13,&obj14,&obj15,&obj16,&obj17,&obj18)) SWIG_fail;
   ecode1 = SWIG_AsVal_size_t(obj0, &val1);
   if (!SWIG_IsOK(ecode1)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "new_XBART" "', argument " "1"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "new_XBARTcpp" "', argument " "1"" of type '" "size_t""'");
   } 
   arg1 = static_cast< size_t >(val1);
   ecode2 = SWIG_AsVal_size_t(obj1, &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "new_XBART" "', argument " "2"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "new_XBARTcpp" "', argument " "2"" of type '" "size_t""'");
   } 
   arg2 = static_cast< size_t >(val2);
   ecode3 = SWIG_AsVal_size_t(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "new_XBART" "', argument " "3"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "new_XBARTcpp" "', argument " "3"" of type '" "size_t""'");
   } 
   arg3 = static_cast< size_t >(val3);
   ecode4 = SWIG_AsVal_size_t(obj3, &val4);
   if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "new_XBART" "', argument " "4"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "new_XBARTcpp" "', argument " "4"" of type '" "size_t""'");
   } 
   arg4 = static_cast< size_t >(val4);
   ecode5 = SWIG_AsVal_size_t(obj4, &val5);
   if (!SWIG_IsOK(ecode5)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "new_XBART" "', argument " "5"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "new_XBARTcpp" "', argument " "5"" of type '" "size_t""'");
   } 
   arg5 = static_cast< size_t >(val5);
   ecode6 = SWIG_AsVal_double(obj5, &val6);
   if (!SWIG_IsOK(ecode6)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "new_XBART" "', argument " "6"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "new_XBARTcpp" "', argument " "6"" of type '" "double""'");
   } 
   arg6 = static_cast< double >(val6);
   ecode7 = SWIG_AsVal_double(obj6, &val7);
   if (!SWIG_IsOK(ecode7)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "new_XBART" "', argument " "7"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "new_XBARTcpp" "', argument " "7"" of type '" "double""'");
   } 
   arg7 = static_cast< double >(val7);
   ecode8 = SWIG_AsVal_double(obj7, &val8);
   if (!SWIG_IsOK(ecode8)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "new_XBART" "', argument " "8"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "new_XBARTcpp" "', argument " "8"" of type '" "double""'");
   } 
   arg8 = static_cast< double >(val8);
   ecode9 = SWIG_AsVal_size_t(obj8, &val9);
   if (!SWIG_IsOK(ecode9)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "new_XBART" "', argument " "9"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "new_XBARTcpp" "', argument " "9"" of type '" "size_t""'");
   } 
   arg9 = static_cast< size_t >(val9);
   ecode10 = SWIG_AsVal_size_t(obj9, &val10);
   if (!SWIG_IsOK(ecode10)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "new_XBART" "', argument " "10"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "new_XBARTcpp" "', argument " "10"" of type '" "size_t""'");
   } 
   arg10 = static_cast< size_t >(val10);
   ecode11 = SWIG_AsVal_size_t(obj10, &val11);
   if (!SWIG_IsOK(ecode11)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "new_XBART" "', argument " "11"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "new_XBARTcpp" "', argument " "11"" of type '" "size_t""'");
   } 
   arg11 = static_cast< size_t >(val11);
   ecode12 = SWIG_AsVal_bool(obj11, &val12);
   if (!SWIG_IsOK(ecode12)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "new_XBART" "', argument " "12"" of type '" "bool""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "new_XBARTcpp" "', argument " "12"" of type '" "bool""'");
   } 
   arg12 = static_cast< bool >(val12);
   ecode13 = SWIG_AsVal_double(obj12, &val13);
   if (!SWIG_IsOK(ecode13)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "new_XBART" "', argument " "13"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "new_XBARTcpp" "', argument " "13"" of type '" "double""'");
   } 
   arg13 = static_cast< double >(val13);
   ecode14 = SWIG_AsVal_double(obj13, &val14);
   if (!SWIG_IsOK(ecode14)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "new_XBART" "', argument " "14"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "new_XBARTcpp" "', argument " "14"" of type '" "double""'");
   } 
   arg14 = static_cast< double >(val14);
   ecode15 = SWIG_AsVal_bool(obj14, &val15);
   if (!SWIG_IsOK(ecode15)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode15), "in method '" "new_XBART" "', argument " "15"" of type '" "bool""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode15), "in method '" "new_XBARTcpp" "', argument " "15"" of type '" "bool""'");
   } 
   arg15 = static_cast< bool >(val15);
   ecode16 = SWIG_AsVal_bool(obj15, &val16);
   if (!SWIG_IsOK(ecode16)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode16), "in method '" "new_XBART" "', argument " "16"" of type '" "bool""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode16), "in method '" "new_XBARTcpp" "', argument " "16"" of type '" "bool""'");
   } 
   arg16 = static_cast< bool >(val16);
   ecode17 = SWIG_AsVal_bool(obj16, &val17);
   if (!SWIG_IsOK(ecode17)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode17), "in method '" "new_XBART" "', argument " "17"" of type '" "bool""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode17), "in method '" "new_XBARTcpp" "', argument " "17"" of type '" "bool""'");
   } 
   arg17 = static_cast< bool >(val17);
   ecode18 = SWIG_AsVal_bool(obj17, &val18);
   if (!SWIG_IsOK(ecode18)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode18), "in method '" "new_XBART" "', argument " "18"" of type '" "bool""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode18), "in method '" "new_XBARTcpp" "', argument " "18"" of type '" "bool""'");
   } 
   arg18 = static_cast< bool >(val18);
   ecode19 = SWIG_AsVal_int(obj18, &val19);
   if (!SWIG_IsOK(ecode19)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode19), "in method '" "new_XBART" "', argument " "19"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode19), "in method '" "new_XBARTcpp" "', argument " "19"" of type '" "int""'");
   } 
   arg19 = static_cast< int >(val19);
-  result = (XBART *)new XBART(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_XBART, SWIG_POINTER_NEW |  0 );
+  result = (XBARTcpp *)new XBARTcpp(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_XBARTcpp, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
   return NULL;
 }
 
 
-SWIGINTERN PyObject *_wrap_new_XBART(PyObject *self, PyObject *args) {
+SWIGINTERN PyObject *_wrap_new_XBARTcpp(PyObject *self, PyObject *args) {
   Py_ssize_t argc;
   PyObject *argv[20] = {
     0
@@ -5189,10 +5189,10 @@ SWIGINTERN PyObject *_wrap_new_XBART(PyObject *self, PyObject *args) {
   }
   if (argc == 1) {
     int _v;
-    int res = SWIG_ConvertPtr(argv[0], 0, SWIGTYPE_p_XBARTParams, 0);
+    int res = SWIG_ConvertPtr(argv[0], 0, SWIGTYPE_p_XBARTcppParams, 0);
     _v = SWIG_CheckState(res);
     if (_v) {
-      return _wrap_new_XBART__SWIG_0(self, args);
+      return _wrap_new_XBARTcpp__SWIG_0(self, args);
     }
   }
   if (argc == 19) {
@@ -5292,7 +5292,7 @@ SWIGINTERN PyObject *_wrap_new_XBART(PyObject *self, PyObject *args) {
                                           _v = SWIG_CheckState(res);
                                         }
                                         if (_v) {
-                                          return _wrap_new_XBART__SWIG_1(self, args);
+                                          return _wrap_new_XBARTcpp__SWIG_1(self, args);
                                         }
                                       }
                                     }
@@ -5315,17 +5315,17 @@ SWIGINTERN PyObject *_wrap_new_XBART(PyObject *self, PyObject *args) {
   }
   
 fail:
-  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'new_XBART'.\n"
+  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'new_XBARTcpp'.\n"
     "  Possible C/C++ prototypes are:\n"
-    "    XBART::XBART(XBARTParams)\n"
-    "    XBART::XBART(size_t,size_t,size_t,size_t,size_t,double,double,double,size_t,size_t,size_t,bool,double,double,bool,bool,bool,bool,int)\n");
+    "    XBARTcpp::XBARTcpp(XBARTcppParams)\n"
+    "    XBARTcpp::XBARTcpp(size_t,size_t,size_t,size_t,size_t,double,double,double,size_t,size_t,size_t,bool,double,double,bool,bool,bool,bool,int)\n");
   return 0;
 }
 
 
-SWIGINTERN PyObject *_wrap_XBART_sort_x(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp_sort_x(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBART *arg1 = (XBART *) 0 ;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   int arg2 ;
   int arg3 ;
   double *arg4 = (double *) 0 ;
@@ -5340,12 +5340,12 @@ SWIGINTERN PyObject *_wrap_XBART_sort_x(PyObject *SWIGUNUSEDPARM(self), PyObject
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOO:XBART_sort_x",&obj0,&obj1,&obj2)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBART, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OOO:XBARTcpp_sort_x",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBART_sort_x" "', argument " "1"" of type '" "XBART *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_sort_x" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
-  arg1 = reinterpret_cast< XBART * >(argp1);
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   {
     npy_intp size[2] = {
       -1, -1 
@@ -5398,9 +5398,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBART___fit_predict_all(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp___fit_predict_all(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBART *arg1 = (XBART *) 0 ;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   int arg2 ;
   int arg3 ;
   double *arg4 = (double *) 0 ;
@@ -5430,12 +5430,12 @@ SWIGINTERN PyObject *_wrap_XBART___fit_predict_all(PyObject *SWIGUNUSEDPARM(self
   PyObject * obj4 = 0 ;
   PyObject * obj5 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:XBART___fit_predict_all",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBART, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:XBARTcpp___fit_predict_all",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBART___fit_predict_all" "', argument " "1"" of type '" "XBART *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp___fit_predict_all" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
-  arg1 = reinterpret_cast< XBART * >(argp1);
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   {
     npy_intp size[2] = {
       -1, -1 
@@ -5492,7 +5492,7 @@ SWIGINTERN PyObject *_wrap_XBART___fit_predict_all(PyObject *SWIGUNUSEDPARM(self
   }
   ecode12 = SWIG_AsVal_size_t(obj5, &val12);
   if (!SWIG_IsOK(ecode12)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "XBART___fit_predict_all" "', argument " "12"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "XBARTcpp___fit_predict_all" "', argument " "12"" of type '" "size_t""'");
   } 
   arg12 = static_cast< size_t >(val12);
   (arg1)->__fit_predict_all(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
@@ -5542,9 +5542,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBART___predict_all(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp___predict_all(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBART *arg1 = (XBART *) 0 ;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   int arg2 ;
   int arg3 ;
   double *arg4 = (double *) 0 ;
@@ -5555,12 +5555,12 @@ SWIGINTERN PyObject *_wrap_XBART___predict_all(PyObject *SWIGUNUSEDPARM(self), P
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBART___predict_all",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBART, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcpp___predict_all",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBART___predict_all" "', argument " "1"" of type '" "XBART *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp___predict_all" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
-  arg1 = reinterpret_cast< XBART * >(argp1);
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   {
     npy_intp size[2] = {
       -1, -1 
@@ -5594,9 +5594,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBART___fit_all(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp___fit_all(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBART *arg1 = (XBART *) 0 ;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   int arg2 ;
   int arg3 ;
   double *arg4 = (double *) 0 ;
@@ -5616,12 +5616,12 @@ SWIGINTERN PyObject *_wrap_XBART___fit_all(PyObject *SWIGUNUSEDPARM(self), PyObj
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:XBART___fit_all",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBART, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:XBARTcpp___fit_all",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBART___fit_all" "', argument " "1"" of type '" "XBART *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp___fit_all" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
-  arg1 = reinterpret_cast< XBART * >(argp1);
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   {
     npy_intp size[2] = {
       -1, -1 
@@ -5649,7 +5649,7 @@ SWIGINTERN PyObject *_wrap_XBART___fit_all(PyObject *SWIGUNUSEDPARM(self), PyObj
   }
   ecode7 = SWIG_AsVal_size_t(obj3, &val7);
   if (!SWIG_IsOK(ecode7)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "XBART___fit_all" "', argument " "7"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "XBARTcpp___fit_all" "', argument " "7"" of type '" "size_t""'");
   } 
   arg7 = static_cast< size_t >(val7);
   (arg1)->__fit_all(arg2,arg3,arg4,arg5,arg6,arg7);
@@ -5684,20 +5684,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBART_get_M(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp_get_M(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBART *arg1 = (XBART *) 0 ;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   int result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBART_get_M",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBART, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcpp_get_M",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBART_get_M" "', argument " "1"" of type '" "XBART *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_get_M" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
-  arg1 = reinterpret_cast< XBART * >(argp1);
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   result = (int)(arg1)->get_M();
   resultobj = SWIG_From_int(static_cast< int >(result));
   return resultobj;
@@ -5706,20 +5706,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBART_get_N_sweeps(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp_get_N_sweeps(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBART *arg1 = (XBART *) 0 ;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   int result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBART_get_N_sweeps",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBART, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcpp_get_N_sweeps",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBART_get_N_sweeps" "', argument " "1"" of type '" "XBART *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_get_N_sweeps" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
-  arg1 = reinterpret_cast< XBART * >(argp1);
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   result = (int)(arg1)->get_N_sweeps();
   resultobj = SWIG_From_int(static_cast< int >(result));
   return resultobj;
@@ -5728,20 +5728,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBART_get_burnin(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp_get_burnin(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBART *arg1 = (XBART *) 0 ;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   int result;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBART_get_burnin",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBART, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcpp_get_burnin",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBART_get_burnin" "', argument " "1"" of type '" "XBART *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_get_burnin" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
-  arg1 = reinterpret_cast< XBART * >(argp1);
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   result = (int)(arg1)->get_burnin();
   resultobj = SWIG_From_int(static_cast< int >(result));
   return resultobj;
@@ -5750,9 +5750,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBART_get_yhats(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp_get_yhats(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBART *arg1 = (XBART *) 0 ;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   int arg2 ;
   double *arg3 = (double *) 0 ;
   void *argp1 = 0 ;
@@ -5761,12 +5761,12 @@ SWIGINTERN PyObject *_wrap_XBART_get_yhats(PyObject *SWIGUNUSEDPARM(self), PyObj
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBART_get_yhats",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBART, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcpp_get_yhats",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBART_get_yhats" "', argument " "1"" of type '" "XBART *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_get_yhats" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
-  arg1 = reinterpret_cast< XBART * >(argp1);
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   {
     npy_intp dims[1];
     if (!PyInt_Check(obj1))
@@ -5794,9 +5794,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBART_get_yhats_test(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp_get_yhats_test(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBART *arg1 = (XBART *) 0 ;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   int arg2 ;
   double *arg3 = (double *) 0 ;
   void *argp1 = 0 ;
@@ -5805,12 +5805,12 @@ SWIGINTERN PyObject *_wrap_XBART_get_yhats_test(PyObject *SWIGUNUSEDPARM(self), 
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBART_get_yhats_test",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBART, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcpp_get_yhats_test",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBART_get_yhats_test" "', argument " "1"" of type '" "XBART *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_get_yhats_test" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
-  arg1 = reinterpret_cast< XBART * >(argp1);
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   {
     npy_intp dims[1];
     if (!PyInt_Check(obj1))
@@ -5838,9 +5838,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBART_get_sigma_draw(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp_get_sigma_draw(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBART *arg1 = (XBART *) 0 ;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   int arg2 ;
   double *arg3 = (double *) 0 ;
   void *argp1 = 0 ;
@@ -5849,12 +5849,12 @@ SWIGINTERN PyObject *_wrap_XBART_get_sigma_draw(PyObject *SWIGUNUSEDPARM(self), 
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBART_get_sigma_draw",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBART, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcpp_get_sigma_draw",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBART_get_sigma_draw" "', argument " "1"" of type '" "XBART *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_get_sigma_draw" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
-  arg1 = reinterpret_cast< XBART * >(argp1);
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   {
     npy_intp dims[1];
     if (!PyInt_Check(obj1))
@@ -5882,9 +5882,9 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBART_get_importance(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp_get_importance(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBART *arg1 = (XBART *) 0 ;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   int arg2 ;
   double *arg3 = (double *) 0 ;
   void *argp1 = 0 ;
@@ -5893,12 +5893,12 @@ SWIGINTERN PyObject *_wrap_XBART_get_importance(PyObject *SWIGUNUSEDPARM(self), 
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:XBART_get_importance",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBART, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"OO:XBARTcpp_get_importance",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBART_get_importance" "', argument " "1"" of type '" "XBART *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_get_importance" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
-  arg1 = reinterpret_cast< XBART * >(argp1);
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   {
     npy_intp dims[1];
     if (!PyInt_Check(obj1))
@@ -5926,19 +5926,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBART_test_random_generator(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp_test_random_generator(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBART *arg1 = (XBART *) 0 ;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:XBART_test_random_generator",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBART, 0 |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcpp_test_random_generator",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBART_test_random_generator" "', argument " "1"" of type '" "XBART *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_test_random_generator" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
-  arg1 = reinterpret_cast< XBART * >(argp1);
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   (arg1)->test_random_generator();
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -5947,19 +5947,19 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_delete_XBART(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_delete_XBARTcpp(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  XBART *arg1 = (XBART *) 0 ;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"O:delete_XBART",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBART, SWIG_POINTER_DISOWN |  0 );
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_XBARTcpp",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcpp, SWIG_POINTER_DISOWN |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_XBART" "', argument " "1"" of type '" "XBART *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_XBARTcpp" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
-  arg1 = reinterpret_cast< XBART * >(argp1);
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   delete arg1;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -5968,103 +5968,103 @@ fail:
 }
 
 
-SWIGINTERN PyObject *XBART_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *XBARTcpp_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *obj;
   if (!PyArg_ParseTuple(args,(char *)"O:swigregister", &obj)) return NULL;
-  SWIG_TypeNewClientData(SWIGTYPE_p_XBART, SWIG_NewClientData(obj));
+  SWIG_TypeNewClientData(SWIGTYPE_p_XBARTcpp, SWIG_NewClientData(obj));
   return SWIG_Py_Void();
 }
 
 static PyMethodDef SwigMethods[] = {
 	 { (char *)"SWIG_PyInstanceMethod_New", (PyCFunction)SWIG_PyInstanceMethod_New, METH_O, NULL},
-	 { (char *)"XBARTParams_M_set", _wrap_XBARTParams_M_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_M_get", _wrap_XBARTParams_M_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_L_set", _wrap_XBARTParams_L_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_L_get", _wrap_XBARTParams_L_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_N_sweeps_set", _wrap_XBARTParams_N_sweeps_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_N_sweeps_get", _wrap_XBARTParams_N_sweeps_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_Nmin_set", _wrap_XBARTParams_Nmin_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_Nmin_get", _wrap_XBARTParams_Nmin_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_Ncutpoints_set", _wrap_XBARTParams_Ncutpoints_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_Ncutpoints_get", _wrap_XBARTParams_Ncutpoints_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_burnin_set", _wrap_XBARTParams_burnin_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_burnin_get", _wrap_XBARTParams_burnin_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_mtry_set", _wrap_XBARTParams_mtry_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_mtry_get", _wrap_XBARTParams_mtry_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_max_depth_num_set", _wrap_XBARTParams_max_depth_num_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_max_depth_num_get", _wrap_XBARTParams_max_depth_num_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_alpha_set", _wrap_XBARTParams_alpha_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_alpha_get", _wrap_XBARTParams_alpha_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_beta_set", _wrap_XBARTParams_beta_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_beta_get", _wrap_XBARTParams_beta_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_tau_set", _wrap_XBARTParams_tau_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_tau_get", _wrap_XBARTParams_tau_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_kap_set", _wrap_XBARTParams_kap_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_kap_get", _wrap_XBARTParams_kap_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_s_set", _wrap_XBARTParams_s_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_s_get", _wrap_XBARTParams_s_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_draw_sigma_set", _wrap_XBARTParams_draw_sigma_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_draw_sigma_get", _wrap_XBARTParams_draw_sigma_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_verbose_set", _wrap_XBARTParams_verbose_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_verbose_get", _wrap_XBARTParams_verbose_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_m_update_sigma_set", _wrap_XBARTParams_m_update_sigma_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_m_update_sigma_get", _wrap_XBARTParams_m_update_sigma_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_draw_mu_set", _wrap_XBARTParams_draw_mu_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_draw_mu_get", _wrap_XBARTParams_draw_mu_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_parallel_set", _wrap_XBARTParams_parallel_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_parallel_get", _wrap_XBARTParams_parallel_get, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_seed_set", _wrap_XBARTParams_seed_set, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_seed_get", _wrap_XBARTParams_seed_get, METH_VARARGS, NULL},
-	 { (char *)"new_XBARTParams", _wrap_new_XBARTParams, METH_VARARGS, NULL},
-	 { (char *)"delete_XBARTParams", _wrap_delete_XBARTParams, METH_VARARGS, NULL},
-	 { (char *)"XBARTParams_swigregister", XBARTParams_swigregister, METH_VARARGS, NULL},
-	 { (char *)"new_XBART", _wrap_new_XBART, METH_VARARGS, NULL},
-	 { (char *)"XBART_sort_x", _wrap_XBART_sort_x, METH_VARARGS, NULL},
-	 { (char *)"XBART___fit_predict_all", _wrap_XBART___fit_predict_all, METH_VARARGS, NULL},
-	 { (char *)"XBART___predict_all", _wrap_XBART___predict_all, METH_VARARGS, NULL},
-	 { (char *)"XBART___fit_all", _wrap_XBART___fit_all, METH_VARARGS, NULL},
-	 { (char *)"XBART_get_M", _wrap_XBART_get_M, METH_VARARGS, NULL},
-	 { (char *)"XBART_get_N_sweeps", _wrap_XBART_get_N_sweeps, METH_VARARGS, NULL},
-	 { (char *)"XBART_get_burnin", _wrap_XBART_get_burnin, METH_VARARGS, NULL},
-	 { (char *)"XBART_get_yhats", _wrap_XBART_get_yhats, METH_VARARGS, NULL},
-	 { (char *)"XBART_get_yhats_test", _wrap_XBART_get_yhats_test, METH_VARARGS, NULL},
-	 { (char *)"XBART_get_sigma_draw", _wrap_XBART_get_sigma_draw, METH_VARARGS, NULL},
-	 { (char *)"XBART_get_importance", _wrap_XBART_get_importance, METH_VARARGS, NULL},
-	 { (char *)"XBART_test_random_generator", _wrap_XBART_test_random_generator, METH_VARARGS, NULL},
-	 { (char *)"delete_XBART", _wrap_delete_XBART, METH_VARARGS, NULL},
-	 { (char *)"XBART_swigregister", XBART_swigregister, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_M_set", _wrap_XBARTcppParams_M_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_M_get", _wrap_XBARTcppParams_M_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_L_set", _wrap_XBARTcppParams_L_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_L_get", _wrap_XBARTcppParams_L_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_N_sweeps_set", _wrap_XBARTcppParams_N_sweeps_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_N_sweeps_get", _wrap_XBARTcppParams_N_sweeps_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_Nmin_set", _wrap_XBARTcppParams_Nmin_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_Nmin_get", _wrap_XBARTcppParams_Nmin_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_Ncutpoints_set", _wrap_XBARTcppParams_Ncutpoints_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_Ncutpoints_get", _wrap_XBARTcppParams_Ncutpoints_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_burnin_set", _wrap_XBARTcppParams_burnin_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_burnin_get", _wrap_XBARTcppParams_burnin_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_mtry_set", _wrap_XBARTcppParams_mtry_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_mtry_get", _wrap_XBARTcppParams_mtry_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_max_depth_num_set", _wrap_XBARTcppParams_max_depth_num_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_max_depth_num_get", _wrap_XBARTcppParams_max_depth_num_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_alpha_set", _wrap_XBARTcppParams_alpha_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_alpha_get", _wrap_XBARTcppParams_alpha_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_beta_set", _wrap_XBARTcppParams_beta_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_beta_get", _wrap_XBARTcppParams_beta_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_tau_set", _wrap_XBARTcppParams_tau_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_tau_get", _wrap_XBARTcppParams_tau_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_kap_set", _wrap_XBARTcppParams_kap_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_kap_get", _wrap_XBARTcppParams_kap_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_s_set", _wrap_XBARTcppParams_s_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_s_get", _wrap_XBARTcppParams_s_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_draw_sigma_set", _wrap_XBARTcppParams_draw_sigma_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_draw_sigma_get", _wrap_XBARTcppParams_draw_sigma_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_verbose_set", _wrap_XBARTcppParams_verbose_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_verbose_get", _wrap_XBARTcppParams_verbose_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_m_update_sigma_set", _wrap_XBARTcppParams_m_update_sigma_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_m_update_sigma_get", _wrap_XBARTcppParams_m_update_sigma_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_draw_mu_set", _wrap_XBARTcppParams_draw_mu_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_draw_mu_get", _wrap_XBARTcppParams_draw_mu_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_parallel_set", _wrap_XBARTcppParams_parallel_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_parallel_get", _wrap_XBARTcppParams_parallel_get, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_seed_set", _wrap_XBARTcppParams_seed_set, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_seed_get", _wrap_XBARTcppParams_seed_get, METH_VARARGS, NULL},
+	 { (char *)"new_XBARTcppParams", _wrap_new_XBARTcppParams, METH_VARARGS, NULL},
+	 { (char *)"delete_XBARTcppParams", _wrap_delete_XBARTcppParams, METH_VARARGS, NULL},
+	 { (char *)"XBARTcppParams_swigregister", XBARTcppParams_swigregister, METH_VARARGS, NULL},
+	 { (char *)"new_XBARTcpp", _wrap_new_XBARTcpp, METH_VARARGS, NULL},
+	 { (char *)"XBARTcpp_sort_x", _wrap_XBARTcpp_sort_x, METH_VARARGS, NULL},
+	 { (char *)"XBARTcpp___fit_predict_all", _wrap_XBARTcpp___fit_predict_all, METH_VARARGS, NULL},
+	 { (char *)"XBARTcpp___predict_all", _wrap_XBARTcpp___predict_all, METH_VARARGS, NULL},
+	 { (char *)"XBARTcpp___fit_all", _wrap_XBARTcpp___fit_all, METH_VARARGS, NULL},
+	 { (char *)"XBARTcpp_get_M", _wrap_XBARTcpp_get_M, METH_VARARGS, NULL},
+	 { (char *)"XBARTcpp_get_N_sweeps", _wrap_XBARTcpp_get_N_sweeps, METH_VARARGS, NULL},
+	 { (char *)"XBARTcpp_get_burnin", _wrap_XBARTcpp_get_burnin, METH_VARARGS, NULL},
+	 { (char *)"XBARTcpp_get_yhats", _wrap_XBARTcpp_get_yhats, METH_VARARGS, NULL},
+	 { (char *)"XBARTcpp_get_yhats_test", _wrap_XBARTcpp_get_yhats_test, METH_VARARGS, NULL},
+	 { (char *)"XBARTcpp_get_sigma_draw", _wrap_XBARTcpp_get_sigma_draw, METH_VARARGS, NULL},
+	 { (char *)"XBARTcpp_get_importance", _wrap_XBARTcpp_get_importance, METH_VARARGS, NULL},
+	 { (char *)"XBARTcpp_test_random_generator", _wrap_XBARTcpp_test_random_generator, METH_VARARGS, NULL},
+	 { (char *)"delete_XBARTcpp", _wrap_delete_XBARTcpp, METH_VARARGS, NULL},
+	 { (char *)"XBARTcpp_swigregister", XBARTcpp_swigregister, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }
 };
 
 
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
 
-static swig_type_info _swigt__p_XBART = {"_p_XBART", "XBART *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_XBARTParams = {"_p_XBARTParams", "XBARTParams *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_XBARTcpp = {"_p_XBARTcpp", "XBARTcpp *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_XBARTcppParams = {"_p_XBARTcppParams", "XBARTcppParams *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT_double_t = {"_p_std__vectorT_double_t", "vec_d *|std::vector< double > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT_std__vectorT_double_t_t = {"_p_std__vectorT_std__vectorT_double_t_t", "std::vector< std::vector< double > > *|xinfo *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
-  &_swigt__p_XBART,
-  &_swigt__p_XBARTParams,
+  &_swigt__p_XBARTcpp,
+  &_swigt__p_XBARTcppParams,
   &_swigt__p_char,
   &_swigt__p_double,
   &_swigt__p_std__vectorT_double_t,
   &_swigt__p_std__vectorT_std__vectorT_double_t_t,
 };
 
-static swig_cast_info _swigc__p_XBART[] = {  {&_swigt__p_XBART, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_XBARTParams[] = {  {&_swigt__p_XBARTParams, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_XBARTcpp[] = {  {&_swigt__p_XBARTcpp, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_XBARTcppParams[] = {  {&_swigt__p_XBARTcppParams, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_double[] = {  {&_swigt__p_double, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__vectorT_double_t[] = {  {&_swigt__p_std__vectorT_double_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__vectorT_std__vectorT_double_t_t[] = {  {&_swigt__p_std__vectorT_std__vectorT_double_t_t, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
-  _swigc__p_XBART,
-  _swigc__p_XBARTParams,
+  _swigc__p_XBARTcpp,
+  _swigc__p_XBARTcppParams,
   _swigc__p_char,
   _swigc__p_double,
   _swigc__p_std__vectorT_double_t,

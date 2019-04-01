@@ -18,13 +18,9 @@ class XBARTTesting1(unittest.TestCase):
 
 
 	def setUp(self):
-		self.params = OrderedDict([('M',1),('L',1),("N_sweeps",2)
-							,("Nmin",1),("Ncutpoints",5)
-							,("alpha",0.95),("beta",1.25 ),("tau",.8),("burnin",0),("mtry",2),("max_depth_num",5),
-							("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",True),
-							("draw_mu",False),("parallel",True),("seed",10)])
-		self.model = xbart.XBART(self.params)
-		self.model_2 = xbart.XBART(self.params)
+		self.params = {"num_trees":5,"num_sweeps":2,"num_cutpoints":10,"mtry":2,"max_depth_num":5}
+		self.model = xbart.XBART(**self.params)
+		self.model_2 = xbart.XBART(**self.params)
 		n = 100
 		self.x = np.random.rand(n)
 
