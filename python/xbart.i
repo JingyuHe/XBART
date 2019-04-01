@@ -4,7 +4,7 @@
 
 %{
 #define SWIG_FILE_WITH_INIT
-#include "xbart_.h"
+#include "xbart.h"
 
 %}
 
@@ -129,7 +129,7 @@ def fit(self,x,y,p_cat=0):
 
 };
 
-%include "xbart_.h"
+%include "xbart.h"
 
 
 

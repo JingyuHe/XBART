@@ -16,7 +16,7 @@ if platform == "darwin":
   compile_args.append("-mmacosx-version-min=10.9") # To ensure gnu+11 and all std libs
 
 XBART_module = Extension('_xbart_',
-                           sources=['xbart__wrap.cxx', 'xbart_.cpp',
+                           sources=['xbart_wrap.cxx', 'xbart.cpp',
                                     "src/utility.cpp",'src/fit_std_main_loop.cpp',
                                       "src/sample_int_crank.cpp",  "src/treefuns.cpp",
                                         "src/common.cpp" ,   "src/forest.cpp",    

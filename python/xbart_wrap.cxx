@@ -3116,7 +3116,7 @@ namespace swig {
 
 
 #define SWIG_FILE_WITH_INIT
-#include "xbart_.h"
+#include "xbart.h"
 
 
 
