@@ -44,7 +44,7 @@ ver=$($PYTHON_BIN -V 2>&1 | sed 's/.* \([0-9]\).\([0-9]\).*/\1\2/')
 if $SWIG_FLAG;then
 
   # remove swig files
-  [ -e XBART.py ] && rm XBART.py
+  [ -e xbart_cpp_.py ] && rm xbart_cpp_.py
   [ -e XBART.pyc ] && rm XBART.pyc
   [ -e XBART_wrap.cxx  ] && rm XBART_wrap.cxx 
 

@@ -1,4 +1,4 @@
-%module xbart_
+%module xbart_cpp_
 
 
 

@@ -7,11 +7,6 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
 import time
 
-# Add Parent Path
-import os,sys,inspect
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.append(parentdir) 
 import xbart
 
 class XBARTTesting1(unittest.TestCase):

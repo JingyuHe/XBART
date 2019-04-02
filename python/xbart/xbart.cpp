@@ -90,7 +90,7 @@ void XBARTcpp::sort_x(int n,int d,double *a,int size, double *arr){
 
 
 
-void XBARTcpp::__fit_predict_all(int n,int d,double *a, // Train X 
+void XBARTcpp::_fit_predict(int n,int d,double *a, // Train X 
       int n_y,double *a_y, // Train Y
       int n_test,int d_test,double *a_test, // Test X
       int size, double *arr,size_t p_cat){ // Result 
@@ -178,7 +178,7 @@ void XBARTcpp::__fit_predict_all(int n,int d,double *a, // Train X
       std::copy(y_std.begin(), y_std.end(), arr);
     } 
 
-void XBARTcpp::__predict_all(int n,int d,double *a){//,int size, double *arr){
+void XBARTcpp::_predict(int n,int d,double *a){//,int size, double *arr){
 
   xinfo x_test_std = XBARTcpp::np_to_xinfo(n,d,a);
   vec_d x_test_std_2 = XBARTcpp::xinfo_to_row_major_vec(x_test_std); // INEFFICIENT
@@ -193,7 +193,7 @@ void XBARTcpp::__predict_all(int n,int d,double *a){//,int size, double *arr){
 }
 
 
-void XBARTcpp::__fit_all(int n,int d,double *a, 
+void XBARTcpp::_fit(int n,int d,double *a, 
       int n_y,double *a_y, size_t p_cat){
   
       xinfo x_std = XBARTcpp::np_to_xinfo(n,d,a);

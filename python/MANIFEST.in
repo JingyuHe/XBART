@@ -1,4 +1,6 @@
-recursive-include src *.h *.cpp
+recursive-include src *.h *.cpp 
+recursive-include xbart *.h *.cpp *.py *.cxx
 include *.cpp
 include *.h
 include *.i
+include *.py

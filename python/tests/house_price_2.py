@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
-from pandas_xbart import PandasXbart
-from collections import OrderedDict
+from xbart import XBART
 import time
 
 #from xgboost import XGBRegressor
@@ -31,19 +30,12 @@ valid_data = pd.concat([cont_train.loc[1300:,],cat_train.loc[1300:,]],axis=1)
 
 target_train = np.log1p(target[:1300]); target_valid = np.log1p(target.loc[1300:]);
 
-m = 125
-tau = .67*np.var(target_train)/m
-params = OrderedDict([('M',m),('L',1),("N_sweeps",50)
-							,("Nmin",1),("Ncutpoints",30)
-							,("alpha",0.95),("beta",2 ),("tau",tau),("burnin",15),("mtry",7),("max_depth_num",25),
-							("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",True),
-							("draw_mu",False),("parallel",True)])
 
-xbart = PandasXbart(params)
+xbart = xbart(num_trees = 125,tau = 1/125,beta = 2)
 start_1 = time.time()
-print("Cat Shape " + str(cat_train.shape[1]))
-xbart.fit(train_data_norm,target_train,cat_train.shape[1])
+xbart.fit(train_data,target_train,cat_train.shape[1])
 
+print("Done!")
 # print("Xbart rmse:" + str(rmse(y_hat,target_valid)))
 # print("Xbart fit time:" + str(XBART_time_fit))
 # print("Xbart predict time:" + str(XBART_time_predict))

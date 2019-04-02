@@ -63,13 +63,13 @@ class XBARTcpp{
 		// void sort_x(int n, int d, double *a);
 		void sort_x(int n,int d,double *a,int size, double *arr);
 
-		void __fit_predict_all(int n,int d,double *a, // Train X 
+		void _fit_predict(int n,int d,double *a, // Train X 
 			int n_y,double *a_y, // Train Y
 			int n_test,int d_test,double *a_test, // Test X
 			int size, double *arr,size_t p_cat); // Result 
 
-		void __predict_all(int n, int d, double *a);//,int size, double *arr);
-		void __fit_all(int n,int d,double *a, // Train X 
+		void _predict(int n, int d, double *a);//,int size, double *arr);
+		void _fit(int n,int d,double *a, // Train X 
       		int n_y,double *a_y, size_t p_cat);
 
 
