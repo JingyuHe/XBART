@@ -7,36 +7,22 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
 import time
 
-# Add Parent Path
-import os,sys,inspect
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.append(parentdir) 
 import xbart
+
+def rmse(y1,y2):
+	return np.sqrt(np.mean((y1-y2)**2))
 
 class XBARTTesting1(unittest.TestCase):
 
 
 	def setUp(self):
-		self.params = OrderedDict([('M',1),('L',1),("N_sweeps",2)
-							,("Nmin",1),("Ncutpoints",5)
-							,("alpha",0.95),("beta",1.25 ),("tau",.8),("burnin",0),("mtry",2),("max_depth_num",5),
-							("draw_sigma",False),("kap",16),("s",4),("verbose",False),("m_update_sigma",True),
-							("draw_mu",False),("parallel",True),("seed",10)])
-		self.model = xbart.XBART(self.params)
-		self.model_2 = xbart.XBART(self.params)
+		self.params = {"num_trees":5,"num_sweeps":2,"num_cutpoints":10,"mtry":2,
+						"max_depth_num":5,"burnin":1}
+		self.model = xbart.XBART(**self.params)
+		self.model_2 = xbart.XBART(**self.params)
 		n = 100
 		self.x = np.random.rand(n)
-
-	def test_constructor_m(self):
-		self.failUnless(self.model.get_M()==self.params["M"])			
-
-	def test_void_sort_2d(self,n=10,d=2):
-		X = np.random.rand(n*d).reshape(n,d)
-		sort_np = np.argsort(X[:,d-1])
-		sort_x = self.model.sort_x(X,n).astype(int)
-		self.failUnless(all(sort_x == sort_np))
-
+			
 
 	def test_fit_predict_discrete_2d(self):
 		n = 1000
@@ -93,17 +79,17 @@ class XBARTTesting1(unittest.TestCase):
 		gbm.fit(x,y)
 		y_hat_gbm = gbm.predict(x_test)
 
-		print("\nRMSE RF:"  + str(np.sqrt(np.mean((y_hat_rf-y_test)**2))))
-		print("RMSE GBM:"  + str(np.sqrt(np.mean((y_hat_gbm-y_test)**2))))
-		print("RMSE XBART:"  + str(np.sqrt(np.mean((y_hat-y_test)**2))))
-		print("RMSE XBART Pred:"  + str(np.sqrt(np.mean((y_hat_2-y_test)**2))))
-		print("RMSE XBART Fit Pred Seperate:"  + str(np.sqrt(np.mean((y_hat_3-y_test)**2))))
-		print("RMSE XBART Pred v. Reg:"  + str(np.sqrt(np.mean((y_hat_2-y_hat)**2))))
-		print("RMSE XBART Fit and Pred:"  + str(np.sqrt(np.mean((y_hat_3-y_hat)**2))))
+		print("\nRMSE RF:"  + str(rmse(y_hat_rf,y_test)))
+		print("RMSE GBM:"  + str(rmse(y_hat_gbm,y_test)))
+		print("RMSE XBART:"  + str(rmse(y_hat,y_test)) )
+		print("RMSE XBART Pred:"  + str(rmse(y_hat_2,y_test)) )
+		print("RMSE XBART Fit Pred Seperate:"  + str(rmse(y_hat_3,y_test)))
+		print("RMSE XBART Pred v. Reg:"  + str(rmse(y_hat_2,y_hat)))
+		print("RMSE XBART Fit and Pred:"  + str(rmse(y_hat_2,y_hat)))
 
-		self.failUnless(np.array_equal(y_copy,y))
-		self.failUnless(np.array_equal(x_copy,x))
-		self.failUnless(np.array_equal(x_test_copy,x_test))
+		self.assertTrue(np.array_equal(y_copy,y))
+		self.assertTrue(np.array_equal(x_copy,x))
+		self.assertTrue(np.array_equal(x_test_copy,x_test))
 		# self.failUnless(np.array_equal(y_pred,y))
 
 	#@unittest.skip("demonstrating skipping")
@@ -123,64 +109,52 @@ class XBARTTesting1(unittest.TestCase):
 		y_copy = y.copy()
 		x_test_copy = x_test.copy()
 
-		print("RMSE :"  + str(np.sqrt(np.mean((y_hat-y_test)**2))))
+		print("RMSE :"  + str(rmse(y_hat,y_test)))
 		##print("unique values of prediction:"  +str(np.unique(y_pred)))
 
-		self.failUnless(np.array_equal(y_copy,y))
-		self.failUnless(np.array_equal(x_copy,x))
-		self.failUnless(np.array_equal(x_test_copy,x_test))
-
-	def test_normal(self):
-		self.model.test_random_generator()
+		self.assertTrue(np.array_equal(y_copy,y))
+		self.assertTrue(np.array_equal(x_copy,x))
+		self.assertTrue(np.array_equal(x_test_copy,x_test))
 
 			
 class XBARTExceptionTesting(unittest.TestCase):
 
 	def test_int_as_bad_float(self):
 		with self.assertRaises(TypeError):
-			params = {"M":5.1}
-			xbart.XBART(params)
+			xbart.XBART(num_trees = 5.1)
 
 	def test_int_as_bad_string(self):
 		with self.assertRaises(TypeError):
-			params = {"M":"5.1"}
-			xbart.XBART(params)
+			xbart.XBART(num_trees = 5.1)
 
 	def test_int_as_good_float(self):
-		params = {"M":5.0}
-		xbart.XBART(params)
+		xbart.XBART(num_trees = 5.0)
 
 	def test_float_good_int(self):	
-		params = {"alpha":5}
-		xbart.XBART(params)
+		xbart.XBART(alpha=5)
 
 	def test_float_bad_string(self):
 		with self.assertRaises(TypeError):	
-			params = {"alpha":"5"}
-			xbart.XBART(params)
+			xbart.XBART(alpha="5")
 
 	def test_bool_with_bad_int(self):
 		with self.assertRaises(TypeError):
 			params = {"m_update_sigma":2}
-			xbart.XBART(params)
+			xbart.XBART(m_update_sigma = 2)
 
 	def test_bool_with_bad_float(self):
 		with self.assertRaises(TypeError):
-			params = {"m_update_sigma":2.2}
-			xbart.XBART(params)
+			xbart.XBART(m_update_sigma = 2.2)
 	
 	def test_bool_with_bad_string(self):
 		with self.assertRaises(TypeError):
-			params = {"m_update_sigma":"2"}
-			xbart.XBART(params)
+			xbart.XBART(m_update_sigma = "2")
 
 	def test_bool_with_good_int(self):
-		params = {"m_update_sigma":0}
-		xbart.XBART(params)
+		xbart.XBART(m_update_sigma = 0)
 
 	def test_bool_with_good_float(self):
-		params = {"m_update_sigma":0.0}
-		xbart.XBART(params)
+		xbart.XBART(m_update_sigma = 0.0)
 
 if __name__ == "__main__":
 	test_classes_to_run = [XBARTTesting1, XBARTExceptionTesting]

@@ -15,7 +15,7 @@ typedef std::vector<vec_d> xinfo;
 
 
 
-struct XBARTParams{
+struct XBARTcppParams{
 			size_t M;
 			size_t L;size_t N_sweeps; size_t Nmin; size_t Ncutpoints;
 			size_t burnin; size_t mtry;size_t max_depth_num;
@@ -24,9 +24,9 @@ struct XBARTParams{
 			bool draw_mu;bool parallel;int seed;
 };
 
-class XBART{
+class XBARTcpp{
 	private:
-		XBARTParams params;
+		XBARTcppParams params;
 		vector <tree> trees;
 		vector<vector<tree>> trees2; 
 		vec_d y_std;
@@ -47,8 +47,8 @@ class XBART{
 		// void params_to_struct;
 	public:
 		// Constructors 
-		XBART (XBARTParams params);
-		XBART (size_t M ,size_t L ,size_t N_sweeps ,
+		XBARTcpp (XBARTcppParams params);
+		XBARTcpp (size_t M ,size_t L ,size_t N_sweeps ,
 				size_t Nmin , size_t Ncutpoints , //CHANGE 
 				double alpha , double beta , double tau , //CHANGE!
 				size_t burnin, size_t mtry ,
@@ -57,19 +57,19 @@ class XBART{
 				bool draw_mu , bool parallel,int seed);
 
 		// // Destructor
-		//~XBART();
+		//~XBARTcpp();
 
 	
 		// void sort_x(int n, int d, double *a);
 		void sort_x(int n,int d,double *a,int size, double *arr);
 
-		void __fit_predict_all(int n,int d,double *a, // Train X 
+		void _fit_predict(int n,int d,double *a, // Train X 
 			int n_y,double *a_y, // Train Y
 			int n_test,int d_test,double *a_test, // Test X
 			int size, double *arr,size_t p_cat); // Result 
 
-		void __predict_all(int n, int d, double *a);//,int size, double *arr);
-		void __fit_all(int n,int d,double *a, // Train X 
+		void _predict(int n, int d, double *a);//,int size, double *arr);
+		void _fit(int n,int d,double *a, // Train X 
       		int n_y,double *a_y, size_t p_cat);
 
 

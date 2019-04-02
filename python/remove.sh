@@ -10,3 +10,4 @@ rm -rf dist
 [ -e _XBART.cpython-36m-x86_64-linux-gnu.so ]&& rm _XBART.cpython-36m-x86_64-linux-gnu.so
 [ -e _XBART.cpython-36m-darwin.so ] && rm _XBART.cpython-36m-darwin.so
 [ -e __pycache__/XBART.cpython-36.pyc ] && rm __pycache__/XBART.cpython-36.pyc
+[ -e __xbart_cpp.cpython-36m-darwin.so ] && rm __xbart_cpp.cpython-36m-darwin.so

@@ -1,4 +1,4 @@
-%module xbart
+%module xbart_cpp_
 
 
 
@@ -23,7 +23,7 @@ import_array();
 %pythoncode %{
 import collections
 %}
-%extend XBART{
+%extend XBARTcpp{
 %pythoncode %{
 def __convert_params_check_types(self,params):
 ### This function converts params to list and 
@@ -71,14 +71,29 @@ def __init__(self,params = {}):
 
     assert isinstance(params, collections.Mapping), "params must be dictionary like"
 
-    this = _xbart.new_XBART(*self.__convert_params_check_types(params))
+    this = __xbart_cpp.new_XBARTcpp(*self.__convert_params_check_types(params))
 
-# init
+    # init
     try:
         self.this.append(this)
     except __builtin__.Exception:
-        self.this = this            
-           
+        self.this = this   
+
+def __init__(self,num_trees= 200, l = 1 ,num_sweeps = 40, n_min =1,
+                num_cutpoints=100,alpha=0.95,beta = 1.25, tau = 0.3,
+                burnin = 15, mtry = 1, max_depth_num = 250,
+                draw_sigma= False,kap= 16,s = 4,verbose=False,
+                m_update_sigma = True, draw_mu = True,
+                parallel=False,seed=0):  
+
+    this = __xbart_cpp.new_XBARTcpp(num_trees,l,num_sweeps,n_min,num_cutpoints,
+            alpha,beta, tau,burnin, mtry, max_depth_num,draw_sigma,kap,s,
+            verbose,m_update_sigma, draw_mu,parallel,seed)  
+    # init
+    try:
+        self.this.append(this)
+    except __builtin__.Exception:
+        self.this = this  
 
 %}
 %pythoncode %{
