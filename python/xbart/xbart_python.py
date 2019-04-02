@@ -22,10 +22,15 @@ class XBART(object):
                 draw_sigma= False,kap= 16,s = 4,verbose=False,
                 m_update_sigma = True, draw_mu = True,
                 parallel=False,seed=0):
-		self.__convert_params_check_types(locals())
-		self.xbart_cpp = XBARTcpp(num_trees,l,num_sweeps,n_min,num_cutpoints,
-			alpha,beta, tau,burnin, mtry, max_depth_num,draw_sigma,kap,s,
-			verbose,m_update_sigma, draw_mu,parallel,seed)
+
+
+		args = self.__convert_params_check_types(num_trees= num_trees,l = l,
+			num_sweeps = num_sweeps,n_min = n_min,num_cutpoints = num_cutpoints,
+			alpha = alpha,beta = beta, tau = tau,burnin = burnin, mtry=mtry, 
+			max_depth_num=max_depth_num,draw_sigma=draw_sigma,kap=kap,s=s,
+			verbose=verbose,m_update_sigma=m_update_sigma, draw_mu=draw_mu,
+			parallel=parallel,seed=seed)
+		self.xbart_cpp = XBARTcpp(*args)
 
 	def __add_columns(self,x):
 		if isinstance(x,DataFrame):
@@ -48,7 +53,7 @@ class XBART(object):
 			if not isinstance(y,(np.ndarray,Series)):
 				raise TypeError(f"y must be numpy array or pandas Series, not type {type(y)}")
 
-	def __convert_params_check_types(self,params):
+	def __convert_params_check_types(self,**params):
 		### This function converts params to list and 
 		### It handles the types of params and raises exceptions if needed
 		### It puts in default values for empty param values 
@@ -99,7 +104,7 @@ class XBART(object):
 		fit_y = y
 		self.__update_fit_x_y(x,fit_x,y,fit_y)
 
-		self.xbart_cpp = self.xbart_cpp._fit(fit_x,fit_y,p_cat)
+		self.xbart_cpp._fit(fit_x,fit_y,p_cat)
 		return self
 
 	def predict(self,x_test):

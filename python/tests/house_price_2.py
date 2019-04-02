@@ -10,7 +10,7 @@ def rmse(y1,y2):
 	return np.sqrt(np.mean((y1-y2)**2))
 
 
-full_imputed = pd.read_csv('tests/fullimputed.csv')
+full_imputed = pd.read_csv('fullimputed.csv')
 del full_imputed['Unnamed: 0']
 dummied = pd.get_dummies(full_imputed)
 
@@ -31,12 +31,13 @@ valid_data = pd.concat([cont_train.loc[1300:,],cat_train.loc[1300:,]],axis=1)
 target_train = np.log1p(target[:1300]); target_valid = np.log1p(target.loc[1300:]);
 
 
-xbart = xbart(num_trees = 125,tau = 1/125,beta = 2)
+xbart = XBART(num_trees = 125,tau = 1/125,beta = 2)
 start_1 = time.time()
 xbart.fit(train_data,target_train,cat_train.shape[1])
-
+y_pred = xbart.predict(valid_data)
+y_hat_xbart = y_pred[:,15:].mean(axis=1)
 print("Done!")
-# print("Xbart rmse:" + str(rmse(y_hat,target_valid)))
+print("Xbart rmse:" + str(rmse(y_hat_xbart,target_valid)))
 # print("Xbart fit time:" + str(XBART_time_fit))
 # print("Xbart predict time:" + str(XBART_time_predict))
 
