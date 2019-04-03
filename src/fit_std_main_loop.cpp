@@ -701,16 +701,7 @@ void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t M, 
 }
 
 
-void fit_std_poisson_classification(const double *Xpointer, std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
-             size_t N, size_t p,
-             size_t M, size_t L, size_t N_sweeps, xinfo_sizet &max_depth_std,
-             size_t Nmin, size_t Ncutpoints, double alpha, double beta,
-             double tau, size_t burnin, size_t mtry,
-             bool draw_sigma, double a, double b, // beta a,b
-             bool verbose, bool m_update_sigma,
-             bool draw_mu, bool parallel,
-             xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo,
-             size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed)
+void fit_std_poisson_classification(const double *Xpointer, std::vector<double> &y_std, double &y_mean, const double *Xtestpointer, xinfo_sizet &Xorder_std, size_t N, size_t p, size_t N_test, size_t M, size_t L, size_t N_sweeps, xinfo_sizet &max_depth_std, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin, size_t mtry, bool draw_sigma, double kap, double s, bool verbose, bool m_update_sigma, bool draw_mu, bool parallel, xinfo &yhats_xinfo, xinfo &yhats_test_xinfo, xinfo &sigma_draw_xinfo, xinfo &split_count_all_tree, size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed,double a, double b)
 {
     bool categorical_variables = false;
     if (p_categorical > 0)
@@ -778,8 +769,8 @@ void fit_std_poisson_classification(const double *Xpointer, std::vector<double> 
     // std::fill(split_var_count.begin(), split_var_count.end(), 1);
     // Rcpp::NumericVector split_var_count(p, 1);
 
-    xinfo split_count_all_tree;
-    ini_xinfo(split_count_all_tree, p, M); // initialize at 0
+    // xinfo split_count_all_tree;
+    // ini_xinfo(split_count_all_tree, p, M); // initialize at 0
     // split_count_all_tree = split_count_all_tree + 1; // initialize at 1
     std::vector<double> split_count_current_tree(p, 1);
     std::vector<double> mtry_weight_current_tree(p, 1);

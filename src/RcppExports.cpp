@@ -156,6 +156,7 @@ RcppExport SEXP _XBARTlp(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEX
     END_RCPP
 }
 
+
 Rcpp::List xbart_predict(arma::mat X,size_t L ,double y_mean,Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt);
 RcppExport SEXP _xbart_predict(SEXP XSEXP,SEXP LSEXP,SEXP y_meanSEXP,SEXP tree_pntSEXP){
     BEGIN_RCPP
@@ -176,6 +177,7 @@ static const R_CallMethodDef CallEntries[] = {
     // {"_XBART_sample_int_ccrank", (DL_FUNC)&_XBART_sample_int_ccrank, 3},
     {"_XBART_train_forest_root_std_all", (DL_FUNC)&_XBART_train_forest_root_std_all, 24},
     {"_XBART", (DL_FUNC)&_XBART, 24},
+    {"_XBARTlp", (DL_FUNC)&_XBARTlp, 26},
     {"_xbart_predict", (DL_FUNC)&_xbart_predict, 4},
     {NULL, NULL, 0}};
 
