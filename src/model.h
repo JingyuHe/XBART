@@ -174,8 +174,8 @@ class NormalModel : public Model
 class PoissonClassifcationModel : public Model
 {
   private:
-	size_t num_classes = 2;
-	size_t dim_suffstat = 3;
+	size_t num_classes = 3;
+	size_t dim_suffstat = 1;
 	std::vector<double> suff_stat_model;
 
   public:
@@ -197,22 +197,23 @@ class PoissonClassifcationModel : public Model
 					std::mt19937 &generator, std::vector<double> &theta_vector) const
 	{
 		// TODO: Change later so that each class has prior as a private memeber:
-
-		double sum_y = y_mean * N_Xorder;
+		double sum_y = y_mean*N_Xorder;
 
 
 			// test result should be theta
 			// y_mean*N_Xorder = sum_y
 			// P
+		std::cout << "sum_y " << sum_y << endl;
 		sftrabbit::beta_distribution<double> beta(sigma+sum_y, N_Xorder - sum_y+ tau); // sigma = alpha, tau = beta
 		theta_vector[0] = beta(generator);
-		theta_vector[1] = -std::log(2*std::max(theta_vector[0],1-theta_vector[0]))/2.0 ;
+		std::cout <<"tv[0] " << theta_vector[0] << endl;
+		theta_vector[1] = -std::log(2*std::max(theta_vector[0],1-theta_vector[0])-1)/2.0 ;
 		if (theta_vector[1] > 0.5){
 			theta_vector[2] = 1.0;
 		}else{
 			theta_vector[2] = 0.0;
 		}
-			
+		std::cout << "tv[1] " << theta_vector[1]<<" tv[2] " << theta_vector[2] << endl;
 		return;
 	}
 
@@ -312,11 +313,13 @@ class PoissonClassifcationModel : public Model
 
 	void draw_residual(std::vector<double> &lambs,std::vector<double> &ks,std::vector<double> &y_std,std::vector<double> &residual_std,std::mt19937 &gen)
 	{
-			for(size_t i; i < y_std.size();i++){
-				double p = 0.5*(1 + std::pow(-1,1-(size_t)ks[i]%2) * std::exp(-2*lambs[i]));
-				std::bernoulli_distribution bern(p);
-				residual_std[i]= std::abs(y_std[i] - bern(gen));
-			}
+		for(size_t i=0; i < residual_std.size();i++)
+		{
+			double p = 0.5*(1 + std::pow(-1,1-(size_t)ks[i]%2) * std::exp(-2*lambs[i]));
+			std::bernoulli_distribution bern(p);
+			residual_std[i]= std::abs(y_std[i] - bern(gen));
+			
+		}
 	}
 
 	// void update_partial_fit(std::vector<double> &lambs,std::vector<double> &ks,

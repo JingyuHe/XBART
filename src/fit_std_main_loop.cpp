@@ -790,10 +790,11 @@ void fit_std_poisson_classification(const double *Xpointer, std::vector<double> 
     // M, number of trees
 
     // lambda in fit
-    auto get_lambda = [](double p) { return -std::log(2*std::max(p,1-p))/2.0 ;};
+    auto get_lambda = [](double p) { return -std::log(2*std::max(p,1-p)-1)/2.0 ;};
 
 
-    // initialize_trees 
+
+    // initialize_trees  
     std::vector<double> init_theta_vector = {(double)1/(double)M,get_lambda((double)1/(double)M),0};
     for(size_t i=0; i< trees.size();i++){
         std::vector<tree> tree_vec = trees[i];
@@ -801,9 +802,21 @@ void fit_std_poisson_classification(const double *Xpointer, std::vector<double> 
             tree_vec[j].settheta(init_theta_vector);
         }
     }
-
-    matrix<tree::tree_p> data_pointers;
+    
+    // Initialize data pointer
+    tree temp_tree((size_t)3); // to be safe if first tree doesn't grow
+    tree::tree_p first_tree = &temp_tree; 
+    first_tree->settheta(init_theta_vector); // set temp to 
+    matrix<tree::tree_p> data_pointers; // Init data points
     ini_matrix(data_pointers, N, M);
+    for(size_t i =0;i<M;i++){
+        std::vector<tree::tree_p> &tree_vec = data_pointers[i];
+        for(size_t j =0;j<N;j++){
+            tree_vec[j] = first_tree;
+        }
+    }
+
+ 
 
     // Initialize Partial Fit as (lambs = (n-1)lambda,0)
     std::vector<double> lambs(N,(double)(N-1)*init_theta_vector[1]); // Lambda
@@ -829,46 +842,47 @@ void fit_std_poisson_classification(const double *Xpointer, std::vector<double> 
                 ////// draw residual //////
                 // draw_residual - residual =\tilde{y_j}  = prob.odd(partial_fit)
                 // TODO: write as function 
-                model.draw_residual(partial_fit[0],partial_fit[1],y_std,residual_std,gen);
-
-
-
+                std::cout <<"Before draw" << std::endl;
+               model.draw_residual(partial_fit[0],partial_fit[1],y_std,residual_std,gen);
+                std::cout <<"after draw" << std::endl;
                 if (use_all && (sweeps > burnin) && (mtry != p))
                 {
                     use_all = false;
                 }
 
-                // clear counts of splits for one tree
+                // // clear counts of splits for one tree
                 std::fill(split_count_current_tree.begin(), split_count_current_tree.end(), 0.0);
 
                 mtry_weight_current_tree = mtry_weight_current_tree - split_count_all_tree[tree_ind];
 
-                trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], Nmin, Ncutpoints, a, b, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, &model, data_pointers, tree_ind, gen);
-
+                //what to put for y_mean?
+                std::cout << "before gfr: " << sum_vec(residual_std) / (double)N << std::endl;
+                trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], Nmin, Ncutpoints, a, b, alpha, beta, false, false, parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, &model, data_pointers, tree_ind, gen);
+                std::cout << "after gfr: " << sum_vec(residual_std) / (double)N << std::endl;
                 mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
-
+                std::cout << "sweep: " << sweeps << "tree: " << tree_ind <<endl;
                 split_count_all_tree[tree_ind] = split_count_current_tree;
 
                 //get_params
 
-                // update residual, now it's residual of m trees
-                std::vector<double> lambs = partial_fit[0];
-                std::vector<double> ks = partial_fit[1];
-                std::vector<tree::tree_p> current_data_pointers =  data_pointers[tree_ind];
-                std::vector<tree::tree_p> next_data_pointers = data_pointers[(tree_ind+1)%M]; 
+                //update residual, now it's residual of m trees
+                std::cout << "Set values" << endl;
+                std::vector<double>& lambs = partial_fit[0];
+                std::vector<double>& ks = partial_fit[1];
+                std::vector<tree::tree_p>& current_data_pointers = data_pointers[tree_ind];
+                std::vector<tree::tree_p>& next_data_pointers = data_pointers[(tree_ind+1)%M]; 
+                std::cout << "Begin update loop" << endl;
                 for(size_t i = 0;i < N;i++)
-                {
+                 {
 				    std::vector<double> thetas_current = current_data_pointers[i]->theta_vector;
 				    std::vector<double> thetas_next = next_data_pointers[i]->theta_vector;
 				    lambs[i] = lambs[i]  - thetas_next[1] + thetas_current[1];
 				    ks[i] = ks[i]  - thetas_next[2] + thetas_current[2];
 			    }
-                //model.update_partial_fit(partial_fit[0],partial_fit[1],data_pointers[(tree_ind+1)%M], data_pointers[tree_ind] );
-                //model.updateResidual(predictions_std, tree_ind, M, residual_std);
-
+                std::cout << "end update loop" << endl;
             }
             // save predictions to output matrix
-            yhats_xinfo[sweeps] = yhat_std;
+            //yhats_xinfo[sweeps] = yhat_std;
 
             // for (size_t kk = 0; kk < N; kk++)
             // {
