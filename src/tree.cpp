@@ -1276,7 +1276,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                     model->calcSuffStat_continuous(xorder, y_std, candidate_index, j, false);
 
-                    loglike[(N_Xorder - 1) * i + j] = model->likelihood(tau, n1tau, sigma2, y_sum, true) + model->likelihood(tau, n2tau, sigma2, y_sum, false);
+                    loglike[(N_Xorder - 1) * i + j] = model->likelihood(tau, n1tau, sigma2, y_sum, true,N_Xorder) + model->likelihood(tau, n2tau, sigma2, y_sum, false,N_Xorder);
 
                     if (loglike[(N_Xorder - 1) * i + j] > loglike_max)
                     {
@@ -1324,7 +1324,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                         double n1tau = (candidate_index2[j + 1] + 1) * tau; // number of points on left side (x <= cutpoint)
                         double n2tau = Ntau - n1tau;                        // number of points on right side (x > cutpoint)
 
-                        loglike[(Ncutpoints)*i + j] = model_temp.likelihood(tau, n1tau, sigma2, y_sum, true) + model_temp.likelihood(tau, n2tau, sigma2, y_sum, false);
+                        loglike[(Ncutpoints)*i + j] = model_temp.likelihood(tau, n1tau, sigma2, y_sum, true,N_Xorder) + model_temp.likelihood(tau, n2tau, sigma2, y_sum, false,N_Xorder);
 
                         if (loglike[(Ncutpoints)*i + j] > llmax)
                         {
@@ -1418,7 +1418,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                     n1tau = (double)n1 * tau;
                     n2tau = ntau - n1tau;
 
-                    loglike[loglike_start + j] = model -> likelihood(tau, n1tau, sigma2, y_sum, true) + model -> likelihood(tau, n2tau, sigma2, y_sum, false);
+                    loglike[loglike_start + j] = model -> likelihood(tau, n1tau, sigma2, y_sum, true, N_Xorder) + model -> likelihood(tau, n2tau, sigma2, y_sum, false,N_Xorder);
 
                     // count total number of cutpoint candidates
                     effective_cutpoints++;

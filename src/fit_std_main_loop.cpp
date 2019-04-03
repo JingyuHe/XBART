@@ -699,3 +699,195 @@ void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t M, 
         }
     }
 }
+
+
+void fit_std_poisson_classification(const double *Xpointer, std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
+             size_t N, size_t p,
+             size_t M, size_t L, size_t N_sweeps, xinfo_sizet &max_depth_std,
+             size_t Nmin, size_t Ncutpoints, double alpha, double beta,
+             double tau, size_t burnin, size_t mtry,
+             bool draw_sigma, double a, double b, // beta a,b
+             bool verbose, bool m_update_sigma,
+             bool draw_mu, bool parallel,
+             xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo,
+             size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed)
+{
+    bool categorical_variables = false;
+    if (p_categorical > 0)
+    {
+        categorical_variables = true;
+    }
+
+    // std::default_random_engine(generator);
+
+    //std::vector<size_t> X_values;
+    std::vector<double> X_values;
+    std::vector<size_t> X_counts;
+    std::vector<size_t> variable_ind(p_categorical + 1);
+
+    size_t total_points;
+
+    std::vector<size_t> X_num_unique(p_categorical);
+
+    if (parallel)
+        thread_pool.start();
+
+    unique_value_count2(Xpointer, Xorder_std, X_values, X_counts,
+                        variable_ind, total_points, X_num_unique, p_categorical, p_continuous);
+
+    // cout << "X_values" << X_values << endl;
+    // cout << "X_counts" << X_counts << endl;
+    // cout << "variable_ind " << variable_ind << endl;
+    // cout << "X_num_unique " << X_num_unique << endl;
+
+    PoissonClassifcationModel model;
+    model.suff_stat_init();
+
+    // save predictions of each tree
+    xinfo predictions_std;
+    ini_xinfo(predictions_std, N, M);
+
+    std::vector<double> yhat_std(N);
+    row_sum(predictions_std, yhat_std);
+
+    // current residual
+    std::vector<double> residual_std(N);
+
+    ///////////////////////////////////////////////////////////////////
+
+    // Rcpp::NumericMatrix yhats(N, N_sweeps);
+    // Rcpp::NumericMatrix yhats_test(N_test, N_sweeps);
+
+    // // save predictions of each tree
+    // Rcpp::NumericMatrix sigma_draw(M, N_sweeps);
+
+    // double tau;
+    //forest trees(M);
+    std::vector<double> prob(2, 0.5);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    if (set_random_seed)
+    {
+        gen.seed(random_seed);
+    }
+    std::discrete_distribution<> d(prob.begin(), prob.end());
+    // // sample one index of split point
+    size_t prune;
+
+    // std::vector<double> split_var_count(p);
+    // std::fill(split_var_count.begin(), split_var_count.end(), 1);
+    // Rcpp::NumericVector split_var_count(p, 1);
+
+    xinfo split_count_all_tree;
+    ini_xinfo(split_count_all_tree, p, M); // initialize at 0
+    // split_count_all_tree = split_count_all_tree + 1; // initialize at 1
+    std::vector<double> split_count_current_tree(p, 1);
+    std::vector<double> mtry_weight_current_tree(p, 1);
+
+    // in the burnin samples, use all variables
+    std::vector<size_t> subset_vars(p);
+    std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
+
+    double run_time = 0.0;
+
+    // save tree objects to strings
+    // std::stringstream treess;
+    // treess.precision(10);
+    // treess << L << " " << M << " " << p << endl;
+
+    // L, number of samples
+    // M, number of trees
+
+    // lambda in fit
+    auto get_lambda = [](double p) { return -std::log(2*std::max(p,1-p))/2.0 ;};
+
+
+    // initialize_trees 
+    std::vector<double> init_theta_vector = {(double)1/(double)M,get_lambda((double)1/(double)M),0};
+    for(size_t i=0; i< trees.size();i++){
+        std::vector<tree> tree_vec = trees[i];
+        for(size_t j=0; j< tree_vec.size(); j++){
+            tree_vec[j].settheta(init_theta_vector);
+        }
+    }
+
+    matrix<tree::tree_p> data_pointers;
+    ini_matrix(data_pointers, N, M);
+
+    // Initialize Partial Fit as (lambs = (n-1)lambda,0)
+    std::vector<double> lambs(N,(double)(N-1)*init_theta_vector[1]); // Lambda
+    std::vector<double> k(N,0);
+    matrix<double> partial_fit={lambs,k};
+    
+
+    bool use_all = true;
+    for (size_t mc = 0; mc < L; mc++)
+    {
+        for (size_t sweeps = 0; sweeps < N_sweeps; sweeps++)
+        {
+
+            if (verbose == true)
+            {
+                cout << "--------------------------------" << endl;
+                cout << "number of sweeps " << sweeps << endl;
+                cout << "--------------------------------" << endl;
+            }
+
+            for (size_t tree_ind = 0; tree_ind < M; tree_ind++)
+            {
+                ////// draw residual //////
+                // draw_residual - residual =\tilde{y_j}  = prob.odd(partial_fit)
+                // TODO: write as function 
+                model.draw_residual(partial_fit[0],partial_fit[1],y_std,residual_std,gen);
+
+
+
+                if (use_all && (sweeps > burnin) && (mtry != p))
+                {
+                    use_all = false;
+                }
+
+                // clear counts of splits for one tree
+                std::fill(split_count_current_tree.begin(), split_count_current_tree.end(), 0.0);
+
+                mtry_weight_current_tree = mtry_weight_current_tree - split_count_all_tree[tree_ind];
+
+                trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], Nmin, Ncutpoints, a, b, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, &model, data_pointers, tree_ind, gen);
+
+                mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
+
+                split_count_all_tree[tree_ind] = split_count_current_tree;
+
+                //get_params
+
+                // update residual, now it's residual of m trees
+                std::vector<double> lambs = partial_fit[0];
+                std::vector<double> ks = partial_fit[1];
+                std::vector<tree::tree_p> current_data_pointers =  data_pointers[tree_ind];
+                std::vector<tree::tree_p> next_data_pointers = data_pointers[(tree_ind+1)%M]; 
+                for(size_t i = 0;i < N;i++)
+                {
+				    std::vector<double> thetas_current = current_data_pointers[i]->theta_vector;
+				    std::vector<double> thetas_next = next_data_pointers[i]->theta_vector;
+				    lambs[i] = lambs[i]  - thetas_next[1] + thetas_current[1];
+				    ks[i] = ks[i]  - thetas_next[2] + thetas_current[2];
+			    }
+                //model.update_partial_fit(partial_fit[0],partial_fit[1],data_pointers[(tree_ind+1)%M], data_pointers[tree_ind] );
+                //model.updateResidual(predictions_std, tree_ind, M, residual_std);
+
+            }
+            // save predictions to output matrix
+            yhats_xinfo[sweeps] = yhat_std;
+
+            // for (size_t kk = 0; kk < N; kk++)
+            // {
+            //     yhats(kk, sweeps) = yhat_std[kk];
+            // }
+            // for (size_t kk = 0; kk < N_test; kk++)
+            // {
+            //     yhats_test(kk, sweeps) = yhat_test_std[kk];
+            // }
+        }
+    }
+    thread_pool.stop();
+}
