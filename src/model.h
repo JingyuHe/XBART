@@ -311,16 +311,27 @@ class PoissonClassifcationModel : public Model
 		return std::lgamma(suff_stat_model[0]+tau) + std::lgamma(ntau/tau-suff_stat_model[0]+std::sqrt(sigma2)) - std::lgamma( tau+ ntau/tau + std::sqrt(sigma2));
 	}
 
-	void draw_residual(std::vector<double> &lambs,std::vector<double> &ks,std::vector<double> &y_std,std::vector<double> &residual_std,std::mt19937 &gen)
+void draw_residual(std::vector<double> &lambs,std::vector<double> &ks,std::vector<double> &lamj, std::vector<double> &kj, std::vector<double> &y_std,std::vector<double> &residual_std,std::mt19937 &gen)
 	{
+		double p;
 		for(size_t i=0; i < residual_std.size();i++)
 		{
-			double p = 0.5*(1 + std::pow(-1,1-(size_t)ks[i]%2) * std::exp(-2*lambs[i]));
+			double q = 0.5*(1.0 + std::pow(-1.0,1.0-(size_t)ks[i]%2) * std::exp(-2*lambs[i]));
+			double qj = 0.5*(1.0 + std::pow(-1.0,1.0-(size_t)kj[i]%2) * std::exp(-2*lamj[i]));
+			
+			if (y_std[i] < 0.5){
+			p = q*qj/(q*qj + (1.0-q)*(1.0-qj));
+		}else{
+			p = q*(1.0-qj)/(q*(1.0-qj) + (1.0-q)*qj);
+		}
+			
 			std::bernoulli_distribution bern(p);
+			
 			residual_std[i]= std::abs(y_std[i] - bern(gen));
 			
 		}
 	}
+
 
 	// void update_partial_fit(std::vector<double> &lambs,std::vector<double> &ks,
 	// 	matrix<tree::tree_p> data_points,

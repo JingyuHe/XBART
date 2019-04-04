@@ -29,27 +29,29 @@ ytest =(logit(f(xtest)+rnorm(n)) > 0.5)*1
 ### fit xbart ###
 ### Helpers
 get_XBART_params <- function(n,d,y){
-    XBART_params = list(M = 5,
+    XBART_params = list(M = 20,
     L = 1,
-    nsweeps = 40,
-    Nmin = 1,
+    nsweeps = 200,
+    Nmin = 2,
     alpha = 0.95,
-    beta = 5,
-    mtry = 1,
-    burnin = 0)
+    beta = 1.25,
+    mtry = 2,
+    burnin = 20)
     num_tress = XBART_params$M
-    XBART_params$max_depth = matrix(50, num_tress, XBART_params$nsweeps)
-    XBART_params$Ncutpoints = 50;XBART_params$tau = var(y)/num_tress
+    XBART_params$max_depth = matrix(350, num_tress, XBART_params$nsweeps)
+    XBART_params$Ncutpoints = 150;XBART_params$tau = 100
+    XBART_params$a = 0.01/num_tress; XBART_params$b = 0.01/num_tress;
     return(XBART_params)
 }
-params = get_XBART_params(n,5,y)
+params = get_XBART_params(n,2,y)
 
 
 
-out = XBART.pl(as.matrix(y), as.matrix(x), as.matrix(xtest), params$M, params$L, p_categorical = 0, params$nsweeps, params$max_depth,
+out = XBART.pl(as.matrix(y), as.matrix(cbind(x1,x2)), as.matrix(cbind(x1,x2)), params$M, params$L, p_categorical = 0, params$nsweeps, params$max_depth,
     params$Nmin, alpha = params$alpha, beta = params$beta, tau = params$tau, s= 1,kap = 1,
     mtry = params$mtry, draw_sigma = FALSE, m_update_sigma = TRUE,draw_mu= TRUE,
-    Ncutpoints = params$Ncutpoints, parallel = FALSE,a=1/5,b = 1/5)
+    Ncutpoints = params$Ncutpoints, parallel = FALSE,a=params$a,b = params$b)
+
 
  pred = predict(out,as.matrix(xtest))
  yhat.pred = apply(pred[,params$burnin:params$nsweeps],1,mean)
