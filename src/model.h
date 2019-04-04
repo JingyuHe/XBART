@@ -203,17 +203,17 @@ class PoissonClassifcationModel : public Model
 			// test result should be theta
 			// y_mean*N_Xorder = sum_y
 			// P
-		std::cout << "sum_y " << sum_y << endl;
+		//std::cout << "sum_y " << sum_y << endl;
 		sftrabbit::beta_distribution<double> beta(sigma+sum_y, N_Xorder - sum_y+ tau); // sigma = alpha, tau = beta
 		theta_vector[0] = beta(generator);
-		std::cout <<"tv[0] " << theta_vector[0] << endl;
-		theta_vector[1] = -std::log(2*std::max(theta_vector[0],1-theta_vector[0])-1)/2.0 ;
-		if (theta_vector[1] > 0.5){
+		//std::cout <<"tv[0] " << theta_vector[0] << endl;
+		theta_vector[1] = -std::log(2.0*std::max(theta_vector[0],1.0-theta_vector[0])-1.0)/2.0 ;
+		if (theta_vector[0] > 0.5){
 			theta_vector[2] = 1.0;
 		}else{
 			theta_vector[2] = 0.0;
 		}
-		std::cout << "tv[1] " << theta_vector[1]<<" tv[2] " << theta_vector[2] << endl;
+		//std::cout << "tv[1] " << theta_vector[1]<<" tv[2] " << theta_vector[2] << endl;
 		return;
 	}
 

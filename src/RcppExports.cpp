@@ -172,6 +172,21 @@ RcppExport SEXP _xbart_predict(SEXP XSEXP,SEXP LSEXP,SEXP y_meanSEXP,SEXP tree_p
 
 }
 
+Rcpp::List xbart_predict_lp(arma::mat X,size_t L ,double y_mean,Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt);
+RcppExport SEXP _xbart_predict_lp(SEXP XSEXP,SEXP LSEXP,SEXP y_meanSEXP,SEXP tree_pntSEXP){
+    BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter<arma::mat>::type X(XSEXP);
+    Rcpp::traits::input_parameter<size_t>::type L(LSEXP);
+    Rcpp::traits::input_parameter<double>::type y_mean(y_meanSEXP);
+    Rcpp::traits::input_parameter<Rcpp::XPtr<std::vector<std::vector<tree>>>>::type tree_pnt(tree_pntSEXP);
+    rcpp_result_gen = Rcpp::wrap(xbart_predict_lp(X,L,y_mean,tree_pnt));
+    return rcpp_result_gen;
+    END_RCPP
+
+}
+
 
 static const R_CallMethodDef CallEntries[] = {
     // {"_XBART_sample_int_ccrank", (DL_FUNC)&_XBART_sample_int_ccrank, 3},
@@ -179,6 +194,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART", (DL_FUNC)&_XBART, 24},
     {"_XBARTlp", (DL_FUNC)&_XBARTlp, 26},
     {"_xbart_predict", (DL_FUNC)&_xbart_predict, 4},
+    {"_xbart_predict_lp", (DL_FUNC)&_xbart_predict_lp, 4},
     {NULL, NULL, 0}};
 
 RcppExport void R_init_XBART(DllInfo *dll)

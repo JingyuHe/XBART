@@ -97,7 +97,13 @@ XBART.pl <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, a
     }
 
     obj = .Call(`_XBARTlp`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel, set_random_seed, random_seed,a,b)
-    class(obj) = "XBART"
+    class(obj) = "XBARTlp"
+    return(obj)
+}
+
+predict.XBARTlp <- function(model, X) {
+    obj = .Call(`_xbart_predict_lp`, X,model$model_list$L,model$model_list$y_mean ,model$model_list$tree_pnt) # model$tree_pnt
+    obj = as.matrix(obj$yhats)
     return(obj)
 }
 
