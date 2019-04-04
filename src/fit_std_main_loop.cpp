@@ -371,14 +371,14 @@ void fit_std_poisson_classification(const double *Xpointer, std::vector<double> 
     // M, number of trees
 
     // lambda in fit
-    // auto get_lambda = [](double p) { return -std::log(2*std::max(p,1-p)-1)/2.0 ;};
+    auto get_lambda = [](double ini_p) { return -std::log(2*std::max(ini_p,1-ini_p)-1)/2.0  ;};
 
 
 
     // initialize_trees  
     double ini_p = 0.00001/((double) M); ; // 1/2 -> get_lambda = -inf
-    std::cout << "first: " << ini_p <<"  second  " <<  -std::log(2*std::max(ini_p,1-ini_p)-1)/2.0 << endl;
-    std::vector<double> init_theta_vector = {ini_p ,-std::log(2*std::max(ini_p,1-ini_p)-1)/2.0 ,0};
+    std::cout << "first: " << ini_p <<"  second:  " << get_lambda(ini_p) << endl;
+    std::vector<double> init_theta_vector = {ini_p ,get_lambda(ini_p),0.0};
     for(size_t i=0; i< trees.size();i++){
         std::vector<tree> &tree_vec = trees[i];
         for(size_t j=0; j< tree_vec.size(); j++){
@@ -399,16 +399,26 @@ void fit_std_poisson_classification(const double *Xpointer, std::vector<double> 
         }
     }
 
+    std::vector<tree::tree_p>& current_data_pointers = data_pointers[0];
+    std::vector<tree::tree_p>& next_data_pointers = data_pointers[1]; 
+
  
     // Initialize Partial Fit as (lambs = (m-1)lambda,0)
-    std::vector<double> lambs(N,(M-1.0)*init_theta_vector[1]); // Lambda
-    std::vector<double> ks(N,0);
-    matrix<double> partial_fit(2);
-    partial_fit[0] =  lambs;
-    partial_fit[1] = ks;
+    // Init current partial fit
+    matrix<double> partial_fit;
+    ini_matrix(partial_fit, N, 2); 
+    // Init next partial fit
+    matrix<double> partial_fit_next;
+    ini_matrix(partial_fit_next, N, 2); 
+    // Change lambda
+    double lamb = (M-1.0)*init_theta_vector[1];
+    std::vector<double> & lambs = partial_fit[0];
+    std::vector<double> & lambs_next = partial_fit_next[0];
+    for(size_t i =0; i < N;i++){
+        lambs[i] = lamb; 
+        lambs_next[i] = init_theta_vector[1]; 
+    }
 
-    std::vector<double> lamj(N);
-    std::vector<double> kj(N);
 
     bool use_all = true;
     for (size_t mc = 0; mc < L; mc++)
@@ -425,27 +435,16 @@ void fit_std_poisson_classification(const double *Xpointer, std::vector<double> 
 
             for (size_t tree_ind = 0; tree_ind < M; tree_ind++)
             {
-
-                                //yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
-                tree::tree_p bn;
-                for (size_t i = 0; i < N; i++)
-                {
-                    bn = trees[sweeps][tree_ind].search_bottom_std(Xtestpointer, i, p, N);
-                    lamj[i] = bn->theta_vector[1];
-                    kj[i] = bn->theta_vector[2];
-
-                }
-                
                 ////// draw residual //////
                 // draw_residual : residual =\tilde{y_j}  = prob.odd(partial_fit)
-                model.draw_residual(partial_fit[0],partial_fit[1], lamj, kj, y_std,residual_std,gen);
+                model.draw_residual(partial_fit[0],partial_fit[1], partial_fit_next[0], partial_fit_next[1], y_std,residual_std,gen);
                
                 if (use_all && (sweeps > burnin) && (mtry != p))
                 {
                     use_all = false;
                 }
 
-                // // clear counts of splits for one tree
+                // clear counts of splits for one tree
                 std::fill(split_count_current_tree.begin(), split_count_current_tree.end(), 0.0);
                 mtry_weight_current_tree = mtry_weight_current_tree - split_count_all_tree[tree_ind];
 
@@ -457,15 +456,17 @@ void fit_std_poisson_classification(const double *Xpointer, std::vector<double> 
                 //update residual, now it's residual of m trees
                 std::vector<double>& lambs = partial_fit[0];
                 std::vector<double>& ks = partial_fit[1];
-                std::vector<tree::tree_p>& current_data_pointers = data_pointers[tree_ind];
-                std::vector<tree::tree_p>& next_data_pointers = data_pointers[(tree_ind+1)%M]; 
-
+                current_data_pointers = data_pointers[tree_ind];
+                next_data_pointers = data_pointers[(tree_ind+1)%M]; 
                 for(size_t i = 0;i < N;i++)
                 {
 				    std::vector<double> thetas_current = current_data_pointers[i]->theta_vector;
 				    std::vector<double> thetas_next = next_data_pointers[i]->theta_vector;
 				    lambs[i]  = lambs[i]  - thetas_next[1] + thetas_current[1];
 				    ks[i]  = ks[i]  - thetas_next[2] + thetas_current[2];
+
+                    partial_fit_next[0][i] = thetas_next[1];
+                    partial_fit_next[1][i] = thetas_next[2];
 			    }
 
             }
@@ -501,8 +502,6 @@ void predict_std_poisson_classification(const double *Xtestpointer, size_t N_tes
 
             for (size_t tree_ind = 0; tree_ind < M; tree_ind++)
             {
-                
-                //yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
                 tree::tree_p bn;
                 for (size_t i = 0; i < N_test; i++)
                 {
@@ -511,16 +510,12 @@ void predict_std_poisson_classification(const double *Xtestpointer, size_t N_tes
                     sum_ks[i] += bn->theta_vector[2];
 
                 }
-                //yhat_test_std = yhat_test_std + predictions_test_std[tree_ind];
-
-
             }
             std::vector<double>& current_sweep_result = yhats_test_xinfo[sweeps];
             for (size_t i = 0; i < N_test; i++)
             {
                 current_sweep_result[i] = 0.5*(1 + std::pow(-1,1-(size_t)sum_ks[i]%2) * std::exp(-2*sum_lambs[i]));
             }
-            //yhats_test_xinfo[sweeps] = yhat_test_std;
 
         }
     }

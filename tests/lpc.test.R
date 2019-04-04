@@ -1,30 +1,49 @@
 library("dbarts")
 library("XBART")
 
+plotROC <- function(pihat,ytrue,add=FALSE,col = 'steelblue'){
+  
+  thresh <- sort(pihat)
+  N <- length(pihat)
+  yhat <- sapply(1:N, function(a) as.double(pihat >= thresh[a]))
+  tpr <- sapply(1:N, function(a) length(which(ytrue==1 & yhat[,a]==1))/sum(ytrue==1))
+  fpr <- sapply(1:N, function(a) length(which(ytrue==0 & yhat[,a]==1))/sum(ytrue==0));
+  if (add == FALSE){
+    plot(fpr,tpr,pch=20,cex=0.8,col=col,bty='n',type='b')
+    abline(a=0,b=1,lty=2)
+  }else{
+    points(fpr,tpr,pch=20,cex=0.8,col=col,bty='n',type='b')
+  }
+  print(mean(tpr))
+}
+
+
+
 n = 1000
-x1 = runif(n,-3,3)
-x2 = runif(n,-3,3)
+x1 = runif(n,-2,2)
+x2 = runif(n,-2,2)
 
-x = matrix(runif(n*5), ncol=5)
-xtest = matrix(runif(n*5), ncol=5)
  
-xtest1 = runif(n,-3,3)
-xtest2 = runif(n,-3,3)
+xtest1 = runif(n,-2,2)
+xtest2 = runif(n,-2,2)
 
-f <- function(x){5*sin(3*x[,1])+2*x[,2]^2 + 3*(x[,3]*x[,4])}
-logit <- function(x){exp(x - mean(x))/(1+exp(x-mean(x)))}
+f = function(x1,x2,error){
+  
+  abs(x1)/(abs(x2)+1) >= abs(x2)/(abs(x1)+1) + error
+  
+ # x1^2 + x2 - 1 >= x2^2 - 2*x1 + error
+  
+}
 
-y = (logit(f(x)+rnorm(n)) > 0.5)*1
-ytest =(logit(f(xtest)+rnorm(n)) > 0.5)*1
-#y = x1^2+x1 -10 >= -2*x2^2-x2 + rnorm(n)
+y = f(x1,x2,runif(n,-0.5,0.5))
 
-#ytest = xtest1^2+xtest1 -10 >= -2*xtest2^2-xtest2 + rnorm(n)
+ytest = f(xtest1,xtest2,runif(n,-0.5,0.5))
 
-#plot(x1*y,x2*y,pch=20)
+plot(x1*y,x2*y,pch=20)
 
-# fit = bart(x,as.numeric(y),cbind(xtest),ndpost=5000)
+# fit = bart(cbind(x1,x2),as.numeric(y),cbind(xtest1,xtest2),ndpost=1000)
 # phat = colMeans(pnorm(fit$yhat.test))
-# print(mean((ytest == (phat>0.5))))
+# mean((ytest == (phat>0.5)))
 
 ### fit xbart ###
 ### Helpers
@@ -52,11 +71,12 @@ out = XBART.pl(as.matrix(y), as.matrix(cbind(x1,x2)), as.matrix(cbind(x1,x2)), p
     mtry = params$mtry, draw_sigma = FALSE, m_update_sigma = TRUE,draw_mu= TRUE,
     Ncutpoints = params$Ncutpoints, parallel = FALSE,a=params$a,b = params$b)
 
-
- pred = predict(out,as.matrix(xtest))
+ pred = predict(out,as.matrix(cbind(xtest1,xtest2)))
  yhat.pred = apply(pred[,params$burnin:params$nsweeps],1,mean)
- #mean((ytest == (phat>0.5)))
- print(mean((ytest == (yhat.pred>0.5))))
-
+# print(mean((ytest == (phat>0.5))))
+print(mean((ytest == (yhat.pred>0.5))))
+# plot(phat,yhat.pred)
 print("Done!")
 
+# plotROC(phat,ytest)
+plotROC(yhat.pred,ytest,add=TRUE,col='orange')
