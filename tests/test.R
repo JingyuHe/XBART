@@ -59,7 +59,7 @@ fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), params$M, params$L, pa
 yhat.1 = apply(fit$yhats_test[,params$burnin:params$nsweeps],1,mean)
 
 pred = predict(fit,as.matrix(xtest))
-yhat.pred = apply(pred$yhats[,params$burnin:params$nsweeps],1,mean)
+yhat.pred = apply(pred[,params$burnin:params$nsweeps],1,mean)
 after = as.matrix(xtest)
 print(all(before == after))
 

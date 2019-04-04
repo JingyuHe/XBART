@@ -549,9 +549,9 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     // tau is prior VARIANCE, do not take squares
 
-
+    //std::cout << "before sample pars" << " tv[1] " << this->theta_vector[1] << std::endl;
     model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, gen, this->theta_vector);
-
+    //std::cout << "after sample pars " <<" tv[1] " << this->theta_vector[1] << std::endl ;
     if (draw_sigma == true)
     {
 
@@ -571,6 +571,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     std::vector<size_t> subset_vars;
 
+    //std::cout << "Before sample vars" << std::endl;
     if (use_all)
     {
         subset_vars.resize(p);
@@ -596,23 +597,29 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
         // std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
     }
 
+    //std::cout << "Before likelihood" << std::endl;
+    BART_likelihood_all(y_mean * (double)N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, model, gen, mtry);
+    //std::cout << "After likelihood" << std::endl;
 
-    BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, model, gen, mtry);
-
-
+   
     if (no_split == true)
     {
+        //std::cout << "Before datapointers" << std::endl;
         // if do not split, all data points in this node are in bottom node, update matrix of pointers
+        std::vector<tree *>& trees_vec = data_pointers[tree_ind];
+        std::vector<size_t>& order_vec = Xorder_std[0];
         for (size_t i = 0; i < N_Xorder; i++)
         {
-            data_pointers[tree_ind][Xorder_std[0][i]] = this;
+            trees_vec[order_vec[i]] = this;
         }
+         //std::cout << "after datapointers" << std::endl;
         this->l = 0;
         this->r = 0;
         return;
     }
 
 
+    // std::cout << "Book keeping" << std::endl;
     this->v = split_var;
     this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
 
@@ -643,12 +650,16 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     if (p_categorical > 0)
     {
+       // std::cout << "Before split cat" << std::endl;
         split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, y_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, X_values, variable_ind);
+        //std::cout << "after split cat" << std::endl;
     }
 
     if (p_continuous > 0)
     {
+       // std::cout << "Before split" << std::endl;
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, y_std);
+      //  std::cout << "after split" << std::endl;
     }
 
     depth++;
@@ -996,8 +1007,10 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
 
     // calculate for each cases
     if (p_continuous > 0)
-    {
+    {   
+
         calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Nmin, y_std, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, tau, sigma2, loglike_max, model, mtry);
+
     }
 
     if (p_categorical > 0)
@@ -1006,6 +1019,7 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
     }
 
     // calculate likelihood of no-split option
+
     calculate_likelihood_no_split(loglike, N_Xorder, Nmin, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, tau, sigma2, loglike_max, model, mtry, total_categorical_split_candidates);
 
     // transfer loglikelihood to likelihood
@@ -1276,7 +1290,8 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                     model->calcSuffStat_continuous(xorder, y_std, candidate_index, j, false);
 
-                    loglike[(N_Xorder - 1) * i + j] = model->likelihood(tau, n1tau, sigma2, y_sum, true) + model->likelihood(tau, n2tau, sigma2, y_sum, false);
+
+                    loglike[(N_Xorder - 1) * i + j] = model->likelihood(tau, n1tau, sigma2, y_sum, true,N_Xorder) + model->likelihood(tau, n2tau, sigma2, y_sum, false,N_Xorder);
 
                     if (loglike[(N_Xorder - 1) * i + j] > loglike_max)
                     {
@@ -1312,22 +1327,21 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                     // std::vector<double> y_cumsum(Ncutpoints);
 
-                    NormalModel model_temp;
-                    model_temp.suff_stat_init();
-                    model_temp.suff_stat_fill(y_std[xorder[0]]);
+
 
                     for (size_t j = 0; j < Ncutpoints; j++)
                     {
-                        model_temp.calcSuffStat_continuous(xorder, y_std, candidate_index2, j, true);
+                        model->calcSuffStat_continuous(xorder, y_std, candidate_index2, j, true);
 
                         // loop over all possible cutpoints
                         double n1tau = (candidate_index2[j + 1] + 1) * tau; // number of points on left side (x <= cutpoint)
                         double n2tau = Ntau - n1tau;                        // number of points on right side (x > cutpoint)
 
-                        loglike[(Ncutpoints)*i + j] = model_temp.likelihood(tau, n1tau, sigma2, y_sum, true) + model_temp.likelihood(tau, n2tau, sigma2, y_sum, false);
+                        loglike[(Ncutpoints)*i + j] = model->likelihood(tau, n1tau, sigma2, y_sum, true,N_Xorder) + model->likelihood(tau, n2tau, sigma2, y_sum, false,N_Xorder);
 
                         if (loglike[(Ncutpoints)*i + j] > llmax)
                         {
+
                             llmax = loglike[(Ncutpoints)*i + j];
                         }
                     }
@@ -1418,7 +1432,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                     n1tau = (double)n1 * tau;
                     n2tau = ntau - n1tau;
 
-                    loglike[loglike_start + j] = model -> likelihood(tau, n1tau, sigma2, y_sum, true) + model -> likelihood(tau, n2tau, sigma2, y_sum, false);
+                    loglike[loglike_start + j] = model -> likelihood(tau, n1tau, sigma2, y_sum, true, N_Xorder) + model -> likelihood(tau, n2tau, sigma2, y_sum, false,N_Xorder);
 
                     // count total number of cutpoint candidates
                     effective_cutpoints++;
