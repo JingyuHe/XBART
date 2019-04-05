@@ -22,7 +22,7 @@ library(XBART)
 library(dbarts)
 
 
-
+set.seed(100)
 d = 20 # number of TOTAL variables
 dcat = 10 # number of categorical variables
 # must be d >= dcat
@@ -35,7 +35,7 @@ n = 5000 # size of training set
 nt = 1000 # size of testing set
 
 new_data = TRUE # generate new data
-run_dbarts = TRUE # run dbarts
+run_dbarts = FALSE # run dbarts
 parl = FALSE # parallel computing
 
 
@@ -87,19 +87,6 @@ if (new_data) {
   y_test = ftest + sigma * rnorm(nt)
 }
 
-
-
-#######################################################################
-# dbarts
-if (run_dbarts) {
-  time = proc.time()
-  fit = bart(x, y, xtest, verbose = FALSE, numcut = 100, ndpost = 1000, nskip = 500)
-  time = proc.time() - time
-  print(time[3])
-  fhat.db = fit$yhat.test.mean
-  time_dbarts = round(time[3], 3)
-}
-
 #######################################################################
 # XBART
 categ <- function(z, j) {
@@ -114,8 +101,8 @@ time = proc.time()
 fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat,
             params$M, params$L, params$nsweeps, params$max_depth,
             params$Nmin, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1,
-            mtry = params$mtry, draw_sigma = FALSE, m_update_sigma = TRUE, draw_mu = TRUE,
-            Ncutpoints = params$Ncutpoints, parallel = parl)
+            mtry = params$mtry, m_update_sigma = TRUE, draw_mu = TRUE,
+            Ncutpoints = params$Ncutpoints, parallel = parl, random_seed = 100)
 
 ################################
 # two ways to predict on testing set
@@ -132,6 +119,19 @@ pred = rowMeans(pred[, params$burnin:params$nsweeps])
 time_XBART = round(time[3], 3)
 
 
+#######################################################################
+# dbarts
+if (run_dbarts) {
+  time = proc.time()
+  fit = bart(x, y, xtest, verbose = FALSE, numcut = 100, ndpost = 1000, nskip = 500)
+  time = proc.time() - time
+  print(time[3])
+  fhat.db = fit$yhat.test.mean
+  time_dbarts = round(time[3], 3)
+}else{
+  fhat.db = fhat.1
+  time_dbarts = time_XBART
+}
 
 #######################################################################
 # print

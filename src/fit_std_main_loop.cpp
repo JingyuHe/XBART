@@ -6,7 +6,7 @@ void fit_std_main_loop(const double *Xpointer, std::vector<double> &y_std, doubl
                        size_t M, size_t L, size_t N_sweeps, xinfo_sizet &max_depth_std,
                        size_t Nmin, size_t Ncutpoints, double alpha, double beta,
                        double tau, size_t burnin, size_t mtry,
-                       bool draw_sigma, double kap, double s,
+                       double kap, double s,
                        bool verbose, bool m_update_sigma,
                        bool draw_mu, bool parallel,
                        xinfo &yhats_xinfo, xinfo &yhats_test_xinfo, xinfo &sigma_draw_xinfo)
@@ -203,7 +203,7 @@ void fit_std_main_loop_all(const double *Xpointer, std::vector<double> &y_std, d
                            size_t M, size_t L, size_t N_sweeps, xinfo_sizet &max_depth_std,
                            size_t Nmin, size_t Ncutpoints, double alpha, double beta,
                            double tau, size_t burnin, size_t mtry,
-                           bool draw_sigma, double kap, double s,
+                           double kap, double s,
                            bool verbose, bool m_update_sigma,
                            bool draw_mu, bool parallel,
                            xinfo &yhats_xinfo, xinfo &yhats_test_xinfo,
@@ -216,7 +216,7 @@ void fit_std_main_loop_all(const double *Xpointer, std::vector<double> &y_std, d
             M, L, N_sweeps, max_depth_std,
             Nmin, Ncutpoints, alpha, beta,
             tau, burnin, mtry,
-            draw_sigma, kap, s,
+            kap, s,
             verbose, m_update_sigma,
             draw_mu, parallel,
             yhats_xinfo, sigma_draw_xinfo,
@@ -453,7 +453,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
              size_t M, size_t L, size_t N_sweeps, xinfo_sizet &max_depth_std,
              size_t Nmin, size_t Ncutpoints, double alpha, double beta,
              double tau, size_t burnin, size_t mtry,
-             bool draw_sigma, double kap, double s,
+             double kap, double s,
              bool verbose, bool m_update_sigma,
              bool draw_mu, bool parallel,
              xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo,
@@ -618,7 +618,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
 
                 mtry_weight_current_tree = mtry_weight_current_tree - split_count_all_tree[tree_ind];
 
-                trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_sigma, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, &model, data_pointers, tree_ind, gen);
+                trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, &model, data_pointers, tree_ind, gen);
 
                 mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 

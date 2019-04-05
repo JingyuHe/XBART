@@ -1,7 +1,6 @@
 #include <ctime>
 #include <RcppArmadillo.h>
 #include "tree.h"
-#include "treefuns.h"
 #include "forest.h"
 #include <chrono>
 #include "fit_std_main_loop.h"

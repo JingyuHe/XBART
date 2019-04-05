@@ -19,7 +19,6 @@
  */
 
 #include "tree.h"
-#include "treefuns.h"
 // #include <RcppArmadilloExtensions/sample.h>
 #include <chrono>
 
@@ -525,7 +524,7 @@ void cumulative_sum_std(std::vector<double> &y_cumsum, std::vector<double> &y_cu
     return;
 }
 
-void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, bool &categorical_variables, size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model, matrix<tree::tree_p> &data_pointers, const size_t &tree_ind, std::mt19937 &gen)
+void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, bool &categorical_variables, size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model, matrix<tree::tree_p> &data_pointers, const size_t &tree_ind, std::mt19937 &gen)
 
 {
     // grow a tree, users can control number of split points
@@ -552,19 +551,6 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, gen, this->theta_vector);
 
-    if (draw_sigma == true)
-    {
-
-        tree::tree_p top_p = this->gettop();
-        // draw sigma use residual of noisy theta
-
-        std::vector<double> reshat_std(N_y);
-        fit_new_theta_noise_std(*top_p, X_std, p, N_y, reshat_std);
-        reshat_std = y_std - reshat_std;
-
-        std::gamma_distribution<double> gamma_samp((N_y + 16) / 2.0, 2.0 / (sum_squared(reshat_std) + 4.0));
-        sigma = 1.0 / gamma_samp(gen);
-    }
 
     this->sig = sigma;
     bool no_split = false;
@@ -655,13 +641,13 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     tree::tree_p lchild = new tree(model->getNumClasses());
     lchild->grow_tree_adaptive_std_all(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
-                                       draw_sigma, draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, use_all, split_count_all_tree,
+                                       draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, use_all, split_count_all_tree,
                                        mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous,
                                        X_values, X_counts_left, variable_ind, X_num_unique_left, model, data_pointers, tree_ind, gen);
 
     tree::tree_p rchild = new tree(model->getNumClasses());
     rchild->grow_tree_adaptive_std_all(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
-                                       draw_sigma, draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, use_all, split_count_all_tree,
+                                       draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, use_all, split_count_all_tree,
                                        mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous,
                                        X_values, X_counts_right, variable_ind, X_num_unique_right, model, data_pointers, tree_ind, gen);
 
@@ -1494,6 +1480,33 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
     }
 }
 
+
+
+void fit_new_std(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output)
+{
+    tree::tree_p bn;
+    for (size_t i = 0; i < N; i++)
+    {
+        bn = tree.search_bottom_std(X_std, i, p, N);
+        //output[i] = bn->gettheta();
+         //output[i] = bn->gettheta_vector()[0];
+        output[i] = bn->theta_vector[0];
+
+    }
+    return;
+}
+
+void fit_new_std_datapointers(const double *X_std, size_t N, size_t M, std::vector<double> &output, matrix<tree::tree_p>& data_pointers)
+{
+    // tree search, but read from the matrix of pointers to end node directly
+    // easier to get fitted value of training set
+    for (size_t i = 0; i < N; i++)
+    {
+        output[i] = data_pointers[M][i]->theta_vector[0];
+
+    }
+    return;
+}
 
 
 #ifndef NoRcpp

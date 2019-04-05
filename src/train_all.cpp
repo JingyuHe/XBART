@@ -1,7 +1,6 @@
 #include <ctime>
 #include <RcppArmadillo.h>
 #include "tree.h"
-#include "treefuns.h"
 #include "forest.h"
 #include <chrono>
 #include "fit_std_main_loop.h"
@@ -94,7 +93,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
                             size_t M, size_t L, size_t N_sweeps, arma::mat max_depth,
                             size_t Nmin, size_t Ncutpoints, double alpha, double beta,
                             double tau, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,
-                            bool draw_sigma = false, double kap = 16, double s = 4, bool verbose = false,
+                            double kap = 16, double s = 4, bool verbose = false,
                             bool m_update_sigma = false, bool draw_mu = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0)
 {
 
@@ -177,7 +176,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     fit_std_main_loop_all(Xpointer, y_std, y_mean, Xtestpointer, Xorder_std,
                           N, p, N_test, M, L, N_sweeps, max_depth_std, // NEED TO CHANGE "max_depth"
                           Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry,
-                          draw_sigma, kap, s, verbose, m_update_sigma, draw_mu, parallel,
+                          kap, s, verbose, m_update_sigma, draw_mu, parallel,
                           yhats_xinfo, yhats_test_xinfo, sigma_draw_xinfo, split_count_all_tree,
                           p_categorical, p_continuous, *trees2, set_random_seed, random_seed);
 

@@ -45,7 +45,6 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
 void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, size_t &Nmin, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, Model *model, size_t &mtry, size_t &total_categorical_split_candidates);
 
-
 // void calc_suff_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, double &suff_stat, bool adaptive_cutpoint);
 
 //--------------------------------------------------
@@ -123,7 +122,7 @@ class tree
     tree_p gettop();              // get pointer to the top node
 
     void grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints,
-                                    double tau, double sigma, double alpha, double beta, bool draw_sigma, bool draw_mu, bool parallel,
+                                    double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel,
                                     std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, bool &use_all,
                                     xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree,
                                     std::vector<double> &split_count_current_tree, bool &categorical_variables, size_t &p_categorical,
@@ -166,5 +165,11 @@ class tree
 };
 std::istream &operator>>(std::istream &, tree &);
 std::ostream &operator<<(std::ostream &, const tree &);
+
+
+
+void fit_new_std(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output);
+
+void fit_new_std_datapointers(const double *X_std, size_t N, size_t M, std::vector<double> &output, matrix<tree::tree_p>& data_pointers);
 
 #endif

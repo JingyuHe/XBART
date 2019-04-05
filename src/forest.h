@@ -4,7 +4,6 @@
 #include <ctime>
 
 #include "tree.h"
-#include "treefuns.h"
 
 
 // [[Rcpp::plugins(cpp11)]]
