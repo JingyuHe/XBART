@@ -331,7 +331,6 @@ void tree::tonull()
         }
         ts = treesize(); //make invariant true
     }
-    theta = 0.0;
     v = 0;
     c = 0;
     p = 0;
@@ -350,7 +349,6 @@ void tree::cp(tree_p n, tree_cp o)
         return;
     }
 
-    n->theta = o->theta;
     n->v = o->v;
     n->c = o->c;
 
@@ -1488,8 +1486,6 @@ void fit_new_std(tree &tree, const double *X_std, size_t N, size_t p, std::vecto
     for (size_t i = 0; i < N; i++)
     {
         bn = tree.search_bottom_std(X_std, i, p, N);
-        //output[i] = bn->gettheta();
-         //output[i] = bn->gettheta_vector()[0];
         output[i] = bn->theta_vector[0];
 
     }

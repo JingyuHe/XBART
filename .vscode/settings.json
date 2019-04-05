@@ -79,6 +79,8 @@
         "cstring": "cpp",
         "mutex": "cpp",
         "condition_variable": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "*.rmd": "markdown",
+        "cinttypes": "cpp"
     }
 }

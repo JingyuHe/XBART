@@ -60,7 +60,6 @@ struct node_info
     std::size_t id; //node id
     std::size_t v;  //variable
     double c;       //cut point // different from BART
-    double theta;   //theta
     std::vector<double> theta_vector;
 };
 
@@ -80,10 +79,10 @@ class tree
     friend std::istream &operator>>(std::istream &, tree &);
     //  friend void update_sufficient_stat(tree& tree, arma::mat& y, arma::mat& X, tree::npv& bv, tree::npv& bv2, double& tau, double& sigma, double& alpha, double& beta);
     //contructors,destructors--------------------
-    tree() : theta(0.0), theta_noise(0.0), theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
-    tree(const tree &n) : theta(0.0), theta_noise(0.0), theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) { cp(this, &n); }
-    tree(double itheta) : theta(itheta), theta_noise(0.0), theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
-    tree(size_t num_classes) : theta(0.0), theta_noise(0.0), theta_vector(num_classes, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
+    tree() : theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
+    tree(const tree &n) : theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) { cp(this, &n); }
+    tree(double itheta) : theta_vector(itheta, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
+    tree(size_t num_classes) : theta_vector(num_classes, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
 
     void tonull(); //like a "clear", null tree has just one node
     ~tree() { tonull(); }
@@ -92,9 +91,6 @@ class tree
     //interface--------------------
     //set
     void settheta(std::vector<double> theta_vector) { this->theta_vector = theta_vector; }
-
-
-
 
     void setv(size_t v) { this->v = v; }
     void setc(size_t c) { this->c = c; }
@@ -147,10 +143,6 @@ class tree
 #ifndef NoRcpp
 #endif
   private:
-    double theta; //univariate double parameter
-    double theta_noise;
-    
-
     double sig;
     //rule: left if x[v] < xinfo[v][c]
     size_t v; //index of variable to split

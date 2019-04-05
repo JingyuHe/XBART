@@ -168,10 +168,6 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     // // sample one index of split point
     size_t prune;
 
-    // std::vector<double> split_var_count(p);
-    // std::fill(split_var_count.begin(), split_var_count.end(), 1);
-    // Rcpp::NumericVector split_var_count(p, 1);
-
     xinfo split_count_all_tree;
     ini_xinfo(split_count_all_tree, p, M); // initialize at 0
     // split_count_all_tree = split_count_all_tree + 1; // initialize at 1
@@ -183,10 +179,6 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
 
     double run_time = 0.0;
-
-    // save tree objects to strings
-    // std::stringstream treess;
-    // treess.precision(10);
 
     // L, number of samples
     // M, number of trees
@@ -248,8 +240,6 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
                 residual_std = residual_std + predictions_std[tree_ind];
 
-                // do the samething for residual_theta_noise, residual of m - 1 trees
-
                 yhat_std = yhat_std - predictions_std[tree_ind];
 
                 yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
@@ -262,9 +252,6 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
                     use_all = false;
                 }
-
-                // cout << "variables used " << subset_vars << endl;
-                // cout << "------------------" << endl;
 
                 // clear counts of splits for one tree
                 std::fill(split_count_current_tree.begin(), split_count_current_tree.end(), 0.0);
@@ -289,10 +276,8 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
                 // update prediction of current tree, test set
                 fit_new_std(trees.t[tree_ind], Xtestpointer, N_test, p, predictions_test_std[tree_ind]);
 
-                // update sigma based on residual of m - 1 trees, residual_theta_noise
                 if (m_update_sigma == false)
                 {
-
                     std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std) + s));
 
                     sigma = 1.0 / sqrt(gamma_samp(gen));
@@ -307,7 +292,6 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
                 yhat_std = yhat_std + predictions_std[tree_ind];
                 yhat_test_std = yhat_test_std + predictions_test_std[tree_ind];
 
-                // treess << trees.t[tree_ind];
             }
 
             // save predictions to output matrix
@@ -333,6 +317,5 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
     cout << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
-    // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
     return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw);
 }
