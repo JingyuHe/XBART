@@ -6,7 +6,7 @@ void fit_std_main_loop_all(const double *Xpointer, std::vector<double> &y_std, d
                            size_t Nmin, size_t Ncutpoints, double alpha, double beta,
                            double tau, size_t burnin, size_t mtry,
                            double kap, double s,
-                           bool verbose, bool m_update_sigma,
+                           bool verbose,
                            bool draw_mu, bool parallel,
                            xinfo &yhats_xinfo, xinfo &yhats_test_xinfo,
                            xinfo &sigma_draw_xinfo, xinfo &split_count_all_tree,
@@ -19,7 +19,7 @@ void fit_std_main_loop_all(const double *Xpointer, std::vector<double> &y_std, d
             Nmin, Ncutpoints, alpha, beta,
             tau, burnin, mtry,
             kap, s,
-            verbose, m_update_sigma,
+            verbose,
             draw_mu, parallel,
             yhats_xinfo, sigma_draw_xinfo,
             p_categorical, p_continuous, trees, set_random_seed, random_seed);
@@ -35,7 +35,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
              size_t Nmin, size_t Ncutpoints, double alpha, double beta,
              double tau, size_t burnin, size_t mtry,
              double kap, double s,
-             bool verbose, bool m_update_sigma,
+             bool verbose,
              bool draw_mu, bool parallel,
              xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo,
              size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed)
@@ -76,7 +76,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
     // current residual
     std::vector<double> residual_std(N);
 
-    double sigma;
+    double sigma = 1.0;
     // double tau;
     //forest trees(M);
     std::vector<double> prob(2, 0.5);
@@ -109,6 +109,8 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
     ini_matrix(data_pointers, N, M);
 
     bool use_all = true;
+
+    std::vector<double> residual_std_full;
     for (size_t mc = 0; mc < L; mc++)
     {
 
@@ -138,20 +140,21 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
             {
 
                 // if update sigma based on residual of all m trees
-                if (m_update_sigma == true)
-                {
+                // if (m_update_sigma == true)
+                // {
 
-                    std::vector<double> residual_std_full = residual_std - predictions_std[tree_ind];
+                    residual_std_full = residual_std - predictions_std[tree_ind];
 
                     std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std_full) + s));
 
                     sigma = 1.0 / sqrt(gamma_samp(gen));
 
                     sigma_draw_xinfo[sweeps][tree_ind] = sigma;
-                }
+                // }
 
                 // save sigma
                 sigma_draw_xinfo[sweeps][tree_ind] = sigma;
+
 
                 // add prediction of current tree back to residual
                 // then it's m - 1 trees residual
@@ -185,14 +188,15 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
 
                 // update prediction of current tree, test set
 
-                if (m_update_sigma == false)
-                {
-                    std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std) + s));
+                // if (m_update_sigma == false)
+                // {
+                //     std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std) + s));
 
-                    sigma = 1.0 / sqrt(gamma_samp(gen));
+                //     sigma = 1.0 / sqrt(gamma_samp(gen));
 
-                    sigma_draw_xinfo[sweeps][tree_ind] = sigma;
-                }
+                //     sigma_draw_xinfo[sweeps][tree_ind] = sigma;
+
+                // }
 
                 // update residual, now it's residual of m trees
                 model.updateResidual(predictions_std, tree_ind, M, residual_std);

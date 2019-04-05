@@ -10,7 +10,7 @@
 #     .Call(`_XBART_sample_int_ccrank`, n, size, prob)
 # }
 
-train_forest_root_std_all <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, m_update_sigma = TRUE, draw_mu = TRUE, parallel = TRUE, random_seed = NULL, ...) {
+train_forest_root_std_all <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, draw_mu = TRUE, parallel = TRUE, random_seed = NULL, ...) {
 
     if(class(X) != "matrix"){
         cat("Input X is not a matrix, try to convert type.\n")
@@ -33,12 +33,12 @@ train_forest_root_std_all <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nm
         set_random_seed = TRUE
     }
 
-    .Call(`_XBART_train_forest_root_std_all`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, kap, s, verbose, m_update_sigma, draw_mu, parallel, set_random_seed, random_seed)
+    .Call(`_XBART_train_forest_root_std_all`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, kap, s, verbose, draw_mu, parallel, set_random_seed, random_seed)
 }
 
 
 
-XBART <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, m_update_sigma = TRUE, draw_mu = TRUE, parallel = TRUE, random_seed = NULL, ...) {
+XBART <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, draw_mu = TRUE, parallel = TRUE, random_seed = NULL, ...) {
 
     if(class(X) != "matrix"){
         cat("Input X is not a matrix, try to convert type.\n")
@@ -61,7 +61,7 @@ XBART <- function(y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alph
         set_random_seed = TRUE
     }
 
-    obj = .Call(`_XBART`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, kap, s, verbose, m_update_sigma, draw_mu, parallel, set_random_seed, random_seed)
+    obj = .Call(`_XBART`, y, X, Xtest, M, L, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, kap, s, verbose, draw_mu, parallel, set_random_seed, random_seed)
     class(obj) = "XBART"
     return(obj)
 }

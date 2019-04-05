@@ -101,7 +101,7 @@ time = proc.time()
 fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat,
             params$M, params$L, params$nsweeps, params$max_depth,
             params$Nmin, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1,
-            mtry = params$mtry, m_update_sigma = TRUE, draw_mu = TRUE,
+            mtry = params$mtry, draw_mu = TRUE,
             Ncutpoints = params$Ncutpoints, parallel = parl, random_seed = 100)
 
 ################################

@@ -17,7 +17,7 @@ using namespace chrono;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool m_update_sigma = false, bool draw_mu = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0)
+Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t L, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool draw_mu = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0)
 {
     bool categorical_variables = false;
     if (p_categorical > 0)
@@ -222,15 +222,15 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
             {
 
                 // if update sigma based on residual of all m trees
-                if (m_update_sigma == true)
-                {
+                // if (m_update_sigma == true)
+                // {
 
-                    std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std) + s));
+                std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std) + s));
 
-                    sigma = 1.0 / sqrt(gamma_samp(gen));
+                sigma = 1.0 / sqrt(gamma_samp(gen));
 
-                    sigma_draw(tree_ind, sweeps) = sigma;
-                }
+                sigma_draw(tree_ind, sweeps) = sigma;
+                // }
 
                 // save sigma
                 sigma_draw(tree_ind, sweeps) = sigma;
@@ -276,14 +276,14 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
                 // update prediction of current tree, test set
                 fit_new_std(trees.t[tree_ind], Xtestpointer, N_test, p, predictions_test_std[tree_ind]);
 
-                if (m_update_sigma == false)
-                {
-                    std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std) + s));
+                // if (m_update_sigma == false)
+                // {
+                //     std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std) + s));
 
-                    sigma = 1.0 / sqrt(gamma_samp(gen));
+                //     sigma = 1.0 / sqrt(gamma_samp(gen));
 
-                    sigma_draw(tree_ind, sweeps) = sigma;
-                }
+                //     sigma_draw(tree_ind, sweeps) = sigma;
+                // }
 
                 // update residual, now it's residual of m trees
 
