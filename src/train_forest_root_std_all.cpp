@@ -284,7 +284,8 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
                 }
 
                 // update prediction of current tree
-                fit_new_std(trees.t[tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
+                // fit_new_std(trees.t[tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
+                fit_new_std_datapointers(Xpointer, N, tree_ind, predictions_std[tree_ind], data_pointers);
 
                 // update prediction of current tree, test set
                 fit_new_std(trees.t[tree_ind], Xtestpointer, N_test, p, predictions_test_std[tree_ind]);

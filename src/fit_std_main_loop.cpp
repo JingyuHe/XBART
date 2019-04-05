@@ -626,7 +626,9 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
 
                 // update prediction of current tree
 
-                fit_new_std(trees[sweeps][tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
+                // fit_new_std(trees[sweeps][tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
+                fit_new_std_datapointers(Xpointer, N, tree_ind, predictions_std[tree_ind], data_pointers);
+
 
                 // update prediction of current tree, test set
 

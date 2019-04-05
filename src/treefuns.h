@@ -52,4 +52,5 @@ double sum_residual_squared(tree &tree, const double *X, const std::vector<doubl
 
 void fit_new_std(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output);
 
+void fit_new_std_datapointers(const double *X_std, size_t N, size_t M, std::vector<double> &output, matrix<tree::tree_p>& data_pointers);
 #endif

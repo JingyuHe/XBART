@@ -60,3 +60,16 @@ void fit_new_theta_noise_std(tree &tree, const double *X, size_t p, size_t N, st
     }
     return;
 }
+
+
+void fit_new_std_datapointers(const double *X_std, size_t N, size_t M, std::vector<double> &output, matrix<tree::tree_p>& data_pointers)
+{
+    // tree search, but read from the matrix of pointers to end node directly
+    // easier to get fitted value of training set
+    for (size_t i = 0; i < N; i++)
+    {
+        output[i] = data_pointers[M][i]->theta_vector[0];
+
+    }
+    return;
+}

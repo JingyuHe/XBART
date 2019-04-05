@@ -47,6 +47,7 @@ python/build
 python/src
 
 # Visual Studio 2017 temporary files
+.vscode/
 *.vcxproj.user
 vs2017/.vs
 vs2017/Debug
