@@ -3,7 +3,7 @@
 
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
-#include <tree.h>
+#include "tree.h"
 
 
 using namespace Rcpp;
