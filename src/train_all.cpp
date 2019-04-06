@@ -94,8 +94,9 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
                             size_t Nmin, size_t Ncutpoints, double alpha, double beta,
                             double tau, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,
                             double kap = 16, double s = 4, bool verbose = false,
-                            bool draw_mu = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0)
+                            bool parallel = true, bool set_random_seed = false, size_t random_seed = 0)
 {
+    bool draw_mu = true;
 
     auto start = system_clock::now();
 
