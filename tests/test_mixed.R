@@ -19,7 +19,7 @@ get_XBART_params <- function(n, d, y) {
 #######################################################################
 library(XBART)
 library(dbarts)
-
+library(xgboost)
 
 set.seed(100)
 d = 20 # number of TOTAL variables
@@ -34,7 +34,7 @@ n = 5000 # size of training set
 nt = 1000 # size of testing set
 
 new_data = TRUE # generate new data
-run_dbarts = FALSE # run dbarts
+run_dbarts = TRUE # run dbarts
 parl = FALSE # parallel computing
 
 
@@ -131,6 +131,16 @@ if (run_dbarts) {
   fhat.db = fhat.1
   time_dbarts = time_XBART
 }
+
+
+#######################################################################
+# XGBoost
+
+
+
+#######################################################################
+# LightGBM
+
 
 #######################################################################
 # print
