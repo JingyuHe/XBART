@@ -108,10 +108,6 @@ class XBARTcppParams(_object):
     __swig_getmethods__["M"] = _xbart_cpp_.XBARTcppParams_M_get
     if _newclass:
         M = _swig_property(_xbart_cpp_.XBARTcppParams_M_get, _xbart_cpp_.XBARTcppParams_M_set)
-    __swig_setmethods__["L"] = _xbart_cpp_.XBARTcppParams_L_set
-    __swig_getmethods__["L"] = _xbart_cpp_.XBARTcppParams_L_get
-    if _newclass:
-        L = _swig_property(_xbart_cpp_.XBARTcppParams_L_get, _xbart_cpp_.XBARTcppParams_L_set)
     __swig_setmethods__["N_sweeps"] = _xbart_cpp_.XBARTcppParams_N_sweeps_set
     __swig_getmethods__["N_sweeps"] = _xbart_cpp_.XBARTcppParams_N_sweeps_get
     if _newclass:
@@ -156,18 +152,10 @@ class XBARTcppParams(_object):
     __swig_getmethods__["s"] = _xbart_cpp_.XBARTcppParams_s_get
     if _newclass:
         s = _swig_property(_xbart_cpp_.XBARTcppParams_s_get, _xbart_cpp_.XBARTcppParams_s_set)
-    __swig_setmethods__["draw_sigma"] = _xbart_cpp_.XBARTcppParams_draw_sigma_set
-    __swig_getmethods__["draw_sigma"] = _xbart_cpp_.XBARTcppParams_draw_sigma_get
-    if _newclass:
-        draw_sigma = _swig_property(_xbart_cpp_.XBARTcppParams_draw_sigma_get, _xbart_cpp_.XBARTcppParams_draw_sigma_set)
     __swig_setmethods__["verbose"] = _xbart_cpp_.XBARTcppParams_verbose_set
     __swig_getmethods__["verbose"] = _xbart_cpp_.XBARTcppParams_verbose_get
     if _newclass:
         verbose = _swig_property(_xbart_cpp_.XBARTcppParams_verbose_get, _xbart_cpp_.XBARTcppParams_verbose_set)
-    __swig_setmethods__["m_update_sigma"] = _xbart_cpp_.XBARTcppParams_m_update_sigma_set
-    __swig_getmethods__["m_update_sigma"] = _xbart_cpp_.XBARTcppParams_m_update_sigma_get
-    if _newclass:
-        m_update_sigma = _swig_property(_xbart_cpp_.XBARTcppParams_m_update_sigma_get, _xbart_cpp_.XBARTcppParams_m_update_sigma_set)
     __swig_setmethods__["draw_mu"] = _xbart_cpp_.XBARTcppParams_draw_mu_set
     __swig_getmethods__["draw_mu"] = _xbart_cpp_.XBARTcppParams_draw_mu_get
     if _newclass:

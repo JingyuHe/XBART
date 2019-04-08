@@ -15,15 +15,14 @@ using namespace std;
 XBARTcpp::XBARTcpp(XBARTcppParams params){
 	this->params = params;		
 }
-XBARTcpp::XBARTcpp (size_t M ,size_t L ,size_t N_sweeps ,
+XBARTcpp::XBARTcpp (size_t M ,size_t N_sweeps ,
         size_t Nmin , size_t Ncutpoints , //CHANGE 
         double alpha , double beta , double tau , //CHANGE!
         size_t burnin, 
-        size_t mtry , size_t max_depth_num,bool draw_sigma , double kap , 
-        double s , bool verbose , bool m_update_sigma, 
+        size_t mtry , size_t max_depth_num, double kap , 
+        double s , bool verbose , 
         bool draw_mu , bool parallel,int seed){
   this->params.M = M; 
-  this->params.L = L;
   this->params.N_sweeps = N_sweeps;
   this->params.Nmin = Nmin;
   this->params.Ncutpoints = Ncutpoints;
@@ -33,11 +32,9 @@ XBARTcpp::XBARTcpp (size_t M ,size_t L ,size_t N_sweeps ,
   this->params.burnin = burnin;
   this->params.mtry = mtry;
   this->params.max_depth_num = max_depth_num;
-  this->params.draw_sigma = draw_sigma;
   this->params.kap = kap;
   this->params.s = s;
   this->params.verbose = verbose;
-  this->params.m_update_sigma = m_update_sigma;
   this->params.draw_mu = draw_mu;
   this->params.parallel=parallel;
   this->trees = vector<tree>(M);
