@@ -116,11 +116,10 @@ class XBARTExceptionTesting(unittest.TestCase):
 		with self.assertRaises(TypeError):
 			xbart.XBART(num_trees = 5.1)
 
-	@unittest.skip("demonstrating skipping")
+
 	def test_int_as_good_float(self):
 		xbart.XBART(num_trees = 5.0)
 
-	@unittest.skip("demonstrating skipping")
 	def test_float_good_int(self):	
 		xbart.XBART(alpha=5)
 
@@ -141,11 +140,9 @@ class XBARTExceptionTesting(unittest.TestCase):
 		with self.assertRaises(TypeError):
 			xbart.XBART(parallel = "2")
 
-	@unittest.skip("demonstrating skipping")
 	def test_bool_with_good_int(self):
 		xbart.XBART(parallel = 0)
 
-	@unittest.skip("demonstrating skipping")
 	def test_bool_with_good_float(self):
 		xbart.XBART(parallel = 0.0)
 
