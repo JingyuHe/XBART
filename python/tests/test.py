@@ -3,8 +3,6 @@ import numpy as np
 from collections import OrderedDict
 import unittest
 import sys
-from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import RandomForestRegressor,GradientBoostingRegressor
 import time
 
 import xbart
@@ -16,7 +14,7 @@ class XBARTTesting1(unittest.TestCase):
 
 
 	def setUp(self):
-		self.params = {"num_trees":5,"num_sweeps":2,"num_cutpoints":10,"mtry":2,
+		self.params = {"num_trees":5,"num_sweeps":2,"num_cutpoints":10,
 						"max_depth_num":5,"burnin":1}
 		self.model = xbart.XBART(**self.params)
 		self.model_2 = xbart.XBART(**self.params)
@@ -71,16 +69,7 @@ class XBARTTesting1(unittest.TestCase):
 		y_hat_2 = y_pred_2[:,self.params["burnin"]:].mean(axis=1)
 		y_hat_3 = y_pred_3[:,self.params["burnin"]:].mean(axis=1)
 
-		reg = RandomForestRegressor(n_estimators=50)
-		reg.fit(x,y)
-		y_hat_rf = reg.predict(x_test)
 
-		gbm = GradientBoostingRegressor()
-		gbm.fit(x,y)
-		y_hat_gbm = gbm.predict(x_test)
-
-		print("\nRMSE RF:"  + str(rmse(y_hat_rf,y_test)))
-		print("RMSE GBM:"  + str(rmse(y_hat_gbm,y_test)))
 		print("RMSE XBART:"  + str(rmse(y_hat,y_test)) )
 		print("RMSE XBART Pred:"  + str(rmse(y_hat_2,y_test)) )
 		print("RMSE XBART Fit Pred Seperate:"  + str(rmse(y_hat_3,y_test)))
@@ -127,6 +116,7 @@ class XBARTExceptionTesting(unittest.TestCase):
 		with self.assertRaises(TypeError):
 			xbart.XBART(num_trees = 5.1)
 
+
 	def test_int_as_good_float(self):
 		xbart.XBART(num_trees = 5.0)
 
@@ -139,22 +129,22 @@ class XBARTExceptionTesting(unittest.TestCase):
 
 	def test_bool_with_bad_int(self):
 		with self.assertRaises(TypeError):
-			params = {"m_update_sigma":2}
-			xbart.XBART(m_update_sigma = 2)
+			params = {"parallel":2}
+			xbart.XBART(parallel = 2)
 
 	def test_bool_with_bad_float(self):
 		with self.assertRaises(TypeError):
-			xbart.XBART(m_update_sigma = 2.2)
+			xbart.XBART(parallel= 2.2)
 	
 	def test_bool_with_bad_string(self):
 		with self.assertRaises(TypeError):
-			xbart.XBART(m_update_sigma = "2")
+			xbart.XBART(parallel = "2")
 
 	def test_bool_with_good_int(self):
-		xbart.XBART(m_update_sigma = 0)
+		xbart.XBART(parallel = 0)
 
 	def test_bool_with_good_float(self):
-		xbart.XBART(m_update_sigma = 0.0)
+		xbart.XBART(parallel = 0.0)
 
 if __name__ == "__main__":
 	test_classes_to_run = [XBARTTesting1, XBARTExceptionTesting]

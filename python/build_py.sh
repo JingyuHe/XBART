@@ -26,7 +26,7 @@ do
       -s|--swig) SWIG_FLAG=true;shift;;
       -*|--*) printf "\n\n   ERROR: Unsupported option $1\n\n"; usage; exit; ;;
     esac
-    shift
+    #shift
 done
 
 echo Building python
@@ -63,5 +63,6 @@ if $DIST_FLAG;then
 else
   $PYTHON_BIN setup.py build_ext --inplace
 fi
+
 rm -rf src
 $PYTHON_BIN tests/test.py

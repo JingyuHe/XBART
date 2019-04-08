@@ -16,12 +16,10 @@ typedef std::vector<vec_d> xinfo;
 
 
 struct XBARTcppParams{
-			size_t M;
-			size_t L;size_t N_sweeps; size_t Nmin; size_t Ncutpoints;
+			size_t M;size_t N_sweeps; size_t Nmin; size_t Ncutpoints;
 			size_t burnin; size_t mtry;size_t max_depth_num;
 			double alpha;double beta;double tau;double kap;double s;
-			bool draw_sigma;bool verbose; bool m_update_sigma;
-			bool draw_mu;bool parallel;int seed;
+			bool verbose; bool draw_mu;bool parallel;int seed;
 };
 
 class XBARTcpp{
@@ -48,12 +46,12 @@ class XBARTcpp{
 	public:
 		// Constructors 
 		XBARTcpp (XBARTcppParams params);
-		XBARTcpp (size_t M ,size_t L ,size_t N_sweeps ,
+		XBARTcpp (size_t M,size_t N_sweeps ,
 				size_t Nmin , size_t Ncutpoints , //CHANGE 
 				double alpha , double beta , double tau , //CHANGE!
 				size_t burnin, size_t mtry ,
-				size_t max_depth_num , bool draw_sigma , double kap , 
-				double s , bool verbose , bool m_update_sigma, 
+				size_t max_depth_num , double kap , 
+				double s , bool verbose , 
 				bool draw_mu , bool parallel,int seed);
 
 		// // Destructor
