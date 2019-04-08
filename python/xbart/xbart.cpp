@@ -164,7 +164,7 @@ void XBARTcpp::_fit_predict(int n,int d,double *a, // Train X
 
       fit_std_main_loop_all(Xpointer,y_std,y_mean,Xtestpointer, Xorder_std,
                 n,d,n_test,
-                this->params.M, this->params.L, this->params.N_sweeps, max_depth_std, 
+                this->params.M, this->params.N_sweeps, max_depth_std, 
                 this->params.Nmin, this->params.Ncutpoints, this->params.alpha, this->params.beta, 
                 this->params.tau, this->params.burnin, this->params.mtry, 
                  this->params.kap , this->params.s, 
@@ -188,7 +188,7 @@ void XBARTcpp::_predict(int n,int d,double *a){//,int size, double *arr){
   double *Xtestpointer = &x_test_std_2[0];//&x_test_std[0][0];
   // predict_std(Xtestpointer,n,d,this->params.M,this->params.L,this->params.N_sweeps,
   //       this->yhats_test_xinfo,this->trees,this->y_mean); 
-  predict_std(Xtestpointer,n,d,this->params.M,this->params.L,this->params.N_sweeps,
+  predict_std(Xtestpointer,n,d,this->params.M,this->params.N_sweeps,
         this->yhats_test_xinfo,this->trees2,this->y_mean); 
 }
 
@@ -262,7 +262,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
 
 //size_t mtry, double kap, double s, bool verbose, bool draw_mu, bool parallel, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed);
   fit_std(Xpointer,y_std,y_mean, Xorder_std,n,d,
-                this->params.M, this->params.L, this->params.N_sweeps, max_depth_std, 
+                this->params.M,  this->params.N_sweeps, max_depth_std, 
                 this->params.Nmin, this->params.Ncutpoints, this->params.alpha, 
                 this->params.beta, this->params.tau, this->params.burnin, 
                 this->params.mtry,  this->params.kap , 
