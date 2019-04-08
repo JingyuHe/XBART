@@ -1,18 +1,17 @@
 #######################################################################
 # set parameters of XBART
 get_XBART_params <- function(n, d, y) {
-  XBART_params = list(M = 30,
-                      L = 1,
-                      nsweeps = 40,
-                      Nmin = 1,
-                      alpha = 0.95,
-                      beta = 1.25,
-                      mtry = 5,
-                      burnin = 15)
+  XBART_params = list(M = 30,                 # number of trees 
+                      nsweeps = 40,           # number of sweeps (samples of the forest)
+                      Nmin = 1,               # minimal node size
+                      alpha = 0.95,           # BART prior parameter 
+                      beta = 1.25,            # BART prior parameter
+                      mtry = 5,               # number of variables sampled in each split
+                      burnin = 15)            # burnin of MCMC sample
   num_tress = XBART_params$M
-  XBART_params$max_depth = matrix(250, num_tress, XBART_params$nsweeps)
-  XBART_params$Ncutpoints = 50;
-  XBART_params$tau = var(y) / num_tress
+  XBART_params$max_depth = matrix(250, num_tress, XBART_params$nsweeps)   # max depth of each tree, should be a M by N_sweeps matrix
+  XBART_params$Ncutpoints = 50;                                           # number of adaptive cutpoints
+  XBART_params$tau = var(y) / num_tress                                   # prior variance of mu (leaf parameter)
   return(XBART_params)
 }
 
@@ -99,7 +98,7 @@ categ <- function(z, j) {
 params = get_XBART_params(n, d, y)
 time = proc.time()
 fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat,
-            params$M, params$L, params$nsweeps, params$max_depth,
+            params$M, params$nsweeps, params$max_depth,
             params$Nmin, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1,
             mtry = params$mtry, draw_mu = TRUE,
             Ncutpoints = params$Ncutpoints, parallel = parl, random_seed = 100)

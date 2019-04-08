@@ -90,7 +90,7 @@ void rcpp_to_std2(
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
-                            size_t M, size_t L, size_t N_sweeps, arma::mat max_depth,
+                            size_t M, size_t N_sweeps, arma::mat max_depth,
                             size_t Nmin, size_t Ncutpoints, double alpha, double beta,
                             double tau, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,
                             double kap = 16, double s = 4, bool verbose = false,
@@ -168,14 +168,10 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
         (*trees2)[i] = vector<tree>(M);
     }
 
-    // Forests *forests = new Forests(y_mean,p,L,M,N_sweeps);
-
-
-
 
     /////////////////////////////////////////////////////////////////
     fit_std_main_loop_all(Xpointer, y_std, y_mean, Xtestpointer, Xorder_std,
-                          N, p, N_test, M, L, N_sweeps, max_depth_std, // NEED TO CHANGE "max_depth"
+                          N, p, N_test, M, N_sweeps, max_depth_std, // NEED TO CHANGE "max_depth"
                           Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry,
                           kap, s, verbose, draw_mu, parallel,
                           yhats_xinfo, yhats_test_xinfo, sigma_draw_xinfo, split_count_all_tree,
@@ -229,11 +225,12 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     // cout << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
-    return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, 
-        Rcpp::Named("sigma") = sigma_draw
-        ,Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt")= tree_pnt, 
+    return Rcpp::List::create(
+        Rcpp::Named("yhats") = yhats, 
+        Rcpp::Named("yhats_test") = yhats_test, 
+        Rcpp::Named("sigma") = sigma_draw,
+        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt")= tree_pnt, 
                                                        Rcpp::Named("y_mean") = y_mean,
-                                                       Rcpp::Named("p")=p,
-                                                       Rcpp::Named("L")=L)
+                                                       Rcpp::Named("p")=p)
         );
 }

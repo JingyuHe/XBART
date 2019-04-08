@@ -2,7 +2,7 @@
 
 void fit_std_main_loop_all(const double *Xpointer, std::vector<double> &y_std, double &y_mean, const double *Xtestpointer, xinfo_sizet &Xorder_std,
                            size_t N, size_t p, size_t N_test,
-                           size_t M, size_t L, size_t N_sweeps, xinfo_sizet &max_depth_std,
+                           size_t M, size_t N_sweeps, xinfo_sizet &max_depth_std,
                            size_t Nmin, size_t Ncutpoints, double alpha, double beta,
                            double tau, size_t burnin, size_t mtry,
                            double kap, double s,
@@ -15,7 +15,7 @@ void fit_std_main_loop_all(const double *Xpointer, std::vector<double> &y_std, d
 
     fit_std(Xpointer, y_std, y_mean, Xorder_std,
             N, p,
-            M, L, N_sweeps, max_depth_std,
+            M, N_sweeps, max_depth_std,
             Nmin, Ncutpoints, alpha, beta,
             tau, burnin, mtry,
             kap, s,
@@ -24,14 +24,13 @@ void fit_std_main_loop_all(const double *Xpointer, std::vector<double> &y_std, d
             yhats_xinfo, sigma_draw_xinfo,
             p_categorical, p_continuous, trees, set_random_seed, random_seed);
 
-    predict_std(Xtestpointer, N_test, p, M, L,
-                N_sweeps, yhats_test_xinfo, trees, y_mean);
+    predict_std(Xtestpointer, N_test, p, M, N_sweeps, yhats_test_xinfo, trees, y_mean);
     return;
 }
 
 void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
              size_t N, size_t p,
-             size_t M, size_t L, size_t N_sweeps, xinfo_sizet &max_depth_std,
+             size_t M, size_t N_sweeps, xinfo_sizet &max_depth_std,
              size_t Nmin, size_t Ncutpoints, double alpha, double beta,
              double tau, size_t burnin, size_t mtry,
              double kap, double s,
@@ -102,7 +101,6 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
 
     double run_time = 0.0;
 
-    // L, number of samples
     // M, number of trees
 
     // Initalize Pointer Matrix
@@ -120,115 +118,113 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
     bool use_all = true;
 
     std::vector<double> residual_std_full;
-    for (size_t mc = 0; mc < L; mc++)
+
+    // initialize predcitions and predictions_test
+    for (size_t ii = 0; ii < M; ii++)
+    {
+        std::fill(predictions_std[ii].begin(), predictions_std[ii].end(), y_mean / (double)M);
+    }
+
+    // Set yhat_std to mean 
+    row_sum(predictions_std, yhat_std);
+
+    // Residual for 0th tree 
+    residual_std = y_std - yhat_std + predictions_std[0];
+
+    for (size_t sweeps = 0; sweeps < N_sweeps; sweeps++)
     {
 
-        // initialize predcitions and predictions_test
-        for (size_t ii = 0; ii < M; ii++)
+        if (verbose == true)
         {
-            std::fill(predictions_std[ii].begin(), predictions_std[ii].end(), y_mean / (double)M);
+            cout << "--------------------------------" << endl;
+            cout << "number of sweeps " << sweeps << endl;
+            cout << "--------------------------------" << endl;
         }
 
-        // Set yhat_std to mean 
-        row_sum(predictions_std, yhat_std);
-
-        // Residual for 0th tree 
-        residual_std = y_std - yhat_std + predictions_std[0];
-
-        for (size_t sweeps = 0; sweeps < N_sweeps; sweeps++)
+        for (size_t tree_ind = 0; tree_ind < M; tree_ind++)
         {
 
-            if (verbose == true)
-            {
-                cout << "--------------------------------" << endl;
-                cout << "number of sweeps " << sweeps << endl;
-                cout << "--------------------------------" << endl;
-            }
+            // if update sigma based on residual of all m trees
+            // if (m_update_sigma == true)
+            // {
 
-            for (size_t tree_ind = 0; tree_ind < M; tree_ind++)
-            {
+                residual_std_full = residual_std - predictions_std[tree_ind];
 
-                // if update sigma based on residual of all m trees
-                // if (m_update_sigma == true)
-                // {
+                std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std_full) + s));
 
-                    residual_std_full = residual_std - predictions_std[tree_ind];
+                sigma = 1.0 / sqrt(gamma_samp(gen));
 
-                    std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std_full) + s));
-
-                    sigma = 1.0 / sqrt(gamma_samp(gen));
-
-                    sigma_draw_xinfo[sweeps][tree_ind] = sigma;
-                // }
-
-                // save sigma
                 sigma_draw_xinfo[sweeps][tree_ind] = sigma;
+            // }
+
+            // save sigma
+            sigma_draw_xinfo[sweeps][tree_ind] = sigma;
 
 
-                // add prediction of current tree back to residual
-                // then it's m - 1 trees residual
+            // add prediction of current tree back to residual
+            // then it's m - 1 trees residual
 
-                yhat_std = yhat_std - predictions_std[tree_ind];
+            yhat_std = yhat_std - predictions_std[tree_ind];
 
-                if (use_all && (sweeps > burnin) && (mtry != p))
-                {
-                    // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
+            if (use_all && (sweeps > burnin) && (mtry != p))
+            {
+                // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
 
-                    // subset_vars = sample_int_crank2(p, mtry, split_var_count);
+                // subset_vars = sample_int_crank2(p, mtry, split_var_count);
 
-                    use_all = false;
-                }
-
-                // clear counts of splits for one tree
-                std::fill(split_count_current_tree.begin(), split_count_current_tree.end(), 0.0);
-
-                mtry_weight_current_tree = mtry_weight_current_tree - split_count_all_tree[tree_ind];
-
-                trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, &model, data_pointers, tree_ind, gen);
-
-                mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
-
-                split_count_all_tree[tree_ind] = split_count_current_tree;
-
-                // update prediction of current tree
-
-                // fit_new_std(trees[sweeps][tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
-                fit_new_std_datapointers(Xpointer, N, tree_ind, predictions_std[tree_ind], data_pointers);
-
-                // update prediction of current tree, test set
-
-                // if (m_update_sigma == false)
-                // {
-                //     std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std) + s));
-
-                //     sigma = 1.0 / sqrt(gamma_samp(gen));
-
-                //     sigma_draw_xinfo[sweeps][tree_ind] = sigma;
-
-                // }
-
-                // update residual, now it's residual of m trees
-                model.updateResidual(predictions_std, tree_ind, M, residual_std);
-
-                yhat_std = yhat_std + predictions_std[tree_ind];
+                use_all = false;
             }
-            // save predictions to output matrix
-            yhats_xinfo[sweeps] = yhat_std;
 
-            // for (size_t kk = 0; kk < N; kk++)
+            // clear counts of splits for one tree
+            std::fill(split_count_current_tree.begin(), split_count_current_tree.end(), 0.0);
+
+            mtry_weight_current_tree = mtry_weight_current_tree - split_count_all_tree[tree_ind];
+
+            trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, &model, data_pointers, tree_ind, gen);
+
+            mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
+
+            split_count_all_tree[tree_ind] = split_count_current_tree;
+
+            // update prediction of current tree
+
+            // fit_new_std(trees[sweeps][tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
+            fit_new_std_datapointers(Xpointer, N, tree_ind, predictions_std[tree_ind], data_pointers);
+
+            // update prediction of current tree, test set
+
+            // if (m_update_sigma == false)
             // {
-            //     yhats(kk, sweeps) = yhat_std[kk];
+            //     std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std) + s));
+
+            //     sigma = 1.0 / sqrt(gamma_samp(gen));
+
+            //     sigma_draw_xinfo[sweeps][tree_ind] = sigma;
+
             // }
-            // for (size_t kk = 0; kk < N_test; kk++)
-            // {
-            //     yhats_test(kk, sweeps) = yhat_test_std[kk];
-            // }
+
+            // update residual, now it's residual of m trees
+            model.updateResidual(predictions_std, tree_ind, M, residual_std);
+
+            yhat_std = yhat_std + predictions_std[tree_ind];
         }
+        // save predictions to output matrix
+        yhats_xinfo[sweeps] = yhat_std;
+
+        // for (size_t kk = 0; kk < N; kk++)
+        // {
+        //     yhats(kk, sweeps) = yhat_std[kk];
+        // }
+        // for (size_t kk = 0; kk < N_test; kk++)
+        // {
+        //     yhats_test(kk, sweeps) = yhat_test_std[kk];
+        // }
     }
+    
     thread_pool.stop();
 }
 
-void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t M, size_t L,
+void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t M, 
                  size_t N_sweeps, xinfo &yhats_test_xinfo, vector<vector<tree>> &trees, double y_mean)
 {
 
@@ -238,29 +234,28 @@ void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t M, 
     std::vector<double> yhat_test_std(N_test);
     row_sum(predictions_test_std, yhat_test_std);
 
-    for (size_t mc = 0; mc < L; mc++)
+    // initialize predcitions and predictions_test
+    for (size_t ii = 0; ii < M; ii++)
     {
-        // initialize predcitions and predictions_test
-        for (size_t ii = 0; ii < M; ii++)
-        {
-            std::fill(predictions_test_std[ii].begin(), predictions_test_std[ii].end(), y_mean / (double)M);
-        }
-        row_sum(predictions_test_std, yhat_test_std);
-
-
-        for (size_t sweeps = 0; sweeps < N_sweeps; sweeps++)
-        {
-            for (size_t tree_ind = 0; tree_ind < M; tree_ind++)
-            {
-                
-                yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
-                fit_new_std(trees[sweeps][tree_ind], Xtestpointer, N_test, p, predictions_test_std[tree_ind]);
-                yhat_test_std = yhat_test_std + predictions_test_std[tree_ind];
-
-
-            }
-            yhats_test_xinfo[sweeps] = yhat_test_std;
-
-        }
+        std::fill(predictions_test_std[ii].begin(), predictions_test_std[ii].end(), y_mean / (double)M);
     }
+    row_sum(predictions_test_std, yhat_test_std);
+
+
+    for (size_t sweeps = 0; sweeps < N_sweeps; sweeps++)
+    {
+        for (size_t tree_ind = 0; tree_ind < M; tree_ind++)
+        {
+            
+            yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
+            fit_new_std(trees[sweeps][tree_ind], Xtestpointer, N_test, p, predictions_test_std[tree_ind]);
+            yhat_test_std = yhat_test_std + predictions_test_std[tree_ind];
+
+
+        }
+        yhats_test_xinfo[sweeps] = yhat_test_std;
+
+    }
+    
+    return;
 }
