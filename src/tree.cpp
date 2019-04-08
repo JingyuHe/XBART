@@ -603,7 +603,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     // Update Cutpoint to be a true seperating point
     // Increase split_point (index) until it is no longer equal to cutpoint value
-    while( (*(X_std + N_y * split_var + Xorder_std[split_var][split_point+1]) == this->c) & (split_point < N_Xorder -1)){
+    while((split_point < N_Xorder - 1) && (*(X_std + N_y * split_var + Xorder_std[split_var][split_point+1]) == this->c) ){
         split_point = split_point +1;
     }
 

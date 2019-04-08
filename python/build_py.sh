@@ -50,10 +50,10 @@ if $SWIG_FLAG;then
 
   if [ "$ver" -le "27" ]; then
       echo "Running script with python $ver" 
-      swig -c++ -python xbart.i
+      swig -c++ -python xbart/xbart.i
   else
     echo "Running script with python $ver" 
-    swig -c++ -python -py3  xbart.i
+    swig -c++ -python -py3  xbart/xbart.i
   fi
 fi
 

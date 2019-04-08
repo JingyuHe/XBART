@@ -105,8 +105,17 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
     // L, number of samples
     // M, number of trees
 
-    matrix<tree::tree_p> data_pointers;
+    // Initalize Pointer Matrix
+    tree temp_tree((size_t)1); // to be safe if first tree doesn't grow
+    tree::tree_p first_tree = &temp_tree; 
+    matrix<tree::tree_p> data_pointers; // Init data points
     ini_matrix(data_pointers, N, M);
+    for(size_t i =0;i<M;i++){
+        std::vector<tree::tree_p> &tree_vec = data_pointers[i];
+        for(size_t j =0;j<N;j++){
+            tree_vec[j] = &temp_tree;
+        }
+    }
 
     bool use_all = true;
 

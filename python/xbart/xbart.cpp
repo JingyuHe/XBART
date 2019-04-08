@@ -167,8 +167,8 @@ void XBARTcpp::_fit_predict(int n,int d,double *a, // Train X
                 this->params.M, this->params.L, this->params.N_sweeps, max_depth_std, 
                 this->params.Nmin, this->params.Ncutpoints, this->params.alpha, this->params.beta, 
                 this->params.tau, this->params.burnin, this->params.mtry, 
-                this->params.draw_sigma , this->params.kap , this->params.s, 
-                this->params.verbose, this->params.m_update_sigma, 
+                 this->params.kap , this->params.s, 
+                this->params.verbose, 
                 this->params.draw_mu, this->params.parallel,
                 yhats_xinfo,this->yhats_test_xinfo,sigma_draw_xinfo,split_count_all_tree,
                 p_cat,d-p_cat,this->trees2,this->seed_flag, this->seed);
@@ -259,12 +259,14 @@ void XBARTcpp::_fit(int n,int d,double *a,
       double *ypointer = &a_y[0];//&y_std[0];
       double *Xpointer = &x_std_2[0];//&x_std[0][0];
 
+
+//size_t mtry, double kap, double s, bool verbose, bool draw_mu, bool parallel, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed);
   fit_std(Xpointer,y_std,y_mean, Xorder_std,n,d,
                 this->params.M, this->params.L, this->params.N_sweeps, max_depth_std, 
                 this->params.Nmin, this->params.Ncutpoints, this->params.alpha, 
                 this->params.beta, this->params.tau, this->params.burnin, 
-                this->params.mtry, this->params.draw_sigma , this->params.kap , 
-                this->params.s, this->params.verbose, this->params.m_update_sigma, 
+                this->params.mtry,  this->params.kap , 
+                this->params.s, this->params.verbose,
                 this->params.draw_mu, this->params.parallel,
                 yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,this->trees2,
                 this->seed_flag, this->seed);
