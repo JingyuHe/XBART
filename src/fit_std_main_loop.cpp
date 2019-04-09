@@ -2,8 +2,8 @@
 
 void fit_std_main_loop_all(const double *Xpointer, std::vector<double> &y_std, double &y_mean, const double *Xtestpointer, xinfo_sizet &Xorder_std,
                            size_t N, size_t p, size_t N_test,
-                           size_t M, size_t N_sweeps, xinfo_sizet &max_depth_std,
-                           size_t Nmin, size_t Ncutpoints, double alpha, double beta,
+                           size_t num_trees, size_t num_sweeps, xinfo_sizet &max_depth_std,
+                           size_t n_min, size_t Ncutpoints, double alpha, double beta,
                            double tau, size_t burnin, size_t mtry,
                            double kap, double s,
                            bool verbose,
@@ -15,8 +15,8 @@ void fit_std_main_loop_all(const double *Xpointer, std::vector<double> &y_std, d
 
     fit_std(Xpointer, y_std, y_mean, Xorder_std,
             N, p,
-            M, N_sweeps, max_depth_std,
-            Nmin, Ncutpoints, alpha, beta,
+            num_trees, num_sweeps, max_depth_std,
+            n_min, Ncutpoints, alpha, beta,
             tau, burnin, mtry,
             kap, s,
             verbose,
@@ -24,14 +24,14 @@ void fit_std_main_loop_all(const double *Xpointer, std::vector<double> &y_std, d
             yhats_xinfo, sigma_draw_xinfo,
             p_categorical, p_continuous, trees, set_random_seed, random_seed);
 
-    predict_std(Xtestpointer, N_test, p, M, N_sweeps, yhats_test_xinfo, trees, y_mean);
+    predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, trees, y_mean);
     return;
 }
 
 void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
              size_t N, size_t p,
-             size_t M, size_t N_sweeps, xinfo_sizet &max_depth_std,
-             size_t Nmin, size_t Ncutpoints, double alpha, double beta,
+             size_t num_trees, size_t num_sweeps, xinfo_sizet &max_depth_std,
+             size_t n_min, size_t Ncutpoints, double alpha, double beta,
              double tau, size_t burnin, size_t mtry,
              double kap, double s,
              bool verbose,
@@ -67,7 +67,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
 
     // save predictions of each tree
     xinfo predictions_std;
-    ini_xinfo(predictions_std, N, M);
+    ini_xinfo(predictions_std, N, num_trees);
 
     std::vector<double> yhat_std(N);
     row_sum(predictions_std, yhat_std);
@@ -77,7 +77,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
 
     double sigma = 1.0;
     // double tau;
-    //forest trees(M);
+    //forest trees(num_trees);
     std::vector<double> prob(2, 0.5);
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -90,7 +90,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
     size_t prune;
 
     xinfo split_count_all_tree;
-    ini_xinfo(split_count_all_tree, p, M); // initialize at 0
+    ini_xinfo(split_count_all_tree, p, num_trees); // initialize at 0
     // split_count_all_tree = split_count_all_tree + 1; // initialize at 1
     std::vector<double> split_count_current_tree(p, 1);
     std::vector<double> mtry_weight_current_tree(p, 1);
@@ -101,14 +101,14 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
 
     double run_time = 0.0;
 
-    // M, number of trees
+    // num_trees, number of trees
 
     // Initalize Pointer Matrix
     tree temp_tree((size_t)1); // to be safe if first tree doesn't grow
     tree::tree_p first_tree = &temp_tree; 
     matrix<tree::tree_p> data_pointers; // Init data points
-    ini_matrix(data_pointers, N, M);
-    for(size_t i =0;i<M;i++){
+    ini_matrix(data_pointers, N, num_trees);
+    for(size_t i =0;i<num_trees;i++){
         std::vector<tree::tree_p> &tree_vec = data_pointers[i];
         for(size_t j =0;j<N;j++){
             tree_vec[j] = &temp_tree;
@@ -120,9 +120,9 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
     std::vector<double> residual_std_full;
 
     // initialize predcitions and predictions_test
-    for (size_t ii = 0; ii < M; ii++)
+    for (size_t ii = 0; ii < num_trees; ii++)
     {
-        std::fill(predictions_std[ii].begin(), predictions_std[ii].end(), y_mean / (double)M);
+        std::fill(predictions_std[ii].begin(), predictions_std[ii].end(), y_mean / (double)num_trees);
     }
 
     // Set yhat_std to mean 
@@ -131,7 +131,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
     // Residual for 0th tree 
     residual_std = y_std - yhat_std + predictions_std[0];
 
-    for (size_t sweeps = 0; sweeps < N_sweeps; sweeps++)
+    for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
 
         if (verbose == true)
@@ -141,7 +141,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
             cout << "--------------------------------" << endl;
         }
 
-        for (size_t tree_ind = 0; tree_ind < M; tree_ind++)
+        for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
         {
 
             // if update sigma based on residual of all m trees
@@ -180,7 +180,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
 
             mtry_weight_current_tree = mtry_weight_current_tree - split_count_all_tree[tree_ind];
 
-            trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], Nmin, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, &model, data_pointers, tree_ind, gen);
+            trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, &model, data_pointers, tree_ind, gen);
 
             mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 
@@ -204,7 +204,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
             // }
 
             // update residual, now it's residual of m trees
-            model.updateResidual(predictions_std, tree_ind, M, residual_std);
+            model.updateResidual(predictions_std, tree_ind, num_trees, residual_std);
 
             yhat_std = yhat_std + predictions_std[tree_ind];
         }
@@ -224,27 +224,27 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
     thread_pool.stop();
 }
 
-void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t M, 
-                 size_t N_sweeps, xinfo &yhats_test_xinfo, vector<vector<tree>> &trees, double y_mean)
+void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, 
+                 size_t num_sweeps, xinfo &yhats_test_xinfo, vector<vector<tree>> &trees, double y_mean)
 {
 
     xinfo predictions_test_std;
-    ini_xinfo(predictions_test_std, N_test, M);
+    ini_xinfo(predictions_test_std, N_test, num_trees);
 
     std::vector<double> yhat_test_std(N_test);
     row_sum(predictions_test_std, yhat_test_std);
 
     // initialize predcitions and predictions_test
-    for (size_t ii = 0; ii < M; ii++)
+    for (size_t ii = 0; ii < num_trees; ii++)
     {
-        std::fill(predictions_test_std[ii].begin(), predictions_test_std[ii].end(), y_mean / (double)M);
+        std::fill(predictions_test_std[ii].begin(), predictions_test_std[ii].end(), y_mean / (double)num_trees);
     }
     row_sum(predictions_test_std, yhat_test_std);
 
 
-    for (size_t sweeps = 0; sweeps < N_sweeps; sweeps++)
+    for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
-        for (size_t tree_ind = 0; tree_ind < M; tree_ind++)
+        for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
         {
             
             yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];

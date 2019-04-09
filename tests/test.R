@@ -1,16 +1,16 @@
 #######################################################################
 # set parameters of XBART
 get_XBART_params <- function(n, d, y) {
-  XBART_params = list(M = 30,                 # number of trees 
-                      nsweeps = 40,           # number of sweeps (samples of the forest)
-                      Nmin = 1,               # minimal node size
+  XBART_params = list(num_trees = 30,                 # number of trees 
+                      num_sweeps = 40,           # number of sweeps (samples of the forest)
+                      n_min = 1,               # minimal node size
                       alpha = 0.95,           # BART prior parameter 
                       beta = 1.25,            # BART prior parameter
                       mtry = 5,               # number of variables sampled in each split
                       burnin = 15)            # burnin of MCMC sample
-  num_tress = XBART_params$M
-  XBART_params$max_depth = matrix(250, num_tress, XBART_params$nsweeps)   # max depth of each tree, should be a M by N_sweeps matrix
-  XBART_params$Ncutpoints = 50;                                           # number of adaptive cutpoints
+  num_tress = XBART_params$num_trees
+  XBART_params$max_depth = matrix(250, num_tress, XBART_params$num_sweeps)   # max depth of each tree, should be a num_trees by num_sweeps matrix
+  XBART_params$num_cutpoints = 50;                                           # number of adaptive cutpoints
   XBART_params$tau = var(y) / num_tress                                   # prior variance of mu (leaf parameter)
   return(XBART_params)
 }
@@ -98,22 +98,22 @@ categ <- function(z, j) {
 params = get_XBART_params(n, d, y)
 time = proc.time()
 fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat,
-            params$M, params$nsweeps, params$max_depth,
-            params$Nmin, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1,
+            params$num_trees, params$num_sweeps, params$max_depth,
+            params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1,
             mtry = params$mtry, draw_mu = TRUE,
-            Ncutpoints = params$Ncutpoints, parallel = parl, random_seed = 100)
+            num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100)
 
 ################################
 # two ways to predict on testing set
 
 # 1. set xtest as input to main fitting function
-fhat.1 = apply(fit$yhats_test[, params$burnin:params$nsweeps], 1, mean)
+fhat.1 = apply(fit$yhats_test[, params$burnin:params$num_sweeps], 1, mean)
 time = proc.time() - time
 print(time[3])
 
 # 2. a separate predict function
 pred = predict(fit, xtest)
-pred = rowMeans(pred[, params$burnin:params$nsweeps])
+pred = rowMeans(pred[, params$burnin:params$num_sweeps])
 
 time_XBART = round(time[3], 3)
 
