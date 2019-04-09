@@ -16,9 +16,9 @@ except ImportError:
  
 
 class XBART(object):
-	def __init__(self,num_trees: int = 200, num_sweeps: int = 40, n_min: int = 1,
-				num_cutpoints: int = 100,alpha: float = 0.95, beta: float = 1.25, tau:float = 0.3,
-                burnin: int = 15, mtry: int = 0, max_depth_num: int = 250,
+	def __init__(self,num_trees: int = 100, num_sweeps: int = 40, n_min: int = 1,
+				num_cutpoints: int = 100,alpha: float = 0.95, beta: float = 1.25, tau = "auto",
+                burnin: int = 15, mtry = "auto", max_depth_num: int = 250,
                 kap: float = 16.0,s: float = 4.0,verbose: bool = False,
                 draw_mu: bool = True,parallel: bool = False,seed: int = 0):
 
@@ -31,7 +31,8 @@ class XBART(object):
 			parallel=parallel,seed=seed)
 		#self.__check_params(self.params)
 		args = self.__convert_params_check_types(**self.params)
-		self.xbart_cpp = XBARTcpp(*args)
+		#self.xbart_cpp = XBARTcpp(*args)
+		self.xbart_cpp = None
 
 	def __repr__(self):
 		items = ("%s = %r" % (k, v) for k, v in self.params.items())
@@ -77,14 +78,15 @@ class XBART(object):
 
 
 
-	def __update_mtry(self,x):
-		if self.params["mtry"] == 0:
-			if self.params["mtry"] < 25:
-				self.params["mtry"] = x.shape[1]
+	def __update_mtry_tau(self,x):
+		if self.params["mtry"] == "auto":
+			p = x.shape[1]
+			if p < 25:
+				self.params["mtry"] = p
 			else:
-				self.params["mtry"] = int((x.shape[1])**0.5)
-			args = list(self.params.values())
-			self.xbart_cpp = XBARTcpp(*args)
+				self.params["mtry"] = int((p)**0.5)
+		if self.params["tau"]  == "auto":
+			self.params["tau"] = 1/self.params["num_trees"]
 		
 				
 	def __convert_params_check_types(self,**params):
@@ -93,20 +95,23 @@ class XBART(object):
 		### It puts in default values for empty param values 
 		import warnings
 		from collections import OrderedDict
-		DEFAULT_PARAMS = OrderedDict([('num_trees',200),("num_sweeps",40)
+		DEFAULT_PARAMS = OrderedDict([('num_trees',100),("num_sweeps",40)
                         ,("n_min",1),("num_cutpoints",100) # CHANGE
                         ,("alpha",0.95),("beta",1.25 ),("tau",0.3),# CHANGE
                         ("burnin",15),("mtry",0),("max_depth_num",250) # CHANGE
                         ,("kap",16.0),("s",4.0),("verbose",False),
                         ("draw_mu",True),
                         ("parallel",False),("seed",0)])
+		new_params = DEFAULT_PARAMS.copy()
 
-		list_params = []
+		#list_params = []
 		for key,value in DEFAULT_PARAMS.items():
 			true_type = type(value) # Get type
 			new_value = params.get(key,value) #
 			if not isinstance(new_value,type(value)):  
-				if true_type == int:
+				if (key in ["mtry","tau"]) and new_value == "auto":
+					continue
+				elif true_type == int:
 					if isinstance(new_value,float):
 						if int(new_value) == new_value:
 							new_value = int(new_value)
@@ -126,18 +131,28 @@ class XBART(object):
 						new_value = bool(new_value)
 					else:    
 						raise TypeError(str(key) + " should be a bool")               
-			list_params.append(new_value)             
-		return list_params    
+			#list_params.append(new_value)         
+			self.params[key] = new_value    
+		#return list_params    
 
 
 	def fit(self,x,y,p_cat=0):
-		# Checks #
+		# Check inputs #
 		self.__check_inputs(x,y)
 		self.__add_columns(x)
 		fit_x = x 
 		fit_y = y
+
+		# Update Values #
 		self.__update_fit_x_y(x,fit_x,y,fit_y)
-		self.__update_mtry(fit_x)
+		self.__update_mtry_tau(fit_x)
+
+		# Create xbart_cpp object #
+		if self.xbart_cpp is None:
+			args = list(self.params.values())
+			self.xbart_cpp = XBARTcpp(*args)
+
+		# fit #
 		self.xbart_cpp._fit(fit_x,fit_y,p_cat)
 		return self
 
