@@ -1,3 +1,4 @@
+    
 #! /bin/bash
 PYTHON_BIN=python
 DIST_FLAG=false
@@ -13,7 +14,6 @@ function usage(){
     -d|--dist  : include if building dist
     -h|--help  : see documantation
     -s|--swig  : Run SIWG - important if changing xbart.* files
-
 ENDUSAGE
 }
 
@@ -59,10 +59,10 @@ fi
 
 if $DIST_FLAG;then
   $PYTHON_BIN setup.py sdist --formats=gztar bdist_wheel 
-  $PYTHON_BIN -m pip install dist/*.tar.gz #--user 
+  $PYTHON_BIN -m pip install dist/*.tar.gz --user 
 else
   $PYTHON_BIN setup.py build_ext --inplace
 fi
 
 rm -rf src
-#$PYTHON_BIN tests/test.py
+$PYTHON_BIN tests/test.py
