@@ -10,7 +10,8 @@ install:
   - pip install numpy
   - bash build_py.sh
   - cp tests/test.py .
-  - python test.py
+  
+script: python test.py
 
 
 
