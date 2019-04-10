@@ -59,7 +59,7 @@ fi
 
 if $DIST_FLAG;then
   $PYTHON_BIN setup.py sdist --formats=gztar bdist_wheel 
-  $PYTHON_BIN -m pip install dist/*.tar.gz --user 
+  $PYTHON_BIN -m pip install dist/*.tar.gz 
 else
   $PYTHON_BIN setup.py build_ext --inplace
 fi
