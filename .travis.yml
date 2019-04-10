@@ -3,9 +3,6 @@ language: python
 python:
   - "3.6"
 
-virtualenv:
-  system_site_packages: true
-
 install:
   - bash test_py.sh 
 
