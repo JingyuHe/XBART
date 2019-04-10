@@ -8,7 +8,7 @@ python:
 install:
   - cd python
   - pip install numpy
-  - ./build_py.sh
+  - bash build_py.sh
   - cp tests/test.py .
   - python test.py
 
