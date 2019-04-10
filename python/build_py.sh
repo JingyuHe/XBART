@@ -65,4 +65,4 @@ else
 fi
 
 rm -rf src
-$PYTHON_BIN tests/test.py
+#$PYTHON_BIN tests/test.py
