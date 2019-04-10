@@ -18,7 +18,7 @@ using namespace chrono;
 ////////////////////////////////////////////////////////////////////////
 
 void rcpp_to_std2(
-    arma::mat y, arma::mat X, arma::mat Xtest, arma::mat max_depth,
+    arma::mat y, arma::mat X, arma::mat Xtest, arma::mat max_depth_num,
     std::vector<double> &y_std, double &y_mean, Rcpp::NumericMatrix &X_std, Rcpp::NumericMatrix &Xtest_std,
     xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std)
 {
@@ -60,11 +60,11 @@ void rcpp_to_std2(
     }
 
     //max_depth_std_test
-    for (size_t i = 0; i < max_depth.n_rows; i++)
+    for (size_t i = 0; i < max_depth_num.n_rows; i++)
     {
-        for (size_t j = 0; j < max_depth.n_cols; j++)
+        for (size_t j = 0; j < max_depth_num.n_cols; j++)
         {
-            max_depth_std[j][i] = max_depth(i, j);
+            max_depth_std[j][i] = max_depth_num(i, j);
         }
     }
 
@@ -90,8 +90,8 @@ void rcpp_to_std2(
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
-                            size_t M, size_t N_sweeps, arma::mat max_depth,
-                            size_t Nmin, size_t Ncutpoints, double alpha, double beta,
+                            size_t num_trees, size_t num_sweeps, arma::mat max_depth_num,
+                            size_t n_min, size_t num_cutpoints, double alpha, double beta,
                             double tau, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,
                             double kap = 16, double s = 4, bool verbose = false,
                             bool parallel = true, bool set_random_seed = false, size_t random_seed = 0)
@@ -111,7 +111,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     // suppose first p_continuous variables are continuous, then categorical
 
     assert(mtry <= p);
-    assert(burnin <= N_sweeps);
+    assert(burnin <= num_sweeps);
 
     if (mtry == 0)
     {
@@ -134,9 +134,9 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     Rcpp::NumericMatrix Xtest_std(N_test, p);
 
     xinfo_sizet max_depth_std;
-    ini_xinfo_sizet(max_depth_std, max_depth.n_rows, max_depth.n_cols);
+    ini_xinfo_sizet(max_depth_std, max_depth_num.n_rows, max_depth_num.n_cols);
 
-    rcpp_to_std2(y, X, Xtest, max_depth, y_std, y_mean, X_std, Xtest_std, Xorder_std, max_depth_std);
+    rcpp_to_std2(y, X, Xtest, max_depth_num, y_std, y_mean, X_std, Xtest_std, Xorder_std, max_depth_std);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -145,34 +145,34 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     double *Xtestpointer = &Xtest_std[0];
 
     xinfo yhats_std;
-    ini_xinfo(yhats_std, N, N_sweeps);
+    ini_xinfo(yhats_std, N, num_sweeps);
     xinfo yhats_test_std;
-    ini_xinfo(yhats_test_std, N_test, N_sweeps);
+    ini_xinfo(yhats_test_std, N_test, num_sweeps);
 
     xinfo yhats_xinfo;
-    ini_xinfo(yhats_xinfo, N, N_sweeps);
+    ini_xinfo(yhats_xinfo, N, num_sweeps);
 
     xinfo yhats_test_xinfo;
-    ini_xinfo(yhats_test_xinfo, N, N_sweeps);
+    ini_xinfo(yhats_test_xinfo, N, num_sweeps);
 
     xinfo sigma_draw_xinfo;
-    ini_xinfo(sigma_draw_xinfo, M, N_sweeps);
+    ini_xinfo(sigma_draw_xinfo, num_trees, num_sweeps);
 
     xinfo split_count_all_tree;
-    ini_xinfo(split_count_all_tree, p, M); // initialize at 0
+    ini_xinfo(split_count_all_tree, p, num_trees); // initialize at 0
 
     // // Create trees
-    vector<vector<tree>>* trees2 = new vector<vector<tree>>(N_sweeps);
-    for (size_t i = 0; i < N_sweeps; i++)
+    vector<vector<tree>>* trees2 = new vector<vector<tree>>(num_sweeps);
+    for (size_t i = 0; i < num_sweeps; i++)
     {
-        (*trees2)[i] = vector<tree>(M);
+        (*trees2)[i] = vector<tree>(num_trees);
     }
 
 
     /////////////////////////////////////////////////////////////////
     fit_std_main_loop_all(Xpointer, y_std, y_mean, Xtestpointer, Xorder_std,
-                          N, p, N_test, M, N_sweeps, max_depth_std, // NEED TO CHANGE "max_depth"
-                          Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry,
+                          N, p, N_test, num_trees, num_sweeps, max_depth_std, // NEED TO CHANGE "max_depth_num"
+                          n_min, num_cutpoints, alpha, beta, tau, burnin, mtry,
                           kap, s, verbose, draw_mu, parallel,
                           yhats_xinfo, yhats_test_xinfo, sigma_draw_xinfo, split_count_all_tree,
                           p_categorical, p_continuous, *trees2, set_random_seed, random_seed);
@@ -181,9 +181,9 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
 
    
     // R Objects to Return    
-    Rcpp::NumericMatrix yhats(N, N_sweeps);
-    Rcpp::NumericMatrix yhats_test(N_test, N_sweeps);
-    Rcpp::NumericMatrix sigma_draw(M, N_sweeps); // save predictions of each tree
+    Rcpp::NumericMatrix yhats(N, num_sweeps);
+    Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
+    Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2,true);
 
 
@@ -194,21 +194,21 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     // TODO: Make these functions
     for (size_t i = 0; i < N; i++)
     {
-        for (size_t j = 0; j < N_sweeps; j++)
+        for (size_t j = 0; j < num_sweeps; j++)
         {
             yhats(i, j) = yhats_xinfo[j][i];
         }
     }
     for (size_t i = 0; i < N_test; i++)
     {
-        for (size_t j = 0; j < N_sweeps; j++)
+        for (size_t j = 0; j < num_sweeps; j++)
         {
             yhats_test(i, j) = yhats_test_xinfo[j][i];
         }
     }
-    for (size_t i = 0; i < M; i++)
+    for (size_t i = 0; i < num_trees; i++)
     {
-        for (size_t j = 0; j < N_sweeps; j++)
+        for (size_t j = 0; j < num_sweeps; j++)
         {
             sigma_draw(i, j) = sigma_draw_xinfo[j][i];
         }

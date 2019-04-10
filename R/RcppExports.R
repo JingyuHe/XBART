@@ -10,7 +10,7 @@
 #     .Call(`_XBART_sample_int_ccrank`, n, size, prob)
 # }
 
-train_forest_root_std_all <- function(y, X, Xtest, M, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, ...) {
+train_forest_root_std_all <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, ...) {
 
     if(class(X) != "matrix"){
         cat("Input X is not a matrix, try to convert type.\n")
@@ -25,7 +25,7 @@ train_forest_root_std_all <- function(y, X, Xtest, M, N_sweeps, max_depth, Nmin,
         y = as.matrix(y)
     }
 
-    if(burnin >= N_sweeps){
+    if(burnin >= num_sweeps){
         cat("Burnin samples should be smaller than number of sweeps.\n")
         return();
     }
@@ -38,12 +38,12 @@ train_forest_root_std_all <- function(y, X, Xtest, M, N_sweeps, max_depth, Nmin,
         set_random_seed = TRUE
     }
 
-    .Call(`_XBART_train_forest_root_std_all`, y, X, Xtest, M, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed)
+    .Call(`_XBART_train_forest_root_std_all`, y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed)
 }
 
 
 
-XBART <- function(y, X, Xtest, M, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, ...) {
+XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, ...) {
 
     if(class(X) != "matrix"){
         cat("Input X is not a matrix, try to convert type.\n")
@@ -66,12 +66,12 @@ XBART <- function(y, X, Xtest, M, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, 
         set_random_seed = TRUE
     }
 
-    if(burnin >= N_sweeps){
+    if(burnin >= num_sweeps){
         cat("Burnin samples should be smaller than number of sweeps.\n")
         return();
     }
 
-    obj = .Call(`_XBART`, y, X, Xtest, M, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed)
+    obj = .Call(`_XBART`, y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed)
     class(obj) = "XBART"
     return(obj)
 }

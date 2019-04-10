@@ -50,8 +50,8 @@ using namespace Rcpp;
 // }
 
 // train_forest_root_std_all
-Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin, size_t mtry, size_t p_categorical, double kap, double s, bool verbose, bool parallel, bool set_random_seed, size_t random_seed);
-RcppExport SEXP _XBART_train_forest_root_std_all(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP N_sweepsSEXP, SEXP max_depthSEXP, SEXP NminSEXP, SEXP NcutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP)
+Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, arma::mat max_depth_num, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, size_t burnin, size_t mtry, size_t p_categorical, double kap, double s, bool verbose, bool parallel, bool set_random_seed, size_t random_seed);
+RcppExport SEXP _XBART_train_forest_root_std_all(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP num_treesSEXP, SEXP num_sweepsSEXP, SEXP max_depth_numSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP)
 {
     BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -59,11 +59,11 @@ RcppExport SEXP _XBART_train_forest_root_std_all(SEXP ySEXP, SEXP XSEXP, SEXP Xt
     Rcpp::traits::input_parameter<arma::mat>::type y(ySEXP);
     Rcpp::traits::input_parameter<arma::mat>::type X(XSEXP);
     Rcpp::traits::input_parameter<arma::mat>::type Xtest(XtestSEXP);
-    Rcpp::traits::input_parameter<size_t>::type M(MSEXP);
-    Rcpp::traits::input_parameter<size_t>::type N_sweeps(N_sweepsSEXP);
-    Rcpp::traits::input_parameter<arma::mat>::type max_depth(max_depthSEXP);
-    Rcpp::traits::input_parameter<size_t>::type Nmin(NminSEXP);
-    Rcpp::traits::input_parameter<size_t>::type Ncutpoints(NcutpointsSEXP);
+    Rcpp::traits::input_parameter<size_t>::type num_trees(num_treesSEXP);
+    Rcpp::traits::input_parameter<size_t>::type num_sweeps(num_sweepsSEXP);
+    Rcpp::traits::input_parameter<arma::mat>::type max_depth_num(max_depth_numSEXP);
+    Rcpp::traits::input_parameter<size_t>::type n_min(n_minSEXP);
+    Rcpp::traits::input_parameter<size_t>::type num_cutpoints(num_cutpointsSEXP);
     Rcpp::traits::input_parameter<double>::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter<double>::type beta(betaSEXP);
     Rcpp::traits::input_parameter<double>::type tau(tauSEXP);
@@ -76,12 +76,12 @@ RcppExport SEXP _XBART_train_forest_root_std_all(SEXP ySEXP, SEXP XSEXP, SEXP Xt
     Rcpp::traits::input_parameter<bool>::type parallel(parallelSEXP);
     Rcpp::traits::input_parameter<bool>::type set_random_seed(set_random_seedSEXP);
     Rcpp::traits::input_parameter<size_t>::type random_seed(random_seedSEXP);
-    rcpp_result_gen = Rcpp::wrap(train_forest_root_std_all(y, X, Xtest, M, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed));
+    rcpp_result_gen = Rcpp::wrap(train_forest_root_std_all(y, X, Xtest, num_trees, num_sweeps, max_depth_num, n_min, num_cutpoints, alpha, beta, tau, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed));
     return rcpp_result_gen;
     END_RCPP
 }
-Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t M, size_t N_sweeps, arma::mat max_depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin, size_t mtry, size_t p_categorical, double kap, double s, bool verbose, bool parallel, bool set_random_seed, size_t random_seed);
-RcppExport SEXP _XBART(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP N_sweepsSEXP, SEXP max_depthSEXP, SEXP NminSEXP, SEXP NcutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP)
+Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, arma::mat max_depth_num, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, size_t burnin, size_t mtry, size_t p_categorical, double kap, double s, bool verbose, bool parallel, bool set_random_seed, size_t random_seed);
+RcppExport SEXP _XBART(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP num_treesSEXP, SEXP num_sweepsSEXP, SEXP max_depth_numSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP)
 {
     BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -89,11 +89,11 @@ RcppExport SEXP _XBART(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP 
     Rcpp::traits::input_parameter<arma::mat>::type y(ySEXP);
     Rcpp::traits::input_parameter<arma::mat>::type X(XSEXP);
     Rcpp::traits::input_parameter<arma::mat>::type Xtest(XtestSEXP);
-    Rcpp::traits::input_parameter<size_t>::type M(MSEXP);
-    Rcpp::traits::input_parameter<size_t>::type N_sweeps(N_sweepsSEXP);
-    Rcpp::traits::input_parameter<arma::mat>::type max_depth(max_depthSEXP);
-    Rcpp::traits::input_parameter<size_t>::type Nmin(NminSEXP);
-    Rcpp::traits::input_parameter<size_t>::type Ncutpoints(NcutpointsSEXP);
+    Rcpp::traits::input_parameter<size_t>::type num_trees(num_treesSEXP);
+    Rcpp::traits::input_parameter<size_t>::type num_sweeps(num_sweepsSEXP);
+    Rcpp::traits::input_parameter<arma::mat>::type max_depth_num(max_depth_numSEXP);
+    Rcpp::traits::input_parameter<size_t>::type n_min(n_minSEXP);
+    Rcpp::traits::input_parameter<size_t>::type num_cutpoints(num_cutpointsSEXP);
     Rcpp::traits::input_parameter<double>::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter<double>::type beta(betaSEXP);
     Rcpp::traits::input_parameter<double>::type tau(tauSEXP);
@@ -106,7 +106,7 @@ RcppExport SEXP _XBART(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP MSEXP, SEXP 
     Rcpp::traits::input_parameter<bool>::type parallel(parallelSEXP);
     Rcpp::traits::input_parameter<bool>::type set_random_seed(set_random_seedSEXP);
     Rcpp::traits::input_parameter<size_t>::type random_seed(random_seedSEXP);
-    rcpp_result_gen = Rcpp::wrap(XBART(y, X, Xtest, M, N_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed));
+    rcpp_result_gen = Rcpp::wrap(XBART(y, X, Xtest, num_trees, num_sweeps, max_depth_num, n_min, num_cutpoints, alpha, beta, tau, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed));
     return rcpp_result_gen;
     END_RCPP
 }

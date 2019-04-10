@@ -8,10 +8,10 @@ python:
 install:
   - cd python
   - pip install numpy
-  - bash build_py.sh -d
+  - python setup.py build_ext --inplace
+  - cp tests/test.py .
+  - python test.py
 
-script:
-  - python python/tests/test.py
 
 
 
