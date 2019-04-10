@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-
-"""
-setup.py file for SWIG example
-"""
-import setuptools
 from setuptools import setup, Extension,find_packages
 import numpy
 
@@ -15,7 +9,7 @@ else:
 if platform == "darwin":
   compile_args.append("-mmacosx-version-min=10.9") # To ensure gnu+11 and all std libs
 
-XBART_module = Extension('_xbart_cpp_',
+XBART_cpp_module = Extension('_xbart_cpp_',
                            sources=['xbart/xbart_wrap.cxx', 'xbart/xbart.cpp',
                                     "src/utility.cpp",'src/fit_std_main_loop.cpp',
                                       "src/sample_int_crank.cpp",
@@ -30,12 +24,12 @@ XBART_module = Extension('_xbart_cpp_',
 
 setup (name = 'xbart',
        version = '0.1',
-       author      = "Saar Yalov",
+       author      = "Jingyu He, Saar Yalov, P. Richard Hahn",
        description = """XBART project""",
        include_dirs = [numpy.get_include(),'.',"src","xbart"],
-       ext_modules = [XBART_module],
-       #sources = ["xbart/xbart_cpp_.py","xbart/xbart_python.py"],
+       ext_modules = [XBART_cpp_module],
        install_requires=['numpy'],
+       license="Apache-2.0",
        py_modules = ["xbart"],
        packages=find_packages()
        )
