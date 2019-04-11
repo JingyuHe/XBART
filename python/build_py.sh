@@ -1,3 +1,4 @@
+    
 #! /bin/bash
 PYTHON_BIN=python
 DIST_FLAG=false
@@ -13,7 +14,6 @@ function usage(){
     -d|--dist  : include if building dist
     -h|--help  : see documantation
     -s|--swig  : Run SIWG - important if changing xbart.* files
-
 ENDUSAGE
 }
 
@@ -65,4 +65,4 @@ else
 fi
 
 rm -rf src
-$PYTHON_BIN tests/test.py
+#$PYTHON_BIN tests/test.py

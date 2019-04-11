@@ -1,3 +1,5 @@
+sudo: required
+dist: xenial
 language: python
 
 python:
@@ -5,9 +7,11 @@ python:
 
 install:
   - cd python
-  - python setup.py build_ext --inplace
+  - pip install numpy
+  - bash build_py.sh
   - cp tests/test.py .
-  - python test.py
+  
+script: python test.py
 
 
 
