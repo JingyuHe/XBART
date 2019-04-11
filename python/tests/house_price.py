@@ -21,7 +21,7 @@ cont_test= cont.loc[idx]
 target= cont_train["SalePrice"];del cont_train["SalePrice"]
 del cont_test["SalePrice"]
 
-cat =  dummied.select_dtypes(include=['int'])
+cat =  dummied.select_dtypes(include=['integer'])
 cat_train = cat.loc[~idx]
 cat_test = cat.loc[idx]
 
@@ -32,14 +32,16 @@ target_train = np.log1p(target[:1300]); target_valid = np.log1p(target.loc[1300:
 
 
 xbart = XBART(num_trees = 125,tau = 1/125,beta = 2.0)
-start_1 = time.time()
+time_start_fit = time.time()
 xbart.fit(train_data,target_train,cat_train.shape[1])
+time_start_predict = time.time()
 y_pred = xbart.predict(valid_data)
+time_end_predict = time.time()
 y_hat_xbart = y_pred[:,15:].mean(axis=1)
 print("Done!")
 print("Xbart rmse:" + str(rmse(y_hat_xbart,target_valid)))
-# print("Xbart fit time:" + str(XBART_time_fit))
-# print("Xbart predict time:" + str(XBART_time_predict))
+print("Xbart fit time:" + str(time_start_predict - time_start_fit))
+print("Xbart predict time:" + str(time_end_predict - time_start_predict))
 
 
 
