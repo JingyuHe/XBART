@@ -1251,7 +1251,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         ////////////////////////////////////////////////////////////////
         
 
-
+                //left
                 for (size_t j = 0; j < N_Xorder - 1; j++)
                 {
                     // loop over all possible cutpoints
@@ -1260,12 +1260,25 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                     model->calcSuffStat_continuous(xorder, y_std, candidate_index, j, false);
 
-                    loglike[(N_Xorder - 1) * i + j] = model->likelihood(tau, n1tau, sigma2, y_sum, true) + model->likelihood(tau, n2tau, sigma2, y_sum, false);
+                    loglike[(N_Xorder - 1) * i + j] = model->likelihood(tau, n1tau, sigma2, y_sum, true); //+ model->likelihood(tau, n2tau, sigma2, y_sum, false);
 
+                    // if (loglike[(N_Xorder - 1) * i + j] > loglike_max)
+                    // {
+                    //     loglike_max = loglike[(N_Xorder - 1) * i + j];
+                    // }
+                }
+                //right
+                for (size_t j = 0; j < N_Xorder - 1; j++){
+                    // loop over all possible cutpoints
+                    n1tau = (j + 1) * tau; // number of points on left side (x <= cutpoint)
+                    n2tau = Ntau - n1tau;  // number of points on right side (x > cutpoint)
+
+                    loglike[(N_Xorder - 1) * i + j] += model->likelihood(tau, n2tau, sigma2, y_sum, false);
                     if (loglike[(N_Xorder - 1) * i + j] > loglike_max)
                     {
                         loglike_max = loglike[(N_Xorder - 1) * i + j];
-                    }
+                    }  
+
                 }
             }
         }
@@ -1300,6 +1313,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     model_temp.suff_stat_init();
                     model_temp.suff_stat_fill(y_std[xorder[0]]);
 
+                    // Left
                     for (size_t j = 0; j < Ncutpoints; j++)
                     {
                         model_temp.calcSuffStat_continuous(xorder, y_std, candidate_index2, j, true);
@@ -1308,7 +1322,16 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                         double n1tau = (candidate_index2[j + 1] + 1) * tau; // number of points on left side (x <= cutpoint)
                         double n2tau = Ntau - n1tau;                        // number of points on right side (x > cutpoint)
 
-                        loglike[(Ncutpoints)*i + j] = model_temp.likelihood(tau, n1tau, sigma2, y_sum, true) + model_temp.likelihood(tau, n2tau, sigma2, y_sum, false);
+                        loglike[(Ncutpoints)*i + j] = model_temp.likelihood(tau, n1tau, sigma2, y_sum, true);
+                    }
+                    //Right
+                    for (size_t j = 0; j < Ncutpoints; j++){
+
+                        double n1tau = (candidate_index2[j + 1] + 1) * tau; // number of points on left side (x <= cutpoint)
+                        double n2tau = Ntau - n1tau;                        // number of points on right side (x > cutpoint)
+  
+                    
+                        loglike[(Ncutpoints)*i + j] += model_temp.likelihood(tau, n2tau, sigma2, y_sum, false);
 
                         if (loglike[(Ncutpoints)*i + j] > llmax)
                         {
@@ -1386,7 +1409,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
         ////////////////////////////////////////////////////////////////
             
             n1 = 0;
-
+            // left
             for (size_t j = start; j <= end2; j++)
             {
 
@@ -1401,8 +1424,24 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                     n1 = n1 + X_counts[j];
                     n1tau = (double)n1 * tau;
                     n2tau = ntau - n1tau;
+                
 
-                    loglike[loglike_start + j] = model -> likelihood(tau, n1tau, sigma2, y_sum, true) + model -> likelihood(tau, n2tau, sigma2, y_sum, false);
+                    loglike[loglike_start + j] = model -> likelihood(tau, n1tau, sigma2, y_sum, true);
+                }
+            }
+            // Right
+             for (size_t j = start; j <= end2; j++)
+            {
+
+                if (X_counts[j] != 0)
+                {
+
+                    n1 = n1 + X_counts[j];
+                    n1tau = (double)n1 * tau;
+                    n2tau = ntau - n1tau;
+                
+
+                    loglike[loglike_start + j] += model -> likelihood(tau, n2tau, sigma2, y_sum, false);
 
                     // count total number of cutpoint candidates
                     effective_cutpoints++;
@@ -1412,7 +1451,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                         loglike_max = loglike[loglike_start + j];
                     }
                 }
-            }
+            }           
         }
     }
 }
