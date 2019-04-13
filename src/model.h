@@ -176,9 +176,11 @@ class CLTClass : public Model
 	size_t dim_suffstat = 3;
 	std::vector<double> suff_stat_model;
 
-
   public:
   	std::vector<double>  total_fit; // Keep public to save copies
+	double sum_ipsi = 0; // sum(1/psi)
+	double sum_log_ipsi = 0; //sum(log(1/psi))
+
 	void suff_stat_init()
 	{
 		suff_stat_model.resize(dim_suffstat);
@@ -279,6 +281,17 @@ class CLTClass : public Model
 		return;
 	}
 
+	void updateFullSuffStat(){
+		size_t n = total_fit.size();
+		for(size_t i = 0; i < n; i++){
+			double current_fit_val = total_fit[i];
+			double psi = (current_fit_val +1)*( 1- current_fit_val);
+			sum_ipsi += 1/psi;
+			sum_log_ipsi += std::log(1/psi);
+		}
+		return;
+	}
+
 	double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
 	{
 		// likelihood equation,
@@ -292,12 +305,12 @@ class CLTClass : public Model
 
 		if (left_side)
 		{
-			return suff_stat_model[2] + 0.5 * std::log((1/tau)/((1/tau)+suff_stat_model[1])) + 0.5 * std::log(tau/(1+suff_stat_model[1]))*suff_stat_model[0];
+			return suff_stat_model[2] + 0.5 * std::log((1/tau)/((1/tau)+suff_stat_model[1])) + 0.5 * std::log(tau/(1+suff_stat_model[1]))*pow(suff_stat_model[0], 2);
 			//return -0.5 * log(ntau + sigma2) + 0.5 * tau * pow(suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
 		}
 		else
 		{
-			return -0.5 * log(ntau + sigma2) + 0.5 * tau * pow(y_sum - suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
+			return (sum_log_ipsi - suff_stat_model[2]) + 0.5 * std::log((1/tau)/((1/tau)+ (sum_ipsi- suff_stat_model[1]) )) + 0.5 * std::log(tau/(1+ (sum_ipsi- suff_stat_model[1]) ))* ( y_sum - suff_stat_model[0] );
 		}
 	}
 

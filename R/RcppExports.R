@@ -76,7 +76,7 @@ XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpo
     return(obj)
 }
 
-XBARTProbit <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, ...) {
+XBART.CLT <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, ...) {
 
     if(class(X) != "matrix"){
         cat("Input X is not a matrix, try to convert type.\n")
@@ -104,8 +104,8 @@ XBARTProbit <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num
         return();
     }
 
-    obj = .Call(`_XBARTProbit`, y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed)
-    class(obj) = "XBARTProbit"
+    obj = .Call(`_XBART_CLT`, y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed)
+    class(obj) = "XBART" # Change to XBARTProbit?
     return(obj)
 }
 

@@ -237,7 +237,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBARTProbit(arma::mat y, arma::mat X, arma::mat Xtest,
+Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
                             size_t num_trees, size_t num_sweeps, arma::mat max_depth_num,
                             size_t n_min, size_t num_cutpoints, double alpha, double beta,
                             double tau, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,

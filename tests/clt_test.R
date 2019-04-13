@@ -119,14 +119,14 @@ yhat.test.xgb = predict(bst,newdata=xtest) # Predict on test
 t5 = proc.time() - t5
 
 
-print("BART")
-auc(ytest,phat)
-print("XBART")
-auc(ytest,yhat.pred)
-print("XBART CLT")
-auc(ytest,yhat.probit.pred)
-print("XGBoost")
-auc(ytest,yhat.test.xgb)
+print("BART: ")
+print(auc(ytest,phat))
+print("XBART: ")
+print(auc(ytest,yhat.pred))
+print("XBART CLT: ")
+print(auc(ytest,yhat.probit.pred))
+print("XGBoost: ")
+print(auc(ytest,yhat.test.xgb))
 plot(phat,yhat.pred)
 print("Done!")
 

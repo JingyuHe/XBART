@@ -62,8 +62,8 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
     unique_value_count2(Xpointer, Xorder_std, X_values, X_counts,
                         variable_ind, total_points, X_num_unique, p_categorical, p_continuous);
 
-    NormalModel model;
-    model.suff_stat_init();
+    NormalModel *model = new NormalModel();
+    model->suff_stat_init();
 
     // save predictions of each tree
     xinfo predictions_std;
@@ -144,18 +144,12 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
         {
 
-            // if update sigma based on residual of all m trees
-            // if (m_update_sigma == true)
-            // {
+            // Draw Sigma
+            residual_std_full = residual_std - predictions_std[tree_ind];
+            std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std_full) + s));
+            sigma = 1.0 / sqrt(gamma_samp(gen));
+            sigma_draw_xinfo[sweeps][tree_ind] = sigma;
 
-                residual_std_full = residual_std - predictions_std[tree_ind];
-
-                std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std_full) + s));
-
-                sigma = 1.0 / sqrt(gamma_samp(gen));
-
-                sigma_draw_xinfo[sweeps][tree_ind] = sigma;
-            // }
 
             // save sigma
             sigma_draw_xinfo[sweeps][tree_ind] = sigma;
@@ -163,14 +157,10 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
 
             // add prediction of current tree back to residual
             // then it's m - 1 trees residual
-
             yhat_std = yhat_std - predictions_std[tree_ind];
 
             if (use_all && (sweeps > burnin) && (mtry != p))
             {
-                // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
-
-                // subset_vars = sample_int_crank2(p, mtry, split_var_count);
 
                 use_all = false;
             }
@@ -180,45 +170,23 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
 
             mtry_weight_current_tree = mtry_weight_current_tree - split_count_all_tree[tree_ind];
 
-            trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, &model, data_pointers, tree_ind, gen);
+            trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, model, data_pointers, tree_ind, gen);
 
             mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 
             split_count_all_tree[tree_ind] = split_count_current_tree;
 
-            // update prediction of current tree
-
             // fit_new_std(trees[sweeps][tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
             fit_new_std_datapointers(Xpointer, N, tree_ind, predictions_std[tree_ind], data_pointers);
 
-            // update prediction of current tree, test set
-
-            // if (m_update_sigma == false)
-            // {
-            //     std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(residual_std) + s));
-
-            //     sigma = 1.0 / sqrt(gamma_samp(gen));
-
-            //     sigma_draw_xinfo[sweeps][tree_ind] = sigma;
-
-            // }
-
             // update residual, now it's residual of m trees
-            model.updateResidual(predictions_std, tree_ind, num_trees, residual_std);
+            model->updateResidual(predictions_std, tree_ind, num_trees, residual_std);
 
             yhat_std = yhat_std + predictions_std[tree_ind];
         }
         // save predictions to output matrix
         yhats_xinfo[sweeps] = yhat_std;
 
-        // for (size_t kk = 0; kk < N; kk++)
-        // {
-        //     yhats(kk, sweeps) = yhat_std[kk];
-        // }
-        // for (size_t kk = 0; kk < N_test; kk++)
-        // {
-        //     yhats_test(kk, sweeps) = yhat_test_std[kk];
-        // }
     }
     
     thread_pool.stop();
@@ -260,7 +228,7 @@ void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num
     return;
 }
 
-void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
+void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
              size_t N, size_t p,
              size_t num_trees, size_t num_sweeps, xinfo_sizet &max_depth_std,
              size_t n_min, size_t Ncutpoints, double alpha, double beta,
@@ -294,8 +262,8 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
     unique_value_count2(Xpointer, Xorder_std, X_values, X_counts,
                         variable_ind, total_points, X_num_unique, p_categorical, p_continuous);
 
-    CLTClass model;
-    model.suff_stat_init();
+    CLTClass *model = new CLTClass();
+    model->suff_stat_init();
 
     // save predictions of each tree
     xinfo predictions_std;
@@ -393,7 +361,10 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
             sigma_draw_xinfo[sweeps][tree_ind] = sigma;
 
             // Add total_fit
-            model.total_fit = yhat_std;
+            model->total_fit = yhat_std;
+
+            // Update sum(1/psi) and sum(log(1/psi)) in model class
+            model->updateFullSuffStat();
 
             // add prediction of current tree back to residual
             // then it's m - 1 trees residual
@@ -414,7 +385,7 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
 
             mtry_weight_current_tree = mtry_weight_current_tree - split_count_all_tree[tree_ind];
 
-            trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, &model, data_pointers, tree_ind, gen);
+            trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, residual_std, Xorder_std, Xpointer, mtry, use_all, split_count_all_tree, mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, model, data_pointers, tree_ind, gen);
 
             mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
 
@@ -438,7 +409,7 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
             // }
 
             // update residual, now it's residual of m trees
-            model.updateResidual(predictions_std, tree_ind, num_trees, residual_std);
+            model->updateResidual(predictions_std, tree_ind, num_trees, residual_std);
 
             yhat_std = yhat_std + predictions_std[tree_ind];
         }
