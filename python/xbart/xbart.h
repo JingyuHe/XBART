@@ -34,8 +34,8 @@ class XBARTcpp{
 		
 		// helper functions
 		vec_d np_to_vec_d(int n,double *a);
-		vec_d np_to_row_major_vec(int n, int d,double *a);
-		vec_d xinfo_to_row_major_vec(xinfo x_std);
+		vec_d np_to_col_major_vec(int n, int d,double *a);
+		vec_d xinfo_to_col_major_vec(xinfo x_std);
 		xinfo np_to_xinfo(int n, int d,double *a);
 		void xinfo_to_np(xinfo x_std,double *arr);
 		size_t seed; bool seed_flag;

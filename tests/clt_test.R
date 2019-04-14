@@ -86,7 +86,7 @@ dcat = 0
 parl = F
 
 t = proc.time()
-out = XBART(2*as.matrix(y)-1 + 0.1*rnorm(n), as.matrix(x), as.matrix(xtest), num_trees = params$M, L = 1, num_sweeps = params$nsweeps, max_depth = params$max_depth, Nmin = params$Nmin, num_cutpoints = params$Ncutpoints, 
+out = XBART(2*as.matrix(y)-1 , as.matrix(x), as.matrix(xtest), num_trees = params$M, L = 1, num_sweeps = params$nsweeps, max_depth = params$max_depth, Nmin = params$Nmin, num_cutpoints = params$Ncutpoints, 
             alpha = params$alpha, beta = params$beta, tau = params$tau, s= 1,kap = 1, 
             mtry = params$mtry, p_categorical = dcat, draw_sigma = FALSE, m_update_sigma = TRUE,draw_mu= TRUE, 
             parallel = parl)
@@ -98,7 +98,7 @@ out = XBART(2*as.matrix(y)-1 + 0.1*rnorm(n), as.matrix(x), as.matrix(xtest), num
 
 ### CLT ### 
 t = proc.time()
-out = XBART.CLT(2*as.matrix(y)-1 + 0.1*rnorm(n), as.matrix(x), as.matrix(xtest), num_trees = params$M, L = 1, num_sweeps = params$nsweeps, max_depth = params$max_depth, Nmin = params$Nmin, num_cutpoints = params$Ncutpoints, 
+out = XBART.CLT(2*as.matrix(y)-1 , as.matrix(x), as.matrix(xtest), num_trees = params$M, L = 1, num_sweeps = params$nsweeps, max_depth = params$max_depth, Nmin = params$Nmin, num_cutpoints = params$Ncutpoints, 
             alpha = params$alpha, beta = params$beta, tau = params$tau, s= 1,kap = 1, 
             mtry = params$mtry, p_categorical = dcat, draw_sigma = FALSE, m_update_sigma = TRUE,draw_mu= TRUE, 
             parallel = parl)
