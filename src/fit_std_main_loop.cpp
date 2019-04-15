@@ -181,7 +181,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
     }
 
     // Set yhat_std to mean 
-    row_sum(fit_info->predictions_std, fit_info->yhat_std);
+    fit_info->yhat_std = std::vector<double>(N,y_mean);
 
     // Residual for 0th tree 
     fit_info->residual_std = y_std - fit_info->yhat_std + fit_info->predictions_std[0];
@@ -200,11 +200,19 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
 
         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
         {
-            // Add total_fit
+            // // Add total_fit
+            // if( sweeps <= burnin){
+            //    model->total_fit = std::vector<double>(N,1); // set psi = 0
+            // }else{
+            //     model->total_fit = fit_info->yhat_std;
+            // }
             model->total_fit = fit_info->yhat_std;
-
+            
+            
             // Update sum(1/psi) and sum(log(1/psi)) in model class
             model->updateFullSuffStat();
+
+            std::cout << "Mean psi : " << model->mean_psi ;
 
             // add prediction of current tree back to residual
             // then it's m - 1 trees residual

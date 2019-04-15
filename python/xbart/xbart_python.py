@@ -53,11 +53,11 @@ class XBART(object):
 
 	def __check_inputs(self,x,y=None):
 		if not isinstance(x,(np.ndarray,DataFrame)):
-			raise TypeError(f"x must be numpy array or pandas DataFrame, not type {type(x)}")
+			raise TypeError("x must be numpy array or pandas DataFrame}")
 
 		if y is not None: 
 			if not isinstance(y,(np.ndarray,Series)):
-				raise TypeError(f"y must be numpy array or pandas Series, not type {type(y)}")
+				raise TypeError("y must be numpy array or pandas Series}")
 		
 	def __check_params(self,params):
 		import warnings

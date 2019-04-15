@@ -264,7 +264,7 @@ class CLTClass : public Model
 			for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
 			{
 				double current_fit_val = total_fit[xorder[q]];
-				double psi = (current_fit_val +1)*( 1- current_fit_val);
+				double psi = 1-current_fit_val*current_fit_val;
 				suff_stat_model[0] += y_std[xorder[q]]/psi;
 				suff_stat_model[1] += 1/psi;
 				suff_stat_model[2] += std::log(1/psi);
@@ -274,7 +274,7 @@ class CLTClass : public Model
 		{
 			// use all data points as candidates
 			double current_fit_val = total_fit[xorder[index]];
-			double psi = (current_fit_val +1)*( 1- current_fit_val);
+			double psi = 1-current_fit_val*current_fit_val;
 			suff_stat_model[0] += y_std[xorder[index]]/psi;
 			suff_stat_model[1] += 1/psi;
 			suff_stat_model[2] += std::log(1/psi);
@@ -286,7 +286,8 @@ class CLTClass : public Model
 		size_t n = total_fit.size();
 		for(size_t i = 0; i < n; i++){
 			double current_fit_val = total_fit[i];
-			double psi = (current_fit_val +1)*( 1- current_fit_val);
+			double psi = 1-current_fit_val*current_fit_val;
+			std::cout << "psi: " << psi;
 			sum_ipsi += 1/psi;
 			sum_log_ipsi += std::log(1/psi);
 			mean_psi += psi/n;
