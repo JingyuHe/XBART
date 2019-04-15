@@ -555,8 +555,10 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     std::vector<size_t> subset_vars;
 
+
     if (use_all)
     {
+        // cout << "use all " << endl;
         subset_vars.resize(p);
         std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
     }
@@ -564,14 +566,10 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     {
         subset_vars = sample_int_ccrank(p, mtry, mtry_weight_current_tree);
 
-
-        // // Change
-        // subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
-
-        // //TEMP ------------------------
-        // subset_vars.resize(p);
-        // std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
     }
+
+
+    // cout << "v_int " << subset_vars << endl;
 
 
     BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, model, gen, mtry);
