@@ -168,12 +168,15 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
 
             if (use_all && (sweeps > burnin) && (mtry != p))
             {
+                // burn in samples, use all variables
+
                 // subset_vars = Rcpp::as<std::vector<size_t>>(sample(var_index_candidate, mtry, false, split_var_count));
 
                 // subset_vars = sample_int_crank2(p, mtry, split_var_count);
 
                 use_all = false;
             }
+
 
             // clear counts of splits for one tree
             std::fill(split_count_current_tree.begin(), split_count_current_tree.end(), 0.0);
