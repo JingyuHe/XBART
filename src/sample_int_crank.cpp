@@ -67,9 +67,6 @@ std::vector<double> sample_int_ccrank(int n, int size, std::vector<double> prob)
 
     // Initialize with the first "size" elements of vx[1:size], they are already
     // 1-based.
-
-    vx = vx; // Removed + 1.0;
-
     return vx;
 }
 

@@ -4,7 +4,7 @@
 #include "forest.h"
 #include <chrono>
 
-class Fit{
+struct FitInfo{
     public:
         // Categorical
         bool categorical_variables = false;
@@ -21,7 +21,6 @@ class Fit{
         std::vector<double> residual_std_full;
 
         // Random
-        double sigma = 1.0;
         std::vector<double> prob;
         std::random_device rd;
         std::mt19937 gen;
@@ -47,7 +46,7 @@ class Fit{
     }
 
         }
-        Fit(const double *Xpointer,xinfo_sizet &Xorder_std,size_t N,size_t p,
+        FitInfo(const double *Xpointer,xinfo_sizet &Xorder_std,size_t N,size_t p,
             size_t num_trees,size_t p_categorical,size_t p_continuous,
             bool set_random_seed,size_t random_seed,tree::tree_p first_tree){
             

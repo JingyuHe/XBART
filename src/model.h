@@ -180,6 +180,7 @@ class CLTClass : public Model
   	std::vector<double>  total_fit; // Keep public to save copies
 	double sum_ipsi = 0; // sum(1/psi)
 	double sum_log_ipsi = 0; //sum(log(1/psi))
+	double mean_psi = 0; // sum(psi)
 
 	void suff_stat_init()
 	{
@@ -203,12 +204,12 @@ class CLTClass : public Model
 		{
 
 			// test result should be theta
-			theta_vector[0] = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2))) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
+			theta_vector[0] = y_mean * N_Xorder / mean_psi/ (1.0 / tau + N_Xorder / mean_psi) + sqrt(1.0 / (1.0 / tau + N_Xorder / mean_psi)) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
 		}
 		else
 		{
 			// test result should be theta
-			theta_vector[0] = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2));
+			theta_vector[0] = y_mean * N_Xorder / mean_psi / (1.0 / tau + N_Xorder / mean_psi);
 		}
 		return;
 	}
@@ -288,6 +289,7 @@ class CLTClass : public Model
 			double psi = (current_fit_val +1)*( 1- current_fit_val);
 			sum_ipsi += 1/psi;
 			sum_log_ipsi += std::log(1/psi);
+			mean_psi += psi/n;
 		}
 		return;
 	}
@@ -306,7 +308,6 @@ class CLTClass : public Model
 		if (left_side)
 		{
 			return suff_stat_model[2] + 0.5 * std::log((1/tau)/((1/tau)+suff_stat_model[1])) + 0.5 * std::log(tau/(1+suff_stat_model[1]))*pow(suff_stat_model[0], 2);
-			//return -0.5 * log(ntau + sigma2) + 0.5 * tau * pow(suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
 		}
 		else
 		{
@@ -325,7 +326,8 @@ class CLTClass : public Model
 		// weighting of no split option is in function
 		// calculate_likelihood_no_split in tree.cpp
 		// maybe move it to model class??
-		return -0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
+		return (sum_log_ipsi) + 0.5 * std::log((1/tau)/((1/tau)+ (sum_ipsi) )) + 0.5 * std::log(tau/(1+ (sum_ipsi) ))* ( value  );
+		//return -0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
 	}
 };
 

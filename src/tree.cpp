@@ -569,8 +569,9 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
                   bind2nd(std::plus<double>(), -1.0));
 
         // Cast as size_t
-        std::vector<size_t> v_int(v_float.begin(), v_float.end());
+        std::vector<size_t> v_int(v_float.begin(), v_float.begin()+mtry);
         subset_vars = v_int; // index start from 0
+
 
         // // Change
         // subset_vars = sample_int_crank(p, mtry, mtry_weight_current_tree);
