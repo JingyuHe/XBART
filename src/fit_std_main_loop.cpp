@@ -314,6 +314,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
 //                 }
 //                 std::uniform_real_distribution<double> unif(a,b);
 //                 double u = unif(fit_info->gen);
+//                 z[i] = NormalCDFInverse(u) + mu_temp;
                 
 //             }
             

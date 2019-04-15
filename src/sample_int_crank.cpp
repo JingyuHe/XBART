@@ -43,7 +43,7 @@ struct UniqueNumber
     int operator()() { return current++; }
 };
 
-std::vector<double> sample_int_ccrank(int n, int size, std::vector<double> prob)
+std::vector<size_t> sample_int_ccrank(int n, int size, std::vector<double> prob)
 {
     check_args(n, size, prob);
 
@@ -53,11 +53,11 @@ std::vector<double> sample_int_ccrank(int n, int size, std::vector<double> prob)
     //                ~ prob / Exp(1)
     // Here, ~ means "doesn't change order statistics".
     std::vector<double> rnd(n + 1);
-    //std::vector<double> rnd = std::vector<double>(n );
+    //std::vector<double> prob (n);
 
     // Already shift by one, rnd[0] is uninitialized (and never accessed)
-    std::transform(prob.begin(), prob.end(), rnd.begin() + 1, &_divide_by_rexp<double>);
-    //std::transform(prob.begin(), prob.end(), rnd.begin() , &_divide_by_rexp<double>);
+    //std::transform(prob.begin(), prob.end(), rnd.begin() + 1, &_divide_by_rexp<double>);
+    std::transform(prob.begin(), prob.end(), rnd.begin() , &_divide_by_rexp<double>);
 
     // Find the indexes of the first "size" elements under inverted
     // comparison.  Here, vx is zero-based.
@@ -67,7 +67,21 @@ std::vector<double> sample_int_ccrank(int n, int size, std::vector<double> prob)
 
     // Initialize with the first "size" elements of vx[1:size], they are already
     // 1-based.
-    return vx;
+
+    
+   // transform(vx.begin(), vx.end(), vx.begin(),
+    //              bind2nd(std::plus<double>(), -1.0));
+    
+  //  std::vector<size_t> v_int(vx.begin(), vx.begin()+ size);
+
+    std::vector<size_t> v_int(size);
+
+    for (size_t i = 0; i < size; i++)
+    {
+    v_int[i] = (size_t) (vx[i] - 1.0);
+    }
+
+    return v_int;
 }
 
 template <class T>
