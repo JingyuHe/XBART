@@ -6,7 +6,7 @@ Date: 2019-04-09
 Author: Jingyu He, Saar Yalov, P. Richard Hahn
 Maintainer: Jingyu He <jingyu.he@chicagobooth.edu>
 Description: A highly efficient prediction algorithm based on trees.
-License: GPL (>= 2)
+License: Apache License (== 2.0)
 Imports: Rcpp (>= 0.12.13)
 LinkingTo: Rcpp, RcppArmadillo
 NeedsCompilation: yes
