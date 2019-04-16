@@ -181,7 +181,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
     }
 
     // Set yhat_std to mean 
-    fit_info->yhat_std = std::vector<double>(N,y_mean);
+   // fit_info->yhat_std = std::vector<double>(N,y_mean);
 
     // Residual for 0th tree 
     fit_info->residual_std = y_std - fit_info->yhat_std + fit_info->predictions_std[0];
@@ -200,19 +200,18 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
 
         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
         {
-            // // Add total_fit
-            // if( sweeps <= burnin){
-            //    model->total_fit = std::vector<double>(N,1); // set psi = 0
-            // }else{
-            //     model->total_fit = fit_info->yhat_std;
-            // }
-            model->total_fit = fit_info->yhat_std;
+            //Add total_fit
+            if( sweeps <= burnin){
+               model->total_fit = std::vector<double>(N,y_mean); // set psi = 0
+            }else{
+                model->total_fit = fit_info->yhat_std;
+            }
+           // model->total_fit = fit_info->yhat_std;
             
             
             // Update sum(1/psi) and sum(log(1/psi)) in model class
-            model->updateFullSuffStat();
+            // model->updateFullSuffStat();
 
-            std::cout << "Mean psi : " << model->mean_psi ;
 
             // add prediction of current tree back to residual
             // then it's m - 1 trees residual
@@ -229,6 +228,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
 
             trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, fit_info->residual_std, Xorder_std, Xpointer, mtry, fit_info->use_all, fit_info->split_count_all_tree, fit_info->mtry_weight_current_tree, fit_info->split_count_current_tree, fit_info->categorical_variables, p_categorical, p_continuous, fit_info->X_values, fit_info->X_counts, fit_info->variable_ind, fit_info->X_num_unique, model, fit_info->data_pointers, tree_ind, fit_info->gen);
 
+            
             fit_info->mtry_weight_current_tree = fit_info->mtry_weight_current_tree + fit_info->split_count_current_tree;
             fit_info->split_count_all_tree[tree_ind] = fit_info->split_count_current_tree;
 

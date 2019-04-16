@@ -83,9 +83,9 @@ get_XBART_params <- function(n,d,y){
     beta = 2.0,
     mtry = 10,
     burnin = 40)
-    num_tress = XBART_params$M
-    XBART_params$max_depth = matrix(250, num_tress, XBART_params$nsweeps)
-    XBART_params$Ncutpoints = 100;XBART_params$tau = 1
+    num_trees = XBART_params$M
+    XBART_params$max_depth = matrix(250, num_trees, XBART_params$nsweeps)
+    XBART_params$Ncutpoints = 100;XBART_params$tau = 1/num_trees#1/(num_trees * 25)
     XBART_params$a = 0.000001; XBART_params$b = 0.000001;
     return(XBART_params)
 }

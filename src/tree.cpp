@@ -547,7 +547,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     // tau is prior VARIANCE, do not take squares
 
 
-    model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, gen, this->theta_vector);
+    model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, gen, this->theta_vector,y_std,Xorder_std);
 
 
     this->sig = sigma;
@@ -567,9 +567,6 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
         subset_vars = sample_int_ccrank(p, mtry, mtry_weight_current_tree);
 
     }
-
-
-    // cout << "v_int " << subset_vars << endl;
 
 
     BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, model, gen, mtry);
@@ -618,12 +615,12 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     if (p_categorical > 0)
     {
-        split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, y_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, X_values, variable_ind);
+        split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, y_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, X_values, variable_ind,model);
     }
 
     if (p_continuous > 0)
     {
-        split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, y_std);
+        split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, y_std,model);
     }
 
     depth++;
@@ -648,7 +645,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     return;
 }
 
-void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std)
+void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std , Model *model)
 {
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
@@ -677,6 +674,10 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
             if (*(temp_pointer + Xorder_std[split_var][j]) <= cutvalue)
             {
                 yleft_mean = yleft_mean + y_std[Xorder_std[split_var][j]];
+
+                // // temp
+                // std::vector<double> temp_vector = { y_std[Xorder_std[split_var][j]] };
+                // model->updateTotalSuffStat(temp_vector ,N_Xorder_left);
             }
         }
         else
@@ -738,7 +739,7 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
     return;
 }
 
-void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, std::vector<double> &X_values, std::vector<size_t> &variable_ind)
+void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, std::vector<double> &X_values, std::vector<size_t> &variable_ind,Model *model)
 {
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
@@ -807,6 +808,7 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
                     {
                         // go to left side
                         yleft_mean = yleft_mean + y_std[Xorder_std[split_var][j]];
+                        // model->
                         Xorder_left_std[i][left_ix] = Xorder_std[i][j];
                         left_ix = left_ix + 1;
                     }
@@ -1230,7 +1232,8 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                 std::vector<size_t> &xorder = Xorder_std[i];
 
                 // initialize sufficient statistics
-                model->suff_stat_fill(0.0);
+                model->suff_stat_init();
+                //model->suff_stat_fill(0.0);
 
 
         ////////////////////////////////////////////////////////////////
@@ -1288,7 +1291,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     // std::vector<double> y_cumsum(Ncutpoints);
 
                     model -> suff_stat_init();
-                    model -> suff_stat_fill(y_std[xorder[0]]);
+                    model -> suff_stat_fill(y_std,xorder);
 
                     for (size_t j = 0; j < Ncutpoints; j++)
                     {
@@ -1363,7 +1366,8 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
             end2 = end2 - 1;
 
             y_cumsum = 0.0;
-            model -> suff_stat_fill(0.0); // initialize sufficient statistics
+            model ->suff_stat_init();
+            //model -> suff_stat_fill(0.0); // initialize sufficient statistics
 
 
 
