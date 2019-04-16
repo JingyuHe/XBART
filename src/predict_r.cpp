@@ -4,7 +4,7 @@
 #include "forest.h"
 #include <chrono>
 #include "fit_std_main_loop.h"
-#include <utility.h>
+#include "utility.h"
 
 // [[Rcpp::export]]
 Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)
