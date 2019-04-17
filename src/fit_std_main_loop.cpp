@@ -49,7 +49,6 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
         thread_pool.start();
 
     NormalModel *model = new NormalModel();
-    model->suff_stat_init();
 
     // initialize predcitions 
     for (size_t ii = 0; ii < num_trees; ii++)
@@ -173,7 +172,6 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
         thread_pool.start();
 
     CLTClass *model = new CLTClass();
-    model->suff_stat_init();
 
     // initialize predcitions and predictions_test
     for (size_t ii = 0; ii < num_trees; ii++)

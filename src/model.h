@@ -30,7 +30,7 @@ class Model
 
 
 	virtual void suff_stat_fill(std::vector<double> &y_std,std::vector<size_t> &xorder) { return; };
-	virtual void suff_stat_init() { return; };
+	virtual void suff_stat_fill_zero() { return; };
 	virtual void printSuffstat() const { return; };
 	// virtual void updateTotalSuffStat(std::vector<double> &vals,size_t n_xorder_left) const{ return ;};
 
@@ -50,13 +50,13 @@ class NormalModel : public Model
 	std::vector<double> suff_stat_total;
 
   public:
-	// NormalModel(){
-	// 	suff_stat_total.resize(dim_suffstat_total);
-	// }
-
-	void suff_stat_init()
-	{
+	NormalModel(){
 		suff_stat_model.resize(dim_suffstat);
+	}
+
+	void suff_stat_fill_zero()
+	{
+		std::fill(suff_stat_model.begin(), suff_stat_model.end(), 0);
 		return;
 	}
 	void suff_stat_fill(std::vector<double> &y_std,std::vector<size_t> &xorder)
@@ -196,6 +196,7 @@ class CLTClass : public Model
   public:
 	CLTClass(){
 		suff_stat_total.resize(dim_suffstat_total);
+		suff_stat_model.resize(dim_suffstat);
 	}
   	std::vector<double>  total_fit; // Keep public to save copies
 	// double sum_y_ipsi = 0;
@@ -203,9 +204,9 @@ class CLTClass : public Model
 	// double sum_log_ipsi = 0; //sum(log(1/psi))
 	// double mean_psi = 0; // sum(psi)
 
-	void suff_stat_init()
+	void suff_stat_fill_zero()
 	{
-		suff_stat_model.resize(dim_suffstat);
+		std::fill(suff_stat_model.begin(), suff_stat_model.end(), 0);
 		return;
 	}
 	void suff_stat_fill(std::vector<double> &y_std,std::vector<size_t> &xorder)

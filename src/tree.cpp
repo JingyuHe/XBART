@@ -1242,7 +1242,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                 std::vector<size_t> &xorder = Xorder_std[i];
 
                 // initialize sufficient statistics
-                model->suff_stat_init();
+                model->suff_stat_fill_zero();
                 //model->suff_stat_fill(0.0);
 
 
@@ -1300,7 +1300,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                     // std::vector<double> y_cumsum(Ncutpoints);
 
-                    model -> suff_stat_init();
+                    //model -> suff_stat_init();
                     model -> suff_stat_fill(y_std,xorder);
 
                     for (size_t j = 0; j < Ncutpoints; j++)
@@ -1376,7 +1376,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
             end2 = end2 - 1;
 
             y_cumsum = 0.0;
-            model ->suff_stat_init();
+            model ->suff_stat_fill_zero();
             //model -> suff_stat_fill(0.0); // initialize sufficient statistics
 
 
