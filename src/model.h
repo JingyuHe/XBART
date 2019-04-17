@@ -240,12 +240,12 @@ class CLTClass : public Model
 		{
 
 			// test result should be theta
-			theta_vector[0] = y_mean * N_Xorder / suff_stat_total[3]/ (1.0 / tau + N_Xorder / suff_stat_total[3]) + sqrt(1.0 / (1.0 / tau + N_Xorder / suff_stat_total[3])) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
+			theta_vector[0] = suff_stat_total[0]/ (1.0 / tau + suff_stat_total[1]) + sqrt(1.0 / (1.0 / tau + suff_stat_total[1])) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
 		}
 		else
 		{
 			// test result should be theta
-			theta_vector[0] = y_mean * N_Xorder / suff_stat_total[3] / (1.0 / tau + N_Xorder / suff_stat_total[3]);
+			theta_vector[0] = suff_stat_total[0]/ (1.0 / tau + suff_stat_total[1]);
 		}
 		return;
 	}
