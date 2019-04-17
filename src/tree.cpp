@@ -564,14 +564,14 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 		
 		
 		//cout << mtry_weight_current_tree << endl;
-		//cout << subset_vars << endl;
+		cout << subset_vars << endl;
 
     }
     else
     {
-            subset_vars.resize(p);
+          //  subset_vars.resize(p);
 		subset_vars = sample_int_ccrank(p, mtry, mtry_weight_current_tree,gen);
-		//cout << subset_vars << endl;
+		cout << subset_vars << endl;
 		//cout << mtry_weight_current_tree << endl;
 		
 		
