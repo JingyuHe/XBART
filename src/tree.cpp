@@ -558,14 +558,23 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     if (use_all)
     {
-        // cout << "use all " << endl;
+        //cout << "use all " << endl;
         subset_vars.resize(p);
-        std::iota(subset_vars.begin() + 1, subset_vars.end(), 1);
+        std::iota(subset_vars.begin(), subset_vars.end(), 0);
+		
+		
+		//cout << mtry_weight_current_tree << endl;
+		//cout << subset_vars << endl;
+
     }
     else
     {
-        subset_vars = sample_int_ccrank(p, mtry, mtry_weight_current_tree);
-
+            subset_vars.resize(p);
+		subset_vars = sample_int_ccrank(p, mtry, mtry_weight_current_tree);
+		//cout << subset_vars << endl;
+		//cout << mtry_weight_current_tree << endl;
+		
+		
     }
 
 
@@ -574,6 +583,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     if (no_split == true)
     {
+       // std::cout << "depth: "<< depth <<std::endl;
         // if do not split, all data points in this node are in bottom node, update matrix of pointers
         for (size_t i = 0; i < N_Xorder; i++)
         {
