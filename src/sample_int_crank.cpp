@@ -17,10 +17,7 @@ void check_args(int n, int size, const std::vector<double> &prob)
 
 
 template <class T>
-T _divide_by_rexp(T t) { 
-
- std::random_device rd;
-    std::mt19937 gen(rd());
+double _divide_by_rexp(T t,std::mt19937 &gen) { 
  std::exponential_distribution<> d(1);
 return t / d(gen); }
 
@@ -42,7 +39,7 @@ struct UniqueNumber
     int operator()() { return current++; }
 };
 
-std::vector<size_t> sample_int_ccrank(int n, int size, std::vector<double> prob)
+std::vector<size_t> sample_int_ccrank(int n, int size, std::vector<double> prob,std::mt19937 &gen)
 {
     check_args(n, size, prob);
 
@@ -57,7 +54,8 @@ std::vector<size_t> sample_int_ccrank(int n, int size, std::vector<double> prob)
 
     // Already shift by one, rnd[0] is uninitialized (and never accessed)
     //std::transform(prob.begin(), prob.end(), rnd.begin() + 1, &_divide_by_rexp<double>);
-    std::transform(prob.begin(), prob.end(), rnd.begin() + 1 , &_divide_by_rexp<double>);
+    std::exponential_distribution<> d(1);
+    std::transform(prob.begin(), prob.end(), rnd.begin() + 1 , [&gen,&d](double t) -> double {return t/d(gen); });
 
     // Find the indexes of the first "size" elements under inverted
     // comparison.  Here, vx is zero-based.
