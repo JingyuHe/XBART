@@ -188,8 +188,8 @@ class CLTClass : public Model
 {
   private:
 	size_t num_classes = 1;
-	size_t dim_suffstat = 5;
-	size_t dim_suffstat_total = 5;
+	size_t dim_suffstat = 4;
+	size_t dim_suffstat_total = 4;
 	std::vector<double> suff_stat_model;
 	std::vector<double> suff_stat_total;
 
@@ -220,8 +220,7 @@ class CLTClass : public Model
 		suff_stat_model[0] = y_std[xorder[0]]/psi;
 		suff_stat_model[1] = 1/psi;
 		suff_stat_model[2] = std::log(1/psi);
-		suff_stat_model[3] = psi/n;
-		suff_stat_model[4] = pow(y_std[xorder[0]],2)/psi;
+		suff_stat_model[3] = pow(y_std[xorder[0]],2)/psi;
 		//std::cout<< "Psi in fill: "<<psi << endl;
 		//std::cout<< "Suff Stat 2: "<<std::log(1/psi) << endl;
 		//printSuffstat();
@@ -289,8 +288,7 @@ class CLTClass : public Model
 			suff_stat_model[0] += y[xorder_var[i]]/psi;
 			suff_stat_model[1] += 1/psi;
 			suff_stat_model[2] += std::log(1/psi);
-			suff_stat_model[3] += psi/n;
-			suff_stat_model[4] += pow(y[xorder_var[i]],2)/psi;
+			suff_stat_model[3] += pow(y[xorder_var[i]],2)/psi;
 			loop_count++;
 		}
 		return;
@@ -313,8 +311,7 @@ class CLTClass : public Model
 				suff_stat_model[0] += y_std[xorder[q]]/psi;
 				suff_stat_model[1] += 1/psi;
 				suff_stat_model[2] += std::log(1/psi);
-				suff_stat_model[3] += psi/n;
-				suff_stat_model[4] += pow(y_std[xorder[q]], 2)/psi;
+				suff_stat_model[3] += pow(y_std[xorder[q]], 2)/psi;
 			}
 
 		}
@@ -326,8 +323,7 @@ class CLTClass : public Model
 			suff_stat_model[0] += y_std[xorder[index]]/psi;
 			suff_stat_model[1] += 1/psi;
 			suff_stat_model[2] += std::log(1/psi);
-			suff_stat_model[3] += psi/n;
-			suff_stat_model[4] += pow(y_std[xorder[index]], 2)/psi;
+			suff_stat_model[3] += pow(y_std[xorder[index]], 2)/psi;
 		}
 
 		return;
@@ -345,8 +341,7 @@ class CLTClass : public Model
 			suff_stat_total[0] += y_std[x_info[i]]/psi;
 			suff_stat_total[1]  += 1/psi;
 			suff_stat_total[2]  += std::log(1/psi);
-			suff_stat_total[3]  += psi/n;
-			suff_stat_total[4]  += pow(y_std[x_info[i]], 2)/psi;
+			suff_stat_total[3]  += pow(y_std[x_info[i]], 2)/psi;
 		}
 
 	//	std::cout << "Last psi: " << psi << endl;
@@ -368,13 +363,13 @@ class CLTClass : public Model
 
 		if (left_side)
 		{
-			double lik = 0.5*suff_stat_model[2] + 0.5 * std::log((1/tau)/((1/tau)+suff_stat_model[1])) + 0.5 * tau/(1+tau*suff_stat_model[1])*pow(suff_stat_model[0], 2) - 0.5*suff_stat_model[4];
+			double lik = 0.5*suff_stat_model[2] + 0.5 * std::log((1/tau)/((1/tau)+suff_stat_model[1])) + 0.5 * tau/(1+tau*suff_stat_model[1])*pow(suff_stat_model[0], 2) - 0.5*suff_stat_model[3];
 			//std::cout << "left lik: " << lik << endl;  
 			return lik;
 		}
 		else
 		{
-			return 0.5*(suff_stat_total[2] - suff_stat_model[2]) + 0.5 * std::log((1/tau)/((1/tau)+ (suff_stat_total[1] - suff_stat_model[1]) )) + 0.5 *tau/(1+ tau*(suff_stat_total[1] - suff_stat_model[1]) )* pow( suff_stat_total[0]  - suff_stat_model[0],2 ) - 0.5*(suff_stat_total[4] - suff_stat_model[4]);
+			return 0.5*(suff_stat_total[2] - suff_stat_model[2]) + 0.5 * std::log((1/tau)/((1/tau)+ (suff_stat_total[1] - suff_stat_model[1]) )) + 0.5 *tau/(1+ tau*(suff_stat_total[1] - suff_stat_model[1]) )* pow( suff_stat_total[0]  - suff_stat_model[0],2 ) - 0.5*(suff_stat_total[3] - suff_stat_model[3]);
 		}
 	}
 
@@ -389,7 +384,7 @@ class CLTClass : public Model
 		// weighting of no split option is in function
 		// calculate_likelihood_no_split in tree.cpp
 		// maybe move it to model class??
-		double lik = 0.5*(suff_stat_total[2] ) + 0.5 * std::log((1/tau)/((1/tau)+ (suff_stat_total[1] ) )) + 0.5 * tau/(1+ tau*(suff_stat_total[1] ) )* pow( suff_stat_total[0],2) - 0.5*suff_stat_total[4];
+		double lik = 0.5*(suff_stat_total[2] ) + 0.5 * std::log((1/tau)/((1/tau)+ (suff_stat_total[1] ) )) + 0.5 * tau/(1+ tau*(suff_stat_total[1] ) )* pow( suff_stat_total[0],2) - 0.5*suff_stat_total[3];
 		//std::cout << "No split lik: " << lik << endl;  
 		return lik;
 		//return -0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
