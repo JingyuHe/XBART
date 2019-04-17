@@ -6,7 +6,7 @@ get_XBART_params <- function(n, d, y) {
                       n_min = 1,               # minimal node size
                       alpha = 0.95,           # BART prior parameter 
                       beta = 1.25,            # BART prior parameter
-                      mtry = 5,               # number of variables sampled in each split
+                      mtry = 19,               # number of variables sampled in each split
                       burnin = 15)            # burnin of MCMC sample
   num_tress = XBART_params$num_trees
   XBART_params$max_depth = matrix(250, num_tress, XBART_params$num_sweeps)   # max depth of each tree, should be a num_trees by num_sweeps matrix
@@ -28,8 +28,8 @@ dcat = 10 # number of categorical variables
 
 
 
-n = 5000 # size of training set
-nt = 1000 # size of testing set
+n = 10000 # size of training set
+nt = 5000 # size of testing set
 
 new_data = TRUE # generate new data
 run_dbarts = FALSE # run dbarts

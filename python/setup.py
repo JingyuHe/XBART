@@ -23,7 +23,7 @@ XBART_cpp_module = Extension('_xbart_cpp_',
                            )
 
 setup (name = 'xbart',
-       version = '0.1',
+       version = '0.1.2',
        author      = "Jingyu He, Saar Yalov, P. Richard Hahn",
        description = """XBART project""",
        include_dirs = [numpy.get_include(),'.',"src","xbart"],

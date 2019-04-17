@@ -122,8 +122,8 @@ void XBARTcpp::_fit_predict(int n,int d,double *a, // Train X
         }
     }
     // Create new x_std's that are row major
-    vec_d x_std_2 = XBARTcpp::xinfo_to_row_major_vec(x_std); // INEFFICIENT - For now to include index sorting
-    vec_d x_test_std_2 = XBARTcpp::xinfo_to_row_major_vec(x_test_std); // INEFFICIENT
+    vec_d x_std_2 = XBARTcpp::xinfo_to_col_major_vec(x_std); // INEFFICIENT - For now to include index sorting
+    vec_d x_test_std_2 = XBARTcpp::xinfo_to_col_major_vec(x_test_std); // INEFFICIENT
 
     // Remove old x_std
     for(int j = 0; j<d;j++){
@@ -178,7 +178,7 @@ void XBARTcpp::_fit_predict(int n,int d,double *a, // Train X
 void XBARTcpp::_predict(int n,int d,double *a){//,int size, double *arr){
 
   xinfo x_test_std = XBARTcpp::np_to_xinfo(n,d,a);
-  vec_d x_test_std_2 = XBARTcpp::xinfo_to_row_major_vec(x_test_std); // INEFFICIENT
+  vec_d x_test_std_2 = XBARTcpp::xinfo_to_col_major_vec(x_test_std); // INEFFICIENT
 
   ini_xinfo(this->yhats_test_xinfo, n, this->params.N_sweeps);
 
@@ -222,7 +222,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
         }
     }
     // Create new x_std's that are row major
-    vec_d x_std_2 = XBARTcpp::xinfo_to_row_major_vec(x_std); // INEFFICIENT - For now to include index sorting
+    vec_d x_std_2 = XBARTcpp::xinfo_to_col_major_vec(x_std); // INEFFICIENT - For now to include index sorting
 
     // Remove old x_std
     for(int j = 0; j<d;j++){
@@ -296,7 +296,7 @@ vec_d XBARTcpp::np_to_vec_d(int n,double *a){
   return y_std;
 }
 
-vec_d XBARTcpp::np_to_row_major_vec(int n, int d,double *a){
+vec_d XBARTcpp::np_to_col_major_vec(int n, int d,double *a){
   // 
   vec_d x_std(n*d,0);
   // Fill in Values of xinfo from array 
@@ -311,7 +311,7 @@ vec_d XBARTcpp::np_to_row_major_vec(int n, int d,double *a){
   return x_std;
 }
 
-vec_d XBARTcpp::xinfo_to_row_major_vec(xinfo x_std){
+vec_d XBARTcpp::xinfo_to_col_major_vec(xinfo x_std){
   size_t n = (size_t)x_std[0].size();
   size_t d = (size_t)x_std.size();
   vec_d x_std_2(n*d,0);
