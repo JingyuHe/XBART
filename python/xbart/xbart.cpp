@@ -21,7 +21,7 @@ XBARTcpp::XBARTcpp (size_t M ,size_t N_sweeps ,
         size_t burnin, 
         size_t mtry , size_t max_depth_num, double kap , 
         double s , bool verbose , 
-        bool draw_mu , bool parallel,int seed){
+        bool draw_mu , bool parallel,int seed,size_t model_num){
   this->params.M = M; 
   this->params.N_sweeps = N_sweeps;
   this->params.Nmin = Nmin;
@@ -39,6 +39,7 @@ XBARTcpp::XBARTcpp (size_t M ,size_t N_sweeps ,
   this->params.parallel=parallel;
   this->trees = vector<tree>(M);
   this->trees2 = vector< vector<tree>> (N_sweeps);
+  this->model_num =  model_num;
 
   // handling seed
   
@@ -57,9 +58,6 @@ XBARTcpp::XBARTcpp (size_t M ,size_t N_sweeps ,
     }
   return;
 }
-
-// Destructor
-// XBARTcpp::~XBARTcpp(){}
 
 // Getter
 int XBARTcpp::get_M(){return((int)params.M);} 
@@ -258,6 +256,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
 
 
 //size_t mtry, double kap, double s, bool verbose, bool draw_mu, bool parallel, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed);
+  if(this->model_num == 0){ // NORMAL
   fit_std(Xpointer,y_std,y_mean, Xorder_std,n,d,
                 this->params.M,  this->params.N_sweeps, max_depth_std, 
                 this->params.Nmin, this->params.Ncutpoints, this->params.alpha, 
@@ -267,6 +266,17 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.draw_mu, this->params.parallel,
                 yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,this->trees2,
                 this->seed_flag, this->seed);
+  }else if(this->model_num == 1){
+      fit_std_clt(Xpointer,y_std,y_mean, Xorder_std,n,d,
+                this->params.M,  this->params.N_sweeps, max_depth_std, 
+                this->params.Nmin, this->params.Ncutpoints, this->params.alpha, 
+                this->params.beta, this->params.tau, this->params.burnin, 
+                this->params.mtry,  this->params.kap , 
+                this->params.s, this->params.verbose,
+                this->params.draw_mu, this->params.parallel,
+                yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,this->trees2,
+                this->seed_flag, this->seed);
+  }
 }    
 
 // Getters

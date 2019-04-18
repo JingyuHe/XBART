@@ -20,18 +20,23 @@ class XBART(object):
 				num_cutpoints: int = 100,alpha: float = 0.95, beta: float = 1.25, tau = "auto",
                 burnin: int = 15, mtry = "auto", max_depth_num: int = 250,
                 kap: float = 16.0,s: float = 4.0,verbose: bool = False,
-                draw_mu: bool = True,parallel: bool = False,seed: int = 0):
+                draw_mu: bool = True,parallel: bool = False,seed: int = 0,model: str = "Normal"):
 
 		assert num_sweeps > burnin, "num_sweep must be greater than burnin"
+
+		MODEL_MAPPINGS = {"Normal":0,"CLT":1}
+		if model in MODEL_MAPPINGS:
+			model_num = MODEL_MAPPINGS[model]
+		else:
+			raise ValueError("model must be either Normal or CLT")
+
 		self.params = dict(num_trees = num_trees,
 			num_sweeps = num_sweeps,n_min = n_min,num_cutpoints = num_cutpoints,
 			alpha = alpha,beta = beta, tau = tau,burnin = burnin, mtry=mtry, 
 			max_depth_num=max_depth_num,kap=kap,s=s,
 			verbose=verbose,draw_mu=draw_mu,
-			parallel=parallel,seed=seed)
-		#self.__check_params(self.params)
+			parallel=parallel,seed=seed,model_num=model_num)
 		args = self.__convert_params_check_types(**self.params)
-		#self.xbart_cpp = XBARTcpp(*args)
 		self.xbart_cpp = None
 
 	def __repr__(self):
@@ -53,12 +58,12 @@ class XBART(object):
 
 	def __check_inputs(self,x,y=None):
 		if not isinstance(x,(np.ndarray,DataFrame)):
-			raise TypeError("x must be numpy array or pandas DataFrame}")
+			raise TypeError("x must be numpy array or pandas DataFrame")
 
 		if y is not None: 
 			if not isinstance(y,(np.ndarray,Series)):
-				raise TypeError("y must be numpy array or pandas Series}")
-		
+				raise TypeError("y must be numpy array or pandas Series")
+
 	def __check_params(self,params):
 		import warnings
 		from collections import OrderedDict
@@ -101,7 +106,7 @@ class XBART(object):
                         ("burnin",15),("mtry",0),("max_depth_num",250) # CHANGE
                         ,("kap",16.0),("s",4.0),("verbose",False),
                         ("draw_mu",True),
-                        ("parallel",False),("seed",0)])
+                        ("parallel",False),("seed",0),("model_num",0)])
 		new_params = DEFAULT_PARAMS.copy()
 
 		#list_params = []
