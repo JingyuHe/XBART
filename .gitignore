@@ -225,4 +225,6 @@ vignettes/*.pdf
 # R package: bookdown caching files
 /*_files/
 
+.pdf
+
 # End of https://www.gitignore.io/api/r,python
