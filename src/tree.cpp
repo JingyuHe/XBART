@@ -547,7 +547,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     // tau is prior VARIANCE, do not take squares
 
 
-    model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, gen, this->theta_vector,y_std,Xorder_std);
+            model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, gen, this->theta_vector,y_std,Xorder_std);
 
 
     this->sig = sigma;
@@ -571,11 +571,11 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     }
     else
     {
-		std:vector<double> wtemp(p,1);
-		wtemp[0] = 10;
-		wtemp[14] = 10;
-		wtemp[1] = 10;
-		wtemp[7] = 10;
+		//std:vector<double> wtemp(p,1);
+		//wtemp[0] = 10;
+		//wtemp[14] = 10;
+		//wtemp[1] = 10;
+		//wtemp[7] = 10;
 		
           //  subset_vars.resize(p);
 		//subset_vars = sample_int_ccrank(p, mtry, wtemp,gen);
@@ -599,6 +599,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
         {
             data_pointers[tree_ind][Xorder_std[0][i]] = this;
         }
+            model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, gen, this->theta_vector,y_std,Xorder_std);
         this->l = 0;
         this->r = 0;
         return;

@@ -190,7 +190,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
     // Residual for 0th tree 
     fit_info->residual_std = y_std - fit_info->yhat_std + fit_info->predictions_std[0];
 
-    double sigma = 1.0;
+    double sigma = 0.0;
 
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
@@ -205,11 +205,10 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
         {
             //Add total_fit
-            if( sweeps <= burnin){
-               model->total_fit = std::vector<double>(N,y_mean); // set psi = 0
-            }else{
-                model->total_fit = fit_info->yhat_std;
-            }
+            //if( sweeps <= burnin){
+              // model->total_fit = std::vector<double>(N,y_mean); // set psi = 0
+            //}else{
+            //}
            // model->total_fit = fit_info->yhat_std;
             
             
@@ -220,6 +219,9 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
             // add prediction of current tree back to residual
             // then it's m - 1 trees residual
             fit_info->yhat_std = fit_info->yhat_std - fit_info->predictions_std[tree_ind];
+
+                model->total_fit = fit_info->yhat_std;
+
 
            //  if (fit_info->use_all && (sweeps > burnin) && (mtry != p))
 //             {
@@ -237,7 +239,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
 //             fit_info->split_count_all_tree[tree_ind] = fit_info->split_count_current_tree;
 
 
- if (fit_info->use_all && (sweeps > burnin) && (mtry != p)){fit_info->use_all = false; }
+ if ((sweeps > burnin) && (mtry < p)){fit_info->use_all = false; }
 
             // clear counts of splits for one tree
             std::fill(fit_info->split_count_current_tree.begin(), fit_info->split_count_current_tree.end(), 0.0);
