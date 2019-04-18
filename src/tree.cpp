@@ -553,25 +553,35 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     this->sig = sigma;
     bool no_split = false;
 
-    std::vector<size_t> subset_vars;
+    std::vector<size_t> subset_vars(p);
 
+
+//cout << use_all << endl;
 
     if (use_all)
     {
         //cout << "use all " << endl;
-        subset_vars.resize(p);
+      //  subset_vars.resize(p);
         std::iota(subset_vars.begin(), subset_vars.end(), 0);
 		
 		
 		//cout << mtry_weight_current_tree << endl;
-		cout << subset_vars << endl;
+		//cout << subset_vars << endl;
 
     }
     else
     {
+		std:vector<double> wtemp(p,1);
+		wtemp[0] = 10;
+		wtemp[14] = 10;
+		wtemp[1] = 10;
+		wtemp[7] = 10;
+		
           //  subset_vars.resize(p);
+		//subset_vars = sample_int_ccrank(p, mtry, wtemp,gen);
 		subset_vars = sample_int_ccrank(p, mtry, mtry_weight_current_tree,gen);
-		cout << subset_vars << endl;
+
+		//cout << subset_vars << endl;
 		//cout << mtry_weight_current_tree << endl;
 		
 		
@@ -607,6 +617,8 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
 
     split_count_current_tree[split_var] = split_count_current_tree[split_var] + 1;
+
+	//cout << split_count_current_tree << endl;
 
     xinfo_sizet Xorder_left_std;
     xinfo_sizet Xorder_right_std;
@@ -1424,7 +1436,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, size_t &Nmin, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, Model *model, size_t &mtry, size_t &total_categorical_split_candidates)
 {
 
-    loglike[loglike.size() - 1] = model->likelihood_no_split(y_sum, tau, N_Xorder * tau, sigma2) - 0.5 * log(sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+    loglike[loglike.size() - 1] = model->likelihood_no_split(y_sum, tau, N_Xorder * tau, sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
 
     // then adjust according to number of variables and split points
 
@@ -1444,7 +1456,7 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
     ////////////////////////////////////////////////////////////////
 
 
-    loglike[loglike.size() - 1] += log(p) + log(Ncutpoints);
+    loglike[loglike.size() - 1] += log(p) + log(2.0); //+ log(Ncutpoints) ;
 
 
     ////////////////////////////////////////////////////////////////

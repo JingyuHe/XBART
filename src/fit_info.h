@@ -74,8 +74,8 @@ struct FitInfo{
 
             // Splits
             ini_xinfo(this->split_count_all_tree, p, num_trees);
-            this->split_count_current_tree = std::vector<double> (p, 1);
-            this->mtry_weight_current_tree = std::vector<double>(p, 1);
+            this->split_count_current_tree = std::vector<double> (p, 0);
+            this->mtry_weight_current_tree = std::vector<double>(p, 0.1);
 
             init_tree_pointers(first_tree, N, num_trees);
 
