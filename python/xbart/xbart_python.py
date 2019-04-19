@@ -24,7 +24,7 @@ class XBART(object):
 
 		assert num_sweeps > burnin, "num_sweep must be greater than burnin"
 
-		MODEL_MAPPINGS = {"Normal":0,"CLT":1}
+		MODEL_MAPPINGS = {"Normal":0,"CLT":1,"Probit":2}
 		if model in MODEL_MAPPINGS:
 			model_num = MODEL_MAPPINGS[model]
 		else:

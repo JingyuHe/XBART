@@ -276,6 +276,17 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.draw_mu, this->params.parallel,
                 yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,this->trees2,
                 this->seed_flag, this->seed);
+  }else if(this->model_num == 2){
+          fit_std_probit(Xpointer,y_std,y_mean, Xorder_std,n,d,
+                this->params.M,  this->params.N_sweeps, max_depth_std, 
+                this->params.Nmin, this->params.Ncutpoints, this->params.alpha, 
+                this->params.beta, this->params.tau, this->params.burnin, 
+                this->params.mtry,  this->params.kap , 
+                this->params.s, this->params.verbose,
+                this->params.draw_mu, this->params.parallel,
+                yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,this->trees2,
+                this->seed_flag, this->seed);
+
   }
 }    
 
