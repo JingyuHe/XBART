@@ -4853,6 +4853,7 @@ SWIGINTERN PyObject *_wrap_new_XBARTcpp__SWIG_1(PyObject *SWIGUNUSEDPARM(self), 
   bool arg14 ;
   bool arg15 ;
   int arg16 ;
+  size_t arg17 ;
   size_t val1 ;
   int ecode1 = 0 ;
   size_t val2 ;
@@ -4885,6 +4886,8 @@ SWIGINTERN PyObject *_wrap_new_XBARTcpp__SWIG_1(PyObject *SWIGUNUSEDPARM(self), 
   int ecode15 = 0 ;
   int val16 ;
   int ecode16 = 0 ;
+  size_t val17 ;
+  int ecode17 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -4901,9 +4904,10 @@ SWIGINTERN PyObject *_wrap_new_XBARTcpp__SWIG_1(PyObject *SWIGUNUSEDPARM(self), 
   PyObject * obj13 = 0 ;
   PyObject * obj14 = 0 ;
   PyObject * obj15 = 0 ;
+  PyObject * obj16 = 0 ;
   XBARTcpp *result = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOOOOO:new_XBARTcpp",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13,&obj14,&obj15)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOOOOOOOO:new_XBARTcpp",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13,&obj14,&obj15,&obj16)) SWIG_fail;
   ecode1 = SWIG_AsVal_size_t(obj0, &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "new_XBARTcpp" "', argument " "1"" of type '" "size_t""'");
@@ -4984,7 +4988,12 @@ SWIGINTERN PyObject *_wrap_new_XBARTcpp__SWIG_1(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode16), "in method '" "new_XBARTcpp" "', argument " "16"" of type '" "int""'");
   } 
   arg16 = static_cast< int >(val16);
-  result = (XBARTcpp *)new XBARTcpp(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16);
+  ecode17 = SWIG_AsVal_size_t(obj16, &val17);
+  if (!SWIG_IsOK(ecode17)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode17), "in method '" "new_XBARTcpp" "', argument " "17"" of type '" "size_t""'");
+  } 
+  arg17 = static_cast< size_t >(val17);
+  result = (XBARTcpp *)new XBARTcpp(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_XBARTcpp, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
@@ -4994,14 +5003,14 @@ fail:
 
 SWIGINTERN PyObject *_wrap_new_XBARTcpp(PyObject *self, PyObject *args) {
   Py_ssize_t argc;
-  PyObject *argv[17] = {
+  PyObject *argv[18] = {
     0
   };
   Py_ssize_t ii;
   
   if (!PyTuple_Check(args)) SWIG_fail;
   argc = args ? PyObject_Length(args) : 0;
-  for (ii = 0; (ii < 16) && (ii < argc); ii++) {
+  for (ii = 0; (ii < 17) && (ii < argc); ii++) {
     argv[ii] = PyTuple_GET_ITEM(args,ii);
   }
   if (argc == 1) {
@@ -5012,7 +5021,7 @@ SWIGINTERN PyObject *_wrap_new_XBARTcpp(PyObject *self, PyObject *args) {
       return _wrap_new_XBARTcpp__SWIG_0(self, args);
     }
   }
-  if (argc == 16) {
+  if (argc == 17) {
     int _v;
     {
       int res = SWIG_AsVal_size_t(argv[0], NULL);
@@ -5094,7 +5103,13 @@ SWIGINTERN PyObject *_wrap_new_XBARTcpp(PyObject *self, PyObject *args) {
                                     _v = SWIG_CheckState(res);
                                   }
                                   if (_v) {
-                                    return _wrap_new_XBARTcpp__SWIG_1(self, args);
+                                    {
+                                      int res = SWIG_AsVal_size_t(argv[16], NULL);
+                                      _v = SWIG_CheckState(res);
+                                    }
+                                    if (_v) {
+                                      return _wrap_new_XBARTcpp__SWIG_1(self, args);
+                                    }
                                   }
                                 }
                               }
@@ -5117,7 +5132,7 @@ fail:
   SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'new_XBARTcpp'.\n"
     "  Possible C/C++ prototypes are:\n"
     "    XBARTcpp::XBARTcpp(XBARTcppParams)\n"
-    "    XBARTcpp::XBARTcpp(size_t,size_t,size_t,size_t,double,double,double,size_t,size_t,size_t,double,double,bool,bool,bool,int)\n");
+    "    XBARTcpp::XBARTcpp(size_t,size_t,size_t,size_t,double,double,double,size_t,size_t,size_t,double,double,bool,bool,bool,int,size_t)\n");
   return 0;
 }
 
