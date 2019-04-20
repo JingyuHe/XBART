@@ -179,14 +179,10 @@ class CLTClass : public Model
 	std::vector<double> suff_stat_total;
 
   public:
-	CLTClass(): Model(4,1){
+	CLTClass(): Model(1,4){
 		suff_stat_total.resize(dim_suffstat_total);
 	}
   	std::vector<double>  total_fit; // Keep public to save copies
-	// double sum_y_ipsi = 0;
-	// double sum_ipsi = 0; // sum(1/psi)
-	// double sum_log_ipsi = 0; //sum(log(1/psi))
-	// double mean_psi = 0; // sum(psi)
 
 	void suff_stat_fill(std::vector<double> &y_std,std::vector<size_t> &xorder)
 	{
@@ -194,17 +190,12 @@ class CLTClass : public Model
 		// in function call, a = 0.0 to reset sufficient statistics vector
 		size_t n = xorder.size();
 		double current_fit_val = total_fit[xorder[0]];
-        //double psi = 1 - current_fit_val*current_fit_val;
-        //double psi = 0.15;
-        double psi = max(current_fit_val*(1-current_fit_val), 0.15);
+
+    double psi = max(current_fit_val*(1-current_fit_val), 0.15);
 		Model::suff_stat_model[0] = y_std[xorder[0]]/psi;
 		Model::suff_stat_model[1] = 1/psi;
 		Model::suff_stat_model[2] = std::log(1/psi);
-		Model::suff_stat_model[3] = pow(y_std[xorder[0]],2)/psi;
-		//std::cout<< "Psi in fill: "<<psi << endl;
-		//std::cout<< "Suff Stat 2: "<<std::log(1/psi) << endl;
-		//printSuffstat();
-		
+		Model::suff_stat_model[3] = pow(y_std[xorder[0]],2)/psi;		
 		return;
 	}
 	void incrementSuffStat() const { return; };
@@ -253,18 +244,10 @@ class CLTClass : public Model
         double obs;
 		for (size_t i = start; i <= end; i++)
 		{
-			
-			
-		
 			current_fit_val = total_fit[xorder_var[i]];
 			obs = y[xorder_var[i]];
 			
-			//if (current_fit_val > 1.0 || current_fit_val < -1.0){obs = 0.0;}
-			
-			
-			
 			psi = std::max(current_fit_val*(1-current_fit_val), 0.15);
-			//psi = 0.15;
 			Model::suff_stat_model[0] += obs/psi;
 			Model::suff_stat_model[1] += 1/psi;
 			Model::suff_stat_model[2] += std::log(1/psi);
@@ -304,13 +287,10 @@ class CLTClass : public Model
 		else
 		{
 			// use all data points as candidates
-            current_fit_val = total_fit[xorder[index]];
-            obs = y_std[xorder[index]];
-			
-		//	if (current_fit_val > 1.0 || current_fit_val < -1.0){obs = 0.0;}
-			
-            psi = std::max(current_fit_val*(1-current_fit_val), 0.15);
-			//psi = 0.15;
+      current_fit_val = total_fit[xorder[index]];
+      obs = y_std[xorder[index]];
+
+      psi = std::max(current_fit_val*(1-current_fit_val), 0.15);
 			Model::suff_stat_model[0] += obs/psi;
 			Model::suff_stat_model[1] += 1/psi;
 			Model::suff_stat_model[2] += std::log(1/psi);
@@ -329,21 +309,14 @@ class CLTClass : public Model
 		for(size_t i = 0; i < n; i++){
 			current_fit_val = total_fit[x_info[i]];
 			obs = y_std[x_info[i]];
-			
-		//	if (current_fit_val > 1.0 || current_fit_val < -1.0){obs = 0.0;}
-			
+						
 			psi = std::max(current_fit_val*(1-current_fit_val), 0.15);
-			//if(i%1000 == 0){std::cout<< "psi " << psi <<endl;}
-			//psi = 0.15;
 			suff_stat_total[0] += obs/psi;
 			suff_stat_total[1]  += 1/psi;
 			suff_stat_total[2]  += std::log(1/psi);
 			suff_stat_total[3]  += pow(obs, 2)/psi;
 		}
 
-	//	std::cout << "Last psi: " << psi << endl;
-	//	std::cout << "last suff val" << std::log(1/psi) << endl;
-	//	std::cout<< "Suff Stat 2: "<< suff_stat_total[2] << endl;
 		return;
 	}
 
@@ -352,17 +325,10 @@ class CLTClass : public Model
 		// likelihood equation,
 		// note the difference of left_side == true / false
 
-		// BE CAREFUL
-		// weighting is in function
-		// calculate_likelihood_continuous and calculate_likelihood_categorical, tree.cpp
-		// see function call there
-		// maybe move to model class?
-
 		if (left_side)
 		{
-			double lik = 0.5*Model::suff_stat_model[2] + 0.5 * std::log((1/tau)/((1/tau)+Model::suff_stat_model[1])) + 0.5 * tau/(1+tau*Model::suff_stat_model[1])*pow(Model::suff_stat_model[0], 2) - 0.5*Model::suff_stat_model[3];
-			//std::cout << "left lik: " << lik << endl;  
-			return lik;
+			return 0.5*Model::suff_stat_model[2] + 0.5 * std::log((1/tau)/((1/tau)+Model::suff_stat_model[1])) + 0.5 * tau/(1+tau*Model::suff_stat_model[1])*pow(Model::suff_stat_model[0], 2) - 0.5*Model::suff_stat_model[3];
+;
 		}
 		else
 		{
@@ -376,15 +342,8 @@ class CLTClass : public Model
 		// because the sufficient statistics is y_sum here
 		// write a separate function, more flexibility
 
-
-		// BE CAREFUL
-		// weighting of no split option is in function
-		// calculate_likelihood_no_split in tree.cpp
-		// maybe move it to model class??
-		double lik = 0.5*(suff_stat_total[2] ) + 0.5 * std::log((1/tau)/((1/tau)+ (suff_stat_total[1] ) )) + 0.5 * tau/(1+ tau*(suff_stat_total[1] ) )* pow( suff_stat_total[0],2)- 0.5*suff_stat_total[3];
-		//std::cout << "No split lik: " << lik << endl;  
-		return lik;
-		//return -0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
+		return 0.5*(suff_stat_total[2] ) + 0.5 * std::log((1/tau)/((1/tau)+ (suff_stat_total[1] ) )) + 0.5 * tau/(1+ tau*(suff_stat_total[1] ) )* pow( suff_stat_total[0],2)- 0.5*suff_stat_total[3];
+;
 	}
 
 };
