@@ -5,5 +5,4 @@ R CMD REMOVE XBART
 R CMD INSTALL XBART
 cd XBART/tests/
 echo Testing R
-Rscript clt_test.R
-#Rscript test.R
+Rscript test.R
