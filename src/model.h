@@ -216,8 +216,8 @@ class CLTClass : public Model
 		size_t n = xorder.size();
 		double current_fit_val = total_fit[xorder[0]];
         //double psi = 1 - current_fit_val*current_fit_val;
-        //double psi = 1.0;
-        double psi = max(1-current_fit_val*current_fit_val, 0.2);
+        //double psi = 0.15;
+        double psi = max(current_fit_val*(1-current_fit_val), 0.15);
 		suff_stat_model[0] = y_std[xorder[0]]/psi;
 		suff_stat_model[1] = 1/psi;
 		suff_stat_model[2] = std::log(1/psi);
@@ -282,15 +282,25 @@ class CLTClass : public Model
 		size_t n = xorder_var.size();
         double current_fit_val;
         double psi;
+        double obs;
 		for (size_t i = start; i <= end; i++)
 		{
+			
+			
+		
 			current_fit_val = total_fit[xorder_var[i]];
-			psi = std::max(1.0-current_fit_val*current_fit_val, 0.2);
-			//psi = 1.0;
-			suff_stat_model[0] += y[xorder_var[i]]/psi;
+			obs = y[xorder_var[i]];
+			
+			//if (current_fit_val > 1.0 || current_fit_val < -1.0){obs = 0.0;}
+			
+			
+			
+			psi = std::max(current_fit_val*(1-current_fit_val), 0.15);
+			//psi = 0.15;
+			suff_stat_model[0] += obs/psi;
 			suff_stat_model[1] += 1/psi;
 			suff_stat_model[2] += std::log(1/psi);
-			suff_stat_model[3] += pow(y[xorder_var[i]],2)/psi;
+			suff_stat_model[3] += pow(obs,2)/psi;
 			loop_count++;
 		}
 		return;
@@ -302,6 +312,7 @@ class CLTClass : public Model
 		size_t n = xorder.size();
         double current_fit_val;
         double psi;
+        double obs;
 		if (adaptive_cutpoint)
 		{
 			
@@ -309,12 +320,16 @@ class CLTClass : public Model
 			for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
 			{
                 current_fit_val = total_fit[xorder[q]];
-                psi = std::max(1.0-current_fit_val*current_fit_val, 0.2);
-                //psi = 1.0;
-				suff_stat_model[0] += y_std[xorder[q]]/psi;
+                obs = y_std[xorder[q]];
+			
+			//if (current_fit_val > 1.0 || current_fit_val < -1.0){obs = 0.0;}
+			
+                psi = std::max(current_fit_val*(1-current_fit_val), 0.15);
+                //psi = 0.15;
+				suff_stat_model[0] += obs/psi;
 				suff_stat_model[1] += 1/psi;
 				suff_stat_model[2] += std::log(1/psi);
-				suff_stat_model[3] += pow(y_std[xorder[q]], 2)/psi;
+				suff_stat_model[3] += pow(obs, 2)/psi;
 			}
 
 		}
@@ -322,12 +337,16 @@ class CLTClass : public Model
 		{
 			// use all data points as candidates
             current_fit_val = total_fit[xorder[index]];
-            psi = std::max(1.0-current_fit_val*current_fit_val, 0.2);
-			//psi = 1.0;
-			suff_stat_model[0] += y_std[xorder[index]]/psi;
+            obs = y_std[xorder[index]];
+			
+		//	if (current_fit_val > 1.0 || current_fit_val < -1.0){obs = 0.0;}
+			
+            psi = std::max(current_fit_val*(1-current_fit_val), 0.15);
+			//psi = 0.15;
+			suff_stat_model[0] += obs/psi;
 			suff_stat_model[1] += 1/psi;
 			suff_stat_model[2] += std::log(1/psi);
-			suff_stat_model[3] += pow(y_std[xorder[index]], 2)/psi;
+			suff_stat_model[3] += pow(obs, 2)/psi;
 		}
 
 		return;
@@ -338,15 +357,20 @@ class CLTClass : public Model
 		size_t n = x_info.size();
 		double current_fit_val;
 		double psi;
+		double obs;
 		for(size_t i = 0; i < n; i++){
 			current_fit_val = total_fit[x_info[i]];
-			psi = std::max(1.0-current_fit_val*current_fit_val, 0.2);
+			obs = y_std[x_info[i]];
+			
+		//	if (current_fit_val > 1.0 || current_fit_val < -1.0){obs = 0.0;}
+			
+			psi = std::max(current_fit_val*(1-current_fit_val), 0.15);
 			//if(i%1000 == 0){std::cout<< "psi " << psi <<endl;}
-			//psi = 1.0;
-			suff_stat_total[0] += y_std[x_info[i]]/psi;
+			//psi = 0.15;
+			suff_stat_total[0] += obs/psi;
 			suff_stat_total[1]  += 1/psi;
 			suff_stat_total[2]  += std::log(1/psi);
-			suff_stat_total[3]  += pow(y_std[x_info[i]], 2)/psi;
+			suff_stat_total[3]  += pow(obs, 2)/psi;
 		}
 
 	//	std::cout << "Last psi: " << psi << endl;
