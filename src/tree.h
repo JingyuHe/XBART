@@ -136,6 +136,9 @@ class tree
     char ntype();       //node type t:top, b:bot, n:no grandchildren i:interior (t can be b)
     bool isnog();
 
+    std::string to_json();
+    void json_to_tree(std::string &json);
+
     std::string tree_to_lisp();
     void lisp_to_tree(std::string &lisp);
 

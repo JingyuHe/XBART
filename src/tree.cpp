@@ -364,6 +364,37 @@ void tree::cp(tree_p n, tree_cp o)
 }
 
 
+std::string tree::to_json(){
+    std::string result;
+    if(l == 0){
+        // std::ostringstream vts; 
+        // // Convert all but the last element to avoid a trailing "," 
+        // std::copy(this->theta_vector.begin(), this->theta_vector.end()-1, 
+        // std::ostream_iterator<double>(vts, ", ")); 
+        // // Now add the last element with no delimiter 
+        // vts << this->theta_vector.back(); 
+        //result = vts.str();
+
+        result = std::to_string(this->theta_vector[0]);
+    }else{
+        result = "{\"variable\":" +std::to_string(this->v) + ",\"cutpoint\":"+std::to_string(this->c);
+        result += ", \"left\":" + l->to_json(); 
+        result += ",\"right\":" + r->to_json() + "}"; 
+    }
+    return result;
+}
+
+void tree::json_to_tree(std::string &json){
+    // for (size_t i=0;i<json.length();i++){
+    //     std::string current_string = json[i];
+    //     if(current_string.compare("{")){
+
+    //     }
+        
+    // } 
+}
+
+
 std::string tree::tree_to_lisp()
 {
     std::string result = "(" +std::to_string(this->v) + "," +std::to_string(this->c) + ",";

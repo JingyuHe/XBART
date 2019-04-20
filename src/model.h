@@ -10,66 +10,76 @@ using namespace std;
 class Model
 {
 
-  private:
+  protected:
 	size_t num_classes;
 	size_t dim_suffstat;
+	size_t dim_suffstat_total;
 	std::vector<double> suff_stat_model;
 	std::vector<double> suff_stat_total;
 	double no_split_penality;
 
   public:
+
+	Model(size_t num_classes,size_t dim_suff){
+		this->num_classes = num_classes;
+		this->dim_suffstat = dim_suff;
+		Model::suff_stat_model.resize(dim_suff);
+	};
+
+	// Abstract functions
 	virtual void incrementSuffStat() const { return; };
 	virtual void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
 					std::mt19937 &generator, std::vector<double> &theta_vector,std::vector<double> &y_std,xinfo_sizet &Xorder)  { return; };
- 
 	virtual void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M,
 								std::vector<double> &residual_std) const { return; };
-
-	virtual size_t getNumClasses() const { return 0; };
-	virtual size_t getDimSuffstat() const { return 0; };
-	std::vector<double> getSuffstat() const { return std::vector<double>(); };
-
-
-	virtual void suff_stat_fill(std::vector<double> &y_std,std::vector<size_t> &xorder) { return; };
-	virtual void suff_stat_fill_zero() { return; };
-	virtual void printSuffstat() const { return; };
-	// virtual void updateTotalSuffStat(std::vector<double> &vals,size_t n_xorder_left) const{ return ;};
-
 	virtual void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var) { return; };
 	virtual void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint) { return; };
 	virtual double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const { return 0.0; };
 	virtual double likelihood_no_split(double value, double tau, double ntau, double sigma2) const { return 0.0; };
+	virtual void suff_stat_fill(std::vector<double> &y_std,std::vector<size_t> &xorder) { return; };
 
-	virtual double getNoSplitPenality(){return 0.0;};
-	virtual void setNoSplitPenality(double pen){};
+
+	// Getters and Setters
+	// num classes
+	size_t getNumClasses() const { return num_classes; };
+	void setNumClasses(size_t n_class)  { num_classes = n_class; };
+	// dim suff stat
+	size_t getDimSuffstat() const { return dim_suffstat; };
+	void setDimSuffStat(size_t dim_suff) {dim_suffstat = dim_suff;};
+	// suff stat
+	std::vector<double> getSuffstat() const { return this->suff_stat_model; };
+	//penality
+	double getNoSplitPenality(){return no_split_penality;;};
+	void setNoSplitPenality(double pen){this->no_split_penality = pen;};
+
+	// Other Pre-Defined functions
+	void suff_stat_fill_zero() 
+	{ 		
+		std::fill(Model::suff_stat_model.begin(), Model::suff_stat_model.end(), 0);
+		return; 
+	};
+	void printSuffstat() const
+	{
+		cout << this->suff_stat_model << endl;
+		return;
+	};
+
 };
 
 class NormalModel : public Model
 {
   private:
-	size_t num_classes = 1;
-	size_t dim_suffstat = 1;
 	size_t dim_suffstat_total = 1;
-	std::vector<double> suff_stat_model;
 	std::vector<double> suff_stat_total;
-	double no_split_penality;
 
   public:
-	NormalModel(){
-		suff_stat_model.resize(dim_suffstat);
+	NormalModel(): Model(1,1){
 	}
 
-	void suff_stat_fill_zero()
-	{
-		std::fill(suff_stat_model.begin(), suff_stat_model.end(), 0);
-		return;
-	}
 	void suff_stat_fill(std::vector<double> &y_std,std::vector<size_t> &xorder)
 	{
 		// fill the suff_stat_model with a value
-		// in function call, a = 0.0 to reset sufficient statistics vector
-		
-		std::fill(suff_stat_model.begin(), suff_stat_model.end(), y_std[xorder[0]]);
+		std::fill(Model::suff_stat_model.begin(), Model::suff_stat_model.end(), y_std[xorder[0]]);
 		return;
 	}
 	void incrementSuffStat() const { return; };
@@ -102,16 +112,6 @@ class NormalModel : public Model
 		return;
 	}
 
-	size_t getNumClasses() const { return this->num_classes; }
-	size_t getDimSuffstat() const { return this->dim_suffstat; }
-	std::vector<double> getSuffstat() const { return this->suff_stat_model; };
-
-	void printSuffstat() const
-	{
-		cout << this->suff_stat_model << endl;
-		return;
-	};
-
 	void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var)
 	{
 		// calculate sufficient statistics for categorical variables
@@ -120,7 +120,7 @@ class NormalModel : public Model
 		size_t loop_count = 0;
 		for (size_t i = start; i <= end; i++)
 		{
-			suff_stat_model[0] += y[Xorder[var][i]];
+			Model::suff_stat_model[0] += y[Xorder[var][i]];
 			loop_count++;
 		}
 		return;
@@ -135,42 +135,29 @@ class NormalModel : public Model
 			// if use adaptive number of cutpoints, calculated based on vector candidate_index
 			for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
 			{
-				suff_stat_model[0] += y_std[xorder[q]];
+				Model::suff_stat_model[0] += y_std[xorder[q]];
 			}
 		}
 		else
 		{
 			// use all data points as candidates
-			suff_stat_model[0] += y_std[xorder[index]];
+			Model::suff_stat_model[0] += y_std[xorder[index]];
 		}
 		return;
 	}
-
-	// void updateTotalSuffStat(const std::vector<double> &vals,size_t n_xorder_left){
-	// 	for(size_t j = 0; j < dim_suffstat_total;d++){
-	// 		suff_stat_total[j] += vals[j]/n_xorder_left;
-	// 	}
-	// 	return;
-	// }
 
 	double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
 	{
 		// likelihood equation,
 		// note the difference of left_side == true / false
 
-		// BE CAREFUL
-		// weighting is in function
-		// calculate_likelihood_continuous and calculate_likelihood_categorical, tree.cpp
-		// see function call there
-		// maybe move to model class?
-
 		if (left_side)
 		{
-			return 0.5*log(sigma2)-0.5 * log(ntau + sigma2) + 0.5 * tau * pow(suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
+			return 0.5*log(sigma2)-0.5 * log(ntau + sigma2) + 0.5 * tau * pow(Model::suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
 		}
 		else
 		{
-			return 0.5*log(sigma2)-0.5 * log(ntau + sigma2) + 0.5 * tau * pow(y_sum - suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
+			return 0.5*log(sigma2)-0.5 * log(ntau + sigma2) + 0.5 * tau * pow(y_sum - Model::suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
 		}
 	}
 
@@ -180,62 +167,35 @@ class NormalModel : public Model
 		// because the sufficient statistics is y_sum here
 		// write a separate function, more flexibility
 
-
-		// BE CAREFUL
-		// weighting of no split option is in function
-		// calculate_likelihood_no_split in tree.cpp
-		// maybe move it to model class??
 		return 0.5*log(sigma2)-0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
 	}
 
-
-	double getNoSplitPenality(){return no_split_penality;}
-  void setNoSplitPenality(double pen){no_split_penality = pen;}
 };
 
 class CLTClass : public Model
 {
   private:
-	size_t num_classes = 1;
-	size_t dim_suffstat = 4;
 	size_t dim_suffstat_total = 4;
-	std::vector<double> suff_stat_model;
 	std::vector<double> suff_stat_total;
-	double no_split_penality;
 
   public:
-	CLTClass(){
+	CLTClass(): Model(1,4){
 		suff_stat_total.resize(dim_suffstat_total);
-		suff_stat_model.resize(dim_suffstat);
 	}
   	std::vector<double>  total_fit; // Keep public to save copies
-	// double sum_y_ipsi = 0;
-	// double sum_ipsi = 0; // sum(1/psi)
-	// double sum_log_ipsi = 0; //sum(log(1/psi))
-	// double mean_psi = 0; // sum(psi)
 
-	void suff_stat_fill_zero()
-	{
-		std::fill(suff_stat_model.begin(), suff_stat_model.end(), 0);
-		return;
-	}
 	void suff_stat_fill(std::vector<double> &y_std,std::vector<size_t> &xorder)
 	{
 		// fill the suff_stat_model with a value
 		// in function call, a = 0.0 to reset sufficient statistics vector
 		size_t n = xorder.size();
 		double current_fit_val = total_fit[xorder[0]];
-        //double psi = 1 - current_fit_val*current_fit_val;
-        //double psi = 0.15;
-        double psi = max(current_fit_val*(1-current_fit_val), 0.15);
-		suff_stat_model[0] = y_std[xorder[0]]/psi;
-		suff_stat_model[1] = 1/psi;
-		suff_stat_model[2] = std::log(1/psi);
-		suff_stat_model[3] = pow(y_std[xorder[0]],2)/psi;
-		//std::cout<< "Psi in fill: "<<psi << endl;
-		//std::cout<< "Suff Stat 2: "<<std::log(1/psi) << endl;
-		//printSuffstat();
-		
+
+    double psi = max(current_fit_val*(1-current_fit_val), 0.15);
+		Model::suff_stat_model[0] = y_std[xorder[0]]/psi;
+		Model::suff_stat_model[1] = 1/psi;
+		Model::suff_stat_model[2] = std::log(1/psi);
+		Model::suff_stat_model[3] = pow(y_std[xorder[0]],2)/psi;		
 		return;
 	}
 	void incrementSuffStat() const { return; };
@@ -271,17 +231,6 @@ class CLTClass : public Model
 		return;
 	}
 
-	size_t getNumClasses() const { return this->num_classes; }
-	size_t getDimSuffstat() const { return this->dim_suffstat; }
-	std::vector<double> getSuffstat() const { return this->suff_stat_model; };
-
-	void printSuffstat() const
-	{
-		//cout << this->suff_stat_model << endl;
-		cout<< this->suff_stat_total << endl;
-		return;
-	};
-
 	void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var)
 	{
 		// calculate sufficient statistics for categorical variables
@@ -295,22 +244,14 @@ class CLTClass : public Model
         double obs;
 		for (size_t i = start; i <= end; i++)
 		{
-			
-			
-		
 			current_fit_val = total_fit[xorder_var[i]];
 			obs = y[xorder_var[i]];
 			
-			//if (current_fit_val > 1.0 || current_fit_val < -1.0){obs = 0.0;}
-			
-			
-			
 			psi = std::max(current_fit_val*(1-current_fit_val), 0.15);
-			//psi = 0.15;
-			suff_stat_model[0] += obs/psi;
-			suff_stat_model[1] += 1/psi;
-			suff_stat_model[2] += std::log(1/psi);
-			suff_stat_model[3] += pow(obs,2)/psi;
+			Model::suff_stat_model[0] += obs/psi;
+			Model::suff_stat_model[1] += 1/psi;
+			Model::suff_stat_model[2] += std::log(1/psi);
+			Model::suff_stat_model[3] += pow(obs,2)/psi;
 			loop_count++;
 		}
 		return;
@@ -336,27 +277,24 @@ class CLTClass : public Model
 			
                 psi = std::max(current_fit_val*(1-current_fit_val), 0.15);
                 //psi = 0.15;
-				suff_stat_model[0] += obs/psi;
-				suff_stat_model[1] += 1/psi;
-				suff_stat_model[2] += std::log(1/psi);
-				suff_stat_model[3] += pow(obs, 2)/psi;
+				Model::suff_stat_model[0] += obs/psi;
+				Model::suff_stat_model[1] += 1/psi;
+				Model::suff_stat_model[2] += std::log(1/psi);
+				Model::suff_stat_model[3] += pow(obs, 2)/psi;
 			}
 
 		}
 		else
 		{
 			// use all data points as candidates
-            current_fit_val = total_fit[xorder[index]];
-            obs = y_std[xorder[index]];
-			
-		//	if (current_fit_val > 1.0 || current_fit_val < -1.0){obs = 0.0;}
-			
-            psi = std::max(current_fit_val*(1-current_fit_val), 0.15);
-			//psi = 0.15;
-			suff_stat_model[0] += obs/psi;
-			suff_stat_model[1] += 1/psi;
-			suff_stat_model[2] += std::log(1/psi);
-			suff_stat_model[3] += pow(obs, 2)/psi;
+      current_fit_val = total_fit[xorder[index]];
+      obs = y_std[xorder[index]];
+
+      psi = std::max(current_fit_val*(1-current_fit_val), 0.15);
+			Model::suff_stat_model[0] += obs/psi;
+			Model::suff_stat_model[1] += 1/psi;
+			Model::suff_stat_model[2] += std::log(1/psi);
+			Model::suff_stat_model[3] += pow(obs, 2)/psi;
 		}
 
 		return;
@@ -371,21 +309,14 @@ class CLTClass : public Model
 		for(size_t i = 0; i < n; i++){
 			current_fit_val = total_fit[x_info[i]];
 			obs = y_std[x_info[i]];
-			
-		//	if (current_fit_val > 1.0 || current_fit_val < -1.0){obs = 0.0;}
-			
+						
 			psi = std::max(current_fit_val*(1-current_fit_val), 0.15);
-			//if(i%1000 == 0){std::cout<< "psi " << psi <<endl;}
-			//psi = 0.15;
 			suff_stat_total[0] += obs/psi;
 			suff_stat_total[1]  += 1/psi;
 			suff_stat_total[2]  += std::log(1/psi);
 			suff_stat_total[3]  += pow(obs, 2)/psi;
 		}
 
-	//	std::cout << "Last psi: " << psi << endl;
-	//	std::cout << "last suff val" << std::log(1/psi) << endl;
-	//	std::cout<< "Suff Stat 2: "<< suff_stat_total[2] << endl;
 		return;
 	}
 
@@ -394,21 +325,14 @@ class CLTClass : public Model
 		// likelihood equation,
 		// note the difference of left_side == true / false
 
-		// BE CAREFUL
-		// weighting is in function
-		// calculate_likelihood_continuous and calculate_likelihood_categorical, tree.cpp
-		// see function call there
-		// maybe move to model class?
-
 		if (left_side)
 		{
-			double lik = 0.5*suff_stat_model[2] + 0.5 * std::log((1/tau)/((1/tau)+suff_stat_model[1])) + 0.5 * tau/(1+tau*suff_stat_model[1])*pow(suff_stat_model[0], 2) - 0.5*suff_stat_model[3];
-			//std::cout << "left lik: " << lik << endl;  
-			return lik;
+			return 0.5*Model::suff_stat_model[2] + 0.5 * std::log((1/tau)/((1/tau)+Model::suff_stat_model[1])) + 0.5 * tau/(1+tau*Model::suff_stat_model[1])*pow(Model::suff_stat_model[0], 2) - 0.5*Model::suff_stat_model[3];
+;
 		}
 		else
 		{
-			return 0.5*(suff_stat_total[2] - suff_stat_model[2]) + 0.5 * std::log((1/tau)/((1/tau)+ (suff_stat_total[1] - suff_stat_model[1]) )) + 0.5 *tau/(1+ tau*(suff_stat_total[1] - suff_stat_model[1]) )* pow( suff_stat_total[0]  - suff_stat_model[0],2 ) - 0.5*(suff_stat_total[3] - suff_stat_model[3]);
+			return 0.5*(suff_stat_total[2] - Model::suff_stat_model[2]) + 0.5 * std::log((1/tau)/((1/tau)+ (suff_stat_total[1] - Model::suff_stat_model[1]) )) + 0.5 *tau/(1+ tau*(suff_stat_total[1] - Model::suff_stat_model[1]) )* pow( suff_stat_total[0]  - Model::suff_stat_model[0],2 ) - 0.5*(suff_stat_total[3] - Model::suff_stat_model[3]);
 		}
 	}
 
@@ -418,19 +342,10 @@ class CLTClass : public Model
 		// because the sufficient statistics is y_sum here
 		// write a separate function, more flexibility
 
-
-		// BE CAREFUL
-		// weighting of no split option is in function
-		// calculate_likelihood_no_split in tree.cpp
-		// maybe move it to model class??
-		double lik = 0.5*(suff_stat_total[2] ) + 0.5 * std::log((1/tau)/((1/tau)+ (suff_stat_total[1] ) )) + 0.5 * tau/(1+ tau*(suff_stat_total[1] ) )* pow( suff_stat_total[0],2)- 0.5*suff_stat_total[3];
-		//std::cout << "No split lik: " << lik << endl;  
-		return lik;
-		//return -0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
+		return 0.5*(suff_stat_total[2] ) + 0.5 * std::log((1/tau)/((1/tau)+ (suff_stat_total[1] ) )) + 0.5 * tau/(1+ tau*(suff_stat_total[1] ) )* pow( suff_stat_total[0],2)- 0.5*suff_stat_total[3];
+;
 	}
 
-	double getNoSplitPenality(){return no_split_penality;}
-  void setNoSplitPenality(double pen){no_split_penality = pen;}
 };
 
 #endif
