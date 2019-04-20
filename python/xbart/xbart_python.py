@@ -20,7 +20,7 @@ class XBART(object):
 				num_cutpoints: int = 100,alpha: float = 0.95, beta: float = 1.25, tau = "auto",
                 burnin: int = 15, mtry = "auto", max_depth_num: int = 250,
                 kap: float = 16.0,s: float = 4.0,verbose: bool = False,
-                draw_mu: bool = True,parallel: bool = False,seed: int = 0,model: str = "Normal"):
+                draw_mu: bool = True,parallel: bool = False,seed: int = 0,model: str = "Normal",no_split_penality = "auto"):
 
 		assert num_sweeps > burnin, "num_sweep must be greater than burnin"
 
@@ -35,7 +35,7 @@ class XBART(object):
 			alpha = alpha,beta = beta, tau = tau,burnin = burnin, mtry=mtry, 
 			max_depth_num=max_depth_num,kap=kap,s=s,
 			verbose=verbose,draw_mu=draw_mu,
-			parallel=parallel,seed=seed,model_num=model_num)
+			parallel=parallel,seed=seed,model_num=model_num,no_split_penality =no_split_penality)
 		args = self.__convert_params_check_types(**self.params)
 		self.xbart_cpp = None
 
@@ -69,7 +69,7 @@ class XBART(object):
 		from collections import OrderedDict
 		DEFAULT_TYPES = dict([('num_trees',int),("num_sweeps",int)
                         ,("n_min",int),("num_cutpoints",int) # CHANGE
-                        ,("alpha",float),("beta",float ),("tau",float),# CHANGE
+                        ,("alpha",float),("beta",float ),("tau",float),("no_split_penality",float),# CHANGE
                         ("burnin",int),("mtry",int),("max_depth_num",int) # CHANGE
                         ,("kap",float),("s",float),("verbose",bool),
                         ("draw_mu",bool),
@@ -92,6 +92,13 @@ class XBART(object):
 				self.params["mtry"] = int((p)**0.5)
 		if self.params["tau"]  == "auto":
 			self.params["tau"] = 1/self.params["num_trees"]
+		
+		if self.params["no_split_penality"] == "auto":
+			from math import log2
+			if self.params["model_num"] == 0:
+				self.params["no_split_penality"] = log2(self.params["num_cutpoints"])
+			else:
+				self.params["no_split_penality"] = 0
 		
 				
 	def __convert_params_check_types(self,**params):
