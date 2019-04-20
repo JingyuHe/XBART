@@ -1457,7 +1457,7 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
     ////////////////////////////////////////////////////////////////
 
 
-    loglike[loglike.size() - 1] += log(p) + log(2.0)+ log(Ncutpoints) ;
+    loglike[loglike.size() - 1] += log(p) + log(2.0)+ model->getNoSplitPenality();
 
 
     ////////////////////////////////////////////////////////////////
