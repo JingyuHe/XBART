@@ -7,7 +7,8 @@ get_XBART_params <- function(n, d, y) {
                       alpha = 0.95,           # BART prior parameter 
                       beta = 1.25,            # BART prior parameter
                       mtry = 10,               # number of variables sampled in each split
-                      burnin = 15)            # burnin of MCMC sample
+                      burnin = 15,
+                      no_split_penality = "Auto")            # burnin of MCMC sample
   num_tress = XBART_params$num_trees
   XBART_params$max_depth = matrix(250, num_tress, XBART_params$num_sweeps)   # max depth of each tree, should be a num_trees by num_sweeps matrix
   XBART_params$num_cutpoints = 50;                                           # number of adaptive cutpoints
@@ -101,7 +102,7 @@ fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat,
             params$num_trees, params$num_sweeps, params$max_depth,
             params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1,
             mtry = params$mtry, draw_mu = TRUE,
-            num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100)
+            num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100,no_split_penality=params$no_split_penality)
 
 ################################
 # two ways to predict on testing set
