@@ -15,6 +15,7 @@ class Model
 	size_t dim_suffstat;
 	std::vector<double> suff_stat_model;
 	std::vector<double> suff_stat_total;
+	double no_split_penality;
 
   public:
 	virtual void incrementSuffStat() const { return; };
@@ -38,6 +39,9 @@ class Model
 	virtual void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint) { return; };
 	virtual double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const { return 0.0; };
 	virtual double likelihood_no_split(double value, double tau, double ntau, double sigma2) const { return 0.0; };
+
+	virtual double getNoSplitPenality(){return 0.0;};
+	virtual void setNoSplitPenality(double pen){};
 };
 
 class NormalModel : public Model
@@ -48,6 +52,7 @@ class NormalModel : public Model
 	size_t dim_suffstat_total = 1;
 	std::vector<double> suff_stat_model;
 	std::vector<double> suff_stat_total;
+	double no_split_penality;
 
   public:
 	NormalModel(){
@@ -182,6 +187,10 @@ class NormalModel : public Model
 		// maybe move it to model class??
 		return 0.5*log(sigma2)-0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
 	}
+
+
+	double getNoSplitPenality(){return no_split_penality;}
+  void setNoSplitPenality(double pen){no_split_penality = pen;}
 };
 
 class CLTClass : public Model
@@ -192,6 +201,7 @@ class CLTClass : public Model
 	size_t dim_suffstat_total = 4;
 	std::vector<double> suff_stat_model;
 	std::vector<double> suff_stat_total;
+	double no_split_penality;
 
   public:
 	CLTClass(){
@@ -394,6 +404,9 @@ class CLTClass : public Model
 		return lik;
 		//return -0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
 	}
+
+	double getNoSplitPenality(){return no_split_penality;}
+  void setNoSplitPenality(double pen){no_split_penality = pen;}
 };
 
 #endif

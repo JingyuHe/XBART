@@ -98,7 +98,7 @@ class XBART(object):
 			if self.params["model_num"] == 0:
 				self.params["no_split_penality"] = log2(self.params["num_cutpoints"])
 			else:
-				self.params["no_split_penality"] = 0
+				self.params["no_split_penality"] = 0.0
 		
 				
 	def __convert_params_check_types(self,**params):

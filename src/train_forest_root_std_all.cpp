@@ -17,7 +17,7 @@ using namespace chrono;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, arma::mat max_depth_num, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0)
+Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, arma::mat max_depth_num, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau,double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0)
 {
     bool draw_mu = true;
     bool categorical_variables = false;
@@ -186,6 +186,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
     bool use_all = true;
 
     NormalModel model;
+    model.setNoSplitPenality(no_split_penality);
 
     // initialize a matrix to save pointers to node for each data point
 

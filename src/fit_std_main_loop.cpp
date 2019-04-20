@@ -11,7 +11,7 @@ void fit_std_main_loop_all(const double *Xpointer, std::vector<double> &y_std, d
                            bool draw_mu, bool parallel,
                            xinfo &yhats_xinfo, xinfo &yhats_test_xinfo,
                            xinfo &sigma_draw_xinfo, xinfo &split_count_all_tree,
-                           size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed)
+                           size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed,double no_split_penality)
 {
 
     fit_std(Xpointer, y_std, y_mean, Xorder_std,
@@ -23,7 +23,7 @@ void fit_std_main_loop_all(const double *Xpointer, std::vector<double> &y_std, d
             verbose,
             draw_mu, parallel,
             yhats_xinfo, sigma_draw_xinfo,
-            p_categorical, p_continuous, trees, set_random_seed, random_seed);
+            p_categorical, p_continuous, trees, set_random_seed, random_seed,no_split_penality);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, trees, y_mean);
     return;
@@ -38,7 +38,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
              bool verbose,
              bool draw_mu, bool parallel,
              xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo,
-             size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed)
+             size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed,double no_split_penality)
 {
 
     tree first_tree((size_t)1); // to be safe if first tree doesn't grow
@@ -49,6 +49,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
         thread_pool.start();
 
     NormalModel *model = new NormalModel();
+    model->setNoSplitPenality(no_split_penality);
 
     // initialize predcitions 
     for (size_t ii = 0; ii < num_trees; ii++)
@@ -166,7 +167,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
              bool verbose,
              bool draw_mu, bool parallel,
              xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo,
-             size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed)
+             size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed,double no_split_penality)
 {
     
      tree first_tree((size_t)1); // to be safe if first tree doesn't grow
@@ -177,6 +178,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
         thread_pool.start();
 
     CLTClass *model = new CLTClass();
+    model->setNoSplitPenality(no_split_penality);
 
     // initialize predcitions and predictions_test
     for (size_t ii = 0; ii < num_trees; ii++)
@@ -416,7 +418,7 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
              bool verbose,
              bool draw_mu, bool parallel,
              xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo,
-             size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed)
+             size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed,double no_split_penality)
 {
 
     tree first_tree((size_t)1); // to be safe if first tree doesn't grow
@@ -427,6 +429,7 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
         thread_pool.start();
 
     NormalModel *model = new NormalModel();
+    model->setNoSplitPenality(no_split_penality);
 
     // initialize predcitions 
     for (size_t ii = 0; ii < num_trees; ii++)
