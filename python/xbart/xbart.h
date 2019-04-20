@@ -40,6 +40,7 @@ class XBARTcpp{
 		void xinfo_to_np(xinfo x_std,double *arr);
 		size_t seed; bool seed_flag;
 		size_t model_num; // 0 : normal, 1 : clt
+		double no_split_penality;
 
 		//= forest(10);
 	
@@ -53,7 +54,7 @@ class XBARTcpp{
 				size_t burnin, size_t mtry ,
 				size_t max_depth_num , double kap , 
 				double s , bool verbose , 
-				bool draw_mu , bool parallel,int seed,size_t model_num);
+				bool draw_mu , bool parallel,int seed,size_t model_num,double no_split_penality);
 
 		// // Destructor
 		//~XBARTcpp();

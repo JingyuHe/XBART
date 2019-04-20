@@ -64,6 +64,7 @@ f = function(xinput){
 #r = 1
 #y = f(x1,x2)*r + (1-r)*(1-f(x1,x2))
 y = rbinom(nrow(x),1,f(x))
+y[1] = 1
 
 ytest = f(xtest) > 1/2
 
@@ -94,12 +95,12 @@ dcat = 0
 parl = F
 
 
-### BART ###
-# t = proc.time()
-# fit = bart(x,as.numeric(y),xtest,ndpost=5000,nskip = 5000,ntree = params$M, numcut = params$Ncutpoints, verbose = FALSE)
-# phat = colMeans(pnorm(fit$yhat.test))
-# t = proc.time() - t
-# print(t)
+## BART ###
+t = proc.time()
+fit = bart(x,as.numeric(y),xtest,ndpost=5000,nskip = 5000,ntree = params$M, numcut = params$Ncutpoints, verbose = FALSE)
+phat = colMeans(pnorm(fit$yhat.test))
+t = proc.time() - t
+print(t)
 
 
 t = proc.time()
@@ -114,6 +115,17 @@ yhat.pred = apply(pred[,params$burnin:params$nsweeps],1,mean)
 
 
 ### CLT ###
+t = proc.time()
+out = XBART.CLT(2*as.matrix(y)-1, as.matrix(x), as.matrix(xtest), num_trees = params$M, L = 1, num_sweeps = params$nsweeps, max_depth = params$max_depth, Nmin = params$Nmin, num_cutpoints = params$Ncutpoints,
+alpha = params$alpha, beta = params$beta, tau = params$tau, s= 1,kap = 1,
+mtry = params$mtry, p_categorical = dcat, draw_sigma = FALSE, m_update_sigma = TRUE,draw_mu= TRUE,
+parallel = parl)
+pred.clt= predict(out,as.matrix(xtest))
+t = proc.time() - t
+print(t)
+yhat.clt.pred = apply(pred.clt[,params$burnin:params$nsweeps],1,mean)
+
+### Probit ###
 t = proc.time()
 out = XBART.CLT(2*as.matrix(y)-1, as.matrix(x), as.matrix(xtest), num_trees = params$M, L = 1, num_sweeps = params$nsweeps, max_depth = params$max_depth, Nmin = params$Nmin, num_cutpoints = params$Ncutpoints,
 alpha = params$alpha, beta = params$beta, tau = params$tau, s= 1,kap = 1,
@@ -135,12 +147,14 @@ yhat.test.xgb = predict(bst,newdata=xtest) # Predict on test
 t5 = proc.time() - t5
 
 
-#print("BART: ")
-#print(auc(ytest,phat))
+print("BART: ")
+print(auc(ytest,phat))
 print("XBART: ")
 print(auc(ytest,yhat.pred))
-print("XBART CLT: ")
+print("XBART Probit: ")
 print(auc(ytest,yhat.probit.pred))
+print("XBART CLT: ")
+print(auc(ytest,yhat.clt.pred))
 print("XGBoost: ")
 print(auc(ytest,yhat.test.xgb))
 #plot(phat,yhat.pred)

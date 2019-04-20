@@ -11,7 +11,7 @@ void fit_std_main_loop_all(const double *Xpointer, std::vector<double> &y_std, d
                            bool draw_mu, bool parallel,
                            xinfo &yhats_xinfo, xinfo &yhats_test_xinfo,
                            xinfo &sigma_draw_xinfo, xinfo &split_count_all_tree,
-                           size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed)
+                           size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed,double no_split_penality)
 {
 
     fit_std(Xpointer, y_std, y_mean, Xorder_std,
@@ -23,7 +23,7 @@ void fit_std_main_loop_all(const double *Xpointer, std::vector<double> &y_std, d
             verbose,
             draw_mu, parallel,
             yhats_xinfo, sigma_draw_xinfo,
-            p_categorical, p_continuous, trees, set_random_seed, random_seed);
+            p_categorical, p_continuous, trees, set_random_seed, random_seed,no_split_penality);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, trees, y_mean);
     return;
@@ -38,7 +38,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
              bool verbose,
              bool draw_mu, bool parallel,
              xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo,
-             size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed)
+             size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed,double no_split_penality)
 {
 
     tree first_tree((size_t)1); // to be safe if first tree doesn't grow
@@ -49,6 +49,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
         thread_pool.start();
 
     NormalModel *model = new NormalModel();
+    model->setNoSplitPenality(no_split_penality);
 
     // initialize predcitions 
     for (size_t ii = 0; ii < num_trees; ii++)
@@ -166,7 +167,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
              bool verbose,
              bool draw_mu, bool parallel,
              xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo,
-             size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed)
+             size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed,double no_split_penality)
 {
     
      tree first_tree((size_t)1); // to be safe if first tree doesn't grow
@@ -177,6 +178,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
         thread_pool.start();
 
     CLTClass *model = new CLTClass();
+    model->setNoSplitPenality(no_split_penality);
 
     // initialize predcitions and predictions_test
     for (size_t ii = 0; ii < num_trees; ii++)
@@ -283,110 +285,117 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
     }
 }
 
-// void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
-//              size_t N, size_t p,
-//              size_t num_trees, size_t num_sweeps, xinfo_sizet &max_depth_std,
-//              size_t n_min, size_t Ncutpoints, double alpha, double beta,
-//              double tau, size_t burnin, size_t mtry,
-//              double kap, double s,
-//              bool verbose,
-//              bool draw_mu, bool parallel,
-//              xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo,
-//              size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed)
-// {
 
-//     tree first_tree((size_t)1); // to be safe if first tree doesn't grow
+void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
+             size_t N, size_t p,
+             size_t num_trees, size_t num_sweeps, xinfo_sizet &max_depth_std,
+             size_t n_min, size_t Ncutpoints, double alpha, double beta,
+             double tau, size_t burnin, size_t mtry,
+             double kap, double s,
+             bool verbose,
+             bool draw_mu, bool parallel,
+             xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo,
+             size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed,double no_split_penality)
+{
+
+    tree first_tree((size_t)1); // to be safe if first tree doesn't grow
      
-//     FitInfo *fit_info = new FitInfo(Xpointer, Xorder_std,N,p,num_trees,p_categorical,p_continuous,
-//                                     set_random_seed,random_seed,&first_tree);
+    FitInfo *fit_info = new FitInfo(Xpointer, Xorder_std,N,p,num_trees,p_categorical,p_continuous,set_random_seed,random_seed,&first_tree);
     
-//     if (parallel)
-//         thread_pool.start();
+    if (parallel)
+        thread_pool.start();
 
-//     NormalModel *model = new NormalModel();
-//     model->suff_stat_init();
+    NormalModel *model = new NormalModel();
+    model->setNoSplitPenality(no_split_penality);
 
-//     // initialize predcitions 
-//     for (size_t ii = 0; ii < num_trees; ii++)
-//     {
-//         std::fill(fit_info->predictions_std[ii].begin(), fit_info->predictions_std[ii].end(), y_mean / (double)num_trees);
-//     }
+    // initialize predcitions 
+    for (size_t ii = 0; ii < num_trees; ii++)
+    {
+        std::fill(fit_info->predictions_std[ii].begin(), fit_info->predictions_std[ii].end(), y_mean / (double)num_trees);
+    }
 
-//     // Set yhat_std to mean 
-//     row_sum(fit_info->predictions_std, fit_info->yhat_std);
+    // Set yhat_std to mean 
+    row_sum(fit_info->predictions_std, fit_info->yhat_std);
 
-//     // Residual for 0th tree 
-//     fit_info->residual_std = y_std - fit_info->yhat_std + fit_info->predictions_std[0];
+    // Residual for 0th tree 
+    fit_info->residual_std = y_std - fit_info->yhat_std + fit_info->predictions_std[0];
 
-//     double sigma = 1.0;
+    double sigma = 1.0;
 
-//     std::vector<double> z(N);
-//     for(size_t i; i < N;i++){
-//         z[i] = y_std[i]*2 -1;
-//     }
+    std::vector<double> z = y_std;
+    std::vector<double> z_prev(N);
 
-//     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
-//     {
+    for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
+    {
 
-//         if (verbose == true)
-//         {
-//             cout << "--------------------------------" << endl;
-//             cout << "number of sweeps " << sweeps << endl;
-//             cout << "--------------------------------" << endl;
-//         }
+        if (verbose == true)
+        {
+            cout << "--------------------------------" << endl;
+            cout << "number of sweeps " << sweeps << endl;
+            cout << "--------------------------------" << endl;
+        }
 
-//         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
-//         {
+        for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
+        {
             
-            
-//             // Update Z
-//             double mu_temp;
-//             for(size_t i =0; i < N; i++){
-//                 double a = 0; 
-//                 double b = 1;
+            // Update Z
+            double mu_temp;
+            z_prev = z;
+            for(size_t i =0; i < N; i++){
+                double a = 0; 
+                double b = 1;
 
-//                 std::normal_distribution<double> normal_samp(fit_info->yhat_std [i], 1.0);
-//                 mu_temp = normal_samp(fit_info->gen);
+                mu_temp = normCDF(z_prev[i]);
                 
-//                 if(y_std[i] == 0){
-//                     a = mu_temp;
-//                 }else{
-//                     b = mu_temp;
-//                 }
-//                 std::uniform_real_distribution<double> unif(a,b);
-//                 double u = unif(fit_info->gen);
-//                 z[i] = NormalCDFInverse(u) + mu_temp;
+                // Draw from truncated normal via inverse CDF methods
+                if(y_std[i] > 0){
+                    a = std::min(mu_temp,0.999);
+                }else{
+                    b = std::max(mu_temp,0.001);
+                }
                 
-//             }
-            
-//              // add prediction of current tree back to residual
-//             // then it's m - 1 trees residual
-//             fit_info->yhat_std = fit_info->yhat_std - fit_info->predictions_std[tree_ind];
+                std::uniform_real_distribution<double> unif(a,b);
+                double u = unif(fit_info->gen);
+                z[i] = normCDFInv(u) + mu_temp;
+            }
 
-//             if (fit_info->use_all && (sweeps > burnin) && (mtry != p)){fit_info->use_all = false; }
+            // add prediction of current tree back to residual
+            // then it's m - 1 trees residual
+            fit_info->yhat_std = fit_info->yhat_std - fit_info->predictions_std[tree_ind];
 
-//             // clear counts of splits for one tree
-//             std::fill(fit_info->split_count_current_tree.begin(), fit_info->split_count_current_tree.end(), 0.0);
-//             fit_info->mtry_weight_current_tree = fit_info->mtry_weight_current_tree - fit_info->split_count_all_tree[tree_ind];
+            if (fit_info->use_all && (sweeps > burnin) && (mtry != p)){fit_info->use_all = false; }
 
-//             trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, fit_info->residual_std, Xorder_std, Xpointer, mtry, fit_info->use_all, fit_info->split_count_all_tree, fit_info->mtry_weight_current_tree, fit_info->split_count_current_tree, fit_info->categorical_variables, p_categorical, p_continuous, fit_info->X_values, fit_info->X_counts, fit_info->variable_ind, fit_info->X_num_unique, model, fit_info->data_pointers, tree_ind, fit_info->gen);
+            // clear counts of splits for one tree
+            std::fill(fit_info->split_count_current_tree.begin(), fit_info->split_count_current_tree.end(), 0.0);
 
-//             // Add split counts    
-//             fit_info->mtry_weight_current_tree = fit_info->mtry_weight_current_tree + fit_info->split_count_current_tree;
-//             fit_info->split_count_all_tree[tree_ind] = fit_info->split_count_current_tree;
+            trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, fit_info->residual_std, Xorder_std, Xpointer, mtry, fit_info->use_all, fit_info->split_count_all_tree, fit_info->mtry_weight_current_tree, fit_info->split_count_current_tree, fit_info->categorical_variables, p_categorical, p_continuous, fit_info->X_values, fit_info->X_counts, fit_info->variable_ind, fit_info->X_num_unique, model, fit_info->data_pointers, tree_ind, fit_info->gen);
 
-//             // Update Predict
-//             fit_new_std_datapointers(Xpointer, N, tree_ind, fit_info->predictions_std[tree_ind], fit_info->data_pointers);
+            // Add split counts    
+//            fit_info->mtry_weight_current_tree = fit_info->mtry_weight_current_tree - fit_info->split_count_all_tree[tree_ind];
 
-//             // update residual, now it's residual of m trees
-//             model->updateResidual(fit_info->predictions_std, tree_ind, num_trees, fit_info->residual_std);
+            fit_info->mtry_weight_current_tree = fit_info->mtry_weight_current_tree + fit_info->split_count_current_tree;
+            fit_info->split_count_all_tree[tree_ind] = fit_info->split_count_current_tree;
 
-//             fit_info->yhat_std = fit_info->yhat_std + fit_info->predictions_std[tree_ind];
-//         }
-//         // save predictions to output matrix
-//         yhats_xinfo[sweeps] = fit_info->yhat_std;
 
-//     }
+		//	cout << "outer loop split_count" << fit_info->split_count_current_tree << endl;
+		//	cout << "outer loop weights" << fit_info->mtry_weight_current_tree << endl;
+
+
+            // Update Predict
+            fit_new_std_datapointers(Xpointer, N, tree_ind, fit_info->predictions_std[tree_ind], fit_info->data_pointers);
+
+            // update residual, now it's residual of m trees
+            model->updateResidual(fit_info->predictions_std, tree_ind, num_trees, fit_info->residual_std);
+            for(size_t i =0; i < N; i++){
+                fit_info->residual_std[i] = fit_info->residual_std[i] - z_prev[i] + z[i];
+            }
+
+            fit_info->yhat_std = fit_info->yhat_std + fit_info->predictions_std[tree_ind];
+        }
+        // save predictions to output matrix
+        yhats_xinfo[sweeps] = fit_info->yhat_std;
+
+    }
     
-//     thread_pool.stop();
-// }
+    thread_pool.stop();
+}
