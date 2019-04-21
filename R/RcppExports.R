@@ -159,3 +159,19 @@ predict.XBART <- function(model, X) {
     obj = as.matrix(obj$yhats)
     return(obj)
 }
+
+load.XBART <- function(fileName){
+    json_str = readChar(fileName, file.info(fileName)$size)
+    obj = .Call(`_json_to_r`,json_str) # model$tree_pnt
+    class(obj) = "XBART"
+    return(obj)
+}
+
+dump.XBART <- function(model,file = ""){
+    json_str = .Call(`_r_to_json`, model$model_list$y_mean, model$model_list$tree_pnt) # model$tree_pnt
+    if(file == ""){
+        return(json_str)
+    }else{
+        write(json_str,file)
+    }
+}

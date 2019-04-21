@@ -163,3 +163,9 @@ plot(ftest, fhat.db, pch = 20, col = 'orange')
 points(ftest, fhat.1, pch = 20, col = 'slategray')
 legend("topleft", c("dbarts", "XBART"), col = c("orange", "slategray"), pch = c(20, 20))
 
+print("Loading...")
+fit2 = load.XBART("model.xbart")
+pred2 = predict(fit2, xtest)
+pred2 = rowMeans(pred2[, params$burnin:params$num_sweeps])
+print(paste("rmse of fit xbart loaded: ", round(sqrt(mean((fhat.1 - ftest) ^ 2)), digits = 4)))
+
