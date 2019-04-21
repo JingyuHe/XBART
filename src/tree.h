@@ -141,14 +141,8 @@ class tree
     char ntype();       //node type t:top, b:bot, n:no grandchildren i:interior (t can be b)
     bool isnog();
 
-    json to_json_j();
-    void json_to_tree_j(json &j3,Model *model);
-
-    std::string to_json();
-    void json_to_tree(std::string &json);
-
-    std::string tree_to_lisp();
-    void lisp_to_tree(std::string &lisp);
+    json to_json();
+    void from_json(json &j3,size_t num_classes);
 
 
 #ifndef NoRcpp

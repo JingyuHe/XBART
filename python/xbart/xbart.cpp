@@ -1,8 +1,6 @@
-//#ifndef SWIG
 #include <cstddef>
 #include <iostream>
 #include <vector>
-//#endif 
 #include "xbart.h"
 #include <utility.h>
 #include <forest.h>
@@ -37,8 +35,7 @@ XBARTcpp::XBARTcpp (size_t M ,size_t N_sweeps ,
   this->params.verbose = verbose;
   this->params.draw_mu = draw_mu;
   this->params.parallel=parallel;
-  this->trees = vector<tree>(M);
-  this->trees2 = vector< vector<tree>> (N_sweeps);
+  this->trees =  new vector< vector<tree>> (N_sweeps);
   this->model_num =  model_num;
   this->no_split_penality =  no_split_penality;
 
@@ -55,9 +52,18 @@ XBARTcpp::XBARTcpp (size_t M ,size_t N_sweeps ,
   
   // Create trees3
   for(size_t i = 0; i < N_sweeps;i++){
-        this->trees2[i]= vector<tree>(M); 
+        (*this->trees)[i]= vector<tree>(M); 
     }
   return;
+}
+
+XBARTcpp::XBARTcpp(std::string &json_string){
+  std::vector<std::vector<tree>>* temp_trees =  from_json_to_forest(json_string);  
+}
+
+std::string XBARTcpp::_to_json(void){
+  json j = get_forest_json(*this->trees);
+  return j.dump(4);
 }
 
 // Getter
@@ -167,7 +173,7 @@ void XBARTcpp::_fit_predict(int n,int d,double *a, // Train X
                 this->params.verbose, 
                 this->params.draw_mu, this->params.parallel,
                 yhats_xinfo,this->yhats_test_xinfo,sigma_draw_xinfo,split_count_all_tree,
-                p_cat,d-p_cat,this->trees2,this->seed_flag, this->seed,this->no_split_penality);
+                p_cat,d-p_cat,*this->trees,this->seed_flag, this->seed,this->no_split_penality);
 
 
 
@@ -185,7 +191,7 @@ void XBARTcpp::_predict(int n,int d,double *a){//,int size, double *arr){
   // predict_std(Xtestpointer,n,d,this->params.M,this->params.L,this->params.N_sweeps,
   //       this->yhats_test_xinfo,this->trees,this->y_mean); 
   predict_std(Xtestpointer,n,d,this->params.M,this->params.N_sweeps,
-        this->yhats_test_xinfo,this->trees2,this->y_mean); 
+        this->yhats_test_xinfo,*this->trees,this->y_mean); 
 }
 
 
@@ -265,7 +271,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.mtry,  this->params.kap , 
                 this->params.s, this->params.verbose,
                 this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,this->trees2,
+                yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,*this->trees,
                 this->seed_flag, this->seed, this->no_split_penality);
   }else if(this->model_num == 1){
       fit_std_clt(Xpointer,y_std,y_mean, Xorder_std,n,d,
@@ -275,7 +281,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.mtry,  this->params.kap , 
                 this->params.s, this->params.verbose,
                 this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,this->trees2,
+                yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,*this->trees,
                 this->seed_flag, this->seed, this->no_split_penality);
   }else if(this->model_num == 2){
           fit_std_probit(Xpointer,y_std,y_mean, Xorder_std,n,d,
@@ -285,7 +291,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.mtry,  this->params.kap , 
                 this->params.s, this->params.verbose,
                 this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,this->trees2,
+                yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,*this->trees,
                 this->seed_flag, this->seed,this->no_split_penality);
 
   }

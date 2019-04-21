@@ -3,6 +3,7 @@
 #include <vector>
 //#endif
 #include <fit_std_main_loop.h>
+#include <json_io.h>
 
 // #include <cstddef>
 // #include <armadillo>
@@ -25,8 +26,7 @@ struct XBARTcppParams{
 class XBARTcpp{
 	private:
 		XBARTcppParams params;
-		vector <tree> trees;
-		vector<vector<tree>> trees2; 
+		vector<vector<tree>> *trees; 
 		vec_d y_std;
 		double y_mean;
 		size_t n_train; size_t n_test; size_t d;
@@ -56,6 +56,9 @@ class XBARTcpp{
 				double s , bool verbose , 
 				bool draw_mu , bool parallel,int seed,size_t model_num,double no_split_penality);
 
+		XBARTcpp(std::string &json_string);
+
+		std::string _to_json(void);
 		// // Destructor
 		//~XBARTcpp();
 

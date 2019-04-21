@@ -186,4 +186,11 @@ class XBART(object):
 		self.fit(x,y,p_cat)
 		return self.predict(x_test)
 
+	def to_json(self):
+		return self.xbart_cpp._to_json()
+
+	def from_json(self,json_string):
+		self.xbart_cpp = XBARTcpp(json_string)
+		return self
+
 

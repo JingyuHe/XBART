@@ -3007,10 +3007,11 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 #define SWIGTYPE_p_XBARTcppParams swig_types[1]
 #define SWIGTYPE_p_char swig_types[2]
 #define SWIGTYPE_p_double swig_types[3]
-#define SWIGTYPE_p_std__vectorT_double_t swig_types[4]
-#define SWIGTYPE_p_std__vectorT_std__vectorT_double_t_t swig_types[5]
-static swig_type_info *swig_types[7];
-static swig_module_info swig_module = {swig_types, 6, 0, 0, 0, 0};
+#define SWIGTYPE_p_std__string swig_types[4]
+#define SWIGTYPE_p_std__vectorT_double_t swig_types[5]
+#define SWIGTYPE_p_std__vectorT_std__vectorT_double_t_t swig_types[6]
+static swig_type_info *swig_types[8];
+static swig_module_info swig_module = {swig_types, 7, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -3129,6 +3130,9 @@ namespace swig {
 
 
 #include <complex> 
+
+
+#include <string>
 
 
 SWIGINTERN int
@@ -3462,6 +3466,55 @@ SWIGINTERNINLINE PyObject*
   SWIG_From_int  (int value)
 {
   return PyInt_FromLong((long) value);
+}
+
+
+SWIGINTERN swig_type_info*
+SWIG_pchar_descriptor(void)
+{
+  static int init = 0;
+  static swig_type_info* info = 0;
+  if (!init) {
+    info = SWIG_TypeQuery("_p_char");
+    init = 1;
+  }
+  return info;
+}
+
+
+SWIGINTERNINLINE PyObject *
+SWIG_FromCharPtrAndSize(const char* carray, size_t size)
+{
+  if (carray) {
+    if (size > INT_MAX) {
+      swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
+      return pchar_descriptor ? 
+	SWIG_InternalNewPointerObj(const_cast< char * >(carray), pchar_descriptor, 0) : SWIG_Py_Void();
+    } else {
+#if PY_VERSION_HEX >= 0x03000000
+#if defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
+      return PyBytes_FromStringAndSize(carray, static_cast< Py_ssize_t >(size));
+#else
+#if PY_VERSION_HEX >= 0x03010000
+      return PyUnicode_DecodeUTF8(carray, static_cast< Py_ssize_t >(size), "surrogateescape");
+#else
+      return PyUnicode_FromStringAndSize(carray, static_cast< Py_ssize_t >(size));
+#endif
+#endif
+#else
+      return PyString_FromStringAndSize(carray, static_cast< Py_ssize_t >(size));
+#endif
+    }
+  } else {
+    return SWIG_Py_Void();
+  }
+}
+
+
+SWIGINTERNINLINE PyObject *
+SWIG_From_std_string  (const std::string& s)
+{
+  return SWIG_FromCharPtrAndSize(s.data(), s.size());
 }
 
 
@@ -5010,6 +5063,31 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_new_XBARTcpp__SWIG_2(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  std::string *arg1 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  XBARTcpp *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:new_XBARTcpp",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_std__string,  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_XBARTcpp" "', argument " "1"" of type '" "std::string &""'"); 
+  }
+  if (!argp1) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "new_XBARTcpp" "', argument " "1"" of type '" "std::string &""'"); 
+  }
+  arg1 = reinterpret_cast< std::string * >(argp1);
+  result = (XBARTcpp *)new XBARTcpp(*arg1);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_XBARTcpp, SWIG_POINTER_NEW |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_new_XBARTcpp(PyObject *self, PyObject *args) {
   Py_ssize_t argc;
   PyObject *argv[19] = {
@@ -5028,6 +5106,15 @@ SWIGINTERN PyObject *_wrap_new_XBARTcpp(PyObject *self, PyObject *args) {
     _v = SWIG_CheckState(res);
     if (_v) {
       return _wrap_new_XBARTcpp__SWIG_0(self, args);
+    }
+  }
+  if (argc == 1) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_std__string, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      return _wrap_new_XBARTcpp__SWIG_2(self, args);
     }
   }
   if (argc == 18) {
@@ -5147,8 +5234,31 @@ fail:
   SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'new_XBARTcpp'.\n"
     "  Possible C/C++ prototypes are:\n"
     "    XBARTcpp::XBARTcpp(XBARTcppParams)\n"
-    "    XBARTcpp::XBARTcpp(size_t,size_t,size_t,size_t,double,double,double,size_t,size_t,size_t,double,double,bool,bool,bool,int,size_t,double)\n");
+    "    XBARTcpp::XBARTcpp(size_t,size_t,size_t,size_t,double,double,double,size_t,size_t,size_t,double,double,bool,bool,bool,int,size_t,double)\n"
+    "    XBARTcpp::XBARTcpp(std::string &)\n");
   return 0;
+}
+
+
+SWIGINTERN PyObject *_wrap_XBARTcpp__to_json(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  std::string result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcpp__to_json",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp__to_json" "', argument " "1"" of type '" "XBARTcpp *""'"); 
+  }
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
+  result = (arg1)->_to_json();
+  resultobj = SWIG_From_std_string(static_cast< std::string >(result));
+  return resultobj;
+fail:
+  return NULL;
 }
 
 
@@ -5842,6 +5952,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"delete_XBARTcppParams", _wrap_delete_XBARTcppParams, METH_VARARGS, NULL},
 	 { (char *)"XBARTcppParams_swigregister", XBARTcppParams_swigregister, METH_VARARGS, NULL},
 	 { (char *)"new_XBARTcpp", _wrap_new_XBARTcpp, METH_VARARGS, NULL},
+	 { (char *)"XBARTcpp__to_json", _wrap_XBARTcpp__to_json, METH_VARARGS, NULL},
 	 { (char *)"XBARTcpp_sort_x", _wrap_XBARTcpp_sort_x, METH_VARARGS, NULL},
 	 { (char *)"XBARTcpp__fit_predict", _wrap_XBARTcpp__fit_predict, METH_VARARGS, NULL},
 	 { (char *)"XBARTcpp__predict", _wrap_XBARTcpp__predict, METH_VARARGS, NULL},
@@ -5866,6 +5977,7 @@ static swig_type_info _swigt__p_XBARTcpp = {"_p_XBARTcpp", "XBARTcpp *", 0, 0, (
 static swig_type_info _swigt__p_XBARTcppParams = {"_p_XBARTcppParams", "XBARTcppParams *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_std__string = {"_p_std__string", "std::string *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT_double_t = {"_p_std__vectorT_double_t", "vec_d *|std::vector< double > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT_std__vectorT_double_t_t = {"_p_std__vectorT_std__vectorT_double_t_t", "std::vector< std::vector< double > > *|xinfo *", 0, 0, (void*)0, 0};
 
@@ -5874,6 +5986,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_XBARTcppParams,
   &_swigt__p_char,
   &_swigt__p_double,
+  &_swigt__p_std__string,
   &_swigt__p_std__vectorT_double_t,
   &_swigt__p_std__vectorT_std__vectorT_double_t_t,
 };
@@ -5882,6 +5995,7 @@ static swig_cast_info _swigc__p_XBARTcpp[] = {  {&_swigt__p_XBARTcpp, 0, 0, 0},{
 static swig_cast_info _swigc__p_XBARTcppParams[] = {  {&_swigt__p_XBARTcppParams, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_double[] = {  {&_swigt__p_double, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_std__string[] = {  {&_swigt__p_std__string, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__vectorT_double_t[] = {  {&_swigt__p_std__vectorT_double_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__vectorT_std__vectorT_double_t_t[] = {  {&_swigt__p_std__vectorT_std__vectorT_double_t_t, 0, 0, 0},{0, 0, 0, 0}};
 
@@ -5890,6 +6004,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_XBARTcppParams,
   _swigc__p_char,
   _swigc__p_double,
+  _swigc__p_std__string,
   _swigc__p_std__vectorT_double_t,
   _swigc__p_std__vectorT_std__vectorT_double_t_t,
 };
