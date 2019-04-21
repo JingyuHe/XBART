@@ -381,7 +381,14 @@ json tree::to_json(){
 void tree::from_json(json &j3,size_t num_classes){
     if(j3.is_array())
     {
-        j3.get_to(this->theta_vector);
+        std::vector<double> temp;
+        j3.get_to(temp);
+        std::cout<< "Vector: " <<temp << std::endl;
+        if(temp.size() > 1){
+            this->theta_vector = temp;
+        }else{
+            this->theta_vector[0] = temp[0];
+        }
     }
     else
     {

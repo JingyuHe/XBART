@@ -62,7 +62,12 @@ XBARTcpp::XBARTcpp(std::string json_string){
   from_json_to_forest(json_string,  this->trees,this->y_mean);  
   this->params.N_sweeps = this->trees.size();
   this->params.M = this->trees[0].size();
-  std::cout << this->trees.size() << endl;
+  std::cout << "v: " << this->trees[0][0].getv() << " c: "  << this->trees[0][0].getc() << endl;
+  tree *temp_l = this->trees[0][0].getl();
+  std::cout << "v: " << temp_l->getv() << " c: "  << temp_l->getc() << endl;
+  this->trees[0][0].pr();
+ 
+
 }
 
 std::string XBARTcpp::_to_json(void){
