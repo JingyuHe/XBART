@@ -82,7 +82,7 @@ class XBARTTesting1(unittest.TestCase):
 		# self.failUnless(np.array_equal(y_pred,y))
 
 	#@unittest.skip("demonstrating skipping")
-	def test_fit_predict_2d(self):
+	def test_to_json(self):
 		n = 10000
 		d = 10
 		x= np.random.rand(n,d)
@@ -104,6 +104,20 @@ class XBARTTesting1(unittest.TestCase):
 		self.assertTrue(np.array_equal(y_copy,y))
 		self.assertTrue(np.array_equal(x_copy,x))
 		self.assertTrue(np.array_equal(x_test_copy,x_test))
+
+		js = self.model.to_json()
+		self.model.to_json("model.xbart")
+		self.model.from_json("model.xbart")
+		y_pred_json = self.model.predict(x_test)
+		self.assertTrue(np.array_equal(y_pred_json,y_pred))
+
+	def test_z_from_json(self):
+		model = xbart.XBART()
+		model.from_json("model.xbart")
+		n_test = 1000; d = 10
+		x_test= np.random.rand(n_test,d)
+		y_pred_json = model.predict(x_test)
+		self.assertFalse(np.array_equal(y_pred_json,y_pred_json*0))
 
 			
 class XBARTExceptionTesting(unittest.TestCase):
