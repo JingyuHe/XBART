@@ -383,7 +383,6 @@ void tree::from_json(json &j3,size_t num_classes){
     {
         std::vector<double> temp;
         j3.get_to(temp);
-        std::cout<< "Vector: " <<temp << std::endl;
         if(temp.size() > 1){
             this->theta_vector = temp;
         }else{
