@@ -120,9 +120,16 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
         yhats_xinfo[sweeps] = fit_info->yhat_std;
 
     }
-    
-    // std::cout << trees[0][0].to_json() << std::endl;
-    // trees[0][0].pr();
+    json j = trees[0][0].to_json_j();
+    //std::cout << j.dump(4) << std::endl;
+    std::string dumped =j.dump(4);
+    auto j3 = json::parse(dumped);
+    tree *temp = new tree((size_t)1);
+    temp->json_to_tree_j(j3,model);
+
+    temp->pr();
+    std::cout<< "\n\n\n";
+    trees[0][0].pr();
 
     // std::string st = "Test string";
     // trees[0][0].json_to_tree(st);

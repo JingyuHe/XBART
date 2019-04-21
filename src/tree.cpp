@@ -25,6 +25,7 @@
 using namespace std;
 using namespace chrono;
 
+
 //--------------------
 // node id
 size_t tree::nid() const
@@ -365,6 +366,7 @@ void tree::cp(tree_p n, tree_cp o)
 
 
 std::string tree::to_json(){
+    json j;
     std::string result;
     if(l == 0){
         // std::ostringstream vts; 
@@ -374,14 +376,60 @@ std::string tree::to_json(){
         // // Now add the last element with no delimiter 
         // vts << this->theta_vector.back(); 
         //result = vts.str();
-
+        // if(this->theta_vector.size() > 1){
+        //     j["theta"] = json::parse(this->theta_vector.begin(), this->theta_vector.end());
+        // }else{
+            j["theta"] = this->theta_vector[0];
+       // }
+        
+        
         result = std::to_string(this->theta_vector[0]);
     }else{
         result = "{\"variable\":" +std::to_string(this->v) + ",\"cutpoint\":"+std::to_string(this->c);
         result += ", \"left\":" + l->to_json(); 
         result += ",\"right\":" + r->to_json() + "}"; 
     }
+    std::cout << j.dump(4) << std::endl;
     return result;
+}
+
+json tree::to_json_j(){
+    json j;
+    //std::string result;
+    if(l == 0){
+        // if(this->theta_vector.size() > 1){
+        //     j["theta"] = json::parse(this->theta_vector.begin(), this->theta_vector.end());
+        // }else{
+        j = this->theta_vector; //)json::parse(this->theta_vector);
+        //j = this->theta_vector[0];
+    }else{
+        j["variable"] = this->v;
+        j["cutpoint"] = this->c;
+        j["left"] = this->l->to_json_j();
+        j["right"] = this->r->to_json_j();
+    }
+    //std::cout << j.dump(4) << std::endl;
+    return j;
+}
+void tree::json_to_tree_j(json &j3,Model *model){
+    if(j3.is_array()){
+        j3.get_to(this->theta_vector);
+    }else{
+        j3.at("variable").get_to(this->v);
+        j3.at("cutpoint").get_to(this->c);
+
+        tree *lchild = new tree(model->getNumClasses());
+        lchild->json_to_tree_j(j3["left"],model);
+        tree *rchild = new tree(model->getNumClasses());
+        rchild->json_to_tree_j(j3["right"],model);
+
+        lchild->p = this;
+        rchild->p = this;
+        this->l = lchild;
+        this->r = rchild;
+    }
+
+    //j3.at("left").get_to(this->);
 }
 
 void tree::json_to_tree(std::string &json){

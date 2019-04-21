@@ -27,6 +27,11 @@
 #include "sample_int_crank.h"
 #include "model.h"
 
+// 
+#include "json.h"
+// for convenience
+using json = nlohmann::json;
+
 void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std,Model *model);
 
 void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, std::vector<double> &X_values, std::vector<size_t> &variable_ind,Model *model);
@@ -135,6 +140,9 @@ class tree
     size_t depth();     //depth of a node
     char ntype();       //node type t:top, b:bot, n:no grandchildren i:interior (t can be b)
     bool isnog();
+
+    json to_json_j();
+    void json_to_tree_j(json &j3,Model *model);
 
     std::string to_json();
     void json_to_tree(std::string &json);
