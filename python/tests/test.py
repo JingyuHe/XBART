@@ -106,8 +106,12 @@ class XBARTTesting1(unittest.TestCase):
 		self.assertTrue(np.array_equal(x_test_copy,x_test))
 
 		js = self.model.to_json()
-		print("JSON")
-		print(js)
+		
+		self.model.from_json(js)
+		#y_pred_json = self.model.predict(x_test)
+		#self.assertTrue(np.array_equal(y_pred_json,y_pred))
+
+
 
 		
 

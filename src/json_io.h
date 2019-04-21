@@ -3,8 +3,8 @@
 
 #include "tree.h"
 
-json get_forest_json(std::vector<std::vector<tree>> &trees);
+json get_forest_json(std::vector<std::vector<tree>> &trees,double y_mean);
 
-std::vector<std::vector<tree>>* from_json_to_forest(std::string &json_string);
+void from_json_to_forest(std::string &json_string,vector<vector<tree>> &trees,double &y_mean);
 
 #endif
