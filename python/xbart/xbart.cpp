@@ -86,94 +86,6 @@ void XBARTcpp::sort_x(int n,int d,double *a,int size, double *arr){
 
 
 
-void XBARTcpp::_fit_predict(int n,int d,double *a, // Train X 
-      int n_y,double *a_y, // Train Y
-      int n_test,int d_test,double *a_test, // Test X
-      int size, double *arr,size_t p_cat){ // Result 
-
-      xinfo x_std = XBARTcpp::np_to_xinfo(n,d,a);
-      xinfo x_test_std = XBARTcpp::np_to_xinfo(n_test,d_test,a_test);
-      y_std.reserve(n_y);
-      y_std = XBARTcpp::np_to_vec_d(n_y,a_y);
-                
-      // Calculate y_mean
-      double y_mean = 0.0;
-      for (size_t i = 0; i < n; i++){
-          y_mean = y_mean + y_std[i];
-        }
-      y_mean = y_mean/(double)n;
-      this->y_mean = y_mean;
-      //   // xorder containers
-      xinfo_sizet Xorder_std;
-      ini_xinfo_sizet(Xorder_std, n, d);
-
-      // MAKE MORE EFFICIENT! 
-      // TODO: Figure out away of working on row major std::vectors
-      // Fill in 
-      for (size_t j = 0; j < d; j++)
-    { 
-        std::vector <double> x_temp (n);
-        std::copy (x_std[j].begin(), x_std[j].end(), x_temp.begin());
-        std::vector<size_t> temp = sort_indexes(x_temp);
-        for (size_t i = 0; i < n; i++)
-        {
-            Xorder_std[j][i] = temp[i];
-        }
-    }
-    // Create new x_std's that are row major
-    vec_d x_std_2 = XBARTcpp::xinfo_to_col_major_vec(x_std); // INEFFICIENT - For now to include index sorting
-    vec_d x_test_std_2 = XBARTcpp::xinfo_to_col_major_vec(x_test_std); // INEFFICIENT
-
-    // Remove old x_std
-    for(int j = 0; j<d;j++){
-      x_std[j].clear();
-      x_test_std[j].clear();
-      x_std[j].shrink_to_fit();
-      x_test_std[j].shrink_to_fit();
-    }
-    x_std.clear();x_test_std.clear();
-    x_std.shrink_to_fit();x_test_std.shrink_to_fit();
-
-
-      // // //max_depth_std container
-      xinfo_sizet max_depth_std;
-
-      ini_xinfo_sizet(max_depth_std, this->params.M, this->params.N_sweeps);
-      // Fill with max Depth Value
-      for(size_t i = 0; i < this->params.M; i++){
-        for(size_t j = 0;j < this->params.N_sweeps; j++){
-          max_depth_std[j][i] = this->params.max_depth_num;
-        }
-      }
-
-
-      // Cpp native objects to return
-      ini_xinfo(this->yhats_xinfo, n, this->params.N_sweeps);
-      ini_xinfo(this->yhats_test_xinfo, n_test, this->params.N_sweeps);
-      ini_xinfo(this->sigma_draw_xinfo, this->params.M, this->params.N_sweeps);
-      ini_xinfo(this->split_count_all_tree, d, this->params.M); // initialize at 0
-
-      double *ypointer = &a_y[0];//&y_std[0];
-      double *Xpointer = &x_std_2[0];//&x_std[0][0];
-      double *Xtestpointer = &x_test_std_2[0];//&x_test_std[0][0];
-
-
-      fit_std_main_loop_all(Xpointer,y_std,y_mean,Xtestpointer, Xorder_std,
-                n,d,n_test,
-                this->params.M, this->params.N_sweeps, max_depth_std, 
-                this->params.Nmin, this->params.Ncutpoints, this->params.alpha, this->params.beta, 
-                this->params.tau, this->params.burnin, this->params.mtry, 
-                 this->params.kap , this->params.s, 
-                this->params.verbose, 
-                this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,this->yhats_test_xinfo,sigma_draw_xinfo,split_count_all_tree,
-                p_cat,d-p_cat,this->trees2,this->seed_flag, this->seed,this->no_split_penality);
-
-
-
-      std::copy(y_std.begin(), y_std.end(), arr);
-    } 
-
 void XBARTcpp::_predict(int n,int d,double *a){//,int size, double *arr){
 
   xinfo x_test_std = XBARTcpp::np_to_xinfo(n,d,a);
@@ -249,9 +161,10 @@ void XBARTcpp::_fit(int n,int d,double *a,
       ini_xinfo(yhats_xinfo, n, this->params.N_sweeps);
 
 
-      xinfo sigma_draw_xinfo; // Temp Change
-      ini_xinfo(sigma_draw_xinfo, this->params.M, this->params.N_sweeps);
-      ini_xinfo(this->split_count_all_tree, d, this->params.M); // initialize at 0
+      // Temp Change
+      ini_xinfo(this->sigma_draw_xinfo, this->params.M, this->params.N_sweeps);
+      this->split_count_sum_std.resize(d);
+      //ini_xinfo(this->split_count_all_tree, d, this->params.M); // initialize at 0
       double *ypointer = &a_y[0];//&y_std[0];
       double *Xpointer = &x_std_2[0];//&x_std[0][0];
 
@@ -265,7 +178,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.mtry,  this->params.kap , 
                 this->params.s, this->params.verbose,
                 this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,this->trees2,
+                yhats_xinfo,this->sigma_draw_xinfo,this->split_count_sum_std,p_cat,d-p_cat,this->trees2,
                 this->seed_flag, this->seed, this->no_split_penality);
   }else if(this->model_num == 1){
       fit_std_clt(Xpointer,y_std,y_mean, Xorder_std,n,d,
@@ -275,7 +188,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.mtry,  this->params.kap , 
                 this->params.s, this->params.verbose,
                 this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,this->trees2,
+                yhats_xinfo,this->sigma_draw_xinfo,this->split_count_sum_std,p_cat,d-p_cat,this->trees2,
                 this->seed_flag, this->seed, this->no_split_penality);
   }else if(this->model_num == 2){
           fit_std_probit(Xpointer,y_std,y_mean, Xorder_std,n,d,
@@ -285,7 +198,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.mtry,  this->params.kap , 
                 this->params.s, this->params.verbose,
                 this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,sigma_draw_xinfo,p_cat,d-p_cat,this->trees2,
+                yhats_xinfo,this->sigma_draw_xinfo,this->split_count_sum_std,p_cat,d-p_cat,this->trees2,
                 this->seed_flag, this->seed,this->no_split_penality);
 
   }
@@ -301,8 +214,8 @@ void XBARTcpp::get_yhats_test(int size,double *arr){
 void XBARTcpp::get_sigma_draw(int size,double *arr){
   xinfo_to_np(this->sigma_draw_xinfo,arr);
 }
-void XBARTcpp::get_importance(int size,double *arr){
-  xinfo_to_np(this->split_count_all_tree,arr);
+void XBARTcpp::_get_importance(int size,double *arr){
+  arr = &this->split_count_sum_std[0];
 }
 
 

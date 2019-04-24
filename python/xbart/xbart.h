@@ -30,7 +30,9 @@ class XBARTcpp{
 		vec_d y_std;
 		double y_mean;
 		size_t n_train; size_t n_test; size_t d;
-		xinfo yhats_xinfo; xinfo yhats_test_xinfo; xinfo sigma_draw_xinfo; xinfo split_count_all_tree;
+		xinfo yhats_xinfo; xinfo yhats_test_xinfo; xinfo sigma_draw_xinfo; 
+		vec_d split_count_sum_std;
+		//xinfo split_count_all_tree;
 		
 		// helper functions
 		vec_d np_to_vec_d(int n,double *a);
@@ -63,14 +65,10 @@ class XBARTcpp{
 		// void sort_x(int n, int d, double *a);
 		void sort_x(int n,int d,double *a,int size, double *arr);
 
-		void _fit_predict(int n,int d,double *a, // Train X 
-			int n_y,double *a_y, // Train Y
-			int n_test,int d_test,double *a_test, // Test X
-			int size, double *arr,size_t p_cat); // Result 
-
-		void _predict(int n, int d, double *a);//,int size, double *arr);
 		void _fit(int n,int d,double *a, // Train X 
       		int n_y,double *a_y, size_t p_cat);
+		void _predict(int n, int d, double *a);//,int size, double *arr);
+
 
 
 		// Getters
@@ -80,6 +78,6 @@ class XBARTcpp{
 		void get_yhats(int size, double *arr);
 		void get_yhats_test(int size, double *arr);
 		void get_sigma_draw(int size, double *arr);
-		void get_importance(int size, double *arr);
+		void _get_importance(int size, double *arr);
 		void test_random_generator();
 };

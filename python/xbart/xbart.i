@@ -23,28 +23,7 @@ import_array();
 %pythoncode %{
 import collections
 %}
-%extend XBARTcpp{
-%pythoncode %{
-def fit_predict(self,x,y,x_test,p_cat=0):
-    x_pred = self._fit_predict(x,y,x_test,y.shape[0],p_cat)
-    yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0]).reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
 
-    #self.importance = self.get_importance(x.shape[1])
-    return yhats_test
-%}
-%pythoncode %{
-def predict(self,x_test):
-    x_pred = self._predict(x_test)
-    yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0])
-    yhats_test = yhats_test.reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
-    return yhats_test
-%}
-%pythoncode %{
-def fit(self,x,y,p_cat=0):
-    return self._fit(x,y,p_cat)
-%}
-
-};
 
 %include "xbart.h"
 

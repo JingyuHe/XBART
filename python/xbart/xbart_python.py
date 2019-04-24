@@ -30,6 +30,7 @@ class XBART(object):
 		else:
 			raise ValueError("model must be either Normal or CLT")
 
+		self.model = model
 		self.params = dict(num_trees = num_trees,
 			num_sweeps = num_sweeps,n_min = n_min,num_cutpoints = num_cutpoints,
 			alpha = alpha,beta = beta, tau = tau,burnin = burnin, mtry=mtry, 
@@ -38,6 +39,10 @@ class XBART(object):
 			parallel=parallel,seed=seed,model_num=model_num,no_split_penality =no_split_penality)
 		args = self.__convert_params_check_types(**self.params)
 		self.xbart_cpp = None
+
+		# Additional Members
+		self.importance = None
+		self.sigma_draws = None
 
 	def __repr__(self):
 		items = ("%s = %r" % (k, v) for k, v in self.params.items())
@@ -166,6 +171,14 @@ class XBART(object):
 
 		# fit #
 		self.xbart_cpp._fit(fit_x,fit_y,p_cat)
+
+		# Additionaly Members
+		self.importance = self.xbart_cpp._get_importance(fit_x.shape[1])
+		self.importance = self.importance.astype(int)
+		if self.model == "Normal":
+			self.sigma_draws = self.xbart_cpp.get_sigma_draw(self.xbart_cpp.get_N_sweeps()*self.xbart_cpp.get_M())
+			# Convert from colum major 
+			self.sigma_draws = self.sigma_draws.reshape((self.xbart_cpp.get_M(),self.xbart_cpp.get_N_sweeps()),order='C')
 		return self
 
 	def predict(self,x_test):
