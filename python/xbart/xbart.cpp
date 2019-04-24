@@ -163,7 +163,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
 
       // Temp Change
       ini_xinfo(this->sigma_draw_xinfo, this->params.M, this->params.N_sweeps);
-      this->split_count_sum_std.resize(d);
+      this->mtry_weight_current_tree.resize(d);
       //ini_xinfo(this->split_count_all_tree, d, this->params.M); // initialize at 0
       double *ypointer = &a_y[0];//&y_std[0];
       double *Xpointer = &x_std_2[0];//&x_std[0][0];
@@ -178,7 +178,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.mtry,  this->params.kap , 
                 this->params.s, this->params.verbose,
                 this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,this->sigma_draw_xinfo,this->split_count_sum_std,p_cat,d-p_cat,this->trees2,
+                yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees2,
                 this->seed_flag, this->seed, this->no_split_penality);
   }else if(this->model_num == 1){
       fit_std_clt(Xpointer,y_std,y_mean, Xorder_std,n,d,
@@ -188,7 +188,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.mtry,  this->params.kap , 
                 this->params.s, this->params.verbose,
                 this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,this->sigma_draw_xinfo,this->split_count_sum_std,p_cat,d-p_cat,this->trees2,
+                yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees2,
                 this->seed_flag, this->seed, this->no_split_penality);
   }else if(this->model_num == 2){
           fit_std_probit(Xpointer,y_std,y_mean, Xorder_std,n,d,
@@ -198,7 +198,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.mtry,  this->params.kap , 
                 this->params.s, this->params.verbose,
                 this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,this->sigma_draw_xinfo,this->split_count_sum_std,p_cat,d-p_cat,this->trees2,
+                yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees2,
                 this->seed_flag, this->seed,this->no_split_penality);
 
   }
@@ -215,7 +215,7 @@ void XBARTcpp::get_sigma_draw(int size,double *arr){
   xinfo_to_np(this->sigma_draw_xinfo,arr);
 }
 void XBARTcpp::_get_importance(int size,double *arr){
-  arr = &this->split_count_sum_std[0];
+  arr = &this->mtry_weight_current_tree[0];
 }
 
 

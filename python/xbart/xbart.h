@@ -31,7 +31,7 @@ class XBARTcpp{
 		double y_mean;
 		size_t n_train; size_t n_test; size_t d;
 		xinfo yhats_xinfo; xinfo yhats_test_xinfo; xinfo sigma_draw_xinfo; 
-		vec_d split_count_sum_std;
+		vec_d mtry_weight_current_tree;
 		//xinfo split_count_all_tree;
 		
 		// helper functions

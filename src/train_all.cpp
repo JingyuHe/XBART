@@ -158,7 +158,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     xinfo sigma_draw_xinfo;
     ini_xinfo(sigma_draw_xinfo, num_trees, num_sweeps);
 
-    std::vector<double> split_count_sum_std(p);
+    std::vector<double> mtry_weight_current_tree(p);
 
     // // Create trees
     vector<vector<tree>>* trees2 = new vector<vector<tree>>(num_sweeps);
@@ -171,7 +171,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     /////////////////////////////////////////////////////////////////
     fit_std(Xpointer, y_std, y_mean, Xorder_std, N, p,num_trees, num_sweeps, max_depth_std,
             n_min, num_cutpoints, alpha, beta,tau, burnin, mtry,kap, s,verbose,draw_mu, parallel,
-            yhats_xinfo, sigma_draw_xinfo, split_count_sum_std,p_categorical, p_continuous, *trees2, set_random_seed, 
+            yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree,p_categorical, p_continuous, *trees2, set_random_seed, 
             random_seed,no_split_penality);
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -213,7 +213,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     }
     for (size_t i = 0; i < p; i++)
     {
-        split_count_sum(i) = (int)split_count_sum_std[i];
+        split_count_sum(i) = (int)mtry_weight_current_tree[i];
     }
 
     auto end = system_clock::now();
@@ -309,7 +309,7 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
     xinfo sigma_draw_xinfo;
     ini_xinfo(sigma_draw_xinfo, num_trees, num_sweeps);
 
-    std::vector<double> split_count_sum_std(p);
+    std::vector<double> mtry_weight_current_tree(p);
 
     // // Create trees
     vector<vector<tree>>* trees2 = new vector<vector<tree>>(num_sweeps);
@@ -329,7 +329,7 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
               kap,  s,
               verbose,
               draw_mu,  parallel,
-             yhats_xinfo, sigma_draw_xinfo,split_count_sum_std,
+             yhats_xinfo, sigma_draw_xinfo,mtry_weight_current_tree,
               p_categorical,  p_continuous, *trees2,  set_random_seed,  random_seed,no_split_penality);
     
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
@@ -374,7 +374,7 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
 
     for (size_t i = 0; i < p; i++)
     {
-        split_count_sum(i) = (int)split_count_sum_std[i];
+        split_count_sum(i) = (int)mtry_weight_current_tree[i];
     }
 
     auto end = system_clock::now();
@@ -470,7 +470,7 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
     xinfo sigma_draw_xinfo;
     ini_xinfo(sigma_draw_xinfo, num_trees, num_sweeps);
 
-    vec_d split_count_sum_std(p);
+    vec_d mtry_weight_current_tree(p);
 
     // // Create trees
     vector<vector<tree>>* trees2 = new vector<vector<tree>>(num_sweeps);
@@ -490,7 +490,7 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
               kap,  s,
               verbose,
               draw_mu,  parallel,
-             yhats_xinfo, sigma_draw_xinfo,split_count_sum_std,
+             yhats_xinfo, sigma_draw_xinfo,mtry_weight_current_tree,
               p_categorical,  p_continuous, *trees2,  set_random_seed,  random_seed, no_split_penality);
 
     
@@ -535,7 +535,7 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
     }
     for (size_t i = 0; i < p; i++)
     {
-        split_count_sum(i) = (int)split_count_sum_std[i];
+        split_count_sum(i) = (int)mtry_weight_current_tree[i];
     }
 
     auto end = system_clock::now();
