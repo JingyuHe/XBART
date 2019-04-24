@@ -4,6 +4,7 @@
 .Ruserdata
 .DS_Store
 .idea/
+src-i386/
 
 # Prerequisites
 *.d
