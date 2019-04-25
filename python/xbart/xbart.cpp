@@ -187,7 +187,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.mtry,  this->params.kap , 
                 this->params.s, this->params.verbose,
                 this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees2,
+                yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees,
                 this->seed_flag, this->seed, this->no_split_penality);
   }else if(this->model_num == 1){
       fit_std_clt(Xpointer,y_std,y_mean, Xorder_std,n,d,
@@ -197,7 +197,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.mtry,  this->params.kap , 
                 this->params.s, this->params.verbose,
                 this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees2,
+                yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees,
                 this->seed_flag, this->seed, this->no_split_penality);
   }else if(this->model_num == 2){
           fit_std_probit(Xpointer,y_std,y_mean, Xorder_std,n,d,
@@ -207,7 +207,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.mtry,  this->params.kap , 
                 this->params.s, this->params.verbose,
                 this->params.draw_mu, this->params.parallel,
-                yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees2,
+                yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees,
                 this->seed_flag, this->seed,this->no_split_penality);
 
   }
