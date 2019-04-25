@@ -200,14 +200,11 @@ class XBARTcpp(_object):
     def sort_x(self, n: 'int', size: 'int') -> "void":
         return _xbart_cpp_.XBARTcpp_sort_x(self, n, size)
 
-    def _fit_predict(self, n: 'int', n_y: 'int', n_test: 'int', size: 'int', p_cat: 'size_t') -> "void":
-        return _xbart_cpp_.XBARTcpp__fit_predict(self, n, n_y, n_test, size, p_cat)
+    def _fit(self, n: 'int', n_y: 'int', p_cat: 'size_t') -> "void":
+        return _xbart_cpp_.XBARTcpp__fit(self, n, n_y, p_cat)
 
     def _predict(self, n: 'int') -> "void":
         return _xbart_cpp_.XBARTcpp__predict(self, n)
-
-    def _fit(self, n: 'int', n_y: 'int', p_cat: 'size_t') -> "void":
-        return _xbart_cpp_.XBARTcpp__fit(self, n, n_y, p_cat)
 
     def get_M(self) -> "int":
         return _xbart_cpp_.XBARTcpp_get_M(self)
@@ -227,30 +224,11 @@ class XBARTcpp(_object):
     def get_sigma_draw(self, size: 'int') -> "void":
         return _xbart_cpp_.XBARTcpp_get_sigma_draw(self, size)
 
-    def get_importance(self, size: 'int') -> "void":
-        return _xbart_cpp_.XBARTcpp_get_importance(self, size)
+    def _get_importance(self, size: 'int') -> "void":
+        return _xbart_cpp_.XBARTcpp__get_importance(self, size)
 
     def test_random_generator(self) -> "void":
         return _xbart_cpp_.XBARTcpp_test_random_generator(self)
-
-    def fit_predict(self,x,y,x_test,p_cat=0):
-        x_pred = self._fit_predict(x,y,x_test,y.shape[0],p_cat)
-        yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0]).reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
-
-    #self.importance = self.get_importance(x.shape[1])
-        return yhats_test
-
-
-    def predict(self,x_test):
-        x_pred = self._predict(x_test)
-        yhats_test = self.get_yhats_test(self.get_N_sweeps()*x_test.shape[0])
-        yhats_test = yhats_test.reshape((x_test.shape[0],self.get_N_sweeps()),order='C')
-        return yhats_test
-
-
-    def fit(self,x,y,p_cat=0):
-        return self._fit(x,y,p_cat)
-
     __swig_destroy__ = _xbart_cpp_.delete_XBARTcpp
     __del__ = lambda self: None
 XBARTcpp_swigregister = _xbart_cpp_.XBARTcpp_swigregister

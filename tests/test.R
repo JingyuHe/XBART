@@ -36,7 +36,7 @@ new_data = TRUE # generate new data
 run_dbarts = FALSE # run dbarts
 run_xgboost = FALSE # run xgboost
 run_lightgbm = FALSE # run lightgbm
-parl = FALSE # parallel computing
+parl = TRUE # parallel computing
 
 
 #######################################################################

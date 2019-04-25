@@ -1,34 +1,6 @@
 #include "fit_std_main_loop.h"
 
 
-void fit_std_main_loop_all(const double *Xpointer, std::vector<double> &y_std, double &y_mean, const double *Xtestpointer, xinfo_sizet &Xorder_std,
-                           size_t N, size_t p, size_t N_test,
-                           size_t num_trees, size_t num_sweeps, xinfo_sizet &max_depth_std,
-                           size_t n_min, size_t Ncutpoints, double alpha, double beta,
-                           double tau, size_t burnin, size_t mtry,
-                           double kap, double s,
-                           bool verbose,
-                           bool draw_mu, bool parallel,
-                           xinfo &yhats_xinfo, xinfo &yhats_test_xinfo,
-                           xinfo &sigma_draw_xinfo, xinfo &split_count_all_tree,
-                           size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed,double no_split_penality)
-{
-
-    fit_std(Xpointer, y_std, y_mean, Xorder_std,
-            N, p,
-            num_trees, num_sweeps, max_depth_std,
-            n_min, Ncutpoints, alpha, beta,
-            tau, burnin, mtry,
-            kap, s,
-            verbose,
-            draw_mu, parallel,
-            yhats_xinfo, sigma_draw_xinfo,
-            p_categorical, p_continuous, trees, set_random_seed, random_seed,no_split_penality);
-
-    predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, trees, y_mean);
-    return;
-}
-
 void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
              size_t N, size_t p,
              size_t num_trees, size_t num_sweeps, xinfo_sizet &max_depth_std,
@@ -37,7 +9,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
              double kap, double s,
              bool verbose,
              bool draw_mu, bool parallel,
-             xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo,
+             xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vec_d &mtry_weight_current_tree,
              size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed,double no_split_penality)
 {
 
@@ -93,21 +65,12 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
             // clear counts of splits for one tree
             std::fill(fit_info->split_count_current_tree.begin(), fit_info->split_count_current_tree.end(), 0.0);
 
-            trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, fit_info->residual_std, Xorder_std, Xpointer, mtry, fit_info->use_all, fit_info->split_count_all_tree, fit_info->mtry_weight_current_tree, fit_info->split_count_current_tree, fit_info->categorical_variables, p_categorical, p_continuous, fit_info->X_values, fit_info->X_counts, fit_info->variable_ind, fit_info->X_num_unique, model, fit_info->data_pointers, tree_ind, fit_info->gen);
-
-
+            trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, fit_info->residual_std, Xorder_std, Xpointer, mtry, fit_info->use_all, fit_info->split_count_all_tree, mtry_weight_current_tree, fit_info->split_count_current_tree, fit_info->categorical_variables, p_categorical, p_continuous, fit_info->X_values, fit_info->X_counts, fit_info->variable_ind, fit_info->X_num_unique, model, fit_info->data_pointers, tree_ind, fit_info->gen);
             
             // Add split counts    
-//            fit_info->mtry_weight_current_tree = fit_info->mtry_weight_current_tree - fit_info->split_count_all_tree[tree_ind];
-
-            fit_info->mtry_weight_current_tree = fit_info->mtry_weight_current_tree + fit_info->split_count_current_tree;
+            mtry_weight_current_tree = mtry_weight_current_tree + fit_info->split_count_current_tree;
             fit_info->split_count_all_tree[tree_ind] = fit_info->split_count_current_tree;
-
-
-		//	cout << "outer loop split_count" << fit_info->split_count_current_tree << endl;
-		//	cout << "outer loop weights" << fit_info->mtry_weight_current_tree << endl;
-
-
+            
             // Update Predict
             fit_new_std_datapointers(Xpointer, N, tree_ind, fit_info->predictions_std[tree_ind], fit_info->data_pointers);
 
@@ -168,7 +131,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
              double kap, double s,
              bool verbose,
              bool draw_mu, bool parallel,
-             xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo,
+             xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo,vec_d &mtry_weight_current_tree,
              size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed,double no_split_penality)
 {
     
@@ -224,7 +187,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
             // then it's m - 1 trees residual
             fit_info->yhat_std = fit_info->yhat_std - fit_info->predictions_std[tree_ind];
 
-                model->total_fit = fit_info->yhat_std;
+            model->total_fit = fit_info->yhat_std;
 
 
            //  if (fit_info->use_all && (sweeps > burnin) && (mtry != p))
@@ -251,20 +214,9 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
 //cout << fit_info->split_count_current_tree << endl;
 
 
-            trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, fit_info->residual_std, Xorder_std, Xpointer, mtry, fit_info->use_all, fit_info->split_count_all_tree, fit_info->mtry_weight_current_tree, fit_info->split_count_current_tree, fit_info->categorical_variables, p_categorical, p_continuous, fit_info->X_values, fit_info->X_counts, fit_info->variable_ind, fit_info->X_num_unique, model, fit_info->data_pointers, tree_ind, fit_info->gen);
+            trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, fit_info->residual_std, Xorder_std, Xpointer, mtry, fit_info->use_all, fit_info->split_count_all_tree, mtry_weight_current_tree, fit_info->split_count_current_tree, fit_info->categorical_variables, p_categorical, p_continuous, fit_info->X_values, fit_info->X_counts, fit_info->variable_ind, fit_info->X_num_unique, model, fit_info->data_pointers, tree_ind, fit_info->gen);
 
-
-
-            // Add split counts    
-          //  fit_info->mtry_weight_current_tree = fit_info->mtry_weight_current_tree - fit_info->split_count_all_tree[tree_ind];
-
-            fit_info->mtry_weight_current_tree = fit_info->mtry_weight_current_tree + fit_info->split_count_current_tree;
-
-//cout << "outer loop split_count" << fit_info->split_count_current_tree << endl;
-//cout << "outer loop weights" << fit_info->mtry_weight_current_tree << endl;
-
-
-	//	cout << fit_info->mtry_weight_current_tree << endl;
+            mtry_weight_current_tree = mtry_weight_current_tree + fit_info->split_count_current_tree;
 
             fit_info->split_count_all_tree[tree_ind] = fit_info->split_count_current_tree;
 
@@ -285,6 +237,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
 
 
     }
+    thread_pool.stop();
 }
 
 
@@ -296,7 +249,7 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
              double kap, double s,
              bool verbose,
              bool draw_mu, bool parallel,
-             xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo,
+             xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo,vec_d &mtry_weight_current_tree,
              size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed,double no_split_penality)
 {
 
@@ -370,12 +323,12 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
             // clear counts of splits for one tree
             std::fill(fit_info->split_count_current_tree.begin(), fit_info->split_count_current_tree.end(), 0.0);
 
-            trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, fit_info->residual_std, Xorder_std, Xpointer, mtry, fit_info->use_all, fit_info->split_count_all_tree, fit_info->mtry_weight_current_tree, fit_info->split_count_current_tree, fit_info->categorical_variables, p_categorical, p_continuous, fit_info->X_values, fit_info->X_counts, fit_info->variable_ind, fit_info->X_num_unique, model, fit_info->data_pointers, tree_ind, fit_info->gen);
+            trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, fit_info->residual_std, Xorder_std, Xpointer, mtry, fit_info->use_all, fit_info->split_count_all_tree, mtry_weight_current_tree, fit_info->split_count_current_tree, fit_info->categorical_variables, p_categorical, p_continuous, fit_info->X_values, fit_info->X_counts, fit_info->variable_ind, fit_info->X_num_unique, model, fit_info->data_pointers, tree_ind, fit_info->gen);
 
             // Add split counts    
 //            fit_info->mtry_weight_current_tree = fit_info->mtry_weight_current_tree - fit_info->split_count_all_tree[tree_ind];
 
-            fit_info->mtry_weight_current_tree = fit_info->mtry_weight_current_tree + fit_info->split_count_current_tree;
+            mtry_weight_current_tree = mtry_weight_current_tree + fit_info->split_count_current_tree;
             fit_info->split_count_all_tree[tree_ind] = fit_info->split_count_current_tree;
 
 
