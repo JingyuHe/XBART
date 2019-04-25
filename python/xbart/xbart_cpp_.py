@@ -194,6 +194,9 @@ class XBARTcpp(_object):
         except __builtin__.Exception:
             self.this = this
 
+    def _to_json(self) -> "std::string":
+        return _xbart_cpp_.XBARTcpp__to_json(self)
+
     def sort_x(self, n: 'int', size: 'int') -> "void":
         return _xbart_cpp_.XBARTcpp_sort_x(self, n, size)
 

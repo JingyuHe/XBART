@@ -14,7 +14,8 @@ XBART_cpp_module = Extension('_xbart_cpp_',
                                     "src/utility.cpp",'src/fit_std_main_loop.cpp',
                                       "src/sample_int_crank.cpp",
                                         "src/common.cpp" ,   "src/forest.cpp",    
-                                        "src/tree.cpp","src/thread_pool.cpp","src/cdf.cpp"
+                                        "src/tree.cpp","src/thread_pool.cpp",
+                                        "src/cdf.cpp","src/json_io.cpp"
 
                                     ],
                             language= "c++",

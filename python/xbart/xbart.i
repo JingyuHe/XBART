@@ -9,6 +9,7 @@
 %}
 
 %include "numpy.i"
+%include <std_string.i>
 %init %{
 import_array();
 %}

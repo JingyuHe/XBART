@@ -4,6 +4,7 @@
 .Ruserdata
 .DS_Store
 .idea/
+src-i386/
 
 # Prerequisites
 *.d
@@ -226,5 +227,7 @@ vignettes/*.pdf
 /*_files/
 
 .pdf
+.xbart
+.json
 
 # End of https://www.gitignore.io/api/r,python

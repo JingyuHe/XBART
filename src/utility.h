@@ -2,7 +2,6 @@
 #define GUARD_utility_h
 
 #include "common.h"
-// #include "tree.h"
 
 #include "thread_pool.h"
 extern ThreadPool thread_pool;
@@ -159,5 +158,6 @@ void compute_partial_sum(std::vector<double> &Y, xinfo_sizet &Xorder, const size
 void compute_partial_sum_newXorder(const std::vector<double> &y_std, const xinfo_sizet &Xorder, const xinfo_sizet &Xorder_next_index, const std::vector<size_t> &Xorder_firstline, const size_t &var, const size_t N_y, std::vector<double> &y_cumsum, std::vector<double> &possible_cutpoints, const double *X_std);
 
 void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, double &y_sum, const size_t &var);
+
 
 #endif

@@ -191,14 +191,44 @@ RcppExport SEXP _XBART_Probit(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP num_t
     END_RCPP
 }
 
+Rcpp::List json_to_r(Rcpp::StringVector json_string_r);
+RcppExport SEXP _json_to_r( SEXP json_string_rSEXP){
+    BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter<Rcpp::StringVector>::type json_string_r(json_string_rSEXP);
+    rcpp_result_gen = Rcpp::wrap(json_to_r(json_string_r));
+    return rcpp_result_gen; 
+    END_RCPP
+
+}
+
+Rcpp::StringVector r_to_json( double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt);
+RcppExport SEXP _r_to_json( SEXP y_meanSEXP, SEXP tree_pntSEXP){
+    BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter<double>::type y_mean(y_meanSEXP);
+    Rcpp::traits::input_parameter<Rcpp::XPtr<std::vector<std::vector<tree>>>>::type tree_pnt(tree_pntSEXP);
+    rcpp_result_gen = Rcpp::wrap(r_to_json( y_mean, tree_pnt));
+    return rcpp_result_gen; 
+    END_RCPP
+
+}
+
+
+
 
 static const R_CallMethodDef CallEntries[] = {
     // {"_XBART_sample_int_ccrank", (DL_FUNC)&_XBART_sample_int_ccrank, 3},
     {"_XBART_train_forest_root_std_all", (DL_FUNC)&_XBART_train_forest_root_std_all, 21},
     {"_XBART", (DL_FUNC)&_XBART, 21},
     {"_XBART_CLT", (DL_FUNC)&_XBART_CLT, 21},
-     {"_XBART_Probit", (DL_FUNC)&_XBART_Probit, 21},
+    {"_XBART_Probit", (DL_FUNC)&_XBART_Probit, 21},
     {"_xbart_predict", (DL_FUNC)&_xbart_predict, 3},
+     {"_json_to_r", (DL_FUNC)&_json_to_r, 1},
+    {"_r_to_json", (DL_FUNC)&_r_to_json, 2},
+   
     {NULL, NULL, 0}};
 
 RcppExport void R_init_XBART(DllInfo *dll)

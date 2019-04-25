@@ -1,8 +1,6 @@
-//#ifndef SWIG
 #include <cstddef>
 #include <iostream>
 #include <vector>
-//#endif 
 #include "xbart.h"
 #include <utility.h>
 #include <forest.h>
@@ -37,8 +35,7 @@ XBARTcpp::XBARTcpp (size_t M ,size_t N_sweeps ,
   this->params.verbose = verbose;
   this->params.draw_mu = draw_mu;
   this->params.parallel=parallel;
-  this->trees = vector<tree>(M);
-  this->trees2 = vector< vector<tree>> (N_sweeps);
+  this->trees =  vector< vector<tree>> (N_sweeps);
   this->model_num =  model_num;
   this->no_split_penality =  no_split_penality;
 
@@ -55,9 +52,21 @@ XBARTcpp::XBARTcpp (size_t M ,size_t N_sweeps ,
   
   // Create trees3
   for(size_t i = 0; i < N_sweeps;i++){
-        this->trees2[i]= vector<tree>(M); 
+        this->trees[i]=  vector<tree>(M); 
     }
   return;
+}
+
+XBARTcpp::XBARTcpp(std::string json_string){
+  //std::vector<std::vector<tree>> temp_trees;
+  from_json_to_forest(json_string,  this->trees,this->y_mean);  
+  this->params.N_sweeps = this->trees.size();
+  this->params.M = this->trees[0].size();
+}
+
+std::string XBARTcpp::_to_json(void){
+  json j = get_forest_json(this->trees,this->y_mean);
+  return j.dump(4);
 }
 
 // Getter
@@ -97,7 +106,7 @@ void XBARTcpp::_predict(int n,int d,double *a){//,int size, double *arr){
   // predict_std(Xtestpointer,n,d,this->params.M,this->params.L,this->params.N_sweeps,
   //       this->yhats_test_xinfo,this->trees,this->y_mean); 
   predict_std(Xtestpointer,n,d,this->params.M,this->params.N_sweeps,
-        this->yhats_test_xinfo,this->trees2,this->y_mean); 
+        this->yhats_test_xinfo,this->trees,this->y_mean); 
 }
 
 

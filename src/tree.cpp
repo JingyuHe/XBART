@@ -25,6 +25,7 @@
 using namespace std;
 using namespace chrono;
 
+
 //--------------------
 // node id
 size_t tree::nid() const
@@ -364,91 +365,47 @@ void tree::cp(tree_p n, tree_cp o)
 }
 
 
-std::string tree::to_json(){
-    std::string result;
+json tree::to_json(){
+    json j;
     if(l == 0){
-        // std::ostringstream vts; 
-        // // Convert all but the last element to avoid a trailing "," 
-        // std::copy(this->theta_vector.begin(), this->theta_vector.end()-1, 
-        // std::ostream_iterator<double>(vts, ", ")); 
-        // // Now add the last element with no delimiter 
-        // vts << this->theta_vector.back(); 
-        //result = vts.str();
-
-        result = std::to_string(this->theta_vector[0]);
+        j = this->theta_vector; 
     }else{
-        result = "{\"variable\":" +std::to_string(this->v) + ",\"cutpoint\":"+std::to_string(this->c);
-        result += ", \"left\":" + l->to_json(); 
-        result += ",\"right\":" + r->to_json() + "}"; 
+        j["variable"] = this->v;
+        j["cutpoint"] = this->c;
+        j["left"] = this->l->to_json();
+        j["right"] = this->r->to_json();
     }
-    return result;
+    return j;
 }
 
-void tree::json_to_tree(std::string &json){
-    // for (size_t i=0;i<json.length();i++){
-    //     std::string current_string = json[i];
-    //     if(current_string.compare("{")){
+void tree::from_json(json &j3,size_t num_classes){
+    if(j3.is_array())
+    {
+        std::vector<double> temp;
+        j3.get_to(temp);
+        if(temp.size() > 1){
+            this->theta_vector = temp;
+        }else{
+            this->theta_vector[0] = temp[0];
+        }
+    }
+    else
+    {
+        j3.at("variable").get_to(this->v);
+        j3.at("cutpoint").get_to(this->c);
 
-    //     }
+        tree *lchild = new tree(num_classes);
+        lchild->from_json(j3["left"],num_classes);
+        tree *rchild = new tree(num_classes);
+        rchild->from_json(j3["right"],num_classes);
         
-    // } 
+        lchild->p = this;
+        rchild->p = this;
+        this->l = lchild;
+        this->r = rchild;
+    }
+
 }
-
-
-std::string tree::tree_to_lisp()
-{
-    std::string result = "(" +std::to_string(this->v) + "," +std::to_string(this->c) + ",";
-    result += "[" + std::to_string(theta_vector[0]);
-
-    if(theta_vector.size() >1){
-        for(size_t i=0;i<theta_vector.size();i++){
-        result += ","+ std::to_string(theta_vector[i]);
-        }
-    }
-    result += "]";
-
-
-
-    if (l){
-        result += "," + l->tree_to_lisp(); 
-    }
-    if (r){
-        result += "," + r->tree_to_lisp(); 
-    }
-
-    
-    return result+")";
-}
-
-void tree::lisp_to_tree(std::string &lisp)
-{
-
-    std::string result = "(" +std::to_string(this->v) + "," +std::to_string(this->c) + ",";
-    result += "[" + std::to_string(theta_vector[0]);
-
-    if(theta_vector.size() >1){
-        for(size_t i=0;i<theta_vector.size();i++){
-        result += ","+ std::to_string(theta_vector[i]);
-        }
-    }
-    result += "]";
-
-
-
-    if (l){
-        result += "," + l->tree_to_lisp(); 
-    }
-    if (r){
-        result += "," + r->tree_to_lisp(); 
-    }
-
-    result += ")";
-    return;
-}
-
-
-
-
     
 
 
