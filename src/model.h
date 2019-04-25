@@ -4,6 +4,7 @@
 
 #include "common.h"
 #include "utility.h"
+#include <memory>
 
 using namespace std;
 
@@ -37,6 +38,7 @@ class Model
 	virtual double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const { return 0.0; };
 	virtual double likelihood_no_split(double value, double tau, double ntau, double sigma2) const { return 0.0; };
 	virtual void suff_stat_fill(std::vector<double> &y_std,std::vector<size_t> &xorder) { return; };
+	virtual Model *clone() { return nullptr;};
 
 
 	// Getters and Setters
@@ -169,6 +171,8 @@ class NormalModel : public Model
 
 		return 0.5*log(sigma2)-0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
 	}
+
+	Model *clone() { return new NormalModel(*this);}
 
 };
 
@@ -345,6 +349,7 @@ class CLTClass : public Model
 		return 0.5*(suff_stat_total[2] ) + 0.5 * std::log((1/tau)/((1/tau)+ (suff_stat_total[1] ) )) + 0.5 * tau/(1+ tau*(suff_stat_total[1] ) )* pow( suff_stat_total[0],2)- 0.5*suff_stat_total[3];
 ;
 	}
+	Model *clone() { return new CLTClass(*this);}
 
 };
 

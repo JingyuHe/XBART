@@ -243,6 +243,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
 
 
     }
+    thread_pool.stop();
 }
 
 

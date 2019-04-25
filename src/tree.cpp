@@ -578,7 +578,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     // tau is prior VARIANCE, do not take squares
 
 
-            model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, gen, this->theta_vector,y_std,Xorder_std);
+    model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, gen, this->theta_vector,y_std,Xorder_std);
 
 
     this->sig = sigma;
@@ -1343,25 +1343,26 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     double llmax = -INFINITY;
 
                     // std::vector<double> y_cumsum(Ncutpoints);
-
+                    Model *clone = model->clone();
                     //model -> suff_stat_init();
-                    model -> suff_stat_fill(y_std,xorder);
+                    clone -> suff_stat_fill(y_std,xorder);
 
                     for (size_t j = 0; j < Ncutpoints; j++)
                     {
-                        model -> calcSuffStat_continuous(xorder, y_std, candidate_index2, j, true);
+                        clone -> calcSuffStat_continuous(xorder, y_std, candidate_index2, j, true);
 
                         // loop over all possible cutpoints
                         double n1tau = (candidate_index2[j + 1] + 1) * tau; // number of points on left side (x <= cutpoint)
                         double n2tau = Ntau - n1tau;                        // number of points on right side (x > cutpoint)
 
-                        loglike[(Ncutpoints)*i + j] = model -> likelihood(tau, n1tau, sigma2, y_sum, true) + model -> likelihood(tau, n2tau, sigma2, y_sum, false);
+                        loglike[(Ncutpoints)*i + j] = clone -> likelihood(tau, n1tau, sigma2, y_sum, true) + clone -> likelihood(tau, n2tau, sigma2, y_sum, false);
 
                         if (loglike[(Ncutpoints)*i + j] > llmax)
                         {
                             llmax = loglike[(Ncutpoints)*i + j];
                         }
                     }
+                    delete clone;
                     llmax_mutex.lock();
                     if (llmax > loglike_max)
                         loglike_max = llmax;

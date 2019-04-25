@@ -119,7 +119,9 @@ get_XBART_params <- function(n,d,y){
 }
 params = get_XBART_params(n,d,y)
 dcat = 0
-parl = F
+parl = T
+
+print(parl)
 
 
 # ### BART ###
