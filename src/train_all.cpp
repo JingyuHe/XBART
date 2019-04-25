@@ -5,7 +5,6 @@
 #include <chrono>
 #include "fit_std_main_loop.h"
 
-
 using namespace std;
 using namespace chrono;
 
@@ -90,11 +89,11 @@ void rcpp_to_std2(
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
-                            size_t num_trees, size_t num_sweeps, arma::mat max_depth_num,
-                            size_t n_min, size_t num_cutpoints, double alpha, double beta,
-                            double tau, double no_split_penality,size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,
-                            double kap = 16, double s = 4, bool verbose = false,
-                            bool parallel = true, bool set_random_seed = false, size_t random_seed = 0)
+                 size_t num_trees, size_t num_sweeps, arma::mat max_depth_num,
+                 size_t n_min, size_t num_cutpoints, double alpha, double beta,
+                 double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,
+                 double kap = 16, double s = 4, bool verbose = false,
+                 bool parallel = true, bool set_random_seed = false, size_t random_seed = 0)
 {
     bool draw_mu = true;
 
@@ -161,33 +160,25 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     std::vector<double> mtry_weight_current_tree(p);
 
     // // Create trees
-    vector<vector<tree>>* trees2 = new vector<vector<tree>>(num_sweeps);
+    vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++)
     {
         (*trees2)[i] = vector<tree>(num_trees);
     }
 
-
     /////////////////////////////////////////////////////////////////
-    fit_std(Xpointer, y_std, y_mean, Xorder_std, N, p,num_trees, num_sweeps, max_depth_std,
-            n_min, num_cutpoints, alpha, beta,tau, burnin, mtry,kap, s,verbose,draw_mu, parallel,
-            yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree,p_categorical, p_continuous, *trees2, set_random_seed, 
-            random_seed,no_split_penality);
+    fit_std(Xpointer, y_std, y_mean, Xorder_std, N, p, num_trees, num_sweeps, max_depth_std,
+            n_min, num_cutpoints, alpha, beta, tau, burnin, mtry, kap, s, verbose, draw_mu, parallel,
+            yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, p_categorical, p_continuous, *trees2, set_random_seed,
+            random_seed, no_split_penality);
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
-
-   
-    // R Objects to Return    
+    // R Objects to Return
     Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
-    Rcpp::NumericVector split_count_sum(p); // split counts
-    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2,true);
-
-
-
-
-
+    Rcpp::NumericVector split_count_sum(p);                // split counts
+    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
 
     // TODO: Make these functions
     for (size_t i = 0; i < N; i++)
@@ -228,24 +219,23 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
 
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
     return Rcpp::List::create(
-        Rcpp::Named("yhats") = yhats, 
-        Rcpp::Named("yhats_test") = yhats_test, 
+        Rcpp::Named("yhats") = yhats,
+        Rcpp::Named("yhats_test") = yhats_test,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
-        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt")= tree_pnt, 
+        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt,
                                                        Rcpp::Named("y_mean") = y_mean,
-                                                       Rcpp::Named("p")=p)
-        );
+                                                       Rcpp::Named("p") = p));
 }
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
-                            size_t num_trees, size_t num_sweeps, arma::mat max_depth_num,
-                            size_t n_min, size_t num_cutpoints, double alpha, double beta,
-                            double tau,double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,
-                            double kap = 16, double s = 4, bool verbose = false,
-                            bool parallel = true, bool set_random_seed = false, size_t random_seed = 0)
+                     size_t num_trees, size_t num_sweeps, arma::mat max_depth_num,
+                     size_t n_min, size_t num_cutpoints, double alpha, double beta,
+                     double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,
+                     double kap = 16, double s = 4, bool verbose = false,
+                     bool parallel = true, bool set_random_seed = false, size_t random_seed = 0)
 {
     bool draw_mu = true;
 
@@ -312,42 +302,33 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
     std::vector<double> mtry_weight_current_tree(p);
 
     // // Create trees
-    vector<vector<tree>>* trees2 = new vector<vector<tree>>(num_sweeps);
+    vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++)
     {
         (*trees2)[i] = vector<tree>(num_trees);
     }
 
-
     /////////////////////////////////////////////////////////////////
 
-        fit_std_clt(Xpointer, y_std, y_mean, Xorder_std,
-             N,  p,
-            num_trees,  num_sweeps, max_depth_std,
-            n_min,  num_cutpoints,  alpha,  beta,
-              tau,  burnin,  mtry,
-              kap,  s,
-              verbose,
-              draw_mu,  parallel,
-             yhats_xinfo, sigma_draw_xinfo,mtry_weight_current_tree,
-              p_categorical,  p_continuous, *trees2,  set_random_seed,  random_seed,no_split_penality);
-    
+    fit_std_clt(Xpointer, y_std, y_mean, Xorder_std,
+                N, p,
+                num_trees, num_sweeps, max_depth_std,
+                n_min, num_cutpoints, alpha, beta,
+                tau, burnin, mtry,
+                kap, s,
+                verbose,
+                draw_mu, parallel,
+                yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree,
+                p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality);
+
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
-
-
-   
-    // R Objects to Return    
+    // R Objects to Return
     Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
-    Rcpp::NumericVector split_count_sum(p); // split counts
-    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2,true);
-
-
-
-
-
+    Rcpp::NumericVector split_count_sum(p);                // split counts
+    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
 
     // TODO: Make these functions
     for (size_t i = 0; i < N; i++)
@@ -389,24 +370,23 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
 
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
     return Rcpp::List::create(
-        Rcpp::Named("yhats") = yhats, 
-        Rcpp::Named("yhats_test") = yhats_test, 
+        Rcpp::Named("yhats") = yhats,
+        Rcpp::Named("yhats_test") = yhats_test,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
-        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt")= tree_pnt, 
+        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt,
                                                        Rcpp::Named("y_mean") = y_mean,
-                                                       Rcpp::Named("p")=p)
-        );
+                                                       Rcpp::Named("p") = p));
 }
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
-                            size_t num_trees, size_t num_sweeps, arma::mat max_depth_num,
-                            size_t n_min, size_t num_cutpoints, double alpha, double beta,
-                            double tau, double no_split_penality,size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,
-                            double kap = 16, double s = 4, bool verbose = false,
-                            bool parallel = true, bool set_random_seed = false, size_t random_seed = 0)
+                        size_t num_trees, size_t num_sweeps, arma::mat max_depth_num,
+                        size_t n_min, size_t num_cutpoints, double alpha, double beta,
+                        double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,
+                        double kap = 16, double s = 4, bool verbose = false,
+                        bool parallel = true, bool set_random_seed = false, size_t random_seed = 0)
 {
     bool draw_mu = true;
 
@@ -473,43 +453,33 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
     vec_d mtry_weight_current_tree(p);
 
     // // Create trees
-    vector<vector<tree>>* trees2 = new vector<vector<tree>>(num_sweeps);
+    vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++)
     {
         (*trees2)[i] = vector<tree>(num_trees);
     }
 
-
     /////////////////////////////////////////////////////////////////
 
     fit_std_probit(Xpointer, y_std, y_mean, Xorder_std,
-             N,  p,
-            num_trees,  num_sweeps, max_depth_std,
-            n_min,  num_cutpoints,  alpha,  beta,
-              tau,  burnin,  mtry,
-              kap,  s,
-              verbose,
-              draw_mu,  parallel,
-             yhats_xinfo, sigma_draw_xinfo,mtry_weight_current_tree,
-              p_categorical,  p_continuous, *trees2,  set_random_seed,  random_seed, no_split_penality);
+                   N, p,
+                   num_trees, num_sweeps, max_depth_std,
+                   n_min, num_cutpoints, alpha, beta,
+                   tau, burnin, mtry,
+                   kap, s,
+                   verbose,
+                   draw_mu, parallel,
+                   yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree,
+                   p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality);
 
-    
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
-
-
-   
-    // R Objects to Return    
+    // R Objects to Return
     Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
-    Rcpp::NumericVector split_count_sum(p); // split counts
-    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2,true);
-
-
-
-
-
+    Rcpp::NumericVector split_count_sum(p);                // split counts
+    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
 
     // TODO: Make these functions
     for (size_t i = 0; i < N; i++)
@@ -550,13 +520,11 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
 
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
     return Rcpp::List::create(
-        Rcpp::Named("yhats") = yhats, 
-        Rcpp::Named("yhats_test") = yhats_test, 
+        Rcpp::Named("yhats") = yhats,
+        Rcpp::Named("yhats_test") = yhats_test,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
-        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt")= tree_pnt, 
+        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt,
                                                        Rcpp::Named("y_mean") = y_mean,
-                                                       Rcpp::Named("p")=p)
-        );
+                                                       Rcpp::Named("p") = p));
 }
-

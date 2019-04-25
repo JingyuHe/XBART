@@ -13,6 +13,6 @@
 
 void check_args(int n, int size, const std::vector<double> &prob);
 
-std::vector<size_t> sample_int_ccrank(int n, int size, std::vector<double> prob,std::mt19937 &gen);
+std::vector<size_t> sample_int_ccrank(int n, int size, std::vector<double> prob, std::mt19937 &gen);
 
 #endif

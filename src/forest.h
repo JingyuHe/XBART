@@ -5,7 +5,6 @@
 
 #include "tree.h"
 
-
 // [[Rcpp::plugins(cpp11)]]
 
 class forest
