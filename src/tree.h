@@ -27,14 +27,14 @@
 #include "sample_int_crank.h"
 #include "model.h"
 
-// 
+//
 #include "json.h"
 // for convenience
 using json = nlohmann::json;
 
-void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std,Model *model);
+void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std, Model *model);
 
-void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, std::vector<double> &X_values, std::vector<size_t> &variable_ind,Model *model);
+void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, std::vector<double> &X_values, std::vector<size_t> &variable_ind, Model *model);
 
 void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique);
 
@@ -142,8 +142,7 @@ class tree
     bool isnog();
 
     json to_json();
-    void from_json(json &j3,size_t num_classes);
-
+    void from_json(json &j3, size_t num_classes);
 
 #ifndef NoRcpp
 #endif
@@ -163,10 +162,8 @@ class tree
 std::istream &operator>>(std::istream &, tree &);
 std::ostream &operator<<(std::ostream &, const tree &);
 
-
-
 void fit_new_std(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output);
 
-void fit_new_std_datapointers(const double *X_std, size_t N, size_t M, std::vector<double> &output, matrix<tree::tree_p>& data_pointers);
+void fit_new_std_datapointers(const double *X_std, size_t N, size_t M, std::vector<double> &output, matrix<tree::tree_p> &data_pointers);
 
 #endif
