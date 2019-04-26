@@ -13,6 +13,9 @@ matrix:
       script:
         - python test.py
 
+notifications:
+  email: false
+
 
 
 
