@@ -1,6 +1,6 @@
+language: python
 sudo: required
 dist: xenial
-language: python
 
 python:
   - "3.6"
