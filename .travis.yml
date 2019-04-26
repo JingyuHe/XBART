@@ -1,22 +1,4 @@
-matrix:
-  include:
-    - language: python
-      sudo: required
-      dist: xenial
-      python: 
-      	-3.6
-      before_install:
-        - cd python
-        - pip install numpy
-        - bash build_py.sh
-        - cp tests/test.py .
-      script:
-        - python test.py
-
-notifications:
-  email: false
-
-
+language: R
 
 
 
