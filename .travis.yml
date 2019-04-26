@@ -1,17 +1,18 @@
-matrix:
-  include:
-    - language: python
-      python: 3.6
-      before_install:
-        - cd python
-        - pip install numpy
-        - bash build_py.sh
-        - cp tests/test.py .
-      script:
-        - python test.py
+sudo: required
+dist: xenial
+language: python
 
-  	- language: R
-  	
+python:
+  - "3.6"
+
+install:
+  - cd python
+  - pip install numpy
+  - bash build_py.sh
+  - cp tests/test.py .
+
+script: python test.py
+
 
 
 
