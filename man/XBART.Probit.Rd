@@ -1,11 +1,11 @@
-\name{XBART}
-\alias{XBART}
+\name{XBART.Probit}
+\alias{XBART.Probit}
 \title{XBART: Accelerated Bayesian Additive Regression Trees}
 \description{
-    Main function to fit XBART model. Fit a regression tree (continuous output).
+    Main function to fit XBART model. Fit a classification tree by a probit model.
 }
 \usage{
-\method{XBART}{default}(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, 
+\method{XBART.CLT}{default}(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, 
 alpha, beta, tau, no_split_penality = "Auto", burnin = 1L, mtry = 0L, p_categorical = 0L, 
 kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, ...)
 }

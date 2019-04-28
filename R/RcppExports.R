@@ -46,7 +46,7 @@
 
 
 
-XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, no_split_penality = "Auto",burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, ...) {
+XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, no_split_penality = "Auto", burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, ...) {
 
     if(class(X) != "matrix"){
         cat("Input X is not a matrix, try to convert type.\n")

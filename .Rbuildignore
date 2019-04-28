@@ -1,4 +1,5 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.git$
+^\.vscode$
 ^\.travis\.yml$ 

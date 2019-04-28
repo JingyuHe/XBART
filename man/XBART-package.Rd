@@ -1,6 +1,5 @@
 \name{XBART-package}
 \alias{XBART-package}
-\alias{XBART}
 \docType{package}
 \title{
   XBART: Accelerated Bayesian Additive Regression Trees
