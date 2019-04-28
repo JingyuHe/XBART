@@ -1,0 +1,770 @@
+{
+    "num_classes": 1,
+    "num_sweeps": 2,
+    "num_trees": 5,
+    "trees": {
+        "0": {
+            "0": {
+                "cutpoint": 0.4900573971584734,
+                "left": {
+                    "cutpoint": 0.6110217583056149,
+                    "left": {
+                        "cutpoint": 0.1941046702267607,
+                        "left": {
+                            "cutpoint": 0.36324332862506103,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "right": {
+                            "cutpoint": 0.3650934707296021,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "variable": 1
+                    },
+                    "right": {
+                        "cutpoint": 0.799304082477934,
+                        "left": {
+                            "cutpoint": 0.1930249315730833,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "right": {
+                            "cutpoint": 0.30040274360216934,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "variable": 0
+                    },
+                    "variable": 0
+                },
+                "right": {
+                    "cutpoint": 0.6125054514975966,
+                    "left": {
+                        "cutpoint": 0.7495345168970765,
+                        "left": {
+                            "cutpoint": 0.2991691681076216,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "right": {
+                            "cutpoint": 0.35263706024851327,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "variable": 1
+                    },
+                    "right": {
+                        "cutpoint": 0.7645518278668268,
+                        "left": {
+                            "cutpoint": 0.6841185592547592,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "right": {
+                            "cutpoint": 0.755915758717505,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "variable": 0
+                    },
+                    "variable": 0
+                },
+                "variable": 1
+            },
+            "1": {
+                "cutpoint": 0.4900573971584734,
+                "left": {
+                    "cutpoint": 0.6110217583056149,
+                    "left": {
+                        "cutpoint": 0.1941046702267607,
+                        "left": {
+                            "cutpoint": 0.4287000142565637,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "right": {
+                            "cutpoint": 0.49529515753180253,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "variable": 1
+                    },
+                    "right": {
+                        "cutpoint": 0.799304082477934,
+                        "left": {
+                            "cutpoint": 0.1930249315730833,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "right": {
+                            "cutpoint": 0.2428362689878929,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "variable": 0
+                    },
+                    "variable": 0
+                },
+                "right": {
+                    "cutpoint": 0.7068307641962586,
+                    "left": {
+                        "cutpoint": 0.7468659075524198,
+                        "left": {
+                            "cutpoint": 0.5091788576039504,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "right": {
+                            "cutpoint": 0.34000047098577946,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "variable": 1
+                    },
+                    "right": {
+                        "cutpoint": 0.7491769224849021,
+                        "left": [
+                            0.9739292402614608
+                        ],
+                        "right": [
+                            1.2132532653603922
+                        ],
+                        "variable": 1
+                    },
+                    "variable": 0
+                },
+                "variable": 1
+            },
+            "2": {
+                "cutpoint": 0.2955752771182538,
+                "left": {
+                    "cutpoint": 0.6146893859345388,
+                    "left": {
+                        "cutpoint": 0.35844537020789125,
+                        "left": {
+                            "cutpoint": 0.14059084375723996,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "right": {
+                            "cutpoint": 0.16887167097597444,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "variable": 0
+                    },
+                    "right": {
+                        "cutpoint": 0.7970480023878275,
+                        "left": [
+                            0.6420136154002528
+                        ],
+                        "right": [
+                            0.7912157857626015
+                        ],
+                        "variable": 0
+                    },
+                    "variable": 0
+                },
+                "right": {
+                    "cutpoint": 0.7046694926622644,
+                    "left": {
+                        "cutpoint": 0.5750384655324484,
+                        "left": {
+                            "cutpoint": 0.5120612747952056,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "right": {
+                            "cutpoint": 0.41988342683510493,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "variable": 1
+                    },
+                    "right": {
+                        "cutpoint": 0.503208451191928,
+                        "left": {
+                            "cutpoint": 0.48253751988462623,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "right": {
+                            "cutpoint": 0.7901740161994443,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "variable": 1
+                    },
+                    "variable": 0
+                },
+                "variable": 1
+            },
+            "3": {
+                "cutpoint": 0.2955752771182538,
+                "left": {
+                    "cutpoint": 0.6146893859345388,
+                    "left": {
+                        "cutpoint": 0.42410365873810985,
+                        "left": [
+                            0.45509633715135456
+                        ],
+                        "right": [
+                            0.6074716072420852
+                        ],
+                        "variable": 0
+                    },
+                    "right": [
+                        0.2755769591100836
+                    ],
+                    "variable": 0
+                },
+                "right": {
+                    "cutpoint": 0.7046694926622644,
+                    "left": {
+                        "cutpoint": 0.5750384655324484,
+                        "left": {
+                            "cutpoint": 0.5120612747952056,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "right": {
+                            "cutpoint": 0.4919362024727896,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "variable": 1
+                    },
+                    "right": {
+                        "cutpoint": 0.503208451191928,
+                        "left": {
+                            "cutpoint": 0.48253751988462623,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "right": [
+                            0.6011514528739743
+                        ],
+                        "variable": 1
+                    },
+                    "variable": 0
+                },
+                "variable": 1
+            },
+            "4": {
+                "cutpoint": 0.2955752771182538,
+                "left": {
+                    "cutpoint": 0.14551244171135902,
+                    "left": [
+                        0.17261812013230282
+                    ],
+                    "right": [
+                        0.3395943289446287
+                    ],
+                    "variable": 1
+                },
+                "right": {
+                    "cutpoint": 0.7046694926622644,
+                    "left": {
+                        "cutpoint": 0.5750384655324484,
+                        "left": {
+                            "cutpoint": 0.5120612747952056,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "right": {
+                            "cutpoint": 0.2802297957433487,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "variable": 1
+                    },
+                    "right": {
+                        "cutpoint": 0.503208451191928,
+                        "left": {
+                            "cutpoint": 0.004815398215843425,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 4
+                        },
+                        "right": [
+                            0.23606906177387288
+                        ],
+                        "variable": 1
+                    },
+                    "variable": 0
+                },
+                "variable": 1
+            }
+        },
+        "1": {
+            "0": {
+                "cutpoint": 0.2955752771182538,
+                "left": [
+                    0.012897364589357047
+                ],
+                "right": {
+                    "cutpoint": 0.7046694926622644,
+                    "left": {
+                        "cutpoint": 0.7179876853658318,
+                        "left": {
+                            "cutpoint": 0.5108507234933145,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "right": [
+                            1.523596895076345
+                        ],
+                        "variable": 1
+                    },
+                    "right": {
+                        "cutpoint": 0.503208451191928,
+                        "left": [
+                            1.4524023893410896
+                        ],
+                        "right": [
+                            -0.01694083588808639
+                        ],
+                        "variable": 1
+                    },
+                    "variable": 0
+                },
+                "variable": 1
+            },
+            "1": {
+                "cutpoint": 0.2955752771182538,
+                "left": [
+                    -0.0029842338988029116
+                ],
+                "right": {
+                    "cutpoint": 0.7175004028039901,
+                    "left": {
+                        "cutpoint": 0.705341074285365,
+                        "left": {
+                            "cutpoint": 0.511341735256038,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "right": {
+                            "cutpoint": 0.501899394116956,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "variable": 0
+                    },
+                    "right": {
+                        "cutpoint": 0.704136999456955,
+                        "left": {
+                            "cutpoint": 0.34474084242385805,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "right": [
+                            1.2398990444301203
+                        ],
+                        "variable": 0
+                    },
+                    "variable": 1
+                },
+                "variable": 1
+            },
+            "2": {
+                "cutpoint": 0.6966253324340461,
+                "left": {
+                    "cutpoint": 0.27478808909245367,
+                    "left": {
+                        "cutpoint": 0.6158636134710499,
+                        "left": [
+                            0.010117188081555475
+                        ],
+                        "right": {
+                            "cutpoint": 0.7689381726139931,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "variable": 0
+                    },
+                    "right": {
+                        "cutpoint": 0.7058003625498981,
+                        "left": {
+                            "cutpoint": 0.3170380897677211,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "right": {
+                            "cutpoint": 0.48512142519657797,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "variable": 0
+                    },
+                    "variable": 1
+                },
+                "right": {
+                    "cutpoint": 0.7274319979436207,
+                    "left": {
+                        "cutpoint": 0.7188178254867326,
+                        "left": {
+                            "cutpoint": 0.7500994927645641,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "right": [
+                            -0.05862093506946593
+                        ],
+                        "variable": 1
+                    },
+                    "right": {
+                        "cutpoint": 0.29621719163754234,
+                        "left": [
+                            -0.07958348006277573
+                        ],
+                        "right": [
+                            0.040540234745511286
+                        ],
+                        "variable": 0
+                    },
+                    "variable": 1
+                },
+                "variable": 1
+            },
+            "3": {
+                "cutpoint": 0.6966253324340461,
+                "left": {
+                    "cutpoint": 0.7106368987303034,
+                    "left": {
+                        "cutpoint": 0.2771932712804719,
+                        "left": {
+                            "cutpoint": 0.6388434777893847,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "right": {
+                            "cutpoint": 0.4404076721155685,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "variable": 1
+                    },
+                    "right": {
+                        "cutpoint": 0.5489780494520349,
+                        "left": [
+                            0.22568638467955426
+                        ],
+                        "right": [
+                            0.6040303009228303
+                        ],
+                        "variable": 1
+                    },
+                    "variable": 0
+                },
+                "right": {
+                    "cutpoint": 0.7274319979436207,
+                    "left": {
+                        "cutpoint": 0.7188178254867326,
+                        "left": {
+                            "cutpoint": 0.7500994927645641,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "right": [
+                            0.05176087722785429
+                        ],
+                        "variable": 1
+                    },
+                    "right": {
+                        "cutpoint": 0.7068307641962586,
+                        "left": {
+                            "cutpoint": 0.921401209220455,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "right": [
+                            0.5466779133678853
+                        ],
+                        "variable": 0
+                    },
+                    "variable": 1
+                },
+                "variable": 1
+            },
+            "4": {
+                "cutpoint": 0.6966253324340461,
+                "left": {
+                    "cutpoint": 0.7106368987303034,
+                    "left": {
+                        "cutpoint": 0.2771932712804719,
+                        "left": {
+                            "cutpoint": 0.1627158554310535,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "right": {
+                            "cutpoint": 0.3192953079361872,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "variable": 1
+                    },
+                    "right": {
+                        "cutpoint": 0.2658824761228392,
+                        "left": [
+                            0.34175819108319394
+                        ],
+                        "right": {
+                            "cutpoint": 0.525832197572373,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 1
+                        },
+                        "variable": 1
+                    },
+                    "variable": 0
+                },
+                "right": {
+                    "cutpoint": 0.7274319979436207,
+                    "left": {
+                        "cutpoint": 0.7188178254867326,
+                        "left": {
+                            "cutpoint": 0.7500994927645641,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "right": {
+                            "cutpoint": 0.6746487520945132,
+                            "left": [
+                                0.0
+                            ],
+                            "right": [
+                                0.0
+                            ],
+                            "variable": 0
+                        },
+                        "variable": 1
+                    },
+                    "right": {
+                        "cutpoint": 0.6066842122849208,
+                        "left": [
+                            -0.021413387468326467
+                        ],
+                        "right": [
+                            0.2008067363961463
+                        ],
+                        "variable": 0
+                    },
+                    "variable": 1
+                },
+                "variable": 1
+            }
+        }
+    },
+    "y_mean": 1.316225216875589
+}

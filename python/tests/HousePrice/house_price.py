@@ -31,7 +31,7 @@ valid_data = pd.concat([cont_train.loc[1300:,],cat_train.loc[1300:,]],axis=1)
 target_train = np.log1p(target[:1300]); target_valid = np.log1p(target.loc[1300:]);
 
 
-xbart = XBART(num_trees = 125,tau = 1/125,beta = 2.0)
+xbart = XBART(num_trees = 50,tau =1/50,beta = 1.25,num_sweeps = 60,num_cutpoints = 10)
 time_start_fit = time.time()
 xbart.fit(train_data,target_train,cat_train.shape[1])
 time_start_predict = time.time()
