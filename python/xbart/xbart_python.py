@@ -160,6 +160,10 @@ class XBART(object):
 		fit_x = x 
 		fit_y = y
 
+		self.num_features = fit_x.shape[1]
+
+		assert p_cat <= self.num_features, "p_cat must be <= # fes"
+
 		# Update Values #
 		self.__update_fit_x_y(x,fit_x,y,fit_y)
 		self.__update_mtry_tau(fit_x)
@@ -186,6 +190,8 @@ class XBART(object):
 		self.__check_inputs(x_test)
 		pred_x = x_test 
 		self.__update_fit_x_y(x_test,pred_x)
+
+		assert x_test.shape[1] == self.num_features, "Incorrect number of features"
 
 		# Run Predict
 		x_pred = self.xbart_cpp._predict(pred_x)
