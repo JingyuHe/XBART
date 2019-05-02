@@ -1,17 +1,25 @@
 sudo: required
-dist: xenial
-language: python
+matrix:
+  include:
+    - language: python
+	  dist: xenial
+      python: 3.6
+      before_install:
+        - cd python
+        - pip install numpy
+        - bash build_py.sh
+        - cp tests/test.py .
+      script:
+        - python test.py
 
-python:
-  - "3.6"
+  	- language: R
+  	
 
-install:
-  - cd python
-  - pip install numpy
-  - bash build_py.sh
-  - cp tests/test.py .
-  
-script: python test.py
+
+
+
+
+
 
 
 

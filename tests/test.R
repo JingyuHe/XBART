@@ -153,13 +153,21 @@ if(run_lightgbm){
 
 #######################################################################
 # print
-print(paste("rmse of fit xbart: ", round(sqrt(mean((fhat.1 - ftest) ^ 2)), digits = 4)))
+xbart_rmse = sqrt(mean((fhat.1 - ftest) ^ 2))
+print(paste("rmse of fit xbart: ", round(xbart_rmse, digits = 4)))
 print(paste("rmse of fit dbart: ", round(sqrt(mean((fhat.db - ftest) ^ 2)), digits = 4)))
 
 print(paste("running time, dbarts", time_dbarts))
 print(paste("running time, XBART", time_XBART))
 
+
 plot(ftest, fhat.db, pch = 20, col = 'orange')
 points(ftest, fhat.1, pch = 20, col = 'slategray')
 legend("topleft", c("dbarts", "XBART"), col = c("orange", "slategray"), pch = c(20, 20))
+
+
+# For Travis
+stopifnot(xbart_rmse < 1)
+stopifnot(time_XBART < 5)
+
 
