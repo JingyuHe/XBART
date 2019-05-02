@@ -73,6 +73,8 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
             mtry_weight_current_tree = mtry_weight_current_tree + fit_info->split_count_current_tree;
             fit_info->split_count_all_tree[tree_ind] = fit_info->split_count_current_tree;
 
+            std::cout << "Mty: "  << mtry_weight_current_tree << std::endl;
+
             // Update Predict
             fit_new_std_datapointers(Xpointer, N, tree_ind, fit_info->predictions_std[tree_ind], fit_info->data_pointers);
 
