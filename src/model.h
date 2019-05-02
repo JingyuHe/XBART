@@ -182,7 +182,7 @@ class CLTClass : public Model
 {
   private:
     size_t dim_suffstat_total = 4;
-    std::vector<double> suff_stat_total;
+    //std::vector<double> suff_stat_total;
 
   public:
     CLTClass() : Model(1, 4)
@@ -190,19 +190,21 @@ class CLTClass : public Model
         suff_stat_total.resize(dim_suffstat_total);
     }
     std::vector<double> total_fit; // Keep public to save copies
+    std::vector<double> suff_stat_total;
 
     void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder)
     {
         // fill the suff_stat_model with a value
         // in function call, a = 0.0 to reset sufficient statistics vector
         size_t n = xorder.size();
-        double current_fit_val = total_fit[xorder[0]];
+        size_t x_order_0 = xorder[0];
+        double current_fit_val = total_fit[x_order_0];
 
         double psi = max(current_fit_val * (1 - current_fit_val), 0.15);
-        Model::suff_stat_model[0] = y_std[xorder[0]] / psi;
+        Model::suff_stat_model[0] = y_std[x_order_0] / psi;
         Model::suff_stat_model[1] = 1 / psi;
         Model::suff_stat_model[2] = std::log(1 / psi);
-        Model::suff_stat_model[3] = pow(y_std[xorder[0]], 2) / psi;
+       // Model::suff_stat_model[3] = pow(y_std[x_order_0], 2) / psi;
         return;
     }
     void incrementSuffStat() const { return; };
@@ -249,16 +251,18 @@ class CLTClass : public Model
         double current_fit_val;
         double psi;
         double obs;
+        size_t x_order_i;
         for (size_t i = start; i <= end; i++)
         {
-            current_fit_val = total_fit[xorder_var[i]];
-            obs = y[xorder_var[i]];
+            x_order_i = xorder_var[i];
+            current_fit_val = total_fit[x_order_i];
+            obs = y[x_order_i];
 
             psi = std::max(current_fit_val * (1 - current_fit_val), 0.15);
             Model::suff_stat_model[0] += obs / psi;
             Model::suff_stat_model[1] += 1 / psi;
             Model::suff_stat_model[2] += std::log(1 / psi);
-            Model::suff_stat_model[3] += pow(obs, 2) / psi;
+            //Model::suff_stat_model[3] += pow(obs, 2) / psi;
             loop_count++;
         }
         return;
@@ -271,14 +275,16 @@ class CLTClass : public Model
         double current_fit_val;
         double psi;
         double obs;
+        size_t x_order_q;
         if (adaptive_cutpoint)
         {
 
             // if use adaptive number of cutpoints, calculated based on vector candidate_index
             for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
             {
-                current_fit_val = total_fit[xorder[q]];
-                obs = y_std[xorder[q]];
+                x_order_q = xorder[q];
+                current_fit_val = total_fit[x_order_q];
+                obs = y_std[x_order_q];
 
                 //if (current_fit_val > 1.0 || current_fit_val < -1.0){obs = 0.0;}
 
@@ -287,7 +293,7 @@ class CLTClass : public Model
                 Model::suff_stat_model[0] += obs / psi;
                 Model::suff_stat_model[1] += 1 / psi;
                 Model::suff_stat_model[2] += std::log(1 / psi);
-                Model::suff_stat_model[3] += pow(obs, 2) / psi;
+                //Model::suff_stat_model[3] += pow(obs, 2) / psi;
             }
         }
         else
@@ -300,7 +306,7 @@ class CLTClass : public Model
             Model::suff_stat_model[0] += obs / psi;
             Model::suff_stat_model[1] += 1 / psi;
             Model::suff_stat_model[2] += std::log(1 / psi);
-            Model::suff_stat_model[3] += pow(obs, 2) / psi;
+            //Model::suff_stat_model[3] += pow(obs, 2) / psi;
         }
 
         return;
@@ -308,23 +314,24 @@ class CLTClass : public Model
 
     void updateFullSuffStat(std::vector<double> &y_std, std::vector<size_t> &x_info)
     {
-        suff_stat_total = std::vector<double>(dim_suffstat, 0);
         size_t n = x_info.size();
         double current_fit_val;
         double psi;
         double obs;
+        size_t x_order_i;
         for (size_t i = 0; i < n; i++)
         {
-            current_fit_val = total_fit[x_info[i]];
-            obs = y_std[x_info[i]];
+            x_order_i = x_info[i];
+            current_fit_val = total_fit[x_order_i];
+            obs = y_std[x_order_i];
 
             psi = std::max(current_fit_val * (1 - current_fit_val), 0.15);
             suff_stat_total[0] += obs / psi;
             suff_stat_total[1] += 1 / psi;
             suff_stat_total[2] += std::log(1 / psi);
-            suff_stat_total[3] += pow(obs, 2) / psi;
-        }
+            //suff_stat_total[3] += pow(obs, 2) / psi;
 
+        }
         return;
     }
 
@@ -335,12 +342,12 @@ class CLTClass : public Model
 
         if (left_side)
         {
-            return 0.5 * Model::suff_stat_model[2] + 0.5 * std::log((1 / tau) / ((1 / tau) + Model::suff_stat_model[1])) + 0.5 * tau / (1 + tau * Model::suff_stat_model[1]) * pow(Model::suff_stat_model[0], 2) - 0.5 * Model::suff_stat_model[3];
+            return 0.5 * Model::suff_stat_model[2] + 0.5 * std::log((1 / tau) / ((1 / tau) + Model::suff_stat_model[1])) + 0.5 * tau / (1 + tau * Model::suff_stat_model[1]) * pow(Model::suff_stat_model[0], 2); //- 0.5 * Model::suff_stat_model[3];
             ;
         }
         else
         {
-            return 0.5 * (suff_stat_total[2] - Model::suff_stat_model[2]) + 0.5 * std::log((1 / tau) / ((1 / tau) + (suff_stat_total[1] - Model::suff_stat_model[1]))) + 0.5 * tau / (1 + tau * (suff_stat_total[1] - Model::suff_stat_model[1])) * pow(suff_stat_total[0] - Model::suff_stat_model[0], 2) - 0.5 * (suff_stat_total[3] - Model::suff_stat_model[3]);
+            return 0.5 * (suff_stat_total[2] - Model::suff_stat_model[2]) + 0.5 * std::log((1 / tau) / ((1 / tau) + (suff_stat_total[1] - Model::suff_stat_model[1]))) + 0.5 * tau / (1 + tau * (suff_stat_total[1] - Model::suff_stat_model[1])) * pow(suff_stat_total[0] - Model::suff_stat_model[0], 2) ;// - 0.5 * (suff_stat_total[3] - Model::suff_stat_model[3]);
         }
     }
 
