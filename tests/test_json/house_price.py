@@ -23,9 +23,8 @@ xbart = XBART(num_trees = 125,tau = 1/125,beta = 2.0)
 time_start_fit = time.time()
 xbart.fit(train_data,target_train,p_cat=289)
 time_start_predict = time.time()
-y_pred = xbart.predict(valid_data)
+y_hat_xbart = xbart.predict(valid_data)
 time_end_predict = time.time()
-y_hat_xbart = y_pred[:,15:].mean(axis=1)
 
 print("Done!")
 print("Xbart rmse:" + str(rmse(y_hat_xbart,target_valid)))
@@ -36,8 +35,7 @@ xbart.to_json("model.xbart")
 
 xbart2 = XBART(num_trees = 125,tau = 1/125,beta = 2.0)
 xbart2.from_json("model.xbart")
-y_pred_2 = xbart2.predict(valid_data)
-y_hat_xbart_2 = y_pred_2[:,15:].mean(axis=1)
+y_hat_xbart_2 = xbart2.predict(valid_data)
 print("Xbart rmse loaded:" + str(rmse(y_hat_xbart_2,target_valid)))
 
 
