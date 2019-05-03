@@ -232,11 +232,13 @@ class XBART(object):
 
 		# Additionaly Members
 		self.importance = self.xbart_cpp._get_importance(fit_x.shape[1])
-		self.importance = self.importance.astype(int)
+		self.importance = dict(zip(self.columns,self.importance.astype(int)))
+		
+
 		if self.model == "Normal":
-			self.sigma_draws = self.xbart_cpp.get_sigma_draw(self.xbart_cpp.get_N_sweeps()*self.xbart_cpp.get_M())
+			self.sigma_draws = self.xbart_cpp.get_sigma_draw(self.params["num_sweeps"]*self.params["num_trees"])
 			# Convert from colum major 
-			self.sigma_draws = self.sigma_draws.reshape((self.xbart_cpp.get_M(),self.xbart_cpp.get_N_sweeps()),order='C')
+			self.sigma_draws = self.sigma_draws.reshape((self.params["num_trees"],self.params["num_sweeps"]),order='C')
 		
 		self.is_fit = True
 		return self
@@ -267,11 +269,11 @@ class XBART(object):
 		# Run Predict
 		x_pred = self.xbart_cpp._predict(pred_x)
 		# Convert to numpy
-		yhats_test = self.xbart_cpp.get_yhats_test(self.xbart_cpp.get_N_sweeps()*pred_x.shape[0])
+		yhats_test = self.xbart_cpp.get_yhats_test(self.params["num_sweeps"]*pred_x.shape[0])
 		# Convert from colum major 
-		self.yhats_test = yhats_test.reshape((pred_x.shape[0],self.xbart_cpp.get_N_sweeps()),order='C')
+		self.yhats_test = yhats_test.reshape((pred_x.shape[0],self.params["num_sweeps"]),order='C')
 		# Compute mean
-		self.yhats_mean =  yhats_test[:,self.xbart_cpp.get_N_sweeps():].mean(axis=1)
+		self.yhats_mean =  self.yhats_test[:,self.params["burnin"]:].mean(axis=1)
 
 		if return_mean:
 			return self.yhats_mean
@@ -332,6 +334,7 @@ class XBART(object):
 		with open(json_path) as f:
 			json_string = f.read()
 		self.xbart_cpp = XBARTcpp(json_string)
+		self.is_fit = True
 		return self
 
 
