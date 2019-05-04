@@ -106,6 +106,7 @@ class XBART(object):
 			self.columns = x.columns
 		else:
 			self.columns = range(x.shape[1])
+		self.num_columns = len(self.columns)
 
 	def __update_fit_x_y(self,x,fit_x,y=None,fit_y=None):
 		'''
@@ -117,7 +118,7 @@ class XBART(object):
 			if isinstance(y,Series):
 				fit_y = y.values
 
-	def __check_inputs(self,x,y=None):
+	def __check_input_type(self,x,y=None):
 		'''
 		Dimension check
 		'''
@@ -128,6 +129,12 @@ class XBART(object):
 			if not isinstance(y,(np.ndarray,Series)):
 				raise TypeError("y must be numpy array or pandas Series")
 
+	def __check_test_shape(self,x):
+		assert x.shape[1] == self.num_columns, "Mismatch on number of columns"
+
+	def __check_params(self,p_cat):
+		assert p_cat <= self.num_columns, "p_cat must be <= self.num_columns"
+		assert self.params["mtry"] <= self.num_columns, "mtry must be <= self.num_columns"
 
 	def __update_mtry_tau_penality(self,x):
 		'''
@@ -213,10 +220,11 @@ class XBART(object):
 			To use this feature set place the categorical features as the last p_cat columns of x 
 		'''
 		# Check inputs #
-		self.__check_inputs(x,y)
+		self.__check_input_type(x,y)
 		self.__add_columns(x)
 		fit_x = x 
 		fit_y = y
+		
 
 		# Update Values #
 		self.__update_fit_x_y(x,fit_x,y,fit_y)
@@ -262,8 +270,9 @@ class XBART(object):
 		assert self.is_fit, "Must run fit before running predict"
 
 		# Check inputs # 
-		self.__check_inputs(x_test)
+		self.__check_input_type(x_test)
 		pred_x = x_test 
+		self.__check_test_shape(pred_x)
 		self.__update_fit_x_y(x_test,pred_x)
 
 		# Run Predict
