@@ -133,8 +133,8 @@ class XBART(object):
 		assert x.shape[1] == self.num_columns, "Mismatch on number of columns"
 
 	def __check_params(self,p_cat):
-		assert p_cat <= self.num_columns, "p_cat must be <= self.num_columns"
-		assert self.params["mtry"] <= self.num_columns, "mtry must be <= self.num_columns"
+		assert p_cat <= self.num_columns, "p_cat must be <= number of columns"
+		assert self.params["mtry"] <= self.num_columns, "mtry must be <= number of columns"
 
 	def __update_mtry_tau_penality(self,x):
 		'''
@@ -219,13 +219,14 @@ class XBART(object):
 			Number of features to treat as categorical for cutpoint options. More efficient.
 			To use this feature set place the categorical features as the last p_cat columns of x 
 		'''
+
 		# Check inputs #
 		self.__check_input_type(x,y)
 		self.__add_columns(x)
 		fit_x = x 
 		fit_y = y
+		self.__check_params(p_cat)
 		
-
 		# Update Values #
 		self.__update_fit_x_y(x,fit_x,y,fit_y)
 		self.__update_mtry_tau_penality(fit_x)
