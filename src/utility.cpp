@@ -68,7 +68,7 @@ void row_sum(xinfo &X, std::vector<double> &output)
     {
         for (size_t j = 0; j < p; j++)
         {
-            // cout << X[j][i] << endl;
+            // COUT << X[j][i] << endl;
             output[i] = output[i] + X[j][i];
         }
     }

@@ -48,7 +48,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
     if (mtry != p)
     {
-        cout << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
+        COUT << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
     }
 
     arma::umat Xorder(X.n_rows, X.n_cols);
@@ -114,10 +114,10 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
     unique_value_count2(Xpointer, Xorder_std, X_values, X_counts, variable_ind, total_points, X_num_unique, p_categorical, p_continuous);
 
-    cout << "X_values" << X_values << endl;
-    cout << "X_counts" << X_counts << endl;
-    cout << "variable_ind " << variable_ind << endl;
-    cout << "X_num_unique " << X_num_unique << endl;
+    COUT << "X_values" << X_values << endl;
+    COUT << "X_counts" << X_counts << endl;
+    COUT << "variable_ind " << variable_ind << endl;
+    COUT << "X_num_unique " << X_num_unique << endl;
 
     xinfo yhats_std;
     ini_xinfo(yhats_std, N, num_sweeps);
@@ -210,9 +210,9 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
         if (verbose == true)
         {
-            cout << "--------------------------------" << endl;
-            cout << "number of sweeps " << sweeps << endl;
-            cout << "--------------------------------" << endl;
+            COUT << "--------------------------------" << endl;
+            COUT << "number of sweeps " << sweeps << endl;
+            COUT << "--------------------------------" << endl;
         }
 
         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
@@ -263,7 +263,7 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
             if (verbose == true)
             {
-                cout << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
+                COUT << "tree " << tree_ind << " size is " << trees.t[tree_ind].treesize() << endl;
             }
 
             // update prediction of current tree
@@ -306,11 +306,11 @@ Rcpp::List train_forest_root_std_all(arma::mat y, arma::mat X, arma::mat Xtest, 
 
     auto duration = duration_cast<microseconds>(end - start);
 
-    cout << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
+    COUT << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
 
-    cout << "Running time of split Xorder " << run_time << endl;
+    COUT << "Running time of split Xorder " << run_time << endl;
 
-    cout << "Count of splits for each variable " << mtry_weight_current_tree << endl;
+    COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
     return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw);
 }

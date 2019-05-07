@@ -4,7 +4,6 @@
 #include <cstdlib>
 using namespace std;
 
-const double PI = 3.1415926535;
 const double SQRT2PI = 2.5066282746;
 const double SQRT2 = 1.414214;
 

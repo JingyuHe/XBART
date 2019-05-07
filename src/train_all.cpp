@@ -119,7 +119,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
 
     if (mtry != p)
     {
-        cout << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
+        COUT << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
     }
 
     arma::umat Xorder(X.n_rows, X.n_cols);
@@ -211,11 +211,11 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
 
     auto duration = duration_cast<microseconds>(end - start);
 
-    // cout << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
+    // COUT << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
 
-    // cout << "Running time of split Xorder " << run_time << endl;
+    // COUT << "Running time of split Xorder " << run_time << endl;
 
-    // cout << "Count of splits for each variable " << mtry_weight_current_tree << endl;
+    // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
     return Rcpp::List::create(
@@ -261,7 +261,7 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
 
     if (mtry != p)
     {
-        cout << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
+        COUT << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
     }
 
     arma::umat Xorder(X.n_rows, X.n_cols);
@@ -362,11 +362,11 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
 
     auto duration = duration_cast<microseconds>(end - start);
 
-    // cout << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
+    // COUT << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
 
-    // cout << "Running time of split Xorder " << run_time << endl;
+    // COUT << "Running time of split Xorder " << run_time << endl;
 
-    // cout << "Count of splits for each variable " << mtry_weight_current_tree << endl;
+    // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
     return Rcpp::List::create(
@@ -412,7 +412,7 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
 
     if (mtry != p)
     {
-        cout << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
+        COUT << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
     }
 
     arma::umat Xorder(X.n_rows, X.n_cols);
@@ -512,11 +512,11 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
 
     auto duration = duration_cast<microseconds>(end - start);
 
-    // cout << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
+    // COUT << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
 
-    // cout << "Running time of split Xorder " << run_time << endl;
+    // COUT << "Running time of split Xorder " << run_time << endl;
 
-    // cout << "Count of splits for each variable " << mtry_weight_current_tree << endl;
+    // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
     return Rcpp::List::create(
