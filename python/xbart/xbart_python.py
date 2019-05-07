@@ -85,7 +85,7 @@ class XBART(object):
 			verbose=verbose,draw_mu=draw_mu,
 			parallel=parallel,seed=seed,model_num=model_num,no_split_penality =no_split_penality)
 		args = self.__convert_params_check_types(**self.params)
-		self.xbart_cpp = None
+		self._xbart_cpp = None
 
 		# Additional Members
 		self.importance = None
@@ -225,20 +225,20 @@ class XBART(object):
 		self.__check_params(p_cat)
 
 		# Create xbart_cpp object #
-		if self.xbart_cpp is None:
+		if self._xbart_cpp is None:
 			args = list(self.params.values())
-			self.xbart_cpp = XBARTcpp(*args)
+			self._xbart_cpp = XBARTcpp(*args)
 
 		# fit #
-		self.xbart_cpp._fit(fit_x,fit_y,p_cat)
+		self._xbart_cpp._fit(fit_x,fit_y,p_cat)
 
 		# Additionaly Members
-		self.importance = self.xbart_cpp._get_importance(fit_x.shape[1])
+		self.importance = self._xbart_cpp._get_importance(fit_x.shape[1])
 		self.importance = dict(zip(self.columns,self.importance.astype(int)))
 		
 
 		if self.model == "Normal":
-			self.sigma_draws = self.xbart_cpp.get_sigma_draw(self.params["num_sweeps"]*self.params["num_trees"])
+			self.sigma_draws = self._xbart_cpp.get_sigma_draw(self.params["num_sweeps"]*self.params["num_trees"])
 			# Convert from colum major 
 			self.sigma_draws = self.sigma_draws.reshape((self.params["num_sweeps"],self.params["num_trees"]),order='F')
 		
@@ -269,9 +269,9 @@ class XBART(object):
 		self.__update_fit_x_y(x_test,pred_x)
 
 		# Run Predict
-		x_pred = self.xbart_cpp._predict(pred_x)
+		x_pred = self._xbart_cpp._predict(pred_x)
 		# Convert to numpy
-		yhats_test = self.xbart_cpp.get_yhats_test(self.params["num_sweeps"]*pred_x.shape[0])
+		yhats_test = self._xbart_cpp.get_yhats_test(self.params["num_sweeps"]*pred_x.shape[0])
 		# Convert from colum major 
 		self.yhats_test = yhats_test.reshape((pred_x.shape[0],self.params["num_sweeps"]),order='C')
 		# Compute mean
@@ -314,7 +314,7 @@ class XBART(object):
 		file: str
 			Output path to file. If none, returns string.
 		'''
-		json_str = self.xbart_cpp._to_json()
+		json_str = self._xbart_cpp._to_json()
 		j = json.loads(json_str)
 		j["params"] = self.params
 		j["num_columns"] = self.num_columns
@@ -336,7 +336,7 @@ class XBART(object):
 		with open(json_path) as f:
 			j = json.load(f)
 
-		self.xbart_cpp = XBARTcpp(json.dumps(j))
+		self._xbart_cpp = XBARTcpp(json.dumps(j))
 		self.is_fit = True
 		self.num_columns = j["num_columns"]
 		self.params = j["params"]
