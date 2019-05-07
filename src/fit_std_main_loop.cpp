@@ -41,9 +41,9 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
 
         if (verbose == true)
         {
-            cout << "--------------------------------" << endl;
-            cout << "number of sweeps " << sweeps << endl;
-            cout << "--------------------------------" << endl;
+            COUT << "--------------------------------" << endl;
+            COUT << "number of sweeps " << sweeps << endl;
+            COUT << "--------------------------------" << endl;
         }
 
         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
@@ -158,9 +158,9 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
 
         if (verbose == true)
         {
-            cout << "--------------------------------" << endl;
-            cout << "number of sweeps " << sweeps << endl;
-            cout << "--------------------------------" << endl;
+            COUT << "--------------------------------" << endl;
+            COUT << "number of sweeps " << sweeps << endl;
+            COUT << "--------------------------------" << endl;
         }
 
         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
@@ -178,7 +178,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
             // clear counts of splits for one tree
             std::fill(fit_info->split_count_current_tree.begin(), fit_info->split_count_current_tree.end(), 0.0);
 
-            //cout << fit_info->split_count_current_tree << endl;
+            //COUT << fit_info->split_count_current_tree << endl;
 
             trees[sweeps][tree_ind].grow_tree_adaptive_std_all(sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, fit_info->residual_std, Xorder_std, Xpointer, mtry, fit_info->use_all, fit_info->split_count_all_tree, mtry_weight_current_tree, fit_info->split_count_current_tree, fit_info->categorical_variables, p_categorical, p_continuous, fit_info->X_values, fit_info->X_counts, fit_info->variable_ind, fit_info->X_num_unique, model, fit_info->data_pointers, tree_ind, fit_info->gen);
 
@@ -252,9 +252,9 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
 
         if (verbose == true)
         {
-            cout << "--------------------------------" << endl;
-            cout << "number of sweeps " << sweeps << endl;
-            cout << "--------------------------------" << endl;
+            COUT << "--------------------------------" << endl;
+            COUT << "number of sweeps " << sweeps << endl;
+            COUT << "--------------------------------" << endl;
         }
 
         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
@@ -311,8 +311,8 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
             mtry_weight_current_tree = mtry_weight_current_tree + fit_info->split_count_current_tree;
             fit_info->split_count_all_tree[tree_ind] = fit_info->split_count_current_tree;
 
-            //	cout << "outer loop split_count" << fit_info->split_count_current_tree << endl;
-            //	cout << "outer loop weights" << fit_info->mtry_weight_current_tree << endl;
+            //	COUT << "outer loop split_count" << fit_info->split_count_current_tree << endl;
+            //	COUT << "outer loop weights" << fit_info->mtry_weight_current_tree << endl;
 
             // Update Predict
             fit_new_std_datapointers(Xpointer, N, tree_ind, fit_info->predictions_std[tree_ind], fit_info->data_pointers);

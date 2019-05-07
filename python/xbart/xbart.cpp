@@ -224,7 +224,9 @@ void XBARTcpp::get_sigma_draw(int size,double *arr){
   xinfo_to_np(this->sigma_draw_xinfo,arr);
 }
 void XBARTcpp::_get_importance(int size,double *arr){
-  arr = &this->mtry_weight_current_tree[0];
+  for(size_t i =0; i < size ; i++){
+    arr[i] = this->mtry_weight_current_tree[i];
+  }
 }
 
 

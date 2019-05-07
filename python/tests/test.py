@@ -56,17 +56,16 @@ class XBARTTesting1(unittest.TestCase):
 		y_copy = y.copy()
 		x_test_copy = x_test.copy()
 
-		y_pred = self.model.fit_predict(x,y,x_test,d-1)
+		y_pred = self.model.fit_predict(x,y,x_test,d-1,return_mean=False)
 
 		assert(np.array_equal(x_test_copy, x_test))
-		y_pred_2 = self.model.predict(x_test)
+		y_hat_2 = self.model.predict(x_test)
 		assert(np.array_equal(x_test_copy, x_test))
 
 		self.model_2.fit(x,y,d-1)
-		y_pred_3 = self.model_2.predict(x_test)
+		y_pred_3 = self.model_2.predict(x_test,return_mean=False)
 
 		y_hat = y_pred[:,self.params["burnin"]:].mean(axis=1)
-		y_hat_2 = y_pred_2[:,self.params["burnin"]:].mean(axis=1)
 		y_hat_3 = y_pred_3[:,self.params["burnin"]:].mean(axis=1)
 
 
@@ -91,7 +90,7 @@ class XBARTTesting1(unittest.TestCase):
 		n_test = 1000
 		x_test= np.random.rand(n_test,d)
 		y_test = np.sin(x_test[:,0]**2)+x_test[:,1] + np.random.rand(n_test)
-		y_pred = self.model.fit_predict(x,y,x_test)
+		y_pred = self.model.fit_predict(x,y,x_test,return_mean=False)
 		y_hat = y_pred[:,self.params["burnin"]:].mean(axis=1)
 
 		x_copy = x.copy()
@@ -108,7 +107,7 @@ class XBARTTesting1(unittest.TestCase):
 		js = self.model.to_json()
 		self.model.to_json("model.xbart")
 		self.model.from_json("model.xbart")
-		y_pred_json = self.model.predict(x_test)
+		y_pred_json = self.model.predict(x_test,return_mean=False)
 		self.assertTrue(np.array_equal(y_pred_json,y_pred))
 
 	def test_z_from_json(self):
@@ -116,7 +115,7 @@ class XBARTTesting1(unittest.TestCase):
 		model.from_json("model.xbart")
 		n_test = 1000; d = 10
 		x_test= np.random.rand(n_test,d)
-		y_pred_json = model.predict(x_test)
+		y_pred_json = model.predict(x_test,return_mean=False)
 		self.assertFalse(np.array_equal(y_pred_json,y_pred_json*0))
 
 			

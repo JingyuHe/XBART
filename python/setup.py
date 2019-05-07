@@ -16,11 +16,10 @@ XBART_cpp_module = Extension('_xbart_cpp_',
                                         "src/common.cpp" ,   "src/forest.cpp",    
                                         "src/tree.cpp","src/thread_pool.cpp",
                                         "src/cdf.cpp","src/json_io.cpp"
-
                                     ],
                             language= "c++",
                             include_dirs = [numpy.get_include(),'.', "src","xbart"],
-                           extra_compile_args=compile_args#,"-larmadillo", "-llapack", "-lblas"]
+                            extra_compile_args=compile_args
                            )
 
 

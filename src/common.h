@@ -32,7 +32,7 @@
 #include <string>
 #include <random>
 #include <vector>
-//#include <RcppArmadillo.h>
+
 #include <cassert>
 //#include <RcppParallel.h>
 #include <map>
@@ -42,17 +42,24 @@
 
 using std::endl;
 
-#ifdef _OPENMP
-#include <omp.h>
+#ifdef BEGIN_RCPP   // May need to change this
+#include <RcppArmadillo.h>
+#define COUT Rcpp::Rcout
+#else
+#define COUT std::cout
 #endif
+
+
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::plugins(cpp11)]]
 
 // #include <Rcpp.h>
 
-//#define printf Rprintf
-//#define cout Rcpp::Rcout
+// #define printf Rprintf
+
+// #define err Rcpp::Rerr
+// #define assert Rcpp::Rassert
 
 // log(2*pi)
 #define LTPI 1.83787706640934536
