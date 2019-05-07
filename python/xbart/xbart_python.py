@@ -3,6 +3,7 @@ if __name__ == "__main__" and __package__ is None:
 from .xbart_cpp_ import XBARTcpp
 import collections
 import numpy as np
+import json
 
 ## Optional Import Pandas ## 
 try:
@@ -141,18 +142,14 @@ class XBART(object):
 		Handle mtry, tau, and no_split_penality defaults
 		'''
 		if self.params["mtry"] == "auto":
-			p = x.shape[1]
-			if p < 25:
-				self.params["mtry"] = p
-			else:
-				self.params["mtry"] = int((p)**0.5)
+			self.params["mtry"] = self.num_columns 
 		if self.params["tau"]  == "auto":
 			self.params["tau"] = 1/self.params["num_trees"]
 		
 		if self.params["no_split_penality"] == "auto":
-			from math import log2
+			from math import log
 			if self.params["model_num"] == 0:
-				self.params["no_split_penality"] = log2(self.params["num_cutpoints"])
+				self.params["no_split_penality"] = log(self.params["num_cutpoints"])
 			else:
 				self.params["no_split_penality"] = 0.0
 		
@@ -225,11 +222,11 @@ class XBART(object):
 		self.__add_columns(x)
 		fit_x = x 
 		fit_y = y
-		self.__check_params(p_cat)
 		
 		# Update Values #
 		self.__update_fit_x_y(x,fit_x,y,fit_y)
 		self.__update_mtry_tau_penality(fit_x)
+		self.__check_params(p_cat)
 
 		# Create xbart_cpp object #
 		if self.xbart_cpp is None:
@@ -247,7 +244,7 @@ class XBART(object):
 		if self.model == "Normal":
 			self.sigma_draws = self.xbart_cpp.get_sigma_draw(self.params["num_sweeps"]*self.params["num_trees"])
 			# Convert from colum major 
-			self.sigma_draws = self.sigma_draws.reshape((self.params["num_trees"],self.params["num_sweeps"]),order='C')
+			self.sigma_draws = self.sigma_draws.reshape((self.params["num_sweeps"],self.params["num_trees"]),order='F')
 		
 		self.is_fit = True
 		return self
@@ -326,9 +323,13 @@ class XBART(object):
 			Output path to file. If none, returns string.
 		'''
 		json_str = self.xbart_cpp._to_json()
+		j = json.loads(json_str)
+		j["params"] = self.params
+		j["num_columns"] = self.num_columns
+
 		if file is not None:
 			with open(file, "w") as text_file:
-				print(json_str, file=text_file)
+				json.dump(j,text_file)
 		else:
 			return json_str
 
@@ -340,11 +341,14 @@ class XBART(object):
         ----------
 		json_path: str
 			Path to file.
-		'''
+		'''		
 		with open(json_path) as f:
-			json_string = f.read()
-		self.xbart_cpp = XBARTcpp(json_string)
+			j = json.load(f)
+
+		self.xbart_cpp = XBARTcpp(json.dumps(j))
 		self.is_fit = True
+		self.num_columns = j["num_columns"]
+		self.params = j["params"]
 		return self
 
 
