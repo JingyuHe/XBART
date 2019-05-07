@@ -32,7 +32,7 @@
 #include <string>
 #include <random>
 #include <vector>
-//#include <RcppArmadillo.h>
+#include <RcppArmadillo.h>
 #include <cassert>
 //#include <RcppParallel.h>
 #include <map>
@@ -51,8 +51,10 @@ using std::endl;
 
 // #include <Rcpp.h>
 
-//#define printf Rprintf
-//#define cout Rcpp::Rcout
+// #define printf Rprintf
+#define COUT Rcpp::Rcout
+// #define err Rcpp::Rerr
+// #define assert Rcpp::Rassert
 
 // log(2*pi)
 #define LTPI 1.83787706640934536

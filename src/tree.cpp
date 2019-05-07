@@ -100,13 +100,13 @@ void tree::pr(bool pc)
     std::string pad(2 * d, ' ');
     std::string sp(", ");
     if (pc && (ntype() == 't'))
-        cout << "tree size: " << treesize() << std::endl;
-    cout << pad << "(id,parent): " << id << sp << pid;
-    cout << sp << "(v,c): " << v << sp << c;
-    cout << sp << "theta: " << theta_vector;
-    cout << sp << "type: " << ntype();
-    cout << sp << "depth: " << depth();
-    cout << sp << "pointer: " << this << std::endl;
+        COUT << "tree size: " << treesize() << std::endl;
+    COUT << pad << "(id,parent): " << id << sp << pid;
+    COUT << sp << "(v,c): " << v << sp << c;
+    COUT << sp << "theta: " << theta_vector;
+    COUT << sp << "type: " << ntype();
+    COUT << sp << "depth: " << depth();
+    COUT << sp << "pointer: " << this << std::endl;
 
     if (pc)
     {
@@ -345,7 +345,7 @@ void tree::cp(tree_p n, tree_cp o)
 {
     if (n->l)
     {
-        cout << "cp:error node has children\n";
+        COUT << "cp:error node has children\n";
         return;
     }
 
@@ -541,16 +541,16 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     std::vector<size_t> subset_vars(p);
 
-    //cout << use_all << endl;
+    //COUT << use_all << endl;
 
     if (use_all)
     {
-        //cout << "use all " << endl;
+        //COUT << "use all " << endl;
         //  subset_vars.resize(p);
         std::iota(subset_vars.begin(), subset_vars.end(), 0);
 
-        //cout << mtry_weight_current_tree << endl;
-        //cout << subset_vars << endl;
+        //COUT << mtry_weight_current_tree << endl;
+        //COUT << subset_vars << endl;
     }
     else
     {
@@ -564,15 +564,15 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
         //subset_vars = sample_int_ccrank(p, mtry, wtemp,gen);
         subset_vars = sample_int_ccrank(p, mtry, mtry_weight_current_tree, gen);
 
-        //cout << subset_vars << endl;
-        //cout << mtry_weight_current_tree << endl;
+        //COUT << subset_vars << endl;
+        //COUT << mtry_weight_current_tree << endl;
     }
 
-    BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, model, gen, mtry);
+    BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, model, gen, mtry, this->prob_split);
 
     if (no_split == true)
     {
-        // std::cout << "depth: "<< depth <<std::endl;
+        // COUT << "depth: "<< depth <<std::endl;
         // if do not split, all data points in this node are in bottom node, update matrix of pointers
         for (size_t i = 0; i < N_Xorder; i++)
         {
@@ -596,7 +596,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     split_count_current_tree[split_var] = split_count_current_tree[split_var] + 1;
 
-    //cout << split_count_current_tree << endl;
+    //COUT << split_count_current_tree << endl;
 
     xinfo_sizet Xorder_left_std;
     xinfo_sizet Xorder_right_std;
@@ -772,7 +772,7 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
         // index range of X_counts, X_values that are corresponding to current variable
         // start <= i <= end;
         start = variable_ind[i - p_continuous];
-        // cout << "start " << start << endl;
+        // COUT << "start " << start << endl;
         end = variable_ind[i + 1 - p_continuous];
 
         if (i == split_var)
@@ -781,7 +781,7 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
 
             // I think this part can be optimizied, we know location of cutvalue (split_value variable)
 
-            // cout << "compute left side " << compute_left_side << endl;
+            // COUT << "compute left side " << compute_left_side << endl;
 
             ///////////////////////////////////////////////////////////
             //
@@ -906,7 +906,7 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
         start = variable_ind[i - p_continuous];
         end = variable_ind[i + 1 - p_continuous];
 
-        // cout << "start " << start << " end " << end << " size " << X_counts_left.size() << endl;
+        // COUT << "start " << start << " end " << end << " size " << X_counts_left.size() << endl;
         for (size_t j = start; j < end; j++)
         {
             if (X_counts_left[j] > 0)
@@ -923,7 +923,7 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
     return;
 }
 
-void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model, std::mt19937 &gen, size_t &mtry)
+void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model, std::mt19937 &gen, size_t &mtry, double &prob_split)
 
 {
     // compute BART posterior (loglikelihood + logprior penalty)
@@ -1015,6 +1015,11 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
 
         ind = d(gen);
 
+
+        // save the posterior of the chosen split point
+        vec_sum(loglike, prob_split);
+        prob_split = loglike[ind] / prob_split;
+
         if (ind == loglike.size() - 1)
         {
             // no split
@@ -1074,6 +1079,12 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
         // // sample one index of split point
         ind = d(gen);
 
+
+        // save the posterior of the chosen split point
+        vec_sum(loglike, prob_split);
+        prob_split = loglike[ind] / prob_split;
+
+        
         if (ind == loglike.size() - 1)
         {
             // no split
@@ -1334,7 +1345,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
     for (auto &&i : subset_vars)
     {
 
-        // cout << "variable " << i << endl;
+        // COUT << "variable " << i << endl;
         if ((i >= p_continuous) && (X_num_unique[i - p_continuous] > 1))
         {
             // more than one unique values
@@ -1346,7 +1357,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
             {
                 // move backward if the last unique value has zero counts
                 end2 = end2 - 1;
-                // cout << end2 << endl;
+                // COUT << end2 << endl;
             }
             // move backward again, do not consider the last unique value as cutpoint
             end2 = end2 - 1;
@@ -1436,7 +1447,7 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
 
     // if (p > p_continuous)
     // {
-    //     cout << "total_categorical_split_candidates  " << total_categorical_split_candidates << endl;
+    //     COUT << "total_categorical_split_candidates  " << total_categorical_split_candidates << endl;
     //     // if using categorical variables
     //     // loglike[loglike.size() - 1] += log(total_categorical_split_candidates);
     // }
