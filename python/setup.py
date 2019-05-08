@@ -28,7 +28,7 @@ def readme():
         return f.read()
 
 setup (name = 'xbart',
-       version = '0.1.3',
+       version = '0.1.4',
        author      = "Jingyu He, Saar Yalov, P. Richard Hahn, Lee Reeves",
        description = """XBART project""",
        long_descripition = readme(),
