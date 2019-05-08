@@ -3115,9 +3115,14 @@ namespace swig {
 }
 
 
-#define SWIG_FILE_WITH_INIT
+/* inserts a macro that specifies that the resulting 
+C++ file should be built as a python extension */
+
+#define SWIG_FILE_WITH_INIT 
 #include "xbart.h"
 
+
+#include <string>
 
 
 #ifndef SWIG_FILE_WITH_INIT
@@ -3129,9 +3134,6 @@ namespace swig {
 
 
 #include <complex> 
-
-
-#include <string>
 
 
 SWIGINTERN int

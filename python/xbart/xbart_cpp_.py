@@ -95,9 +95,6 @@ except __builtin__.Exception:
         pass
     _newclass = 0
 
-
-import collections
-
 class XBARTcppParams(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, XBARTcppParams, name, value)
