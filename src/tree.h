@@ -144,8 +144,8 @@ class tree
     json to_json();
     void from_json(json &j3, size_t num_classes);
 
-#ifndef NoRcpp
-#endif
+// #ifndef NoRcpp
+// #endif
   private:
     double sig;
     //rule: left if x[v] < xinfo[v][c]
