@@ -14,11 +14,14 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
 
     tree first_tree((size_t)1); // to be safe if first tree doesn't grow
 
-    FitInfo *fit_info = new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &first_tree);
+    //FitInfo *fit_info = new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &first_tree);
+    std::unique_ptr<FitInfo> fit_info (new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &first_tree));
+ 
 
     if (parallel)
         thread_pool.start();
 
+    //std::unique_ptr<NormalModel> model (new NormalModel);
     NormalModel *model = new NormalModel();
     model->setNoSplitPenality(no_split_penality);
 
@@ -85,6 +88,8 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
         yhats_xinfo[sweeps] = fit_info->yhat_std;
     }
     thread_pool.stop();
+
+    delete model;
 }
 
 void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees,
@@ -134,8 +139,8 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
 
     tree first_tree((size_t)1); // to be safe if first tree doesn't grow
 
-    FitInfo *fit_info = new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &first_tree);
-
+    std::unique_ptr<FitInfo> fit_info (new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &first_tree));
+ 
     if (parallel)
         thread_pool.start();
 
@@ -200,6 +205,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
         yhats_xinfo[sweeps] = fit_info->yhat_std;
     }
     thread_pool.stop();
+    delete model;
 }
 
 void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
@@ -216,7 +222,8 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
 
     tree first_tree((size_t)1); // to be safe if first tree doesn't grow
 
-    FitInfo *fit_info = new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &first_tree);
+    std::unique_ptr<FitInfo> fit_info (new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &first_tree));
+ 
 
     if (parallel)
         thread_pool.start();
@@ -331,4 +338,5 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
     }
 
     thread_pool.stop();
+    delete model;
 }
