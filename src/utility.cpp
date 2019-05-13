@@ -427,3 +427,13 @@ void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, s
     return;
 }
 
+
+double normal_density(double y, double mean, double var, bool take_log){
+    double output = 0.0;
+    
+    output = -0.5 * log(2.0 * 3.14159265359 * var) - pow(y - mean, 2) / 2.0 / var;
+    if(!take_log){
+        output = exp(output);
+    }
+    return output;
+}

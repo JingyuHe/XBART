@@ -154,6 +154,8 @@ class tree
 
     double prob_split; // posterior of the chose split points, by Bayes rule
 
+    double prob_leaf; // posterior of the leaf parameter
+
     //tree structure
     tree_p p; //parent
     tree_p l; //left child
