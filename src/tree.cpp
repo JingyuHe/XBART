@@ -1020,6 +1020,8 @@ void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &
         vec_sum(loglike, prob_split);
         prob_split = loglike[ind] / prob_split;
 
+
+
         if (ind == loglike.size() - 1)
         {
             // no split
