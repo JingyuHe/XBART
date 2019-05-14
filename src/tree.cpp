@@ -575,7 +575,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
             weight_samp[i] = weight_samp[i] / weight_sum;
 
         }
-        subset_vars = sample_int_ccrank(p, mtry, mtry_weight_current_tree, gen);
+        subset_vars = sample_int_ccrank(p, mtry, weight_samp, gen);
 
         //COUT << subset_vars << endl;
         //COUT << mtry_weight_current_tree << endl;
