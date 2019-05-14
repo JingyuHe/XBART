@@ -1287,8 +1287,9 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     // std::vector<double> y_cumsum(Ncutpoints);
                     Model *clone = model->clone();
                     //model -> suff_stat_init();
-                    clone->suff_stat_fill(y_std, xorder);
-
+                    // clone->suff_stat_fill(y_std, xorder);
+                    clone->suff_stat_fill_zero();
+                    
                     for (size_t j = 0; j < Ncutpoints; j++)
                     {
                         clone->calcSuffStat_continuous(xorder, y_std, candidate_index2, j, true);

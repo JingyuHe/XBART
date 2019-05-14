@@ -135,8 +135,16 @@ class NormalModel : public Model
     {
         // calculate sufficient statistics for continuous variables
 
+
         if (adaptive_cutpoint)
         {
+
+            if(index == 0)
+            {
+                // initialize, only for the first cutpoint candidate, thus index == 0
+                Model::suff_stat_model[0] = y_std[xorder[0]];
+            }
+
             // if use adaptive number of cutpoints, calculated based on vector candidate_index
             for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
             {
@@ -276,8 +284,12 @@ class CLTClass : public Model
         double psi;
         double obs;
         size_t x_order_q;
+
+
         if (adaptive_cutpoint)
         {
+            // initialize 
+            Model::suff_stat_model[0] = y_std[xorder[0]];
 
             // if use adaptive number of cutpoints, calculated based on vector candidate_index
             for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
