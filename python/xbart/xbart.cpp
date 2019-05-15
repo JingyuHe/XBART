@@ -7,7 +7,7 @@
 
 
 
-using namespace std;
+//using namespace std;
 
 // Constructors
 XBARTcpp::XBARTcpp(XBARTcppParams params){
@@ -200,10 +200,6 @@ void XBARTcpp::np_to_vec_d(int n,double *a,vec_d &y_std){
 }
 
 void XBARTcpp::np_to_col_major_vec(int n, int d,double *a,vec_d &x_std){
-  // 
-  //vec_d x_std(n*d,0);
-  // Fill in Values of xinfo from array 
-  ;
   for(size_t i =0;i<n;i++){
     for(size_t j =0;j<d;j++){
       size_t index = i*d + j;
@@ -211,7 +207,7 @@ void XBARTcpp::np_to_col_major_vec(int n, int d,double *a,vec_d &x_std){
       x_std[index_std] = a[index];
     }
   }
-  //return x_std;
+
 }
 
 void XBARTcpp::xinfo_to_np(xinfo x_std,double *arr){
