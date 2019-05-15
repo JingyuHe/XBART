@@ -123,7 +123,7 @@ std::ostream &operator<<(std::ostream &out, const std::vector<T> &v)
     return out;
 }
 
-// Added by saar - Sort index
+
 template <typename T>
 std::vector<size_t> sort_indexes(const std::vector<T> &v)
 {

@@ -3,6 +3,7 @@
 PYTHON_BIN=python
 DIST_FLAG=false
 SWIG_FLAG=false
+TEST_FLAG=false
 
 function usage(){
     cat << ENDUSAGE
@@ -24,6 +25,7 @@ do
       -h|--help) usage; exit; ;;
       -d|--dist) DIST_FLAG=true;shift;;
       -s|--swig) SWIG_FLAG=true;shift;;
+      -t|--test) TEST_FLAG=true;shift;;
       -*|--*) printf "\n\n   ERROR: Unsupported option $1\n\n"; usage; exit; ;;
     esac
     #shift
@@ -65,4 +67,7 @@ else
 fi
 
 rm -rf src
-#$PYTHON_BIN tests/test.py
+
+if $TEST_FLAG;then
+  $PYTHON_BIN tests/test.py
+fi

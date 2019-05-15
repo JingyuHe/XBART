@@ -5405,81 +5405,6 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTcpp_sort_x(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
-  int arg2 ;
-  int arg3 ;
-  double *arg4 = (double *) 0 ;
-  int arg5 ;
-  double *arg6 = (double *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyArrayObject *array2 = NULL ;
-  int is_new_object2 = 0 ;
-  PyObject *array5 = NULL ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OOO:XBARTcpp_sort_x",&obj0,&obj1,&obj2)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_sort_x" "', argument " "1"" of type '" "XBARTcpp *""'"); 
-  }
-  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
-  {
-    npy_intp size[2] = {
-      -1, -1 
-    };
-    array2 = obj_to_array_contiguous_allow_conversion(obj1,
-      NPY_DOUBLE,
-      &is_new_object2);
-    if (!array2 || !require_dimensions(array2, 2) ||
-      !require_size(array2, size, 2)) SWIG_fail;
-    arg2 = (int) array_size(array2,0);
-    arg3 = (int) array_size(array2,1);
-    arg4 = (double*) array_data(array2);
-  }
-  {
-    npy_intp dims[1];
-    if (!PyInt_Check(obj2))
-    {
-      const char* typestring = pytype_string(obj2);
-      PyErr_Format(PyExc_TypeError,
-        "Int dimension expected.  '%s' given.",
-        typestring);
-      SWIG_fail;
-    }
-    arg5 = (int) PyInt_AsLong(obj2);
-    dims[0] = (npy_intp) arg5;
-    array5 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    if (!array5) SWIG_fail;
-    arg6 = (double*) array_data(array5);
-  }
-  (arg1)->sort_x(arg2,arg3,arg4,arg5,arg6);
-  resultobj = SWIG_Py_Void();
-  {
-    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array5);
-  }
-  {
-    if (is_new_object2 && array2)
-    {
-      Py_DECREF(array2); 
-    }
-  }
-  return resultobj;
-fail:
-  {
-    if (is_new_object2 && array2)
-    {
-      Py_DECREF(array2); 
-    }
-  }
-  return NULL;
-}
-
-
 SWIGINTERN PyObject *_wrap_XBARTcpp__fit(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   XBARTcpp *arg1 = (XBARTcpp *) 0 ;
@@ -5864,27 +5789,6 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTcpp_test_random_generator(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject * obj0 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"O:XBARTcpp_test_random_generator",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_test_random_generator" "', argument " "1"" of type '" "XBARTcpp *""'"); 
-  }
-  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
-  (arg1)->test_random_generator();
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
 SWIGINTERN PyObject *_wrap_delete_XBARTcpp(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   XBARTcpp *arg1 = (XBARTcpp *) 0 ;
@@ -5952,7 +5856,6 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"XBARTcppParams_swigregister", XBARTcppParams_swigregister, METH_VARARGS, NULL},
 	 { (char *)"new_XBARTcpp", _wrap_new_XBARTcpp, METH_VARARGS, NULL},
 	 { (char *)"XBARTcpp__to_json", _wrap_XBARTcpp__to_json, METH_VARARGS, NULL},
-	 { (char *)"XBARTcpp_sort_x", _wrap_XBARTcpp_sort_x, METH_VARARGS, NULL},
 	 { (char *)"XBARTcpp__fit", _wrap_XBARTcpp__fit, METH_VARARGS, NULL},
 	 { (char *)"XBARTcpp__predict", _wrap_XBARTcpp__predict, METH_VARARGS, NULL},
 	 { (char *)"XBARTcpp_get_M", _wrap_XBARTcpp_get_M, METH_VARARGS, NULL},
@@ -5962,7 +5865,6 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"XBARTcpp_get_yhats_test", _wrap_XBARTcpp_get_yhats_test, METH_VARARGS, NULL},
 	 { (char *)"XBARTcpp_get_sigma_draw", _wrap_XBARTcpp_get_sigma_draw, METH_VARARGS, NULL},
 	 { (char *)"XBARTcpp__get_importance", _wrap_XBARTcpp__get_importance, METH_VARARGS, NULL},
-	 { (char *)"XBARTcpp_test_random_generator", _wrap_XBARTcpp_test_random_generator, METH_VARARGS, NULL},
 	 { (char *)"delete_XBARTcpp", _wrap_delete_XBARTcpp, METH_VARARGS, NULL},
 	 { (char *)"XBARTcpp_swigregister", XBARTcpp_swigregister, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }
