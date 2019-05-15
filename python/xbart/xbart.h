@@ -27,7 +27,6 @@ class XBARTcpp{
 	private:
 		XBARTcppParams params;
 		vector<vector<tree>> trees; 
-		vec_d y_std;
 		double y_mean;
 		size_t n_train; size_t n_test; size_t d;
 		xinfo yhats_xinfo; xinfo yhats_test_xinfo; xinfo sigma_draw_xinfo; 
@@ -35,11 +34,10 @@ class XBARTcpp{
 		//xinfo split_count_all_tree;
 		
 		// helper functions
-		vec_d np_to_vec_d(int n,double *a);
-		vec_d np_to_col_major_vec(int n, int d,double *a);
-		vec_d xinfo_to_col_major_vec(xinfo x_std);
-		xinfo np_to_xinfo(int n, int d,double *a);
+		void np_to_vec_d(int n,double *a,vec_d &y_std);
+		void np_to_col_major_vec(int n, int d,double *a,vec_d &x_std);
 		void xinfo_to_np(xinfo x_std,double *arr);
+		void compute_Xorder(size_t n, size_t d, const vec_d &x_std_flat,xinfo_sizet & Xorder_std);
 		size_t seed; bool seed_flag;
 		size_t model_num; // 0 : normal, 1 : clt
 		double no_split_penality;
@@ -61,13 +59,7 @@ class XBARTcpp{
 		XBARTcpp(std::string json_string);
 
 		std::string _to_json(void);
-		// // Destructor
-		//~XBARTcpp();
-
 	
-		// void sort_x(int n, int d, double *a);
-		void sort_x(int n,int d,double *a,int size, double *arr);
-
 		void _fit(int n,int d,double *a, // Train X 
       		int n_y,double *a_y, size_t p_cat);
 		void _predict(int n, int d, double *a);//,int size, double *arr);
@@ -82,5 +74,4 @@ class XBARTcpp{
 		void get_yhats_test(int size, double *arr);
 		void get_sigma_draw(int size, double *arr);
 		void _get_importance(int size, double *arr);
-		void test_random_generator();
 };

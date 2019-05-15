@@ -194,9 +194,6 @@ class XBARTcpp(_object):
     def _to_json(self) -> "std::string":
         return _xbart_cpp_.XBARTcpp__to_json(self)
 
-    def sort_x(self, n: 'int', size: 'int') -> "void":
-        return _xbart_cpp_.XBARTcpp_sort_x(self, n, size)
-
     def _fit(self, n: 'int', n_y: 'int', p_cat: 'size_t') -> "void":
         return _xbart_cpp_.XBARTcpp__fit(self, n, n_y, p_cat)
 
@@ -223,9 +220,6 @@ class XBARTcpp(_object):
 
     def _get_importance(self, size: 'int') -> "void":
         return _xbart_cpp_.XBARTcpp__get_importance(self, size)
-
-    def test_random_generator(self) -> "void":
-        return _xbart_cpp_.XBARTcpp_test_random_generator(self)
     __swig_destroy__ = _xbart_cpp_.delete_XBARTcpp
     __del__ = lambda self: None
 XBARTcpp_swigregister = _xbart_cpp_.XBARTcpp_swigregister
