@@ -227,7 +227,7 @@ class XBART(object):
 		# Create xbart_cpp object #
 		if self._xbart_cpp is None:
 			args = list(self.params.values())
-			self._xbart_cpp = XBARTcpp(*args)
+			self._xbart_cpp = XBARTcpp(*args) # Makes C++ object
 
 		# fit #
 		self._xbart_cpp._fit(fit_x,fit_y,p_cat)
