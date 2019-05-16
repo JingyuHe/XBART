@@ -521,6 +521,8 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     size_t ind;
     size_t split_var;
     size_t split_point;
+    std::vector<double> weight_samp(p);
+    double weight_sum;
 
     if (N_Xorder <= Nmin)
     {
@@ -562,7 +564,18 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
         //  subset_vars.resize(p);
         //subset_vars = sample_int_ccrank(p, mtry, wtemp,gen);
-        subset_vars = sample_int_ccrank(p, mtry, mtry_weight_current_tree, gen);
+        for (size_t i=0; i < p; i++)
+        {
+            std::gamma_distribution<double> temp_dist(mtry_weight_current_tree[i], 1.0);
+            weight_samp[i] = temp_dist(gen);
+        }
+        weight_sum =  accumulate(weight_samp.begin(), weight_samp.end(), 0.0);
+        for (size_t i=0; i < p; i++)
+        {
+            weight_samp[i] = weight_samp[i] / weight_sum;
+
+        }
+        subset_vars = sample_int_ccrank(p, mtry, weight_samp, gen);
 
         //COUT << subset_vars << endl;
         //COUT << mtry_weight_current_tree << endl;
