@@ -541,29 +541,13 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     std::vector<size_t> subset_vars(p);
 
-    //COUT << use_all << endl;
-
     if (use_all)
     {
-        //COUT << "use all " << endl;
-        //  subset_vars.resize(p);
         std::iota(subset_vars.begin(), subset_vars.end(), 0);
 
-        //COUT << mtry_weight_current_tree << endl;
-        //COUT << subset_vars << endl;
     }
     else
     {
-        //std:vector<double> wtemp(p,1);
-        //wtemp[0] = 10;
-        //wtemp[14] = 10;
-        //wtemp[1] = 10;
-        //wtemp[7] = 10;
-
-        //  subset_vars.resize(p);
-        //subset_vars = sample_int_ccrank(p, mtry, wtemp,gen);
-        
-        
         if (sample_weights_flag){
             std::vector<double> weight_samp(p);
             double weight_sum;
@@ -586,18 +570,13 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
             subset_vars = sample_int_ccrank(p, mtry, mtry_weight_current_tree, gen);
         }
         
-
-        //COUT << subset_vars << endl;
-        //COUT << mtry_weight_current_tree << endl;
     }
 
     BART_likelihood_all(y_mean * N_Xorder, y_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_values, X_counts, variable_ind, X_num_unique, model, gen, mtry, this->prob_split);
 
     if (no_split == true)
     {
-        // COUT << "depth: "<< depth <<std::endl;
-        // if do not split, all data points in this node are in bottom node, update matrix of pointers
-        for (size_t i = 0; i < N_Xorder; i++)
+         for (size_t i = 0; i < N_Xorder; i++)
         {
             data_pointers[tree_ind][Xorder_std[0][i]] = this;
         }
