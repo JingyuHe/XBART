@@ -20,7 +20,7 @@ struct XBARTcppParams{
 			size_t M;size_t N_sweeps; size_t Nmin; size_t Ncutpoints;
 			size_t burnin; size_t mtry;size_t max_depth_num;
 			double alpha;double beta;double tau;double kap;double s;
-			bool verbose; bool draw_mu;bool parallel;int seed;
+			bool verbose; bool draw_mu;bool parallel;int seed;bool sample_weights_flag;
 };
 
 class XBARTcpp{
@@ -54,7 +54,7 @@ class XBARTcpp{
 				size_t burnin, size_t mtry ,
 				size_t max_depth_num , double kap , 
 				double s , bool verbose , 
-				bool draw_mu , bool parallel,int seed,size_t model_num,double no_split_penality);
+				bool draw_mu , bool parallel,int seed,size_t model_num,double no_split_penality,bool sample_weights_flag);
 
 		XBARTcpp(std::string json_string);
 

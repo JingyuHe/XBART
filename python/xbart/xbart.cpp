@@ -19,7 +19,7 @@ XBARTcpp::XBARTcpp (size_t M ,size_t N_sweeps ,
         size_t burnin, 
         size_t mtry , size_t max_depth_num, double kap , 
         double s , bool verbose , 
-        bool draw_mu , bool parallel,int seed,size_t model_num,double no_split_penality){
+        bool draw_mu , bool parallel,int seed,size_t model_num,double no_split_penality,bool sample_weights_flag){
   this->params.M = M; 
   this->params.N_sweeps = N_sweeps;
   this->params.Nmin = Nmin;
@@ -38,6 +38,7 @@ XBARTcpp::XBARTcpp (size_t M ,size_t N_sweeps ,
   this->trees =  vector< vector<tree>> (N_sweeps);
   this->model_num =  model_num;
   this->no_split_penality =  no_split_penality;
+  this->params.sample_weights_flag =  sample_weights_flag;
 
   // handling seed
   
@@ -147,7 +148,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.s, this->params.verbose,
                 this->params.draw_mu, this->params.parallel,
                 yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees,
-                this->seed_flag, this->seed, this->no_split_penality);
+                this->seed_flag, this->seed, this->no_split_penality, this->params.sample_weights_flag);
   }else if(this->model_num == 1){ // CLT
       fit_std_clt(Xpointer,y_std,y_mean, Xorder_std,n,d,
                 this->params.M,  this->params.N_sweeps, max_depth_std, 
@@ -157,7 +158,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.s, this->params.verbose,
                 this->params.draw_mu, this->params.parallel,
                 yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees,
-                this->seed_flag, this->seed, this->no_split_penality);
+                this->seed_flag, this->seed, this->no_split_penality, this->params.sample_weights_flag);
   }else if(this->model_num == 2){ // Probit
           fit_std_probit(Xpointer,y_std,y_mean, Xorder_std,n,d,
                 this->params.M,  this->params.N_sweeps, max_depth_std, 
@@ -167,7 +168,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.s, this->params.verbose,
                 this->params.draw_mu, this->params.parallel,
                 yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees,
-                this->seed_flag, this->seed,this->no_split_penality);
+                this->seed_flag, this->seed,this->no_split_penality,  this->params.sample_weights_flag);
 
   }
 }    

@@ -16,7 +16,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
     tree first_tree((size_t)1); // to be safe if first tree doesn't grow
 
     std::unique_ptr<FitInfo> fit_info (new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &first_tree));
- 
+
 
     if (parallel)
         thread_pool.start();
@@ -145,7 +145,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
     tree first_tree((size_t)1); // to be safe if first tree doesn't grow
 
     std::unique_ptr<FitInfo> fit_info (new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &first_tree));
- 
+
     if (parallel)
         thread_pool.start();
 
@@ -175,7 +175,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
 
         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
         {
-            std::cout << "Tree " << tree_ind << std::endl; 
+            std::cout << "Tree " << tree_ind << std::endl;
             fit_info->yhat_std = fit_info->yhat_std - fit_info->predictions_std[tree_ind];
 
             model->total_fit = fit_info->yhat_std;
@@ -228,14 +228,13 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
                     bool verbose,
                     bool draw_mu, bool parallel,
                     xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vec_d &mtry_weight_current_tree,
-                    size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed, double no_split_penality)
+                    size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed, double no_split_penality, bool sample_weights_flag)
 {
 
-    bool sample_weights_flag = true;
     tree first_tree((size_t)1); // to be safe if first tree doesn't grow
 
     std::unique_ptr<FitInfo> fit_info (new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &first_tree));
- 
+
 
     if (parallel)
         thread_pool.start();
