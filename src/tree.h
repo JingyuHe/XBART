@@ -87,7 +87,7 @@ class tree
     tree() : theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
     tree(const tree &n) : theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) { cp(this, &n); }
     tree(double itheta) : theta_vector(itheta, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
-    tree(size_t num_classes) : theta_vector(num_classes, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0) {}
+    tree(size_t num_classes,const tree_p parent) : theta_vector(num_classes, 0.0), sig(0.0), v(0), c(0), p (parent), l(0), r(0) {}
 
     void tonull(); //like a "clear", null tree has just one node
     ~tree() { tonull(); }

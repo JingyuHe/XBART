@@ -593,6 +593,12 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     {
         split_point = split_point + 1;
     }
+    
+    // If our current split is same as parent, exit
+    if ( (this->p) && (this->v == (this->p)->v) && (this->c == (this->p)->c) ) {
+        return;
+    }
+
 
     split_count_current_tree[split_var] = split_count_current_tree[split_var] + 1;
 
@@ -624,20 +630,18 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
     depth++;
 
-    tree::tree_p lchild = new tree(model->getNumClasses());
+    tree::tree_p lchild = new tree(model->getNumClasses(),this);
     lchild->grow_tree_adaptive_std_all(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
                                        draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, use_all, split_count_all_tree,
                                        mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous,
                                        X_values, X_counts_left, variable_ind, X_num_unique_left, model, data_pointers, tree_ind, gen);
 
-    tree::tree_p rchild = new tree(model->getNumClasses());
+    tree::tree_p rchild = new tree(model->getNumClasses(),this);
     rchild->grow_tree_adaptive_std_all(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
                                        draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, use_all, split_count_all_tree,
                                        mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous,
                                        X_values, X_counts_right, variable_ind, X_num_unique_right, model, data_pointers, tree_ind, gen);
 
-    lchild->p = this;
-    rchild->p = this;
     this->l = lchild;
     this->r = rchild;
 
