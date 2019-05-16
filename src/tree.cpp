@@ -511,7 +511,7 @@ void cumulative_sum_std(std::vector<double> &y_cumsum, std::vector<double> &y_cu
     return;
 }
 
-void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, bool &categorical_variables, size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model, matrix<tree::tree_p> &data_pointers, const size_t &tree_ind, std::mt19937 &gen)
+void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, bool &categorical_variables, size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model, matrix<tree::tree_p> &data_pointers, const size_t &tree_ind, std::mt19937 &gen,bool sample_weights_flag)
 
 {
     // grow a tree, users can control number of split points
@@ -521,9 +521,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     size_t ind;
     size_t split_var;
     size_t split_point;
-    std::vector<double> weight_samp(p);
-    double weight_sum;
-
+    
     if (N_Xorder <= Nmin)
     {
         return;
@@ -564,18 +562,30 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
 
         //  subset_vars.resize(p);
         //subset_vars = sample_int_ccrank(p, mtry, wtemp,gen);
-        for (size_t i=0; i < p; i++)
-        {
-            std::gamma_distribution<double> temp_dist(mtry_weight_current_tree[i], 1.0);
-            weight_samp[i] = temp_dist(gen);
-        }
-        weight_sum =  accumulate(weight_samp.begin(), weight_samp.end(), 0.0);
-        for (size_t i=0; i < p; i++)
-        {
-            weight_samp[i] = weight_samp[i] / weight_sum;
+        
+        
+        if (sample_weights_flag){
+            std::vector<double> weight_samp(p);
+            double weight_sum;
 
+            // Sample Weights Dirchelet
+            for (size_t i=0; i < p; i++)
+            {
+                std::gamma_distribution<double> temp_dist(mtry_weight_current_tree[i], 1.0);
+                weight_samp[i] = temp_dist(gen);
+            }
+            weight_sum =  accumulate(weight_samp.begin(), weight_samp.end(), 0.0);
+            for (size_t i=0; i < p; i++)
+            {
+                weight_samp[i] = weight_samp[i] / weight_sum;
+
+            }
+
+            subset_vars = sample_int_ccrank(p, mtry, weight_samp, gen);
+        }else{
+            subset_vars = sample_int_ccrank(p, mtry, mtry_weight_current_tree, gen);
         }
-        subset_vars = sample_int_ccrank(p, mtry, weight_samp, gen);
+        
 
         //COUT << subset_vars << endl;
         //COUT << mtry_weight_current_tree << endl;
@@ -647,13 +657,13 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     lchild->grow_tree_adaptive_std_all(yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
                                        draw_mu, parallel, y_std, Xorder_left_std, X_std, mtry, use_all, split_count_all_tree,
                                        mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous,
-                                       X_values, X_counts_left, variable_ind, X_num_unique_left, model, data_pointers, tree_ind, gen);
+                                       X_values, X_counts_left, variable_ind, X_num_unique_left, model, data_pointers, tree_ind, gen,sample_weights_flag);
 
     tree::tree_p rchild = new tree(model->getNumClasses(),this);
     rchild->grow_tree_adaptive_std_all(yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
                                        draw_mu, parallel, y_std, Xorder_right_std, X_std, mtry, use_all, split_count_all_tree,
                                        mtry_weight_current_tree, split_count_current_tree, categorical_variables, p_categorical, p_continuous,
-                                       X_values, X_counts_right, variable_ind, X_num_unique_right, model, data_pointers, tree_ind, gen);
+                                       X_values, X_counts_right, variable_ind, X_num_unique_right, model, data_pointers, tree_ind, gen,sample_weights_flag);
 
     this->l = lchild;
     this->r = rchild;
