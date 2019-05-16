@@ -61,13 +61,16 @@ class XBART(object):
 	no_split_penality: double
 		Weight of no-split option. The default value in the normal model is log(num_cutpoints). 
 		Values should be considered in log scale.
+	sample_weights_flag: bool (True)
+		To sample weights according to Dirchlet distribution
 	
 	'''
 	def __init__(self,num_trees: int = 100, num_sweeps: int = 40, n_min: int = 1,
 				num_cutpoints: int = 100,alpha: float = 0.95, beta: float = 1.25, tau = "auto",
                 burnin: int = 15, mtry = "auto", max_depth_num: int = 250,
                 kap: float = 16.0,s: float = 4.0,verbose: bool = False,
-                draw_mu: bool = True,parallel: bool = False,seed: int = 0,model: str = "Normal",no_split_penality = "auto"):
+                draw_mu: bool = True,parallel: bool = False,seed: int = 0,model: str = "Normal",
+				no_split_penality = "auto",sample_weights_flag: bool = True):
 
 		assert num_sweeps > burnin, "num_sweep must be greater than burnin"
 
@@ -83,7 +86,8 @@ class XBART(object):
 			alpha = alpha,beta = beta, tau = tau,burnin = burnin, mtry=mtry, 
 			max_depth_num=max_depth_num,kap=kap,s=s,
 			verbose=verbose,draw_mu=draw_mu,
-			parallel=parallel,seed=seed,model_num=model_num,no_split_penality =no_split_penality)
+			parallel=parallel,seed=seed,model_num=model_num,no_split_penality =no_split_penality,
+			sample_weights_flag=sample_weights_flag)
 		args = self.__convert_params_check_types(**self.params)
 		self._xbart_cpp = None
 
@@ -164,7 +168,7 @@ class XBART(object):
                         ("burnin",15),("mtry",0),("max_depth_num",250) # CHANGE
                         ,("kap",16.0),("s",4.0),("verbose",False),
                         ("draw_mu",True),
-                        ("parallel",False),("seed",0),("model_num",0)])
+                        ("parallel",False),("seed",0),("model_num",0),("sample_weights_flag",True)])
 		new_params = DEFAULT_PARAMS.copy()
 
 		#list_params = []
