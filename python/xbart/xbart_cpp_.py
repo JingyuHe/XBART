@@ -165,6 +165,10 @@ class XBARTcppParams(_object):
     __swig_getmethods__["seed"] = _xbart_cpp_.XBARTcppParams_seed_get
     if _newclass:
         seed = _swig_property(_xbart_cpp_.XBARTcppParams_seed_get, _xbart_cpp_.XBARTcppParams_seed_set)
+    __swig_setmethods__["sample_weights_flag"] = _xbart_cpp_.XBARTcppParams_sample_weights_flag_set
+    __swig_getmethods__["sample_weights_flag"] = _xbart_cpp_.XBARTcppParams_sample_weights_flag_get
+    if _newclass:
+        sample_weights_flag = _swig_property(_xbart_cpp_.XBARTcppParams_sample_weights_flag_get, _xbart_cpp_.XBARTcppParams_sample_weights_flag_set)
 
     def __init__(self):
         this = _xbart_cpp_.new_XBARTcppParams()
