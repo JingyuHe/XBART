@@ -23,7 +23,6 @@ void rcpp_to_std2(
 {
     // The goal of this function is to convert RCPP object to std objects
 
-    // TODO: Refactor to remove N,p,N_test
     // TODO: Refactor code so for loops are self contained functions
     // TODO: Why RCPP and not std?
     // TODO: inefficient Need Replacement?

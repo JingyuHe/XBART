@@ -1,4 +1,3 @@
-#include "model.h"
 #include <ctime>
 #include "tree.h"
 #include "forest.h"
