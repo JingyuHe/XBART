@@ -8,7 +8,8 @@ get_XBART_params <- function(n, d, y) {
                       beta = 1.25,            # BART prior parameter
                       mtry = 10,               # number of variables sampled in each split
                       burnin = 15,
-                      no_split_penality = "Auto")            # burnin of MCMC sample
+                      no_split_penality = "Auto"
+                      )            # burnin of MCMC sample
   num_tress = XBART_params$num_trees
   XBART_params$max_depth = matrix(250, num_tress, XBART_params$num_sweeps)   # max depth of each tree, should be a num_trees by num_sweeps matrix
   XBART_params$num_cutpoints = 50;                                           # number of adaptive cutpoints

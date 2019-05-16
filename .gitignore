@@ -1,3 +1,5 @@
+tests/Rplots.pdf
+
 .Rproj.user
 .Rhistory
 .RData
@@ -229,5 +231,7 @@ vignettes/*.pdf
 .pdf
 .xbart
 .json
+
+
 
 # End of https://www.gitignore.io/api/r,python
