@@ -82,7 +82,7 @@ XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpo
     return(obj)
 }
 
-XBART.CLT <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, no_split_penality = "Auto", burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, ...) {
+XBART.CLT <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, no_split_penality = "Auto", burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE, ...) {
 
     if(class(X) != "matrix"){
         cat("Input X is not a matrix, try to convert type.\n")
@@ -112,7 +112,7 @@ XBART.CLT <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_c
     if(no_split_penality == "Auto"){
         no_split_penality = log(num_cutpoints)
     }
-    obj = .Call(`_XBART_CLT`, y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, no_split_penality,burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed)
+    obj = .Call(`_XBART_CLT`, y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, no_split_penality,burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag)
     class(obj) = "XBART" # Change to XBARTProbit?
     return(obj)
 }
