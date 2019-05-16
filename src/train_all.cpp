@@ -469,7 +469,7 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
                    verbose,
                    draw_mu, parallel,
                    yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree,
-                   p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality);
+                   p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
