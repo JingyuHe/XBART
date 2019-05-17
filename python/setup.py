@@ -8,6 +8,7 @@ if platform == "win32":
 else:
   compile_args = ["-std=gnu++11", "-fpic",  "-g"]
 if platform == "darwin":
+  compile_args.append("-mmacosx-version-min=10.9") # To ensure gnu+11 and all std libs
   os.environ["MACOSX_DEPLOYMENT_TARGET"] = "10.9"
 
 XBART_cpp_module = Extension('_xbart_cpp_',
