@@ -1,3 +1,6 @@
+if __name__ == '__main__' and __package__ is None:
+    __package__ = 'xbart'
+
 from .xbart_cpp_ import XBARTcpp
 import collections
 import numpy as np
