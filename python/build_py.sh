@@ -21,14 +21,14 @@ ENDUSAGE
 while [[ "$#" > 0 ]]
 do
     case $1 in
-      -p|--python) PYTHON_BIN=$2;shift;;
+      -p|--python) PYTHON_BIN=$2; shift;;
       -h|--help) usage; exit; ;;
-      -d|--dist) DIST_FLAG=true;shift;;
-      -s|--swig) SWIG_FLAG=true;shift;;
-      -t|--test) TEST_FLAG=true;shift;;
+      -d|--dist) DIST_FLAG=true; ;;
+      -s|--swig) SWIG_FLAG=true; ;;
+      -t|--test) TEST_FLAG=true; ;;
       -*|--*) printf "\n\n   ERROR: Unsupported option $1\n\n"; usage; exit; ;;
     esac
-    #shift
+    shift
 done
 
 echo Building python
