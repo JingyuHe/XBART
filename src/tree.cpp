@@ -511,7 +511,7 @@ void cumulative_sum_std(std::vector<double> &y_cumsum, std::vector<double> &y_cu
     return;
 }
 
-void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, bool &categorical_variables, size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model, matrix<tree::tree_p> &data_pointers, const size_t &tree_ind, std::mt19937 &gen, bool sample_weights_flag)
+void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, bool &use_all, xinfo &split_count_all_tree, std::vector<double> &mtry_weight_current_tree, std::vector<double> &split_count_current_tree, bool &categorical_variables, size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model, matrix<std::vector<double>*> &data_pointers, const size_t &tree_ind, std::mt19937 &gen, bool sample_weights_flag)
 
 {
     // grow a tree, users can control number of split points
@@ -578,7 +578,7 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     {
          for (size_t i = 0; i < N_Xorder; i++)
         {
-            data_pointers[tree_ind][Xorder_std[0][i]] = this;
+            data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
         }
         model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, gen, this->theta_vector, y_std, Xorder_std);
         this->l = 0;
@@ -1168,49 +1168,7 @@ void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, std::ve
     return;
 }
 
-void unique_value_count2(const double *Xpointer, xinfo_sizet &Xorder_std, //std::vector<size_t> &X_values,
-                         std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique, size_t &p_categorical, size_t &p_continuous)
-{
-    size_t N = Xorder_std[0].size();
-    size_t p = Xorder_std.size();
-    double current_value = 0.0;
-    size_t count_unique = 0;
-    size_t N_unique;
-    variable_ind[0] = 0;
 
-    total_points = 0;
-    for (size_t i = p_continuous; i < p; i++)
-    {
-        // only loop over categorical variables
-        // suppose p = (p_continuous, p_categorical)
-        // index starts from p_continuous
-        X_counts.push_back(1);
-        current_value = *(Xpointer + i * N + Xorder_std[i][0]);
-        X_values.push_back(current_value);
-        count_unique = 1;
-
-        for (size_t j = 1; j < N; j++)
-        {
-            if (*(Xpointer + i * N + Xorder_std[i][j]) == current_value)
-            {
-                X_counts[total_points]++;
-            }
-            else
-            {
-                current_value = *(Xpointer + i * N + Xorder_std[i][j]);
-                X_values.push_back(current_value);
-                X_counts.push_back(1);
-                count_unique++;
-                total_points++;
-            }
-        }
-        variable_ind[i + 1 - p_continuous] = count_unique + variable_ind[i - p_continuous];
-        X_num_unique[i - p_continuous] = count_unique;
-        total_points++;
-    }
-
-    return;
-}
 
 void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &Nmin, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, Model *model, size_t &mtry)
 {
@@ -1479,13 +1437,13 @@ void fit_new_std(tree &tree, const double *X_std, size_t N, size_t p, std::vecto
     return;
 }
 
-void fit_new_std_datapointers(const double *X_std, size_t N, size_t M, std::vector<double> &output, matrix<tree::tree_p> &data_pointers)
+void fit_new_std_datapointers(const double *X_std, size_t N, size_t M, std::vector<double> &output, matrix<std::vector<double>*> &data_pointers)
 {
     // tree search, but read from the matrix of pointers to end node directly
     // easier to get fitted value of training set
     for (size_t i = 0; i < N; i++)
     {
-        output[i] = data_pointers[M][i]->theta_vector[0];
+        output[i] = (*data_pointers[M][i])[0];
     }
     return;
 }

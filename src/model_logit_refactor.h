@@ -386,7 +386,6 @@ class CLTClass : public Model
 //
 //////////////////////////////////////////////////////////////////////////////////////
 
-////[[Rcpp::export]]
 double LogitLIL(const vector<double> &suffstats, const double &tau_a, const double &tau_b) {
   
   size_t c = suffstats.size()/2;
@@ -404,7 +403,6 @@ double LogitLIL(const vector<double> &suffstats, const double &tau_a, const doub
   return ret;
 }
 
-////[[Rcpp::export]]
 vector<double> LogitSamplePars(vector<double> &suffstats,  double &tau_a, double &tau_b, std::mt19937 &generator) {
 //redefine these to use prior pars from Model class
   int c = suffstats.size()/2;
@@ -538,7 +536,7 @@ class LogitClass : public Model
         for(size_t i=0; i<slop->size(); ++i) {
             for(size_t j=0; j<(*slop)[0].size(); ++j) {
                 //output[i] = data_pointers[M][i]->theta_vector[0];
-                (*slop)[i][j] *= fit_info->data_pointers[tree_ind][i]->theta_vector[j]/fit_info->data_pointers[next_index][i]->theta_vector[j];
+                (*slop)[i][j] *= (*fit_info->data_pointers[tree_ind][i])[j]/(*fit_info->data_pointers[next_index][i])[j];
             }
         }
     }

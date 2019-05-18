@@ -38,8 +38,6 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
 
 void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique);
 
-void unique_value_count2(const double *Xpointer, xinfo_sizet &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique, size_t &p_categorical, size_t &p_continuous);
-
 void BART_likelihood_all(double y_sum, std::vector<double> &y_std, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model, std::mt19937 &gen, size_t &mtry, double &prob_split);
 
 void cumulative_sum_std(std::vector<double> &y_cumsum, std::vector<double> &y_cumsum_inv, double &y_sum, double *y, xinfo_sizet &Xorder, size_t &i, size_t &N);
@@ -129,7 +127,7 @@ class tree
                                     std::vector<double> &split_count_current_tree, bool &categorical_variables, size_t &p_categorical,
                                     size_t &p_continuous, std::vector<double> &X_values, std::vector<size_t> &X_counts,
                                     std::vector<size_t> &variable_ind, std::vector<size_t> &X_num_unique, Model *model,
-                                    matrix<tree::tree_p> &data_pointers, const size_t &tree_ind, std::mt19937 &gen,bool sample_weights_flag);
+                                    matrix<std::vector<double>*> &data_pointers, const size_t &tree_ind, std::mt19937 &gen,bool sample_weights_flag);
 
     tree_p bn(double *x, xinfo &xi); //find Bottom Node, original BART version
     tree_p bn_std(double *x);        // find Bottom Node, std version, compare
@@ -166,6 +164,6 @@ std::ostream &operator<<(std::ostream &, const tree &);
 
 void fit_new_std(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output);
 
-void fit_new_std_datapointers(const double *X_std, size_t N, size_t M, std::vector<double> &output, matrix<tree::tree_p> &data_pointers);
+void fit_new_std_datapointers(const double *X_std, size_t N, size_t M, std::vector<double> &output, matrix<std::vector<double>*> &data_pointers);
 
 #endif
