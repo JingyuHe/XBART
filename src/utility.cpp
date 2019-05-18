@@ -427,3 +427,47 @@ void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, s
     return;
 }
 
+void unique_value_count2(const double *Xpointer, xinfo_sizet &Xorder_std, //std::vector<size_t> &X_values,
+                         std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique, size_t &p_categorical, size_t &p_continuous)
+{
+    size_t N = Xorder_std[0].size();
+    size_t p = Xorder_std.size();
+    double current_value = 0.0;
+    size_t count_unique = 0;
+    size_t N_unique;
+    variable_ind[0] = 0;
+
+    total_points = 0;
+    for (size_t i = p_continuous; i < p; i++)
+    {
+        // only loop over categorical variables
+        // suppose p = (p_continuous, p_categorical)
+        // index starts from p_continuous
+        X_counts.push_back(1);
+        current_value = *(Xpointer + i * N + Xorder_std[i][0]);
+        X_values.push_back(current_value);
+        count_unique = 1;
+
+        for (size_t j = 1; j < N; j++)
+        {
+            if (*(Xpointer + i * N + Xorder_std[i][j]) == current_value)
+            {
+                X_counts[total_points]++;
+            }
+            else
+            {
+                current_value = *(Xpointer + i * N + Xorder_std[i][j]);
+                X_values.push_back(current_value);
+                X_counts.push_back(1);
+                count_unique++;
+                total_points++;
+            }
+        }
+        variable_ind[i + 1 - p_continuous] = count_unique + variable_ind[i - p_continuous];
+        X_num_unique[i - p_continuous] = count_unique;
+        total_points++;
+    }
+
+    return;
+}
+

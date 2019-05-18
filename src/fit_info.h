@@ -1,6 +1,9 @@
+#ifndef GUARD_fit_info_h
+#define GUARD_fit_info_h
+
 #include <ctime>
-#include "tree.h"
-#include "forest.h"
+#include "common.h"
+#include "utility.h"
 #include <chrono>
 
 struct FitInfo
@@ -34,23 +37,23 @@ struct FitInfo
     // mtry
     bool use_all = true;
 
-    // Tree pointers
-    matrix<tree::tree_p> data_pointers;
-    void init_tree_pointers(tree::tree_p first_tree, size_t N, size_t num_trees)
+    // Vector pointers
+    matrix<std::vector<double>*> data_pointers;
+    void init_tree_pointers(std::vector<double>* initial_theta, size_t N, size_t num_trees)
     {
         ini_matrix(data_pointers, N, num_trees);
         for (size_t i = 0; i < num_trees; i++)
         {
-            std::vector<tree::tree_p> &tree_vec = data_pointers[i];
+            std::vector<std::vector<double>*> &pointer_vec = data_pointers[i];
             for (size_t j = 0; j < N; j++)
             {
-                tree_vec[j] = first_tree;
+                pointer_vec[j] = initial_theta;
             }
         }
     }
     FitInfo(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p,
             size_t num_trees, size_t p_categorical, size_t p_continuous,
-            bool set_random_seed, size_t random_seed, tree::tree_p first_tree)
+            bool set_random_seed, size_t random_seed, std::vector<double>* initial_theta)
     {
 
         // Handle Categorical
@@ -84,6 +87,8 @@ struct FitInfo
         this->split_count_current_tree = std::vector<double>(p, 0);
         this->mtry_weight_current_tree = std::vector<double>(p, 0.1);
 
-        init_tree_pointers(first_tree, N, num_trees);
+        init_tree_pointers(initial_theta, N, num_trees);
     }
 };
+
+#endif
