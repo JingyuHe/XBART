@@ -4,40 +4,7 @@
 # Do not make changes to this file unless you know what you are doing--modify
 # the SWIG interface file instead.
 
-from sys import version_info as _swig_python_version_info
-if _swig_python_version_info >= (2, 7, 0):
-    def swig_import_helper():
-        import importlib
-        pkg = __name__.rpartition('.')[0]
-        mname = '.'.join((pkg, '_xbart_cpp_')).lstrip('.')
-        try:
-            return importlib.import_module(mname)
-        except ImportError:
-            return importlib.import_module('_xbart_cpp_')
-    _xbart_cpp_ = swig_import_helper()
-    del swig_import_helper
-elif _swig_python_version_info >= (2, 6, 0):
-    def swig_import_helper():
-        from os.path import dirname
-        import imp
-        fp = None
-        try:
-            fp, pathname, description = imp.find_module('_xbart_cpp_', [dirname(__file__)])
-        except ImportError:
-            import _xbart_cpp_
-            return _xbart_cpp_
-        try:
-            _mod = imp.load_module('_xbart_cpp_', fp, pathname, description)
-        finally:
-            if fp is not None:
-                fp.close()
-        return _mod
-    _xbart_cpp_ = swig_import_helper()
-    del swig_import_helper
-else:
-    import _xbart_cpp_
-del _swig_python_version_info
-
+import _xbart_cpp_
 try:
     _swig_property = property
 except NameError:

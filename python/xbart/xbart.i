@@ -1,5 +1,6 @@
 
-%module xbart_cpp_
+%module(package="xbart", moduleimport="import _xbart_cpp_") xbart_cpp_
+
 
 %{
 /* inserts a macro that specifies that the resulting 
