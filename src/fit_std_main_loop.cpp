@@ -13,9 +13,8 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
              bool set_random_seed, size_t random_seed, double no_split_penality,bool sample_weights_flag)
 {
 
-    tree first_tree((size_t)1); // to be safe if first tree doesn't grow
-
-    std::unique_ptr<FitInfo> fit_info (new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &first_tree));
+    std::vector<double> initial_theta(1,0);
+    std::unique_ptr<FitInfo> fit_info (new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta));
 
 
     if (parallel)
@@ -142,9 +141,8 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
                  size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed, double no_split_penality, bool sample_weights_flag)
 {
 
-    tree first_tree((size_t)1); // to be safe if first tree doesn't grow
-
-    std::unique_ptr<FitInfo> fit_info (new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &first_tree));
+    std::vector<double> initial_theta(1,0);
+    std::unique_ptr<FitInfo> fit_info (new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta));
 
     if (parallel)
         thread_pool.start();
@@ -231,9 +229,8 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
                     size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed, double no_split_penality, bool sample_weights_flag)
 {
 
-    tree first_tree((size_t)1); // to be safe if first tree doesn't grow
-
-    std::unique_ptr<FitInfo> fit_info (new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &first_tree));
+    std::vector<double> initial_theta(1,0);
+    std::unique_ptr<FitInfo> fit_info (new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta));
 
 
     if (parallel)
