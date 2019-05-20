@@ -5,14 +5,14 @@
 #include "common.h"
 #include "utility.h"
 #include <memory>
-#include "fit_info.h"
+//#include "fit_info.h"
 
 using namespace std;
 
 class Model
 {
 
-  protected:
+protected:
     size_t num_classes;
     size_t dim_suffstat;
     size_t dim_suffstat_total;
@@ -20,7 +20,7 @@ class Model
     std::vector<double> suff_stat_total;
     double no_split_penality;
 
-  public:
+public:
     Model(size_t num_classes, size_t dim_suff)
     {
         this->num_classes = num_classes;
@@ -73,127 +73,42 @@ class Model
 
 class NormalModel : public Model
 {
-  private:
+private:
     size_t dim_suffstat_total = 1;
     std::vector<double> suff_stat_total;
 
-  public:
+public:
     NormalModel() : Model(1, 1)
     {
     }
 
-    void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder)
-    {
-        // fill the suff_stat_model with a value
-        std::fill(Model::suff_stat_model.begin(), Model::suff_stat_model.end(), y_std[xorder[0]]);
-        return;
-    }
-    void incrementSuffStat() const { return; };
+    void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder);
+
+    void incrementSuffStat() const;
+
     void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
-                    std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder)
-    {
-        std::normal_distribution<double> normal_samp(0.0, 1.0);
-        if (draw_mu == true)
-        {
+                    std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder);
 
-            // test result should be theta
-            theta_vector[0] = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2))) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-        }
-        else
-        {
-            // test result should be theta
-            theta_vector[0] = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2));
-        }
-        return;
-    }
+    void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const;
 
-    void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
-    {
-        size_t next_index = tree_ind + 1;
-        if (next_index == M)
-        {
-            next_index = 0;
-        }
-        residual_std = residual_std - predictions_std[tree_ind] + predictions_std[next_index];
-        return;
-    }
+    void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var);
 
-    void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var)
-    {
-        // calculate sufficient statistics for categorical variables
+    void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint);
 
-        // compute sum of y[Xorder[start:end, var]]
-        size_t loop_count = 0;
-        for (size_t i = start; i <= end; i++)
-        {
-            Model::suff_stat_model[0] += y[Xorder[var][i]];
-            loop_count++;
-        }
-        return;
-    }
+    double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const;
 
-    void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint)
-    {
-        // calculate sufficient statistics for continuous variables
-
-
-        if (adaptive_cutpoint)
-        {
-
-            if(index == 0)
-            {
-                // initialize, only for the first cutpoint candidate, thus index == 0
-                Model::suff_stat_model[0] = y_std[xorder[0]];
-            }
-
-            // if use adaptive number of cutpoints, calculated based on vector candidate_index
-            for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
-            {
-                Model::suff_stat_model[0] += y_std[xorder[q]];
-            }
-        }
-        else
-        {
-            // use all data points as candidates
-            Model::suff_stat_model[0] += y_std[xorder[index]];
-        }
-        return;
-    }
-
-    double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
-    {
-        // likelihood equation,
-        // note the difference of left_side == true / false
-
-        if (left_side)
-        {
-            return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(Model::suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
-        }
-        else
-        {
-            return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(y_sum - Model::suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
-        }
-    }
-
-    double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
-    {
-        // the likelihood of no-split option is a bit different from others
-        // because the sufficient statistics is y_sum here
-        // write a separate function, more flexibility
-
-        return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
-    }
+    double likelihood_no_split(double value, double tau, double ntau, double sigma2) const;
 
     Model *clone() { return new NormalModel(*this); }
 };
 
 class CLTClass : public Model
 {
-  private:
+private:
     size_t dim_suffstat_total = 4;
     //std::vector<double> suff_stat_total;
 
-  public:
+public:
     CLTClass() : Model(1, 4)
     {
         suff_stat_total.resize(dim_suffstat_total);
@@ -201,179 +116,149 @@ class CLTClass : public Model
     std::vector<double> total_fit; // Keep public to save copies
     std::vector<double> suff_stat_total;
 
-    void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder)
-    {
-        // fill the suff_stat_model with a value
-        // in function call, a = 0.0 to reset sufficient statistics vector
-        size_t n = xorder.size();
-        size_t x_order_0 = xorder[0];
-        double current_fit_val = total_fit[x_order_0];
+    void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder);
 
-        double psi = max(current_fit_val * (1 - current_fit_val), 0.15);
-        Model::suff_stat_model[0] = y_std[x_order_0] / psi;
-        Model::suff_stat_model[1] = 1 / psi;
-        Model::suff_stat_model[2] = std::log(1 / psi);
-       // Model::suff_stat_model[3] = pow(y_std[x_order_0], 2) / psi;
-        return;
-    }
-    void incrementSuffStat() const { return; };
+    void incrementSuffStat() const;
+
     void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
-                    std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder)
-    {
-        // Update params
-        updateFullSuffStat(y_std, Xorder[0]);
+                    std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder);
 
-        std::normal_distribution<double> normal_samp(0.0, 1.0);
-        if (draw_mu == true)
-        {
+    void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const;
 
-            // test result should be theta
-            theta_vector[0] = suff_stat_total[0] / (1.0 / tau + suff_stat_total[1]) + sqrt(1.0 / (1.0 / tau + suff_stat_total[1])) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-        }
-        else
-        {
-            // test result should be theta
-            theta_vector[0] = suff_stat_total[0] / (1.0 / tau + suff_stat_total[1]);
-        }
-        return;
-    }
+    void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var);
 
-    void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
-    {
-        size_t next_index = tree_ind + 1;
-        if (next_index == M)
-        {
-            next_index = 0;
-        }
-        residual_std = residual_std - predictions_std[tree_ind] + predictions_std[next_index];
-        return;
-    }
+    void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint);
 
-    void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var)
-    {
-        // calculate sufficient statistics for categorical variables
+    void updateFullSuffStat(std::vector<double> &y_std, std::vector<size_t> &x_info);
 
-        // compute sum of y[Xorder[start:end, var]]
-        size_t loop_count = 0;
-        std::vector<size_t> &xorder_var = Xorder[var];
-        size_t n = xorder_var.size();
-        double current_fit_val;
-        double psi;
-        double obs;
-        size_t x_order_i;
-        for (size_t i = start; i <= end; i++)
-        {
-            x_order_i = xorder_var[i];
-            current_fit_val = total_fit[x_order_i];
-            obs = y[x_order_i];
+    double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const;
 
-            psi = std::max(current_fit_val * (1 - current_fit_val), 0.15);
-            Model::suff_stat_model[0] += obs / psi;
-            Model::suff_stat_model[1] += 1 / psi;
-            Model::suff_stat_model[2] += std::log(1 / psi);
-            //Model::suff_stat_model[3] += pow(obs, 2) / psi;
-            loop_count++;
-        }
-        return;
-    }
+    double likelihood_no_split(double value, double tau, double ntau, double sigma2) const;
 
-    void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint)
-    {
-        // calculate sufficient statistics for continuous variables
-        size_t n = xorder.size();
-        double current_fit_val;
-        double psi;
-        double obs;
-        size_t x_order_q;
-
-
-        if (adaptive_cutpoint)
-        {
-            // initialize 
-            Model::suff_stat_model[0] = y_std[xorder[0]];
-
-            // if use adaptive number of cutpoints, calculated based on vector candidate_index
-            for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
-            {
-                x_order_q = xorder[q];
-                current_fit_val = total_fit[x_order_q];
-                obs = y_std[x_order_q];
-
-                //if (current_fit_val > 1.0 || current_fit_val < -1.0){obs = 0.0;}
-
-                psi = std::max(current_fit_val * (1 - current_fit_val), 0.15);
-                //psi = 0.15;
-                Model::suff_stat_model[0] += obs / psi;
-                Model::suff_stat_model[1] += 1 / psi;
-                Model::suff_stat_model[2] += std::log(1 / psi);
-                //Model::suff_stat_model[3] += pow(obs, 2) / psi;
-            }
-        }
-        else
-        {
-            // use all data points as candidates
-            current_fit_val = total_fit[xorder[index]];
-            obs = y_std[xorder[index]];
-
-            psi = std::max(current_fit_val * (1 - current_fit_val), 0.15);
-            Model::suff_stat_model[0] += obs / psi;
-            Model::suff_stat_model[1] += 1 / psi;
-            Model::suff_stat_model[2] += std::log(1 / psi);
-            //Model::suff_stat_model[3] += pow(obs, 2) / psi;
-        }
-
-        return;
-    }
-
-    void updateFullSuffStat(std::vector<double> &y_std, std::vector<size_t> &x_info)
-    {
-        size_t n = x_info.size();
-        double current_fit_val;
-        double psi;
-        double obs;
-        size_t x_order_i;
-        for (size_t i = 0; i < n; i++)
-        {
-            x_order_i = x_info[i];
-            current_fit_val = total_fit[x_order_i];
-            obs = y_std[x_order_i];
-
-            psi = std::max(current_fit_val * (1 - current_fit_val), 0.15);
-            suff_stat_total[0] += obs / psi;
-            suff_stat_total[1] += 1 / psi;
-            suff_stat_total[2] += std::log(1 / psi);
-            //suff_stat_total[3] += pow(obs, 2) / psi;
-
-        }
-        return;
-    }
-
-    double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
-    {
-        // likelihood equation,
-        // note the difference of left_side == true / false
-
-        if (left_side)
-        {
-            return 0.5 * Model::suff_stat_model[2] + 0.5 * std::log((1 / tau) / ((1 / tau) + Model::suff_stat_model[1])) + 0.5 * tau / (1 + tau * Model::suff_stat_model[1]) * pow(Model::suff_stat_model[0], 2); //- 0.5 * Model::suff_stat_model[3];
-            ;
-        }
-        else
-        {
-            return 0.5 * (suff_stat_total[2] - Model::suff_stat_model[2]) + 0.5 * std::log((1 / tau) / ((1 / tau) + (suff_stat_total[1] - Model::suff_stat_model[1]))) + 0.5 * tau / (1 + tau * (suff_stat_total[1] - Model::suff_stat_model[1])) * pow(suff_stat_total[0] - Model::suff_stat_model[0], 2) ;// - 0.5 * (suff_stat_total[3] - Model::suff_stat_model[3]);
-        }
-    }
-
-    double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
-    {
-        // the likelihood of no-split option is a bit different from others
-        // because the sufficient statistics is y_sum here
-        // write a separate function, more flexibility
-
-        return 0.5 * (suff_stat_total[2]) + 0.5 * std::log((1 / tau) / ((1 / tau) + (suff_stat_total[1]))) + 0.5 * tau / (1 + tau * (suff_stat_total[1])) * pow(suff_stat_total[0], 2) - 0.5 * suff_stat_total[3];
-        ;
-    }
     Model *clone() { return new CLTClass(*this); }
+};
+
+struct FitInfo
+{
+public:
+    // Categorical
+    bool categorical_variables = false;
+    std::vector<double> X_values;
+    std::vector<size_t> X_counts;
+    std::vector<size_t> variable_ind;
+    size_t total_points;
+    std::vector<size_t> X_num_unique;
+
+    // Result containers
+    xinfo predictions_std;
+    std::vector<double> yhat_std;
+    std::vector<double> residual_std;
+    std::vector<double> residual_std_full;
+
+    // Random
+    std::vector<double> prob;
+    std::random_device rd;
+    std::mt19937 gen;
+    std::discrete_distribution<> d;
+
+    // Splits
+    xinfo split_count_all_tree;
+    std::vector<double> split_count_current_tree;
+    std::vector<double> mtry_weight_current_tree;
+
+    // mtry
+    bool use_all = true;
+
+    // Vector pointers
+    matrix<std::vector<double> *> data_pointers;
+    void init_tree_pointers(std::vector<double> *initial_theta, size_t N, size_t num_trees);
+
+    FitInfo(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p,
+            size_t num_trees, size_t p_categorical, size_t p_continuous,
+            bool set_random_seed, size_t random_seed, std::vector<double> *initial_theta);
+};
+
+//////////////////////////////////////////////////////////////////////////////////////
+//
+//
+//  Multinomial logistic model
+//
+//
+//////////////////////////////////////////////////////////////////////////////////////
+
+double LogitLIL(const vector<double> &suffstats, const double &tau_a, const double &tau_b);
+
+vector<double> LogitSamplePars(vector<double> &suffstats, double &tau_a, double &tau_b, std::mt19937 &generator);
+
+class LogitClass : public Model
+{
+private:
+    size_t dim_suffstat_total = 0; // = 2*num_classes;
+                                   //std::vector<double> suff_stat_total;
+
+public:
+    //This is probably unsafe/stupid but a temporary hack #yolo
+    FitInfo *fit_info;
+    //these should be elements of a class derived from a FitInfo base class for this model
+    std::vector<std::vector<double>> *slop;
+    std::vector<double> *phi;
+    double tau_a = 3.3; //approx 4/sqrt(2) + 0.5
+    double tau_b = 2.8;
+
+    LogitClass() : Model(2, 4)
+    {
+        dim_suffstat_total = 2 * num_classes;       //num_classes is a member of base Model class
+        suff_stat_total.resize(dim_suffstat_total); //suff_stat_total stuff should live in base class
+    }
+
+    LogitClass(size_t num_classes) : Model(num_classes, 2 * num_classes)
+    {
+        dim_suffstat_total = 2 * num_classes;
+        suff_stat_total.resize(dim_suffstat_total);
+    }
+    //std::vector<double> total_fit; // Keep public to save copies
+    std::vector<double> suff_stat_total;
+
+    // Initialize the sufficient stat vector to the sufficient stat for the first obs
+    // when sorting by xorder
+    //no longer necessary
+    /*
+    void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder);
+    */
+
+    // this function should ultimately take a FitInfo and DataInfo
+    void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats) const;
+
+    // This function call can be much simplified too --  should only require (maybe) theta plus a draw_mu flag?
+    void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
+                    std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std,
+                    xinfo_sizet &Xorder);
+
+    /*
+
+    void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const; 
+    */
+
+    //    void updateResidualNew(size_t tree_ind, size_t M, std::unique_ptr<FitInfo> fit_info, std::vector<std::vector<double> > &slop) {
+    void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const;
+
+    // Once their function calls are standardized to take a FitInfo we should never have to redefine these
+    // in another model class
+    void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var);
+
+    void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std,
+                                 std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint);
+
+    void updateFullSuffStat(std::vector<double> &y_std, std::vector<size_t> &x_info);
+
+    double LIL(const std::vector<double> &suffstats) const;
+
+    //this function should call a base LIL() member function that should be redefined in
+    double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const;
+
+    double likelihood_no_split(double value, double tau, double ntau, double sigma2) const;
+
+    Model *clone() { return new LogitClass(*this); }
 };
 
 #endif
