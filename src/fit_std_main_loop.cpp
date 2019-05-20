@@ -81,7 +81,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
             fit_info->split_count_all_tree[tree_ind] = fit_info->split_count_current_tree;
 
             // Update Predict
-            fit_new_std_datapointers(Xpointer, N, tree_ind, fit_info->predictions_std[tree_ind], fit_info->data_pointers);
+            predict_from_datapointers(Xpointer, N, tree_ind, fit_info->predictions_std[tree_ind], fit_info->data_pointers,model);
 
             // update residual, now it's residual of m trees
             model->updateResidual(fit_info->predictions_std, tree_ind, num_trees, fit_info->residual_std);
@@ -101,6 +101,7 @@ void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num
                  vector<vector<tree>> &trees, double y_mean)
 {
 
+    NormalModel *model = new NormalModel();
     xinfo predictions_test_std;
     ini_xinfo(predictions_test_std, N_test, num_trees);
 
@@ -120,12 +121,13 @@ void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num
         {
 
             yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
-            fit_new_std(trees[sweeps][tree_ind], Xtestpointer, N_test, p, predictions_test_std[tree_ind]);
+            predict_from_tree(trees[sweeps][tree_ind], Xtestpointer, N_test, p, predictions_test_std[tree_ind],model);
             yhat_test_std = yhat_test_std + predictions_test_std[tree_ind];
         }
         yhats_test_xinfo[sweeps] = yhat_test_std;
     }
 
+    delete model;
     return;
 }
 
@@ -201,7 +203,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
             fit_info->split_count_all_tree[tree_ind] = fit_info->split_count_current_tree;
 
             // fit_new_std(trees[sweeps][tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
-            fit_new_std_datapointers(Xpointer, N, tree_ind, fit_info->predictions_std[tree_ind], fit_info->data_pointers);
+            predict_from_datapointers(Xpointer, N, tree_ind, fit_info->predictions_std[tree_ind], fit_info->data_pointers,model);
 
             // update residual, now it's residual of m trees
             model->updateResidual(fit_info->predictions_std, tree_ind, num_trees, fit_info->residual_std);
@@ -335,7 +337,7 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
             //	COUT << "outer loop weights" << fit_info->mtry_weight_current_tree << endl;
 
             // Update Predict
-            fit_new_std_datapointers(Xpointer, N, tree_ind, fit_info->predictions_std[tree_ind], fit_info->data_pointers);
+            predict_from_datapointers(Xpointer, N, tree_ind, fit_info->predictions_std[tree_ind], fit_info->data_pointers,model);
 
             // update residual, now it's residual of m trees
             model->updateResidual(fit_info->predictions_std, tree_ind, num_trees, fit_info->residual_std);

@@ -1426,24 +1426,24 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
     }
 }
 
-void fit_new_std(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output)
+void predict_from_tree(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output,Model *model)
 {
     tree::tree_p bn;
     for (size_t i = 0; i < N; i++)
     {
         bn = tree.search_bottom_std(X_std, i, p, N);
-        output[i] = bn->theta_vector[0];
+        output[i] = model->predictFromTheta(bn->theta_vector);
     }
     return;
 }
 
-void fit_new_std_datapointers(const double *X_std, size_t N, size_t M, std::vector<double> &output, matrix<std::vector<double>*> &data_pointers)
+void predict_from_datapointers(const double *X_std, size_t N, size_t M, std::vector<double> &output, matrix<std::vector<double>*> &data_pointers,Model *model)
 {
     // tree search, but read from the matrix of pointers to end node directly
     // easier to get fitted value of training set
     for (size_t i = 0; i < N; i++)
     {
-        output[i] = (*data_pointers[M][i])[0];
+        output[i] = model->predictFromTheta(*data_pointers[M][i]);
     }
     return;
 }
