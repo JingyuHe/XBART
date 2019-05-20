@@ -162,8 +162,8 @@ class tree
 std::istream &operator>>(std::istream &, tree &);
 std::ostream &operator<<(std::ostream &, const tree &);
 
-void fit_new_std(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output);
+void predict_from_tree(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output,Model *model);
 
-void fit_new_std_datapointers(const double *X_std, size_t N, size_t M, std::vector<double> &output, matrix<std::vector<double>*> &data_pointers);
+void predict_from_datapointers(const double *X_std, size_t N, size_t M, std::vector<double> &output, matrix<std::vector<double>*> &data_pointers,Model *model);
 
 #endif
