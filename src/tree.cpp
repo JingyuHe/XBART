@@ -650,6 +650,175 @@ void tree::grow_tree_adaptive_std_all(double y_mean, size_t depth, size_t max_de
     return;
 }
 
+
+
+
+
+void tree::grow_from_root(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, std::vector<double> &mtry_weight_current_tree, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag)
+
+{
+    // // load necessary values
+    // y_std = fit_info->residual_std;
+    // use_all = fit_info->use_all;
+    // split_count_all_tree = fit_info->split_count_all_tree; // never used?
+    // split_count_current_tree = fit_info->split_count_current_tree;
+    // categorical_variables = fit_info->categorical_variables; // never used?
+    // X_values = fit_info->X_values;
+    // X_counts = fit_info->X_counts; // should not be in fit_info?
+    // variable_ind = fit_info->variable_ind;
+    // X_num_unique = fit_info->X_num_unique;   // should not be in fit_info
+    // data_pointers = fit_info->data_pointers;
+    // gen = fit_info->gen;
+
+    // cout << y_mean << endl;
+
+
+
+    // grow a tree, users can control number of split points
+    size_t N_Xorder = Xorder_std[0].size();
+    size_t p = Xorder_std.size();
+    size_t N_y = fit_info->residual_std.size();
+    size_t ind;
+    size_t split_var;
+    size_t split_point;
+    
+    // y_mean = sum_vec(fit_info->residual_std) / (double) N_Xorder;
+
+    // cout << fit_info -> residual_std[1] << endl;
+
+
+    if (N_Xorder <= Nmin)
+    {
+        return;
+    }
+
+    if (depth >= max_depth - 1)
+    {
+        return;
+    }
+
+    // tau is prior VARIANCE, do not take squares
+
+    model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std);
+
+    this->sig = sigma;
+    bool no_split = false;
+
+    std::vector<size_t> subset_vars(p);
+
+    if (fit_info->use_all)
+    {
+        std::iota(subset_vars.begin(), subset_vars.end(), 0);
+
+    }
+    else
+    {
+        if (sample_weights_flag){
+            std::vector<double> weight_samp(p);
+            double weight_sum;
+
+            // Sample Weights Dirchelet
+            for (size_t i=0; i < p; i++)
+            {
+                std::gamma_distribution<double> temp_dist(mtry_weight_current_tree[i], 1.0);
+                weight_samp[i] = temp_dist(fit_info->gen);
+            }
+            weight_sum =  accumulate(weight_samp.begin(), weight_samp.end(), 0.0);
+            for (size_t i=0; i < p; i++)
+            {
+                weight_samp[i] = weight_samp[i] / weight_sum;
+
+            }
+
+            subset_vars = sample_int_ccrank(p, mtry, weight_samp, fit_info->gen);
+        }else{
+            subset_vars = sample_int_ccrank(p, mtry, mtry_weight_current_tree, fit_info->gen);
+        }
+        
+    }
+
+    BART_likelihood_all(y_mean * N_Xorder, fit_info->residual_std, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, fit_info->X_values, X_counts, fit_info->variable_ind, X_num_unique, model, fit_info->gen, mtry, this->prob_split);
+
+    if (no_split == true)
+    {
+         for (size_t i = 0; i < N_Xorder; i++)
+        {
+            fit_info->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
+        }
+        model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std);
+        this->l = 0;
+        this->r = 0;
+        return;
+    }
+
+    this->v = split_var;
+    this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+
+    // Update Cutpoint to be a true seperating point
+    // Increase split_point (index) until it is no longer equal to cutpoint value
+    while ((split_point < N_Xorder - 1) && (*(X_std + N_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
+    {
+        split_point = split_point + 1;
+    }
+    
+    // If our current split is same as parent, exit
+    if ( (this->p) && (this->v == (this->p)->v) && (this->c == (this->p)->c) ) {
+        return;
+    }
+
+
+    fit_info->split_count_current_tree[split_var] = fit_info->split_count_current_tree[split_var] + 1;
+
+    //COUT << split_count_current_tree << endl;
+
+    xinfo_sizet Xorder_left_std;
+    xinfo_sizet Xorder_right_std;
+    ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
+    ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
+
+    double yleft_mean_std = 0.0;
+    double yright_mean_std = 0.0;
+
+    std::vector<size_t> X_num_unique_left(X_num_unique.size());
+    std::vector<size_t> X_num_unique_right(X_num_unique.size());
+
+    std::vector<size_t> X_counts_left(X_counts.size());
+    std::vector<size_t> X_counts_right(X_counts.size());
+
+    if (p_categorical > 0)
+    {
+        split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, fit_info->residual_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, fit_info->X_values, fit_info->variable_ind, model);
+    }
+
+    if (p_continuous > 0)
+    {
+        split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, fit_info->residual_std, model);
+    }
+
+    depth++;
+
+    tree::tree_p lchild = new tree(model->getNumClasses(),this);
+    lchild->grow_from_root(fit_info, yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
+                                       draw_mu, parallel, Xorder_left_std, X_std, mtry,
+                                       mtry_weight_current_tree, p_categorical, p_continuous,
+                                       X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag);
+
+    tree::tree_p rchild = new tree(model->getNumClasses(),this);
+    rchild->grow_from_root(fit_info, yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
+                                       draw_mu, parallel, Xorder_right_std, X_std, mtry,
+                                       mtry_weight_current_tree, p_categorical, p_continuous,
+                                       X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag);
+
+    this->l = lchild;
+    this->r = rchild;
+
+    return;
+}
+
+
+
+
+
 void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<double> &y_std, Model *model)
 {
 
