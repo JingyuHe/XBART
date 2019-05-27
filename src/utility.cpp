@@ -471,3 +471,13 @@ void unique_value_count2(const double *Xpointer, xinfo_sizet &Xorder_std, //std:
     return;
 }
 
+double normal_density(double y, double mean, double var, bool take_log){
+    // density of normal distribution
+    double output = 0.0;
+
+    output = -0.5 * log(2.0 * 3.14159265359 * var) - pow(y - mean, 2) / 2.0 / var;
+    if(!take_log){
+        output = exp(output);
+    }
+    return output;
+}
