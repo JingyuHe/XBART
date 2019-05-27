@@ -94,6 +94,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
                  double kap = 16, double s = 4, bool verbose = false,
                  bool parallel = true, bool set_random_seed = false, size_t random_seed = 0,bool sample_weights_flag = true)
 {
+    
     bool draw_mu = true;
 
     auto start = system_clock::now();
@@ -539,6 +540,9 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest,
                  double kap = 16, double s = 4, bool verbose = false,
                  bool parallel = true, bool set_random_seed = false, size_t random_seed = 0,bool sample_weights_flag = true)
 {
+
+    cout << "MHMHMH" << endl;
+
     bool draw_mu = true;
 
     auto start = system_clock::now();

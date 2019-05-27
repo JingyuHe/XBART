@@ -260,7 +260,7 @@ static const R_CallMethodDef CallEntries[] = {
     // {"_XBART_sample_int_ccrank", (DL_FUNC)&_XBART_sample_int_ccrank, 3},
     // {"_XBART_train_forest_root_std_all", (DL_FUNC)&_XBART_train_forest_root_std_all, 21},
     {"_XBART", (DL_FUNC)&_XBART, 22},
-    {"_XBART_MH", (DL_FUNC)&_XBART, 22},
+    {"_XBART_MH", (DL_FUNC)&_XBART_MH, 22},
     {"_XBART_CLT", (DL_FUNC)&_XBART_CLT, 22},
     {"_XBART_Probit", (DL_FUNC)&_XBART_Probit, 22},
     {"_xbart_predict", (DL_FUNC)&_xbart_predict, 3},
