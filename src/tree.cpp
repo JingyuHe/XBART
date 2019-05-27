@@ -355,6 +355,7 @@ void tree::cp(tree_p n, tree_cp o)
     n->prob_split = o->prob_split;
     n->prob_leaf = o->prob_leaf;
     n->drawn_ind = o->drawn_ind;
+    n->N_Xorder = o->N_Xorder;
 
 
     if (o->l)
@@ -613,6 +614,9 @@ void tree::grow_from_root(std::unique_ptr<FitInfo>& fit_info, double y_mean, siz
         return;
     }
 
+    this->setN_Xorder(N_Xorder);
+    cout << "set N_Xorder"  << N_Xorder << "   " << this->N_Xorder;
+
     this->v = split_var;
     this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
 
@@ -716,9 +720,9 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
 
     // tau is prior VARIANCE, do not take squares
 
-    model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+    // model->samplePars(draw_mu, y_means, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
 
-    this->sig = sigma;
+    // this->sig = sigma;
     bool no_split = false;
 
     std::vector<size_t> subset_vars(p);
@@ -753,6 +757,8 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
         }
         
     }
+
+    // cout << "compare " << this->N_Xorder << "  " << N_Xorder << endl;
 
     BART_likelihood_update_old_tree(y_mean * N_Xorder, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_counts, X_num_unique, model, mtry, this->prob_split, fit_info, this->drawn_ind);
 
@@ -1406,10 +1412,9 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
 
         std::discrete_distribution<> d(loglike.begin(), loglike.end());
         // sample one index of split point
-
-        // ind = d(fit_info->gen);
-        // drawn_ind = ind;
-        ind = drawn_ind;
+        ind = d(fit_info->gen);
+        drawn_ind = ind;
+        // ind = drawn_ind;
 
         // save the posterior of the chosen split point
         vec_sum(loglike, prob_split);
@@ -1472,10 +1477,10 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
 
         std::discrete_distribution<size_t> d(loglike.begin(), loglike.end());
         // // sample one index of split point
-        // ind = d(fit_info->gen);
-        // drawn_ind = ind;
+        ind = d(fit_info->gen);
+        drawn_ind = ind;
 
-        ind = drawn_ind;
+        // ind = drawn_ind;
 
 
         // save the posterior of the chosen split point

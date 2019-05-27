@@ -408,7 +408,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
     double sigma = 1.0;
 
-    tree temp_tree = trees[0][0];
+    std::vector<tree> temp_tree = trees[0];
 
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
@@ -459,19 +459,19 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
             if(sweeps > 1){
                 cout << "start " << endl;
-                cout << temp_tree.getprob_split() << endl;
-                cout << temp_tree.getv() << " " << temp_tree.getc() << endl;
+                cout << temp_tree[tree_ind].getprob_split() << endl;
+                cout << temp_tree[tree_ind].getv() << " " << temp_tree[tree_ind].getc() << endl;
 
-                temp_tree.update_split_prob(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
+                temp_tree[tree_ind].update_split_prob(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
-                cout << temp_tree.getprob_split() << endl;
+                cout << temp_tree[tree_ind].getprob_split() << endl;
                 cout << "-------------------" << endl;
             }
 
             trees[sweeps][tree_ind].grow_from_root(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
-            temp_tree.tonull();
-            temp_tree = trees[sweeps][tree_ind];
+            temp_tree[tree_ind].tonull();
+            temp_tree[tree_ind] = trees[sweeps][tree_ind];
 
             // Add split counts
             mtry_weight_current_tree = mtry_weight_current_tree + fit_info->split_count_current_tree;
