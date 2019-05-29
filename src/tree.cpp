@@ -719,11 +719,6 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
     size_t split_var;
     size_t split_point;
     
-    // y_mean = sum_vec(fit_info->residual_std) / (double) N_Xorder;
-
-    // cout << fit_info -> residual_std[1] << endl;
-
-
     if (N_Xorder <= Nmin)
     {
         return;
@@ -734,11 +729,7 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
         return;
     }
 
-    // tau is prior VARIANCE, do not take squares
 
-    // model->samplePars(draw_mu, y_means, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
-
-    // this->sig = sigma;
     bool no_split = false;
 
     std::vector<size_t> subset_vars(p);
@@ -774,10 +765,6 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
         
     }
 
-    cout << "compare N_Xorder" << this->N_Xorder << "  " << N_Xorder << endl;
-
-    cout << "compare y_mean" << this-> y_mean <<  " " << y_mean << endl;
- 
     BART_likelihood_update_old_tree(y_mean * N_Xorder, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_counts, X_num_unique, model, mtry, this->prob_split, fit_info, this->drawn_ind);
 
     no_split = this-> no_split;
@@ -787,18 +774,18 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
 
     if (no_split == true)
     {
-         for (size_t i = 0; i < N_Xorder; i++)
-        {
-            fit_info->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
-        }
-        model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
-        this->l = 0;
-        this->r = 0;
+        //  for (size_t i = 0; i < N_Xorder; i++)
+        // {
+            // fit_info->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
+        // }
+        // model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+        // this->l = 0;
+        // this->r = 0;
         return;
     }
 
-    this->v = split_var;
-    this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+    // this->v = split_var;
+    // this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
 
 
     // Update Cutpoint to be a true seperating point
@@ -814,7 +801,7 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
     }
 
 
-    fit_info->split_count_current_tree[split_var] = fit_info->split_count_current_tree[split_var] + 1;
+    // fit_info->split_count_current_tree[split_var] = fit_info->split_count_current_tree[split_var] + 1;
 
     //COUT << split_count_current_tree << endl;
 
@@ -844,20 +831,18 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
 
     depth++;
 
-    // tree::tree_p lchild = new tree(model->getNumClasses(),this);
+
+
+    // do not initialize a new node, go to right and left node directly
     this->l->update_split_prob(fit_info, yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
                                        draw_mu, parallel, Xorder_left_std, X_std, mtry,
                                        mtry_weight_current_tree, p_categorical, p_continuous,
                                        X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag);
 
-    // tree::tree_p rchild = new tree(model->getNumClasses(),this);
     this->r->update_split_prob(fit_info, yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
                                        draw_mu, parallel, Xorder_right_std, X_std, mtry,
                                        mtry_weight_current_tree, p_categorical, p_continuous,
                                        X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag);
-
-    // this->l = lchild;
-    // this->r = rchild;
 
     return;
 }
