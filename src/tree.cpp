@@ -357,9 +357,9 @@ void tree::cp(tree_p n, tree_cp o)
     n->drawn_ind = o->drawn_ind;
     n->N_Xorder = o->N_Xorder;
     n->y_mean = o->y_mean;
-    n->split_var = o->split_var;
-    n->split_point = o->split_point;
-    n->no_split = o->no_split;
+    // n->split_var = o->split_var;
+    // n->split_point = o->split_point;
+    // n->no_split = o->no_split;
 
 
     if (o->l)
@@ -614,9 +614,9 @@ void tree::grow_from_root(std::unique_ptr<FitInfo>& fit_info, double y_mean, siz
     BART_likelihood_all(y_mean * N_Xorder, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_counts, X_num_unique, model, mtry, this->prob_split, fit_info, this->drawn_ind);
 
 
-    this->setsplit_point(split_point);
-    this->setsplit_var(split_var);
-    this->setno_split(no_split);
+    // this->setsplit_point(split_point);
+    // this->setsplit_var(split_var);
+    // this->setno_split(no_split);
 
 
 
@@ -734,42 +734,48 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
 
     std::vector<size_t> subset_vars(p);
 
-    if (fit_info->use_all)
-    {
+    // if (fit_info->use_all)
+    // {
         std::iota(subset_vars.begin(), subset_vars.end(), 0);
 
-    }
-    else
-    {
-        if (sample_weights_flag){
-            std::vector<double> weight_samp(p);
-            double weight_sum;
+    // }
+    // else
+    // {
+    //     if (sample_weights_flag){
+    //         std::vector<double> weight_samp(p);
+    //         double weight_sum;
 
-            // Sample Weights Dirchelet
-            for (size_t i=0; i < p; i++)
-            {
-                std::gamma_distribution<double> temp_dist(mtry_weight_current_tree[i], 1.0);
-                weight_samp[i] = temp_dist(fit_info->gen);
-            }
-            weight_sum =  accumulate(weight_samp.begin(), weight_samp.end(), 0.0);
-            for (size_t i=0; i < p; i++)
-            {
-                weight_samp[i] = weight_samp[i] / weight_sum;
+    //         // Sample Weights Dirchelet
+    //         for (size_t i=0; i < p; i++)
+    //         {
+    //             std::gamma_distribution<double> temp_dist(mtry_weight_current_tree[i], 1.0);
+    //             weight_samp[i] = temp_dist(fit_info->gen);
+    //         }
+    //         weight_sum =  accumulate(weight_samp.begin(), weight_samp.end(), 0.0);
+    //         for (size_t i=0; i < p; i++)
+    //         {
+    //             weight_samp[i] = weight_samp[i] / weight_sum;
 
-            }
+    //         }
 
-            subset_vars = sample_int_ccrank(p, mtry, weight_samp, fit_info->gen);
-        }else{
-            subset_vars = sample_int_ccrank(p, mtry, mtry_weight_current_tree, fit_info->gen);
-        }
+    //         subset_vars = sample_int_ccrank(p, mtry, weight_samp, fit_info->gen);
+    //     }else{
+    //         subset_vars = sample_int_ccrank(p, mtry, mtry_weight_current_tree, fit_info->gen);
+    //     }
         
-    }
+    // }
 
     BART_likelihood_update_old_tree(y_mean * N_Xorder, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_counts, X_num_unique, model, mtry, this->prob_split, fit_info, this->drawn_ind);
 
-    no_split = this-> no_split;
-    split_var = this-> split_var;
-    split_point = this->split_point;
+
+    // no_split = this-> no_split;
+    // split_var = this-> split_var;
+    // split_point = this->split_point;
+
+
+    // also need to update y_mean
+    // N_Xorder is identical, not necessary to update
+    this->sety_mean(y_mean);
 
 
     if (no_split == true)
@@ -779,6 +785,9 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
             // fit_info->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
         // }
         // model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+
+        this->prob_leaf = normal_density(this->theta_vector[0], y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)), 1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2)), true);
+
         // this->l = 0;
         // this->r = 0;
         return;
@@ -813,6 +822,12 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
     double yleft_mean_std = 0.0;
     double yright_mean_std = 0.0;
 
+
+    /*
+        I think Xorder_left and Xorder_right can be saved when fit the tree
+        make it easier to update prob on new residuals (more memory cost)
+    */
+
     std::vector<size_t> X_num_unique_left(X_num_unique.size());
     std::vector<size_t> X_num_unique_right(X_num_unique.size());
 
@@ -846,6 +861,41 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
 
     return;
 }
+
+
+
+double tree::transition_prob(){
+    /*
+        This function calculate probability of given tree
+        log P(all cutpoints) + log P(leaf parameters)
+        Used in M-H ratio calculation
+    */
+
+
+    double output = 0.0;
+    double log_p_cutpoints = 0.0;
+    double log_p_leaf = 0.0;
+    npv tree_vec;
+    this->getnodes(tree_vec);
+
+    for(size_t i = 0; i < tree_vec.size(); i++ ){
+        if(tree_vec[i]->getl() == 0){
+            // if no children, it is end node, count leaf parameter probability
+            log_p_leaf += log(tree_vec[i]->getprob_leaf());
+        }else{
+            // otherwise count cutpoint probability
+            log_p_cutpoints += log(tree_vec[i]->getprob_split());
+        }
+    }
+    output = log_p_cutpoints + log_p_leaf;
+
+    cout << "leaf " << log_p_leaf << endl;
+    cout << "cutpoints " << log_p_cutpoints << endl;
+    cout << "output is " << output << endl;
+    return output;
+};
+
+
 
 
 
@@ -1391,6 +1441,7 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
     }
 
     // sampling cutpoints
+
     if (N <= Ncutpoints + 1 + 2 * Nmin)
     {
 
@@ -1420,9 +1471,9 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
 
         std::discrete_distribution<> d(loglike.begin(), loglike.end());
         // sample one index of split point
-        ind = d(fit_info->gen);
-        drawn_ind = ind;
-        // ind = drawn_ind;
+        // ind = d(fit_info->gen);
+        // drawn_ind = ind;
+        ind = drawn_ind;
 
         // save the posterior of the chosen split point
         vec_sum(loglike, prob_split);
@@ -1485,10 +1536,10 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
 
         std::discrete_distribution<size_t> d(loglike.begin(), loglike.end());
         // // sample one index of split point
-        ind = d(fit_info->gen);
-        drawn_ind = ind;
+        // ind = d(fit_info->gen);
+        // drawn_ind = ind;
 
-        // ind = drawn_ind;
+        ind = drawn_ind;
 
 
         // save the posterior of the chosen split point
