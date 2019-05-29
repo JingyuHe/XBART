@@ -355,11 +355,11 @@ void tree::cp(tree_p n, tree_cp o)
     n->prob_split = o->prob_split;
     n->prob_leaf = o->prob_leaf;
     n->drawn_ind = o->drawn_ind;
-    n->N_Xorder = o->N_Xorder;
-    n->y_mean = o->y_mean;
-    n->split_var = o->split_var;
-    n->split_point = o->split_point;
-    n->no_split = o->no_split;
+    // n->N_Xorder = o->N_Xorder;
+    // n->y_mean = o->y_mean;
+    // n->split_var = o->split_var;
+    // n->split_point = o->split_point;
+    // n->no_split = o->no_split;
 
 
     if (o->l)
@@ -554,8 +554,8 @@ void tree::grow_from_root(std::unique_ptr<FitInfo>& fit_info, double y_mean, siz
     // cout << fit_info -> residual_std[1] << endl;
 
     // this -> y_mean = y_mean;
-    this->setN_Xorder(N_Xorder);
-    this->sety_mean(y_mean);
+    // this->setN_Xorder(N_Xorder);
+    // this->sety_mean(y_mean);
     
     // cout << "initaliz y_mean " << y_mean << "  "  << this->y_mean << endl;
     // cout << "set N_Xorder "  << N_Xorder << "   " << this->N_Xorder << endl;
@@ -614,9 +614,9 @@ void tree::grow_from_root(std::unique_ptr<FitInfo>& fit_info, double y_mean, siz
     BART_likelihood_all(y_mean * N_Xorder, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_counts, X_num_unique, model, mtry, this->prob_split, fit_info, this->drawn_ind);
 
 
-    this->setsplit_point(split_point);
-    this->setsplit_var(split_var);
-    this->setno_split(no_split);
+    // this->setsplit_point(split_point);
+    // this->setsplit_var(split_var);
+    // this->setno_split(no_split);
 
 
 
@@ -768,14 +768,9 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
     BART_likelihood_update_old_tree(y_mean * N_Xorder, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_counts, X_num_unique, model, mtry, this->prob_split, fit_info, this->drawn_ind);
 
 
-    /*
-        You either recalculate split_var and split_point in BART_likelihood_update_old_tree
-        or just simply save them when fit the tree
-        I prefer the second one
-    */
-    no_split = this-> no_split;
-    split_var = this-> split_var;
-    split_point = this->split_point;
+    // no_split = this-> no_split;
+    // split_var = this-> split_var;
+    // split_point = this->split_point;
 
 
     if (no_split == true)
