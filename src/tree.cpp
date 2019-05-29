@@ -356,6 +356,10 @@ void tree::cp(tree_p n, tree_cp o)
     n->prob_leaf = o->prob_leaf;
     n->drawn_ind = o->drawn_ind;
     n->N_Xorder = o->N_Xorder;
+    n->y_mean = o->y_mean;
+    n->split_var = o->split_var;
+    n->split_point = o->split_point;
+    n->no_split = o->no_split;
 
 
     if (o->l)
@@ -549,6 +553,12 @@ void tree::grow_from_root(std::unique_ptr<FitInfo>& fit_info, double y_mean, siz
 
     // cout << fit_info -> residual_std[1] << endl;
 
+    // this -> y_mean = y_mean;
+    this->setN_Xorder(N_Xorder);
+    this->sety_mean(y_mean);
+    
+    // cout << "initaliz y_mean " << y_mean << "  "  << this->y_mean << endl;
+    // cout << "set N_Xorder "  << N_Xorder << "   " << this->N_Xorder << endl;
 
     if (N_Xorder <= Nmin)
     {
@@ -600,7 +610,15 @@ void tree::grow_from_root(std::unique_ptr<FitInfo>& fit_info, double y_mean, siz
         
     }
 
+
     BART_likelihood_all(y_mean * N_Xorder, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_counts, X_num_unique, model, mtry, this->prob_split, fit_info, this->drawn_ind);
+
+
+    this->setsplit_point(split_point);
+    this->setsplit_var(split_var);
+    this->setno_split(no_split);
+
+
 
     if (no_split == true)
     {
@@ -614,8 +632,6 @@ void tree::grow_from_root(std::unique_ptr<FitInfo>& fit_info, double y_mean, siz
         return;
     }
 
-    this->setN_Xorder(N_Xorder);
-    cout << "set N_Xorder"  << N_Xorder << "   " << this->N_Xorder;
 
     this->v = split_var;
     this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
@@ -758,9 +774,16 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
         
     }
 
-    // cout << "compare " << this->N_Xorder << "  " << N_Xorder << endl;
+    cout << "compare N_Xorder" << this->N_Xorder << "  " << N_Xorder << endl;
 
+    cout << "compare y_mean" << this-> y_mean <<  " " << y_mean << endl;
+ 
     BART_likelihood_update_old_tree(y_mean * N_Xorder, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_counts, X_num_unique, model, mtry, this->prob_split, fit_info, this->drawn_ind);
+
+    no_split = this-> no_split;
+    split_var = this-> split_var;
+    split_point = this->split_point;
+
 
     if (no_split == true)
     {
@@ -821,20 +844,20 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
 
     depth++;
 
-    tree::tree_p lchild = new tree(model->getNumClasses(),this);
-    lchild->update_split_prob(fit_info, yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
+    // tree::tree_p lchild = new tree(model->getNumClasses(),this);
+    this->l->update_split_prob(fit_info, yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
                                        draw_mu, parallel, Xorder_left_std, X_std, mtry,
                                        mtry_weight_current_tree, p_categorical, p_continuous,
                                        X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag);
 
-    tree::tree_p rchild = new tree(model->getNumClasses(),this);
-    rchild->update_split_prob(fit_info, yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
+    // tree::tree_p rchild = new tree(model->getNumClasses(),this);
+    this->r->update_split_prob(fit_info, yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
                                        draw_mu, parallel, Xorder_right_std, X_std, mtry,
                                        mtry_weight_current_tree, p_categorical, p_continuous,
                                        X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag);
 
-    this->l = lchild;
-    this->r = rchild;
+    // this->l = lchild;
+    // this->r = rchild;
 
     return;
 }
