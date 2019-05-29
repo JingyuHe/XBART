@@ -86,10 +86,10 @@ class tree
     friend std::istream &operator>>(std::istream &, tree &);
     //  friend void update_sufficient_stat(tree& tree, arma::mat& y, arma::mat& X, tree::npv& bv, tree::npv& bv2, double& tau, double& sigma, double& alpha, double& beta);
     //contructors,destructors--------------------
-    tree() : theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0) {}
-    tree(const tree &n) : theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0) { cp(this, &n); }
-    tree(double itheta) : theta_vector(itheta, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0) {}
-    tree(size_t num_classes,const tree_p parent) : theta_vector(num_classes, 0.0), sig(0.0), v(0), c(0), p (parent), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0) {}
+    tree() : theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0) {}
+    tree(const tree &n) : theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0)  { cp(this, &n); }
+    tree(double itheta) : theta_vector(itheta, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0)  {}
+    tree(size_t num_classes,const tree_p parent) : theta_vector(num_classes, 0.0), sig(0.0), v(0), c(0), p (parent), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0)  {}
 
     void tonull(); //like a "clear", null tree has just one node
     ~tree() { tonull(); }
@@ -109,11 +109,12 @@ class tree
     double getprob_leaf() const {return prob_leaf; }
     size_t getv() const { return v; }
     double getc() const { return c; }
-    // size_t getN_Xorder() const {return N_Xorder;}
-    // void setN_Xorder(size_t N_Xorder) {this->N_Xorder = N_Xorder;} 
 
-    // double gety_mean() const {return y_mean;} 
-    // void sety_mean(double y_mean) {this->y_mean = y_mean;}
+    size_t getN_Xorder() const {return N_Xorder;}
+    void setN_Xorder(size_t N_Xorder) {this->N_Xorder = N_Xorder;} 
+
+    double gety_mean() const {return y_mean;} 
+    void sety_mean(double y_mean) {this->y_mean = y_mean;}
 
     // size_t getsplit_var() const {return split_var; }
     // size_t getsplit_point() const {return split_point; }
@@ -151,6 +152,7 @@ class tree
 
     void update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, std::vector<double> &mtry_weight_current_tree, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag);
 
+    double transition_prob();
 
     tree_p bn(double *x, xinfo &xi); //find Bottom Node, original BART version
     tree_p bn_std(double *x);        // find Bottom Node, std version, compare
@@ -180,8 +182,8 @@ class tree
 
     size_t drawn_ind; // index drawn when sampling cutpoints (in the total likelihood + nosplit vector)
 
-    // size_t N_Xorder; // number of data points in this node, for debugging use
-    // double y_mean; // average of y in current node, for debugging use
+    size_t N_Xorder; // number of data points in this node, for debugging use
+    double y_mean; // average of y in current node, for debugging use
     // size_t split_var;
     // size_t split_point; // for debugging use
     // bool no_split;

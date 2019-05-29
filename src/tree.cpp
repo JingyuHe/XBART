@@ -355,8 +355,8 @@ void tree::cp(tree_p n, tree_cp o)
     n->prob_split = o->prob_split;
     n->prob_leaf = o->prob_leaf;
     n->drawn_ind = o->drawn_ind;
-    // n->N_Xorder = o->N_Xorder;
-    // n->y_mean = o->y_mean;
+    n->N_Xorder = o->N_Xorder;
+    n->y_mean = o->y_mean;
     // n->split_var = o->split_var;
     // n->split_point = o->split_point;
     // n->no_split = o->no_split;
@@ -554,8 +554,8 @@ void tree::grow_from_root(std::unique_ptr<FitInfo>& fit_info, double y_mean, siz
     // cout << fit_info -> residual_std[1] << endl;
 
     // this -> y_mean = y_mean;
-    // this->setN_Xorder(N_Xorder);
-    // this->sety_mean(y_mean);
+    this->setN_Xorder(N_Xorder);
+    this->sety_mean(y_mean);
     
     // cout << "initaliz y_mean " << y_mean << "  "  << this->y_mean << endl;
     // cout << "set N_Xorder "  << N_Xorder << "   " << this->N_Xorder << endl;
@@ -773,6 +773,11 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
     // split_point = this->split_point;
 
 
+    // also need to update y_mean
+    // N_Xorder is identical, not necessary to update
+    this->sety_mean(y_mean);
+
+
     if (no_split == true)
     {
         //  for (size_t i = 0; i < N_Xorder; i++)
@@ -780,6 +785,9 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
             // fit_info->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
         // }
         // model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+
+        this->prob_leaf = normal_density(this->theta_vector[0], y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)), 1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2)), true);
+
         // this->l = 0;
         // this->r = 0;
         return;
@@ -853,6 +861,41 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
 
     return;
 }
+
+
+
+double tree::transition_prob(){
+    /*
+        This function calculate probability of given tree
+        log P(all cutpoints) + log P(leaf parameters)
+        Used in M-H ratio calculation
+    */
+
+
+    double output = 0.0;
+    double log_p_cutpoints = 0.0;
+    double log_p_leaf = 0.0;
+    npv tree_vec;
+    this->getnodes(tree_vec);
+
+    for(size_t i = 0; i < tree_vec.size(); i++ ){
+        if(tree_vec[i]->getl() == 0){
+            // if no children, it is end node, count leaf parameter probability
+            log_p_leaf += log(tree_vec[i]->getprob_leaf());
+        }else{
+            // otherwise count cutpoint probability
+            log_p_cutpoints += log(tree_vec[i]->getprob_split());
+        }
+    }
+    output = log_p_cutpoints + log_p_leaf;
+
+    cout << "leaf " << log_p_leaf << endl;
+    cout << "cutpoints " << log_p_cutpoints << endl;
+    cout << "output is " << output << endl;
+    return output;
+};
+
+
 
 
 

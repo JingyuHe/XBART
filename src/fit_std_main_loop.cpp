@@ -468,6 +468,8 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 cout << "-------------------" << endl;
             }
 
+            temp_tree[tree_ind].transition_prob();
+
             trees[sweeps][tree_ind].grow_from_root(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
             temp_tree[tree_ind].tonull();
