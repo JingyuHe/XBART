@@ -734,39 +734,45 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
 
     std::vector<size_t> subset_vars(p);
 
-    if (fit_info->use_all)
-    {
+    // if (fit_info->use_all)
+    // {
         std::iota(subset_vars.begin(), subset_vars.end(), 0);
 
-    }
-    else
-    {
-        if (sample_weights_flag){
-            std::vector<double> weight_samp(p);
-            double weight_sum;
+    // }
+    // else
+    // {
+    //     if (sample_weights_flag){
+    //         std::vector<double> weight_samp(p);
+    //         double weight_sum;
 
-            // Sample Weights Dirchelet
-            for (size_t i=0; i < p; i++)
-            {
-                std::gamma_distribution<double> temp_dist(mtry_weight_current_tree[i], 1.0);
-                weight_samp[i] = temp_dist(fit_info->gen);
-            }
-            weight_sum =  accumulate(weight_samp.begin(), weight_samp.end(), 0.0);
-            for (size_t i=0; i < p; i++)
-            {
-                weight_samp[i] = weight_samp[i] / weight_sum;
+    //         // Sample Weights Dirchelet
+    //         for (size_t i=0; i < p; i++)
+    //         {
+    //             std::gamma_distribution<double> temp_dist(mtry_weight_current_tree[i], 1.0);
+    //             weight_samp[i] = temp_dist(fit_info->gen);
+    //         }
+    //         weight_sum =  accumulate(weight_samp.begin(), weight_samp.end(), 0.0);
+    //         for (size_t i=0; i < p; i++)
+    //         {
+    //             weight_samp[i] = weight_samp[i] / weight_sum;
 
-            }
+    //         }
 
-            subset_vars = sample_int_ccrank(p, mtry, weight_samp, fit_info->gen);
-        }else{
-            subset_vars = sample_int_ccrank(p, mtry, mtry_weight_current_tree, fit_info->gen);
-        }
+    //         subset_vars = sample_int_ccrank(p, mtry, weight_samp, fit_info->gen);
+    //     }else{
+    //         subset_vars = sample_int_ccrank(p, mtry, mtry_weight_current_tree, fit_info->gen);
+    //     }
         
-    }
+    // }
 
     BART_likelihood_update_old_tree(y_mean * N_Xorder, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_counts, X_num_unique, model, mtry, this->prob_split, fit_info, this->drawn_ind);
 
+
+    /*
+        You either recalculate split_var and split_point in BART_likelihood_update_old_tree
+        or just simply save them when fit the tree
+        I prefer the second one
+    */
     no_split = this-> no_split;
     split_var = this-> split_var;
     split_point = this->split_point;
@@ -812,6 +818,12 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
 
     double yleft_mean_std = 0.0;
     double yright_mean_std = 0.0;
+
+
+    /*
+        I think Xorder_left and Xorder_right can be saved when fit the tree
+        make it easier to update prob on new residuals (more memory cost)
+    */
 
     std::vector<size_t> X_num_unique_left(X_num_unique.size());
     std::vector<size_t> X_num_unique_right(X_num_unique.size());
@@ -1391,6 +1403,7 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
     }
 
     // sampling cutpoints
+
     if (N <= Ncutpoints + 1 + 2 * Nmin)
     {
 
@@ -1420,9 +1433,9 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
 
         std::discrete_distribution<> d(loglike.begin(), loglike.end());
         // sample one index of split point
-        ind = d(fit_info->gen);
-        drawn_ind = ind;
-        // ind = drawn_ind;
+        // ind = d(fit_info->gen);
+        // drawn_ind = ind;
+        ind = drawn_ind;
 
         // save the posterior of the chosen split point
         vec_sum(loglike, prob_split);
@@ -1485,10 +1498,10 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
 
         std::discrete_distribution<size_t> d(loglike.begin(), loglike.end());
         // // sample one index of split point
-        ind = d(fit_info->gen);
-        drawn_ind = ind;
+        // ind = d(fit_info->gen);
+        // drawn_ind = ind;
 
-        // ind = drawn_ind;
+        ind = drawn_ind;
 
 
         // save the posterior of the chosen split point
