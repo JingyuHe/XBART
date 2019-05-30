@@ -110,6 +110,9 @@ class NormalModel : public Model
         // also update probability of leaf parameters
         prob_leaf = normal_density(theta_vector[0], y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)), 1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2)), true);
 
+
+        // cout << "prob_leaf " << prob_leaf << endl;
+
         return;
     }
 
