@@ -273,6 +273,7 @@ void fit_std_multinomial(const double *Xpointer, std::vector<double> &y_std, dou
                  double tau, size_t burnin, size_t mtry,
                  double kap, double s,
                  bool verbose,
+                 size_t = n_class,
                  bool draw_mu, bool parallel,
                  xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vec_d &mtry_weight_current_tree,
                  size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed, double no_split_penality, bool sample_weights_flag)
@@ -280,12 +281,27 @@ void fit_std_multinomial(const double *Xpointer, std::vector<double> &y_std, dou
 
     std::vector<double> initial_theta(1,0);
     std::unique_ptr<FitInfo> fit_info (new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta));
+	
 
     if (parallel)
         thread_pool.start();
 
-    CLTClass *model = new CLTClass();
+    LogitClass *model = new LogitClass(n_class);
+    
     model->setNoSplitPenality(no_split_penality);
+    model->setNumClasses(n_class)
+    
+    // initialize Phi
+    std::vector<double> Phi(N,1.0);
+    
+      // initialize partialFits
+ 	std::vector<std::vector<double>> partialFits(N, std::vector<double>(n_class, 1.0));
+    
+
+	model->slop = &partialFits
+	model->phi = &Phi
+
+
 
     // initialize predcitions and predictions_test
     for (size_t ii = 0; ii < num_trees; ii++)
@@ -341,8 +357,10 @@ void fit_std_multinomial(const double *Xpointer, std::vector<double> &y_std, dou
             // fit_new_std(trees[sweeps][tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
             predict_from_datapointers(Xpointer, N, tree_ind, fit_info->predictions_std[tree_ind], fit_info->data_pointers,model);
 
+           
+           //updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std)
             // update residual, now it's residual of m trees
-            model->updateResidual(fit_info->predictions_std, tree_ind, num_trees, fit_info->residual_std);
+            model->updateResidual(fit_info->predictions_std, tree_ind, num_trees, slop);
 
             fit_info->yhat_std = fit_info->yhat_std + fit_info->predictions_std[tree_ind];
 
