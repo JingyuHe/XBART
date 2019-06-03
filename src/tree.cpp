@@ -536,6 +536,8 @@ double tree::tree_likelihood(size_t N, double sigma, vector<double> y)
     {
         output += tree_vec[i]->loglike_leaf;
     }
+
+    // add constant
     output = output - N * log(2 * 3.14159265359) / 2 - N * log(sigma) - std::inner_product(y.begin(), y.end(), y.begin(), 0.0) / pow(sigma, 2) / 2;
 
     tree_like = output;
@@ -1108,6 +1110,7 @@ double tree::transition_prob(){
         if(tree_vec[i]->getl() == 0){
             // if no children, it is end node, count leaf parameter probability
             log_p_leaf += tree_vec[i]->getprob_leaf();
+            log_p_cutpoints += log(tree_vec[i]->getprob_split());
         }else{
             // otherwise count cutpoint probability
             log_p_cutpoints += log(tree_vec[i]->getprob_split());
