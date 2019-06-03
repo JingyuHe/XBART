@@ -786,7 +786,12 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
         // }
         // model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
 
+        // cout << "prob_leaf before " << this-> prob_leaf << "   " ;
+
         this->prob_leaf = normal_density(this->theta_vector[0], y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)), 1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2)), true);
+
+
+        // cout <<" after  " << this-> prob_leaf << endl;
 
         // this->l = 0;
         // this->r = 0;
@@ -876,12 +881,14 @@ double tree::transition_prob(){
     double log_p_cutpoints = 0.0;
     double log_p_leaf = 0.0;
     npv tree_vec;
+
+    // get a vector of all nodess
     this->getnodes(tree_vec);
 
     for(size_t i = 0; i < tree_vec.size(); i++ ){
         if(tree_vec[i]->getl() == 0){
             // if no children, it is end node, count leaf parameter probability
-            log_p_leaf += log(tree_vec[i]->getprob_leaf());
+            log_p_leaf += tree_vec[i]->getprob_leaf();
         }else{
             // otherwise count cutpoint probability
             log_p_cutpoints += log(tree_vec[i]->getprob_split());
@@ -889,13 +896,30 @@ double tree::transition_prob(){
     }
     output = log_p_cutpoints + log_p_leaf;
 
-    cout << "leaf " << log_p_leaf << endl;
-    cout << "cutpoints " << log_p_cutpoints << endl;
-    cout << "output is " << output << endl;
     return output;
 };
 
 
+double tree::log_like_tree(double sigma2, double tau){
+    double output = 0.0;
+
+    npv tree_vec;
+
+    // get a vector of bottom nodes
+    this->getbots(tree_vec);
+
+    // calculate loglikelihood 
+
+    // be careful of y^ty term, second order
+    // it is changed with new residual  
+    for(size_t i = 0; i < tree_vec.size(); i ++ ){
+        output += 0.5 * (log(sigma2 / (sigma2 + tau * tree_vec[i]->getN_Xorder())) + tau / sigma2 / (sigma2 + tau * tree_vec[i]->getN_Xorder()) * pow(tree_vec[i]->getN_Xorder() * tree_vec[i]->gety_mean(), 2));
+    }
+
+    cout << "output of log_like_tree  " << output << endl;
+
+    return output;
+}
 
 
 
