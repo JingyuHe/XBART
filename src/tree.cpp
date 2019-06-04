@@ -545,6 +545,36 @@ double tree::tree_likelihood(size_t N, double sigma, vector<double> y)
 
 }
 
+double tree::prior_prob(double tau, double alpha, double beta)
+{
+    /*
+        This function calculate the log of 
+        the prior probability of drawing the given tree
+    */
+    double output = 0.0;
+    double log_split_prob = 0.0;
+    double log_leaf_prob = 0.0;
+    npv tree_vec;
+
+    // get a vector of all nodess
+    this->getnodes(tree_vec);
+
+    for(size_t i = 0; i < tree_vec.size(); i++ ){
+        if(tree_vec[i]->getl() == 0){
+            // if no children, it is end node, count leaf parameter probability
+            log_leaf_prob += normal_density(tree_vec[i]->theta_vector[0], 0.0, tau, true);
+            log_split_prob += log(1 - alpha * pow((1 + tree_vec[i]->depth()), -beta));
+        }else{
+            // otherwise count cutpoint probability
+            log_split_prob += log(alpha * pow((1 + tree_vec[i]->depth()), -beta));
+        }
+    }
+    output = log_split_prob + log_leaf_prob;
+    // output = log_split_prob;
+    return output;
+}
+
+
 void tree::grow_from_root(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, std::vector<double> &mtry_weight_current_tree, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag)
 
 {
@@ -1008,7 +1038,7 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
         // model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
 
         // cout << "prob_leaf before " << this-> prob_leaf << "   " ;
-        
+
         this->loglike_leaf = model->likelihood_no_split(y_mean * N_Xorder, tau, N_Xorder * tau, pow(sigma, 2));
 
         this->prob_leaf = normal_density(this->theta_vector[0], y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)), 1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2)), true);

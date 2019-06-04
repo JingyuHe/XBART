@@ -559,6 +559,8 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
     double P_old;
     double Q_new;
     double Q_old;
+    double prior_new;
+    double prior_old;
 
 
     std::uniform_real_distribution<> unif_dist(0, 1);
@@ -645,16 +647,17 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 // P_old = trees[sweeps - 1][tree_ind].gettree_like();
                 P_old = trees[sweeps - 1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
 
-
+                prior_old = trees[sweeps - 1][tree_ind].prior_prob(tau, alpha, beta);
 
 
                 // proposal
                 Q_new = temp_tree[tree_ind].transition_prob();
                 P_new = temp_tree[tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
+                prior_new = temp_tree[tree_ind].prior_prob(tau, alpha, beta);
 
                 cout << Q_old << "  " << P_old << "  " << Q_new << "  " << P_new << endl;
 
-                MH_ratio = P_new + Q_old - P_old - Q_new;
+                MH_ratio = P_new + Q_old - P_old - Q_new + prior_new - prior_old;
 
                 if(MH_ratio > 0){
                     MH_ratio = 1;
@@ -663,6 +666,9 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 }
                 
                 cout << "MH_ratio " << MH_ratio << endl;
+                cout << "P_new - P_old " << P_new - P_old << endl;
+                cout << "Q_old - Q_new " << Q_old - Q_new << endl;
+                cout << "prior_new - prior_old " << prior_new - prior_old << endl;
 
                 if(unif_dist(fit_info->gen) <= MH_ratio){
                     // accept
