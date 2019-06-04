@@ -550,7 +550,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
     double sigma = 1.0;
 
-    std::vector<tree> temp_tree = trees[0];
+    // std::vector<tree> temp_tree = trees[0];
 
     double MH_ratio = 0.0;
 
@@ -562,8 +562,13 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
     double prior_new;
     double prior_old;
 
+    std::vector<double> accept_count;
+
 
     std::uniform_real_distribution<> unif_dist(0, 1);
+
+
+    tree temp_treetree;
 
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
@@ -577,7 +582,6 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
         {
-
             // Draw Sigma
             fit_info->residual_std_full = fit_info->residual_std - fit_info->predictions_std[tree_ind];
             std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(fit_info->residual_std_full) + s));
@@ -612,23 +616,30 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-            if(sweeps < 10){
-                // The first sweep is used as initialization
-                // all trees in the first sweep are accepted
+            if(sweeps < 19){
+            //     // The first sweep is used as initialization
+            //     // all trees in the first sweep are accepted
                 trees[sweeps][tree_ind].tonull();
                 trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
-                // after growing, calculate likelihood with old residual
-                // trees[sweeps][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
+            //    cout << temp_treetree.treesize() << endl;
+
+                //  trees[sweeps][tree_ind] = temp_treetree;
+            //     // after growing, calculate likelihood with old residual
+            //     // trees[sweeps][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
             
             }
-            else{
-                // fit a proposal
-                temp_tree[tree_ind].tonull();
-                temp_tree[tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
+            else
+            {
+            //     // fit a proposal
+            //     temp_tree[tree_ind].tonull();
 
 
-                
+
+                trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
+
+
+
                 trees[sweeps - 1][tree_ind].update_split_prob(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
                 Q_old = trees[sweeps - 1][tree_ind].transition_prob();
@@ -638,17 +649,17 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
 
                 // Q_old = trees[sweeps][tree_ind].transition_prob();
-                // P_old = trees[sweeps][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
-                // prior_old = trees[sweeps][tree_ind].prior_prob(tau, alpha, beta);
+                // // P_old = trees[sweeps][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
+                // // prior_old = trees[sweeps][tree_ind].prior_prob(tau, alpha, beta);
 
 
 
-                // proposal
-                Q_new = temp_tree[tree_ind].transition_prob();
-                P_new = temp_tree[tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
-                prior_new = temp_tree[tree_ind].prior_prob(tau, alpha, beta);
+                // // proposal
+                Q_new = trees[sweeps][tree_ind].transition_prob();
+                P_new = trees[sweeps][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
+                prior_new = trees[sweeps][tree_ind].prior_prob(tau, alpha, beta);
 
-                cout << "tree size comparison " << trees[sweeps][tree_ind].treesize() << "   " << temp_tree[tree_ind].treesize() << endl;
+                // cout << "tree size comparison " << trees[sweeps - 1][tree_ind].treesize() << "   " << trees[sweeps][tree_ind].treesize() << endl;
 
                 cout << Q_old << "  " << P_old << "  " << Q_new << "  " << P_new << endl;
 
@@ -668,27 +679,24 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
                 if(unif_dist(fit_info->gen) <= MH_ratio){
                     // accept
-                    trees[sweeps][tree_ind].tonull();
-                    trees[sweeps][tree_ind] = temp_tree[tree_ind];
+                    // do nothing
+                    cout << "accept" << endl;
+
+                    accept_count.push_back(1);
                 }else{
                     // reject
-                    trees[sweeps][tree_ind].tonull();
-                    trees[sweeps][tree_ind] = trees[sweeps-1][tree_ind];
+                    cout << "reject " << endl;
+                    // cout << "sweeps " << sweeps << "  " << tree_ind << endl;
+                    // // copy the old one 
+                    // trees[sweeps][tree_ind] = trees[sweeps-1][tree_ind];
+                    accept_count.push_back(0);
                 }
 
-
+                // cout << "copy is ok" << endl;
             }
 
 
 
-            // temp_tree[tree_ind].log_like_tree(pow(sigma,2 ), tau);
-
-            // trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
-
-            // trees[sweeps][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
-
-            // temp_tree[tree_ind].tonull();
-            // temp_tree[tree_ind] = trees[sweeps][tree_ind];
 
             // Add split counts
             mtry_weight_current_tree = mtry_weight_current_tree + fit_info->split_count_current_tree;
@@ -702,6 +710,11 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
             fit_info->yhat_std = fit_info->yhat_std + fit_info->predictions_std[tree_ind];
         }
+
+        double average = accumulate(accept_count.begin(), accept_count.end(), 0.0)/accept_count.size(); 
+
+        cout << "average " << average << endl;
+
         // save predictions to output matrix
         yhats_xinfo[sweeps] = fit_info->yhat_std;
     }

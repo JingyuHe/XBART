@@ -359,6 +359,7 @@ void tree::cp(tree_p n, tree_cp o)
     n->y_mean = o->y_mean;
     n->loglike_leaf = o->loglike_leaf;
     n->tree_like = o->tree_like;
+    n->theta_vector = o-> theta_vector;
     // n->split_var = o->split_var;
     // n->split_point = o->split_point;
     // n->no_split = o->no_split;
