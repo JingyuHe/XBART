@@ -563,6 +563,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
     double prior_old;
 
     std::vector<double> accept_count;
+    std::vector<double> MH_vector;
 
 
     std::uniform_real_distribution<> unif_dist(0, 1);
@@ -618,23 +619,14 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
             if(sweeps < 19){
             //     // The first sweep is used as initialization
-            //     // all trees in the first sweep are accepted
                 trees[sweeps][tree_ind].tonull();
                 trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
-            //    cout << temp_treetree.treesize() << endl;
 
-                //  trees[sweeps][tree_ind] = temp_treetree;
-            //     // after growing, calculate likelihood with old residual
-            //     // trees[sweeps][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
-            
             }
             else
             {
             //     // fit a proposal
-            //     temp_tree[tree_ind].tonull();
-
-
 
                 trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
@@ -648,12 +640,6 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
 
 
-                // Q_old = trees[sweeps][tree_ind].transition_prob();
-                // // P_old = trees[sweeps][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
-                // // prior_old = trees[sweeps][tree_ind].prior_prob(tau, alpha, beta);
-
-
-
                 // // proposal
                 Q_new = trees[sweeps][tree_ind].transition_prob();
                 P_new = trees[sweeps][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
@@ -663,14 +649,17 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
                 cout << Q_old << "  " << P_old << "  " << Q_new << "  " << P_new << endl;
 
-                MH_ratio = P_new + Q_old - P_old - Q_new + prior_new - prior_old;
+                MH_ratio = P_new + prior_new + Q_old - P_old - prior_old - Q_new;
+
+
 
                 if(MH_ratio > 0){
                     MH_ratio = 1;
                 }else{
                     MH_ratio = exp(MH_ratio);
                 }
-                
+                MH_vector.push_back(MH_ratio);
+
                 cout << "MH_ratio " << MH_ratio << endl;
                 cout << "P_new - P_old " << P_new - P_old << endl;
                 cout << "Q_old - Q_new " << Q_old - Q_new << endl;
@@ -686,9 +675,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 }else{
                     // reject
                     cout << "reject " << endl;
-                    // cout << "sweeps " << sweeps << "  " << tree_ind << endl;
-                    // // copy the old one 
-                    // trees[sweeps][tree_ind] = trees[sweeps-1][tree_ind];
+
                     accept_count.push_back(0);
                 }
 
@@ -712,8 +699,10 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
         }
 
         double average = accumulate(accept_count.begin(), accept_count.end(), 0.0)/accept_count.size(); 
+        double MH_average = accumulate(MH_vector.begin(), MH_vector.end(), 0.0)/MH_vector.size(); 
 
-        cout << "average " << average << endl;
+        cout << "percentage of proposal acceptance " << average << endl;
+        cout << "average MH ratio " << MH_average << endl;
 
         // save predictions to output matrix
         yhats_xinfo[sweeps] = fit_info->yhat_std;
