@@ -610,7 +610,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-            if(sweeps == 0){
+            if(sweeps < 10){
                 // The first sweep is used as initialization
                 // all trees in the first sweep are accepted
                 trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
@@ -624,13 +624,29 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 temp_tree[tree_ind].tonull();
                 temp_tree[tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
+                // cout << "------ debug ------ " << endl;
+                // temp_tree[tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
+                // cout << temp_tree[tree_ind].gettree_like() << endl;
+
+                // temp_tree[tree_ind].update_split_prob(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
+
+                // temp_tree[tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
+                // cout << temp_tree[tree_ind].gettree_like() << endl;
+
 
                 // update split probablity of previous trees on new residual
+
+
+
                 trees[sweeps - 1][tree_ind].update_split_prob(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
 
                 Q_old = trees[sweeps - 1][tree_ind].transition_prob();
-                P_old = trees[sweeps - 1][tree_ind].gettree_like();
+                // P_old = trees[sweeps - 1][tree_ind].gettree_like();
+                P_old = trees[sweeps - 1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
+
+
+
 
                 // proposal
                 Q_new = temp_tree[tree_ind].transition_prob();

@@ -1008,6 +1008,8 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
         // model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
 
         // cout << "prob_leaf before " << this-> prob_leaf << "   " ;
+        
+        this->loglike_leaf = model->likelihood_no_split(y_mean * N_Xorder, tau, N_Xorder * tau, pow(sigma, 2));
 
         this->prob_leaf = normal_density(this->theta_vector[0], y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)), 1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2)), true);
 
