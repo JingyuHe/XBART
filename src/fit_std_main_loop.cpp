@@ -615,10 +615,11 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
             if(sweeps < 10){
                 // The first sweep is used as initialization
                 // all trees in the first sweep are accepted
+                trees[sweeps][tree_ind].tonull();
                 trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
                 // after growing, calculate likelihood with old residual
-                trees[sweeps][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
+                // trees[sweeps][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
             
             }
             else{
@@ -626,34 +627,28 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 temp_tree[tree_ind].tonull();
                 temp_tree[tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
-                // cout << "------ debug ------ " << endl;
-                // temp_tree[tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
-                // cout << temp_tree[tree_ind].gettree_like() << endl;
 
-                // temp_tree[tree_ind].update_split_prob(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
-
-                // temp_tree[tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
-                // cout << temp_tree[tree_ind].gettree_like() << endl;
-
-
-                // update split probablity of previous trees on new residual
-
-
-
+                
                 trees[sweeps - 1][tree_ind].update_split_prob(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
-
                 Q_old = trees[sweeps - 1][tree_ind].transition_prob();
-                // P_old = trees[sweeps - 1][tree_ind].gettree_like();
                 P_old = trees[sweeps - 1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
-
                 prior_old = trees[sweeps - 1][tree_ind].prior_prob(tau, alpha, beta);
+
+
+
+                // Q_old = trees[sweeps][tree_ind].transition_prob();
+                // P_old = trees[sweeps][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
+                // prior_old = trees[sweeps][tree_ind].prior_prob(tau, alpha, beta);
+
 
 
                 // proposal
                 Q_new = temp_tree[tree_ind].transition_prob();
                 P_new = temp_tree[tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
                 prior_new = temp_tree[tree_ind].prior_prob(tau, alpha, beta);
+
+                cout << "tree size comparison " << trees[sweeps][tree_ind].treesize() << "   " << temp_tree[tree_ind].treesize() << endl;
 
                 cout << Q_old << "  " << P_old << "  " << Q_new << "  " << P_new << endl;
 
@@ -669,6 +664,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 cout << "P_new - P_old " << P_new - P_old << endl;
                 cout << "Q_old - Q_new " << Q_old - Q_new << endl;
                 cout << "prior_new - prior_old " << prior_new - prior_old << endl;
+                cout << "-------------------" << endl;
 
                 if(unif_dist(fit_info->gen) <= MH_ratio){
                     // accept
@@ -681,7 +677,6 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 }
 
 
-                cout << "-------------------" << endl;
             }
 
 

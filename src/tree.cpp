@@ -531,11 +531,14 @@ double tree::tree_likelihood(size_t N, double sigma, vector<double> y)
     */
     npv tree_vec;
     this->getbots(tree_vec);
+    // cout << "bottom size " << tree_vec.size() << endl;
     double output = 0.0;
     for(size_t i = 0; i < tree_vec.size(); i++ )
     {
         output += tree_vec[i]->loglike_leaf;
     }
+
+    // cout << "output of tree_likelihood " << output << endl;
 
     // add constant
     output = output - N * log(2 * 3.14159265359) / 2 - N * log(sigma) - std::inner_product(y.begin(), y.end(), y.begin(), 0.0) / pow(sigma, 2) / 2;
@@ -860,7 +863,7 @@ void tree::grow_from_root_MH(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
         model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
         this->l = 0;
         this->r = 0;
-        return;
+
 
 
 
@@ -875,10 +878,12 @@ void tree::grow_from_root_MH(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
         // will add it back later
         this->loglike_leaf = model->likelihood_no_split(y_mean * N_Xorder, tau, N_Xorder * tau, pow(sigma, 2));
 
+        // cout << "loglike _ leaf " << loglike_leaf << endl;
+
         this->prob_leaf = normal_density(this->theta_vector[0], y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)), 1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2)), true);
 
 
-
+        return;
     }
 
 
@@ -930,13 +935,13 @@ void tree::grow_from_root_MH(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
     depth++;
 
     tree::tree_p lchild = new tree(model->getNumClasses(),this);
-    lchild->grow_from_root(fit_info, yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
+    lchild->grow_from_root_MH(fit_info, yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
                                        draw_mu, parallel, Xorder_left_std, X_std, mtry,
                                        mtry_weight_current_tree, p_categorical, p_continuous,
                                        X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag);
 
     tree::tree_p rchild = new tree(model->getNumClasses(),this);
-    rchild->grow_from_root(fit_info, yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
+    rchild->grow_from_root_MH(fit_info, yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
                                        draw_mu, parallel, Xorder_right_std, X_std, mtry,
                                        mtry_weight_current_tree, p_categorical, p_continuous,
                                        X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag);
@@ -1148,6 +1153,8 @@ double tree::transition_prob(){
             log_p_cutpoints += log(tree_vec[i]->getprob_split());
         }
     }
+    cout << "log_p_cutpoints " << log_p_cutpoints << endl;
+    cout << "log_p_leaf " << log_p_leaf << endl;
     output = log_p_cutpoints + log_p_leaf;
 
     return output;
