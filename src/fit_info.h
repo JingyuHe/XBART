@@ -19,6 +19,7 @@ struct FitInfo
 
     // Result containers
     xinfo predictions_std;
+    xinfo predictions_std_copy;
     std::vector<double> yhat_std;
     std::vector<double> residual_std;
     std::vector<double> residual_std_full;

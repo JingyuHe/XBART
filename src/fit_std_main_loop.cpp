@@ -583,6 +583,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
         {
+
             // Draw Sigma
             fit_info->residual_std_full = fit_info->residual_std - fit_info->predictions_std[tree_ind];
             std::gamma_distribution<double> gamma_samp((N + kap) / 2.0, 2.0 / (sum_squared(fit_info->residual_std_full) + s));
@@ -591,7 +592,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
             // add prediction of current tree back to residual
             // then it's m - 1 trees residual
-            fit_info->yhat_std = fit_info->yhat_std - fit_info->predictions_std[tree_ind];
+            // fit_info->yhat_std = fit_info->yhat_std - fit_info->predictions_std[tree_ind];
 
             if (fit_info->use_all && (sweeps > burnin) && (mtry != p))
             {
@@ -655,7 +656,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
                 // cout << "tree size comparison " << trees[sweeps - 1][tree_ind].treesize() << "   " << trees[sweeps][tree_ind].treesize() << endl;
 
-                cout << Q_old << "  " << P_old << "  " << Q_new << "  " << P_new << endl;
+                // cout << Q_old << "  " << P_old << "  " << Q_new << "  " << P_new << endl;
 
                 MH_ratio = P_new + prior_new + Q_old - P_old - prior_old - Q_new;
 
@@ -668,33 +669,38 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 }
                 MH_vector.push_back(MH_ratio);
 
-                cout << "MH_ratio " << MH_ratio << endl;
-                cout << "P_new - P_old " << P_new - P_old << endl;
-                cout << "Q_old - Q_new " << Q_old - Q_new << endl;
-                cout << "prior_new - prior_old " << prior_new - prior_old << endl;
-                cout << "-------------------" << endl;
+                // cout << "MH_ratio " << MH_ratio << endl;
+                // cout << "P_new - P_old " << P_new - P_old << endl;
+                // cout << "Q_old - Q_new " << Q_old - Q_new << endl;
+                // cout << "prior_new - prior_old " << prior_new - prior_old << endl;
+                // cout << "-------------------" << endl;
 
                 if(unif_dist(fit_info->gen) <= MH_ratio){
                     // accept
                     // do nothing
-                    cout << "accept" << endl;
+                    // cout << "accept" << endl;
 
-                    accept_count.push_back(1);
+                    // accept_count.push_back(1);
                 }else{
                     // reject
-                    cout << "reject " << endl;
+                    // cout << "reject " << endl;
 
-                    accept_count.push_back(0);
+                    // accept_count.push_back(0);
+
+                    // keep the old tree
+                    trees[sweeps][tree_ind] = trees[sweeps - 1][tree_ind];
 
                     // if reject, keep the old tree, need to update fit_info object properly
                     fit_info->data_pointers[tree_ind] = fit_info->data_pointers_copy[tree_ind];
 
+                    // // also need to update residuals
+                    // fit_info->predictions_std[tree_ind] = fit_info->predictions_std_copy[tree_ind];
 
-                    trees[sweeps][tree_ind] = trees[sweeps - 1][tree_ind];
 
                 }
 
                 // cout << "copy is ok" << endl;
+
             }
 
 
@@ -702,6 +708,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
             // after loop over all trees, backup the data_pointers matrix
             fit_info->data_pointers_copy = fit_info->data_pointers;
+            // fit_info->predictions_std_copy = fit_info->predictions_std;
 
 
             // Add split counts
@@ -717,11 +724,11 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
             fit_info->yhat_std = fit_info->yhat_std + fit_info->predictions_std[tree_ind];
         }
 
-        double average = accumulate(accept_count.begin(), accept_count.end(), 0.0)/accept_count.size(); 
-        double MH_average = accumulate(MH_vector.begin(), MH_vector.end(), 0.0)/MH_vector.size(); 
+        // double average = accumulate(accept_count.begin(), accept_count.end(), 0.0)/accept_count.size(); 
+        // double MH_average = accumulate(MH_vector.begin(), MH_vector.end(), 0.0)/MH_vector.size(); 
 
-        cout << "percentage of proposal acceptance " << average << endl;
-        cout << "average MH ratio " << MH_average << endl;
+        // cout << "percentage of proposal acceptance " << average << endl;
+        // cout << "average MH ratio " << MH_average << endl;
 
         // save predictions to output matrix
         yhats_xinfo[sweeps] = fit_info->yhat_std;

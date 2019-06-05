@@ -1154,8 +1154,8 @@ double tree::transition_prob(){
             log_p_cutpoints += log(tree_vec[i]->getprob_split());
         }
     }
-    cout << "log_p_cutpoints " << log_p_cutpoints << endl;
-    cout << "log_p_leaf " << log_p_leaf << endl;
+    // cout << "log_p_cutpoints " << log_p_cutpoints << endl;
+    // cout << "log_p_leaf " << log_p_leaf << endl;
     output = log_p_cutpoints + log_p_leaf;
 
     return output;
@@ -1178,7 +1178,7 @@ double tree::log_like_tree(double sigma2, double tau){
         output += 0.5 * (log(sigma2 / (sigma2 + tau * tree_vec[i]->getN_Xorder())) + tau / sigma2 / (sigma2 + tau * tree_vec[i]->getN_Xorder()) * pow(tree_vec[i]->getN_Xorder() * tree_vec[i]->gety_mean(), 2));
     }
 
-    cout << "output of log_like_tree  " << output << endl;
+    // cout << "output of log_like_tree  " << output << endl;
 
     return output;
 }
