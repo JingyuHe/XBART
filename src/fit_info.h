@@ -38,7 +38,11 @@ struct FitInfo
     bool use_all = true;
 
     // Vector pointers
-    matrix<std::vector<double>*> data_pointers;
+    matrix<std::vector<double>*> data_pointers;    
+    // copy of data_pointers object, for MH update
+    matrix<std::vector<double>*> data_pointers_copy;
+
+
     void init_tree_pointers(std::vector<double>* initial_theta, size_t N, size_t num_trees)
     {
         ini_matrix(data_pointers, N, num_trees);
@@ -51,6 +55,7 @@ struct FitInfo
             }
         }
     }
+
     FitInfo(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p,
             size_t num_trees, size_t p_categorical, size_t p_continuous,
             bool set_random_seed, size_t random_seed, std::vector<double>* initial_theta)

@@ -617,7 +617,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-            if(sweeps < 19){
+            if(sweeps < 9){
             //     // The first sweep is used as initialization
                 trees[sweeps][tree_ind].tonull();
                 trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
@@ -627,6 +627,14 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
             else
             {
             //     // fit a proposal
+
+
+                /*
+
+                    BE CAREFUL! Growing proposal update data_pointers in fit_info object implictly
+                    need to creat a backup, copy if the proposal is rejected
+
+                */
 
                 trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
@@ -677,12 +685,23 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                     cout << "reject " << endl;
 
                     accept_count.push_back(0);
+
+                    // if reject, keep the old tree, need to update fit_info object properly
+                    fit_info->data_pointers[tree_ind] = fit_info->data_pointers_copy[tree_ind];
+
+
+                    trees[sweeps][tree_ind] = trees[sweeps - 1][tree_ind];
+
                 }
 
                 // cout << "copy is ok" << endl;
             }
 
 
+
+
+            // after loop over all trees, backup the data_pointers matrix
+            fit_info->data_pointers_copy = fit_info->data_pointers;
 
 
             // Add split counts
