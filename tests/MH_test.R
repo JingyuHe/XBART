@@ -2,12 +2,12 @@
 # set parameters of XBART
 get_XBART_params <- function(n, d, y) {
   XBART_params = list(num_trees = 30,                 # number of trees 
-                      num_sweeps = 40,           # number of sweeps (samples of the forest)
+                      num_sweeps = 200,           # number of sweeps (samples of the forest)
                       n_min = 1,               # minimal node size
                       alpha = 0.95,           # BART prior parameter 
                       beta = 1.25,            # BART prior parameter
                       mtry = 20,               # number of variables sampled in each split
-                      burnin = 15,
+                      burnin = 150,
                       no_split_penality = "Auto"
                       )            # burnin of MCMC sample
   num_tress = XBART_params$num_trees
