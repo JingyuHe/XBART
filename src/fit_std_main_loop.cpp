@@ -558,6 +558,9 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
     tree temp_treetree;
 
+
+    bool accept_flag = true;
+
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
 
@@ -608,7 +611,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
                 // The first several sweeps are used as initialization
                 // fit_info->data_pointers is calculated in this function
-                trees[sweeps][tree_ind].tonull();
+                // trees[sweeps][tree_ind].tonull();
                 trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
             }
             else
@@ -662,14 +665,14 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                     // accept
                     // do nothing
                     // cout << "accept" << endl;
-
+                    accept_flag = true;
                     accept_count.push_back(1);
                 }
                 else
                 {
                     // reject
                     // cout << "reject " << endl;
-
+                    accept_flag = false;
                     accept_count.push_back(0);
 
                     // keep the old tree
@@ -690,9 +693,11 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
             }
 
 
-            // Add split counts
-            mtry_weight_current_tree = mtry_weight_current_tree + fit_info->split_count_current_tree;
-            fit_info->split_count_all_tree[tree_ind] = fit_info->split_count_current_tree;
+            if(accept_flag){    
+                // Add split counts
+                mtry_weight_current_tree = mtry_weight_current_tree + fit_info->split_count_current_tree;
+                fit_info->split_count_all_tree[tree_ind] = fit_info->split_count_current_tree;
+            }
 
             // Update Predict
             // I think this line can update corresponding column of predictions_std if the proposal is rejected. Not necessary to restore manually 
@@ -702,14 +707,15 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
             model->updateResidual(fit_info->predictions_std, tree_ind, num_trees, fit_info->residual_std);
 
             fit_info->yhat_std = fit_info->yhat_std + fit_info->predictions_std[tree_ind];
+
+
+
         }
 
         // after loop over all trees, backup the data_pointers matrix
         // data_pointers_copy save result of previous sweep
         fit_info->data_pointers_copy = fit_info->data_pointers;
-        
-        // fit_info->predictions_std_copy = fit_info->predictions_std;
-        
+                
         double average = accumulate(accept_count.begin(), accept_count.end(), 0.0) / accept_count.size();
         double MH_average = accumulate(MH_vector.begin(), MH_vector.end(), 0.0) / MH_vector.size();
 

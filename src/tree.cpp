@@ -542,7 +542,7 @@ double tree::tree_likelihood(size_t N, double sigma, vector<double> y)
     // cout << "output of tree_likelihood " << output << endl;
 
     // add constant
-    output = output - N * log(2 * 3.14159265359) / 2 - N * log(sigma) - std::inner_product(y.begin(), y.end(), y.begin(), 0.0) / pow(sigma, 2) / 2;
+    output = output - N * log(2 * 3.14159265359) / 2.0 - N * log(sigma) - std::inner_product(y.begin(), y.end(), y.begin(), 0.0) / pow(sigma, 2) / 2.0;
 
     tree_like = output;
     return output;
@@ -965,6 +965,7 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
         This function update probability of GIVEN split point on new residual
         Used in Metropolis-Hastings adjustment
         Evaluate the old tree strcutrue on new residual
+        Basically copy from grow_frow_root_MH, get rid of sampling cutpoints part
     */
 
 
@@ -1147,7 +1148,11 @@ double tree::transition_prob(){
     for(size_t i = 0; i < tree_vec.size(); i++ ){
         if(tree_vec[i]->getl() == 0){
             // if no children, it is end node, count leaf parameter probability
+
+            // prob_leaf is already in log scale
             log_p_leaf += tree_vec[i]->getprob_leaf();
+            
+            // prob_split is in original scale, need to take log
             log_p_cutpoints += log(tree_vec[i]->getprob_split());
         }else{
             // otherwise count cutpoint probability
@@ -1757,12 +1762,21 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
 
         std::discrete_distribution<> d(loglike.begin(), loglike.end());
         // sample one index of split point
+
+        /*
+
+            Do not sample cutpoints, but read previous cutpoints
+            drawn_ind is saved in tree class
+
+        */
+
         // ind = d(fit_info->gen);
         // drawn_ind = ind;
         ind = drawn_ind;
 
         // save the posterior of the chosen split point
         vec_sum(loglike, prob_split);
+        // loglike is already taken exp
         prob_split = loglike[ind] / prob_split;
 
         if (ind == loglike.size() - 1)
