@@ -511,7 +511,8 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 bool draw_mu, bool parallel,
                 xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vec_d &mtry_weight_current_tree,
                 size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees,
-                bool set_random_seed, size_t random_seed, double no_split_penality, bool sample_weights_flag)
+                bool set_random_seed, size_t random_seed, double no_split_penality, bool sample_weights_flag, std::vector<double>& accept_count,
+                std::vector<double>& MH_vector, std::vector<double>& P_ratio, std::vector<double>& Q_ratio, std::vector<double>& prior_ratio)
 {
 
     std::vector<double> initial_theta(1, 0);
@@ -550,9 +551,6 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
     double Q_old;
     double prior_new;
     double prior_old;
-
-    std::vector<double> accept_count;
-    std::vector<double> MH_vector;
 
     std::uniform_real_distribution<> unif_dist(0, 1);
 
@@ -627,7 +625,13 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
                 trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
+
+                // cout << "loglike, before " << trees[sweeps-1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std) << endl;
+
+
                 trees[sweeps - 1][tree_ind].update_split_prob(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
+
+                // cout << "loglike, after " << trees[sweeps-1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std) << endl;
 
                 Q_old = trees[sweeps - 1][tree_ind].transition_prob();
                 P_old = trees[sweeps - 1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
@@ -642,7 +646,9 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
                 // cout << Q_old << "  " << P_old << "  " << Q_new << "  " << P_new << endl;
 
-                MH_ratio = P_new + prior_new + Q_old - P_old - prior_old - Q_new;
+                // MH_ratio = P_new + prior_new + Q_old - P_old - prior_old - Q_new;
+
+                MH_ratio = P_new + Q_old - P_old - Q_new;
 
                 if (MH_ratio > 0)
                 {
@@ -659,6 +665,12 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 // cout << "Q_old - Q_new " << Q_old - Q_new << endl;
                 // cout << "prior_new - prior_old " << prior_new - prior_old << endl;
                 // cout << "-------------------" << endl;
+
+                Q_ratio.push_back(Q_old - Q_new);
+                P_ratio.push_back(P_new - P_old);
+                prior_ratio.push_back(prior_new - prior_old);
+
+                // cout << "proposal size " << trees[sweeps][tree_ind].treesize() << "  " << trees[sweeps-1][tree_ind].treesize() << endl;
 
                 if (unif_dist(fit_info->gen) <= MH_ratio)
                 {
@@ -718,6 +730,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 
         double average = accumulate(accept_count.begin(), accept_count.end(), 0.0) / accept_count.size();
         double MH_average = accumulate(MH_vector.begin(), MH_vector.end(), 0.0) / MH_vector.size();
+        // cout << "size of MH " << accept_count.size() << "  " << MH_vector.size() << endl;
 
         cout << "percentage of proposal acceptance " << average << endl;
         cout << "average MH ratio " << MH_average << endl;

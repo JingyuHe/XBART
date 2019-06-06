@@ -566,11 +566,18 @@ double tree::prior_prob(double tau, double alpha, double beta)
     for(size_t i = 0; i < tree_vec.size(); i++ ){
         if(tree_vec[i]->getl() == 0){
             // if no children, it is end node, count leaf parameter probability
+
+            // leaf prob, normal center at ZERO
             log_leaf_prob += normal_density(tree_vec[i]->theta_vector[0], 0.0, tau, true);
-            log_split_prob += log(1 - alpha * pow((1 + tree_vec[i]->depth()), -beta));
+
+            // log_split_prob += log(1 - alpha * pow((1 + tree_vec[i]->depth()), -beta));
+            log_split_prob += log(1.0 - alpha * pow((1 + tree_vec[i]->depth()), -1.0 * beta));
+
         }else{
             // otherwise count cutpoint probability
-            log_split_prob += log(alpha * pow((1 + tree_vec[i]->depth()), -beta));
+            // log_split_prob += log(alpha * pow((1.0 + tree_vec[i]->depth()), -beta));
+
+            log_split_prob += log(alpha) - beta * log(1.0 + tree_vec[i]->depth());
         }
     }
     output = log_split_prob + log_leaf_prob;
@@ -877,6 +884,8 @@ void tree::grow_from_root_MH(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
         /////////////////////////////////
         // this is loglike of leaf data, without normalizing constant
         // will add it back later
+
+
         this->loglike_leaf = model->likelihood_no_split(y_mean * N_Xorder, tau, N_Xorder * tau, pow(sigma, 2));
 
         // cout << "loglike _ leaf " << loglike_leaf << endl;
@@ -1045,6 +1054,18 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
         // model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
 
         // cout << "prob_leaf before " << this-> prob_leaf << "   " ;
+
+
+        /////////////////////////////////
+        //
+        //
+        // Main modification, update leaf prob 
+        //
+        //
+        /////////////////////////////////
+        // this is loglike of leaf data, without normalizing constant
+        // will add it back later
+
 
         this->loglike_leaf = model->likelihood_no_split(y_mean * N_Xorder, tau, N_Xorder * tau, pow(sigma, 2));
 
