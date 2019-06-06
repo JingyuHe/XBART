@@ -178,7 +178,7 @@ for(i in 1:length(ave_MH)){
   ave_Q[i] = mean(fit$Q_ratio[((i-1) * params$num_trees + 1) :  (i * params$num_trees)])
   ave_prior[i] = mean(fit$prior_ratio[((i-1) * params$num_trees + 1) :  (i * params$num_trees)])
 }
-
+plot(fit$sigma[1,], main = "sigma")
 plot(ave_MH, main = "MH ratio")
 plot(ave_P, main = "P_new - P_old")
 plot(ave_Q, main = "Q_old - Q_new")

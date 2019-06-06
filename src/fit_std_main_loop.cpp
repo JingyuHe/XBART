@@ -634,12 +634,18 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 // cout << "loglike, after " << trees[sweeps-1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std) << endl;
 
                 Q_old = trees[sweeps - 1][tree_ind].transition_prob();
-                P_old = trees[sweeps - 1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
+                // P_old = trees[sweeps - 1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
+                P_old = trees[sweeps-1][tree_ind].tree_likelihood(N, sigma, tree_ind, model, fit_info, Xpointer, fit_info->residual_std, false);
+
+
+
                 prior_old = trees[sweeps - 1][tree_ind].prior_prob(tau, alpha, beta);
 
                 // // proposal
                 Q_new = trees[sweeps][tree_ind].transition_prob();
-                P_new = trees[sweeps][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
+                // P_new = trees[sweeps][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
+                P_new = trees[sweeps][tree_ind].tree_likelihood(N, sigma, tree_ind, model, fit_info, Xpointer, fit_info->residual_std, true);
+                
                 prior_new = trees[sweeps][tree_ind].prior_prob(tau, alpha, beta);
 
                 // cout << "tree size comparison " << trees[sweeps - 1][tree_ind].treesize() << "   " << trees[sweeps][tree_ind].treesize() << endl;

@@ -524,30 +524,32 @@ void cumulative_sum_std(std::vector<double> &y_cumsum, std::vector<double> &y_cu
     return;
 }
 
-double tree::tree_likelihood(size_t N, double sigma, vector<double> y)
+
+double tree::tree_likelihood(size_t N, double sigma, size_t tree_ind, Model *model, std::unique_ptr<FitInfo>& fit_info, const double *Xpointer, vector<double>& y, bool proposal)
 {
     /*
         This function calculate the log of 
         the likelihood of all leaf parameters of given tree
     */
-    npv tree_vec;
-    this->getbots(tree_vec);
-    // cout << "bottom size " << tree_vec.size() << endl;
     double output = 0.0;
-    for(size_t i = 0; i < tree_vec.size(); i++ )
-    {
-        output += tree_vec[i]->loglike_leaf;
+    std::vector<double> pred(N);
+    if(proposal){
+        // calculate likelihood of proposal
+        predict_from_datapointers(Xpointer, N, tree_ind, pred, fit_info->data_pointers, model);
+    }else{
+        // calculate likelihood of previous accpeted tree
+        predict_from_datapointers(Xpointer, N, tree_ind, pred, fit_info->data_pointers_copy, model);
+    }
+    
+    double sigma2 = pow(sigma, 2);
+
+    for(size_t i = 0; i < N; i ++ ){
+        output = output + normal_density(y[i], pred[i], sigma2, true);
     }
 
-    // cout << "output of tree_likelihood " << output << endl;
-
-    // add constant
-    output = output - N * log(2 * 3.14159265359) / 2.0 - N * log(sigma) - std::inner_product(y.begin(), y.end(), y.begin(), 0.0) / pow(sigma, 2) / 2.0;
-
-    tree_like = output;
     return output;
-
 }
+
 
 double tree::prior_prob(double tau, double alpha, double beta)
 {
@@ -2227,6 +2229,9 @@ void predict_from_datapointers(const double *X_std, size_t N, size_t M, std::vec
     }
     return;
 }
+
+
+
 
 #ifndef NoRcpp
 #endif
