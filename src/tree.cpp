@@ -569,7 +569,7 @@ double tree::tree_likelihood(size_t N, double sigma, vector<double> y)
     // cout << "output of tree_likelihood " << output << endl;
 
     // add constant
-    output = output - N * log(2 * 3.14159265359) / 2.0 - N * log(sigma) - std::inner_product(y.begin(), y.end(), y.begin(), 0.0) / pow(sigma, 2) / 2.0;
+    // output = output - N * log(2 * 3.14159265359) / 2.0 - N * log(sigma) - std::inner_product(y.begin(), y.end(), y.begin(), 0.0) / pow(sigma, 2) / 2.0;
 
     tree_like = output;
     return output;
@@ -880,9 +880,7 @@ void tree::grow_from_root_MH(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
         
     }
 
-
     BART_likelihood_all(y_mean * N_Xorder, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_counts, X_num_unique, model, mtry, this->prob_split, fit_info, this->drawn_ind);
-
 
     // this->setsplit_point(split_point);
     // this->setsplit_var(split_var);
@@ -1031,6 +1029,7 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
 
     // if (fit_info->use_all)
     // {
+        // use all variables for now 
         std::iota(subset_vars.begin(), subset_vars.end(), 0);
 
     // }
@@ -1212,7 +1211,7 @@ void tree::update_theta(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_
     }
 
 
-
+    // update theta parameters
     model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
 
 
@@ -1222,6 +1221,7 @@ void tree::update_theta(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_
 
     // if (fit_info->use_all)
     // {
+        // use all variables for now
         std::iota(subset_vars.begin(), subset_vars.end(), 0);
 
     // }
@@ -1270,6 +1270,8 @@ void tree::update_theta(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_
         // {
             // fit_info->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
         // }
+
+        // update theta
         model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
 
         // cout << "prob_leaf before " << this-> prob_leaf << "   " ;
@@ -1392,7 +1394,7 @@ double tree::transition_prob(){
             // if no children, it is end node, count leaf parameter probability
 
             // prob_leaf is already in log scale
-            // log_p_leaf += tree_vec[i]->getprob_leaf();
+            log_p_leaf += tree_vec[i]->getprob_leaf();
             
             // prob_split is in original scale, need to take log
             log_p_cutpoints += log(tree_vec[i]->getprob_split());
@@ -1741,11 +1743,13 @@ void BART_likelihood_all(double y_sum, xinfo_sizet &Xorder_std, const double *X_
     // decide lenght of loglike vector
     if (N <= Ncutpoints + 1 + 2 * Nmin)
     {
+        // cout << "small set " << endl;
         loglike.resize((N_Xorder - 1) * p_continuous + fit_info->X_values.size() + 1, -INFINITY);
         loglike_start = (N_Xorder - 1) * p_continuous;
     }
     else
-    {
+    {   
+        // cout << "bigger set " << endl;
         loglike.resize(Ncutpoints * p_continuous + fit_info->X_values.size() + 1, -INFINITY);
         loglike_start = Ncutpoints * p_continuous;
     }
@@ -1768,8 +1772,10 @@ void BART_likelihood_all(double y_sum, xinfo_sizet &Xorder_std, const double *X_
     for (size_t ii = 0; ii < loglike.size(); ii++)
     {
         // if a variable is not selected, take exp will becomes 0
-        loglike[ii] = exp(loglike[ii] - loglike_max);
+        loglike[ii] = exp(loglike[ii] - loglike_max) ;
     }
+    // cout << "loglike " << loglike << endl;
+    // cout << " ok " << endl;
 
     // sampling cutpoints
     if (N <= Ncutpoints + 1 + 2 * Nmin)

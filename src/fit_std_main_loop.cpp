@@ -554,8 +554,12 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
     std::uniform_real_distribution<> unif_dist(0, 1);
 
-    tree temp_treetree;
+    tree temp_treetree = tree();
 
+    std::vector<double> temp_vec(N);
+    std::vector<double> temp_vec2(N);
+    std::vector<double> temp_vec3(N);
+    std::vector<double> temp_vec4(N);
 
     bool accept_flag = true;
 
@@ -580,7 +584,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
             // add prediction of current tree back to residual
             // then it's m - 1 trees residual
-            // fit_info->yhat_std = fit_info->yhat_std - fit_info->predictions_std[tree_ind];
+            fit_info->yhat_std = fit_info->yhat_std - fit_info->predictions_std[tree_ind];
 
             if (fit_info->use_all && (sweeps > burnin) && (mtry != p))
             {
@@ -610,7 +614,12 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 // The first several sweeps are used as initialization
                 // fit_info->data_pointers is calculated in this function
                 // trees[sweeps][tree_ind].tonull();
+                // cout << "aaa" << endl;
                 trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
+
+                accept_count.push_back(0);
+                MH_vector.push_back(0);
+                // cout << "bbb" << endl;
             }
             else
             {
@@ -622,14 +631,14 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                     need to creat a backup, copy from the backup if the proposal is rejected
 
                 */
-
+// cout << "ccc" << endl;
                 trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
-
+// cout << "ddd" << endl;
 
                 // cout << "loglike, before " << trees[sweeps-1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std) << endl;
 
                 trees[sweeps - 1][tree_ind].update_split_prob(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
-
+// cout << "eee" << endl;
                 // cout << "loglike, after " << trees[sweeps-1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std) << endl;
 
                 Q_old = trees[sweeps - 1][tree_ind].transition_prob();
@@ -647,11 +656,12 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
                 prior_new = trees[sweeps][tree_ind].prior_prob(tau, alpha, beta);
 
-                cout << "tree size comparison " << trees[sweeps - 1][tree_ind].treesize() << "   " << trees[sweeps][tree_ind].treesize() << endl;
+                // cout << "tree size comparison " << trees[sweeps - 1][tree_ind].treesize() << "   " << trees[sweeps][tree_ind].treesize() << endl;
 
                 // cout << Q_old << "  " << P_old << "  " << Q_new << "  " << P_new << endl;
 
-                MH_ratio = P_new + prior_new + Q_old - P_old - prior_old - Q_new;
+                // MH_ratio = P_new + prior_new + Q_old - P_old - prior_old - Q_new;
+                MH_ratio = P_new + prior_new + Q_new - P_old - prior_old - Q_old;
 
                 // MH_ratio = P_new + Q_old - P_old - Q_new;
 
@@ -692,13 +702,19 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                     accept_flag = false;
                     accept_count.push_back(0);
 
-                    // keep the old tree
+                    // // keep the old tree
+
+                    predict_from_tree(trees[sweeps - 1][tree_ind], Xpointer, N, p, temp_vec2, model);
+
                     trees[sweeps][tree_ind] = trees[sweeps - 1][tree_ind];
 
+
+                    predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec3, model);
 
                     // update theta
                     trees[sweeps][tree_ind].update_theta(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
+                    predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec4, model);
 
                     // keep the old tree, need to update fit_info object properly
                     fit_info->data_pointers[tree_ind] = fit_info->data_pointers_copy[tree_ind];
@@ -723,7 +739,24 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
             // Update Predict
             // I think this line can update corresponding column of predictions_std if the proposal is rejected. Not necessary to restore manually 
-            predict_from_datapointers(Xpointer, N, tree_ind, fit_info->predictions_std[tree_ind], fit_info->data_pointers, model);
+            predict_from_datapointers(Xpointer, N, tree_ind, temp_vec, fit_info->data_pointers, model);
+
+            predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, fit_info->predictions_std[tree_ind], model);
+
+            if(!accept_flag){
+                cout << "diff of vec2 and vec3 " << sq_vec_diff(temp_vec2, temp_vec3) << endl;
+
+                cout << "diff of vec3 and vec4 " << sq_vec_diff(temp_vec2, temp_vec4) << endl;
+
+                cout << "diff of vec and vec4 " << sq_vec_diff(temp_vec, temp_vec4) << endl;
+
+                cout << "diff of prediction and vec4 " << sq_vec_diff(fit_info->predictions_std[tree_ind], temp_vec4) << endl;
+
+                cout << "diff of vec and predictions " << sq_vec_diff(temp_vec, fit_info->predictions_std[tree_ind]) << endl;
+
+                cout << "------------" << endl;
+            }
+            
 
             // update residual
             model->updateResidual(fit_info->predictions_std, tree_ind, num_trees, fit_info->residual_std);
@@ -738,8 +771,8 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
         // data_pointers_copy save result of previous sweep
         fit_info->data_pointers_copy = fit_info->data_pointers;
                 
-        double average = accumulate(accept_count.begin(), accept_count.end(), 0.0) / accept_count.size();
-        double MH_average = accumulate(MH_vector.begin(), MH_vector.end(), 0.0) / MH_vector.size();
+        double average = accumulate(accept_count.end() - num_trees, accept_count.end(), 0.0) / num_trees;
+        double MH_average = accumulate(MH_vector.end() - num_trees, MH_vector.end(), 0.0) / num_trees;
         // cout << "size of MH " << accept_count.size() << "  " << MH_vector.size() << endl;
 
         cout << "percentage of proposal acceptance " << average << endl;
