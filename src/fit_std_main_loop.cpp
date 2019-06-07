@@ -604,7 +604,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
             // so I'll pass fit_info->X_counts to root node, then create X_counts_left, X_counts_right for other nodes
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            if (sweeps < 80)
+            if (sweeps < 10)
             {
 
                 // The first several sweeps are used as initialization
@@ -628,14 +628,13 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
                 // cout << "loglike, before " << trees[sweeps-1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std) << endl;
 
-
                 trees[sweeps - 1][tree_ind].update_split_prob(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
                 // cout << "loglike, after " << trees[sweeps-1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std) << endl;
 
                 Q_old = trees[sweeps - 1][tree_ind].transition_prob();
-                // P_old = trees[sweeps - 1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
-                P_old = trees[sweeps-1][tree_ind].tree_likelihood(N, sigma, tree_ind, model, fit_info, Xpointer, fit_info->residual_std, false);
+                P_old = trees[sweeps - 1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
+                // P_old = trees[sweeps-1][tree_ind].tree_likelihood(N, sigma, tree_ind, model, fit_info, Xpointer, fit_info->residual_std, false);
 
 
 
@@ -643,18 +642,18 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
                 // // proposal
                 Q_new = trees[sweeps][tree_ind].transition_prob();
-                // P_new = trees[sweeps][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
-                P_new = trees[sweeps][tree_ind].tree_likelihood(N, sigma, tree_ind, model, fit_info, Xpointer, fit_info->residual_std, true);
-                
+                P_new = trees[sweeps][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
+                // P_new = trees[sweeps][tree_ind].tree_likelihood(N, sigma, tree_ind, model, fit_info, Xpointer, fit_info->residual_std, true);
+
                 prior_new = trees[sweeps][tree_ind].prior_prob(tau, alpha, beta);
 
-                // cout << "tree size comparison " << trees[sweeps - 1][tree_ind].treesize() << "   " << trees[sweeps][tree_ind].treesize() << endl;
+                cout << "tree size comparison " << trees[sweeps - 1][tree_ind].treesize() << "   " << trees[sweeps][tree_ind].treesize() << endl;
 
                 // cout << Q_old << "  " << P_old << "  " << Q_new << "  " << P_new << endl;
 
-                // MH_ratio = P_new + prior_new + Q_old - P_old - prior_old - Q_new;
+                MH_ratio = P_new + prior_new + Q_old - P_old - prior_old - Q_new;
 
-                MH_ratio = P_new + Q_old - P_old - Q_new;
+                // MH_ratio = P_new + Q_old - P_old - Q_new;
 
                 if (MH_ratio > 0)
                 {
@@ -695,6 +694,11 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
                     // keep the old tree
                     trees[sweeps][tree_ind] = trees[sweeps - 1][tree_ind];
+
+
+                    // update theta
+                    trees[sweeps][tree_ind].update_theta(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
+
 
                     // keep the old tree, need to update fit_info object properly
                     fit_info->data_pointers[tree_ind] = fit_info->data_pointers_copy[tree_ind];

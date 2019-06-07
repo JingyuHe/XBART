@@ -2,13 +2,13 @@
 # set parameters of XBART
 get_XBART_params <- function(n, d, y) {
   XBART_params = list(num_trees = 30,                 # number of trees 
-                      num_sweeps = 1000,           # number of sweeps (samples of the forest)
+                      num_sweeps = 200,           # number of sweeps (samples of the forest)
                       n_min = 1,               # minimal node size
                       alpha = 0.95,           # BART prior parameter 
-                      beta = 1.25,            # BART prior parameter
+                      beta = 2,            # BART prior parameter
                       mtry = 20,               # number of variables sampled in each split
                       burnin = 150,
-                      no_split_penality = "Auto"
+                      no_split_penality = 2 #"Auto"
                       )            # burnin of MCMC sample
   num_tress = XBART_params$num_trees
   XBART_params$max_depth = matrix(250, num_tress, XBART_params$num_sweeps)   # max depth of each tree, should be a num_trees by num_sweeps matrix
