@@ -660,14 +660,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
                 // cout << "tree size comparison " << trees[sweeps - 1][tree_ind].treesize() << "   " << trees[sweeps][tree_ind].treesize() << endl;
 
-                // cout << Q_old << "  " << P_old << "  " << Q_new << "  " << P_new << endl;
-
-                // MH_ratio = P_new + prior_new + Q_old - P_old - prior_old - Q_new;
-                // MH_ratio = P_new + prior_new + Q_new - P_old - prior_old - Q_old;
-
-                // MH_ratio = P_new + Q_old - P_old - Q_new;
-
-                MH_ratio = P_new - P_old;
+                MH_ratio = P_new + prior_new + Q_old - P_old - prior_old - Q_new;
 
                 if (MH_ratio > 0)
                 {
