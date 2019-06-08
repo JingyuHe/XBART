@@ -596,10 +596,13 @@ double tree::prior_prob(double tau, double alpha, double beta)
             // if no children, it is end node, count leaf parameter probability
 
             // leaf prob, normal center at ZERO
-            // log_leaf_prob += normal_density(tree_vec[i]->theta_vector[0], 0.0, tau, true);
+            log_leaf_prob += normal_density(tree_vec[i]->theta_vector[0], 0.0, tau, true);
 
             // log_split_prob += log(1 - alpha * pow((1 + tree_vec[i]->depth()), -beta));
             log_split_prob += log(1.0 - alpha * pow((1 + tree_vec[i]->depth()), -1.0 * beta));
+
+            // add prior of split point
+            log_split_prob = log_split_prob - log(num_cutpoint_candidates);
 
         }else{
             // otherwise count cutpoint probability
@@ -880,7 +883,7 @@ void tree::grow_from_root_MH(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
         
     }
 
-    BART_likelihood_all(y_mean * N_Xorder, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_counts, X_num_unique, model, mtry, this->prob_split, fit_info, this->drawn_ind);
+    BART_likelihood_all_MH(y_mean * N_Xorder, Xorder_std, X_std, tau, sigma, depth, Nmin, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_counts, X_num_unique, model, mtry, this->prob_split, fit_info, this->drawn_ind, this->num_cutpoint_candidates);
 
     // this->setsplit_point(split_point);
     // this->setsplit_var(split_var);
@@ -1715,6 +1718,8 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
     return;
 }
 
+
+
 void BART_likelihood_all(double y_sum, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &mtry, double &prob_split, std::unique_ptr<FitInfo>& fit_info, size_t &drawn_ind)
 {
     // compute BART posterior (loglikelihood + logprior penalty)
@@ -1730,6 +1735,7 @@ void BART_likelihood_all(double y_sum, xinfo_sizet &Xorder_std, const double *X_
     size_t ind;
     size_t N_Xorder = N;
     size_t total_categorical_split_candidates = 0;
+    // size_t num_split_candidates = 0;
 
     double y_sum2;
     double sigma2 = pow(sigma, 2);
@@ -1871,6 +1877,7 @@ void BART_likelihood_all(double y_sum, xinfo_sizet &Xorder_std, const double *X_
         seq_gen_std(Nmin, N - Nmin, Ncutpoints, candidate_index);
 
         std::discrete_distribution<size_t> d(loglike.begin(), loglike.end());
+
         // // sample one index of split point
         ind = d(fit_info->gen);
         drawn_ind = ind;
@@ -1914,6 +1921,230 @@ void BART_likelihood_all(double y_sum, xinfo_sizet &Xorder_std, const double *X_
             split_var = split_var + p_continuous;
         }
     }
+
+
+    return;
+}
+
+
+
+
+void BART_likelihood_all_MH(double y_sum, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &mtry, double &prob_split, std::unique_ptr<FitInfo>& fit_info, size_t &drawn_ind, size_t &num_split_candidates)
+{
+    // compute BART posterior (loglikelihood + logprior penalty)
+
+    // subset_vars: a vector of indexes of varibles to consider (like random forest)
+
+    // use stacked vector loglike instead of a matrix, stacked by column
+    // length of loglike is p * (N - 1) + 1
+    // N - 1 has to be greater than 2 * Nmin
+
+    size_t N = Xorder_std[0].size();
+    size_t p = Xorder_std.size();
+    size_t ind;
+    size_t N_Xorder = N;
+    size_t total_categorical_split_candidates = 0;
+    // size_t num_split_candidates = 0;
+
+    double y_sum2;
+    double sigma2 = pow(sigma, 2);
+
+    double loglike_max = -INFINITY;
+
+    std::vector<double> loglike;
+
+    size_t loglike_start;
+
+    // decide lenght of loglike vector
+    if (N <= Ncutpoints + 1 + 2 * Nmin)
+    {
+        // cout << "small set " << endl;
+        loglike.resize((N_Xorder - 1) * p_continuous + fit_info->X_values.size() + 1, -INFINITY);
+        loglike_start = (N_Xorder - 1) * p_continuous;
+    }
+    else
+    {   
+        // cout << "bigger set " << endl;
+        loglike.resize(Ncutpoints * p_continuous + fit_info->X_values.size() + 1, -INFINITY);
+        loglike_start = Ncutpoints * p_continuous;
+    }
+
+    // calculate for each cases
+    if (p_continuous > 0)
+    {
+        calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Nmin, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, tau, sigma2, loglike_max, model, mtry, fit_info);
+    }
+
+    if (p_categorical > 0)
+    {
+        calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, Nmin, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, p_categorical, Ncutpoints, tau, sigma2, loglike_max, X_counts, X_num_unique, model, mtry, total_categorical_split_candidates, fit_info);
+    }
+
+    // calculate likelihood of no-split option
+    calculate_likelihood_no_split(loglike, N_Xorder, Nmin, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, tau, sigma2, loglike_max, model, mtry, total_categorical_split_candidates);
+
+    // transfer loglikelihood to likelihood
+    for (size_t ii = 0; ii < loglike.size(); ii++)
+    {
+        // if a variable is not selected, take exp will becomes 0
+        loglike[ii] = exp(loglike[ii] - loglike_max) ;
+    }
+    // cout << "loglike " << loglike << endl;
+    // cout << " ok " << endl;
+
+    // sampling cutpoints
+    if (N <= Ncutpoints + 1 + 2 * Nmin)
+    {
+
+        // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
+
+        // if number of observations is smaller than Ncutpoints, all data are splitpoint candidates
+        // note that the first Nmin and last Nmin cannot be splitpoint candidate
+
+        if ((N - 1) > 2 * Nmin)
+        {
+            // for(size_t i = 0; i < p; i ++ ){
+            for (auto &&i : subset_vars)
+            {
+                if (i < p_continuous)
+                {
+                    // delete some candidates, otherwise size of the new node can be smaller than Nmin
+                    std::fill(loglike.begin() + i * (N - 1), loglike.begin() + i * (N - 1) + Nmin + 1, 0.0);
+                    std::fill(loglike.begin() + i * (N - 1) + N - 2 - Nmin, loglike.begin() + i * (N - 1) + N - 2 + 1, 0.0);
+                }
+            }
+        }
+        else
+        {
+            // do not use all continuous variables
+            std::fill(loglike.begin(), loglike.begin() + (N_Xorder - 1) * p_continuous - 1, 0.0);
+        }
+
+        std::discrete_distribution<> d(loglike.begin(), loglike.end());
+        // sample one index of split point
+
+        // cout << loglike << endl;
+        // cout << "-----" << endl;
+
+        // count number of cutpoint candidates
+num_split_candidates = count_non_zero(loglike); 
+    // cout << "number of candidates some" << num_split_candidates << endl;
+
+        ind = d(fit_info->gen);
+        drawn_ind = ind;
+
+        // save the posterior of the chosen split point
+        vec_sum(loglike, prob_split);
+        prob_split = loglike[ind] / prob_split;
+
+        if (ind == loglike.size() - 1)
+        {
+            // no split
+            no_split = true;
+            split_var = 0;
+            split_point = 0;
+        }
+        else if ((N - 1) <= 2 * Nmin)
+        {
+            // np split
+
+            /////////////////////////////////
+            //
+            // Need optimization, move before calculating likelihood
+            //
+            /////////////////////////////////
+
+            no_split = true;
+            split_var = 0;
+            split_point = 0;
+        }
+        else if (ind < loglike_start)
+        {
+            // split at continuous variable
+            split_var = ind / (N - 1);
+            split_point = ind % (N - 1);
+        }
+        else
+        {
+            // split at categorical variable
+            size_t start;
+            ind = ind - loglike_start;
+            for (size_t i = 0; i < (fit_info->variable_ind.size() - 1); i++)
+            {
+                if (fit_info->variable_ind[i] <= ind && fit_info->variable_ind[i + 1] > ind)
+                {
+                    split_var = i;
+                }
+            }
+            start = fit_info->variable_ind[split_var];
+            // count how many
+            split_point = std::accumulate(X_counts.begin() + start, X_counts.begin() + ind + 1, 0);
+            // minus one for correct index (start from 0)
+            split_point = split_point - 1;
+            split_var = split_var + p_continuous;
+        }
+    }
+    else
+    {
+        // use adaptive number of cutpoints
+
+        std::vector<size_t> candidate_index(Ncutpoints);
+
+        seq_gen_std(Nmin, N - Nmin, Ncutpoints, candidate_index);
+
+        std::discrete_distribution<size_t> d(loglike.begin(), loglike.end());
+// cout << loglike << endl;
+// cout << "----" << endl;
+        // count number of cutpoint candidates
+// num_split_candidates = std::count_if(loglike.begin(), loglike.end(), [](size_t c){return c > 0;});
+
+num_split_candidates = count_non_zero(loglike); 
+    // cout << "number of candidates all " << num_split_candidates << endl;
+
+        // // sample one index of split point
+        ind = d(fit_info->gen);
+        drawn_ind = ind;
+
+
+        // save the posterior of the chosen split point
+        vec_sum(loglike, prob_split);
+        prob_split = loglike[ind] / prob_split;
+
+        
+        if (ind == loglike.size() - 1)
+        {
+            // no split
+            no_split = true;
+            split_var = 0;
+            split_point = 0;
+        }
+        else if (ind < loglike_start)
+        {
+            // split at continuous variable
+            split_var = ind / Ncutpoints;
+            split_point = candidate_index[ind % Ncutpoints];
+        }
+        else
+        {
+            // split at categorical variable
+            size_t start;
+            ind = ind - loglike_start;
+            for (size_t i = 0; i < (fit_info->variable_ind.size() - 1); i++)
+            {
+                if (fit_info->variable_ind[i] <= ind && fit_info->variable_ind[i + 1] > ind)
+                {
+                    split_var = i;
+                }
+            }
+            start = fit_info->variable_ind[split_var];
+            // count how many
+            split_point = std::accumulate(X_counts.begin() + start, X_counts.begin() + ind + 1, 0);
+            // minus one for correct index (start from 0)
+            split_point = split_point - 1;
+            split_var = split_var + p_continuous;
+        }
+    }
+
 
     return;
 }
