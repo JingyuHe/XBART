@@ -623,19 +623,23 @@ double tree::prior_prob(double tau, double alpha, double beta)
     double log_split_prob = 0.0;
     double log_leaf_prob = 0.0;
     npv tree_vec;
-
+    double gamma;
     // get a vector of all nodess
     this->getnodes(tree_vec);
 
     for(size_t i = 0; i < tree_vec.size(); i++ ){
+
+        gamma = pow(1.0 + tree_vec[i]->depth(), beta) / alpha - 1.0;
+
         if(tree_vec[i]->getl() == 0){
             // if no children, it is end node, count leaf parameter probability
 
             // leaf prob, normal center at ZERO
-            log_leaf_prob += normal_density(tree_vec[i]->theta_vector[0], 0.0, tau, true);
+            // log_leaf_prob += normal_density(tree_vec[i]->theta_vector[0], 0.0, tau, true);
 
             // log_split_prob += log(1 - alpha * pow((1 + tree_vec[i]->depth()), -beta));
-            log_split_prob += log(1.0 - alpha * pow((1 + tree_vec[i]->depth()), -1.0 * beta));
+            // log_split_prob += log(1.0 - alpha * pow((1 + tree_vec[i]->depth()), -1.0 * beta));
+            log_split_prob += -log(1.0 + 1.0 / gamma);
 
             // add prior of split point
             log_split_prob = log_split_prob - log(tree_vec[i]->getnum_cutpoint_candidates());
@@ -644,7 +648,8 @@ double tree::prior_prob(double tau, double alpha, double beta)
             // otherwise count cutpoint probability
             // log_split_prob += log(alpha * pow((1.0 + tree_vec[i]->depth()), -beta));
 
-            log_split_prob += log(alpha) - beta * log(1.0 + tree_vec[i]->depth());
+            // log_split_prob += log(alpha) - beta * log(1.0 + tree_vec[i]->depth());
+            log_split_prob += -log(1.0 + gamma) - log(tree_vec[i]->getnum_cutpoint_candidates() - 1.0);
         }
     }
     output = log_split_prob + log_leaf_prob;
@@ -2648,7 +2653,9 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, size_t &Nmin, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, Model *model, size_t &mtry, size_t &total_categorical_split_candidates)
 {
 
-    loglike[loglike.size() - 1] = model->likelihood_no_split(y_sum, tau, N_Xorder * tau, sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+    // loglike[loglike.size() - 1] = model->likelihood_no_split(y_sum, tau, N_Xorder * tau, sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
+
+    loglike[loglike.size() - 1] = model->likelihood_no_split(y_sum, tau, N_Xorder * tau, sigma2) + log(pow(1.0 + depth, beta) / alpha - 1.0) + log((double)loglike.size() - 1.0);  
 
     // then adjust according to number of variables and split points
 
