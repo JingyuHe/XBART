@@ -19,7 +19,6 @@ struct FitInfo
 
     // Result containers
     xinfo predictions_std;
-    xinfo predictions_std_copy;
     std::vector<double> yhat_std;
     std::vector<double> residual_std;
     std::vector<double> residual_std_full;
@@ -39,24 +38,7 @@ struct FitInfo
     bool use_all = true;
 
     // Vector pointers
-    matrix<std::vector<double>*> data_pointers;    
-    // copy of data_pointers object, for MH update
-    matrix<std::vector<double>*> data_pointers_copy;
-
-    void create_backup_data_pointers(){
-        // create a backup copy of data_pointers
-        // used in MH adjustment
-        data_pointers_copy = data_pointers;
-        return;
-    }
-
-    void restore_data_pointers(size_t tree_ind){
-        // restore pointers of one tree from data_pointers_copy
-        // used in MH adjustment
-        data_pointers[tree_ind] = data_pointers_copy[tree_ind];
-        return;
-    }
-
+    matrix<std::vector<double>*> data_pointers;
     void init_tree_pointers(std::vector<double>* initial_theta, size_t N, size_t num_trees)
     {
         ini_matrix(data_pointers, N, num_trees);
@@ -69,7 +51,6 @@ struct FitInfo
             }
         }
     }
-
     FitInfo(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p,
             size_t num_trees, size_t p_categorical, size_t p_continuous,
             bool set_random_seed, size_t random_seed, std::vector<double>* initial_theta)
