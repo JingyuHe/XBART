@@ -342,6 +342,7 @@ void tree::tonull()
 void tree::cp(tree_p n, tree_cp o)
 //assume n has no children (so we don't have to kill them)
 //recursion down
+// create a new copy of tree in NEW memory space
 {
     if (n->l)
     {
@@ -375,6 +376,41 @@ void tree::cp(tree_p n, tree_cp o)
         cp(n->r, o->r);
     }
 }
+
+
+
+void tree::copy_only_root(tree_p o)
+//assume n has no children (so we don't have to kill them)
+//NOT LIKE cp() function
+//this function pointer new root to the OLD structure
+{
+    this->v = o->v;
+    this->c = o->c;
+    this->sig = o->sig;
+    this->prob_split = o->prob_split;
+    this->prob_leaf = o->prob_leaf;
+    this->drawn_ind = o->drawn_ind;
+    this->N_Xorder = o->N_Xorder;
+    this->y_mean = o->y_mean;
+    this->loglike_leaf = o->loglike_leaf;
+    this->tree_like = o->tree_like;
+    this->theta_vector = o-> theta_vector;
+
+    if(o->l){
+        // keep the following structure, rather than create a new tree in memory
+        this->l = o->l;
+        this->r = o->r;
+        // also update pointers to parents
+        this->l->p = this;
+        this->r->p = this;
+    }else{
+        this->l = 0;
+        this->r = 0;
+    }
+}
+
+
+
 
 json tree::to_json()
 {
@@ -602,7 +638,7 @@ double tree::prior_prob(double tau, double alpha, double beta)
             log_split_prob += log(1.0 - alpha * pow((1 + tree_vec[i]->depth()), -1.0 * beta));
 
             // add prior of split point
-            log_split_prob = log_split_prob - log(num_cutpoint_candidates);
+            log_split_prob = log_split_prob - log(tree_vec[i]->getnum_cutpoint_candidates());
 
         }else{
             // otherwise count cutpoint probability
@@ -1264,6 +1300,7 @@ void tree::update_theta(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_
 
     // also need to update y_mean
     // N_Xorder is identical, not necessary to update
+    // cout << this-> y_mean << "   " << y_mean << endl;
     this->sety_mean(y_mean);
 
 
@@ -1271,9 +1308,8 @@ void tree::update_theta(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_
     {
         //  for (size_t i = 0; i < N_Xorder; i++)
         // {
-            // fit_info->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
+        //     fit_info->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
         // }
-
         // update theta
         model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
 
@@ -1302,7 +1338,7 @@ void tree::update_theta(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_
         this->r = 0;
         return;
     }
-
+// cout << this->v << "  " << split_var << endl;
     // this->v = split_var;
     // this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
 
@@ -1735,7 +1771,7 @@ void BART_likelihood_all(double y_sum, xinfo_sizet &Xorder_std, const double *X_
     size_t ind;
     size_t N_Xorder = N;
     size_t total_categorical_split_candidates = 0;
-    // size_t num_split_candidates = 0;
+    // size_t num_cutpoint_candidates = 0;
 
     double y_sum2;
     double sigma2 = pow(sigma, 2);
@@ -1929,7 +1965,7 @@ void BART_likelihood_all(double y_sum, xinfo_sizet &Xorder_std, const double *X_
 
 
 
-void BART_likelihood_all_MH(double y_sum, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &mtry, double &prob_split, std::unique_ptr<FitInfo>& fit_info, size_t &drawn_ind, size_t &num_split_candidates)
+void BART_likelihood_all_MH(double y_sum, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &mtry, double &prob_split, std::unique_ptr<FitInfo>& fit_info, size_t &drawn_ind, size_t &num_cutpoint_candidates)
 {
     // compute BART posterior (loglikelihood + logprior penalty)
 
@@ -1944,7 +1980,7 @@ void BART_likelihood_all_MH(double y_sum, xinfo_sizet &Xorder_std, const double 
     size_t ind;
     size_t N_Xorder = N;
     size_t total_categorical_split_candidates = 0;
-    // size_t num_split_candidates = 0;
+    // size_t num_cutpoint_candidates = 0;
 
     double y_sum2;
     double sigma2 = pow(sigma, 2);
@@ -2027,8 +2063,8 @@ void BART_likelihood_all_MH(double y_sum, xinfo_sizet &Xorder_std, const double 
         // cout << "-----" << endl;
 
         // count number of cutpoint candidates
-num_split_candidates = count_non_zero(loglike); 
-    // cout << "number of candidates some" << num_split_candidates << endl;
+num_cutpoint_candidates = count_non_zero(loglike); 
+    // cout << "number of candidates some" << num_cutpoint_candidates << endl;
 
         ind = d(fit_info->gen);
         drawn_ind = ind;
@@ -2096,10 +2132,10 @@ num_split_candidates = count_non_zero(loglike);
 // cout << loglike << endl;
 // cout << "----" << endl;
         // count number of cutpoint candidates
-// num_split_candidates = std::count_if(loglike.begin(), loglike.end(), [](size_t c){return c > 0;});
+// num_cutpoint_candidates = std::count_if(loglike.begin(), loglike.end(), [](size_t c){return c > 0;});
 
-num_split_candidates = count_non_zero(loglike); 
-    // cout << "number of candidates all " << num_split_candidates << endl;
+num_cutpoint_candidates = count_non_zero(loglike); 
+    // cout << "number of candidates all " << num_cutpoint_candidates << endl;
 
         // // sample one index of split point
         ind = d(fit_info->gen);
@@ -2680,7 +2716,8 @@ void predict_from_datapointers(const double *X_std, size_t N, size_t M, std::vec
     // tree search, but read from the matrix of pointers to end node directly
     // easier to get fitted value of training set
     for (size_t i = 0; i < N; i++)
-    {
+    {   
+        // cout << "point " << i << " is ok " << endl;
         output[i] = model->predictFromTheta(*data_pointers[M][i]);
     }
     return;

@@ -40,7 +40,7 @@ void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, std::ve
 
 void BART_likelihood_all(double y_sum, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &mtry, double &prob_split, std::unique_ptr<FitInfo>& fit_info, size_t &drawn_ind);
 
-void BART_likelihood_all_MH(double y_sum, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &mtry, double &prob_split, std::unique_ptr<FitInfo>& fit_info, size_t &drawn_ind, size_t &num_split_candidates);
+void BART_likelihood_all_MH(double y_sum, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &mtry, double &prob_split, std::unique_ptr<FitInfo>& fit_info, size_t &drawn_ind, size_t &num_cutpoint_candidates);
 
 void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &mtry, double &prob_split, std::unique_ptr<FitInfo>& fit_info, size_t &drawn_ind);
 
@@ -182,6 +182,8 @@ class tree
 
     json to_json();
     void from_json(json &j3, size_t num_classes);
+    void cp(tree_p n, tree_cp o); //copy tree
+    void copy_only_root(tree_p o); // copy tree, point new root to old structure
 
 // #ifndef NoRcpp
 // #endif
@@ -216,7 +218,6 @@ class tree
     tree_p l; //left child
     tree_p r; //right child
     //utiity functions
-    void cp(tree_p n, tree_cp o); //copy tree
 };
 
 std::istream &operator>>(std::istream &, tree &);
