@@ -775,17 +775,10 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest,
     }
 
     /////////////////////////////////////////////////////////////////
-    std::vector<double> accept_count;
-    std::vector<double> MH_vector;
-    std::vector<double> Q_ratio;
-    std::vector<double> P_ratio;
-    std::vector<double> prior_ratio;
-
-
     fit_std_MH(Xpointer, y_std, y_mean, Xorder_std, N, p, num_trees, num_sweeps, max_depth_std,
             n_min, num_cutpoints, alpha, beta, tau, burnin, mtry, kap, s, verbose, draw_mu, parallel,
             yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, p_categorical, p_continuous, *trees2, set_random_seed,
-            random_seed, no_split_penality,sample_weights_flag, accept_count, MH_vector, P_ratio, Q_ratio, prior_ratio);
+            random_seed, no_split_penality,sample_weights_flag);
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
     // R Objects to Return
@@ -838,11 +831,6 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest,
         Rcpp::Named("yhats_test") = yhats_test,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
-        Rcpp::Named("accept_count") = accept_count,
-        Rcpp::Named("MH") = MH_vector,
-        Rcpp::Named("Q_ratio") = Q_ratio,
-        Rcpp::Named("P_ratio") = P_ratio,
-        Rcpp::Named("prior_ratio") = prior_ratio,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt,
                                                        Rcpp::Named("y_mean") = y_mean,
                                                        Rcpp::Named("p") = p));
