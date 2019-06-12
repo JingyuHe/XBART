@@ -632,28 +632,17 @@ double tree::prior_prob(double tau, double alpha, double beta)
         gamma = pow(1.0 + tree_vec[i]->depth(), beta) / alpha - 1.0;
 
         if(tree_vec[i]->getl() == 0){
-            // if no children, it is end node, count leaf parameter probability
-
-            // leaf prob, normal center at ZERO
-            // log_leaf_prob += normal_density(tree_vec[i]->theta_vector[0], 0.0, tau, true);
-
-            // log_split_prob += log(1 - alpha * pow((1 + tree_vec[i]->depth()), -beta));
-            // log_split_prob += log(1.0 - alpha * pow((1 + tree_vec[i]->depth()), -1.0 * beta));
+            
             log_split_prob += -log(1.0 + 1.0 / gamma);
-
-            // add prior of split point
-            log_split_prob = log_split_prob - log(tree_vec[i]->getnum_cutpoint_candidates());
-
+            log_leaf_prob += normal_density(tree_vec[i]->theta_vector[0], 0.0, tau, true);
+            
         }else{
-            // otherwise count cutpoint probability
-            // log_split_prob += log(alpha * pow((1.0 + tree_vec[i]->depth()), -beta));
-
-            // log_split_prob += log(alpha) - beta * log(1.0 + tree_vec[i]->depth());
+            
             log_split_prob += -log(1.0 + gamma) - log(tree_vec[i]->getnum_cutpoint_candidates() - 1.0);
+        
         }
     }
     output = log_split_prob + log_leaf_prob;
-    // output = log_split_prob;
     return output;
 }
 
@@ -1114,7 +1103,7 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
     // also need to update y_mean
     // N_Xorder is identical, not necessary to update
     this->sety_mean(y_mean);
-
+	//this->setN_Xorder(N_Xorder);
 
     if (no_split == true)
     {
@@ -1148,7 +1137,9 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
         this->l = 0;
         this->r = 0;
         return;
-    }
+    }else{        
+ 	   this->loglike_leaf = model->likelihood_no_split(y_mean * N_Xorder, tau, N_Xorder * tau, pow(sigma, 2));	
+	}
 
     // this->v = split_var;
     // this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
@@ -1316,7 +1307,7 @@ void tree::update_theta(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_
         //     fit_info->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
         // }
         // update theta
-        model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+      //  model->samplePars(draw_mu, y_mean, N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
 
         // cout << "prob_leaf before " << this-> prob_leaf << "   " ;
 
@@ -1418,11 +1409,6 @@ void tree::update_theta(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_
 
 
 double tree::transition_prob(){
-    /*
-        This function calculate probability of given tree
-        log P(all cutpoints) + log P(leaf parameters)
-        Used in M-H ratio calculation
-    */
 
 
     double output = 0.0;
@@ -1434,22 +1420,12 @@ double tree::transition_prob(){
     this->getnodes(tree_vec);
 
     for(size_t i = 0; i < tree_vec.size(); i++ ){
-        if(tree_vec[i]->getl() == 0){
-            // if no children, it is end node, count leaf parameter probability
-
-            // prob_leaf is already in log scale
-            log_p_leaf += tree_vec[i]->getprob_leaf();
-            
-            // prob_split is in original scale, need to take log
-            log_p_cutpoints += log(tree_vec[i]->getprob_split());
-        }else{
-            // otherwise count cutpoint probability
-            log_p_cutpoints += log(tree_vec[i]->getprob_split());
-        }
+        
+            log_p_cutpoints += tree_vec[i]->loglike_leaf;
+     
     }
-    // cout << "log_p_cutpoints " << log_p_cutpoints << endl;
-    // cout << "log_p_leaf " << log_p_leaf << endl;
-    output = log_p_cutpoints + log_p_leaf;
+    
+    output = log_p_cutpoints;
 
     return output;
 };
@@ -1860,7 +1836,7 @@ void BART_likelihood_all(double y_sum, xinfo_sizet &Xorder_std, const double *X_
 
         // save the posterior of the chosen split point
         vec_sum(loglike, prob_split);
-        prob_split = loglike[ind] / prob_split;
+        prob_split = loglike[ind]/prob_split;
 
         if (ind == loglike.size() - 1)
         {
@@ -1926,7 +1902,7 @@ void BART_likelihood_all(double y_sum, xinfo_sizet &Xorder_std, const double *X_
 
         // save the posterior of the chosen split point
         vec_sum(loglike, prob_split);
-        prob_split = loglike[ind] / prob_split;
+        prob_split = loglike[ind]/prob_split;
 
         
         if (ind == loglike.size() - 1)
@@ -2245,11 +2221,11 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
     calculate_likelihood_no_split(loglike, N_Xorder, Nmin, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, tau, sigma2, loglike_max, model, mtry, total_categorical_split_candidates);
 
     // transfer loglikelihood to likelihood
-    for (size_t ii = 0; ii < loglike.size(); ii++)
-    {
+//    for (size_t ii = 0; ii < loglike.size(); ii++)
+  //  {
         // if a variable is not selected, take exp will becomes 0
-        loglike[ii] = exp(loglike[ii] - loglike_max);
-    }
+   //     loglike[ii] = exp(loglike[ii] - loglike_max);
+   // }
 
     // sampling cutpoints
 
@@ -2295,9 +2271,9 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
         ind = drawn_ind;
 
         // save the posterior of the chosen split point
-        vec_sum(loglike, prob_split);
+        //vec_sum(loglike, prob_split);
         // loglike is already taken exp
-        prob_split = loglike[ind] / prob_split;
+        prob_split = loglike[ind];
 
         if (ind == loglike.size() - 1)
         {
@@ -2363,8 +2339,8 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
 
 
         // save the posterior of the chosen split point
-        vec_sum(loglike, prob_split);
-        prob_split = loglike[ind] / prob_split;
+       // vec_sum(loglike, prob_split);
+        prob_split = loglike[ind];
 
         
         if (ind == loglike.size() - 1)
@@ -2673,7 +2649,7 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
     //
     ////////////////////////////////////////////////////////////////
 
-    loglike[loglike.size() - 1] += log(p) + log(2.0) + model->getNoSplitPenality();
+ //   loglike[loglike.size() - 1] += log(p) + log(2.0) + model->getNoSplitPenality();
 
     ////////////////////////////////////////////////////////////////
     // The loop below might be useful when test different weights
