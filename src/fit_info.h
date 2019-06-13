@@ -42,6 +42,10 @@ struct FitInfo
     size_t n_min;
     size_t Ncutpoints;
     bool parallel;
+    size_t p_categorical;
+    size_t p_continuous;
+    size_t mtry;
+    const double *X_std;
 
 
     // Vector pointers
@@ -60,7 +64,7 @@ struct FitInfo
     }
     FitInfo(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p,
             size_t num_trees, size_t p_categorical, size_t p_continuous,
-            bool set_random_seed, size_t random_seed, std::vector<double>* initial_theta, xinfo_sizet *max_depth_std, size_t n_min, size_t Ncutpoints, bool parallel)
+            bool set_random_seed, size_t random_seed, std::vector<double>* initial_theta, xinfo_sizet *max_depth_std, size_t n_min, size_t Ncutpoints, bool parallel, size_t mtry, const double *X_std)
     {
 
         // Handle Categorical
@@ -100,6 +104,10 @@ struct FitInfo
         this->n_min = n_min;
         this->Ncutpoints = Ncutpoints;
         this->parallel = parallel;
+        this->p_categorical = p_categorical;
+        this->p_continuous = p_continuous;
+        this->mtry = mtry;
+        this->X_std = X_std;
     }
 };
 
