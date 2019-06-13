@@ -32,26 +32,25 @@
 // for convenience
 using json = nlohmann::json;
 
-void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, Model *model, std::unique_ptr<FitInfo>& fit_info);
+void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, size_t N_y, size_t p, double &yleft_mean, double &yright_mean, const double &y_mean, double &yleft_sq_sum, double &yright_sq_sum, const double &y_sq_sum, Model *model, std::unique_ptr<FitInfo>& fit_info);
 
-void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<FitInfo>& fit_info);
+void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, size_t N_y, size_t p, double &yleft_mean, double &yright_mean, const double &y_mean, double &yleft_sq_sum, double &yright_sq_sum, const double &y_sq_sum, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<FitInfo>& fit_info);
 
 void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique);
 
-void BART_likelihood_all(double y_sum, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &mtry, double &prob_split, std::unique_ptr<FitInfo>& fit_info, size_t &drawn_ind);
+void BART_likelihood_all(double y_sum, xinfo_sizet &Xorder_std, double tau, double sigma, size_t depth, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, const std::vector<size_t> &subset_vars,std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, double &prob_split, std::unique_ptr<FitInfo>& fit_info, size_t &drawn_ind);
 
-void BART_likelihood_all_MH(double y_sum, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &mtry, double &prob_split, std::unique_ptr<FitInfo>& fit_info, size_t &drawn_ind, size_t &num_cutpoint_candidates);
 
-void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &mtry, double &prob_split, std::unique_ptr<FitInfo>& fit_info, size_t &drawn_ind);
+void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, double tau, double sigma, size_t depth, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, const std::vector<size_t> &subset_vars, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, double &prob_split, std::unique_ptr<FitInfo>& fit_info, size_t &drawn_ind);
 
 
 void cumulative_sum_std(std::vector<double> &y_cumsum, std::vector<double> &y_cumsum_inv, double &y_sum, double *y, xinfo_sizet &Xorder, size_t &i, size_t &N);
 
-void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &Nmin, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, Model *model, size_t &mtry, std::unique_ptr<FitInfo>& fit_info);
+void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std::vector<size_t> &subset_vars, size_t &N_Xorder, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, double &tau, double &sigma2, double &loglike_max, Model *model, std::unique_ptr<FitInfo>& fit_info);
 
-void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &loglike_start, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &N_min, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, const size_t &p_continuous, size_t &p_categorical, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &mtry, size_t &total_categorical_split_candidates, std::unique_ptr<FitInfo>& fit_info);
+void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &loglike_start, const std::vector<size_t> &subset_vars, size_t &N_Xorder, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, double &tau, double &sigma2, double &loglike_max, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &total_categorical_split_candidates, std::unique_ptr<FitInfo>& fit_info);
 
-void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, size_t &Nmin, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, Model *model, size_t &mtry, size_t &total_categorical_split_candidates);
+void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, double &tau, double &sigma2, double &loglike_max, Model *model, size_t &total_categorical_split_candidates, std::unique_ptr<FitInfo>& fit_info);
 
 // void calc_suff_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, double &suff_stat, bool adaptive_cutpoint);
 
@@ -78,6 +77,12 @@ class tree
     // std::vector<double> theta_vector;
     std::vector<double> theta_vector;
 
+    // suff_Stat save nodewise sufficient statistics
+    // such as mean of y, sum of y squares
+    // hard code as a vector of length 2 for now
+    std::vector<double> suff_stat;
+
+
     //typedefs--------------------
     typedef tree *tree_p;
     typedef const tree *tree_cp;
@@ -87,10 +92,10 @@ class tree
     friend std::istream &operator>>(std::istream &, tree &);
     //  friend void update_sufficient_stat(tree& tree, arma::mat& y, arma::mat& X, tree::npv& bv, tree::npv& bv2, double& tau, double& sigma, double& alpha, double& beta);
     //contructors,destructors--------------------
-    tree() : theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_leaf(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
-    tree(const tree &n) : theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_leaf(0.0), tree_like(0.0), num_cutpoint_candidates(0)  { cp(this, &n); }
-    tree(double itheta) : theta_vector(itheta, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_leaf(0.0), tree_like(0.0), num_cutpoint_candidates(0)  {}
-    tree(size_t num_classes,const tree_p parent) : theta_vector(num_classes, 0.0), sig(0.0), v(0), c(0), p (parent), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_leaf(0.0), tree_like(0.0), num_cutpoint_candidates(0)  {}
+    tree() : suff_stat(2, 0.0), theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), depth(0) {}
+    tree(const tree &n) : suff_stat(2, 0.0), theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), depth(0)  { cp(this, &n); }
+    tree(double itheta) : suff_stat(2, 0.0), theta_vector(itheta, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), depth(0)  {}
+    tree(size_t num_classes,const tree_p parent) : suff_stat(2, 0.0), theta_vector(num_classes, 0.0), sig(0.0), v(0), c(0), p (parent), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), depth(0)  {}
 
     void tonull(); //like a "clear", null tree has just one node
     ~tree() { tonull(); }
@@ -102,6 +107,7 @@ class tree
 
     void setv(size_t v) { this->v = v; }
     void setc(size_t c) { this->c = c; }
+    void setdepth(size_t depth) {this->depth = depth;}
     //get
     std::vector<double> gettheta_vector() const { return theta_vector; }
 
@@ -110,6 +116,7 @@ class tree
     double getprob_leaf() const {return prob_leaf; }
     size_t getv() const { return v; }
     double getc() const { return c; }
+    size_t getdepth() const {return depth;}
 
     size_t getN_Xorder() const {return N_Xorder;}
     void setN_Xorder(size_t N_Xorder) {this->N_Xorder = N_Xorder;} 
@@ -117,10 +124,6 @@ class tree
     double gety_mean() const {return y_mean;} 
     void sety_mean(double y_mean) {this->y_mean = y_mean;}
 
-    double gettree_like() const {return tree_like;}
-    size_t getnum_cutpoint_candidates() const {return num_cutpoint_candidates;}
-
-    void setnum_cutpoint_candidates(size_t x) {this->num_cutpoint_candidates = x;}
     // size_t getsplit_var() const {return split_var; }
     // size_t getsplit_point() const {return split_point; }
     // bool getno_split() const {return no_split;}
@@ -145,27 +148,15 @@ class tree
     void getnodes(cnpv &v) const; //get vector of all nodes (const)
     tree_p gettop();              // get pointer to the top node
 
-    void grow_from_root(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints,
-                                    double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel,
-                                    xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, 
-                                    std::vector<double> &mtry_weight_current_tree,
-                                    size_t &p_categorical,
-                                    size_t &p_continuous, std::vector<size_t> &X_counts,
+    void grow_from_root(std::unique_ptr<FitInfo>& fit_info, size_t max_depth,
+                                    double tau, double sigma, double alpha, double beta, bool draw_mu,
+                                    xinfo_sizet &Xorder_std,
+                                    std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts,
                                     std::vector<size_t> &X_num_unique, Model *model,
                                     const size_t &tree_ind,bool sample_weights_flag);
 
-    void grow_from_root_MH(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, std::vector<double> &mtry_weight_current_tree, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag);
 
-
-    void update_theta(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, std::vector<double> &mtry_weight_current_tree, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag);
-
-
-    // double tree_likelihood(size_t N, double sigma, size_t tree_ind, Model *model, std::unique_ptr<FitInfo>& fit_info, const double *Xpointer, vector<double>& y, bool proposal);
-
-    double tree_likelihood(size_t N, double sigma, vector<double> y);
-
-    double prior_prob(double tau, double alpha, double beta);
-    void update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, std::vector<double> &mtry_weight_current_tree, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag);
+    void update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_t depth, size_t max_depth, double tau, double sigma, double alpha, double beta, bool draw_mu, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag);
 
     double transition_prob();
     double log_like_tree(double sigma2, double tau);  
@@ -176,18 +167,18 @@ class tree
     void rg(size_t v, size_t *L, size_t *U); //recursively find region [L,U] for var v
     //node functions--------------------
     size_t nid() const; //nid of a node
-    size_t depth();     //depth of a node
+    // size_t depth();     //depth of a node
     char ntype();       //node type t:top, b:bot, n:no grandchildren i:interior (t can be b)
     bool isnog();
 
     json to_json();
     void from_json(json &j3, size_t num_classes);
-    void cp(tree_p n, tree_cp o); //copy tree
-    void copy_only_root(tree_p o); // copy tree, point new root to old structure
 
 // #ifndef NoRcpp
 // #endif
   private:
+    size_t depth;
+
     double sig;
     //rule: left if x[v] < xinfo[v][c]
     size_t v; //index of variable to split
@@ -196,28 +187,20 @@ class tree
 
     double prob_split; // posterior of the chose split points, by Bayes rule
 
-    double prob_leaf; // posterior of the leaf parameter, mu
-
-    double loglike_leaf; // loglikelihood of the leaf data
-
-    double tree_like; // for debug use, likelihood of the tree
+    double prob_leaf; // posterior of the leaf parameter
 
     size_t drawn_ind; // index drawn when sampling cutpoints (in the total likelihood + nosplit vector)
 
     size_t N_Xorder; // number of data points in this node, for debugging use
+
     double y_mean; // average of y in current node, for debugging use
-
-    size_t num_cutpoint_candidates; // number of cutpoint candidates
-
-    // size_t split_var;
-    // size_t split_point; // for debugging use
-    // bool no_split;
 
     //tree structure
     tree_p p; //parent
     tree_p l; //left child
     tree_p r; //right child
     //utiity functions
+    void cp(tree_p n, tree_cp o); //copy tree
 };
 
 std::istream &operator>>(std::istream &, tree &);
