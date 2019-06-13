@@ -148,8 +148,8 @@ class tree
     void getnodes(cnpv &v) const; //get vector of all nodes (const)
     tree_p gettop();              // get pointer to the top node
 
-    void grow_from_root(std::unique_ptr<FitInfo>& fit_info, size_t max_depth, size_t Nmin, size_t Ncutpoints,
-                                    double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel,
+    void grow_from_root(std::unique_ptr<FitInfo>& fit_info, size_t max_depth,
+                                    double tau, double sigma, double alpha, double beta, bool draw_mu,
                                     xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, 
                                     std::vector<double> &mtry_weight_current_tree,
                                     size_t &p_categorical,
