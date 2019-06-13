@@ -615,7 +615,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 cout << temp_tree[tree_ind].getprob_split() << endl;
                 cout << temp_tree[tree_ind].getv() << " " << temp_tree[tree_ind].getc() << endl;
 
-                temp_tree[tree_ind].update_split_prob(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
+                temp_tree[tree_ind].update_split_prob(fit_info, sum_vec(fit_info->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], tau, sigma, alpha, beta, draw_mu, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag);
 
                 cout << temp_tree[tree_ind].getprob_split() << endl;
                 cout << "-------------------" << endl;
