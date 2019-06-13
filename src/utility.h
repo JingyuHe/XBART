@@ -164,4 +164,7 @@ void unique_value_count2(const double *Xpointer, xinfo_sizet &Xorder_std, //std:
 
 double normal_density(double y, double mean, double var, bool take_log);
 
+bool is_non_zero(size_t x);
+
+size_t count_non_zero(std::vector<double> &vec);
 #endif
