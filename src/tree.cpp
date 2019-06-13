@@ -643,12 +643,12 @@ void tree::grow_from_root(std::unique_ptr<FitInfo>& fit_info, size_t max_depth, 
 
     if (fit_info->p_categorical > 0)
     {
-        split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, fit_info->X_std, N_y, p, fit_info->p_continuous, fit_info->p_categorical, lchild->suff_stat[0], rchild->suff_stat[0], suff_stat[0], lchild->suff_stat[1], rchild->suff_stat[1], suff_stat[1], X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, model, fit_info);
+        split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, N_y, p, fit_info->p_continuous, fit_info->p_categorical, lchild->suff_stat[0], rchild->suff_stat[0], suff_stat[0], lchild->suff_stat[1], rchild->suff_stat[1], suff_stat[1], X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, model, fit_info);
     }
 
     if (fit_info->p_continuous > 0)
     {
-        split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, fit_info->X_std, N_y, p, fit_info->p_continuous, fit_info->p_categorical, lchild->suff_stat[0], rchild->suff_stat[0], suff_stat[0], lchild->suff_stat[1], rchild->suff_stat[1], suff_stat[1], model, fit_info);
+        split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, N_y, p, fit_info->p_continuous, fit_info->p_categorical, lchild->suff_stat[0], rchild->suff_stat[0], suff_stat[0], lchild->suff_stat[1], rchild->suff_stat[1], suff_stat[1], model, fit_info);
     }
 
     lchild->setdepth(this->getdepth() + 1);
@@ -674,7 +674,7 @@ void tree::grow_from_root(std::unique_ptr<FitInfo>& fit_info, size_t max_depth, 
 
 
 
-void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel, xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, std::vector<double> &mtry_weight_current_tree, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag)
+void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_t depth, size_t max_depth, size_t Ncutpoints, double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel, xinfo_sizet &Xorder_std, size_t &mtry, std::vector<double> &mtry_weight_current_tree, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag)
 {
     /*
         This function update probability of GIVEN split point on new residual
@@ -737,7 +737,7 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
         
     // }
 
-    BART_likelihood_update_old_tree(y_mean * N_Xorder, Xorder_std, X_std, tau, sigma, depth, fit_info->n_min, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_counts, X_num_unique, model, mtry, this->prob_split, fit_info, this->drawn_ind);
+    BART_likelihood_update_old_tree(y_mean * N_Xorder, Xorder_std, tau, sigma, depth, Ncutpoints, alpha, beta, no_split, split_var, split_point, parallel, subset_vars, p_categorical, p_continuous, X_counts, X_num_unique, model, mtry, this->prob_split, fit_info, this->drawn_ind);
 
 
     // no_split = this-> no_split;
@@ -776,7 +776,7 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
 
     // Update Cutpoint to be a true seperating point
     // Increase split_point (index) until it is no longer equal to cutpoint value
-    while ((split_point < N_Xorder - 1) && (*(X_std + N_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
+    while ((split_point < N_Xorder - 1) && (*(fit_info->X_std + N_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
     {
         split_point = split_point + 1;
     }
@@ -826,13 +826,13 @@ void tree::update_split_prob(std::unique_ptr<FitInfo>& fit_info, double y_mean, 
 
 
     // do not initialize a new node, go to right and left node directly
-    this->l->update_split_prob(fit_info, yleft_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
-                                       draw_mu, parallel, Xorder_left_std, X_std, mtry,
+    this->l->update_split_prob(fit_info, yleft_mean_std, depth, max_depth, Ncutpoints, tau, sigma, alpha, beta,
+                                       draw_mu, parallel, Xorder_left_std, mtry,
                                        mtry_weight_current_tree, p_categorical, p_continuous,
                                        X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag);
 
-    this->r->update_split_prob(fit_info, yright_mean_std, depth, max_depth, Nmin, Ncutpoints, tau, sigma, alpha, beta,
-                                       draw_mu, parallel, Xorder_right_std, X_std, mtry,
+    this->r->update_split_prob(fit_info, yright_mean_std, depth, max_depth, Ncutpoints, tau, sigma, alpha, beta,
+                                       draw_mu, parallel, Xorder_right_std, mtry,
                                        mtry_weight_current_tree, p_categorical, p_continuous,
                                        X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag);
 
@@ -897,7 +897,7 @@ double tree::log_like_tree(double sigma2, double tau){
 
 
 
-void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, double &yleft_sq_sum, double &yright_sq_sum, const double &y_sq_sum, Model *model, std::unique_ptr<FitInfo>& fit_info)
+void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, double &yleft_sq_sum, double &yright_sq_sum, const double &y_sq_sum, Model *model, std::unique_ptr<FitInfo>& fit_info)
 {
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
@@ -917,9 +917,9 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
     yright_sq_sum = 0.0;
     yleft_sq_sum = 0.0;
 
-    double cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+    double cutvalue = *(fit_info->X_std + N_y * split_var + Xorder_std[split_var][split_point]);
 
-    const double *temp_pointer = X_std + N_y * split_var;
+    const double *temp_pointer = fit_info->X_std + N_y * split_var;
 
     for (size_t j = 0; j < N_Xorder; j++)
     {
@@ -943,7 +943,7 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
         }
     }
 
-    const double *split_var_x_pointer = X_std + N_y * split_var;
+    const double *split_var_x_pointer = fit_info->X_std + N_y * split_var;
 
     for (size_t i = 0; i < p_continuous; i++) // loop over variables
     {
@@ -992,7 +992,7 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
     return;
 }
 
-void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, double &yleft_sq_sum, double &yright_sq_sum, const double &y_sq_sum, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<FitInfo>& fit_info)
+void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, double &yleft_sq_sum, double &yright_sq_sum, const double &y_sq_sum, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<FitInfo>& fit_info)
 {
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
@@ -1017,14 +1017,14 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
     size_t start;
     size_t end;
 
-    double cutvalue = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+    double cutvalue = *(fit_info->X_std + N_y * split_var + Xorder_std[split_var][split_point]);
 
     for (size_t i = p_continuous; i < p; i++)
     {
         // loop over variables
         left_ix = 0;
         right_ix = 0;
-        const double *temp_pointer = X_std + N_y * split_var;
+        const double *temp_pointer = fit_info->X_std + N_y * split_var;
 
         // index range of X_counts, X_values that are corresponding to current variable
 
@@ -1116,7 +1116,7 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
             for (size_t j = 0; j < N_Xorder; j++)
             {
 
-                while (*(X_std + N_y * i + Xorder_std[i][j]) != fit_info->X_values[X_counts_index])
+                while (*(fit_info->X_std + N_y * i + Xorder_std[i][j]) != fit_info->X_values[X_counts_index])
                 {
                     //     // for the current observation, find location of corresponding unique values
                     X_counts_index++;
@@ -1223,16 +1223,16 @@ void BART_likelihood_all(double y_sum, xinfo_sizet &Xorder_std, double tau, doub
     // calculate for each cases
     if (fit_info->p_continuous > 0)
     {
-        calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, fit_info->n_min, Xorder_std, y_sum, beta, alpha, depth, p, fit_info->p_continuous, fit_info->Ncutpoints, tau, sigma2, loglike_max, model, fit_info->mtry, fit_info);
+        calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Xorder_std, y_sum, beta, alpha, depth, p, fit_info->p_continuous, fit_info->Ncutpoints, tau, sigma2, loglike_max, model, fit_info->mtry, fit_info);
     }
 
     if (fit_info->p_categorical > 0)
     {
-        calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, fit_info->n_min, Xorder_std, y_sum, beta, alpha, depth, p, fit_info->p_continuous, fit_info->p_categorical, fit_info->Ncutpoints, tau, sigma2, loglike_max, X_counts, X_num_unique, model, fit_info->mtry, total_categorical_split_candidates, fit_info);
+        calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, Xorder_std, y_sum, beta, alpha, depth, p, fit_info->p_continuous, fit_info->p_categorical, fit_info->Ncutpoints, tau, sigma2, loglike_max, X_counts, X_num_unique, model, fit_info->mtry, total_categorical_split_candidates, fit_info);
     }
 
     // calculate likelihood of no-split option
-    calculate_likelihood_no_split(loglike, N_Xorder, fit_info->n_min, y_sum, beta, alpha, depth, p, fit_info->p_continuous, fit_info->Ncutpoints, tau, sigma2, loglike_max, model, fit_info->mtry, total_categorical_split_candidates);
+    calculate_likelihood_no_split(loglike, N_Xorder, y_sum, beta, alpha, depth, p, fit_info->p_continuous, fit_info->Ncutpoints, tau, sigma2, loglike_max, model, fit_info->mtry, total_categorical_split_candidates);
 
     // transfer loglikelihood to likelihood
     for (size_t ii = 0; ii < loglike.size(); ii++)
@@ -1386,7 +1386,7 @@ void BART_likelihood_all(double y_sum, xinfo_sizet &Xorder_std, double tau, doub
 
 
 
-void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, const double *X_std, double tau, double sigma, size_t depth, size_t Nmin, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &mtry, double &prob_split, std::unique_ptr<FitInfo>& fit_info, size_t &drawn_ind)
+void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, double tau, double sigma, size_t depth, size_t Ncutpoints, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, bool parallel, const std::vector<size_t> &subset_vars, size_t &p_categorical, size_t &p_continuous, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &mtry, double &prob_split, std::unique_ptr<FitInfo>& fit_info, size_t &drawn_ind)
 {
     // compute BART posterior (loglikelihood + logprior penalty)
 
@@ -1411,7 +1411,7 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
     size_t loglike_start;
 
     // decide lenght of loglike vector
-    if (N <= Ncutpoints + 1 + 2 * Nmin)
+    if (N <= Ncutpoints + 1 + 2 * fit_info->n_min)
     {
         loglike.resize((N_Xorder - 1) * p_continuous + fit_info->X_values.size() + 1, -INFINITY);
         loglike_start = (N_Xorder - 1) * p_continuous;
@@ -1425,16 +1425,16 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
     // calculate for each cases
     if (p_continuous > 0)
     {
-        calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Nmin, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, tau, sigma2, loglike_max, model, mtry, fit_info);
+        calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, tau, sigma2, loglike_max, model, mtry, fit_info);
     }
 
     if (p_categorical > 0)
     {
-        calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, Nmin, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, p_categorical, Ncutpoints, tau, sigma2, loglike_max, X_counts, X_num_unique, model, mtry, total_categorical_split_candidates, fit_info);
+        calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, Xorder_std, y_sum, beta, alpha, depth, p, p_continuous, p_categorical, Ncutpoints, tau, sigma2, loglike_max, X_counts, X_num_unique, model, mtry, total_categorical_split_candidates, fit_info);
     }
 
     // calculate likelihood of no-split option
-    calculate_likelihood_no_split(loglike, N_Xorder, Nmin, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, tau, sigma2, loglike_max, model, mtry, total_categorical_split_candidates);
+    calculate_likelihood_no_split(loglike, N_Xorder, y_sum, beta, alpha, depth, p, p_continuous, Ncutpoints, tau, sigma2, loglike_max, model, mtry, total_categorical_split_candidates);
 
     // transfer loglikelihood to likelihood
     for (size_t ii = 0; ii < loglike.size(); ii++)
@@ -1445,7 +1445,7 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
 
     // sampling cutpoints
 
-    if (N <= Ncutpoints + 1 + 2 * Nmin)
+    if (N <= Ncutpoints + 1 + 2 * fit_info->n_min)
     {
 
         // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
@@ -1453,7 +1453,7 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
         // if number of observations is smaller than Ncutpoints, all data are splitpoint candidates
         // note that the first Nmin and last Nmin cannot be splitpoint candidate
 
-        if ((N - 1) > 2 * Nmin)
+        if ((N - 1) > 2 * fit_info->n_min)
         {
             // for(size_t i = 0; i < p; i ++ ){
             for (auto &&i : subset_vars)
@@ -1461,8 +1461,8 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
                 if (i < p_continuous)
                 {
                     // delete some candidates, otherwise size of the new node can be smaller than Nmin
-                    std::fill(loglike.begin() + i * (N - 1), loglike.begin() + i * (N - 1) + Nmin + 1, 0.0);
-                    std::fill(loglike.begin() + i * (N - 1) + N - 2 - Nmin, loglike.begin() + i * (N - 1) + N - 2 + 1, 0.0);
+                    std::fill(loglike.begin() + i * (N - 1), loglike.begin() + i * (N - 1) + fit_info->n_min + 1, 0.0);
+                    std::fill(loglike.begin() + i * (N - 1) + N - 2 - fit_info->n_min, loglike.begin() + i * (N - 1) + N - 2 + 1, 0.0);
                 }
             }
         }
@@ -1489,7 +1489,7 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
             split_var = 0;
             split_point = 0;
         }
-        else if ((N - 1) <= 2 * Nmin)
+        else if ((N - 1) <= 2 * fit_info->n_min)
         {
             // np split
 
@@ -1535,7 +1535,7 @@ void BART_likelihood_update_old_tree(double y_sum, xinfo_sizet &Xorder_std, cons
 
         std::vector<size_t> candidate_index(Ncutpoints);
 
-        seq_gen_std(Nmin, N - Nmin, Ncutpoints, candidate_index);
+        seq_gen_std(fit_info->n_min, N - fit_info->n_min, Ncutpoints, candidate_index);
 
         std::discrete_distribution<size_t> d(loglike.begin(), loglike.end());
         // // sample one index of split point
@@ -1632,7 +1632,7 @@ void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, std::ve
 
 
 
-void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &Nmin, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, Model *model, size_t &mtry, std::unique_ptr<FitInfo>& fit_info)
+void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std::vector<size_t> &subset_vars, size_t &N_Xorder, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, Model *model, size_t &mtry, std::unique_ptr<FitInfo>& fit_info)
 {
 
     size_t N = N_Xorder;
@@ -1749,7 +1749,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
     }
 }
 
-void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &loglike_start, const std::vector<size_t> &subset_vars, size_t &N_Xorder, size_t &N_min, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, const size_t &p_continuous, size_t &p_categorical, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &mtry, size_t &total_categorical_split_candidates, std::unique_ptr<FitInfo>& fit_info)
+void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &loglike_start, const std::vector<size_t> &subset_vars, size_t &N_Xorder, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, const size_t &p_continuous, size_t &p_categorical, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &mtry, size_t &total_categorical_split_candidates, std::unique_ptr<FitInfo>& fit_info)
 {
 
     // loglike_start is an index to offset
@@ -1833,7 +1833,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
     }
 }
 
-void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, size_t &Nmin, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, Model *model, size_t &mtry, size_t &total_categorical_split_candidates)
+void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, size_t &p_continuous, size_t &Ncutpoints, double &tau, double &sigma2, double &loglike_max, Model *model, size_t &mtry, size_t &total_categorical_split_candidates)
 {
 
     loglike[loglike.size() - 1] = model->likelihood_no_split(y_sum, tau, N_Xorder * tau, sigma2) + log(1.0 - alpha * pow(1.0 + depth, -1.0 * beta)) - log(alpha) + beta * log(1.0 + depth);
