@@ -32,9 +32,9 @@
 // for convenience
 using json = nlohmann::json;
 
-void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, Model *model, std::unique_ptr<FitInfo>& fit_info);
+void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, double &yleft_sq_sum, double &yright_sq_sum, const double &y_sq_sum, Model *model, std::unique_ptr<FitInfo>& fit_info);
 
-void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<FitInfo>& fit_info);
+void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, const double *X_std, size_t N_y, size_t p, size_t p_continuous, size_t p_categorical, double &yleft_mean, double &yright_mean, const double &y_mean, double &yleft_sq_sum, double &yright_sq_sum, const double &y_sq_sum, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<FitInfo>& fit_info);
 
 void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique);
 
@@ -77,6 +77,12 @@ class tree
     // std::vector<double> theta_vector;
     std::vector<double> theta_vector;
 
+    // suff_Stat save nodewise sufficient statistics
+    // such as mean of y, sum of y squares
+    // hard code as a vector of length 2 for now
+    std::vector<double> suff_stat;
+
+
     //typedefs--------------------
     typedef tree *tree_p;
     typedef const tree *tree_cp;
@@ -86,10 +92,10 @@ class tree
     friend std::istream &operator>>(std::istream &, tree &);
     //  friend void update_sufficient_stat(tree& tree, arma::mat& y, arma::mat& X, tree::npv& bv, tree::npv& bv2, double& tau, double& sigma, double& alpha, double& beta);
     //contructors,destructors--------------------
-    tree() : theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0) {}
-    tree(const tree &n) : theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0)  { cp(this, &n); }
-    tree(double itheta) : theta_vector(itheta, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0)  {}
-    tree(size_t num_classes,const tree_p parent) : theta_vector(num_classes, 0.0), sig(0.0), v(0), c(0), p (parent), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0)  {}
+    tree() : suff_stat(2, 0.0), theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), depth(0) {}
+    tree(const tree &n) : suff_stat(2, 0.0), theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), depth(0)  { cp(this, &n); }
+    tree(double itheta) : suff_stat(2, 0.0), theta_vector(itheta, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), depth(0)  {}
+    tree(size_t num_classes,const tree_p parent) : suff_stat(2, 0.0), theta_vector(num_classes, 0.0), sig(0.0), v(0), c(0), p (parent), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), depth(0)  {}
 
     void tonull(); //like a "clear", null tree has just one node
     ~tree() { tonull(); }
@@ -101,6 +107,7 @@ class tree
 
     void setv(size_t v) { this->v = v; }
     void setc(size_t c) { this->c = c; }
+    void setdepth(size_t depth) {this->depth = depth;}
     //get
     std::vector<double> gettheta_vector() const { return theta_vector; }
 
@@ -109,6 +116,7 @@ class tree
     double getprob_leaf() const {return prob_leaf; }
     size_t getv() const { return v; }
     double getc() const { return c; }
+    size_t getdepth() const {return depth;}
 
     size_t getN_Xorder() const {return N_Xorder;}
     void setN_Xorder(size_t N_Xorder) {this->N_Xorder = N_Xorder;} 
@@ -140,7 +148,7 @@ class tree
     void getnodes(cnpv &v) const; //get vector of all nodes (const)
     tree_p gettop();              // get pointer to the top node
 
-    void grow_from_root(std::unique_ptr<FitInfo>& fit_info, double y_mean, size_t depth, size_t max_depth, size_t Nmin, size_t Ncutpoints,
+    void grow_from_root(std::unique_ptr<FitInfo>& fit_info, size_t max_depth, size_t Nmin, size_t Ncutpoints,
                                     double tau, double sigma, double alpha, double beta, bool draw_mu, bool parallel,
                                     xinfo_sizet &Xorder_std, const double *X_std, size_t &mtry, 
                                     std::vector<double> &mtry_weight_current_tree,
@@ -161,7 +169,7 @@ class tree
     void rg(size_t v, size_t *L, size_t *U); //recursively find region [L,U] for var v
     //node functions--------------------
     size_t nid() const; //nid of a node
-    size_t depth();     //depth of a node
+    // size_t depth();     //depth of a node
     char ntype();       //node type t:top, b:bot, n:no grandchildren i:interior (t can be b)
     bool isnog();
 
@@ -171,6 +179,8 @@ class tree
 // #ifndef NoRcpp
 // #endif
   private:
+    size_t depth;
+
     double sig;
     //rule: left if x[v] < xinfo[v][c]
     size_t v; //index of variable to split
@@ -184,10 +194,8 @@ class tree
     size_t drawn_ind; // index drawn when sampling cutpoints (in the total likelihood + nosplit vector)
 
     size_t N_Xorder; // number of data points in this node, for debugging use
+
     double y_mean; // average of y in current node, for debugging use
-    // size_t split_var;
-    // size_t split_point; // for debugging use
-    // bool no_split;
 
     //tree structure
     tree_p p; //parent
