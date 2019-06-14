@@ -889,7 +889,7 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
             {
                 left_node->suff_stat[0] += fit_info->residual_std[Xorder_std[split_var][j]];
 
-                left_node->suff_stat[1] += pow(fit_info->residual_std[Xorder_std[split_var][j]], 1);
+                left_node->suff_stat[1] += pow(fit_info->residual_std[Xorder_std[split_var][j]], 2);
             }
         }
         else
