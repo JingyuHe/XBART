@@ -63,7 +63,7 @@ public:
             }
         }
     }
-    FitInfo(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p,
+    FitInfo(xinfo_sizet &Xorder_std, size_t N, size_t p,
             size_t num_trees, size_t p_categorical, size_t p_continuous,
             bool set_random_seed, size_t random_seed, std::vector<double> *initial_theta, xinfo_sizet *max_depth_std, size_t n_min, size_t Ncutpoints, bool parallel, size_t mtry, const double *X_std)
     {
@@ -75,7 +75,7 @@ public:
         }
         this->variable_ind = std::vector<size_t>(p_categorical + 1);
         this->X_num_unique = std::vector<size_t>(p_categorical);
-        unique_value_count2(Xpointer, Xorder_std, this->X_values, this->X_counts,
+        unique_value_count2(X_std, Xorder_std, this->X_values, this->X_counts,
                             this->variable_ind, this->total_points, this->X_num_unique, p_categorical, p_continuous);
 
         // // Init containers

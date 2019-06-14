@@ -166,11 +166,12 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
         (*trees2)[i] = vector<tree>(num_trees);
     }
 
+    // prior settings
+    Prior prior = Prior(tau, alpha, beta, kap, s);
+
     /////////////////////////////////////////////////////////////////
-    fit_std(Xpointer, y_std, y_mean, Xorder_std, N, p, num_trees, num_sweeps, max_depth_std,
-            n_min, num_cutpoints, alpha, beta, tau, burnin, mtry, kap, s, verbose, draw_mu, parallel,
-            yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, p_categorical, p_continuous, *trees2, set_random_seed,
-            random_seed, no_split_penality, sample_weights_flag);
+    fit_std(Xpointer, y_std, y_mean, Xorder_std, N, p, num_trees, num_sweeps, max_depth_std, n_min, num_cutpoints, alpha, beta, tau, burnin, mtry, kap, s, verbose, draw_mu, parallel, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, p_categorical, p_continuous, *trees2, set_random_seed,random_seed, no_split_penality, sample_weights_flag, prior);
+
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
     // R Objects to Return
@@ -308,6 +309,9 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
         (*trees2)[i] = vector<tree>(num_trees);
     }
 
+    // prior settings
+    Prior prior = Prior(tau, alpha, beta, kap, s);
+
     /////////////////////////////////////////////////////////////////
 
     fit_std_clt(Xpointer, y_std, y_mean, Xorder_std,
@@ -319,7 +323,7 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
                 verbose,
                 draw_mu, parallel,
                 yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree,
-                p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag);
+                p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag, prior);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -459,6 +463,9 @@ Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest,
         (*trees2)[i] = vector<tree>(num_trees);
     }
 
+    // prior settings
+    Prior prior = Prior(tau, alpha, beta, kap, s);
+
     /////////////////////////////////////////////////////////////////
     //
     //
@@ -479,7 +486,7 @@ Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest,
                         n_class,
                         draw_mu, parallel,
                         yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree,
-                        p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag);
+                        p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag, prior);
 
     predict_std_multinomial(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -619,6 +626,11 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
         (*trees2)[i] = vector<tree>(num_trees);
     }
 
+
+    // prior settings
+    Prior prior = Prior(tau, alpha, beta, kap, s);
+
+
     /////////////////////////////////////////////////////////////////
 
     fit_std_probit(Xpointer, y_std, y_mean, Xorder_std,
@@ -630,7 +642,7 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
                    verbose,
                    draw_mu, parallel,
                    yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree,
-                   p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag);
+                   p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag, prior);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -772,11 +784,16 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest,
         (*trees2)[i] = vector<tree>(num_trees);
     }
 
+
+    // prior settings
+    Prior prior = Prior(tau, alpha, beta, kap, s);
+
+
     /////////////////////////////////////////////////////////////////
     fit_std_MH(Xpointer, y_std, y_mean, Xorder_std, N, p, num_trees, num_sweeps, max_depth_std,
                n_min, num_cutpoints, alpha, beta, tau, burnin, mtry, kap, s, verbose, draw_mu, parallel,
                yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, p_categorical, p_continuous, *trees2, set_random_seed,
-               random_seed, no_split_penality, sample_weights_flag);
+               random_seed, no_split_penality, sample_weights_flag, prior);
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
     // R Objects to Return
