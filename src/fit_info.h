@@ -8,7 +8,7 @@
 
 struct FitInfo
 {
-  public:
+public:
     // Categorical
     bool categorical_variables = false;
     std::vector<double> X_values;
@@ -47,15 +47,14 @@ struct FitInfo
     size_t mtry;
     const double *X_std;
 
-
     // Vector pointers
-    matrix<std::vector<double>*> data_pointers;
-    void init_tree_pointers(std::vector<double>* initial_theta, size_t N, size_t num_trees)
+    matrix<std::vector<double> *> data_pointers;
+    void init_tree_pointers(std::vector<double> *initial_theta, size_t N, size_t num_trees)
     {
         ini_matrix(data_pointers, N, num_trees);
         for (size_t i = 0; i < num_trees; i++)
         {
-            std::vector<std::vector<double>*> &pointer_vec = data_pointers[i];
+            std::vector<std::vector<double> *> &pointer_vec = data_pointers[i];
             for (size_t j = 0; j < N; j++)
             {
                 pointer_vec[j] = initial_theta;
@@ -64,7 +63,7 @@ struct FitInfo
     }
     FitInfo(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p,
             size_t num_trees, size_t p_categorical, size_t p_continuous,
-            bool set_random_seed, size_t random_seed, std::vector<double>* initial_theta, xinfo_sizet *max_depth_std, size_t n_min, size_t Ncutpoints, bool parallel, size_t mtry, const double *X_std)
+            bool set_random_seed, size_t random_seed, std::vector<double> *initial_theta, xinfo_sizet *max_depth_std, size_t n_min, size_t Ncutpoints, bool parallel, size_t mtry, const double *X_std)
     {
 
         // Handle Categorical
