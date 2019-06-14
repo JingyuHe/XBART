@@ -56,10 +56,10 @@ public:
     friend std::istream &operator>>(std::istream &, tree &);
     //  friend void update_sufficient_stat(tree& tree, arma::mat& y, arma::mat& X, tree::npv& bv, tree::npv& bv2, double& tau, double& sigma, double& alpha, double& beta);
     //contructors,destructors--------------------
-    tree() : suff_stat(2, 0.0), theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), depth(0) {}
-    tree(const tree &n) : suff_stat(2, 0.0), theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), depth(0) { cp(this, &n); }
-    tree(double itheta) : suff_stat(2, 0.0), theta_vector(itheta, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), depth(0) {}
-    tree(size_t num_classes, const tree_p parent) : suff_stat(2, 0.0), theta_vector(num_classes, 0.0), sig(0.0), v(0), c(0), p(parent), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), depth(0) {}
+    tree() : suff_stat(2, 0.0), theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), depth(0), loglike_leaf(0.0), tree_like(0.0) {}
+    tree(const tree &n) : suff_stat(2, 0.0), theta_vector(1, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), depth(0), loglike_leaf(0.0), tree_like(0.0) { cp(this, &n); }
+    tree(double itheta) : suff_stat(2, 0.0), theta_vector(itheta, 0.0), sig(0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), depth(0), loglike_leaf(0.0), tree_like(0.0) {}
+    tree(size_t num_classes, const tree_p parent) : suff_stat(2, 0.0), theta_vector(num_classes, 0.0), sig(0.0), v(0), c(0), p(parent), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), depth(0), loglike_leaf(0.0), tree_like(0.0) {}
 
     void tonull(); //like a "clear", null tree has just one node
     ~tree() { tonull(); }
@@ -88,6 +88,9 @@ public:
     double gety_mean() const { return y_mean; }
     void sety_mean(double y_mean) { this->y_mean = y_mean; }
 
+    size_t getnum_cutpoint_candidates() const {return num_cutpoint_candidates; }
+    void setnum_cutpoint_candidates(size_t num_cutpoint_candidates) {this->num_cutpoint_candidates = num_cutpoint_candidates; }
+
     tree_p getp() { return p; }
     tree_p getl() { return l; }
     tree_p getr() { return r; }
@@ -104,7 +107,11 @@ public:
     void getnodes(cnpv &v) const; //get vector of all nodes (const)
     tree_p gettop();              // get pointer to the top node
 
+    //utiity functions
+    void cp(tree_p n, tree_cp o); //copy tree
+    void copy_only_root(tree_p o);
 
+    
     // friend functions
 
     friend void BART_likelihood_all(xinfo_sizet &Xorder_std, double sigma, bool &no_split, size_t &split_var, size_t &split_point, const std::vector<size_t> &subset_vars, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<FitInfo> &fit_info, tree_p tree_pointer, const Prior &prior);
@@ -126,11 +133,19 @@ public:
 
     void grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, double sigma, bool draw_mu, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag, const Prior &prior);
 
+    void grow_from_root_MH(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, double sigma, bool draw_mu, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag, const Prior &prior);
+
     void update_split_prob(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, double sigma, bool draw_mu, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag, const Prior &prior);
 
     double transition_prob();
 
     double log_like_tree(double sigma2, double tau);
+
+    // double tree_likelihood(size_t N, double sigma, size_t tree_ind, Model *model, std::unique_ptr<FitInfo>& fit_info, const double *Xpointer, vector<double>& y, bool proposal);
+
+    double tree_likelihood(size_t N, double sigma, vector<double> y);
+
+    double prior_prob(double tau, double alpha, double beta);
 
     tree_p bn(double *x, xinfo &xi); //find Bottom Node, original BART version
     tree_p bn_std(double *x);        // find Bottom Node, std version, compare
@@ -160,18 +175,23 @@ private:
 
     double prob_leaf; // posterior of the leaf parameter
 
+    double loglike_leaf; // loglikelihood of the leaf data
+
+    double tree_like; // for debug use, likelihood of the tree
+
     size_t drawn_ind; // index drawn when sampling cutpoints (in the total likelihood + nosplit vector)
 
     size_t N_Xorder; // number of data points in this node, for debugging use
 
     double y_mean; // average of y in current node, for debugging use
 
+    size_t num_cutpoint_candidates; // number of cutpoint candidates
+
     //tree structure
     tree_p p; //parent
     tree_p l; //left child
     tree_p r; //right child
-    //utiity functions
-    void cp(tree_p n, tree_cp o); //copy tree
+
 };
 
 std::istream &operator>>(std::istream &, tree &);

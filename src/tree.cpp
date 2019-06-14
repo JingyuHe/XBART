@@ -342,6 +342,7 @@ void tree::tonull()
 void tree::cp(tree_p n, tree_cp o)
 //assume n has no children (so we don't have to kill them)
 //recursion down
+// create a new copy of tree in NEW memory space
 {
     if (n->l)
     {
@@ -357,9 +358,13 @@ void tree::cp(tree_p n, tree_cp o)
     n->drawn_ind = o->drawn_ind;
     n->N_Xorder = o->N_Xorder;
     n->y_mean = o->y_mean;
+    n->loglike_leaf = o->loglike_leaf;
+    n->tree_like = o->tree_like;
+    n->theta_vector = o-> theta_vector;
     // n->split_var = o->split_var;
     // n->split_point = o->split_point;
     // n->no_split = o->no_split;
+
 
     if (o->l)
     { //if o has children
@@ -369,6 +374,36 @@ void tree::cp(tree_p n, tree_cp o)
         n->r = new tree;
         (n->r)->p = n;
         cp(n->r, o->r);
+    }
+}
+
+void tree::copy_only_root(tree_p o)
+//assume n has no children (so we don't have to kill them)
+//NOT LIKE cp() function
+//this function pointer new root to the OLD structure
+{
+    this->v = o->v;
+    this->c = o->c;
+    this->sig = o->sig;
+    this->prob_split = o->prob_split;
+    this->prob_leaf = o->prob_leaf;
+    this->drawn_ind = o->drawn_ind;
+    this->N_Xorder = o->N_Xorder;
+    this->y_mean = o->y_mean;
+    this->loglike_leaf = o->loglike_leaf;
+    this->tree_like = o->tree_like;
+    this->theta_vector = o-> theta_vector;
+
+    if(o->l){
+        // keep the following structure, rather than create a new tree in memory
+        this->l = o->l;
+        this->r = o->r;
+        // also update pointers to parents
+        this->l->p = this;
+        this->r->p = this;
+    }else{
+        this->l = 0;
+        this->r = 0;
     }
 }
 
@@ -520,6 +555,93 @@ void cumulative_sum_std(std::vector<double> &y_cumsum, std::vector<double> &y_cu
     return;
 }
 
+
+// double tree::tree_likelihood(size_t N, double sigma, size_t tree_ind, Model *model, std::unique_ptr<FitInfo>& fit_info, const double *Xpointer, vector<double>& y, bool proposal)
+// {
+//     /*
+//         This function calculate the log of 
+//         the likelihood of all leaf parameters of given tree
+//     */
+//     double output = 0.0;
+//     std::vector<double> pred(N);
+//     if(proposal){
+//         // calculate likelihood of proposal
+//         predict_from_datapointers(Xpointer, N, tree_ind, pred, fit_info->data_pointers, model);
+//     }else{
+//         // calculate likelihood of previous accpeted tree
+//         predict_from_datapointers(Xpointer, N, tree_ind, pred, fit_info->data_pointers_copy, model);
+//     }
+    
+//     double sigma2 = pow(sigma, 2);
+
+//     for(size_t i = 0; i < N; i ++ ){
+//         output = output + normal_density(y[i], pred[i], sigma2, true);
+//     }
+
+//     return output;
+// }
+
+
+double tree::tree_likelihood(size_t N, double sigma, vector<double> y)
+{
+    /*
+        This function calculate the log of 
+        the likelihood of all leaf parameters of given tree
+    */
+    npv tree_vec;
+    this->getbots(tree_vec);
+    // cout << "bottom size " << tree_vec.size() << endl;
+    double output = 0.0;
+    for(size_t i = 0; i < tree_vec.size(); i++ )
+    {
+        output += tree_vec[i]->loglike_leaf;
+    }
+
+    // cout << "output of tree_likelihood " << output << endl;
+
+    // add constant
+    // output = output - N * log(2 * 3.14159265359) / 2.0 - N * log(sigma) - std::inner_product(y.begin(), y.end(), y.begin(), 0.0) / pow(sigma, 2) / 2.0;
+
+    tree_like = output;
+    return output;
+
+}
+
+
+double tree::prior_prob(double tau, double alpha, double beta)
+{
+    /*
+        This function calculate the log of 
+        the prior probability of drawing the given tree
+    */
+    double output = 0.0;
+    double log_split_prob = 0.0;
+    double log_leaf_prob = 0.0;
+    npv tree_vec;
+    double gamma;
+    // get a vector of all nodess
+    this->getnodes(tree_vec);
+
+    for(size_t i = 0; i < tree_vec.size(); i++ ){
+
+        gamma = pow(1.0 + tree_vec[i]->getdepth(), beta) / alpha - 1.0;
+
+        if(tree_vec[i]->getl() == 0){
+            
+            log_split_prob += -log(1.0 + 1.0 / gamma);
+            log_leaf_prob += normal_density(tree_vec[i]->theta_vector[0], 0.0, tau, true);
+            
+        }else{
+            
+            log_split_prob += -log(1.0 + gamma) - log(tree_vec[i]->getnum_cutpoint_candidates() - 1.0);
+        
+        }
+    }
+    output = log_split_prob + log_leaf_prob;
+    return output;
+}
+
+
 void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, double sigma, bool draw_mu, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag, const Prior &prior)
 {
 
@@ -645,6 +767,138 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
     lchild->grow_from_root(fit_info, max_depth, sigma, draw_mu, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag, prior);
 
     rchild->grow_from_root(fit_info, max_depth, sigma, draw_mu, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag, prior);
+
+    this->l = lchild;
+    this->r = rchild;
+
+    return;
+}
+
+void tree::grow_from_root_MH(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, double sigma, bool draw_mu, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag, const Prior &prior)
+{
+
+    // cout << this-> getdepth() << endl;
+    // grow a tree, users can control number of split points
+    size_t N_Xorder = Xorder_std[0].size();
+    size_t ind;
+    size_t split_var;
+    size_t split_point;
+
+    this->setN_Xorder(N_Xorder);
+    this->sety_mean(suff_stat[0]);
+
+    if (N_Xorder <= fit_info->n_min)
+    {
+        return;
+    }
+
+    if (this->getdepth() >= max_depth - 1)
+    {
+        return;
+    }
+
+    // tau is prior VARIANCE, do not take squares
+
+    model->samplePars(draw_mu, suff_stat[0], N_Xorder, sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+
+    this->sig = sigma;
+    bool no_split = false;
+
+    std::vector<size_t> subset_vars(fit_info->p);
+
+    if (fit_info->use_all)
+    {
+        std::iota(subset_vars.begin(), subset_vars.end(), 0);
+    }
+    else
+    {
+        if (sample_weights_flag)
+        {
+            std::vector<double> weight_samp(fit_info->p);
+            double weight_sum;
+
+            // Sample Weights Dirchelet
+            for (size_t i = 0; i < fit_info->p; i++)
+            {
+                std::gamma_distribution<double> temp_dist(mtry_weight_current_tree[i], 1.0);
+                weight_samp[i] = temp_dist(fit_info->gen);
+            }
+            weight_sum = accumulate(weight_samp.begin(), weight_samp.end(), 0.0);
+            for (size_t i = 0; i < fit_info->p; i++)
+            {
+                weight_samp[i] = weight_samp[i] / weight_sum;
+            }
+
+            subset_vars = sample_int_ccrank(fit_info->p, fit_info->mtry, weight_samp, fit_info->gen);
+        }
+        else
+        {
+            subset_vars = sample_int_ccrank(fit_info->p, fit_info->mtry, mtry_weight_current_tree, fit_info->gen);
+        }
+    }
+
+    BART_likelihood_all(Xorder_std, sigma, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, fit_info, this, prior);
+
+    if (no_split == true)
+    {
+        for (size_t i = 0; i < N_Xorder; i++)
+        {
+            fit_info->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
+        }
+        model->samplePars(draw_mu, suff_stat[0], N_Xorder, sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+        this->l = 0;
+        this->r = 0;
+        return;
+    }
+
+    this->v = split_var;
+    this->c = *(fit_info->X_std + fit_info->N_y * split_var + Xorder_std[split_var][split_point]);
+
+    // Update Cutpoint to be a true seperating point
+    // Increase split_point (index) until it is no longer equal to cutpoint value
+    while ((split_point < N_Xorder - 1) && (*(fit_info->X_std + fit_info->N_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
+    {
+        split_point = split_point + 1;
+    }
+
+    // If our current split is same as parent, exit
+    if ((this->p) && (this->v == (this->p)->v) && (this->c == (this->p)->c))
+    {
+        return;
+    }
+
+    fit_info->split_count_current_tree[split_var] = fit_info->split_count_current_tree[split_var] + 1;
+
+    tree::tree_p lchild = new tree(model->getNumClasses(), this);
+    tree::tree_p rchild = new tree(model->getNumClasses(), this);
+
+    xinfo_sizet Xorder_left_std;
+    xinfo_sizet Xorder_right_std;
+    ini_xinfo_sizet(Xorder_left_std, split_point + 1, fit_info->p);
+    ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, fit_info->p);
+
+    std::vector<size_t> X_num_unique_left(X_num_unique.size());
+    std::vector<size_t> X_num_unique_right(X_num_unique.size());
+
+    std::vector<size_t> X_counts_left(X_counts.size());
+    std::vector<size_t> X_counts_right(X_counts.size());
+
+    if (fit_info->p_categorical > 0)
+    {
+        split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, model, fit_info, this, lchild, rchild);
+    }
+
+    if (fit_info->p_continuous > 0)
+    {
+        split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, fit_info, this, lchild, rchild);
+    }
+
+    lchild->setdepth(this->getdepth() + 1);
+    rchild->setdepth(this->getdepth() + 1);
+
+    lchild->grow_from_root_MH(fit_info, max_depth, sigma, draw_mu, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag, prior);
+
+    rchild->grow_from_root_MH(fit_info, max_depth, sigma, draw_mu, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag, prior);
 
     this->l = lchild;
     this->r = rchild;

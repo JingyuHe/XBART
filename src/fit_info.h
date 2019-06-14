@@ -51,6 +51,25 @@ public:
 
     // Vector pointers
     matrix<std::vector<double> *> data_pointers;
+    // copy of data_pointers object, for MH update
+    matrix<std::vector<double> *> data_pointers_copy;
+
+    void create_backup_data_pointers()
+    {
+        // create a backup copy of data_pointers
+        // used in MH adjustment
+        data_pointers_copy = data_pointers;
+        return;
+    }
+
+    void restore_data_pointers(size_t tree_ind)
+    {
+        // restore pointers of one tree from data_pointers_copy
+        // used in MH adjustment
+        data_pointers[tree_ind] = data_pointers_copy[tree_ind];
+        return;
+    }
+
     void init_tree_pointers(std::vector<double> *initial_theta, size_t N, size_t num_trees)
     {
         ini_matrix(data_pointers, N, num_trees);
