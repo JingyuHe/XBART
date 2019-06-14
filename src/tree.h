@@ -131,6 +131,9 @@ public:
     void getnodes(cnpv &v) const; //get vector of all nodes (const)
     tree_p gettop();              // get pointer to the top node
 
+
+    // friend functions
+
     friend void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std::vector<size_t> &subset_vars, size_t &N_Xorder, xinfo_sizet &Xorder_std, const double &y_sum, const double &beta, const double &alpha, size_t &depth, const size_t &p, double &tau, double &sigma2, double &loglike_max, Model *model, std::unique_ptr<FitInfo> &fit_info);
 
     friend void BART_likelihood_all(xinfo_sizet &Xorder_std, double tau, double sigma, double alpha, double beta, bool &no_split, size_t &split_var, size_t &split_point, const std::vector<size_t> &subset_vars, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<FitInfo> &fit_info, tree_p tree_pointer);
@@ -143,13 +146,16 @@ public:
 
     friend void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, const double &beta, const double &alpha, const size_t &p, double &tau, double &sigma2, double &loglike_max, Model *model, size_t &total_categorical_split_candidates, std::unique_ptr<FitInfo> &fit_info, tree_p tree_pointer);
 
+    friend void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, size_t N_y, size_t p, Model *model, std::unique_ptr<FitInfo> &fit_info, tree *current_node, tree *left_node, tree *right_node);
+
+    friend void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, size_t N_y, size_t p, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<FitInfo> &fit_info, tree *current_node, tree *left_node, tree *right_node);
+
+
+    // functions of tree class
+
     void grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, double tau, double sigma, double alpha, double beta, bool draw_mu, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag);
 
     void update_split_prob(std::unique_ptr<FitInfo> &fit_info, double y_mean, size_t depth, size_t max_depth, double tau, double sigma, double alpha, double beta, bool draw_mu, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag);
-
-    friend void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, size_t N_y, size_t p, double &yleft_mean, double &yright_mean, const double &y_mean, double &yleft_sq_sum, double &yright_sq_sum, const double &y_sq_sum, Model *model, std::unique_ptr<FitInfo> &fit_info);
-
-    friend void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, size_t N_y, size_t p, double &yleft_mean, double &yright_mean, const double &y_mean, double &yleft_sq_sum, double &yright_sq_sum, const double &y_sq_sum, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<FitInfo> &fit_info);
 
     double transition_prob();
 

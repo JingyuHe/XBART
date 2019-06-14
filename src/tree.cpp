@@ -633,12 +633,12 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
 
     if (fit_info->p_categorical > 0)
     {
-        split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, N_y, p, lchild->suff_stat[0], rchild->suff_stat[0], suff_stat[0], lchild->suff_stat[1], rchild->suff_stat[1], suff_stat[1], X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, model, fit_info);
+        split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, N_y, p, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, model, fit_info, this, lchild, rchild);
     }
 
     if (fit_info->p_continuous > 0)
     {
-        split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, N_y, p, lchild->suff_stat[0], rchild->suff_stat[0], suff_stat[0], lchild->suff_stat[1], rchild->suff_stat[1], suff_stat[1], model, fit_info);
+        split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, N_y, p, model, fit_info, this, lchild, rchild);
     }
 
     lchild->setdepth(this->getdepth() + 1);
@@ -872,7 +872,7 @@ double tree::log_like_tree(double sigma2, double tau)
     return output;
 }
 
-void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, size_t N_y, size_t p, double &yleft_mean, double &yright_mean, const double &y_mean, double &yleft_sq_sum, double &yright_sq_sum, const double &y_sq_sum, Model *model, std::unique_ptr<FitInfo> &fit_info)
+void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, size_t N_y, size_t p, Model *model, std::unique_ptr<FitInfo> &fit_info, tree *current_node, tree *left_node, tree *right_node)
 {
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
@@ -887,10 +887,14 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
     // if the left side is smaller, we only compute sum of it
     bool compute_left_side = N_Xorder_left < N_Xorder_right;
 
-    yleft_mean = 0.0;
-    yright_mean = 0.0;
-    yright_sq_sum = 0.0;
-    yleft_sq_sum = 0.0;
+    // yleft_mean = 0.0;
+    left_node->suff_stat[0] = 0.0;
+    // yleft_sq_sum = 0.0;
+    left_node->suff_stat[1] = 0.0;
+    // yright_mean = 0.0;
+    right_node->suff_stat[0] = 0.0;
+    // yright_sq_sum = 0.0;
+    right_node->suff_stat[1] = 0.0;
 
     double cutvalue = *(fit_info->X_std + N_y * split_var + Xorder_std[split_var][split_point]);
 
@@ -902,7 +906,9 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
         {
             if (*(temp_pointer + Xorder_std[split_var][j]) <= cutvalue)
             {
-                yleft_mean = yleft_mean + fit_info->residual_std[Xorder_std[split_var][j]];
+                left_node->suff_stat[0] += fit_info->residual_std[Xorder_std[split_var][j]];
+
+                left_node->suff_stat[1] += pow(fit_info->residual_std[Xorder_std[split_var][j]], 1);
 
                 // // temp
                 // std::vector<double> temp_vector = { y_std[Xorder_std[split_var][j]] };
@@ -913,7 +919,9 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
         {
             if (*(temp_pointer + Xorder_std[split_var][j]) > cutvalue)
             {
-                yright_mean = yright_mean + fit_info->residual_std[Xorder_std[split_var][j]];
+                right_node->suff_stat[0] += fit_info->residual_std[Xorder_std[split_var][j]];
+
+                right_node->suff_stat[1] += pow(fit_info->residual_std[Xorder_std[split_var][j]], 2);
             }
         }
     }
@@ -955,19 +963,20 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
 
     if (compute_left_side)
     {
-        yright_mean = (y_mean * N_Xorder - yleft_mean) / N_Xorder_right;
-        yleft_mean = yleft_mean / N_Xorder_left;
+        right_node->suff_stat[0] = (current_node->suff_stat[0] * N_Xorder - left_node->suff_stat[0]) / N_Xorder_right;
+        right_node->suff_stat[1] = current_node->suff_stat[1] - left_node->suff_stat[1];
+        left_node->suff_stat[0] = left_node->suff_stat[0] / N_Xorder_left;
     }
     else
     {
-        yleft_mean = (y_mean * N_Xorder - yright_mean) / N_Xorder_left;
-        yright_mean = yright_mean / N_Xorder_right;
+        left_node->suff_stat[0] = (current_node->suff_stat[0] * N_Xorder - right_node->suff_stat[0]) / N_Xorder_left;
+        left_node->suff_stat[1] = current_node->suff_stat[1] - right_node->suff_stat[1];
+        right_node->suff_stat[0] = right_node->suff_stat[0] / N_Xorder_right;
     }
-
     return;
 }
 
-void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, size_t N_y, size_t p, double &yleft_mean, double &yright_mean, const double &y_mean, double &yleft_sq_sum, double &yright_sq_sum, const double &y_sq_sum, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<FitInfo> &fit_info)
+void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, size_t N_y, size_t p, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<FitInfo> &fit_info, tree *current_node, tree *left_node, tree *right_node)
 {
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
@@ -984,10 +993,14 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
     // if the left side is smaller, we only compute sum of it
     bool compute_left_side = N_Xorder_left < N_Xorder_right;
 
-    yleft_mean = 0.0;
-    yright_mean = 0.0;
-    yleft_sq_sum = 0.0;
-    yright_sq_sum = 0.0;
+    // yleft_mean = 0.0;
+    left_node->suff_stat[0] = 0.0;
+    // yleft_sq_sum = 0.0;
+    left_node->suff_stat[1] = 0.0;
+    // yright_mean = 0.0;
+    right_node->suff_stat[0] = 0.0;
+    // yright_sq_sum = 0.0;
+    right_node->suff_stat[1] = 0.0;
 
     size_t start;
     size_t end;
@@ -1031,8 +1044,8 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
                     if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
                     {
                         // go to left side
-                        yleft_mean = yleft_mean + fit_info->residual_std[Xorder_std[split_var][j]];
-                        yleft_sq_sum = yleft_sq_sum + pow(fit_info->residual_std[Xorder_std[split_var][j]], 2);
+                        left_node->suff_stat[0]+= fit_info->residual_std[Xorder_std[split_var][j]];
+                        left_node->suff_stat[1] += pow(fit_info->residual_std[Xorder_std[split_var][j]], 2);
                         Xorder_left_std[i][left_ix] = Xorder_std[i][j];
                         left_ix = left_ix + 1;
                     }
@@ -1056,9 +1069,9 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
                     }
                     else
                     {
-                        yright_mean = yright_mean + fit_info->residual_std[Xorder_std[split_var][j]];
+                        right_node->suff_stat[0] += fit_info->residual_std[Xorder_std[split_var][j]];
                         Xorder_right_std[i][right_ix] = Xorder_std[i][j];
-                        yright_sq_sum = yright_sq_sum + pow(fit_info->residual_std[Xorder_std[split_var][j]], 2);
+                        right_node->suff_stat[1] += pow(fit_info->residual_std[Xorder_std[split_var][j]], 2);
                         right_ix = right_ix + 1;
                     }
                 }
@@ -1120,15 +1133,15 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
 
     if (compute_left_side)
     {
-        yright_mean = (y_mean * N_Xorder - yleft_mean) / N_Xorder_right;
-        yright_sq_sum = y_sq_sum - yleft_sq_sum;
-        yleft_mean = yleft_mean / N_Xorder_left;
+        right_node->suff_stat[0] = (current_node->suff_stat[0] * N_Xorder - left_node->suff_stat[0]) / N_Xorder_right;
+        right_node->suff_stat[1] = current_node->suff_stat[1] - left_node->suff_stat[1];
+        left_node->suff_stat[0] = left_node->suff_stat[0] / N_Xorder_left;
     }
     else
     {
-        yleft_mean = (y_mean * N_Xorder - yright_mean) / N_Xorder_left;
-        yleft_sq_sum = y_sq_sum - yright_sq_sum;
-        yright_mean = yright_mean / N_Xorder_right;
+        left_node->suff_stat[0] = (current_node->suff_stat[0] * N_Xorder - right_node->suff_stat[0]) / N_Xorder_left;
+        left_node->suff_stat[1] = current_node->suff_stat[1] - right_node->suff_stat[1];
+        right_node->suff_stat[0] = right_node->suff_stat[0] / N_Xorder_right;
     }
 
     // update X_num_unique
