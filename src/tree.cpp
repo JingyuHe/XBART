@@ -526,7 +526,6 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
     // cout << this-> getdepth() << endl;
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
-    size_t N_y = fit_info->residual_std.size();
     size_t ind;
     size_t split_var;
     size_t split_point;
@@ -599,11 +598,11 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
     }
 
     this->v = split_var;
-    this->c = *(fit_info->X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+    this->c = *(fit_info->X_std + fit_info->N_y * split_var + Xorder_std[split_var][split_point]);
 
     // Update Cutpoint to be a true seperating point
     // Increase split_point (index) until it is no longer equal to cutpoint value
-    while ((split_point < N_Xorder - 1) && (*(fit_info->X_std + N_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
+    while ((split_point < N_Xorder - 1) && (*(fit_info->X_std + fit_info->N_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
     {
         split_point = split_point + 1;
     }
@@ -664,7 +663,6 @@ void tree::update_split_prob(std::unique_ptr<FitInfo> &fit_info, double y_mean, 
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
-    size_t N_y = fit_info->residual_std.size();
     size_t ind;
     size_t split_var;
     size_t split_point;
@@ -744,11 +742,11 @@ void tree::update_split_prob(std::unique_ptr<FitInfo> &fit_info, double y_mean, 
     }
 
     // this->v = split_var;
-    // this->c = *(X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+    // this->c = *(X_std + fit_info->N_y * split_var + Xorder_std[split_var][split_point]);
 
     // Update Cutpoint to be a true seperating point
     // Increase split_point (index) until it is no longer equal to cutpoint value
-    while ((split_point < N_Xorder - 1) && (*(fit_info->X_std + N_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
+    while ((split_point < N_Xorder - 1) && (*(fit_info->X_std + fit_info->N_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
     {
         split_point = split_point + 1;
     }
