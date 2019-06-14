@@ -632,12 +632,12 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
 
     if (fit_info->p_categorical > 0)
     {
-        split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, N_y, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, model, fit_info, this, lchild, rchild);
+        split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, model, fit_info, this, lchild, rchild);
     }
 
     if (fit_info->p_continuous > 0)
     {
-        split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, N_y, model, fit_info, this, lchild, rchild);
+        split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, fit_info, this, lchild, rchild);
     }
 
     lchild->setdepth(this->getdepth() + 1);
@@ -865,7 +865,7 @@ double tree::log_like_tree(double sigma2, double tau)
     return output;
 }
 
-void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, size_t N_y, Model *model, std::unique_ptr<FitInfo> &fit_info, tree *current_node, tree *left_node, tree *right_node)
+void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, Model *model, std::unique_ptr<FitInfo> &fit_info, tree *current_node, tree *left_node, tree *right_node)
 {
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
@@ -889,9 +889,9 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
     // yright_sq_sum = 0.0;
     right_node->suff_stat[1] = 0.0;
 
-    double cutvalue = *(fit_info->X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+    double cutvalue = *(fit_info->X_std + fit_info->N_y * split_var + Xorder_std[split_var][split_point]);
 
-    const double *temp_pointer = fit_info->X_std + N_y * split_var;
+    const double *temp_pointer = fit_info->X_std + fit_info->N_y * split_var;
 
     for (size_t j = 0; j < N_Xorder; j++)
     {
@@ -915,7 +915,7 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
         }
     }
 
-    const double *split_var_x_pointer = fit_info->X_std + N_y * split_var;
+    const double *split_var_x_pointer = fit_info->X_std + fit_info->N_y * split_var;
 
     for (size_t i = 0; i < fit_info->p_continuous; i++) // loop over variables
     {
@@ -965,7 +965,7 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
     return;
 }
 
-void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, size_t N_y, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<FitInfo> &fit_info, tree *current_node, tree *left_node, tree *right_node)
+void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<FitInfo> &fit_info, tree *current_node, tree *left_node, tree *right_node)
 {
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
@@ -994,14 +994,14 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
     size_t start;
     size_t end;
 
-    double cutvalue = *(fit_info->X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+    double cutvalue = *(fit_info->X_std + fit_info->N_y * split_var + Xorder_std[split_var][split_point]);
 
     for (size_t i = fit_info->p_continuous; i < fit_info->p; i++)
     {
         // loop over variables
         left_ix = 0;
         right_ix = 0;
-        const double *temp_pointer = fit_info->X_std + N_y * split_var;
+        const double *temp_pointer = fit_info->X_std + fit_info->N_y * split_var;
 
         // index range of X_counts, X_values that are corresponding to current variable
 
@@ -1093,7 +1093,7 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
             for (size_t j = 0; j < N_Xorder; j++)
             {
 
-                while (*(fit_info->X_std + N_y * i + Xorder_std[i][j]) != fit_info->X_values[X_counts_index])
+                while (*(fit_info->X_std + fit_info->N_y * i + Xorder_std[i][j]) != fit_info->X_values[X_counts_index])
                 {
                     //     // for the current observation, find location of corresponding unique values
                     X_counts_index++;

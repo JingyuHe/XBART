@@ -46,6 +46,7 @@ public:
     size_t p_continuous;
     size_t p; // number of total variables = p_categorical + p_continuous
     size_t mtry;
+    size_t N_y; // number of total data
     const double *X_std;
 
     // Vector pointers
@@ -109,6 +110,7 @@ public:
         this->mtry = mtry;
         this->X_std = X_std;
         this->p = p_categorical + p_continuous;
+        this->N_y = N;
     }
 };
 
