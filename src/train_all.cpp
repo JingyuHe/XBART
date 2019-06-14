@@ -375,8 +375,8 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt,
-                                                       Rcpp::Named("y_mean") = y_mean,
-                                                       Rcpp::Named("p") = p));
+        Rcpp::Named("y_mean") = y_mean,
+        Rcpp::Named("p") = p));
 }
 
 // [[Rcpp::plugins(cpp11)]]

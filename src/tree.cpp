@@ -652,7 +652,7 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
     return;
 }
 
-void tree::update_split_prob(std::unique_ptr<FitInfo> &fit_info, double y_mean, size_t depth, size_t max_depth, double tau, double sigma, double alpha, double beta, bool draw_mu, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag)
+void tree::update_split_prob(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, double tau, double sigma, double alpha, double beta, bool draw_mu, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag)
 {
     /*
         This function update probability of GIVEN split point on new residual
@@ -667,12 +667,15 @@ void tree::update_split_prob(std::unique_ptr<FitInfo> &fit_info, double y_mean, 
     size_t split_var;
     size_t split_point;
 
+    this->setN_Xorder(N_Xorder);
+    this->sety_mean(suff_stat[0]);
+
     if (N_Xorder <= fit_info->n_min)
     {
         return;
     }
 
-    if (depth >= max_depth - 1)
+    if (this->getdepth() >= max_depth - 1)
     {
         return;
     }
@@ -720,7 +723,7 @@ void tree::update_split_prob(std::unique_ptr<FitInfo> &fit_info, double y_mean, 
 
     // also need to update y_mean
     // N_Xorder is identical, not necessary to update
-    this->sety_mean(y_mean);
+    // this->sety_mean(this->);
 
     if (no_split == true)
     {
@@ -732,9 +735,8 @@ void tree::update_split_prob(std::unique_ptr<FitInfo> &fit_info, double y_mean, 
 
         // cout << "prob_leaf before " << this-> prob_leaf << "   " ;
 
-        this->prob_leaf = normal_density(this->theta_vector[0], y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)), 1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2)), true);
+        this->prob_leaf = normal_density(this->theta_vector[0], this->suff_stat[0] * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)), 1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2)), true);
 
-        // cout <<" after  " << this-> prob_leaf << endl;
 
         // this->l = 0;
         // this->r = 0;
@@ -757,17 +759,10 @@ void tree::update_split_prob(std::unique_ptr<FitInfo> &fit_info, double y_mean, 
         return;
     }
 
-    // fit_info->split_count_current_tree[split_var] = fit_info->split_count_current_tree[split_var] + 1;
-
-    //COUT << split_count_current_tree << endl;
-
     xinfo_sizet Xorder_left_std;
     xinfo_sizet Xorder_right_std;
-    ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
-    ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
-
-    double yleft_mean_std = 0.0;
-    double yright_mean_std = 0.0;
+    ini_xinfo_sizet(Xorder_left_std, split_point + 1, fit_info->p);
+    ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, fit_info->p);
 
     /*
         I think Xorder_left and Xorder_right can be saved when fit the tree
@@ -782,26 +777,21 @@ void tree::update_split_prob(std::unique_ptr<FitInfo> &fit_info, double y_mean, 
 
     if (fit_info->p_categorical > 0)
     {
-        // split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, lchild->suff_stat[1], rchild->suff_stat[1], suff_stat[1], X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, model, fit_info);
+        split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, model, fit_info, this, this->l, this->r);
     }
 
     if (fit_info->p_continuous > 0)
     {
-        // split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_std, N_y, p, p_continuous, p_categorical, yleft_mean_std, yright_mean_std, y_mean, model, fit_info);
+        split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, fit_info, this, this->l, this->r);
     }
 
-    depth++;
+    this->l->setdepth(this->getdepth() + 1);
+    this->r->setdepth(this->getdepth() + 1);
 
     // do not initialize a new node, go to right and left node directly
-    this->l->update_split_prob(fit_info, yleft_mean_std, depth, max_depth, tau, sigma, alpha, beta,
-                               draw_mu, Xorder_left_std,
-                               mtry_weight_current_tree,
-                               X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag);
+    this->l->update_split_prob(fit_info, max_depth, tau, sigma, alpha, beta, draw_mu, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag);
 
-    this->r->update_split_prob(fit_info, yright_mean_std, depth, max_depth, tau, sigma, alpha, beta,
-                               draw_mu, Xorder_right_std,
-                               mtry_weight_current_tree,
-                               X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag);
+    this->r->update_split_prob(fit_info, max_depth, tau, sigma, alpha, beta, draw_mu, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag);
 
     return;
 }
