@@ -6,7 +6,7 @@
 #include "utility.h"
 #include <chrono>
 
-struct FitInfo
+class FitInfo
 {
 public:
     // Categorical
@@ -111,6 +111,8 @@ public:
         this->X_std = X_std;
         this->p = p_categorical + p_continuous;
         this->N_y = N;
+
+        return;
     }
 };
 
