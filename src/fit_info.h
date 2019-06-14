@@ -44,6 +44,7 @@ public:
     bool parallel;
     size_t p_categorical;
     size_t p_continuous;
+    size_t p; // number of total variables = p_categorical + p_continuous
     size_t mtry;
     const double *X_std;
 
@@ -107,6 +108,7 @@ public:
         this->p_continuous = p_continuous;
         this->mtry = mtry;
         this->X_std = X_std;
+        this->p = p_categorical + p_continuous;
     }
 };
 
