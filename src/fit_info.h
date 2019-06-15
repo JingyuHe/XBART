@@ -48,6 +48,7 @@ struct FitInfo
     size_t mtry;
     size_t n_y; // number of total data points in root node
     const double *X_std; // pointer to original data
+    bool draw_mu;
 
     // Vector pointers
     matrix<std::vector<double>*> data_pointers;    
@@ -81,7 +82,7 @@ struct FitInfo
         }
     }
 
-    FitInfo(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, std::vector<double>* initial_theta, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std)
+    FitInfo(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, std::vector<double>* initial_theta, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, bool draw_mu)
     {
 
         // Handle Categorical
@@ -126,6 +127,7 @@ struct FitInfo
         this->X_std = X_std;
         this->p = p_categorical + p_continuous;
         this->n_y = N;
+        this->draw_mu = draw_mu;
 
         return;
     }

@@ -653,7 +653,7 @@ double tree::prior_prob(double tau, double alpha, double beta)
 }
 
 
-void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, double y_mean, size_t max_depth, double sigma, bool draw_mu, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag, Prior &prior)
+void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, double y_mean, size_t max_depth, double sigma, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag, Prior &prior)
 {
     // // load necessary values
     // y_std = fit_info->residual_std;
@@ -701,7 +701,7 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, double y_mean, siz
 
     // tau is prior VARIANCE, do not take squares
 
-    model->samplePars(draw_mu, y_mean, N_Xorder, sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+    model->samplePars(fit_info->draw_mu, y_mean, N_Xorder, sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
 
     this->sig = sigma;
     bool no_split = false;
@@ -755,7 +755,7 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, double y_mean, siz
         {
             fit_info->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
         }
-        model->samplePars(draw_mu, y_mean, N_Xorder, sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+        model->samplePars(fit_info->draw_mu, y_mean, N_Xorder, sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
         this->l = 0;
         this->r = 0;
         return;
@@ -815,9 +815,9 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, double y_mean, siz
     }
 
 
-    lchild->grow_from_root(fit_info, yleft_mean_std, max_depth, sigma, draw_mu, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag, prior);
+    lchild->grow_from_root(fit_info, yleft_mean_std, max_depth, sigma, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag, prior);
 
-    rchild->grow_from_root(fit_info, yright_mean_std, max_depth, sigma, draw_mu, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag, prior);
+    rchild->grow_from_root(fit_info, yright_mean_std, max_depth, sigma, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag, prior);
 
     this->l = lchild;
     this->r = rchild;
@@ -829,7 +829,7 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, double y_mean, siz
 
 
 
-void tree::grow_from_root_MH(std::unique_ptr<FitInfo> &fit_info, double y_mean, size_t max_depth, double sigma, bool draw_mu, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag, Prior &prior)
+void tree::grow_from_root_MH(std::unique_ptr<FitInfo> &fit_info, double y_mean, size_t max_depth, double sigma, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag, Prior &prior)
 {
     // // load necessary values
     // y_std = fit_info->residual_std;
@@ -877,7 +877,7 @@ void tree::grow_from_root_MH(std::unique_ptr<FitInfo> &fit_info, double y_mean, 
 
     // tau is prior VARIANCE, do not take squares
 
-    model->samplePars(draw_mu, y_mean, N_Xorder, sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+    model->samplePars(fit_info->draw_mu, y_mean, N_Xorder, sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
 
     this->sig = sigma;
     bool no_split = false;
@@ -929,7 +929,7 @@ void tree::grow_from_root_MH(std::unique_ptr<FitInfo> &fit_info, double y_mean, 
         {
             fit_info->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
         }
-        model->samplePars(draw_mu, y_mean, N_Xorder, sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+        model->samplePars(fit_info->draw_mu, y_mean, N_Xorder, sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
         this->l = 0;
         this->r = 0;
 
@@ -1010,9 +1010,9 @@ void tree::grow_from_root_MH(std::unique_ptr<FitInfo> &fit_info, double y_mean, 
     }
 
 
-    lchild->grow_from_root_MH(fit_info, yleft_mean_std, max_depth, sigma, draw_mu, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag, prior);  
+    lchild->grow_from_root_MH(fit_info, yleft_mean_std, max_depth, sigma, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag, prior);  
 
-    rchild->grow_from_root_MH(fit_info, yright_mean_std, max_depth, sigma, draw_mu, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag, prior);
+    rchild->grow_from_root_MH(fit_info, yright_mean_std, max_depth, sigma, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag, prior);
 
     this->l = lchild;
     this->r = rchild;
@@ -1026,7 +1026,7 @@ void tree::grow_from_root_MH(std::unique_ptr<FitInfo> &fit_info, double y_mean, 
 
 
 
-void tree::update_split_prob(std::unique_ptr<FitInfo> &fit_info, double y_mean, size_t max_depth, double sigma, bool draw_mu, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag, Prior &prior)
+void tree::update_split_prob(std::unique_ptr<FitInfo> &fit_info, double y_mean, size_t max_depth, double sigma, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag, Prior &prior)
 {
     /*
         This function update probability of GIVEN split point on new residual
@@ -1192,9 +1192,9 @@ void tree::update_split_prob(std::unique_ptr<FitInfo> &fit_info, double y_mean, 
 
 
     // do not initialize a new node, go to right and left node directly
-    this->l->update_split_prob(fit_info, yleft_mean_std, max_depth, sigma, draw_mu, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag, prior);
+    this->l->update_split_prob(fit_info, yleft_mean_std, max_depth, sigma, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag, prior);
 
-    this->r->update_split_prob(fit_info, yright_mean_std, max_depth, sigma, draw_mu, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag, prior);
+    this->r->update_split_prob(fit_info, yright_mean_std, max_depth, sigma, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag, prior);
 
     return;
 }
@@ -1206,7 +1206,7 @@ void tree::update_split_prob(std::unique_ptr<FitInfo> &fit_info, double y_mean, 
 
 
 
-void tree::update_theta(std::unique_ptr<FitInfo> &fit_info, double y_mean, size_t max_depth, double sigma, bool draw_mu, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag, Prior &prior)
+void tree::update_theta(std::unique_ptr<FitInfo> &fit_info, double y_mean, size_t max_depth, double sigma, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag, Prior &prior)
 {
     /*
         This function update probability of GIVEN split point on new residual
@@ -1236,7 +1236,7 @@ void tree::update_theta(std::unique_ptr<FitInfo> &fit_info, double y_mean, size_
 
 
     // update theta parameters
-    model->samplePars(draw_mu, y_mean, N_Xorder, sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+    model->samplePars(fit_info->draw_mu, y_mean, N_Xorder, sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
 
 
     bool no_split = false;
@@ -1296,7 +1296,7 @@ void tree::update_theta(std::unique_ptr<FitInfo> &fit_info, double y_mean, size_
         //     fit_info->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
         // }
         // update theta
-        model->samplePars(draw_mu, y_mean, N_Xorder, sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+        model->samplePars(fit_info->draw_mu, y_mean, N_Xorder, sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
 
         // cout << "prob_leaf before " << this-> prob_leaf << "   " ;
 
@@ -1378,9 +1378,9 @@ void tree::update_theta(std::unique_ptr<FitInfo> &fit_info, double y_mean, size_
 
 
     // do not initialize a new node, go to right and left node directly
-    this->l->update_theta(fit_info, yleft_mean_std, max_depth, sigma, draw_mu, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag, prior);
+    this->l->update_theta(fit_info, yleft_mean_std, max_depth, sigma, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag, prior);
 
-    this->r->update_theta(fit_info, yright_mean_std, max_depth, sigma, draw_mu, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag, prior);
+    this->r->update_theta(fit_info, yright_mean_std, max_depth, sigma, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag, prior);
 
     return;
 }
