@@ -4,7 +4,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
 {
 
     std::vector<double> initial_theta(1, 0);
-    std::unique_ptr<FitInfo> fit_info(new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta));
+    std::unique_ptr<FitInfo> fit_info(new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, Ncutpoints, parallel, mtry, Xpointer));
 
     if (parallel)
         thread_pool.start();
@@ -64,7 +64,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
                 mtry_weight_current_tree = mtry_weight_current_tree - fit_info->split_count_all_tree[tree_ind];
             }
 
-            trees[sweeps][tree_ind].grow_from_root(fit_info, sum_vec(fit_info->residual_std) / (double)N, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, sigma, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
+            trees[sweeps][tree_ind].grow_from_root(fit_info, sum_vec(fit_info->residual_std) / (double)N, max_depth_std[sweeps][tree_ind], sigma, draw_mu, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
 
             // Add split counts
             mtry_weight_current_tree = mtry_weight_current_tree + fit_info->split_count_current_tree;
@@ -160,7 +160,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
 {
 
     std::vector<double> initial_theta(1, 0);
-    std::unique_ptr<FitInfo> fit_info(new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta));
+    std::unique_ptr<FitInfo> fit_info(new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, Ncutpoints, parallel, mtry, Xpointer));
 
     if (parallel)
         thread_pool.start();
@@ -212,7 +212,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
                 mtry_weight_current_tree = mtry_weight_current_tree - fit_info->split_count_all_tree[tree_ind];
             }
 
-            trees[sweeps][tree_ind].grow_from_root(fit_info, sum_vec(fit_info->residual_std) / (double)N, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, sigma, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
+            trees[sweeps][tree_ind].grow_from_root(fit_info, sum_vec(fit_info->residual_std) / (double)N, max_depth_std[sweeps][tree_ind], sigma, draw_mu, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
 
             mtry_weight_current_tree = mtry_weight_current_tree + fit_info->split_count_current_tree;
 
@@ -329,7 +329,7 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
 {
 
     std::vector<double> initial_theta(1, 0);
-    std::unique_ptr<FitInfo> fit_info(new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta));
+    std::unique_ptr<FitInfo> fit_info(new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, Ncutpoints, parallel, mtry, Xpointer));
 
     if (parallel)
         thread_pool.start();
@@ -424,7 +424,7 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
                 mtry_weight_current_tree = mtry_weight_current_tree - fit_info->split_count_all_tree[tree_ind];
             }
 
-            trees[sweeps][tree_ind].grow_from_root(fit_info, sum_vec(fit_info->residual_std) / (double)N, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, sigma, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
+            trees[sweeps][tree_ind].grow_from_root(fit_info, sum_vec(fit_info->residual_std) / (double)N, max_depth_std[sweeps][tree_ind], sigma, draw_mu, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
 
             // Add split counts
             //            fit_info->mtry_weight_current_tree = fit_info->mtry_weight_current_tree - fit_info->split_count_all_tree[tree_ind];
@@ -459,7 +459,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 {
 
     std::vector<double> initial_theta(1, 0);
-    std::unique_ptr<FitInfo> fit_info(new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta));
+    std::unique_ptr<FitInfo> fit_info(new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, Ncutpoints, parallel, mtry, Xpointer));
 
     if (parallel)
         thread_pool.start();
@@ -557,8 +557,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 // fit_info->data_pointers is calculated in this function
                 // trees[sweeps][tree_ind].tonull();
                 // cout << "aaa" << endl;
-                trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, sigma, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
-
+                trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, max_depth_std[sweeps][tree_ind], sigma, draw_mu, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
                 accept_count.push_back(0);
                 MH_vector.push_back(0);
                 // cout << "bbb" << endl;
@@ -574,11 +573,11 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
                 */
 
-                trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, sigma, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
+                trees[sweeps][tree_ind].grow_from_root_MH(fit_info, sum_vec(fit_info->residual_std) / (double)N, max_depth_std[sweeps][tree_ind], sigma, draw_mu, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
 
                 predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec_proposal, model);
 
-                trees[sweeps - 1][tree_ind].update_split_prob(fit_info, sum_vec(fit_info->residual_std) / (double)N, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, sigma, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
+                trees[sweeps - 1][tree_ind].update_split_prob(fit_info, sum_vec(fit_info->residual_std) / (double)N, max_depth_std[sweeps][tree_ind], sigma, draw_mu, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
 
                 Q_old = trees[sweeps - 1][tree_ind].transition_prob();
                 P_old = trees[sweeps - 1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
@@ -644,7 +643,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                         update_theta() not only update leaf parameters, but also fit_info->data_pointers
                     
                     */
-                    trees[sweeps][tree_ind].update_theta(fit_info, sum_vec(fit_info->residual_std) / (double)N, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, sigma, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
+                    trees[sweeps][tree_ind].update_theta(fit_info, sum_vec(fit_info->residual_std) / (double)N, max_depth_std[sweeps][tree_ind], sigma, draw_mu, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
 
                     // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec4, model);
 
