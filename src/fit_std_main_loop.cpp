@@ -72,7 +72,7 @@ void fit_std(const double *Xpointer, std::vector<double> &y_std, double y_mean, 
 if(sum_vec(fit_info->residual_std) / (double)N  != trees[sweeps][tree_ind].suff_stat[0]){
             cout << "begin " << sum_vec(fit_info->residual_std) / (double)N << "  " << trees[sweeps][tree_ind].suff_stat[0] << endl;
 }
-            trees[sweeps][tree_ind].grow_from_root(fit_info, max_depth_std[sweeps][tree_ind], sigma, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
+            trees[sweeps][tree_ind].grow_from_root(fit_info, max_depth_std[sweeps][tree_ind], sigma, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior, true, false);
 
             // Add split counts
             mtry_weight_current_tree = mtry_weight_current_tree + fit_info->split_count_current_tree;
@@ -224,7 +224,7 @@ void fit_std_clt(const double *Xpointer, std::vector<double> &y_std, double y_me
             trees[sweeps][tree_ind].suff_stat[0] = sum_vec(fit_info->residual_std) / (double)N;
             trees[sweeps][tree_ind].suff_stat[1] = sum_squared(fit_info->residual_std);
         
-            trees[sweeps][tree_ind].grow_from_root(fit_info, max_depth_std[sweeps][tree_ind], sigma, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
+            trees[sweeps][tree_ind].grow_from_root(fit_info, max_depth_std[sweeps][tree_ind], sigma, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior, true, false);
 
             mtry_weight_current_tree = mtry_weight_current_tree + fit_info->split_count_current_tree;
 
@@ -444,7 +444,7 @@ void fit_std_probit(const double *Xpointer, std::vector<double> &y_std, double y
             trees[sweeps][tree_ind].suff_stat[0] = sum_vec(fit_info->residual_std) / (double)N;
             trees[sweeps][tree_ind].suff_stat[1] = sum_squared(fit_info->residual_std);
 
-            trees[sweeps][tree_ind].grow_from_root(fit_info, max_depth_std[sweeps][tree_ind], sigma, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
+            trees[sweeps][tree_ind].grow_from_root(fit_info, max_depth_std[sweeps][tree_ind], sigma, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior, true, false);
 
             // Add split counts
             //            fit_info->mtry_weight_current_tree = fit_info->mtry_weight_current_tree - fit_info->split_count_all_tree[tree_ind];
@@ -583,7 +583,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 trees[sweeps][tree_ind].suff_stat[1] = sum_squared(fit_info->residual_std);
 
 
-                trees[sweeps][tree_ind].grow_from_root_MH(fit_info, max_depth_std[sweeps][tree_ind], sigma, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
+                trees[sweeps][tree_ind].grow_from_root(fit_info, max_depth_std[sweeps][tree_ind], sigma, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior, true, false);
                 accept_count.push_back(0);
                 MH_vector.push_back(0);
                 // cout << "bbb" << endl;
@@ -604,12 +604,15 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                 trees[sweeps][tree_ind].suff_stat[0] = sum_vec(fit_info->residual_std) / (double)N;
                 trees[sweeps][tree_ind].suff_stat[1] = sum_squared(fit_info->residual_std);
 
-                trees[sweeps][tree_ind].grow_from_root_MH(fit_info, max_depth_std[sweeps][tree_ind], sigma, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
+                trees[sweeps][tree_ind].grow_from_root(fit_info, max_depth_std[sweeps][tree_ind], sigma, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior, true, false);
 
                 predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec_proposal, model);
 
+
+                // evaluate old tree on new residual, thus need to update sufficient statistics on new data first 
+                // update_theta = false and update_split_prob = true
                 trees[sweeps - 1][tree_ind].suff_stat[0] = sum_vec(fit_info->residual_std) / (double)N;
-                trees[sweeps - 1][tree_ind].update_split_prob(fit_info, max_depth_std[sweeps][tree_ind], sigma, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
+                trees[sweeps - 1][tree_ind].grow_from_root(fit_info, max_depth_std[sweeps][tree_ind], sigma, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior, false, true);
 
                 Q_old = trees[sweeps - 1][tree_ind].transition_prob();
                 P_old = trees[sweeps - 1][tree_ind].tree_likelihood(N, sigma, fit_info->residual_std);
@@ -675,8 +678,10 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                         update_theta() not only update leaf parameters, but also fit_info->data_pointers
                     
                     */
-                    trees[sweeps][tree_ind].suff_stat[0] = sum_vec(fit_info->residual_std) / (double)N;
-                    trees[sweeps][tree_ind].update_theta(fit_info, max_depth_std[sweeps][tree_ind], sigma, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
+
+                    // update_theta = true, update_split_prob = true
+                    // resample leaf parameters
+                    trees[sweeps][tree_ind].grow_from_root(fit_info, max_depth_std[sweeps][tree_ind], sigma, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior, true, true);
 
                     // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec4, model);
 
