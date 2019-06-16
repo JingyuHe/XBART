@@ -631,7 +631,7 @@ class LogitClass : public Model
     }
 
     double LIL(const std::vector<double> &suffstats) const {
-        LogitLIL(suffstats, tau_a, tau_b);
+        return LogitLIL(suffstats, tau_a, tau_b);
     }
 
     //this function should call a base LIL() member function that should be redefined in

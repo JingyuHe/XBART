@@ -606,7 +606,7 @@ double tree::tree_likelihood(size_t N, double sigma, vector<double> y)
     return output;
 }
 
-double tree::prior_prob(double tau, double alpha, double beta)
+double tree::prior_prob(Prior &prior)
 {
     /*
         This function calculate the log of 
@@ -627,10 +627,10 @@ double tree::prior_prob(double tau, double alpha, double beta)
             // if no children, it is end node, count leaf parameter probability
 
             // leaf prob, normal center at ZERO
-            log_leaf_prob += normal_density(tree_vec[i]->theta_vector[0], 0.0, tau, true);
+            log_leaf_prob += normal_density(tree_vec[i]->theta_vector[0], 0.0, prior.tau, true);
 
             // log_split_prob += log(1 - alpha * pow((1 + tree_vec[i]->depth()), -beta));
-            log_split_prob += log(1.0 - alpha * pow(1 + tree_vec[i]->depth, -1.0 * beta));
+            log_split_prob += log(1.0 - prior.alpha * pow(1 + tree_vec[i]->depth, -1.0 * prior.beta));
 
             // add prior of split point
             log_split_prob = log_split_prob - log(tree_vec[i]->getnum_cutpoint_candidates());
@@ -640,7 +640,7 @@ double tree::prior_prob(double tau, double alpha, double beta)
             // otherwise count cutpoint probability
             // log_split_prob += log(alpha * pow((1.0 + tree_vec[i]->depth()), -beta));
 
-            log_split_prob += log(alpha) - beta * log(1.0 + tree_vec[i]->depth);
+            log_split_prob += log(prior.alpha) - prior.beta * log(1.0 + tree_vec[i]->depth);
         }
     }
     output = log_split_prob + log_leaf_prob;

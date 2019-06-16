@@ -132,7 +132,7 @@ public:
 
     double tree_likelihood(size_t N, double sigma, vector<double> y);
 
-    double prior_prob(double tau, double alpha, double beta);
+    double prior_prob(Prior &prior);
 
     double transition_prob();
 
