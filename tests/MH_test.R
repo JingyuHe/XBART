@@ -2,13 +2,13 @@
 # set parameters of XBART
 get_XBART_params <- function(n, d, y) {
   XBART_params = list(num_trees = 30,                 # number of trees 
-                      num_sweeps = 40,           # number of sweeps (samples of the forest)
+                      num_sweeps = 200,           # number of sweeps (samples of the forest)
                       n_min = 1,               # minimal node size
                       alpha = 0.95,           # BART prior parameter 
-                      beta = 1.25,            # BART prior parameter
+                      beta = 2,            # BART prior parameter
                       mtry = 20,               # number of variables sampled in each split
-                      burnin = 15,
-                      no_split_penality = "Auto"
+                      burnin = 20,
+                      no_split_penality = 2 #"Auto"
                       )            # burnin of MCMC sample
   num_tress = XBART_params$num_trees
   XBART_params$max_depth = matrix(250, num_tress, XBART_params$num_sweeps)   # max depth of each tree, should be a num_trees by num_sweeps matrix
@@ -21,7 +21,9 @@ get_XBART_params <- function(n, d, y) {
 #######################################################################
 library(XBART)
 
-set.seed(100)
+random_seed = 323
+
+set.seed(random_seed)
 d = 20 # number of TOTAL variables
 dcat = 10 # number of categorical variables
 # must be d >= dcat
@@ -103,7 +105,7 @@ fit = XBART_MH(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dca
             params$num_trees, params$num_sweeps, params$max_depth,
             params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1,
             mtry = params$mtry, draw_mu = TRUE,
-            num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100,no_split_penality=params$no_split_penality)
+            num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = random_seed,no_split_penality=params$no_split_penality)
 
 ################################
 # two ways to predict on testing set
@@ -161,14 +163,34 @@ print(paste("rmse of fit dbart: ", round(sqrt(mean((fhat.db - ftest) ^ 2)), digi
 print(paste("running time, dbarts", time_dbarts))
 print(paste("running time, XBART", time_XBART))
 
-
+par(mfrow = c(2,3))
 plot(ftest, fhat.db, pch = 20, col = 'orange')
 points(ftest, fhat.1, pch = 20, col = 'slategray')
 legend("topleft", c("dbarts", "XBART"), col = c("orange", "slategray"), pch = c(20, 20))
 
 
+ave_MH = rep(0, length(fit$MH) / params$num_trees)
+ave_P = ave_MH
+ave_Q = ave_MH
+ave_prior = ave_MH
+
+for(i in 1:length(ave_MH)){
+  ave_MH[i] = mean(fit$MH[((i-1) * params$num_trees + 1) :  (i * params$num_trees)])
+  ave_P[i] = mean(fit$P_ratio[((i-1) * params$num_trees + 1) :  (i * params$num_trees)])
+  ave_Q[i] = mean(fit$Q_ratio[((i-1) * params$num_trees + 1) :  (i * params$num_trees)])
+  ave_prior[i] = mean(fit$prior_ratio[((i-1) * params$num_trees + 1) :  (i * params$num_trees)])
+}
+plot(fit$sigma[1,], main = "sigma")
+plot(ave_MH, main = "MH ratio")
+plot(ave_P, main = "P_new - P_old")
+plot(ave_Q, main = "Q_old - Q_new")
+plot(ave_prior, main = "prior_new - prior_old")
 # For Travis
 stopifnot(xbart_rmse < 1)
 stopifnot(time_XBART < 5)
+
+
+fhat.1 = apply(fit$yhats[, 200:1000], 1, mean)
+sqrt(mean((fhat.1 - ftrue) ^ 2))
 
 

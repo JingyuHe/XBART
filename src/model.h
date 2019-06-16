@@ -10,6 +10,28 @@
 
 using namespace std;
 
+struct Prior
+{
+    // prior of leaf, variance
+    double tau;
+
+    // prior of cutpoint
+    double alpha;
+    double beta;
+
+    // prior of residual variance
+    double kap;
+    double s;
+
+    Prior(double tau, double alpha, double beta, double kap, double s){
+        this->tau = tau;
+        this->alpha = alpha;
+        this->beta = beta;
+        this->kap = kap;
+        this->s = s;
+    }
+};
+
 class Model
 {
 
