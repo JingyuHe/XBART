@@ -608,6 +608,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
 
                 predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec_proposal, model);
 
+                trees[sweeps - 1][tree_ind].suff_stat[0] = sum_vec(fit_info->residual_std) / (double)N;
                 trees[sweeps - 1][tree_ind].update_split_prob(fit_info, max_depth_std[sweeps][tree_ind], sigma, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
 
                 Q_old = trees[sweeps - 1][tree_ind].transition_prob();
@@ -674,6 +675,7 @@ void fit_std_MH(const double *Xpointer, std::vector<double> &y_std, double y_mea
                         update_theta() not only update leaf parameters, but also fit_info->data_pointers
                     
                     */
+                    trees[sweeps][tree_ind].suff_stat[0] = sum_vec(fit_info->residual_std) / (double)N;
                     trees[sweeps][tree_ind].update_theta(fit_info, max_depth_std[sweeps][tree_ind], sigma, Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, sample_weights_flag, prior);
 
                     // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec4, model);
