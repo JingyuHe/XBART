@@ -49,6 +49,10 @@ struct FitInfo
     size_t n_y; // number of total data points in root node
     const double *X_std; // pointer to original data
     bool draw_mu;
+    size_t num_trees;
+    size_t num_sweeps;
+    bool sample_weights_flag;
+    
 
     // Vector pointers
     matrix<std::vector<double>*> data_pointers;    
@@ -82,7 +86,7 @@ struct FitInfo
         }
     }
 
-    FitInfo(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, std::vector<double>* initial_theta, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, bool draw_mu)
+    FitInfo(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, std::vector<double>* initial_theta, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, bool draw_mu, size_t num_sweeps, bool sample_weights_flag)
     {
 
         // Handle Categorical
@@ -92,8 +96,7 @@ struct FitInfo
         }
         this->variable_ind = std::vector<size_t>(p_categorical + 1);
         this->X_num_unique = std::vector<size_t>(p_categorical);
-        unique_value_count2(Xpointer, Xorder_std, this->X_values, this->X_counts,
-                            this->variable_ind, this->total_points, this->X_num_unique, p_categorical, p_continuous);
+        unique_value_count2(Xpointer, Xorder_std, this->X_values, this->X_counts, this->variable_ind, this->total_points, this->X_num_unique, p_categorical, p_continuous);
 
         // // Init containers
         ini_xinfo(this->predictions_std, N, num_trees);
@@ -128,6 +131,9 @@ struct FitInfo
         this->p = p_categorical + p_continuous;
         this->n_y = N;
         this->draw_mu = draw_mu;
+        this->num_trees = num_trees;
+        this->num_sweeps = num_sweeps;
+        this->sample_weights_flag = sample_weights_flag;
 
         return;
     }

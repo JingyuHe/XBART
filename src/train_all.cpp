@@ -16,10 +16,7 @@ using namespace chrono;
 //                                                                    //
 ////////////////////////////////////////////////////////////////////////
 
-void rcpp_to_std2(
-    arma::mat y, arma::mat X, arma::mat Xtest, arma::mat max_depth_num,
-    std::vector<double> &y_std, double &y_mean, Rcpp::NumericMatrix &X_std, Rcpp::NumericMatrix &Xtest_std,
-    xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std)
+void rcpp_to_std2(arma::mat y, arma::mat X, arma::mat Xtest, arma::mat max_depth_num, std::vector<double> &y_std, double &y_mean, Rcpp::NumericMatrix &X_std, Rcpp::NumericMatrix &Xtest_std, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std)
 {
     // The goal of this function is to convert RCPP object to std objects
 
@@ -92,9 +89,9 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
                  size_t n_min, size_t num_cutpoints, double alpha, double beta,
                  double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,
                  double kap = 16, double s = 4, bool verbose = false,
-                 bool parallel = true, bool set_random_seed = false, size_t random_seed = 0,bool sample_weights_flag = true)
+                 bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true)
 {
-    
+
     bool draw_mu = true;
 
     auto start = system_clock::now();
@@ -169,11 +166,16 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     // prior settings
     Prior prior = Prior(tau, alpha, beta, kap, s);
 
+    // FitInfo settings
+    std::vector<double> initial_theta(1, 0);
+    std::unique_ptr<FitInfo> fit_info(new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, num_cutpoints, parallel, mtry, Xpointer, draw_mu, num_sweeps, sample_weights_flag));
+
+    // define model
+    NormalModel *model = new NormalModel();
+
     /////////////////////////////////////////////////////////////////
-    fit_std(Xpointer, y_std, y_mean, Xorder_std, N, p, num_trees, num_sweeps, max_depth_std,
-            n_min, num_cutpoints, alpha, beta, tau, burnin, mtry, kap, s, verbose, draw_mu, parallel,
-            yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, p_categorical, p_continuous, *trees2, set_random_seed,
-            random_seed, no_split_penality,sample_weights_flag, prior);
+    fit_std(y_std, y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, prior, fit_info, model);
+
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
     // R Objects to Return
@@ -316,16 +318,7 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
 
     /////////////////////////////////////////////////////////////////
 
-    fit_std_clt(Xpointer, y_std, y_mean, Xorder_std,
-                N, p,
-                num_trees, num_sweeps, max_depth_std,
-                n_min, num_cutpoints, alpha, beta,
-                tau, burnin, mtry,
-                kap, s,
-                verbose,
-                draw_mu, parallel,
-                yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree,
-                p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag, prior);
+    fit_std_clt(Xpointer, y_std, y_mean, Xorder_std, N, p, num_trees, num_sweeps, max_depth_std, n_min, num_cutpoints, alpha, beta, tau, burnin, mtry, kap, s, verbose, draw_mu, parallel, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag, prior);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -388,11 +381,11 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest,
-                     size_t num_trees, size_t num_sweeps, arma::mat max_depth_num,
-                     size_t n_min, size_t num_cutpoints, double alpha, double beta,
-                     double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,
-                     double kap = 16, double s = 4, bool verbose = false,
-                     bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true)
+                             size_t num_trees, size_t num_sweeps, arma::mat max_depth_num,
+                             size_t n_min, size_t num_cutpoints, double alpha, double beta,
+                             double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,
+                             double kap = 16, double s = 4, bool verbose = false,
+                             bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true)
 {
     bool draw_mu = true;
 
@@ -478,17 +471,7 @@ Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest,
     // prior settings
     Prior prior = Prior(tau, alpha, beta, kap, s);
 
-    fit_std_multinomial(Xpointer, y_std, y_mean, Xorder_std,
-                N, p,
-                num_trees, num_sweeps, max_depth_std,
-                n_min, num_cutpoints, alpha, beta,
-                tau, burnin, mtry,
-                kap, s,
-                verbose,
-                n_class,
-                draw_mu, parallel,
-                yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree,
-                p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag, prior);
+    fit_std_multinomial(Xpointer, y_std, y_mean, Xorder_std, N, p, num_trees, num_sweeps, max_depth_std, n_min, num_cutpoints, alpha, beta, tau, burnin, mtry, kap, s, verbose, n_class, draw_mu, parallel, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag, prior);
 
     predict_std_multinomial(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -633,16 +616,7 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
 
     /////////////////////////////////////////////////////////////////
 
-    fit_std_probit(Xpointer, y_std, y_mean, Xorder_std,
-                   N, p,
-                   num_trees, num_sweeps, max_depth_std,
-                   n_min, num_cutpoints, alpha, beta,
-                   tau, burnin, mtry,
-                   kap, s,
-                   verbose,
-                   draw_mu, parallel,
-                   yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree,
-                   p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag, prior);
+    fit_std_probit(Xpointer, y_std, y_mean, Xorder_std, N, p, num_trees, num_sweeps, max_depth_std, n_min, num_cutpoints, alpha, beta, tau, burnin, mtry, kap, s, verbose, draw_mu, parallel, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag, prior);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -701,16 +675,14 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
                                                        Rcpp::Named("p") = p));
 }
 
-
-
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest,
-                 size_t num_trees, size_t num_sweeps, arma::mat max_depth_num,
-                 size_t n_min, size_t num_cutpoints, double alpha, double beta,
-                 double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,
-                 double kap = 16, double s = 4, bool verbose = false,
-                 bool parallel = true, bool set_random_seed = false, size_t random_seed = 0,bool sample_weights_flag = true)
+                    size_t num_trees, size_t num_sweeps, arma::mat max_depth_num,
+                    size_t n_min, size_t num_cutpoints, double alpha, double beta,
+                    double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0,
+                    double kap = 16, double s = 4, bool verbose = false,
+                    bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true)
 {
 
     cout << "MHMHMH" << endl;
@@ -796,11 +768,8 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest,
     std::vector<double> P_ratio;
     std::vector<double> prior_ratio;
 
+    fit_std_MH(Xpointer, y_std, y_mean, Xorder_std, N, p, num_trees, num_sweeps, max_depth_std, n_min, num_cutpoints, alpha, beta, tau, burnin, mtry, kap, s, verbose, draw_mu, parallel, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag, prior, accept_count, MH_vector, P_ratio, Q_ratio, prior_ratio);
 
-    fit_std_MH(Xpointer, y_std, y_mean, Xorder_std, N, p, num_trees, num_sweeps, max_depth_std,
-            n_min, num_cutpoints, alpha, beta, tau, burnin, mtry, kap, s, verbose, draw_mu, parallel,
-            yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, p_categorical, p_continuous, *trees2, set_random_seed,
-            random_seed, no_split_penality, sample_weights_flag, prior, accept_count, MH_vector, P_ratio, Q_ratio, prior_ratio);
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
     // R Objects to Return
@@ -862,5 +831,3 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest,
                                                        Rcpp::Named("y_mean") = y_mean,
                                                        Rcpp::Named("p") = p));
 }
-
-

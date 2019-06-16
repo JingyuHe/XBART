@@ -648,7 +648,7 @@ double tree::prior_prob(double tau, double alpha, double beta)
     return output;
 }
 
-void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, double sigma, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool sample_weights_flag, Prior &prior, bool update_theta, bool update_split_prob, bool grow_new_tree)
+void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, double sigma, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, Prior &prior, bool update_theta, bool update_split_prob, bool grow_new_tree)
 {
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
@@ -689,7 +689,7 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
     }
     else
     {
-        if (sample_weights_flag)
+        if (fit_info->sample_weights_flag)
         {
             std::vector<double> weight_samp(p);
             double weight_sum;
@@ -806,9 +806,9 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, fit_info, this);
     }
 
-    this->l->grow_from_root(fit_info, max_depth, sigma, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, sample_weights_flag, prior, update_theta, update_split_prob, grow_new_tree);
+    this->l->grow_from_root(fit_info, max_depth, sigma, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, prior, update_theta, update_split_prob, grow_new_tree);
 
-    this->r->grow_from_root(fit_info, max_depth, sigma, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, tree_ind, sample_weights_flag, prior, update_theta, update_split_prob, grow_new_tree);
+    this->r->grow_from_root(fit_info, max_depth, sigma, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, tree_ind, prior, update_theta, update_split_prob, grow_new_tree);
 
     return;
 }
