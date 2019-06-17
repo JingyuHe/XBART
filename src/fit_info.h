@@ -96,7 +96,7 @@ struct FitInfo
         }
         this->variable_ind = std::vector<size_t>(p_categorical + 1);
         this->X_num_unique = std::vector<size_t>(p_categorical);
-        unique_value_count2(Xpointer, Xorder_std, this->X_values, this->X_counts, this->variable_ind, this->total_points, this->X_num_unique, p_categorical, p_continuous);
+        // unique_value_count2(Xpointer, Xorder_std, this->X_values, this->X_counts, this->variable_ind, this->total_points, this->X_num_unique, p_categorical, p_continuous);
 
         // // Init containers
         ini_xinfo(this->predictions_std, N, num_trees);

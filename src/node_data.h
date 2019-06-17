@@ -31,19 +31,21 @@ public:
         return;
     }
 
-    NodeData(size_t N_Xorder, size_t p, const double *Xpointer, FitInfo *fit_info)
+    NodeData(size_t N_Xorder, size_t p, const double *Xpointer, std::unique_ptr<FitInfo> &fit_info)
     {
         // initialize Xorder_std with prespecify size
         // count X_counts and X_num_unique from data
         // Use for initialize NodeData for ROOT node
         ini_xinfo_sizet(Xorder_std, N_Xorder, p);
 
+        X_num_unique = std::vector<size_t>(fit_info->p_categorical);
+
         this->ini_categorical_var(Xpointer, fit_info);
 
         return;
     }
 
-    void ini_categorical_var(const double *Xpointer, FitInfo *fit_info)
+    void ini_categorical_var(const double *Xpointer, std::unique_ptr<FitInfo> &fit_info)
     {
         size_t total_points = 0;
         size_t N = Xorder_std[0].size();
@@ -53,7 +55,7 @@ public:
         size_t N_unique;
         fit_info->variable_ind[0] = 0;
 
-        for (size_t i = fit_info->p_continuous; i < p; i++)
+        for (size_t i = fit_info->p_continuous; i < fit_info->p; i++)
         {
             // only loop over categorical variables
             // suppose p = (p_continuous, p_categorical)

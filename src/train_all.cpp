@@ -174,8 +174,11 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     NormalModel *model = new NormalModel();
     model->setNoSplitPenality(no_split_penality);
 
+    // initialize data for the root node
+    NodeData *node_data = new NodeData(N, p, Xpointer, fit_info);
+
     /////////////////////////////////////////////////////////////////
-    fit_std(y_std, y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, prior, fit_info, model);
+    fit_std(y_std, y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, prior, fit_info, model, node_data);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
