@@ -172,6 +172,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
 
     // define model
     NormalModel *model = new NormalModel();
+    model->setNoSplitPenality(no_split_penality);
 
     /////////////////////////////////////////////////////////////////
     fit_std(y_std, y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, prior, fit_info, model);
@@ -316,9 +317,17 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
     // prior settings
     Prior prior = Prior(tau, alpha, beta, kap, s);
 
+    // FitInfo settings
+    std::vector<double> initial_theta(1, 0);
+    std::unique_ptr<FitInfo> fit_info(new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, num_cutpoints, parallel, mtry, Xpointer, draw_mu, num_sweeps, sample_weights_flag));
+
+    // define model
+    CLTClass *model = new CLTClass();
+    model->setNoSplitPenality(no_split_penality);
+
     /////////////////////////////////////////////////////////////////
 
-    fit_std_clt(Xpointer, y_std, y_mean, Xorder_std, N, p, num_trees, num_sweeps, max_depth_std, n_min, num_cutpoints, alpha, beta, tau, burnin, mtry, kap, s, verbose, draw_mu, parallel, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag, prior);
+    fit_std_clt(y_std, y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, prior, fit_info, model);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -614,10 +623,18 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
     // prior settings
     Prior prior = Prior(tau, alpha, beta, kap, s);
 
+    // FitInfo settings
+    std::vector<double> initial_theta(1, 0);
+    std::unique_ptr<FitInfo> fit_info(new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, num_cutpoints, parallel, mtry, Xpointer, draw_mu, num_sweeps, sample_weights_flag));
+
+    // define model
+    NormalModel *model = new NormalModel();
+    model->setNoSplitPenality(no_split_penality);
+
     /////////////////////////////////////////////////////////////////
 
-    fit_std_probit(Xpointer, y_std, y_mean, Xorder_std, N, p, num_trees, num_sweeps, max_depth_std, n_min, num_cutpoints, alpha, beta, tau, burnin, mtry, kap, s, verbose, draw_mu, parallel, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag, prior);
-
+    fit_std_probit(y_std, y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, prior, fit_info, model);
+    
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
     // R Objects to Return

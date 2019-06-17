@@ -117,7 +117,7 @@ t = proc.time()
 out_probit = XBART.Probit(as.matrix(y), as.matrix(x), as.matrix(xtest), num_trees = params$M, L = 1, num_sweeps = params$nsweeps, max_depth = params$max_depth, Nmin = 10, num_cutpoints = params$Ncutpoints,
 alpha = params$alpha, beta = params$beta, tau = params$tau, s= 1,kap = 1,
 mtry = params$mtry, p_categorical = dcat, draw_sigma = FALSE, m_update_sigma = TRUE,draw_mu= TRUE,
-parallel = parl)
+parallel = parl,random_seed = 10)
 pred.probit = predict(out_probit,as.matrix(xtest))
 t = proc.time() - t
 print(t)
