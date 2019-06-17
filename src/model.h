@@ -2,7 +2,6 @@
 #ifndef model_h
 #define model_h
 
-
 #include "common.h"
 #include "utility.h"
 #include <memory>
@@ -23,7 +22,8 @@ struct Prior
     double kap;
     double s;
 
-    Prior(double tau, double alpha, double beta, double kap, double s){
+    Prior(double tau, double alpha, double beta, double kap, double s)
+    {
         this->tau = tau;
         this->alpha = alpha;
         this->beta = beta;
@@ -35,7 +35,7 @@ struct Prior
 class Model
 {
 
-  protected:
+protected:
     size_t num_classes;
     size_t dim_suffstat;
     size_t dim_suffstat_total;
@@ -43,7 +43,7 @@ class Model
     std::vector<double> suff_stat_total;
     double no_split_penality;
 
-  public:
+public:
     Model(size_t num_classes, size_t dim_suff)
     {
         this->num_classes = num_classes;
@@ -52,6 +52,8 @@ class Model
     };
 
     // Abstract functions
+    virtual void updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, xinfo_sizet &Xorder_std, size_t &split_var, size_t row_ind) { return; };
+    virtual void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side) { return; };
     virtual void incrementSuffStat() const { return; };
     virtual void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
                             std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder, double &prob_leaf) { return; };
@@ -62,7 +64,7 @@ class Model
     virtual double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const { return 0.0; };
     virtual double likelihood_no_split(double value, double tau, double ntau, double sigma2) const { return 0.0; };
     virtual void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder) { return; };
-    virtual double predictFromTheta(const std::vector<double> &theta_vector) const{return 0.0;};
+    virtual double predictFromTheta(const std::vector<double> &theta_vector) const { return 0.0; };
     virtual Model *clone() { return nullptr; };
 
     // Getters and Setters
@@ -97,11 +99,11 @@ class Model
 
 class NormalModel : public Model
 {
-  private:
+private:
     size_t dim_suffstat_total = 1;
     std::vector<double> suff_stat_total;
 
-  public:
+public:
     NormalModel() : Model(1, 1)
     {
     }
@@ -131,7 +133,6 @@ class NormalModel : public Model
 
         // also update probability of leaf parameters
         prob_leaf = normal_density(theta_vector[0], y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)), 1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2)), true);
-
 
         // cout << "prob_leaf " << prob_leaf << endl;
 
@@ -167,11 +168,10 @@ class NormalModel : public Model
     {
         // calculate sufficient statistics for continuous variables
 
-
         if (adaptive_cutpoint)
         {
 
-            if(index == 0)
+            if (index == 0)
             {
                 // initialize, only for the first cutpoint candidate, thus index == 0
                 Model::suff_stat_model[0] = y_std[xorder[0]];
@@ -215,22 +215,49 @@ class NormalModel : public Model
         return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
     }
 
-    double predictFromTheta(const std::vector<double> &theta_vector) const{
+    double predictFromTheta(const std::vector<double> &theta_vector) const
+    {
         return theta_vector[0];
     }
 
     Model *clone() { return new NormalModel(*this); }
 
-    
+    virtual void updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, xinfo_sizet &Xorder_std, size_t &split_var, size_t row_ind)
+    {
+        suff_stat[0] += residual_std[Xorder_std[split_var][row_ind]];
+        suff_stat[1] += pow(residual_std[Xorder_std[split_var][row_ind]], 2);
+        return;
+    }
+
+    virtual void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side){
+
+        // in function split_xorder_std_categorical, for efficiency, the function only calculates suff stat of ONE child
+        // this function calculate the other side based on parent and the other child
+
+        if(compute_left_side){
+            rchild_suff_stat[0] = (parent_suff_stat[0] * N_parent - lchild_suff_stat[0]) / N_right;
+
+            rchild_suff_stat[1] = parent_suff_stat[1] - lchild_suff_stat[1];
+
+            lchild_suff_stat[0] = lchild_suff_stat[0] / N_left;
+        }else{
+            lchild_suff_stat[0] = (parent_suff_stat[0] * N_parent - rchild_suff_stat[0]) / N_left;
+
+            lchild_suff_stat[1] = parent_suff_stat[1] - rchild_suff_stat[1];
+
+            rchild_suff_stat[0] = rchild_suff_stat[0] / N_right;
+        }
+        return;
+    }
 };
 
 class CLTClass : public Model
 {
-  private:
+private:
     size_t dim_suffstat_total = 4;
     //std::vector<double> suff_stat_total;
 
-  public:
+public:
     CLTClass() : Model(1, 4)
     {
         suff_stat_total.resize(dim_suffstat_total);
@@ -250,7 +277,7 @@ class CLTClass : public Model
         Model::suff_stat_model[0] = y_std[x_order_0] / psi;
         Model::suff_stat_model[1] = 1 / psi;
         Model::suff_stat_model[2] = std::log(1 / psi);
-       // Model::suff_stat_model[3] = pow(y_std[x_order_0], 2) / psi;
+        // Model::suff_stat_model[3] = pow(y_std[x_order_0], 2) / psi;
         return;
     }
     void incrementSuffStat() const { return; };
@@ -273,7 +300,7 @@ class CLTClass : public Model
             theta_vector[0] = suff_stat_total[0] / (1.0 / tau + suff_stat_total[1]);
         }
 
-            // also update probability of leaf parameters
+        // also update probability of leaf parameters
         prob_leaf = normal_density(theta_vector[0], y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)), 1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2)), true);
 
         return;
@@ -327,10 +354,9 @@ class CLTClass : public Model
         double obs;
         size_t x_order_q;
 
-
         if (adaptive_cutpoint)
         {
-            // initialize 
+            // initialize
             Model::suff_stat_model[0] = y_std[xorder[0]];
 
             // if use adaptive number of cutpoints, calculated based on vector candidate_index
@@ -384,7 +410,6 @@ class CLTClass : public Model
             suff_stat_total[1] += 1 / psi;
             suff_stat_total[2] += std::log(1 / psi);
             //suff_stat_total[3] += pow(obs, 2) / psi;
-
         }
         return;
     }
@@ -401,7 +426,7 @@ class CLTClass : public Model
         }
         else
         {
-            return 0.5 * (suff_stat_total[2] - Model::suff_stat_model[2]) + 0.5 * std::log((1 / tau) / ((1 / tau) + (suff_stat_total[1] - Model::suff_stat_model[1]))) + 0.5 * tau / (1 + tau * (suff_stat_total[1] - Model::suff_stat_model[1])) * pow(suff_stat_total[0] - Model::suff_stat_model[0], 2) ;// - 0.5 * (suff_stat_total[3] - Model::suff_stat_model[3]);
+            return 0.5 * (suff_stat_total[2] - Model::suff_stat_model[2]) + 0.5 * std::log((1 / tau) / ((1 / tau) + (suff_stat_total[1] - Model::suff_stat_model[1]))) + 0.5 * tau / (1 + tau * (suff_stat_total[1] - Model::suff_stat_model[1])) * pow(suff_stat_total[0] - Model::suff_stat_model[0], 2); // - 0.5 * (suff_stat_total[3] - Model::suff_stat_model[3]);
         }
     }
 
@@ -415,82 +440,109 @@ class CLTClass : public Model
         ;
     }
 
-    double predictFromTheta(const std::vector<double> &theta_vector) const{
+    double predictFromTheta(const std::vector<double> &theta_vector) const
+    {
         return theta_vector[0];
     }
 
     Model *clone() { return new CLTClass(*this); }
+
+    virtual void updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, xinfo_sizet &Xorder_std, size_t &split_var, size_t row_ind)
+    {
+        suff_stat[0] += residual_std[Xorder_std[split_var][row_ind]];
+        suff_stat[1] += pow(residual_std[Xorder_std[split_var][row_ind]], 2);
+        return;
+    }
+
+        virtual void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side){
+
+        // in function split_xorder_std_categorical, for efficiency, the function only calculates suff stat of ONE child
+        // this function calculate the other side based on parent and the other child
+
+        if(compute_left_side){
+            rchild_suff_stat[0] = (parent_suff_stat[0] * N_parent - lchild_suff_stat[0]) / N_right;
+
+            rchild_suff_stat[1] = parent_suff_stat[1] - lchild_suff_stat[1];
+
+            lchild_suff_stat[0] = lchild_suff_stat[0] / N_left;
+        }else{
+            lchild_suff_stat[0] = (parent_suff_stat[0] * N_parent - rchild_suff_stat[0]) / N_left;
+
+            lchild_suff_stat[1] = parent_suff_stat[1] - rchild_suff_stat[1];
+
+            rchild_suff_stat[0] = rchild_suff_stat[0] / N_right;
+        }
+        return;
+    }
+    
 };
 
-
 //////////////////////////////////////////////////////////////////////////////////////
 //
 //
-//  Multinomial logistic model 
+//  Multinomial logistic model
 //
 //
 //////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
 
 class LogitClass : public Model
 {
-  private:
+private:
     size_t dim_suffstat_total = 0; // = 2*num_classes;
     //std::vector<double> suff_stat_total;
 
-    double LogitLIL (const vector<double> &suffstats, const double &tau_a, const double &tau_b) const {
-  
-        size_t c = suffstats.size()/2;
-  
+    double LogitLIL(const vector<double> &suffstats, const double &tau_a, const double &tau_b) const
+    {
+
+        size_t c = suffstats.size() / 2;
+
         //suffstats[0] .. suffstats[c-1]is count of y's in cat 0,...,c-1, i.e. r in proposal
         //suffstats[c] .. suffstats[2c-1] is sum of phi_i*(partial fit j)'s ie s in proposal
 
         double ret = 0;
-        for(size_t j=0; j<c; j++) {
+        for (size_t j = 0; j < c; j++)
+        {
             double r = suffstats[j];
-            double s = suffstats[c+j];
-            ret += (tau_a + r)*log(tau_b + s) - lgamma(tau_a + r);
-        } 
+            double s = suffstats[c + j];
+            ret += (tau_a + r) * log(tau_b + s) - lgamma(tau_a + r);
+        }
         return ret;
     }
 
-    void LogitSamplePars(vector<double> &suffstats,  double &tau_a, double &tau_b, std::mt19937 &generator,std::vector<double> &theta_vector) {
+    void LogitSamplePars(vector<double> &suffstats, double &tau_a, double &tau_b, std::mt19937 &generator, std::vector<double> &theta_vector)
+    {
         //redefine these to use prior pars from Model class
-        int c = suffstats.size()/2;
-       
-        for(int j=0; j<c; j++) {
+        int c = suffstats.size() / 2;
+
+        for (int j = 0; j < c; j++)
+        {
             double r = suffstats[j];
-            double s = suffstats[c+j];
+            double s = suffstats[c + j];
 
             std::gamma_distribution<double> gammadist(tau_a + r, 1);
 
             theta_vector[j] = gammadist(generator) / (tau_b + s);
         }
-       
-    }   
+    }
 
-  public:
-
+public:
     //This is probably unsafe/stupid but a temporary hack #yolo
-    FitInfo* fit_info;
+    FitInfo *fit_info;
     //these should be elements of a class derived from a FitInfo base class for this model
-    std::vector<std::vector<double> >* slop;
-    std::vector<double>* phi;
+    std::vector<std::vector<double>> *slop;
+    std::vector<double> *phi;
     double tau_a = 3.3; //approx 4/sqrt(2) + 0.5
     double tau_b = 2.8;
 
     LogitClass() : Model(2, 4)
     {
-        dim_suffstat_total = 2*num_classes; //num_classes is a member of base Model class
+        dim_suffstat_total = 2 * num_classes;       //num_classes is a member of base Model class
         suff_stat_total.resize(dim_suffstat_total); //suff_stat_total stuff should live in base class
     }
 
-    LogitClass(size_t num_classes) : Model(num_classes, 2*num_classes)
+    LogitClass(size_t num_classes) : Model(num_classes, 2 * num_classes)
     {
-        dim_suffstat_total = 2*num_classes;
+        dim_suffstat_total = 2 * num_classes;
         suff_stat_total.resize(dim_suffstat_total);
     }
     //std::vector<double> total_fit; // Keep public to save copies
@@ -500,7 +552,9 @@ class LogitClass : public Model
     // when sorting by xorder
     //no longer necessary
     void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder)
-    {return;}
+    {
+        return;
+    }
     /*
 
     void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder)
@@ -521,28 +575,31 @@ class LogitClass : public Model
     }
     */
 
-    // this function should ultimately take a FitInfo and DataInfo 
-    void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats) const {
-        
-        for(size_t j=0; j<num_classes; ++j) {
-            if(abs(y_std[ix] - j)<0.1) suffstats[j] += 1; //is it important that y_std be doubles?
-            suffstats[num_classes + j] += (*phi)[ix]*(*slop)[ix][j];
+    // this function should ultimately take a FitInfo and DataInfo
+    void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats) const
+    {
+
+        for (size_t j = 0; j < num_classes; ++j)
+        {
+            if (abs(y_std[ix] - j) < 0.1)
+                suffstats[j] += 1; //is it important that y_std be doubles?
+            suffstats[num_classes + j] += (*phi)[ix] * (*slop)[ix][j];
         }
 
-        return; 
+        return;
     };
 
     // This function call can be much simplified too --  should only require (maybe) theta plus a draw_mu flag?
     void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
-                    std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, 
+                    std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std,
                     xinfo_sizet &Xorder, double &prob_leaf)
     {
         // Update params
         updateFullSuffStat(y_std, Xorder[0]);
 
-        LogitSamplePars(suff_stat_total, tau_a, tau_b, generator,theta_vector);
+        LogitSamplePars(suff_stat_total, tau_a, tau_b, generator, theta_vector);
 
-/*
+        /*
         std::normal_distribution<double> normal_samp(0.0, 1.0);
         if (draw_mu == true)
         {
@@ -560,7 +617,7 @@ class LogitClass : public Model
         return;
     }
 
-/*
+    /*
 
     void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
     {
@@ -574,20 +631,22 @@ class LogitClass : public Model
     }
     */
 
-//    void updateResidualNew(size_t tree_ind, size_t M, std::unique_ptr<FitInfo> fit_info, std::vector<std::vector<double> > &slop) {
+    //    void updateResidualNew(size_t tree_ind, size_t M, std::unique_ptr<FitInfo> fit_info, std::vector<std::vector<double> > &slop) {
     void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
     {
         size_t next_index = tree_ind + 1;
         if (next_index == M)
         {
             next_index = 0;
-        }  
+        }
 
         //slop is the partial fit
-        for(size_t i=0; i<slop->size(); ++i) {
-            for(size_t j=0; j<(*slop)[0].size(); ++j) {
+        for (size_t i = 0; i < slop->size(); ++i)
+        {
+            for (size_t j = 0; j < (*slop)[0].size(); ++j)
+            {
                 //output[i] = data_pointers[M][i]->theta_vector[0];
-                (*slop)[i][j] *= (*fit_info->data_pointers[tree_ind][i])[j]/(*fit_info->data_pointers[next_index][i])[j];
+                (*slop)[i][j] *= (*fit_info->data_pointers[tree_ind][i])[j] / (*fit_info->data_pointers[next_index][i])[j];
             }
         }
     }
@@ -599,12 +658,12 @@ class LogitClass : public Model
         // calculate sufficient statistics for categorical variables
 
         // compute sum of y[Xorder[start:end, var]]
-        for (size_t i = start; i <= end; i++) incSuffStat(y, Xorder[var][i],Model::suff_stat_model);
-
+        for (size_t i = start; i <= end; i++)
+            incSuffStat(y, Xorder[var][i], Model::suff_stat_model);
     }
 
-    void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, 
-        std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint)
+    void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std,
+                                 std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint)
     {
         // calculate sufficient statistics for continuous variables
         if (adaptive_cutpoint)
@@ -613,12 +672,12 @@ class LogitClass : public Model
             // if use adaptive number of cutpoints, calculated based on vector candidate_index
             for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
             {
-                incSuffStat(y_std,xorder[q],Model::suff_stat_model);
+                incSuffStat(y_std, xorder[q], Model::suff_stat_model);
             }
         }
         else
         {
-            incSuffStat(y_std,xorder[index],Model::suff_stat_model);
+            incSuffStat(y_std, xorder[index], Model::suff_stat_model);
         }
 
         return;
@@ -626,11 +685,13 @@ class LogitClass : public Model
 
     void updateFullSuffStat(std::vector<double> &y_std, std::vector<size_t> &x_info)
     {
-        for (size_t i = 0; i < x_info.size(); i++) incSuffStat(y_std, x_info[i],suff_stat_total);
+        for (size_t i = 0; i < x_info.size(); i++)
+            incSuffStat(y_std, x_info[i], suff_stat_total);
         return;
     }
 
-    double LIL(const std::vector<double> &suffstats) const {
+    double LIL(const std::vector<double> &suffstats) const
+    {
         return LogitLIL(suffstats, tau_a, tau_b);
     }
 
@@ -664,8 +725,9 @@ class LogitClass : public Model
         ;
     }
 
-    // Prediction function: 
-    double predictFromTheta(const std::vector<double> &theta_vector) const{
+    // Prediction function:
+    double predictFromTheta(const std::vector<double> &theta_vector) const
+    {
         return 0.0;
     }
 

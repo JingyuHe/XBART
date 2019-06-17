@@ -905,18 +905,22 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
         {
             if (*(temp_pointer + Xorder_std[split_var][j]) <= cutvalue)
             {
-                current_node->l->suff_stat[0] += fit_info->residual_std[Xorder_std[split_var][j]];
+                // current_node->l->suff_stat[0] += fit_info->residual_std[Xorder_std[split_var][j]];
 
-                current_node->l->suff_stat[1] += pow(fit_info->residual_std[Xorder_std[split_var][j]], 2);
+                // current_node->l->suff_stat[1] += pow(fit_info->residual_std[Xorder_std[split_var][j]], 2);
+
+                model->updateNodeSuffStat(current_node->l->suff_stat, fit_info->residual_std, Xorder_std, split_var, j);
             }
         }
         else
         {
             if (*(temp_pointer + Xorder_std[split_var][j]) > cutvalue)
             {
-                current_node->r->suff_stat[0] += fit_info->residual_std[Xorder_std[split_var][j]];
+                // current_node->r->suff_stat[0] += fit_info->residual_std[Xorder_std[split_var][j]];
 
-                current_node->r->suff_stat[1] += pow(fit_info->residual_std[Xorder_std[split_var][j]], 2);
+                // current_node->r->suff_stat[1] += pow(fit_info->residual_std[Xorder_std[split_var][j]], 2);
+
+                model->updateNodeSuffStat(current_node->r->suff_stat, fit_info->residual_std, Xorder_std, split_var, j);
             }
         }
     }
@@ -1038,9 +1042,11 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
                     if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
                     {
                         // go to left side
-                        current_node->l->suff_stat[0] += fit_info->residual_std[Xorder_std[split_var][j]];
+                        // current_node->l->suff_stat[0] += fit_info->residual_std[Xorder_std[split_var][j]];
 
-                        current_node->l->suff_stat[1] += pow(fit_info->residual_std[Xorder_std[split_var][j]], 2);
+                        // current_node->l->suff_stat[1] += pow(fit_info->residual_std[Xorder_std[split_var][j]], 2);
+
+                        model->updateNodeSuffStat(current_node->l->suff_stat, fit_info->residual_std, Xorder_std, split_var, j);
 
                         Xorder_left_std[i][left_ix] = Xorder_std[i][j];
 
@@ -1067,9 +1073,11 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
                     }
                     else
                     {
-                        current_node->r->suff_stat[0] += fit_info->residual_std[Xorder_std[split_var][j]];
+                        // current_node->r->suff_stat[0] += fit_info->residual_std[Xorder_std[split_var][j]];
 
-                        current_node->r->suff_stat[1] += pow(fit_info->residual_std[Xorder_std[split_var][j]], 2);
+                        // current_node->r->suff_stat[1] += pow(fit_info->residual_std[Xorder_std[split_var][j]], 2);
+
+                        model->updateNodeSuffStat(current_node->r->suff_stat, fit_info->residual_std, Xorder_std, split_var, j);
 
                         Xorder_right_std[i][right_ix] = Xorder_std[i][j];
 
@@ -1132,22 +1140,24 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
         }
     }
 
-    if (compute_left_side)
-    {
-        current_node->r->suff_stat[0] = (current_node->suff_stat[0] * N_Xorder - current_node->l->suff_stat[0]) / N_Xorder_right;
+    // if (compute_left_side)
+    // {
+    //     current_node->r->suff_stat[0] = (current_node->suff_stat[0] * N_Xorder - current_node->l->suff_stat[0]) / N_Xorder_right;
 
-        current_node->r->suff_stat[1] = current_node->suff_stat[1] - current_node->l->suff_stat[1];
+    //     current_node->r->suff_stat[1] = current_node->suff_stat[1] - current_node->l->suff_stat[1];
 
-        current_node->l->suff_stat[0] = current_node->l->suff_stat[0] / N_Xorder_left;
-    }
-    else
-    {
-        current_node->l->suff_stat[0] = (current_node->suff_stat[0] * N_Xorder - current_node->r->suff_stat[0]) / N_Xorder_left;
+    //     current_node->l->suff_stat[0] = current_node->l->suff_stat[0] / N_Xorder_left;
+    // }
+    // else
+    // {
+    //     current_node->l->suff_stat[0] = (current_node->suff_stat[0] * N_Xorder - current_node->r->suff_stat[0]) / N_Xorder_left;
 
-        current_node->l->suff_stat[1] = current_node->suff_stat[1] - current_node->r->suff_stat[1];
+    //     current_node->l->suff_stat[1] = current_node->suff_stat[1] - current_node->r->suff_stat[1];
 
-        current_node->r->suff_stat[0] = current_node->r->suff_stat[0] / N_Xorder_right;
-    }
+    //     current_node->r->suff_stat[0] = current_node->r->suff_stat[0] / N_Xorder_right;
+    // }
+
+    model->calculateOtherSideSuffStat(current_node->suff_stat, current_node->l->suff_stat, current_node->r->suff_stat, N_Xorder, N_Xorder_left, N_Xorder_right, compute_left_side);
 
     // update X_num_unique
 
