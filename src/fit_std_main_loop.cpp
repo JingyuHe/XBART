@@ -230,19 +230,11 @@ void fit_std_clt(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_
     delete model;
 }
 
-void fit_std_multinomial(const double *Xpointer, std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std, size_t N, size_t p, size_t num_trees, size_t num_sweeps, xinfo_sizet &max_depth_std, size_t n_min, size_t Ncutpoints, double alpha, double beta, double tau, size_t burnin, size_t mtry, double kap, double s, bool verbose, size_t n_class, bool draw_mu, bool parallel, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vec_d &mtry_weight_current_tree, size_t p_categorical, size_t p_continuous, vector<vector<tree>> &trees, bool set_random_seed, size_t random_seed, double no_split_penality, bool sample_weights_flag, Prior &prior)
+void fit_std_multinomial(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vec_d &mtry_weight_current_tree, vector<vector<tree>> &trees, double no_split_penality, Prior &prior, std::unique_ptr<FitInfo> &fit_info, LogitClass *model)
 {
-
-    // std::vector<double> initial_theta(1,0);
-    // std::unique_ptr<FitInfo> fit_info (new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta));
 
     // if (parallel)
     //     thread_pool.start();
-
-    // LogitClass *model = new LogitClass(n_class);
-
-    // model->setNoSplitPenality(no_split_penality);
-    // model->setNumClasses(n_class)
 
     // // initialize Phi
     // std::vector<double> Phi(N,1.0);

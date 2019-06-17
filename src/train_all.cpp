@@ -480,7 +480,16 @@ Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest,
     // prior settings
     Prior prior = Prior(tau, alpha, beta, kap, s);
 
-    fit_std_multinomial(Xpointer, y_std, y_mean, Xorder_std, N, p, num_trees, num_sweeps, max_depth_std, n_min, num_cutpoints, alpha, beta, tau, burnin, mtry, kap, s, verbose, n_class, draw_mu, parallel, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, p_categorical, p_continuous, *trees2, set_random_seed, random_seed, no_split_penality, sample_weights_flag, prior);
+    // FitInfo settings
+    std::vector<double> initial_theta(1, 0);
+    std::unique_ptr<FitInfo> fit_info(new FitInfo(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, num_cutpoints, parallel, mtry, Xpointer, draw_mu, num_sweeps, sample_weights_flag));
+
+    // define model
+    LogitClass *model = new LogitClass();
+    model->setNoSplitPenality(no_split_penality);
+
+    /////////////////////////////////////////////////////////////////
+    fit_std_multinomial(y_std, y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, prior, fit_info, model);
 
     predict_std_multinomial(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -634,7 +643,7 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
     /////////////////////////////////////////////////////////////////
 
     fit_std_probit(y_std, y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, prior, fit_info, model);
-    
+
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
     // R Objects to Return
