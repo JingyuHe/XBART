@@ -62,8 +62,11 @@ public:
                                 std::vector<double> &residual_std) const { return; };
     virtual void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var) { return; };
     virtual void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint) { return; };
-    virtual double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const { return 0.0; };
-    virtual double likelihood_no_split(double value, double tau, double ntau, double sigma2) const { return 0.0; };
+    // virtual double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const { return 0.0; };
+
+     virtual double likelihood(Prior &prior, NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const { return 0.0; };
+
+    virtual double likelihood_no_split(Prior &prior, NodeData &node_data, std::vector<double> &suff_stat) const { return 0.0; };
     virtual void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder) { return; };
     virtual double predictFromTheta(const std::vector<double> &theta_vector) const { return 0.0; };
     virtual Model *clone() { return nullptr; };
@@ -192,28 +195,39 @@ public:
         return;
     }
 
-    double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
+    // double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
+    double likelihood(Prior &prior, NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const
     {
         // likelihood equation,
         // note the difference of left_side == true / false
+        // node_suff_stat is mean of y, sum of square of y, saved in tree class
+        double y_sum = (double) node_data.N_Xorder * node_suff_stat[0];
+        double sigma2 = pow(node_data.sigma, 2);
+        double ntau;
 
         if (left_side)
         {
-            return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(Model::suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
+            ntau = (N_left + 1) * prior.tau;
+            return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * prior.tau * pow(Model::suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
         }
         else
         {
-            return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(y_sum - Model::suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
+            ntau = (node_data.N_Xorder - N_left - 1) * prior.tau;
+            return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * prior.tau * pow(y_sum - Model::suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
         }
     }
 
-    double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
+    // double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
+    double likelihood_no_split(Prior &prior, NodeData &node_data, std::vector<double> &suff_stat) const
     {
         // the likelihood of no-split option is a bit different from others
         // because the sufficient statistics is y_sum here
         // write a separate function, more flexibility
+        double ntau = node_data.N_Xorder * prior.tau;
+        double sigma2 = pow(node_data.sigma, 2);
+        double value = node_data.N_Xorder * suff_stat[0]; // sum of y
 
-        return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
+        return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * prior.tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
     }
 
     double predictFromTheta(const std::vector<double> &theta_vector) const
@@ -415,29 +429,31 @@ public:
         return;
     }
 
-    double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
+    // double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
+    double likelihood(Prior &prior, NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const
     {
         // likelihood equation,
         // note the difference of left_side == true / false
 
         if (left_side)
         {
-            return 0.5 * Model::suff_stat_model[2] + 0.5 * std::log((1 / tau) / ((1 / tau) + Model::suff_stat_model[1])) + 0.5 * tau / (1 + tau * Model::suff_stat_model[1]) * pow(Model::suff_stat_model[0], 2); //- 0.5 * Model::suff_stat_model[3];
+            return 0.5 * Model::suff_stat_model[2] + 0.5 * std::log((1 / prior.tau) / ((1 / prior.tau) + Model::suff_stat_model[1])) + 0.5 * prior.tau / (1 + prior.tau * Model::suff_stat_model[1]) * pow(Model::suff_stat_model[0], 2); //- 0.5 * Model::suff_stat_model[3];
             ;
         }
         else
         {
-            return 0.5 * (suff_stat_total[2] - Model::suff_stat_model[2]) + 0.5 * std::log((1 / tau) / ((1 / tau) + (suff_stat_total[1] - Model::suff_stat_model[1]))) + 0.5 * tau / (1 + tau * (suff_stat_total[1] - Model::suff_stat_model[1])) * pow(suff_stat_total[0] - Model::suff_stat_model[0], 2); // - 0.5 * (suff_stat_total[3] - Model::suff_stat_model[3]);
+            return 0.5 * (suff_stat_total[2] - Model::suff_stat_model[2]) + 0.5 * std::log((1 / prior.tau) / ((1 / prior.tau) + (suff_stat_total[1] - Model::suff_stat_model[1]))) + 0.5 * prior.tau / (1 + prior.tau * (suff_stat_total[1] - Model::suff_stat_model[1])) * pow(suff_stat_total[0] - Model::suff_stat_model[0], 2); // - 0.5 * (suff_stat_total[3] - Model::suff_stat_model[3]);
         }
     }
 
-    double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
+    // double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
+    double likelihood_no_split(Prior &prior, NodeData &node_data, std::vector<double> &suff_stat) const
     {
         // the likelihood of no-split option is a bit different from others
         // because the sufficient statistics is y_sum here
         // write a separate function, more flexibility
 
-        return 0.5 * (suff_stat_total[2]) + 0.5 * std::log((1 / tau) / ((1 / tau) + (suff_stat_total[1]))) + 0.5 * tau / (1 + tau * (suff_stat_total[1])) * pow(suff_stat_total[0], 2) - 0.5 * suff_stat_total[3];
+        return 0.5 * (suff_stat_total[2]) + 0.5 * std::log((1 / prior.tau) / ((1 / prior.tau) + (suff_stat_total[1]))) + 0.5 * prior.tau / (1 + prior.tau * (suff_stat_total[1])) * pow(suff_stat_total[0], 2) - 0.5 * suff_stat_total[3];
         ;
     }
 
@@ -530,7 +546,7 @@ public:
     //This is probably unsafe/stupid but a temporary hack #yolo
     FitInfo *fit_info;
     //these should be elements of a class derived from a FitInfo base class for this model
-    std::vector<std::vector<double>> *slop;
+    std::vector< std::vector<double> > *slop;
     std::vector<double> *phi;
     double tau_a = 3.3; //approx 4/sqrt(2) + 0.5
     double tau_b = 2.8;
@@ -697,7 +713,8 @@ public:
     }
 
     //this function should call a base LIL() member function that should be redefined in
-    double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
+    // double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
+    double likelihood(Prior &prior, NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const
     {
         // likelihood equation,
         // note the difference of left_side == true / false
@@ -715,7 +732,8 @@ public:
         }
     }
 
-    double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
+    // double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
+    double likelihood_no_split(Prior &prior, NodeData &node_data, std::vector<double> &suff_stat) const
     {
         // the likelihood of no-split option is a bit different from others
         // because the sufficient statistics is y_sum here
