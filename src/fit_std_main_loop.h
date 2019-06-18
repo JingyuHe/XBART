@@ -3,6 +3,7 @@
 #include "forest.h"
 #include <chrono>
 #include "model.h"
+#include "node_data.h"
 #include "fit_info.h"
 #include "cdf.h"
 

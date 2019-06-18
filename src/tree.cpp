@@ -1,23 +1,3 @@
-
-/*
- *  BART: Bayesian Additive Regression Trees
- *  Copyright (C) 2017 Robert McCulloch and Rodney Sparapani
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, a copy is available at
- *  https://www.R-project.org/Licenses/GPL-2
- */
-
 #include "tree.h"
 // #include <RcppArmadilloExtensions/sample.h>
 #include <chrono>
@@ -648,12 +628,11 @@ double tree::prior_prob(Prior &prior)
     return output;
 }
 
-void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, double sigma, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, Prior &prior, bool update_theta, bool update_split_prob, bool grow_new_tree)
+void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, Prior &prior, NodeData &node_data, bool update_theta, bool update_split_prob, bool grow_new_tree)
 {
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
-    size_t N_y = fit_info->residual_std.size();
     size_t ind;
     size_t split_var;
     size_t split_point;
@@ -674,9 +653,11 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
 
     if (update_theta)
     {
-        model->samplePars(fit_info->draw_mu, this->suff_stat[0], N_Xorder, sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+        model->samplePars(fit_info->draw_mu, this->suff_stat[0], N_Xorder, node_data.sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
 
-        this->sig = sigma;
+        this->sig = node_data.sigma;
+
+        // node_data.sigma = sigma;
     }
 
     bool no_split = false;
@@ -714,7 +695,7 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
         }
     }
 
-    BART_likelihood_all(Xorder_std, sigma, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, fit_info, this, prior, update_split_prob);
+    BART_likelihood_all(Xorder_std, node_data.sigma, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, fit_info, this, prior, update_split_prob);
 
     if (no_split == true)
     {
@@ -727,16 +708,16 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
         }
 
         if(update_theta){
-            model->samplePars(fit_info->draw_mu, this->suff_stat[0], N_Xorder, sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+            model->samplePars(fit_info->draw_mu, this->suff_stat[0], N_Xorder, node_data.sigma, prior.tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
         }
 
         this->l = 0;
         this->r = 0;
 
         // update leaf prob, for MH update useage
-        this->loglike_leaf = model->likelihood_no_split(this->suff_stat[0] * N_Xorder, prior.tau, N_Xorder * prior.tau, pow(sigma, 2));
+        this->loglike_leaf = model->likelihood_no_split(this->suff_stat[0] * N_Xorder, prior.tau, N_Xorder * prior.tau, pow(node_data.sigma, 2));
 
-        this->prob_leaf = normal_density(this->theta_vector[0], this->suff_stat[0] * N_Xorder / pow(sigma, 2) / (1.0 / prior.tau + N_Xorder / pow(sigma, 2)), 1.0 / (1.0 / prior.tau + N_Xorder / pow(sigma, 2)), true);
+        this->prob_leaf = normal_density(this->theta_vector[0], this->suff_stat[0] * node_data.N_Xorder / pow(node_data.sigma, 2) / (1.0 / prior.tau + node_data.N_Xorder / pow(node_data.sigma, 2)), 1.0 / (1.0 / prior.tau + node_data.N_Xorder / pow(node_data.sigma, 2)), true);
 
         return;
     }
@@ -744,12 +725,12 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
     if(grow_new_tree){ 
         // If GROW FROM ROOT MODE
         this->v = split_var;
-        this->c = *(fit_info->X_std + N_y * split_var + Xorder_std[split_var][split_point]);
+        this->c = *(fit_info->X_std + fit_info->n_y * split_var + Xorder_std[split_var][split_point]);
     }
 
     // Update Cutpoint to be a true seperating point
     // Increase split_point (index) until it is no longer equal to cutpoint value
-    while ((split_point < N_Xorder - 1) && (*(fit_info->X_std + N_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
+    while ((split_point < node_data.N_Xorder - 1) && (*(fit_info->X_std + fit_info->n_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
     {
         split_point = split_point + 1;
     }
@@ -806,9 +787,12 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, fit_info, this);
     }
 
-    this->l->grow_from_root(fit_info, max_depth, sigma, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, prior, update_theta, update_split_prob, grow_new_tree);
+    NodeData left_node_data(node_data.sigma, split_point + 1);
+    NodeData right_node_data(node_data.sigma, node_data.N_Xorder - split_point - 1);
 
-    this->r->grow_from_root(fit_info, max_depth, sigma, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, tree_ind, prior, update_theta, update_split_prob, grow_new_tree);
+    this->l->grow_from_root(fit_info, max_depth, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, prior, left_node_data, update_theta, update_split_prob, grow_new_tree);
+
+    this->r->grow_from_root(fit_info, max_depth, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, tree_ind, prior, right_node_data, update_theta, update_split_prob, grow_new_tree);
 
     return;
 }

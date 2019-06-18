@@ -6,6 +6,7 @@
 #include "utility.h"
 #include <memory>
 #include "fit_info.h"
+#include "node_data.h" 
 
 using namespace std;
 
