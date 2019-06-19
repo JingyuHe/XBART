@@ -10,41 +10,22 @@
 
 using namespace std;
 
-struct Prior
-{
-    // prior of leaf, variance
-    double tau;
-
-    // prior of cutpoint
-    double alpha;
-    double beta;
-
-    // prior of residual variance
-    double kap;
-    double s;
-
-    Prior(double tau, double alpha, double beta, double kap, double s)
-    {
-        this->tau = tau;
-        this->alpha = alpha;
-        this->beta = beta;
-        this->kap = kap;
-        this->s = s;
-    }
-};
-
 class Model
 {
 
 protected:
     size_t num_classes;
     size_t dim_suffstat;
-    size_t dim_suffstat_total;
     std::vector<double> suff_stat_model;
     std::vector<double> suff_stat_total;
     double no_split_penality;
 
 public:
+
+    // tree prior
+    double alpha;
+    double beta;
+
     Model(size_t num_classes, size_t dim_suff)
     {
         this->num_classes = num_classes;
@@ -56,7 +37,7 @@ public:
     virtual void updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, xinfo_sizet &Xorder_std, size_t &split_var, size_t row_ind) { return; };
     virtual void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side) { return; };
     virtual void incrementSuffStat() const { return; };
-    virtual void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
+    virtual void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma,
                             std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder, double &prob_leaf) { return; };
     virtual void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M,
                                 std::vector<double> &residual_std) const { return; };
@@ -64,9 +45,9 @@ public:
     virtual void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint) { return; };
     // virtual double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const { return 0.0; };
 
-     virtual double likelihood(Prior &prior, NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const { return 0.0; };
+     virtual double likelihood(NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const { return 0.0; };
 
-    virtual double likelihood_no_split(Prior &prior, NodeData &node_data, std::vector<double> &suff_stat) const { return 0.0; };
+    virtual double likelihood_no_split(NodeData &node_data, std::vector<double> &suff_stat) const { return 0.0; };
     virtual void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder) { return; };
     virtual double predictFromTheta(const std::vector<double> &theta_vector) const { return 0.0; };
     virtual Model *clone() { return nullptr; };
@@ -104,13 +85,27 @@ public:
 class NormalModel : public Model
 {
 private:
-    size_t dim_suffstat_total = 1;
+    size_t dim_suffstat = 1;
     std::vector<double> suff_stat_total;
 
 public:
-    NormalModel() : Model(1, 1)
-    {
+    // model prior
+    // prior on sigma
+    double kap;
+    double s;
+    // prior on leaf parameter
+    double tau;
+
+
+    NormalModel(double kap, double s, double tau, double alpha, double beta) : Model(1,1)    {
+        this->kap = kap;
+        this->s = s;
+        this->tau = tau;
+        this->alpha = alpha;
+        this->beta = beta;
     }
+
+    NormalModel() : Model(1,1){}
 
     void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder)
     {
@@ -119,7 +114,7 @@ public:
         return;
     }
     void incrementSuffStat() const { return; };
-    void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
+    void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma,
                     std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder, double &prob_leaf)
     {
         std::normal_distribution<double> normal_samp(0.0, 1.0);
@@ -196,7 +191,7 @@ public:
     }
 
     // double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
-    double likelihood(Prior &prior, NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const
+    double likelihood(NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const
     {
         // likelihood equation,
         // note the difference of left_side == true / false
@@ -207,27 +202,27 @@ public:
 
         if (left_side)
         {
-            ntau = (N_left + 1) * prior.tau;
-            return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * prior.tau * pow(Model::suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
+            ntau = (N_left + 1) * tau;
+            return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(Model::suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
         }
         else
         {
-            ntau = (node_data.N_Xorder - N_left - 1) * prior.tau;
-            return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * prior.tau * pow(y_sum - Model::suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
+            ntau = (node_data.N_Xorder - N_left - 1) * tau;
+            return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(y_sum - Model::suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
         }
     }
 
     // double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
-    double likelihood_no_split(Prior &prior, NodeData &node_data, std::vector<double> &suff_stat) const
+    double likelihood_no_split(NodeData &node_data, std::vector<double> &suff_stat) const
     {
         // the likelihood of no-split option is a bit different from others
         // because the sufficient statistics is y_sum here
         // write a separate function, more flexibility
-        double ntau = node_data.N_Xorder * prior.tau;
+        double ntau = node_data.N_Xorder * tau;
         double sigma2 = pow(node_data.sigma, 2);
         double value = node_data.N_Xorder * suff_stat[0]; // sum of y
 
-        return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * prior.tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
+        return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
     }
 
     double predictFromTheta(const std::vector<double> &theta_vector) const
@@ -269,13 +264,30 @@ public:
 class CLTClass : public Model
 {
 private:
-    size_t dim_suffstat_total = 4;
+    size_t dim_suffstat = 4;
     //std::vector<double> suff_stat_total;
 
 public:
+    // model prior
+    // prior on sigma
+    double kap;
+    double s;
+    // prior on leaf parameter
+    double tau;
+
+
+    CLTClass(double kap, double s, double tau, double alpha, double beta) : Model(1,4)    {
+        suff_stat_total.resize(dim_suffstat);
+        this->kap = kap;
+        this->s = s;
+        this->tau = tau;
+        this->alpha = alpha;
+        this->beta = beta;
+    }
+
     CLTClass() : Model(1, 4)
     {
-        suff_stat_total.resize(dim_suffstat_total);
+        suff_stat_total.resize(dim_suffstat);
     }
     std::vector<double> total_fit; // Keep public to save copies
     std::vector<double> suff_stat_total;
@@ -296,7 +308,7 @@ public:
         return;
     }
     void incrementSuffStat() const { return; };
-    void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
+    void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma,
                     std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder, double &prob_leaf)
     {
         // Update params
@@ -430,30 +442,30 @@ public:
     }
 
     // double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
-    double likelihood(Prior &prior, NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const
+    double likelihood(NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const
     {
         // likelihood equation,
         // note the difference of left_side == true / false
 
         if (left_side)
         {
-            return 0.5 * Model::suff_stat_model[2] + 0.5 * std::log((1 / prior.tau) / ((1 / prior.tau) + Model::suff_stat_model[1])) + 0.5 * prior.tau / (1 + prior.tau * Model::suff_stat_model[1]) * pow(Model::suff_stat_model[0], 2); //- 0.5 * Model::suff_stat_model[3];
+            return 0.5 * Model::suff_stat_model[2] + 0.5 * std::log((1 / tau) / ((1 / tau) + Model::suff_stat_model[1])) + 0.5 * tau / (1 + tau * Model::suff_stat_model[1]) * pow(Model::suff_stat_model[0], 2); //- 0.5 * Model::suff_stat_model[3];
             ;
         }
         else
         {
-            return 0.5 * (suff_stat_total[2] - Model::suff_stat_model[2]) + 0.5 * std::log((1 / prior.tau) / ((1 / prior.tau) + (suff_stat_total[1] - Model::suff_stat_model[1]))) + 0.5 * prior.tau / (1 + prior.tau * (suff_stat_total[1] - Model::suff_stat_model[1])) * pow(suff_stat_total[0] - Model::suff_stat_model[0], 2); // - 0.5 * (suff_stat_total[3] - Model::suff_stat_model[3]);
+            return 0.5 * (suff_stat_total[2] - Model::suff_stat_model[2]) + 0.5 * std::log((1 / tau) / ((1 / tau) + (suff_stat_total[1] - Model::suff_stat_model[1]))) + 0.5 * tau / (1 + tau * (suff_stat_total[1] - Model::suff_stat_model[1])) * pow(suff_stat_total[0] - Model::suff_stat_model[0], 2); // - 0.5 * (suff_stat_total[3] - Model::suff_stat_model[3]);
         }
     }
 
     // double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
-    double likelihood_no_split(Prior &prior, NodeData &node_data, std::vector<double> &suff_stat) const
+    double likelihood_no_split(NodeData &node_data, std::vector<double> &suff_stat) const
     {
         // the likelihood of no-split option is a bit different from others
         // because the sufficient statistics is y_sum here
         // write a separate function, more flexibility
 
-        return 0.5 * (suff_stat_total[2]) + 0.5 * std::log((1 / prior.tau) / ((1 / prior.tau) + (suff_stat_total[1]))) + 0.5 * prior.tau / (1 + prior.tau * (suff_stat_total[1])) * pow(suff_stat_total[0], 2) - 0.5 * suff_stat_total[3];
+        return 0.5 * (suff_stat_total[2]) + 0.5 * std::log((1 / tau) / ((1 / tau) + (suff_stat_total[1]))) + 0.5 * tau / (1 + tau * (suff_stat_total[1])) * pow(suff_stat_total[0], 2) - 0.5 * suff_stat_total[3];
         ;
     }
 
@@ -505,7 +517,7 @@ public:
 class LogitClass : public Model
 {
 private:
-    size_t dim_suffstat_total = 0; // = 2*num_classes;
+    size_t dim_suffstat = 0; // = 2*num_classes;
     //std::vector<double> suff_stat_total;
 
     double LogitLIL(const vector<double> &suffstats, const double &tau_a, const double &tau_b) const
@@ -553,14 +565,14 @@ public:
 
     LogitClass() : Model(2, 4)
     {
-        dim_suffstat_total = 2 * num_classes;       //num_classes is a member of base Model class
-        suff_stat_total.resize(dim_suffstat_total); //suff_stat_total stuff should live in base class
+        dim_suffstat = 2 * num_classes;       //num_classes is a member of base Model class
+        suff_stat_total.resize(dim_suffstat); //suff_stat_total stuff should live in base class
     }
 
     LogitClass(size_t num_classes) : Model(num_classes, 2 * num_classes)
     {
-        dim_suffstat_total = 2 * num_classes;
-        suff_stat_total.resize(dim_suffstat_total);
+        dim_suffstat = 2 * num_classes;
+        suff_stat_total.resize(dim_suffstat);
     }
     //std::vector<double> total_fit; // Keep public to save copies
     std::vector<double> suff_stat_total;
@@ -607,7 +619,7 @@ public:
     };
 
     // This function call can be much simplified too --  should only require (maybe) theta plus a draw_mu flag?
-    void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
+    void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma,
                     std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std,
                     xinfo_sizet &Xorder, double &prob_leaf)
     {
@@ -714,7 +726,7 @@ public:
 
     //this function should call a base LIL() member function that should be redefined in
     // double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
-    double likelihood(Prior &prior, NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const
+    double likelihood(NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const
     {
         // likelihood equation,
         // note the difference of left_side == true / false
@@ -733,7 +745,7 @@ public:
     }
 
     // double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
-    double likelihood_no_split(Prior &prior, NodeData &node_data, std::vector<double> &suff_stat) const
+    double likelihood_no_split(NodeData &node_data, std::vector<double> &suff_stat) const
     {
         // the likelihood of no-split option is a bit different from others
         // because the sufficient statistics is y_sum here
