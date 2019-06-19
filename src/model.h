@@ -5,7 +5,7 @@
 #include "common.h"
 #include "utility.h"
 #include <memory>
-#include "fit_info.h"
+#include "state.h"
 #include "node_data.h" 
 
 using namespace std;
@@ -544,8 +544,8 @@ private:
 
 public:
     //This is probably unsafe/stupid but a temporary hack #yolo
-    FitInfo *fit_info;
-    //these should be elements of a class derived from a FitInfo base class for this model
+    State *state;
+    //these should be elements of a class derived from a State base class for this model
     std::vector< std::vector<double> > *slop;
     std::vector<double> *phi;
     double tau_a = 3.3; //approx 4/sqrt(2) + 0.5
@@ -592,7 +592,7 @@ public:
     }
     */
 
-    // this function should ultimately take a FitInfo and DataInfo
+    // this function should ultimately take a State and DataInfo
     void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats) const
     {
 
@@ -648,7 +648,7 @@ public:
     }
     */
 
-    //    void updateResidualNew(size_t tree_ind, size_t M, std::unique_ptr<FitInfo> fit_info, std::vector<std::vector<double> > &slop) {
+    //    void updateResidualNew(size_t tree_ind, size_t M, std::unique_ptr<State> state, std::vector<std::vector<double> > &slop) {
     void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
     {
         size_t next_index = tree_ind + 1;
@@ -663,12 +663,12 @@ public:
             for (size_t j = 0; j < (*slop)[0].size(); ++j)
             {
                 //output[i] = data_pointers[M][i]->theta_vector[0];
-                (*slop)[i][j] *= (*fit_info->data_pointers[tree_ind][i])[j] / (*fit_info->data_pointers[next_index][i])[j];
+                (*slop)[i][j] *= (*state->data_pointers[tree_ind][i])[j] / (*state->data_pointers[next_index][i])[j];
             }
         }
     }
 
-    // Once their function calls are standardized to take a FitInfo we should never have to redefine these
+    // Once their function calls are standardized to take a State we should never have to redefine these
     // in another model class
     void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var)
     {

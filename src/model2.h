@@ -5,7 +5,7 @@
 #include "common.h"
 #include "utility.h"
 #include <memory>
-#include "fit_info.h"
+#include "state.h"
 
 using namespace std;
 
