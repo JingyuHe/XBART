@@ -6,7 +6,7 @@
 #include "utility.h"
 #include <memory>
 #include "state.h"
-#include "node_data.h" 
+#include "node_data.h"
 
 using namespace std;
 
@@ -39,13 +39,8 @@ public:
                             std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder, double &prob_leaf) { return; };
     virtual void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M,
                                 std::vector<double> &residual_std) const { return; };
-    virtual void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var) { return; };
-    virtual void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint) { return; };
-    // virtual double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const { return 0.0; };
 
-virtual double likelihood(NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const { return 0.0; };
-
-     virtual double likelihood2(std::vector<double> &temp_suff_stat, NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const { return 0.0; };
+    virtual double likelihood(std::vector<double> &temp_suff_stat, NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const { return 0.0; };
 
     virtual double likelihood_no_split(NodeData &node_data, std::vector<double> &suff_stat) const { return 0.0; };
     virtual void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder) { return; };
@@ -59,8 +54,6 @@ virtual double likelihood(NodeData &node_data, std::vector<double> &node_suff_st
     // dim suff stat
     size_t getDimSuffstat() const { return dim_suffstat; };
     void setDimSuffStat(size_t dim_suff) { dim_suffstat = dim_suff; };
-    // suff stat
-    std::vector<double> getSuffstat() const { return this->suff_stat_model; };
     //penality
     double getNoSplitPenality()
     {
@@ -68,18 +61,6 @@ virtual double likelihood(NodeData &node_data, std::vector<double> &node_suff_st
         ;
     };
     void setNoSplitPenality(double pen) { this->no_split_penality = pen; };
-
-    // Other Pre-Defined functions
-    void suff_stat_fill_zero()
-    {
-        std::fill(Model::suff_stat_model.begin(), Model::suff_stat_model.end(), 0);
-        return;
-    };
-    void printSuffstat() const
-    {
-        cout << this->suff_stat_model << endl;
-        return;
-    };
 };
 
 class NormalModel : public Model
@@ -94,8 +75,8 @@ public:
     // prior on leaf parameter
     double tau;
 
-
-    NormalModel(double kap, double s, double tau, double alpha, double beta) : Model(1,3)    {
+    NormalModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 3)
+    {
         this->kap = kap;
         this->s = s;
         this->tau = tau;
@@ -103,9 +84,9 @@ public:
         this->beta = beta;
     }
 
-    NormalModel() : Model(1,3){}
+    NormalModel() : Model(1, 3) {}
 
-    void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats) 
+    void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats)
     {
         suffstats[0] += y_std[ix];
         return;
@@ -153,89 +134,12 @@ public:
         return;
     }
 
-    void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var)
-    {
-        // calculate sufficient statistics for categorical variables
-
-        // compute sum of y[Xorder[start:end, var]]
-        size_t loop_count = 0;
-        for (size_t i = start; i <= end; i++)
-        {
-            // Model::suff_stat_model[0] += y[Xorder[var][i]];
-            incSuffStat(y, Xorder[var][i], Model::suff_stat_model);
-
-            incSuffStat(y, Xorder[var][i], temp_suff_stat);
-
-            loop_count++;
-        }
-        return;
-    }
-
-    void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint)
-    {
-        // calculate sufficient statistics for continuous variables
-
-        if (adaptive_cutpoint)
-        {
-
-            if (index == 0)
-            {
-                // initialize, only for the first cutpoint candidate, thus index == 0
-                // Model::suff_stat_model[0] = y_std[xorder[0]];
-                incSuffStat(y_std, xorder[0], Model::suff_stat_model);
-
-                incSuffStat(y_std, xorder[0], temp_suff_stat);
-
-            }
-
-            // if use adaptive number of cutpoints, calculated based on vector candidate_index
-            for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
-            {
-                // Model::suff_stat_model[0] += y_std[xorder[q]];
-                incSuffStat(y_std, xorder[q], Model::suff_stat_model);
-
-                incSuffStat(y_std, xorder[q], temp_suff_stat);
-            }
-        }
-        else
-        {
-            // use all data points as candidates
-            // Model::suff_stat_model[0] += y_std[xorder[index]];
-            incSuffStat(y_std, xorder[index], Model::suff_stat_model);
-
-            incSuffStat(y_std, xorder[index], temp_suff_stat);
-        }
-        return;
-    }
-
-    // double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
-    double likelihood(NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const
+    double likelihood(std::vector<double> &temp_suff_stat, NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const
     {
         // likelihood equation,
         // note the difference of left_side == true / false
         // node_suff_stat is mean of y, sum of square of y, saved in tree class
-        double y_sum = (double) node_data.N_Xorder * node_suff_stat[0];
-        double sigma2 = pow(node_data.sigma, 2);
-        double ntau;
-
-        if (left_side)
-        {
-            ntau = (N_left + 1) * tau;
-            return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(Model::suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
-        }
-        else
-        {
-            ntau = (node_data.N_Xorder - N_left - 1) * tau;
-            return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(y_sum - Model::suff_stat_model[0], 2) / (sigma2 * (ntau + sigma2));
-        }
-    }
-
-        double likelihood2(std::vector<double> &temp_suff_stat, NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const
-    {
-        // likelihood equation,
-        // note the difference of left_side == true / false
-        // node_suff_stat is mean of y, sum of square of y, saved in tree class
-        double y_sum = (double) node_data.N_Xorder * node_suff_stat[0];
+        double y_sum = (double)node_data.N_Xorder * node_suff_stat[0];
         double sigma2 = pow(node_data.sigma, 2);
         double ntau;
 
@@ -251,7 +155,6 @@ public:
         }
     }
 
-
     // double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
     double likelihood_no_split(NodeData &node_data, std::vector<double> &suff_stat) const
     {
@@ -264,7 +167,6 @@ public:
 
         return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
     }
-
 
     double predictFromTheta(const std::vector<double> &theta_vector) const
     {
@@ -281,12 +183,14 @@ public:
         return;
     }
 
-    virtual void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side){
+    virtual void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side)
+    {
 
         // in function split_xorder_std_categorical, for efficiency, the function only calculates suff stat of ONE child
         // this function calculate the other side based on parent and the other child
 
-        if(compute_left_side){
+        if (compute_left_side)
+        {
             rchild_suff_stat[0] = (parent_suff_stat[0] * N_parent - lchild_suff_stat[0]) / N_right;
 
             rchild_suff_stat[1] = parent_suff_stat[1] - lchild_suff_stat[1];
@@ -294,7 +198,9 @@ public:
             lchild_suff_stat[0] = lchild_suff_stat[0] / N_left;
 
             rchild_suff_stat[2] = parent_suff_stat[2] - lchild_suff_stat[2];
-        }else{
+        }
+        else
+        {
             lchild_suff_stat[0] = (parent_suff_stat[0] * N_parent - rchild_suff_stat[0]) / N_left;
 
             lchild_suff_stat[1] = parent_suff_stat[1] - rchild_suff_stat[1];
@@ -322,8 +228,8 @@ public:
     // prior on leaf parameter
     double tau;
 
-
-    CLTClass(double kap, double s, double tau, double alpha, double beta) : Model(1,4)    {
+    CLTClass(double kap, double s, double tau, double alpha, double beta) : Model(1, 4)
+    {
         suff_stat_total.resize(dim_suffstat);
         this->kap = kap;
         this->s = s;
@@ -530,12 +436,14 @@ public:
         return;
     }
 
-        virtual void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side){
+    virtual void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side)
+    {
 
         // in function split_xorder_std_categorical, for efficiency, the function only calculates suff stat of ONE child
         // this function calculate the other side based on parent and the other child
 
-        if(compute_left_side){
+        if (compute_left_side)
+        {
             rchild_suff_stat[0] = (parent_suff_stat[0] * N_parent - lchild_suff_stat[0]) / N_right;
 
             rchild_suff_stat[1] = parent_suff_stat[1] - lchild_suff_stat[1];
@@ -543,18 +451,19 @@ public:
             lchild_suff_stat[0] = lchild_suff_stat[0] / N_left;
 
             rchild_suff_stat[2] = parent_suff_stat[2] - lchild_suff_stat[2];
-        }else{
+        }
+        else
+        {
             lchild_suff_stat[0] = (parent_suff_stat[0] * N_parent - rchild_suff_stat[0]) / N_left;
 
             lchild_suff_stat[1] = parent_suff_stat[1] - rchild_suff_stat[1];
 
             rchild_suff_stat[0] = rchild_suff_stat[0] / N_right;
-            
+
             lchild_suff_stat[2] = parent_suff_stat[2] - rchild_suff_stat[2];
         }
         return;
     }
-    
 };
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -609,7 +518,7 @@ public:
     //This is probably unsafe/stupid but a temporary hack #yolo
     State *state;
     //these should be elements of a class derived from a State base class for this model
-    std::vector< std::vector<double> > *slop;
+    std::vector<std::vector<double>> *slop;
     std::vector<double> *phi;
     double tau_a = 3.3; //approx 4/sqrt(2) + 0.5
     double tau_b = 2.8;
@@ -656,7 +565,7 @@ public:
     */
 
     // this function should ultimately take a State and DataInfo
-    void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats) 
+    void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats)
     {
 
         for (size_t j = 0; j < num_classes; ++j)
@@ -729,38 +638,6 @@ public:
                 (*slop)[i][j] *= (*state->data_pointers[tree_ind][i])[j] / (*state->data_pointers[next_index][i])[j];
             }
         }
-    }
-
-    // Once their function calls are standardized to take a State we should never have to redefine these
-    // in another model class
-    void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var)
-    {
-        // calculate sufficient statistics for categorical variables
-
-        // compute sum of y[Xorder[start:end, var]]
-        for (size_t i = start; i <= end; i++)
-            incSuffStat(y, Xorder[var][i], Model::suff_stat_model);
-    }
-
-    void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std,
-                                 std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint)
-    {
-        // calculate sufficient statistics for continuous variables
-        if (adaptive_cutpoint)
-        {
-
-            // if use adaptive number of cutpoints, calculated based on vector candidate_index
-            for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
-            {
-                incSuffStat(y_std, xorder[q], Model::suff_stat_model);
-            }
-        }
-        else
-        {
-            incSuffStat(y_std, xorder[index], Model::suff_stat_model);
-        }
-
-        return;
     }
 
     void updateFullSuffStat(std::vector<double> &y_std, std::vector<size_t> &x_info)
