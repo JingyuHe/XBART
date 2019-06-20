@@ -31,11 +31,12 @@ public:
     // Abstract functions
     virtual void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats) { return; };
 
+    virtual void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf) { return; };
+
     virtual void updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, xinfo_sizet &Xorder_std, size_t &split_var, size_t row_ind) { return; };
     virtual void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side) { return; };
     virtual void incrementSuffStat() const { return; };
-    virtual void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma,
-                            std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder, double &prob_leaf) { return; };
+ 
     virtual void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M,
                                 std::vector<double> &residual_std) const { return; };
 
@@ -98,30 +99,28 @@ public:
         return;
     }
     void incrementSuffStat() const { return; };
-    void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma,
-                    std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder, double &prob_leaf)
-    {
+
+    void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf){
         std::normal_distribution<double> normal_samp(0.0, 1.0);
-        if (draw_mu == true)
+        if (state->draw_mu == true)
         {
 
             // test result should be theta
-            theta_vector[0] = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2))) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
+            theta_vector[0] = suff_stat[0] * suff_stat[2] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)) + sqrt(1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2))) * normal_samp(state->gen); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
         }
         else
         {
             // test result should be theta
-            theta_vector[0] = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2));
+            theta_vector[0] = suff_stat[0] * suff_stat[2] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2));
         }
 
         // also update probability of leaf parameters
-        prob_leaf = normal_density(theta_vector[0], y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)), 1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2)), true);
+        prob_leaf = normal_density(theta_vector[0], suff_stat[0] * suff_stat[2] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), 1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), true);
 
         // cout << "prob_leaf " << prob_leaf << endl;
 
         return;
     }
-
     void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
     {
         size_t next_index = tree_ind + 1;

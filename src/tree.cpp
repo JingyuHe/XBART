@@ -653,7 +653,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, size_t max_depth, xinfo
 
     if (update_theta)
     {
-        model->samplePars(state->draw_mu, this->suff_stat[0], this->suff_stat[2], state->sigma, state->gen, this->theta_vector, state->residual_std, Xorder_std, this->prob_leaf);
+        model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
 
         this->sig = state->sigma;
 
@@ -708,7 +708,8 @@ void tree::grow_from_root(std::unique_ptr<State> &state, size_t max_depth, xinfo
 
         if (update_theta)
         {
-            model->samplePars(state->draw_mu, this->suff_stat[0], this->suff_stat[2], state->sigma, state->gen, this->theta_vector, state->residual_std, Xorder_std, this->prob_leaf);
+            model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
+
         }
 
         this->l = 0;
