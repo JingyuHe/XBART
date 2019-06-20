@@ -332,7 +332,6 @@ void tree::cp(tree_p n, tree_cp o)
 
     n->v = o->v;
     n->c = o->c;
-    n->sig = o->sig;
     n->prob_split = o->prob_split;
     n->prob_leaf = o->prob_leaf;
     n->drawn_ind = o->drawn_ind;
@@ -341,9 +340,6 @@ void tree::cp(tree_p n, tree_cp o)
     n->loglike_leaf = o->loglike_leaf;
     n->tree_like = o->tree_like;
     n->theta_vector = o->theta_vector;
-    // n->split_var = o->split_var;
-    // n->split_point = o->split_point;
-    // n->no_split = o->no_split;
 
     if (o->l)
     { //if o has children
@@ -363,7 +359,6 @@ void tree::copy_only_root(tree_p o)
 {
     this->v = o->v;
     this->c = o->c;
-    this->sig = o->sig;
     this->prob_split = o->prob_split;
     this->prob_leaf = o->prob_leaf;
     this->drawn_ind = o->drawn_ind;
@@ -655,9 +650,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, xinfo_sizet &Xorder_std
     if (update_theta)
     {
         model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
-
-        this->sig = state->sigma;
-
     }
 
     bool no_split = false;
