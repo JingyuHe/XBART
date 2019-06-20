@@ -30,6 +30,8 @@ public:
     };
 
     // Abstract functions
+    virtual void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats) { return; };
+
     virtual void updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, xinfo_sizet &Xorder_std, size_t &split_var, size_t row_ind) { return; };
     virtual void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side) { return; };
     virtual void incrementSuffStat() const { return; };
@@ -101,6 +103,12 @@ public:
 
     NormalModel() : Model(1,3){}
 
+    void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats) const
+    {
+        suffstats[0] += y_std[ix];
+        return;
+    }
+
     void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder)
     {
         // fill the suff_stat_model with a value
@@ -151,7 +159,9 @@ public:
         size_t loop_count = 0;
         for (size_t i = start; i <= end; i++)
         {
-            Model::suff_stat_model[0] += y[Xorder[var][i]];
+            // Model::suff_stat_model[0] += y[Xorder[var][i]];
+            incSuffStat(y, Xorder[var][i], Model::suff_stat_model);
+
             loop_count++;
         }
         return;
@@ -167,19 +177,23 @@ public:
             if (index == 0)
             {
                 // initialize, only for the first cutpoint candidate, thus index == 0
-                Model::suff_stat_model[0] = y_std[xorder[0]];
+                // Model::suff_stat_model[0] = y_std[xorder[0]];
+                incSuffStat(y_std, xorder[0], Model::suff_stat_model);
+
             }
 
             // if use adaptive number of cutpoints, calculated based on vector candidate_index
             for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
             {
-                Model::suff_stat_model[0] += y_std[xorder[q]];
+                // Model::suff_stat_model[0] += y_std[xorder[q]];
+                incSuffStat(y_std, xorder[q], Model::suff_stat_model);
             }
         }
         else
         {
             // use all data points as candidates
-            Model::suff_stat_model[0] += y_std[xorder[index]];
+            // Model::suff_stat_model[0] += y_std[xorder[index]];
+            incSuffStat(y_std, xorder[index], Model::suff_stat_model);
         }
         return;
     }
