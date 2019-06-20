@@ -49,6 +49,7 @@ struct State
     size_t n_y; // number of total data points in root node
     const double *X_std; // pointer to original data
     const std::vector<double> *y_std; // pointer to y data
+    const xinfo_sizet *max_depth_std;
     bool draw_mu;
     size_t num_trees;
     size_t num_sweeps;
@@ -57,6 +58,8 @@ struct State
     // residual standard deviation 
     double sigma;
     double sigma2; // sigma squared
+    
+
 
     // Vector pointers
     matrix<std::vector<double>*> data_pointers;    
@@ -96,7 +99,7 @@ struct State
         return;
     }
 
-    State(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, std::vector<double>* initial_theta, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, bool draw_mu, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma)
+    State(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, std::vector<double>* initial_theta, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, bool draw_mu, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, xinfo_sizet *max_depth_std)
     {
 
         // Handle Categorical
@@ -147,6 +150,7 @@ struct State
         this->y_std = y_std;
         this->sigma = sigma;
         this->sigma2 = pow(sigma, 2);
+        this->max_depth_std = max_depth_std;
 
         return;
     }

@@ -628,9 +628,10 @@ double tree::prior_prob(NormalModel *model)
     return output;
 }
 
-void tree::grow_from_root(std::unique_ptr<State> &state, size_t max_depth, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree)
+void tree::grow_from_root(std::unique_ptr<State> &state, xinfo_sizet &Xorder_std, std::vector<double> &mtry_weight_current_tree, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree)
 {
     // grow a tree, users can control number of split points
+    size_t max_depth = (*state->max_depth_std)[sweeps][tree_ind];
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
     size_t ind;
@@ -788,9 +789,9 @@ void tree::grow_from_root(std::unique_ptr<State> &state, size_t max_depth, xinfo
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, state, this);
     }
 
-    this->l->grow_from_root(state, max_depth, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, update_theta, update_split_prob, grow_new_tree);
+    this->l->grow_from_root(state, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree);
 
-    this->r->grow_from_root(state, max_depth, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, tree_ind, update_theta, update_split_prob, grow_new_tree);
+    this->r->grow_from_root(state, Xorder_right_std, mtry_weight_current_tree, X_counts_right, X_num_unique_right, model, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree);
 
     return;
 }
