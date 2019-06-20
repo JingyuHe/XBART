@@ -63,7 +63,8 @@ void fit_std(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std,
             state->update_split_counts(tree_ind);
 
             // Update Predict
-            predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
+            // predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
+            predict_from_datapointers(tree_ind, model, state);
 
             // update residual, now it's residual of m trees
             model->updateResidual(state->predictions_std, tree_ind, state->num_trees, state->residual_std);
@@ -199,7 +200,9 @@ void fit_std_clt(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_
             state->update_split_counts(tree_ind);
 
             // fit_new_std(trees[sweeps][tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
-            predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
+            // predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
+            predict_from_datapointers(tree_ind, model, state);
+
 
             // update residual, now it's residual of m trees
             model->updateResidual(state->predictions_std, tree_ind, state->num_trees, state->residual_std);
@@ -393,7 +396,8 @@ void fit_std_probit(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_dep
             state->update_split_counts(tree_ind);
 
             // Update Predict
-            predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
+            // predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
+            predict_from_datapointers(tree_ind, model, state);
 
             // update residual, now it's residual of m trees
             model->updateResidual(state->predictions_std, tree_ind, state->num_trees, state->residual_std);
@@ -622,7 +626,9 @@ void fit_std_MH(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_s
             // predict_from_datapointers(Xpointer, N, tree_ind, temp_vec, state->data_pointers, model);
 // cout << "before datapointers " << endl;
 // cout << "tree size " << trees[sweeps][tree_ind].treesize() << endl;
-            predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
+            // predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
+            predict_from_datapointers(tree_ind, model, state);
+
             // cout << "after datapointers " << endl;
 
             // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, state->predictions_std[tree_ind], model);

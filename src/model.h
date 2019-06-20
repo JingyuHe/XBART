@@ -259,8 +259,7 @@ public:
         return;
     }
     void incrementSuffStat() const { return; };
-    void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma,
-                    std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder, double &prob_leaf)
+    void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder, double &prob_leaf)
     {
         // Update params
         updateFullSuffStat(y_std, Xorder[0]);

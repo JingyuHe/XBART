@@ -1694,14 +1694,13 @@ void predict_from_tree(tree &tree, const double *X_std, size_t N, size_t p, std:
     return;
 }
 
-void predict_from_datapointers(const double *X_std, size_t N, size_t M, std::vector<double> &output, matrix<std::vector<double> *> &data_pointers, Model *model)
+void predict_from_datapointers(size_t tree_ind, Model *model, std::unique_ptr<State> &state)
 {
     // tree search, but read from the matrix of pointers to end node directly
     // easier to get fitted value of training set
-    for (size_t i = 0; i < N; i++)
+    for (size_t i = 0; i < state->n_y; i++)
     {
-        // cout << "point " << i << " is ok " << endl;
-        output[i] = model->predictFromTheta(*data_pointers[M][i]);
+        state->predictions_std[tree_ind][i] = model->predictFromTheta(*(state->data_pointers[tree_ind][i]));
     }
     return;
 }

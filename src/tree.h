@@ -201,6 +201,6 @@ std::ostream &operator<<(std::ostream &, const tree &);
 
 void predict_from_tree(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output, Model *model);
 
-void predict_from_datapointers(const double *X_std, size_t N, size_t M, std::vector<double> &output, matrix<std::vector<double> *> &data_pointers, Model *model);
+void predict_from_datapointers(size_t tree_ind, Model *model, std::unique_ptr<State> &state);
 
 #endif
