@@ -707,7 +707,8 @@ void tree::grow_from_root(std::unique_ptr<State> &state, size_t max_depth, xinfo
             }
         }
 
-        if(update_theta){
+        if (update_theta)
+        {
             model->samplePars(state->draw_mu, this->suff_stat[0], this->suff_stat[2], node_data.sigma, state->gen, this->theta_vector, state->residual_std, Xorder_std, this->prob_leaf);
         }
 
@@ -723,7 +724,8 @@ void tree::grow_from_root(std::unique_ptr<State> &state, size_t max_depth, xinfo
         return;
     }
 
-    if(grow_new_tree){ 
+    if (grow_new_tree)
+    {
         // If GROW FROM ROOT MODE
         this->v = split_var;
         this->c = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
@@ -1442,6 +1444,9 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
     size_t N = N_Xorder;
 
+    std::vector<double> temp_suff_stat(model->dim_suffstat);
+    std::vector<double> temp_suff_stat2(model->dim_suffstat);
+
     if (N_Xorder <= state->n_cutpoints + 1 + 2 * state->n_min)
     {
         // if we only have a few data observations in current node
@@ -1462,8 +1467,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                 std::vector<size_t> &xorder = Xorder_std[i];
 
                 // initialize sufficient statistics
-                model->suff_stat_fill_zero();
-                //model->suff_stat_fill(0.0);
+                std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
 
                 ////////////////////////////////////////////////////////////////
                 //
@@ -1475,15 +1479,9 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                 for (size_t j = 0; j < N_Xorder - 1; j++)
                 {
-                    // loop over all possible cutpoints
-                    // n1tau = (j + 1) * model->tau; // number of points on left side (x <= cutpoint)
-                    // n2tau = Ntau - n1tau;        // number of points on right side (x > cutpoint)
+                    calcSuffStat_continuous_tree(temp_suff_stat, xorder, state->residual_std, candidate_index, j, false, model);
 
-                    model->calcSuffStat_continuous(xorder, state->residual_std, candidate_index, j, false);
-
-                    // loglike[(N_Xorder - 1) * i + j] = model->likelihood(model->tau, n1tau, sigma2, y_sum, true) + model->likelihood(model->tau, n2tau, sigma2, y_sum, false);
-                    loglike[(N_Xorder - 1) * i + j] = model->likelihood(node_data, tree_pointer->suff_stat, j, true) + model->likelihood(node_data, tree_pointer->suff_stat, j, false);
-
+                    loglike[(N_Xorder - 1) * i + j] = model->likelihood2(temp_suff_stat, node_data, tree_pointer->suff_stat, j, true) + model->likelihood2(temp_suff_stat, node_data, tree_pointer->suff_stat, j, false);
 
                     if (loglike[(N_Xorder - 1) * i + j] > loglike_max)
                     {
@@ -1516,30 +1514,24 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     std::vector<size_t> &xorder = Xorder_std[i];
                     double llmax = -INFINITY;
 
-                    // std::vector<double> y_cumsum(Ncutpoints);
-                    Model *clone = model->clone();
-                    //model -> suff_stat_init();
-                    // clone->suff_stat_fill(y_std, xorder);
-                    clone->suff_stat_fill_zero();
+                    std::vector<double> temp_suff_stat(model->dim_suffstat);
+
+                    std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
+
+
 
                     for (size_t j = 0; j < state->n_cutpoints; j++)
                     {
-                        clone->calcSuffStat_continuous(xorder, state->residual_std, candidate_index2, j, true);
 
-                        // loop over all possible cutpoints
-                        // double n1tau = (candidate_index2[j + 1] + 1) * model->tau; // number of points on left side (x <= cutpoint)
-                        // double n2tau = Ntau - n1tau;                              // number of points on right side (x > cutpoint)
+                        calcSuffStat_continuous_tree(temp_suff_stat, xorder, state->residual_std, candidate_index2, j, true, model);
 
-                        // loglike[(state->n_cutpoints) * i + j] = clone->likelihood(model->tau, n1tau, sigma2, y_sum, true) + clone->likelihood(model->tau, n2tau, sigma2, y_sum, false);
-                        loglike[(state->n_cutpoints) * i + j] = clone->likelihood(node_data, tree_pointer->suff_stat, candidate_index2[j + 1], true) + clone->likelihood(node_data, tree_pointer->suff_stat, candidate_index2[j + 1], false);
-
+                        loglike[(state->n_cutpoints) * i + j] = model->likelihood2(temp_suff_stat, node_data, tree_pointer->suff_stat, candidate_index2[j + 1], true) + model->likelihood2(temp_suff_stat, node_data, tree_pointer->suff_stat, candidate_index2[j + 1], false);
 
                         if (loglike[(state->n_cutpoints) * i + j] > llmax)
                         {
                             llmax = loglike[(state->n_cutpoints) * i + j];
                         }
                     }
-                    delete clone;
                     llmax_mutex.lock();
                     if (llmax > loglike_max)
                         loglike_max = llmax;
@@ -1574,6 +1566,8 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
     size_t effective_cutpoints = 0;
 
+    std::vector<double> temp_suff_stat(model->dim_suffstat);
+
     for (auto &&i : subset_vars)
     {
 
@@ -1597,6 +1591,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
             y_cumsum = 0.0;
             model->suff_stat_fill_zero();
             //model -> suff_stat_fill(0.0); // initialize sufficient statistics
+            std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
 
             ////////////////////////////////////////////////////////////////
             //
@@ -1617,14 +1612,16 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                     temp = n1 + X_counts[j] - 1;
 
                     // modify sufficient statistics vector directly inside model class
-                    model->calcSuffStat_categorical(state->residual_std, Xorder_std, n1, temp, i);
+                    model->calcSuffStat_categorical(temp_suff_stat, state->residual_std, Xorder_std, n1, temp, i);
+                    // calcSuffStat_categorical_tree(temp_suff_stat, state->residual_std, Xorder_std, n1, temp, i, model);
 
                     n1 = n1 + X_counts[j];
                     // n1tau = (double)n1 * model->tau;
                     // n2tau = ntau - n1tau;
 
                     // loglike[loglike_start + j] = model->likelihood(model->tau, n1tau, sigma2, y_sum, true) + model->likelihood(model->tau, n2tau, sigma2, y_sum, false);
-                    loglike[loglike_start + j] = model->likelihood(node_data, tree_pointer->suff_stat, n1-1, true) + model->likelihood(node_data, tree_pointer->suff_stat, n1-1, false);
+                    // loglike[loglike_start + j] = model->likelihood(node_data, tree_pointer->suff_stat, n1-1, true) + model->likelihood(node_data, tree_pointer->suff_stat, n1-1, false);
+                    loglike[loglike_start + j] = model->likelihood2(temp_suff_stat, node_data, tree_pointer->suff_stat, n1 - 1, true) + model->likelihood2(temp_suff_stat, node_data, tree_pointer->suff_stat, n1 - 1, false);
 
                     // count total number of cutpoint candidates
                     effective_cutpoints++;
@@ -1642,9 +1639,9 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, double &sigma2, double &loglike_max, Model *model, size_t &total_categorical_split_candidates, std::unique_ptr<State> &state, tree *tree_pointer, NodeData &node_data)
 {
 
-  //  loglike[loglike.size() - 1] = model->likelihood_no_split(y_sum, model->tau, N_Xorder * model->tau, sigma2) + log(1.0 - model->alpha * pow(1.0 + tree_pointer->depth, -1.0 * model->beta)) - log(model->alpha) + model->beta * log(1.0 + tree_pointer->depth);
-    // loglike[loglike.size() - 1] = model->likelihood_no_split(y_sum, model->tau, N_Xorder * model->tau, sigma2) + log(pow(1.0 + tree_pointer->depth, model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0);  
-    loglike[loglike.size() - 1] = model->likelihood_no_split(node_data, tree_pointer->suff_stat) + log(pow(1.0 + tree_pointer->depth, model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0);  
+    //  loglike[loglike.size() - 1] = model->likelihood_no_split(y_sum, model->tau, N_Xorder * model->tau, sigma2) + log(1.0 - model->alpha * pow(1.0 + tree_pointer->depth, -1.0 * model->beta)) - log(model->alpha) + model->beta * log(1.0 + tree_pointer->depth);
+    // loglike[loglike.size() - 1] = model->likelihood_no_split(y_sum, model->tau, N_Xorder * model->tau, sigma2) + log(pow(1.0 + tree_pointer->depth, model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0);
+    loglike[loglike.size() - 1] = model->likelihood_no_split(node_data, tree_pointer->suff_stat) + log(pow(1.0 + tree_pointer->depth, model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0);
 
     // then adjust according to number of variables and split points
 
@@ -1662,7 +1659,7 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
     //
     ////////////////////////////////////////////////////////////////
 
-   // loglike[loglike.size() - 1] += log(state->p) + log(2.0) + model->getNoSplitPenality();
+    // loglike[loglike.size() - 1] += log(state->p) + log(2.0) + model->getNoSplitPenality();
 
     ////////////////////////////////////////////////////////////////
     // The loop below might be useful when test different weights
@@ -1715,6 +1712,46 @@ void predict_from_datapointers(const double *X_std, size_t N, size_t M, std::vec
     {
         // cout << "point " << i << " is ok " << endl;
         output[i] = model->predictFromTheta(*data_pointers[M][i]);
+    }
+    return;
+}
+
+void calcSuffStat_categorical_tree(std::vector<double> &temp_suff_stat, std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var, Model *model)
+{
+    // calculate sufficient statistics for categorical variables
+
+    // compute sum of y[Xorder[start:end, var]]
+    for (size_t i = start; i <= end; i++)
+    {
+        // Model::suff_stat_model[0] += y[Xorder[var][i]];
+        model->incSuffStat(y, Xorder[var][i], temp_suff_stat);
+    }
+    return;
+}
+
+void calcSuffStat_continuous_tree(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint, Model *model)
+{
+    // calculate sufficient statistics for continuous variables
+
+    if (adaptive_cutpoint)
+    {         
+
+        if (index == 0)
+        {
+            // initialize, only for the first cutpoint candidate, thus index == 0
+            model->incSuffStat(y_std, xorder[0], temp_suff_stat);
+        }
+
+        // if use adaptive number of cutpoints, calculated based on vector candidate_index
+        for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
+        {
+            model->incSuffStat(y_std, xorder[q], temp_suff_stat);
+        }
+    }
+    else
+    {          
+        // use all data points as candidates
+        model->incSuffStat(y_std, xorder[index], temp_suff_stat);
     }
     return;
 }

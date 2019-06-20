@@ -39,11 +39,13 @@ public:
                             std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder, double &prob_leaf) { return; };
     virtual void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M,
                                 std::vector<double> &residual_std) const { return; };
-    virtual void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var) { return; };
-    virtual void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint) { return; };
+    virtual void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var) { return; };
+    virtual void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint) { return; };
     // virtual double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const { return 0.0; };
 
-     virtual double likelihood(NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const { return 0.0; };
+virtual double likelihood(NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const { return 0.0; };
+
+     virtual double likelihood2(std::vector<double> &temp_suff_stat, NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const { return 0.0; };
 
     virtual double likelihood_no_split(NodeData &node_data, std::vector<double> &suff_stat) const { return 0.0; };
     virtual void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder) { return; };
@@ -103,7 +105,7 @@ public:
 
     NormalModel() : Model(1,3){}
 
-    void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats) const
+    void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats) 
     {
         suffstats[0] += y_std[ix];
         return;
@@ -151,7 +153,7 @@ public:
         return;
     }
 
-    void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var)
+    void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var)
     {
         // calculate sufficient statistics for categorical variables
 
@@ -162,12 +164,14 @@ public:
             // Model::suff_stat_model[0] += y[Xorder[var][i]];
             incSuffStat(y, Xorder[var][i], Model::suff_stat_model);
 
+            incSuffStat(y, Xorder[var][i], temp_suff_stat);
+
             loop_count++;
         }
         return;
     }
 
-    void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint)
+    void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint)
     {
         // calculate sufficient statistics for continuous variables
 
@@ -180,6 +184,8 @@ public:
                 // Model::suff_stat_model[0] = y_std[xorder[0]];
                 incSuffStat(y_std, xorder[0], Model::suff_stat_model);
 
+                incSuffStat(y_std, xorder[0], temp_suff_stat);
+
             }
 
             // if use adaptive number of cutpoints, calculated based on vector candidate_index
@@ -187,6 +193,8 @@ public:
             {
                 // Model::suff_stat_model[0] += y_std[xorder[q]];
                 incSuffStat(y_std, xorder[q], Model::suff_stat_model);
+
+                incSuffStat(y_std, xorder[q], temp_suff_stat);
             }
         }
         else
@@ -194,6 +202,8 @@ public:
             // use all data points as candidates
             // Model::suff_stat_model[0] += y_std[xorder[index]];
             incSuffStat(y_std, xorder[index], Model::suff_stat_model);
+
+            incSuffStat(y_std, xorder[index], temp_suff_stat);
         }
         return;
     }
@@ -220,6 +230,28 @@ public:
         }
     }
 
+        double likelihood2(std::vector<double> &temp_suff_stat, NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const
+    {
+        // likelihood equation,
+        // note the difference of left_side == true / false
+        // node_suff_stat is mean of y, sum of square of y, saved in tree class
+        double y_sum = (double) node_data.N_Xorder * node_suff_stat[0];
+        double sigma2 = pow(node_data.sigma, 2);
+        double ntau;
+
+        if (left_side)
+        {
+            ntau = (N_left + 1) * tau;
+            return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(temp_suff_stat[0], 2) / (sigma2 * (ntau + sigma2));
+        }
+        else
+        {
+            ntau = (node_data.N_Xorder - N_left - 1) * tau;
+            return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(y_sum - temp_suff_stat[0], 2) / (sigma2 * (ntau + sigma2));
+        }
+    }
+
+
     // double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
     double likelihood_no_split(NodeData &node_data, std::vector<double> &suff_stat) const
     {
@@ -232,6 +264,7 @@ public:
 
         return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
     }
+
 
     double predictFromTheta(const std::vector<double> &theta_vector) const
     {
@@ -623,7 +656,7 @@ public:
     */
 
     // this function should ultimately take a State and DataInfo
-    void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats) const
+    void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats) 
     {
 
         for (size_t j = 0; j < num_classes; ++j)
