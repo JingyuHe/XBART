@@ -218,7 +218,8 @@ void fit_std_clt(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_
             // set sufficient statistics at root node first
             trees[sweeps][tree_ind].suff_stat[0] = sum_vec(state->residual_std) / (double) state->n_y;
             trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
-        
+            trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
+
             root_data.update_value(sigma, state->n_y);
 
             trees[sweeps][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, root_data, true, false, true);
@@ -428,6 +429,7 @@ void fit_std_probit(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xord
             // set sufficient statistics at root node first
             trees[sweeps][tree_ind].suff_stat[0] = sum_vec(state->residual_std) / (double) state->n_y;
             trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
+            trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
 
             root_data.update_value(sigma, state->n_y);
 
@@ -564,6 +566,7 @@ void fit_std_MH(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_s
                 // set sufficient statistics at root node first
                 trees[sweeps][tree_ind].suff_stat[0] = sum_vec(state->residual_std) / (double) state->n_y;
                 trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
+                trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
 
 
                 trees[sweeps][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, root_data, true, false, true);
@@ -586,6 +589,7 @@ void fit_std_MH(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_s
                 // set sufficient statistics at root node first
                 trees[sweeps][tree_ind].suff_stat[0] = sum_vec(state->residual_std) / (double) state->n_y;
                 trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
+                trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
 
                 trees[sweeps][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, root_data, true, false, true);
 
