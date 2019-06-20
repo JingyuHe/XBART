@@ -7,15 +7,6 @@ void fit_std(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std,
     if (state->parallel)
         thread_pool.start();
 
-    // initialize predcitions
-    for (size_t ii = 0; ii < state->num_trees; ii++)
-    {
-        std::fill(state->predictions_std[ii].begin(), state->predictions_std[ii].end(), y_mean / (double) state->num_trees);
-    }
-
-    // Set yhat_std to mean
-    row_sum(state->predictions_std, state->yhat_std);
-
     // Residual for 0th tree
     state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
 
@@ -161,12 +152,6 @@ void fit_std_clt(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_
 {
     if (state->parallel)
         thread_pool.start();
-
-    // initialize predcitions and predictions_test
-    for (size_t ii = 0; ii < state->num_trees; ii++)
-    {
-        std::fill(state->predictions_std[ii].begin(), state->predictions_std[ii].end(), y_mean / (double)state->num_trees);
-    }
 
     // Residual for 0th tree
     state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
@@ -322,15 +307,6 @@ void fit_std_probit(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_dep
     if (state->parallel)
         thread_pool.start();
 
-    // initialize predcitions
-    for (size_t ii = 0; ii < state->num_trees; ii++)
-    {
-        std::fill(state->predictions_std[ii].begin(), state->predictions_std[ii].end(), y_mean / (double) state->num_trees);
-    }
-
-    // Set yhat_std to mean
-    row_sum(state->predictions_std, state->yhat_std);
-
     // Residual for 0th tree
     state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
 
@@ -441,16 +417,6 @@ void fit_std_MH(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_s
 
     if (state->parallel)
         thread_pool.start();
-
-    // initialize predcitions
-    for (size_t ii = 0; ii < state->num_trees; ii++)
-    {
-        std::fill(state->predictions_std[ii].begin(), state->predictions_std[ii].end(), y_mean / (double) state->num_trees);
-    }
-
-    // Set yhat_std to mean
-    row_sum(state->predictions_std, state->yhat_std);
-    // std::fill(state->yhat_std.begin(), state->yhat_std.end(), y_mean);
 
     // Residual for 0th tree
     state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];

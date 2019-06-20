@@ -16,6 +16,20 @@ void ini_xinfo(xinfo &X, size_t N, size_t p)
     return;
 }
 
+void ini_xinfo(xinfo &X, size_t N, size_t p, double var)
+{
+    // xinfo X;
+    X.resize(p);
+
+    for (size_t i = 0; i < p; i++)
+    {
+        X[i].resize(N, var);
+    }
+
+    // return std::move(X);
+    return;
+}
+
 void ini_xinfo_sizet(xinfo_sizet &X, size_t N, size_t p)
 {
     // xinfo_sizet X;

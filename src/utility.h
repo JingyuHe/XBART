@@ -30,6 +30,9 @@ void ini_matrix(matrix<T> &matrix, size_t N, size_t p)
 // // initialize STD matrix
 void ini_xinfo(xinfo &X, size_t N, size_t p);
 
+void ini_xinfo(xinfo &X, size_t N, size_t p, double var);
+
+
 // // initialize STD integer matrix
 void ini_xinfo_sizet(xinfo_sizet &X, size_t N, size_t p);
 

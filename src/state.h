@@ -100,7 +100,7 @@ public:
         return;
     }
 
-    State(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, std::vector<double> *initial_theta, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, bool draw_mu, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, xinfo_sizet *max_depth_std)
+    State(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, std::vector<double> *initial_theta, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, bool draw_mu, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, xinfo_sizet *max_depth_std, double ini_var_yhat)
     {
 
         // Handle Categorical
@@ -112,11 +112,13 @@ public:
         this->X_num_unique = std::vector<size_t>(p_categorical);
         unique_value_count2(Xpointer, Xorder_std, this->X_values, this->X_counts, this->variable_ind, this->total_points, this->X_num_unique, p_categorical, p_continuous);
 
-        // // Init containers
-        ini_xinfo(this->predictions_std, N, num_trees);
+        // Init containers
+        // initialize predictions_std at given value / number of trees
+        ini_xinfo(this->predictions_std, N, num_trees, ini_var_yhat / (double)num_trees);
 
-        yhat_std = std::vector<double>(N);
-        row_sum(this->predictions_std, this->yhat_std);
+        // initialize yhat at given value
+        yhat_std = std::vector<double>(N, ini_var_yhat);
+
         this->residual_std = std::vector<double>(N);
 
         // Random

@@ -163,7 +163,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
 
     // State settings
     std::vector<double> initial_theta(1, 0);
-    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, num_cutpoints, parallel, mtry, Xpointer, draw_mu, num_sweeps, sample_weights_flag, &y_std, 1.0, &max_depth_std));
+    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, num_cutpoints, parallel, mtry, Xpointer, draw_mu, num_sweeps, sample_weights_flag, &y_std, 1.0, &max_depth_std, y_mean));
 
     // define model
     NormalModel *model = new NormalModel(kap, s, tau, alpha, beta);
@@ -308,7 +308,7 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
 
     // State settings
     std::vector<double> initial_theta(1, 0);
-    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, num_cutpoints, parallel, mtry, Xpointer, draw_mu, num_sweeps, sample_weights_flag, &y_std, 1.0, &max_depth_std));
+    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, num_cutpoints, parallel, mtry, Xpointer, draw_mu, num_sweeps, sample_weights_flag, &y_std, 1.0, &max_depth_std, y_mean));
 
     // define model
     CLTClass *model = new CLTClass(kap, s, tau, alpha, beta);
@@ -466,7 +466,7 @@ Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest,
 
     // State settings
     std::vector<double> initial_theta(1, 0);
-    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, num_cutpoints, parallel, mtry, Xpointer, draw_mu, num_sweeps, sample_weights_flag, &y_std, 1.0, &max_depth_std));
+    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, num_cutpoints, parallel, mtry, Xpointer, draw_mu, num_sweeps, sample_weights_flag, &y_std, 1.0, &max_depth_std, y_mean));
 
     // define model
     LogitClass *model = new LogitClass();
@@ -613,7 +613,7 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
 
     // State settings
     std::vector<double> initial_theta(1, 0);
-    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, num_cutpoints, parallel, mtry, Xpointer, draw_mu, num_sweeps, sample_weights_flag, &y_std, 1.0, &max_depth_std));
+    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, num_cutpoints, parallel, mtry, Xpointer, draw_mu, num_sweeps, sample_weights_flag, &y_std, 1.0, &max_depth_std, y_mean));
 
     // define model
     NormalModel *model = new NormalModel(kap, s, tau, alpha, beta);    
@@ -763,7 +763,7 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest,
 
     // State settings
     std::vector<double> initial_theta(1, 0);
-    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, num_cutpoints, parallel, mtry, Xpointer, draw_mu, num_sweeps, sample_weights_flag, &y_std, 1.0, &max_depth_std));
+    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, num_cutpoints, parallel, mtry, Xpointer, draw_mu, num_sweeps, sample_weights_flag, &y_std, 1.0, &max_depth_std, y_mean));
 
     // define model
     NormalModel *model = new NormalModel(kap, s, tau, alpha, beta);
