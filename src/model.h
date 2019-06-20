@@ -6,7 +6,6 @@
 #include "utility.h"
 #include <memory>
 #include "state.h"
-#include "node_data.h"
 
 using namespace std;
 
@@ -40,9 +39,9 @@ public:
     virtual void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M,
                                 std::vector<double> &residual_std) const { return; };
 
-    virtual double likelihood(std::vector<double> &temp_suff_stat, NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const { return 0.0; };
+    virtual double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &node_suff_stat, size_t N_left, bool left_side, std::unique_ptr<State> &) const { return 0.0; };
 
-    virtual double likelihood_no_split(NodeData &node_data, std::vector<double> &suff_stat) const { return 0.0; };
+    virtual double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &) const { return 0.0; };
     virtual void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder) { return; };
     virtual double predictFromTheta(const std::vector<double> &theta_vector) const { return 0.0; };
     virtual Model *clone() { return nullptr; };
@@ -86,7 +85,7 @@ public:
 
     NormalModel() : Model(1, 3) {}
 
-    void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats)
+    void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats) 
     {
         suffstats[0] += y_std[ix];
         return;
@@ -134,13 +133,13 @@ public:
         return;
     }
 
-    double likelihood(std::vector<double> &temp_suff_stat, NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const
+    double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &node_suff_stat, size_t N_left, bool left_side, std::unique_ptr<State> &state) const
     {
         // likelihood equation,
         // note the difference of left_side == true / false
         // node_suff_stat is mean of y, sum of square of y, saved in tree class
-        double y_sum = (double)node_data.N_Xorder * node_suff_stat[0];
-        double sigma2 = pow(node_data.sigma, 2);
+        double y_sum = (double)node_suff_stat[2] * node_suff_stat[0];
+        double sigma2 = pow(state->sigma, 2);
         double ntau;
 
         if (left_side)
@@ -150,20 +149,20 @@ public:
         }
         else
         {
-            ntau = (node_data.N_Xorder - N_left - 1) * tau;
+            ntau = (node_suff_stat[2] - N_left - 1) * tau;
             return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(y_sum - temp_suff_stat[0], 2) / (sigma2 * (ntau + sigma2));
         }
     }
 
     // double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
-    double likelihood_no_split(NodeData &node_data, std::vector<double> &suff_stat) const
+    double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const
     {
         // the likelihood of no-split option is a bit different from others
         // because the sufficient statistics is y_sum here
         // write a separate function, more flexibility
-        double ntau = node_data.N_Xorder * tau;
-        double sigma2 = pow(node_data.sigma, 2);
-        double value = node_data.N_Xorder * suff_stat[0]; // sum of y
+        double ntau = suff_stat[2] * tau;
+        double sigma2 = pow(state->sigma, 2);
+        double value = suff_stat[2] * suff_stat[0]; // sum of y
 
         return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
     }
@@ -395,7 +394,7 @@ public:
     }
 
     // double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
-    double likelihood(NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const
+    double likelihood(std::vector<double> &node_suff_stat, size_t N_left, bool left_side, std::unique_ptr<State> &) const
     {
         // likelihood equation,
         // note the difference of left_side == true / false
@@ -412,7 +411,7 @@ public:
     }
 
     // double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
-    double likelihood_no_split(NodeData &node_data, std::vector<double> &suff_stat) const
+    double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &) const
     {
         // the likelihood of no-split option is a bit different from others
         // because the sufficient statistics is y_sum here
@@ -654,7 +653,7 @@ public:
 
     //this function should call a base LIL() member function that should be redefined in
     // double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
-    double likelihood(NodeData &node_data, std::vector<double> &node_suff_stat, size_t N_left, bool left_side) const
+    double likelihood(std::vector<double> &node_suff_stat, size_t N_left, bool left_side, std::unique_ptr<State> &) const
     {
         // likelihood equation,
         // note the difference of left_side == true / false
@@ -673,7 +672,7 @@ public:
     }
 
     // double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
-    double likelihood_no_split(NodeData &node_data, std::vector<double> &suff_stat) const
+    double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &) const
     {
         // the likelihood of no-split option is a bit different from others
         // because the sufficient statistics is y_sum here

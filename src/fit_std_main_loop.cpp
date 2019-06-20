@@ -19,8 +19,6 @@ void fit_std(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
     // Residual for 0th tree
     state->residual_std = y_std - state->yhat_std + state->predictions_std[0];
 
-    double sigma = 1.0;
-
     NodeData root_data;
 
     for(size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
@@ -43,8 +41,8 @@ void fit_std(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
             // Draw Sigma
             state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
             std::gamma_distribution<double> gamma_samp((state->n_y + model->kap) / 2.0, 2.0 / (sum_squared(state->residual_std_full) + model->s));
-            sigma = 1.0 / sqrt(gamma_samp(state->gen));
-            sigma_draw_xinfo[sweeps][tree_ind] = sigma;
+            state->update_sigma(1.0 / sqrt(gamma_samp(state->gen)));
+            sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
 
             // add prediction of current tree back to residual
             // then it's m - 1 trees residual
@@ -69,10 +67,7 @@ void fit_std(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
             trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
             trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
 
-            // initialize node data for the root node
-            root_data.update_value(sigma, state->n_y);
-
-            trees[sweeps][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, root_data, true, false, true);
+            trees[sweeps][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, true, false, true);
 
             // Add split counts
             mtry_weight_current_tree = mtry_weight_current_tree + state->split_count_current_tree;
@@ -178,10 +173,6 @@ void fit_std_clt(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_
     // Residual for 0th tree
     state->residual_std = y_std - state->yhat_std + state->predictions_std[0];
 
-    double sigma = 0.0;
-
-    NodeData root_data;
-
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {
 
@@ -220,9 +211,7 @@ void fit_std_clt(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_
             trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
             trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
 
-            root_data.update_value(sigma, state->n_y);
-
-            trees[sweeps][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, root_data, true, false, true);
+            trees[sweeps][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, true, false, true);
 
             mtry_weight_current_tree = mtry_weight_current_tree + state->split_count_current_tree;
 
@@ -349,8 +338,6 @@ void fit_std_probit(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xord
     // Residual for 0th tree
     state->residual_std = y_std - state->yhat_std + state->predictions_std[0];
 
-    double sigma = 1.0;
-
     // Probit
     std::vector<double> z = y_std;
     std::vector<double> z_prev(state->n_y);
@@ -359,8 +346,6 @@ void fit_std_probit(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xord
     double b = 1;
     double mu_temp;
     double u;
-
-    NodeData root_data;
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {
@@ -431,9 +416,7 @@ void fit_std_probit(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xord
             trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
             trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
 
-            root_data.update_value(sigma, state->n_y);
-
-            trees[sweeps][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, root_data, true, false, true);
+            trees[sweeps][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, true, false, true);
 
             // Add split counts
             //            state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
@@ -484,8 +467,6 @@ void fit_std_MH(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_s
     state->residual_std = y_std - state->yhat_std + state->predictions_std[0];
     // std::fill(state->residual_std.begin(), state->residual_std.end(), y_mean / (double) num_trees * ((double) num_trees - 1.0));
 
-    double sigma = 1.0;
-
     // std::vector<tree> temp_tree = trees[0];
 
     double MH_ratio = 0.0;
@@ -509,8 +490,6 @@ void fit_std_MH(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_s
 
     bool accept_flag = true;
 
-    NodeData root_data;
-
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {
 
@@ -526,8 +505,8 @@ void fit_std_MH(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_s
             // Draw Sigma
             state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
             std::gamma_distribution<double> gamma_samp((state->n_y + model->kap) / 2.0, 2.0 / (sum_squared(state->residual_std_full) + model->s));
-            sigma = 1.0 / sqrt(gamma_samp(state->gen));
-            sigma_draw_xinfo[sweeps][tree_ind] = sigma;
+            state->update_sigma(1.0 / sqrt(gamma_samp(state->gen)));
+            sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
 
             // add prediction of current tree back to residual
             // then it's m - 1 trees residual
@@ -546,8 +525,6 @@ void fit_std_MH(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_s
             {
                 mtry_weight_current_tree = mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
             }
-
-            root_data.update_value(sigma, state->n_y);
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // X_counts and X_num_unique should not be in state because they depend on node
@@ -569,7 +546,7 @@ void fit_std_MH(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_s
                 trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
 
 
-                trees[sweeps][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, root_data, true, false, true);
+                trees[sweeps][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, true, false, true);
                 accept_count.push_back(0);
                 MH_vector.push_back(0);
                 // cout << "bbb" << endl;
@@ -591,7 +568,7 @@ void fit_std_MH(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_s
                 trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
                 trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
 
-                trees[sweeps][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, root_data, true, false, true);
+                trees[sweeps][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, true, false, true);
 
                 predict_from_tree(trees[sweeps][tree_ind], state->X_std, state->n_y, state->p, temp_vec_proposal, model);
 
@@ -599,19 +576,17 @@ void fit_std_MH(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_s
                 // evaluate old tree on new residual, thus need to update sufficient statistics on new data first 
                 // update_theta = false and update_split_prob = true
                 trees[sweeps - 1][tree_ind].suff_stat[0] = sum_vec(state->residual_std) / (double) state->n_y;
-                trees[sweeps - 1][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, root_data, false, true, false);
+                trees[sweeps - 1][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, false, true, false);
 
                 Q_old = trees[sweeps - 1][tree_ind].transition_prob();
-                P_old = trees[sweeps - 1][tree_ind].tree_likelihood(state->n_y, sigma, state->residual_std);
-                // P_old = trees[sweeps-1][tree_ind].tree_likelihood(N, sigma, tree_ind, model, state, Xpointer, state->residual_std, false);
-
+                P_old = trees[sweeps - 1][tree_ind].tree_likelihood(state->n_y, state->sigma, state->residual_std);
 
 
                 prior_old = trees[sweeps - 1][tree_ind].prior_prob(model);
 
                 // // proposal
                 Q_new = trees[sweeps][tree_ind].transition_prob();
-                P_new = trees[sweeps][tree_ind].tree_likelihood(state->n_y, sigma, state->residual_std);
+                P_new = trees[sweeps][tree_ind].tree_likelihood(state->n_y, state->sigma, state->residual_std);
                 // P_new = trees[sweeps][tree_ind].tree_likelihood(N, sigma, tree_ind, model, state, Xpointer, state->residual_std, true);
 
                 prior_new = trees[sweeps][tree_ind].prior_prob(model);
@@ -668,7 +643,7 @@ void fit_std_MH(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_s
 
                     // update_theta = true, update_split_prob = true
                     // resample leaf parameters
-                    trees[sweeps][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, root_data, true, true, false);
+                    trees[sweeps][tree_ind].grow_from_root(state, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, state->X_counts, state->X_num_unique, model, tree_ind, true, true, false);
 
                     // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec4, model);
 
