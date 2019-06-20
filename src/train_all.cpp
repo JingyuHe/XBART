@@ -172,7 +172,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     model->setNoSplitPenality(no_split_penality);
 
     /////////////////////////////////////////////////////////////////
-    fit_std(y_std, y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, state, model);
+    fit_std(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, state, model);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -321,7 +321,7 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
 
     /////////////////////////////////////////////////////////////////
 
-    fit_std_clt(y_std, y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, state, model);
+    fit_std_clt(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, state, model);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -480,7 +480,7 @@ Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest,
     model->setNoSplitPenality(no_split_penality);
 
     /////////////////////////////////////////////////////////////////
-    fit_std_multinomial(y_std, y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, state, model);
+    fit_std_multinomial(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, state, model);
 
     predict_std_multinomial(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -630,7 +630,7 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
 
     /////////////////////////////////////////////////////////////////
 
-    fit_std_probit(y_std, y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, state, model);
+    fit_std_probit(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, state, model);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -786,7 +786,7 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest,
     std::vector<double> P_ratio;
     std::vector<double> prior_ratio;
 
-    fit_std_MH(y_std, y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, state, model, accept_count, MH_vector, P_ratio, Q_ratio, prior_ratio);
+    fit_std_MH(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, mtry_weight_current_tree, *trees2, no_split_penality, state, model, accept_count, MH_vector, P_ratio, Q_ratio, prior_ratio);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 

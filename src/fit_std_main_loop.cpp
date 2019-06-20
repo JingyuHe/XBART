@@ -1,6 +1,6 @@
 #include "fit_std_main_loop.h"
 
-void fit_std(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vec_d &mtry_weight_current_tree, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model)
+void fit_std(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vec_d &mtry_weight_current_tree, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model)
 {
 
 
@@ -17,7 +17,7 @@ void fit_std(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
     row_sum(state->predictions_std, state->yhat_std);
 
     // Residual for 0th tree
-    state->residual_std = y_std - state->yhat_std + state->predictions_std[0];
+    state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
 
     NodeData root_data;
 
@@ -159,7 +159,7 @@ void predict_std_multinomial(const double *Xtestpointer, size_t N_test, size_t p
     return;
 }
 
-void fit_std_clt(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vec_d &mtry_weight_current_tree, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, CLTClass *model)
+void fit_std_clt(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vec_d &mtry_weight_current_tree, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, CLTClass *model)
 {
     if (state->parallel)
         thread_pool.start();
@@ -171,7 +171,7 @@ void fit_std_clt(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_
     }
 
     // Residual for 0th tree
-    state->residual_std = y_std - state->yhat_std + state->predictions_std[0];
+    state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {
@@ -234,7 +234,7 @@ void fit_std_clt(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_
     delete model;
 }
 
-void fit_std_multinomial(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vec_d &mtry_weight_current_tree, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitClass *model)
+void fit_std_multinomial(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vec_d &mtry_weight_current_tree, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitClass *model)
 {
 
     // if (parallel)
@@ -256,7 +256,7 @@ void fit_std_multinomial(std::vector<double> &y_std, double y_mean, xinfo_sizet 
     // }
 
     // // Residual for 0th tree
-    // state->residual_std = y_std - state->yhat_std + state->predictions_std[0];
+    // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
 
     // double sigma = 0.0;
 
@@ -320,7 +320,7 @@ void fit_std_multinomial(std::vector<double> &y_std, double y_mean, xinfo_sizet 
     // delete model;
 }
 
-void fit_std_probit(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vec_d &mtry_weight_current_tree, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model)
+void fit_std_probit(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vec_d &mtry_weight_current_tree, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model)
 {
 
     if (state->parallel)
@@ -336,10 +336,10 @@ void fit_std_probit(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xord
     row_sum(state->predictions_std, state->yhat_std);
 
     // Residual for 0th tree
-    state->residual_std = y_std - state->yhat_std + state->predictions_std[0];
+    state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
 
     // Probit
-    std::vector<double> z = y_std;
+    std::vector<double> z = *state->y_std;
     std::vector<double> z_prev(state->n_y);
 
     double a = 0;
@@ -375,7 +375,7 @@ void fit_std_probit(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xord
                 mu_temp = normCDF(z_prev[i]);
 
                 // Draw from truncated normal via inverse CDF methods
-                if (y_std[i] > 0)
+                if ((*state->y_std)[i] > 0)
                 {
                     a = std::min(mu_temp, 0.999);
                 }
@@ -447,7 +447,7 @@ void fit_std_probit(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xord
     delete model;
 }
 
-void fit_std_MH(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vec_d &mtry_weight_current_tree, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::vector<double>& accept_count, std::vector<double>& MH_vector, std::vector<double>& P_ratio, std::vector<double>& Q_ratio, std::vector<double>& prior_ratio)
+void fit_std_MH(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vec_d &mtry_weight_current_tree, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::vector<double>& accept_count, std::vector<double>& MH_vector, std::vector<double>& P_ratio, std::vector<double>& Q_ratio, std::vector<double>& prior_ratio)
 {
 
     if (state->parallel)
@@ -464,7 +464,7 @@ void fit_std_MH(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_s
     // std::fill(state->yhat_std.begin(), state->yhat_std.end(), y_mean);
 
     // Residual for 0th tree
-    state->residual_std = y_std - state->yhat_std + state->predictions_std[0];
+    state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
     // std::fill(state->residual_std.begin(), state->residual_std.end(), y_mean / (double) num_trees * ((double) num_trees - 1.0));
 
     // std::vector<tree> temp_tree = trees[0];

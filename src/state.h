@@ -57,7 +57,6 @@ struct State
     // residual standard deviation 
     double sigma;
     double sigma2; // sigma squared
-    
 
     // Vector pointers
     matrix<std::vector<double>*> data_pointers;    
