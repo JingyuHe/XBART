@@ -8,7 +8,7 @@
 
 struct State
 {
-  public:
+public:
     // Categorical
     bool categorical_variables = false;
     std::vector<double> X_values;
@@ -46,8 +46,8 @@ struct State
     size_t p_continuous;
     size_t p; // total number of variables = p_categorical + p_continuous
     size_t mtry;
-    size_t n_y; // number of total data points in root node
-    const double *X_std; // pointer to original data
+    size_t n_y;                       // number of total data points in root node
+    const double *X_std;              // pointer to original data
     const std::vector<double> *y_std; // pointer to y data
     const xinfo_sizet *max_depth_std;
     bool draw_mu;
@@ -55,37 +55,37 @@ struct State
     size_t num_sweeps;
     bool sample_weights_flag;
 
-    // residual standard deviation 
+    // residual standard deviation
     double sigma;
     double sigma2; // sigma squared
-    
-
 
     // Vector pointers
-    matrix<std::vector<double>*> data_pointers;    
+    matrix<std::vector<double> *> data_pointers;
     // copy of data_pointers object, for MH update
-    matrix<std::vector<double>*> data_pointers_copy;
+    matrix<std::vector<double> *> data_pointers_copy;
 
-    void create_backup_data_pointers(){
+    void create_backup_data_pointers()
+    {
         // create a backup copy of data_pointers
         // used in MH adjustment
         data_pointers_copy = data_pointers;
         return;
     }
 
-    void restore_data_pointers(size_t tree_ind){
+    void restore_data_pointers(size_t tree_ind)
+    {
         // restore pointers of one tree from data_pointers_copy
         // used in MH adjustment
         data_pointers[tree_ind] = data_pointers_copy[tree_ind];
         return;
     }
 
-    void init_tree_pointers(std::vector<double>* initial_theta, size_t N, size_t num_trees)
+    void init_tree_pointers(std::vector<double> *initial_theta, size_t N, size_t num_trees)
     {
         ini_matrix(data_pointers, N, num_trees);
         for (size_t i = 0; i < num_trees; i++)
         {
-            std::vector<std::vector<double>*> &pointer_vec = data_pointers[i];
+            std::vector<std::vector<double> *> &pointer_vec = data_pointers[i];
             for (size_t j = 0; j < N; j++)
             {
                 pointer_vec[j] = initial_theta;
@@ -93,13 +93,14 @@ struct State
         }
     }
 
-    void update_sigma(double sigma){
+    void update_sigma(double sigma)
+    {
         this->sigma = sigma;
         this->sigma2 = pow(sigma, 2);
         return;
     }
 
-    State(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, std::vector<double>* initial_theta, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, bool draw_mu, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, xinfo_sizet *max_depth_std)
+    State(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, std::vector<double> *initial_theta, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, bool draw_mu, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, xinfo_sizet *max_depth_std)
     {
 
         // Handle Categorical
@@ -152,6 +153,13 @@ struct State
         this->sigma2 = pow(sigma, 2);
         this->max_depth_std = max_depth_std;
 
+        return;
+    }
+
+    void update_split_counts(size_t tree_ind)
+    {
+        mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
+        split_count_all_tree[tree_ind] = split_count_current_tree;
         return;
     }
 };

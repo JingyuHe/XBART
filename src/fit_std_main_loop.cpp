@@ -69,9 +69,7 @@ void fit_std(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std,
 
             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, state->X_counts, state->X_num_unique, model, sweeps, tree_ind, true, false, true);
 
-            // Add split counts
-            state->mtry_weight_current_tree = state->mtry_weight_current_tree + state->split_count_current_tree;
-            state->split_count_all_tree[tree_ind] = state->split_count_current_tree;
+            state->update_split_counts(tree_ind);
 
             // Update Predict
             predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
@@ -213,9 +211,7 @@ void fit_std_clt(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_
 
             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, state->X_counts, state->X_num_unique, model, sweeps, tree_ind, true, false, true);
 
-            state->mtry_weight_current_tree = state->mtry_weight_current_tree + state->split_count_current_tree;
-
-            state->split_count_all_tree[tree_ind] = state->split_count_current_tree;
+            state->update_split_counts(tree_ind);
 
             // fit_new_std(trees[sweeps][tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
             predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
@@ -418,14 +414,7 @@ void fit_std_probit(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_dep
 
             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, state->X_counts, state->X_num_unique, model, sweeps, tree_ind, true, false, true);
 
-            // Add split counts
-            //            state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
-
-            state->mtry_weight_current_tree = state->mtry_weight_current_tree + state->split_count_current_tree;
-            state->split_count_all_tree[tree_ind] = state->split_count_current_tree;
-
-            //	COUT << "outer loop split_count" << state->split_count_current_tree << endl;
-            //	COUT << "outer loop weights" << state->mtry_weight_current_tree << endl;
+            state->update_split_counts(tree_ind);
 
             // Update Predict
             predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
@@ -658,9 +647,8 @@ void fit_std_MH(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_s
 
 
             if(accept_flag){    
-                // Add split counts
-                state->mtry_weight_current_tree = state->mtry_weight_current_tree + state->split_count_current_tree;
-                state->split_count_all_tree[tree_ind] = state->split_count_current_tree;
+                state->update_split_counts(tree_ind);
+
             }
 
             // Update Predict
