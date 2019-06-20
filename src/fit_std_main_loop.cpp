@@ -35,6 +35,10 @@ void fit_std(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
 
         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
         {
+            if(sweeps == 0)
+            {
+                trees[sweeps][tree_ind].resize_suff_stat(model->dim_suffstat);
+            }
 
             // Draw Sigma
             state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
@@ -63,6 +67,7 @@ void fit_std(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
             // set sufficient statistics at root node first
             trees[sweeps][tree_ind].suff_stat[0] = sum_vec(state->residual_std) / (double) state->n_y;
             trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
+            trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
 
             // initialize node data for the root node
             root_data.update_value(sigma, state->n_y);

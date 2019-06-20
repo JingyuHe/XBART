@@ -12,16 +12,12 @@ using namespace std;
 
 class Model
 {
-
-protected:
+public:
     size_t num_classes;
     size_t dim_suffstat;
     std::vector<double> suff_stat_model;
     std::vector<double> suff_stat_total;
     double no_split_penality;
-
-public:
-
     // tree prior
     double alpha;
     double beta;
@@ -84,11 +80,9 @@ public:
 
 class NormalModel : public Model
 {
-private:
-    size_t dim_suffstat = 1;
-    std::vector<double> suff_stat_total;
-
 public:
+    size_t dim_suffstat = 3;
+    std::vector<double> suff_stat_total;
     // model prior
     // prior on sigma
     double kap;
@@ -97,7 +91,7 @@ public:
     double tau;
 
 
-    NormalModel(double kap, double s, double tau, double alpha, double beta) : Model(1,1)    {
+    NormalModel(double kap, double s, double tau, double alpha, double beta) : Model(1,3)    {
         this->kap = kap;
         this->s = s;
         this->tau = tau;
@@ -105,7 +99,7 @@ public:
         this->beta = beta;
     }
 
-    NormalModel() : Model(1,1){}
+    NormalModel() : Model(1,3){}
 
     void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder)
     {
@@ -236,6 +230,7 @@ public:
     {
         suff_stat[0] += residual_std[Xorder_std[split_var][row_ind]];
         suff_stat[1] += pow(residual_std[Xorder_std[split_var][row_ind]], 2);
+        suff_stat[2] = suff_stat[2] + 1;
         return;
     }
 
@@ -250,12 +245,16 @@ public:
             rchild_suff_stat[1] = parent_suff_stat[1] - lchild_suff_stat[1];
 
             lchild_suff_stat[0] = lchild_suff_stat[0] / N_left;
+
+            rchild_suff_stat[2] = parent_suff_stat[2] - lchild_suff_stat[2];
         }else{
             lchild_suff_stat[0] = (parent_suff_stat[0] * N_parent - rchild_suff_stat[0]) / N_left;
 
             lchild_suff_stat[1] = parent_suff_stat[1] - rchild_suff_stat[1];
 
             rchild_suff_stat[0] = rchild_suff_stat[0] / N_right;
+
+            lchild_suff_stat[2] = parent_suff_stat[2] - rchild_suff_stat[2];
         }
         return;
     }
@@ -264,10 +263,11 @@ public:
 class CLTClass : public Model
 {
 private:
-    size_t dim_suffstat = 4;
     //std::vector<double> suff_stat_total;
 
 public:
+    size_t dim_suffstat = 4;
+
     // model prior
     // prior on sigma
     double kap;
@@ -494,12 +494,16 @@ public:
             rchild_suff_stat[1] = parent_suff_stat[1] - lchild_suff_stat[1];
 
             lchild_suff_stat[0] = lchild_suff_stat[0] / N_left;
+
+            rchild_suff_stat[2] = parent_suff_stat[2] - lchild_suff_stat[2];
         }else{
             lchild_suff_stat[0] = (parent_suff_stat[0] * N_parent - rchild_suff_stat[0]) / N_left;
 
             lchild_suff_stat[1] = parent_suff_stat[1] - rchild_suff_stat[1];
 
             rchild_suff_stat[0] = rchild_suff_stat[0] / N_right;
+            
+            lchild_suff_stat[2] = parent_suff_stat[2] - rchild_suff_stat[2];
         }
         return;
     }
