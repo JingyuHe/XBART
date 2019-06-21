@@ -172,9 +172,9 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     model->setNoSplitPenality(no_split_penality);
 
     /////////////////////////////////////////////////////////////////
-    mcmc_loop(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
+    mcmc_loop(Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
 
-    predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
+    predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
     // R Objects to Return
     Rcpp::NumericMatrix yhats(N, num_sweeps);
@@ -226,7 +226,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt,
-                                                       Rcpp::Named("y_mean") = y_mean,
+                Rcpp::Named("y_mean") = y_mean,
                                                        Rcpp::Named("p") = p));
 }
 
@@ -321,9 +321,9 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
 
     /////////////////////////////////////////////////////////////////
 
-    mcmc_loop_clt(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
+    mcmc_loop_clt(Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
 
-    predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
+    predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
     // R Objects to Return
     Rcpp::NumericMatrix yhats(N, num_sweeps);
@@ -481,9 +481,9 @@ Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest,
 
 
     /////////////////////////////////////////////////////////////////
-    mcmc_loop_multinomial(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
+    mcmc_loop_multinomial(Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
 
-    predict_std_multinomial(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
+    predict_std_multinomial(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
     // R Objects to Return
     Rcpp::NumericMatrix yhats(N, num_sweeps);
@@ -632,9 +632,9 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
 
     /////////////////////////////////////////////////////////////////
 
-    mcmc_loop_probit(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
+    mcmc_loop_probit(Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
 
-    predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
+    predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
     // R Objects to Return
     Rcpp::NumericMatrix yhats(N, num_sweeps);
@@ -788,9 +788,9 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest,
     std::vector<double> P_ratio;
     std::vector<double> prior_ratio;
 
-    mcmc_loop_MH(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct, accept_count, MH_vector, P_ratio, Q_ratio, prior_ratio);
+    mcmc_loop_MH(Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct, accept_count, MH_vector, P_ratio, Q_ratio, prior_ratio);
 
-    predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
+    predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
     // R Objects to Return
     Rcpp::NumericMatrix yhats(N, num_sweeps);

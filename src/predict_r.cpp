@@ -37,7 +37,7 @@ Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std:
 
     // Predict
     predict_std(Xpointer, N, p, M, N_sweeps,
-                yhats_test_xinfo, *trees, y_mean);
+                yhats_test_xinfo, *trees);
 
     // Convert back to Rcpp
     Rcpp::NumericMatrix yhats(N, N_sweeps);

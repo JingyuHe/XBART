@@ -1,6 +1,6 @@
 #include "mcmc_loop.h"
 
-void mcmc_loop(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct)
+void mcmc_loop(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct)
 {
 
     if (state->parallel)
@@ -80,7 +80,7 @@ void mcmc_loop(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_st
 
 void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees,
                  size_t num_sweeps, xinfo &yhats_test_xinfo,
-                 vector<vector<tree>> &trees, double y_mean)
+                 vector<vector<tree>> &trees)
 {
 
     NormalModel *model = new NormalModel();
@@ -90,11 +90,11 @@ void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num
     std::vector<double> yhat_test_std(N_test);
     row_sum(predictions_test_std, yhat_test_std);
 
-    // initialize predcitions and predictions_test
-    for (size_t ii = 0; ii < num_trees; ii++)
-    {
-        std::fill(predictions_test_std[ii].begin(), predictions_test_std[ii].end(), y_mean / (double)num_trees);
-    }
+    // // initialize predcitions and predictions_test
+    // for (size_t ii = 0; ii < num_trees; ii++)
+    // {
+    //     std::fill(predictions_test_std[ii].begin(), predictions_test_std[ii].end(), y_mean / (double)num_trees);
+    // }
     row_sum(predictions_test_std, yhat_test_std);
 
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
@@ -115,7 +115,7 @@ void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num
 
 void predict_std_multinomial(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees,
                              size_t num_sweeps, xinfo &yhats_test_xinfo,
-                             vector<vector<tree>> &trees, double y_mean)
+                             vector<vector<tree>> &trees)
 {
 
     NormalModel *model = new NormalModel();
@@ -125,11 +125,11 @@ void predict_std_multinomial(const double *Xtestpointer, size_t N_test, size_t p
     std::vector<double> yhat_test_std(N_test);
     row_sum(predictions_test_std, yhat_test_std);
 
-    // initialize predcitions and predictions_test
-    for (size_t ii = 0; ii < num_trees; ii++)
-    {
-        std::fill(predictions_test_std[ii].begin(), predictions_test_std[ii].end(), y_mean / (double)num_trees);
-    }
+    // // initialize predcitions and predictions_test
+    // for (size_t ii = 0; ii < num_trees; ii++)
+    // {
+    //     std::fill(predictions_test_std[ii].begin(), predictions_test_std[ii].end(), y_mean / (double)num_trees);
+    // }
     row_sum(predictions_test_std, yhat_test_std);
 
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
@@ -148,7 +148,7 @@ void predict_std_multinomial(const double *Xtestpointer, size_t N_test, size_t p
     return;
 }
 
-void mcmc_loop_clt(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, CLTClass *model, std::unique_ptr<X_struct> &x_struct)
+void mcmc_loop_clt(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, CLTClass *model, std::unique_ptr<X_struct> &x_struct)
 {
     if (state->parallel)
         thread_pool.start();
@@ -216,7 +216,7 @@ void mcmc_loop_clt(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_dept
     delete model;
 }
 
-void mcmc_loop_multinomial(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitClass *model, std::unique_ptr<X_struct> &x_struct)
+void mcmc_loop_multinomial(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitClass *model, std::unique_ptr<X_struct> &x_struct)
 {
 
     // if (parallel)
@@ -302,7 +302,7 @@ void mcmc_loop_multinomial(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &
     // delete model;
 }
 
-void mcmc_loop_probit(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct)
+void mcmc_loop_probit(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct)
 {
 
     if (state->parallel)
@@ -414,7 +414,7 @@ void mcmc_loop_probit(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_d
     delete model;
 }
 
-void mcmc_loop_MH(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &accept_count, std::vector<double> &MH_vector, std::vector<double> &P_ratio, std::vector<double> &Q_ratio, std::vector<double> &prior_ratio)
+void mcmc_loop_MH(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &accept_count, std::vector<double> &MH_vector, std::vector<double> &P_ratio, std::vector<double> &Q_ratio, std::vector<double> &prior_ratio)
 {
 
     if (state->parallel)
