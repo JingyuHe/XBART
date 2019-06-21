@@ -6,6 +6,7 @@
 #include "utility.h"
 #include <memory>
 #include "state.h"
+#include "X_struct.h"
 
 using namespace std;
 
@@ -34,11 +35,12 @@ public:
     virtual void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf) { return; };
 
     virtual void updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, xinfo_sizet &Xorder_std, size_t &split_var, size_t row_ind) { return; };
+
     virtual void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side) { return; };
+
     virtual void incrementSuffStat() const { return; };
  
-    virtual void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M,
-                                std::vector<double> &residual_std) const { return; };
+    virtual void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const { return; };
 
     virtual double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &node_suff_stat, size_t N_left, bool left_side, std::unique_ptr<State> &) const { return 0.0; };
 
@@ -50,10 +52,14 @@ public:
     // Getters and Setters
     // num classes
     size_t getNumClasses() const { return num_classes; };
+
     void setNumClasses(size_t n_class) { num_classes = n_class; };
+
     // dim suff stat
     size_t getDimSuffstat() const { return dim_suffstat; };
+
     void setDimSuffStat(size_t dim_suff) { dim_suffstat = dim_suff; };
+
     //penality
     double getNoSplitPenality()
     {
@@ -515,7 +521,7 @@ public:
     //This is probably unsafe/stupid but a temporary hack #yolo
     State *state;
     //these should be elements of a class derived from a State base class for this model
-    std::vector<std::vector<double>> *slop;
+    std::vector< std::vector<double> > *slop;
     std::vector<double> *phi;
     double tau_a = 3.3; //approx 4/sqrt(2) + 0.5
     double tau_b = 2.8;
@@ -618,7 +624,7 @@ public:
     */
 
     //    void state_sweepNew(size_t tree_ind, size_t M, std::unique_ptr<State> state, std::vector<std::vector<double> > &slop) {
-    void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
+    void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
     {
         size_t next_index = tree_ind + 1;
         if (next_index == M)
@@ -632,7 +638,7 @@ public:
             for (size_t j = 0; j < (*slop)[0].size(); ++j)
             {
                 //output[i] = data_pointers[M][i]->theta_vector[0];
-                (*slop)[i][j] *= (*state->data_pointers[tree_ind][i])[j] / (*state->data_pointers[next_index][i])[j];
+                (*slop)[i][j] *= (*x_struct->data_pointers[tree_ind][i])[j] / (*x_struct->data_pointers[next_index][i])[j];
             }
         }
     }

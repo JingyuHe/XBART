@@ -695,7 +695,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, xinfo_sizet &Xorder_std
         {
             for (size_t i = 0; i < N_Xorder; i++)
             {
-                state->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
+                x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
             }
         }
 
@@ -1686,13 +1686,13 @@ void predict_from_tree(tree &tree, const double *X_std, size_t N, size_t p, std:
     return;
 }
 
-void predict_from_datapointers(size_t tree_ind, Model *model, std::unique_ptr<State> &state)
+void predict_from_datapointers(size_t tree_ind, Model *model, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct)
 {
     // tree search, but read from the matrix of pointers to end node directly
     // easier to get fitted value of training set
     for (size_t i = 0; i < state->n_y; i++)
     {
-        state->predictions_std[tree_ind][i] = model->predictFromTheta(*(state->data_pointers[tree_ind][i]));
+        state->predictions_std[tree_ind][i] = model->predictFromTheta(*(x_struct->data_pointers[tree_ind][i]));
     }
     return;
 }

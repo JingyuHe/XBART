@@ -63,7 +63,7 @@ void mcmc_loop(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_st
 
             // Update Predict
             // predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
-            predict_from_datapointers(tree_ind, model, state);
+            predict_from_datapointers(tree_ind, model, state, x_struct);
 
             // update residual, now it's residual of m trees
             model->state_sweep(state->predictions_std, tree_ind, state->num_trees, state->residual_std);
@@ -200,7 +200,7 @@ void mcmc_loop_clt(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_dept
 
             // fit_new_std(trees[sweeps][tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
             // predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
-            predict_from_datapointers(tree_ind, model, state);
+            predict_from_datapointers(tree_ind, model, state, x_struct);
 
             // update residual, now it's residual of m trees
             model->state_sweep(state->predictions_std, tree_ind, state->num_trees, state->residual_std);
@@ -395,7 +395,7 @@ void mcmc_loop_probit(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_d
 
             // Update Predict
             // predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
-            predict_from_datapointers(tree_ind, model, state);
+            predict_from_datapointers(tree_ind, model, state, x_struct);
 
             // update residual, now it's residual of m trees
             model->state_sweep(state->predictions_std, tree_ind, state->num_trees, state->residual_std);
@@ -602,7 +602,7 @@ void mcmc_loop_MH(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth
 
                     // // keep the old tree, need to update state object properly
                     // state->data_pointers[tree_ind] = state->data_pointers_copy[tree_ind];
-                    state->restore_data_pointers(tree_ind);
+                    x_struct->restore_data_pointers(tree_ind);
                 }
 
                 // cout << "copy is ok" << endl;
@@ -619,7 +619,7 @@ void mcmc_loop_MH(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth
             // cout << "before datapointers " << endl;
             // cout << "tree size " << trees[sweeps][tree_ind].treesize() << endl;
             // predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
-            predict_from_datapointers(tree_ind, model, state);
+            predict_from_datapointers(tree_ind, model, state, x_struct);
 
             // cout << "after datapointers " << endl;
 
@@ -655,7 +655,7 @@ void mcmc_loop_MH(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth
 
         // after loop over all trees, backup the data_pointers matrix
         // data_pointers_copy save result of previous sweep
-        state->data_pointers_copy = state->data_pointers;
+        x_struct->data_pointers_copy = x_struct->data_pointers;
         // state->create_backup_data_pointers();
 
         double average = accumulate(accept_count.end() - state->num_trees, accept_count.end(), 0.0) / state->num_trees;
