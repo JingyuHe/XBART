@@ -32,7 +32,7 @@ class Model
     virtual void incrementSuffStat() const { return; };
     virtual void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
                             std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder) { return; };
-    virtual void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M,
+    virtual void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M,
                                 std::vector<double> &residual_std) const { return; };
     virtual void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var) { return; };
     virtual void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint) { return; };
@@ -107,7 +107,7 @@ class NormalModel : public Model
         return;
     }
 
-    void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
+    void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
     {
         size_t next_index = tree_ind + 1;
         if (next_index == M)
@@ -238,7 +238,7 @@ class CLTClass : public Model
         return;
     }
 
-    void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
+    void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
     {
         size_t next_index = tree_ind + 1;
         if (next_index == M)

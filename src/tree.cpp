@@ -623,7 +623,7 @@ double tree::prior_prob(NormalModel *model)
     return output;
 }
 
-void tree::grow_from_root(std::unique_ptr<State> &state, xinfo_sizet &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree)
+void tree::grow_from_root(std::unique_ptr<State> &state, xinfo_sizet &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree)
 {
     // grow a tree, users can control number of split points
     size_t max_depth = (*state->max_depth_std)[sweeps][tree_ind];
@@ -687,7 +687,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, xinfo_sizet &Xorder_std
         }
     }
 
-    BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, state, this, update_split_prob);
+    BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this, update_split_prob);
 
     if (no_split == true)
     {
@@ -773,17 +773,17 @@ void tree::grow_from_root(std::unique_ptr<State> &state, xinfo_sizet &Xorder_std
 
     if (state->p_categorical > 0)
     {
-        split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, model, state, this);
+        split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, model, x_struct, state, this);
     }
 
     if (state->p_continuous > 0)
     {
-        split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, state, this);
+        split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
 
-    this->l->grow_from_root(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree);
+    this->l->grow_from_root(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree);
 
-    this->r->grow_from_root(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree);
+    this->r->grow_from_root(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree);
 
     return;
 }
@@ -852,7 +852,7 @@ double tree::log_like_tree(double sigma2, double tau)
     return output;
 }
 
-void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, Model *model, std::unique_ptr<State> &state, tree *current_node)
+void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, Model *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<State> &state, tree *current_node)
 {
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
@@ -957,7 +957,7 @@ void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xord
     return;
 }
 
-void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<State> &state, tree *current_node)
+void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<State> &state, tree *current_node)
 {
 
     // when find the split point, split Xorder matrix to two sub matrices for both subnodes
@@ -991,9 +991,9 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
 
         // index range of X_counts, X_values that are corresponding to current variable
         // start <= i <= end;
-        start = state->variable_ind[i - state->p_continuous];
+        start = x_struct->variable_ind[i - state->p_continuous];
         // COUT << "start " << start << endl;
-        end = state->variable_ind[i + 1 - state->p_continuous];
+        end = x_struct->variable_ind[i + 1 - state->p_continuous];
 
         if (i == split_var)
         {
@@ -1069,7 +1069,7 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
             {
                 // loop from start to end!
 
-                if (state->X_values[k] <= cutvalue)
+                if (x_struct->X_values[k] <= cutvalue)
                 {
                     // smaller than cutvalue, go left
                     X_counts_left[k] = X_counts[k];
@@ -1090,7 +1090,7 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
             for (size_t j = 0; j < N_Xorder; j++)
             {
 
-                while (*(state->X_std + state->n_y * i + Xorder_std[i][j]) != state->X_values[X_counts_index])
+                while (*(state->X_std + state->n_y * i + Xorder_std[i][j]) != x_struct->X_values[X_counts_index])
                 {
                     //     // for the current observation, find location of corresponding unique values
                     X_counts_index++;
@@ -1143,8 +1143,8 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
 
     for (size_t i = state->p_continuous; i < state->p; i++)
     {
-        start = state->variable_ind[i - state->p_continuous];
-        end = state->variable_ind[i + 1 - state->p_continuous];
+        start = x_struct->variable_ind[i - state->p_continuous];
+        end = x_struct->variable_ind[i + 1 - state->p_continuous];
 
         // COUT << "start " << start << " end " << end << " size " << X_counts_left.size() << endl;
         for (size_t j = start; j < end; j++)
@@ -1163,7 +1163,7 @@ void split_xorder_std_categorical(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xor
     return;
 }
 
-void BART_likelihood_all(xinfo_sizet &Xorder_std, bool &no_split, size_t &split_var, size_t &split_point, const std::vector<size_t> &subset_vars, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<State> &state, tree *tree_pointer, bool update_split_prob)
+void BART_likelihood_all(xinfo_sizet &Xorder_std, bool &no_split, size_t &split_var, size_t &split_point, const std::vector<size_t> &subset_vars, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<State> &state, tree *tree_pointer, bool update_split_prob)
 {
 
     // if update_split_prob == true, only update split prob based on given split point, for MH update usage
@@ -1194,29 +1194,29 @@ void BART_likelihood_all(xinfo_sizet &Xorder_std, bool &no_split, size_t &split_
     if (N <= state->n_cutpoints + 1 + 2 * state->n_min)
     {
         // cout << "small set " << endl;
-        loglike.resize((N_Xorder - 1) * state->p_continuous + state->X_values.size() + 1, -INFINITY);
+        loglike.resize((N_Xorder - 1) * state->p_continuous + x_struct->X_values.size() + 1, -INFINITY);
         loglike_start = (N_Xorder - 1) * state->p_continuous;
     }
     else
     {
         // cout << "bigger set " << endl;
-        loglike.resize(state->n_cutpoints * state->p_continuous + state->X_values.size() + 1, -INFINITY);
+        loglike.resize(state->n_cutpoints * state->p_continuous + x_struct->X_values.size() + 1, -INFINITY);
         loglike_start = state->n_cutpoints * state->p_continuous;
     }
 
     // calculate for each cases
     if (state->p_continuous > 0)
     {
-        calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Xorder_std, loglike_max, model, state, tree_pointer);
+        calculate_loglikelihood_continuous(loglike, subset_vars, N_Xorder, Xorder_std, loglike_max, model, x_struct, state, tree_pointer);
     }
 
     if (state->p_categorical > 0)
     {
-        calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, Xorder_std, loglike_max, X_counts, X_num_unique, model, total_categorical_split_candidates, state, tree_pointer);
+        calculate_loglikelihood_categorical(loglike, loglike_start, subset_vars, N_Xorder, Xorder_std, loglike_max, X_counts, X_num_unique, model, x_struct, total_categorical_split_candidates, state, tree_pointer);
     }
 
     // calculate likelihood of no-split option
-    calculate_likelihood_no_split(loglike, N_Xorder, loglike_max, model, total_categorical_split_candidates, state, tree_pointer);
+    calculate_likelihood_no_split(loglike, N_Xorder, loglike_max, model, x_struct, total_categorical_split_candidates, state, tree_pointer);
 
     // transfer loglikelihood to likelihood
     for (size_t ii = 0; ii < loglike.size(); ii++)
@@ -1307,14 +1307,14 @@ void BART_likelihood_all(xinfo_sizet &Xorder_std, bool &no_split, size_t &split_
             // split at categorical variable
             size_t start;
             ind = ind - loglike_start;
-            for (size_t i = 0; i < (state->variable_ind.size() - 1); i++)
+            for (size_t i = 0; i < (x_struct->variable_ind.size() - 1); i++)
             {
-                if (state->variable_ind[i] <= ind && state->variable_ind[i + 1] > ind)
+                if (x_struct->variable_ind[i] <= ind && x_struct->variable_ind[i + 1] > ind)
                 {
                     split_var = i;
                 }
             }
-            start = state->variable_ind[split_var];
+            start = x_struct->variable_ind[split_var];
             // count how many
             split_point = std::accumulate(X_counts.begin() + start, X_counts.begin() + ind + 1, 0);
             // minus one for correct index (start from 0)
@@ -1368,14 +1368,14 @@ void BART_likelihood_all(xinfo_sizet &Xorder_std, bool &no_split, size_t &split_
             // split at categorical variable
             size_t start;
             ind = ind - loglike_start;
-            for (size_t i = 0; i < (state->variable_ind.size() - 1); i++)
+            for (size_t i = 0; i < (x_struct->variable_ind.size() - 1); i++)
             {
-                if (state->variable_ind[i] <= ind && state->variable_ind[i + 1] > ind)
+                if (x_struct->variable_ind[i] <= ind && x_struct->variable_ind[i + 1] > ind)
                 {
                     split_var = i;
                 }
             }
-            start = state->variable_ind[split_var];
+            start = x_struct->variable_ind[split_var];
             // count how many
             split_point = std::accumulate(X_counts.begin() + start, X_counts.begin() + ind + 1, 0);
             // minus one for correct index (start from 0)
@@ -1427,7 +1427,7 @@ void unique_value_count(const double *Xpointer, xinfo_sizet &Xorder_std, std::ve
     return;
 }
 
-void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std::vector<size_t> &subset_vars, size_t &N_Xorder, xinfo_sizet &Xorder_std, double &loglike_max, Model *model, std::unique_ptr<State> &state, tree *tree_pointer)
+void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std::vector<size_t> &subset_vars, size_t &N_Xorder, xinfo_sizet &Xorder_std, double &loglike_max, Model *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<State> &state, tree *tree_pointer)
 {
 
     size_t N = N_Xorder;
@@ -1535,7 +1535,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
     }
 }
 
-void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &loglike_start, const std::vector<size_t> &subset_vars, size_t &N_Xorder, xinfo_sizet &Xorder_std, double &loglike_max, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, size_t &total_categorical_split_candidates, std::unique_ptr<State> &state, tree *tree_pointer)
+void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &loglike_start, const std::vector<size_t> &subset_vars, size_t &N_Xorder, xinfo_sizet &Xorder_std, double &loglike_max, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, size_t &total_categorical_split_candidates, std::unique_ptr<State> &state, tree *tree_pointer)
 {
 
     // loglike_start is an index to offset
@@ -1561,8 +1561,8 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
         if ((i >= state->p_continuous) && (X_num_unique[i - state->p_continuous] > 1))
         {
             // more than one unique values
-            start = state->variable_ind[i - state->p_continuous];
-            end = state->variable_ind[i + 1 - state->p_continuous] - 1; // minus one for indexing starting at 0
+            start = x_struct->variable_ind[i - state->p_continuous];
+            end = x_struct->variable_ind[i + 1 - state->p_continuous] - 1; // minus one for indexing starting at 0
             end2 = end;
 
             while (X_counts[end2] == 0)
@@ -1620,10 +1620,10 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
     }
 }
 
-void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, double &loglike_max, Model *model, size_t &total_categorical_split_candidates, std::unique_ptr<State> &state, tree *tree_pointer)
+void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, double &loglike_max, Model *model, std::unique_ptr<X_struct> &x_struct, size_t &total_categorical_split_candidates, std::unique_ptr<State> &state, tree *tree_pointer)
 {
 
-    loglike[loglike.size() - 1] = model->likelihood_no_split(tree_pointer->suff_stat, state) + log(pow(1.0 + tree_pointer->depth, model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0);
+    loglike[loglike.size() - 1] = model->likelihood_no_split(tree_pointer->suff_stat, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0);
 
     // then adjust according to number of variables and split points
 

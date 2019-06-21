@@ -1,6 +1,6 @@
 #include "mcmc_loop.h"
 
-void mcmc_loop(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model)
+void mcmc_loop(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct)
 {
 
     if (state->parallel)
@@ -57,7 +57,7 @@ void mcmc_loop(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_st
             trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
             trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
 
-            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, state->X_counts, state->X_num_unique, model, sweeps, tree_ind, true, false, true);
+            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
             state->update_split_counts(tree_ind);
 
@@ -66,7 +66,7 @@ void mcmc_loop(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_st
             predict_from_datapointers(tree_ind, model, state);
 
             // update residual, now it's residual of m trees
-            model->updateResidual(state->predictions_std, tree_ind, state->num_trees, state->residual_std);
+            model->state_sweep(state->predictions_std, tree_ind, state->num_trees, state->residual_std);
 
             state->yhat_std = state->yhat_std + state->predictions_std[tree_ind];
         }
@@ -148,7 +148,7 @@ void predict_std_multinomial(const double *Xtestpointer, size_t N_test, size_t p
     return;
 }
 
-void mcmc_loop_clt(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, CLTClass *model)
+void mcmc_loop_clt(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, CLTClass *model, std::unique_ptr<X_struct> &x_struct)
 {
     if (state->parallel)
         thread_pool.start();
@@ -194,7 +194,7 @@ void mcmc_loop_clt(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_dept
             trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
             trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
 
-            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, state->X_counts, state->X_num_unique, model, sweeps, tree_ind, true, false, true);
+            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
             state->update_split_counts(tree_ind);
 
@@ -203,7 +203,7 @@ void mcmc_loop_clt(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_dept
             predict_from_datapointers(tree_ind, model, state);
 
             // update residual, now it's residual of m trees
-            model->updateResidual(state->predictions_std, tree_ind, state->num_trees, state->residual_std);
+            model->state_sweep(state->predictions_std, tree_ind, state->num_trees, state->residual_std);
 
             state->yhat_std = state->yhat_std + state->predictions_std[tree_ind];
 
@@ -216,7 +216,7 @@ void mcmc_loop_clt(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_dept
     delete model;
 }
 
-void mcmc_loop_multinomial(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitClass *model)
+void mcmc_loop_multinomial(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitClass *model, std::unique_ptr<X_struct> &x_struct)
 {
 
     // if (parallel)
@@ -278,7 +278,7 @@ void mcmc_loop_multinomial(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &
     // trees[sweeps][tree_ind].suff_stat[0] = sum_vec(state->residual_std) / (double)N;
     // trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
 
-    //         trees[sweeps][tree_ind].grow_from_root(state, sum_vec(state->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, state->X_counts, state->X_num_unique, model, tree_ind, sample_weights_flag);
+    //         trees[sweeps][tree_ind].grow_from_root(state, sum_vec(state->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, x_struct->X_counts, x_struct->X_num_unique, model, tree_ind, sample_weights_flag);
 
     //         mtry_weight_current_tree = mtry_weight_current_tree + state->split_count_current_tree;
 
@@ -287,9 +287,9 @@ void mcmc_loop_multinomial(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &
     //         // fit_new_std(trees[sweeps][tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
     //         predict_from_datapointers(Xpointer, N, tree_ind, state->predictions_std[tree_ind], state->data_pointers,model);
 
-    //        //updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std)
+    //        //state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std)
     //         // update residual, now it's residual of m trees
-    //         model->updateResidual(state->predictions_std, tree_ind, num_trees, slop);
+    //         model->state_sweep(state->predictions_std, tree_ind, num_trees, slop);
 
     //         state->yhat_std = state->yhat_std + state->predictions_std[tree_ind];
 
@@ -302,7 +302,7 @@ void mcmc_loop_multinomial(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &
     // delete model;
 }
 
-void mcmc_loop_probit(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model)
+void mcmc_loop_probit(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct)
 {
 
     if (state->parallel)
@@ -389,7 +389,7 @@ void mcmc_loop_probit(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_d
             trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
             trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
 
-            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, state->X_counts, state->X_num_unique, model, sweeps, tree_ind, true, false, true);
+            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
             state->update_split_counts(tree_ind);
 
@@ -398,7 +398,7 @@ void mcmc_loop_probit(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_d
             predict_from_datapointers(tree_ind, model, state);
 
             // update residual, now it's residual of m trees
-            model->updateResidual(state->predictions_std, tree_ind, state->num_trees, state->residual_std);
+            model->state_sweep(state->predictions_std, tree_ind, state->num_trees, state->residual_std);
             for (size_t i = 0; i < state->n_y; i++)
             {
                 state->residual_std[i] = state->residual_std[i] - z_prev[i] + z[i];
@@ -414,7 +414,7 @@ void mcmc_loop_probit(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_d
     delete model;
 }
 
-void mcmc_loop_MH(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::vector<double> &accept_count, std::vector<double> &MH_vector, std::vector<double> &P_ratio, std::vector<double> &Q_ratio, std::vector<double> &prior_ratio)
+void mcmc_loop_MH(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &accept_count, std::vector<double> &MH_vector, std::vector<double> &P_ratio, std::vector<double> &Q_ratio, std::vector<double> &prior_ratio)
 {
 
     if (state->parallel)
@@ -486,7 +486,7 @@ void mcmc_loop_MH(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // X_counts and X_num_unique should not be in state because they depend on node
             // but they are initialized in state object
-            // so I'll pass state->X_counts to root node, then create X_counts_left, X_counts_right for other nodes
+            // so I'll pass x_struct->X_counts to root node, then create X_counts_left, X_counts_right for other nodes
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             if (sweeps < 10)
@@ -502,7 +502,7 @@ void mcmc_loop_MH(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth
                 trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
                 trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
 
-                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, state->X_counts, state->X_num_unique, model, sweeps, tree_ind, true, false, true);
+                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
                 accept_count.push_back(0);
                 MH_vector.push_back(0);
                 // cout << "bbb" << endl;
@@ -523,14 +523,14 @@ void mcmc_loop_MH(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth
                 trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
                 trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
 
-                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, state->X_counts, state->X_num_unique, model, sweeps, tree_ind, true, false, true);
+                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
                 predict_from_tree(trees[sweeps][tree_ind], state->X_std, state->n_y, state->p, temp_vec_proposal, model);
 
                 // evaluate old tree on new residual, thus need to update sufficient statistics on new data first
                 // update_theta = false and update_split_prob = true
                 trees[sweeps - 1][tree_ind].suff_stat[0] = sum_vec(state->residual_std) / (double)state->n_y;
-                trees[sweeps - 1][tree_ind].grow_from_root(state, Xorder_std, state->X_counts, state->X_num_unique, model, sweeps, tree_ind, false, true, false);
+                trees[sweeps - 1][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, false, true, false);
 
                 Q_old = trees[sweeps - 1][tree_ind].transition_prob();
                 P_old = trees[sweeps - 1][tree_ind].tree_likelihood(state->n_y, state->sigma, state->residual_std);
@@ -596,7 +596,7 @@ void mcmc_loop_MH(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth
 
                     // update_theta = true, update_split_prob = true
                     // resample leaf parameters
-                    trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, state->X_counts, state->X_num_unique, model, sweeps, tree_ind, true, true, false);
+                    trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, true, false);
 
                     // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec4, model);
 
@@ -648,7 +648,7 @@ void mcmc_loop_MH(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &max_depth
             // }
 
             // update residual
-            model->updateResidual(state->predictions_std, tree_ind, state->num_trees, state->residual_std);
+            model->state_sweep(state->predictions_std, tree_ind, state->num_trees, state->residual_std);
 
             state->yhat_std = state->yhat_std + state->predictions_std[tree_ind];
         }

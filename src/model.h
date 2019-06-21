@@ -37,7 +37,7 @@ public:
     virtual void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side) { return; };
     virtual void incrementSuffStat() const { return; };
  
-    virtual void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M,
+    virtual void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M,
                                 std::vector<double> &residual_std) const { return; };
 
     virtual double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &node_suff_stat, size_t N_left, bool left_side, std::unique_ptr<State> &) const { return 0.0; };
@@ -121,7 +121,7 @@ public:
 
         return;
     }
-    void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
+    void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
     {
         size_t next_index = tree_ind + 1;
         if (next_index == M)
@@ -283,7 +283,7 @@ public:
         return;
     }
 
-    void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
+    void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
     {
         size_t next_index = tree_ind + 1;
         if (next_index == M)
@@ -605,7 +605,7 @@ public:
 
     /*
 
-    void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
+    void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
     {
         size_t next_index = tree_ind + 1;
         if (next_index == M)
@@ -617,8 +617,8 @@ public:
     }
     */
 
-    //    void updateResidualNew(size_t tree_ind, size_t M, std::unique_ptr<State> state, std::vector<std::vector<double> > &slop) {
-    void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
+    //    void state_sweepNew(size_t tree_ind, size_t M, std::unique_ptr<State> state, std::vector<std::vector<double> > &slop) {
+    void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
     {
         size_t next_index = tree_ind + 1;
         if (next_index == M)

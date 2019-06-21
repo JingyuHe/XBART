@@ -9,14 +9,6 @@
 struct State
 {
 public:
-    // Categorical
-    bool categorical_variables = false;
-    std::vector<double> X_values;
-    std::vector<size_t> X_counts;
-    std::vector<size_t> variable_ind;
-    size_t total_points;
-    std::vector<size_t> X_num_unique;
-
     // Result containers
     xinfo predictions_std;
     xinfo predictions_std_copy;
@@ -102,15 +94,6 @@ public:
 
     State(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, std::vector<double> *initial_theta, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, bool draw_mu, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, xinfo_sizet *max_depth_std, double ini_var_yhat)
     {
-
-        // Handle Categorical
-        if (p_categorical > 0)
-        {
-            this->categorical_variables = true;
-        }
-        this->variable_ind = std::vector<size_t>(p_categorical + 1);
-        this->X_num_unique = std::vector<size_t>(p_categorical);
-        unique_value_count2(Xpointer, Xorder_std, this->X_values, this->X_counts, this->variable_ind, this->total_points, this->X_num_unique, p_categorical, p_continuous);
 
         // Init containers
         // initialize predictions_std at given value / number of trees
