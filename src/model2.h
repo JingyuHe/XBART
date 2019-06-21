@@ -30,7 +30,7 @@ class Model
 
     // Abstract functions
     virtual void incrementSuffStat() const { return; };
-    virtual void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
+    virtual void samplePars(double y_mean, size_t N_Xorder, double sigma, double tau,
                             std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder) { return; };
     virtual void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M,
                                 std::vector<double> &residual_std) const { return; };
@@ -89,21 +89,13 @@ class NormalModel : public Model
         return;
     }
     void incrementSuffStat() const { return; };
-    void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
+    void samplePars(double y_mean, size_t N_Xorder, double sigma, double tau,
                     std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder)
     {
         std::normal_distribution<double> normal_samp(0.0, 1.0);
-        if (draw_mu == true)
-        {
-
             // test result should be theta
             theta_vector[0] = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2))) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-        }
-        else
-        {
-            // test result should be theta
-            theta_vector[0] = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2));
-        }
+
         return;
     }
 
@@ -217,24 +209,17 @@ class CLTClass : public Model
         return;
     }
     void incrementSuffStat() const { return; };
-    void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
+    void samplePars(double y_mean, size_t N_Xorder, double sigma, double tau,
                     std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder)
     {
         // Update params
         updateFullSuffStat(y_std, Xorder[0]);
 
         std::normal_distribution<double> normal_samp(0.0, 1.0);
-        if (draw_mu == true)
-        {
 
             // test result should be theta
             theta_vector[0] = suff_stat_total[0] / (1.0 / tau + suff_stat_total[1]) + sqrt(1.0 / (1.0 / tau + suff_stat_total[1])) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-        }
-        else
-        {
-            // test result should be theta
-            theta_vector[0] = suff_stat_total[0] / (1.0 / tau + suff_stat_total[1]);
-        }
+
         return;
     }
 

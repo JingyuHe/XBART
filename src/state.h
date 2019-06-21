@@ -42,7 +42,6 @@ public:
     const double *X_std;              // pointer to original data
     const std::vector<double> *y_std; // pointer to y data
     const xinfo_sizet *max_depth_std;
-    bool draw_mu;
     size_t num_trees;
     size_t num_sweeps;
     bool sample_weights_flag;
@@ -59,7 +58,7 @@ public:
         return;
     }
 
-    State(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, bool draw_mu, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, xinfo_sizet *max_depth_std, double ini_var_yhat)
+    State(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, xinfo_sizet *max_depth_std, double ini_var_yhat)
     {
 
         // Init containers
@@ -95,7 +94,6 @@ public:
         this->X_std = X_std;
         this->p = p_categorical + p_continuous;
         this->n_y = N;
-        this->draw_mu = draw_mu;
         this->num_trees = num_trees;
         this->num_sweeps = num_sweeps;
         this->sample_weights_flag = sample_weights_flag;

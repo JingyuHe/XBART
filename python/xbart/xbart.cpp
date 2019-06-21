@@ -18,8 +18,7 @@ XBARTcpp::XBARTcpp (size_t M ,size_t N_sweeps ,
         double alpha , double beta , double tau , //CHANGE!
         size_t burnin, 
         size_t mtry , size_t max_depth_num, double kap , 
-        double s , bool verbose , 
-        bool draw_mu , bool parallel,int seed,size_t model_num,double no_split_penality,bool sample_weights_flag){
+        double s , bool verbose, bool parallel,int seed,size_t model_num,double no_split_penality,bool sample_weights_flag){
   this->params.M = M; 
   this->params.N_sweeps = N_sweeps;
   this->params.Nmin = Nmin;
@@ -33,7 +32,6 @@ XBARTcpp::XBARTcpp (size_t M ,size_t N_sweeps ,
   this->params.kap = kap;
   this->params.s = s;
   this->params.verbose = verbose;
-  this->params.draw_mu = draw_mu;
   this->params.parallel=parallel;
   this->trees =  vector< vector<tree>> (N_sweeps);
   this->model_num =  model_num;
@@ -146,7 +144,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.beta, this->params.tau, this->params.burnin, 
                 this->params.mtry,  this->params.kap , 
                 this->params.s, this->params.verbose,
-                this->params.draw_mu, this->params.parallel,
+                this->params.parallel,
                 yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees,
                 this->seed_flag, this->seed, this->no_split_penality, this->params.sample_weights_flag);
   }else if(this->model_num == 1){ // CLT
@@ -156,7 +154,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.beta, this->params.tau, this->params.burnin, 
                 this->params.mtry,  this->params.kap , 
                 this->params.s, this->params.verbose,
-                this->params.draw_mu, this->params.parallel,
+                this->params.parallel,
                 yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees,
                 this->seed_flag, this->seed, this->no_split_penality, this->params.sample_weights_flag);
   }else if(this->model_num == 2){ // Probit
@@ -166,7 +164,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 this->params.beta, this->params.tau, this->params.burnin, 
                 this->params.mtry,  this->params.kap , 
                 this->params.s, this->params.verbose,
-                this->params.draw_mu, this->params.parallel,
+                this->params.parallel,
                 yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees,
                 this->seed_flag, this->seed,this->no_split_penality,  this->params.sample_weights_flag);
 

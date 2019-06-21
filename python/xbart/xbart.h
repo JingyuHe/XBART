@@ -29,7 +29,6 @@ struct XBARTcppParams
 	double kap;
 	double s;
 	bool verbose;
-	bool draw_mu;
 	bool parallel;
 	int seed;
 	bool sample_weights_flag;
@@ -72,7 +71,7 @@ public:
 			 size_t burnin, size_t mtry,
 			 size_t max_depth_num, double kap,
 			 double s, bool verbose,
-			 bool draw_mu, bool parallel, int seed, size_t model_num, double no_split_penality, bool sample_weights_flag);
+			 bool parallel, int seed, size_t model_num, double no_split_penality, bool sample_weights_flag);
 
 	XBARTcpp(std::string json_string);
 

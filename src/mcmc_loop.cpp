@@ -278,7 +278,7 @@ void mcmc_loop_multinomial(double y_mean, xinfo_sizet &Xorder_std, xinfo_sizet &
     // trees[sweeps][tree_ind].suff_stat[0] = sum_vec(state->residual_std) / (double)N;
     // trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
 
-    //         trees[sweeps][tree_ind].grow_from_root(state, sum_vec(state->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, draw_mu, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, x_struct->X_counts, x_struct->X_num_unique, model, tree_ind, sample_weights_flag);
+    //         trees[sweeps][tree_ind].grow_from_root(state, sum_vec(state->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, x_struct->X_counts, x_struct->X_num_unique, model, tree_ind, sample_weights_flag);
 
     //         mtry_weight_current_tree = mtry_weight_current_tree + state->split_count_current_tree;
 

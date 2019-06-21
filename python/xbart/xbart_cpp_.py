@@ -120,10 +120,6 @@ class XBARTcppParams(_object):
     __swig_getmethods__["verbose"] = _xbart_cpp_.XBARTcppParams_verbose_get
     if _newclass:
         verbose = _swig_property(_xbart_cpp_.XBARTcppParams_verbose_get, _xbart_cpp_.XBARTcppParams_verbose_set)
-    __swig_setmethods__["draw_mu"] = _xbart_cpp_.XBARTcppParams_draw_mu_set
-    __swig_getmethods__["draw_mu"] = _xbart_cpp_.XBARTcppParams_draw_mu_get
-    if _newclass:
-        draw_mu = _swig_property(_xbart_cpp_.XBARTcppParams_draw_mu_get, _xbart_cpp_.XBARTcppParams_draw_mu_set)
     __swig_setmethods__["parallel"] = _xbart_cpp_.XBARTcppParams_parallel_set
     __swig_getmethods__["parallel"] = _xbart_cpp_.XBARTcppParams_parallel_get
     if _newclass:
