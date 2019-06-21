@@ -59,11 +59,11 @@ public:
     friend std::istream &operator>>(std::istream &, tree &);
     //  friend void update_sufficient_stat(tree& tree, arma::mat& y, arma::mat& X, tree::npv& bv, tree::npv& bv2, double& tau, double& sigma, double& alpha, double& beta);
     //contructors,destructors--------------------
-    tree() : depth(0), suff_stat(2, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_leaf(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
-    tree(size_t dim_suffstat) : depth(0), suff_stat(dim_suffstat, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_leaf(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
-    tree(const tree &n) : depth(0), suff_stat(2, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_leaf(0.0), tree_like(0.0), num_cutpoint_candidates(0) { cp(this, &n); }
-    tree(double itheta) : depth(0), suff_stat(2, 0.0), theta_vector(itheta, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_leaf(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
-    tree(size_t num_classes, const tree_p parent, size_t dim_suffstat) : suff_stat(dim_suffstat, 0.0), theta_vector(num_classes, 0.0), v(0), c(0), p(parent), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_leaf(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
+    tree() : depth(0), suff_stat(2, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
+    tree(size_t dim_suffstat) : depth(0), suff_stat(dim_suffstat, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
+    tree(const tree &n) : depth(0), suff_stat(2, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) { cp(this, &n); }
+    tree(double itheta) : depth(0), suff_stat(2, 0.0), theta_vector(itheta, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
+    tree(size_t dim_theta, const tree_p parent, size_t dim_suffstat) : suff_stat(dim_suffstat, 0.0), theta_vector(dim_theta, 0.0), v(0), c(0), p(parent), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
 
     void tonull(); //like a "clear", null tree has just one node
     ~tree() { tonull(); }
@@ -155,7 +155,7 @@ public:
     bool isnog();
 
     json to_json();
-    void from_json(json &j3, size_t num_classes);
+    void from_json(json &j3, size_t dim_theta);
     void cp(tree_p n, tree_cp o);  //copy tree
     void copy_only_root(tree_p o); // copy tree, point new root to old structure
 
@@ -173,7 +173,7 @@ private:
 
     double prob_leaf; // posterior of the leaf parameter, mu
 
-    double loglike_leaf; // loglikelihood of the leaf data
+    double loglike_node; // loglikelihood of the leaf data
 
     double tree_like; // for debug use, likelihood of the tree
 

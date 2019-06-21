@@ -13,7 +13,7 @@ using namespace std;
 class Model
 {
 public:
-    size_t num_classes;
+    size_t dim_theta;
     size_t dim_suffstat;
     std::vector<double> suff_stat_model;
     std::vector<double> suff_stat_total;
@@ -22,9 +22,9 @@ public:
     double alpha;
     double beta;
 
-    Model(size_t num_classes, size_t dim_suff)
+    Model(size_t dim_theta, size_t dim_suff)
     {
-        this->num_classes = num_classes;
+        this->dim_theta = dim_theta;
         this->dim_suffstat = dim_suff;
         Model::suff_stat_model.resize(dim_suff);
     };
@@ -51,9 +51,9 @@ public:
 
     // Getters and Setters
     // num classes
-    size_t getNumClasses() const { return num_classes; };
+    size_t getNumClasses() const { return dim_theta; };
 
-    void setNumClasses(size_t n_class) { num_classes = n_class; };
+    void setNumClasses(size_t n_class) { dim_theta = n_class; };
 
     // dim suff stat
     size_t getDimSuffstat() const { return dim_suffstat; };
@@ -465,7 +465,7 @@ public:
 class LogitClass : public Model
 {
 private:
-    size_t dim_suffstat = 0; // = 2*num_classes;
+    size_t dim_suffstat = 0; // = 2*dim_theta;
     //std::vector<double> suff_stat_total;
 
     double LogitLIL(const vector<double> &suffstats, const double &tau_a, const double &tau_b) const
@@ -513,13 +513,13 @@ public:
 
     LogitClass() : Model(2, 4)
     {
-        dim_suffstat = 2 * num_classes;       //num_classes is a member of base Model class
+        dim_suffstat = 2 * dim_theta;       //dim_theta is a member of base Model class
         suff_stat_total.resize(dim_suffstat); //suff_stat_total stuff should live in base class
     }
 
-    LogitClass(size_t num_classes) : Model(num_classes, 2 * num_classes)
+    LogitClass(size_t dim_theta) : Model(dim_theta, 2 * dim_theta)
     {
-        dim_suffstat = 2 * num_classes;
+        dim_suffstat = 2 * dim_theta;
         suff_stat_total.resize(dim_suffstat);
     }
     //std::vector<double> total_fit; // Keep public to save copies
@@ -556,11 +556,11 @@ public:
     void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats)
     {
 
-        for (size_t j = 0; j < num_classes; ++j)
+        for (size_t j = 0; j < dim_theta; ++j)
         {
             if (abs(y_std[ix] - j) < 0.1)
                 suffstats[j] += 1; //is it important that y_std be doubles?
-            suffstats[num_classes + j] += (*phi)[ix] * (*slop)[ix][j];
+            suffstats[dim_theta + j] += (*phi)[ix] * (*slop)[ix][j];
         }
 
         return;

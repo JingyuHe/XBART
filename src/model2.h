@@ -13,7 +13,7 @@ class Model
 {
 
   protected:
-    size_t num_classes;
+    size_t dim_theta;
     size_t dim_suffstat;
     size_t dim_suffstat_total;
     std::vector<double> suff_stat_model;
@@ -21,9 +21,9 @@ class Model
     double no_split_penality;
 
   public:
-    Model(size_t num_classes, size_t dim_suff)
+    Model(size_t dim_theta, size_t dim_suff)
     {
-        this->num_classes = num_classes;
+        this->dim_theta = dim_theta;
         this->dim_suffstat = dim_suff;
         Model::suff_stat_model.resize(dim_suff);
     };
@@ -43,8 +43,8 @@ class Model
 
     // Getters and Setters
     // num classes
-    size_t getNumClasses() const { return num_classes; };
-    void setNumClasses(size_t n_class) { num_classes = n_class; };
+    size_t getNumClasses() const { return dim_theta; };
+    void setNumClasses(size_t n_class) { dim_theta = n_class; };
     // dim suff stat
     size_t getDimSuffstat() const { return dim_suffstat; };
     void setDimSuffStat(size_t dim_suff) { dim_suffstat = dim_suff; };

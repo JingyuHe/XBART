@@ -337,7 +337,7 @@ void tree::cp(tree_p n, tree_cp o)
     n->drawn_ind = o->drawn_ind;
     n->N_Xorder = o->N_Xorder;
     n->y_mean = o->y_mean;
-    n->loglike_leaf = o->loglike_leaf;
+    n->loglike_node = o->loglike_node;
     n->tree_like = o->tree_like;
     n->theta_vector = o->theta_vector;
 
@@ -364,7 +364,7 @@ void tree::copy_only_root(tree_p o)
     this->drawn_ind = o->drawn_ind;
     this->N_Xorder = o->N_Xorder;
     this->y_mean = o->y_mean;
-    this->loglike_leaf = o->loglike_leaf;
+    this->loglike_node = o->loglike_node;
     this->tree_like = o->tree_like;
     this->theta_vector = o->theta_vector;
 
@@ -401,7 +401,7 @@ json tree::to_json()
     return j;
 }
 
-void tree::from_json(json &j3, size_t num_classes)
+void tree::from_json(json &j3, size_t dim_theta)
 {
     if (j3.is_array())
     {
@@ -421,10 +421,10 @@ void tree::from_json(json &j3, size_t num_classes)
         j3.at("variable").get_to(this->v);
         j3.at("cutpoint").get_to(this->c);
 
-        tree *lchild = new tree(num_classes);
-        lchild->from_json(j3["left"], num_classes);
-        tree *rchild = new tree(num_classes);
-        rchild->from_json(j3["right"], num_classes);
+        tree *lchild = new tree(dim_theta);
+        lchild->from_json(j3["left"], dim_theta);
+        tree *rchild = new tree(dim_theta);
+        rchild->from_json(j3["right"], dim_theta);
 
         lchild->p = this;
         rchild->p = this;
@@ -569,7 +569,7 @@ double tree::tree_likelihood(size_t N, double sigma, vector<double> y)
     double output = 0.0;
     for (size_t i = 0; i < tree_vec.size(); i++)
     {
-        output += tree_vec[i]->loglike_leaf;
+        output += tree_vec[i]->loglike_node;
     }
 
     // cout << "output of tree_likelihood " << output << endl;
@@ -709,7 +709,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, xinfo_sizet &Xorder_std
         this->r = 0;
 
         // update leaf prob, for MH update useage
-        this->loglike_leaf = model->likelihood_no_split(this->suff_stat, state);
+        this->loglike_node = model->likelihood_no_split(this->suff_stat, state);
 
 
         return;
