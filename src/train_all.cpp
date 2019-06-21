@@ -220,6 +220,14 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
 
     // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
+
+
+
+    // clean memory
+    delete model;
+    state.reset();
+    x_struct.reset();
+
     return Rcpp::List::create(
         Rcpp::Named("yhats") = yhats,
         Rcpp::Named("yhats_test") = yhats_test,

@@ -68,7 +68,7 @@ void mcmc_loop(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burni
     }
     thread_pool.stop();
 
-    delete model;
+    return;
 }
 
 void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees,
