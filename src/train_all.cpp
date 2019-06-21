@@ -3,7 +3,7 @@
 #include "tree.h"
 #include "forest.h"
 #include <chrono>
-#include "fit_std_main_loop.h"
+#include "mcmc_loop.h"
 
 using namespace std;
 using namespace chrono;
@@ -170,7 +170,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     model->setNoSplitPenality(no_split_penality);
 
     /////////////////////////////////////////////////////////////////
-    fit_std(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model);
+    mcmc_loop(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -316,7 +316,7 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest,
 
     /////////////////////////////////////////////////////////////////
 
-    fit_std_clt(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model);
+    mcmc_loop_clt(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -473,7 +473,7 @@ Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest,
     model->setNoSplitPenality(no_split_penality);
 
     /////////////////////////////////////////////////////////////////
-    fit_std_multinomial(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model);
+    mcmc_loop_multinomial(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model);
 
     predict_std_multinomial(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -616,12 +616,12 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest,
     std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, &initial_theta, n_min, num_cutpoints, parallel, mtry, Xpointer, draw_mu, num_sweeps, sample_weights_flag, &y_std, 1.0, &max_depth_std, y_mean));
 
     // define model
-    NormalModel *model = new NormalModel(kap, s, tau, alpha, beta);    
+    NormalModel *model = new NormalModel(kap, s, tau, alpha, beta);
     model->setNoSplitPenality(no_split_penality);
 
     /////////////////////////////////////////////////////////////////
 
-    fit_std_probit(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model);
+    mcmc_loop_probit(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 
@@ -775,7 +775,7 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest,
     std::vector<double> P_ratio;
     std::vector<double> prior_ratio;
 
-    fit_std_MH(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, accept_count, MH_vector, P_ratio, Q_ratio, prior_ratio);
+    mcmc_loop_MH(y_mean, Xorder_std, max_depth_std, burnin, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, accept_count, MH_vector, P_ratio, Q_ratio, prior_ratio);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, y_mean);
 

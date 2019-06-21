@@ -3,7 +3,7 @@
 #include "tree.h"
 #include "forest.h"
 #include <chrono>
-#include "fit_std_main_loop.h"
+#include "mcmc_loop.h"
 #include "utility.h"
 #include "json_io.h"
 

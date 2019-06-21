@@ -140,7 +140,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
 
 
   if(this->model_num == 0){ // NORMAL
-  fit_std(Xpointer,y_std,y_mean, Xorder_std,n,d,
+  mcmc_loop(Xpointer,y_std,y_mean, Xorder_std,n,d,
                 this->params.M,  this->params.N_sweeps, max_depth_std, 
                 this->params.Nmin, this->params.Ncutpoints, this->params.alpha, 
                 this->params.beta, this->params.tau, this->params.burnin, 
@@ -150,7 +150,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees,
                 this->seed_flag, this->seed, this->no_split_penality, this->params.sample_weights_flag);
   }else if(this->model_num == 1){ // CLT
-      fit_std_clt(Xpointer,y_std,y_mean, Xorder_std,n,d,
+      mcmc_loop_clt(Xpointer,y_std,y_mean, Xorder_std,n,d,
                 this->params.M,  this->params.N_sweeps, max_depth_std, 
                 this->params.Nmin, this->params.Ncutpoints, this->params.alpha, 
                 this->params.beta, this->params.tau, this->params.burnin, 
@@ -160,7 +160,7 @@ void XBARTcpp::_fit(int n,int d,double *a,
                 yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees,
                 this->seed_flag, this->seed, this->no_split_penality, this->params.sample_weights_flag);
   }else if(this->model_num == 2){ // Probit
-          fit_std_probit(Xpointer,y_std,y_mean, Xorder_std,n,d,
+          mcmc_loop_probit(Xpointer,y_std,y_mean, Xorder_std,n,d,
                 this->params.M,  this->params.N_sweeps, max_depth_std, 
                 this->params.Nmin, this->params.Ncutpoints, this->params.alpha, 
                 this->params.beta, this->params.tau, this->params.burnin, 
