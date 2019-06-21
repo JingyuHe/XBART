@@ -9,8 +9,6 @@ void mcmc_loop(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burni
     // Residual for 0th tree
     state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
 
-    NodeData root_data;
-
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {
 
@@ -29,9 +27,7 @@ void mcmc_loop(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burni
             }
 
             // Draw Sigma
-            state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
-            std::gamma_distribution<double> gamma_samp((state->n_y + model->kap) / 2.0, 2.0 / (sum_squared(state->residual_std_full) + model->s));
-            state->update_sigma(1.0 / sqrt(gamma_samp(state->gen)));
+            model->update_state(state, tree_ind);
             sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
 
             // add prediction of current tree back to residual
@@ -52,10 +48,7 @@ void mcmc_loop(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burni
                 state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
             }
 
-            // set sufficient statistics at root node first
-            trees[sweeps][tree_ind].suff_stat[0] = sum_vec(state->residual_std) / (double)state->n_y;
-            trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
-            trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
+            model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
@@ -190,9 +183,8 @@ void mcmc_loop_clt(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t b
             }
 
             // set sufficient statistics at root node first
-            trees[sweeps][tree_ind].suff_stat[0] = sum_vec(state->residual_std) / (double)state->n_y;
-            trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
-            trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
+            model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+
 
             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
@@ -385,9 +377,8 @@ void mcmc_loop_probit(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_
             }
 
             // set sufficient statistics at root node first
-            trees[sweeps][tree_ind].suff_stat[0] = sum_vec(state->residual_std) / (double)state->n_y;
-            trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
-            trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
+            model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+
 
             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
@@ -460,9 +451,7 @@ void mcmc_loop_MH(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t bu
         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
         {
             // Draw Sigma
-            state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
-            std::gamma_distribution<double> gamma_samp((state->n_y + model->kap) / 2.0, 2.0 / (sum_squared(state->residual_std_full) + model->s));
-            state->update_sigma(1.0 / sqrt(gamma_samp(state->gen)));
+            model->update_state(state, tree_ind);
             sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
 
             // add prediction of current tree back to residual
@@ -498,9 +487,8 @@ void mcmc_loop_MH(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t bu
                 // cout << "aaa" << endl;
 
                 // set sufficient statistics at root node first
-                trees[sweeps][tree_ind].suff_stat[0] = sum_vec(state->residual_std) / (double)state->n_y;
-                trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
-                trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
+                model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+
 
                 trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
                 accept_count.push_back(0);

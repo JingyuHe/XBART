@@ -34,6 +34,10 @@ public:
 
     virtual void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf) { return; };
 
+    virtual void update_state(std::unique_ptr<State> &state, size_t tree_ind) {return; };
+
+    virtual void initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat) {return;};
+
     virtual void updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, xinfo_sizet &Xorder_std, size_t &split_var, size_t row_ind) { return; };
 
     virtual void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side) { return; };
@@ -91,6 +95,21 @@ public:
     }
 
     NormalModel() : Model(1, 3) {}
+
+    void update_state(std::unique_ptr<State> &state, size_t tree_ind){
+        // Draw Sigma
+        state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
+        std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(state->residual_std_full) + s));
+        state->update_sigma(1.0 / sqrt(gamma_samp(state->gen)));
+        return;
+    }
+
+    void initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat){
+        suff_stat[0] = sum_vec(state->residual_std) / (double)state->n_y;
+        suff_stat[1] = sum_squared(state->residual_std);
+        suff_stat[2] = state->n_y;
+        return;
+    }
 
     void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats)
     {
