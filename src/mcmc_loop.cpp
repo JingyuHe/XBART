@@ -21,10 +21,10 @@ void mcmc_loop(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burni
 
         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
         {
-            if (sweeps == 0)
-            {
-                trees[sweeps][tree_ind].resize_suff_stat(model->dim_suffstat);
-            }
+            // if (sweeps == 0)
+            // {
+            //     trees[sweeps][tree_ind].resize_suff_stat(model->dim_suffstat);
+            // }
 
             // Draw Sigma
             model->update_state(state, tree_ind);
