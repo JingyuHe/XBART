@@ -59,12 +59,12 @@ public:
     friend std::istream &operator>>(std::istream &, tree &);
     //  friend void update_sufficient_stat(tree& tree, arma::mat& y, arma::mat& X, tree::npv& bv, tree::npv& bv2, double& tau, double& sigma, double& alpha, double& beta);
     //contructors,destructors--------------------
-    tree() : depth(0), suff_stat(4, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
-    tree(size_t dim_suffstat) : depth(0), suff_stat(dim_suffstat, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
-    tree(const tree &n) : depth(0), suff_stat(2, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) { cp(this, &n); }
-    tree(double itheta) : depth(0), suff_stat(2, 0.0), theta_vector(itheta, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
-    tree(size_t dim_theta, const tree_p parent, size_t dim_suffstat) : suff_stat(dim_suffstat, 0.0), theta_vector(dim_theta, 0.0), v(0), c(0), p(parent), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), y_mean(0.0), N_Xorder(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
-
+    tree() : depth(0), suff_stat(4, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
+    tree(size_t dim_suffstat) : depth(0), suff_stat(dim_suffstat, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
+    tree(const tree &n) : depth(0), suff_stat(2, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) { cp(this, &n); }
+    tree(double itheta) : depth(0), suff_stat(2, 0.0), theta_vector(itheta, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
+    tree(size_t dim_theta, const tree_p parent, size_t dim_suffstat) : suff_stat(dim_suffstat, 0.0), theta_vector(dim_theta, 0.0), v(0), c(0), p(parent), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
+    tree(size_t dim_theta, size_t dim_suffstat) : suff_stat(dim_suffstat, 0.0), theta_vector(dim_theta, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
     void tonull(); //like a "clear", null tree has just one node
     ~tree() { tonull(); }
     //operators----------
@@ -83,12 +83,7 @@ public:
     size_t getv() const { return v; }
     double getc() const { return c; }
 
-    size_t getN_Xorder() const { return N_Xorder; }
-    void setN_Xorder(size_t N_Xorder) { this->N_Xorder = N_Xorder; }
     size_t getdepth() const {return depth;}
-
-    double gety_mean() const { return y_mean; }
-    void sety_mean(double y_mean) { this->y_mean = y_mean; }
 
     double gettree_like() const { return tree_like; }
     size_t getnum_cutpoint_candidates() const { return num_cutpoint_candidates; }
@@ -142,8 +137,6 @@ public:
 
     double transition_prob();
 
-    double log_like_tree(double sigma2, double tau);
-
     tree_p bn(double *x, xinfo &xi); //find Bottom Node, original BART version
     tree_p bn_std(double *x);        // find Bottom Node, std version, compare
     tree_p search_bottom_std(const double *X, const size_t &i, const size_t &p, const size_t &N);
@@ -178,9 +171,6 @@ private:
     double tree_like; // for debug use, likelihood of the tree
 
     size_t drawn_ind; // index drawn when sampling cutpoints (in the total likelihood + nosplit vector)
-
-    size_t N_Xorder; // number of data points in this node, for debugging use
-    double y_mean;   // average of y in current node, for debugging use
 
     size_t num_cutpoint_candidates; // number of cutpoint candidates
 

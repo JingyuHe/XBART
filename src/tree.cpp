@@ -335,8 +335,6 @@ void tree::cp(tree_p n, tree_cp o)
     n->prob_split = o->prob_split;
     n->prob_leaf = o->prob_leaf;
     n->drawn_ind = o->drawn_ind;
-    n->N_Xorder = o->N_Xorder;
-    n->y_mean = o->y_mean;
     n->loglike_node = o->loglike_node;
     n->tree_like = o->tree_like;
     n->theta_vector = o->theta_vector;
@@ -362,8 +360,6 @@ void tree::copy_only_root(tree_p o)
     this->prob_split = o->prob_split;
     this->prob_leaf = o->prob_leaf;
     this->drawn_ind = o->drawn_ind;
-    this->N_Xorder = o->N_Xorder;
-    this->y_mean = o->y_mean;
     this->loglike_node = o->loglike_node;
     this->tree_like = o->tree_like;
     this->theta_vector = o->theta_vector;
@@ -633,8 +629,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, xinfo_sizet &Xorder_std
     size_t split_var;
     size_t split_point;
 
-    this->setN_Xorder(N_Xorder);
-
     if (N_Xorder <= state->n_min)
     {
         return;
@@ -828,29 +822,6 @@ double tree::transition_prob()
 
     return output;
 };
-
-double tree::log_like_tree(double sigma2, double tau)
-{
-    double output = 0.0;
-
-    npv tree_vec;
-
-    // get a vector of bottom nodes
-    this->getbots(tree_vec);
-
-    // calculate loglikelihood
-
-    // be careful of y^ty term, second order
-    // it is changed with new residual
-    for (size_t i = 0; i < tree_vec.size(); i++)
-    {
-        output += 0.5 * (log(sigma2 / (sigma2 + tau * tree_vec[i]->getN_Xorder())) + tau / sigma2 / (sigma2 + tau * tree_vec[i]->getN_Xorder()) * pow(tree_vec[i]->getN_Xorder() * tree_vec[i]->gety_mean(), 2));
-    }
-
-    // cout << "output of log_like_tree  " << output << endl;
-
-    return output;
-}
 
 void split_xorder_std_continuous(xinfo_sizet &Xorder_left_std, xinfo_sizet &Xorder_right_std, size_t split_var, size_t split_point, xinfo_sizet &Xorder_std, Model *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<State> &state, tree *current_node)
 {
