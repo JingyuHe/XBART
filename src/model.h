@@ -37,9 +37,7 @@ public:
     };
 
     // Abstract functions
-    virtual void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats) { return; };
-
-    virtual void incSuffStat2(double next_obs, std::vector<double> &suffstats) { return; };
+    virtual void incSuffStat(double next_obs, std::vector<double> &suffstats) { return; };
 
     virtual void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf) { return; };
 
@@ -53,9 +51,10 @@ public:
 
     virtual void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const { return; };
 
-    virtual double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &node_suff_stat, size_t N_left, bool left_side, std::unique_ptr<State> &) const { return 0.0; };
+    virtual double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const { return 0.0; };
 
-    virtual double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &) const { return 0.0; };
+    // virtual double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const { return 0.0; };
+
     virtual void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder) { return; };
 
     virtual double predictFromTheta(const std::vector<double> &theta_vector) const { return 0.0; };
@@ -106,9 +105,7 @@ public:
 
     Model *clone() { return new NormalModel(*this); }
 
-    void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats);
-
-    void incSuffStat2(double next_obs, std::vector<double> &suffstats);
+    void incSuffStat(double next_obs, std::vector<double> &suffstats);
 
     void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
@@ -122,9 +119,9 @@ public:
 
     void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const;
 
-    double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &node_suff_stat, size_t N_left, bool left_side, std::unique_ptr<State> &state) const;
+    double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const;
 
-    double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const;
+    // double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const;
 
     double predictFromTheta(const std::vector<double> &theta_vector) const;
 
@@ -308,8 +305,7 @@ public:
         return;
     }
 
-    // double likelihood(double tau, double ntau, double sigma2, double y_sum, bool left_side) const
-    double likelihood(std::vector<double> &node_suff_stat, size_t N_left, bool left_side, std::unique_ptr<State> &) const
+    double likelihood(std::vector<double> &node_suff_stat, size_t N_left, bool left_side, std::unique_ptr<State> &state) const
     {
         // likelihood equation,
         // note the difference of left_side == true / false
@@ -325,8 +321,7 @@ public:
         }
     }
 
-    // double likelihood_no_split(double value, double tau, double ntau, double sigma2) const
-    double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &) const
+    double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const
     {
         // the likelihood of no-split option is a bit different from others
         // because the sufficient statistics is y_sum here

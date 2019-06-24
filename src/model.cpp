@@ -8,13 +8,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////
 
-void NormalModel::incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats)
-{
-    suffstats[0] += y_std[ix];
-    return;
-}
-
-void NormalModel::incSuffStat2(double next_obs, std::vector<double> &suffstats)
+void NormalModel::incSuffStat(double next_obs, std::vector<double> &suffstats)
 {
     suffstats[0] += next_obs;
     return;
@@ -29,8 +23,6 @@ void NormalModel::samplePars(std::unique_ptr<State> &state, std::vector<double> 
 
     // also update probability of leaf parameters
     prob_leaf = normal_density(theta_vector[0], suff_stat[0] * suff_stat[2] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), 1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), true);
-
-    // cout << "prob_leaf " << prob_leaf << endl;
 
     return;
 }
@@ -100,38 +92,56 @@ void NormalModel::state_sweep(const xinfo &predictions_std, size_t tree_ind, siz
     return;
 }
 
-double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &node_suff_stat, size_t N_left, bool left_side, std::unique_ptr<State> &state) const
+double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const
 {
     // likelihood equation,
     // note the difference of left_side == true / false
     // node_suff_stat is mean of y, sum of square of y, saved in tree class
-    double y_sum = (double)node_suff_stat[2] * node_suff_stat[0];
-    double sigma2 = pow(state->sigma, 2);
+    double y_sum = (double)suff_stat_all[2] * suff_stat_all[0];
+    double sigma2 = state->sigma2;
     double ntau;
+    double suff_one_side;
 
-    if (left_side)
+    /////////////////////////////////////////////////////////////////////////
+    //                                                                     //
+    //  I know combining likelihood and likelihood_no_split looks nicer    //
+    //  but this is a very fundamental function, executed many times       //
+    //  the extra if(no_split) statement makes the code about 5% slower!!  //
+    //                                                                     //
+    /////////////////////////////////////////////////////////////////////////
+
+    if (no_split)
     {
-        ntau = (N_left + 1) * tau;
-        return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(temp_suff_stat[0], 2) / (sigma2 * (ntau + sigma2));
+        ntau = suff_stat_all[2] * tau;
+        suff_one_side = y_sum;
+    }else{
+        if (left_side)
+        {
+            ntau = (N_left + 1) * tau;
+            suff_one_side = temp_suff_stat[0];
+        }
+        else
+        {
+            ntau = (suff_stat_all[2] - N_left - 1) * tau;
+            suff_one_side = y_sum - temp_suff_stat[0];
+        }
     }
-    else
-    {
-        ntau = (node_suff_stat[2] - N_left - 1) * tau;
-        return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(y_sum - temp_suff_stat[0], 2) / (sigma2 * (ntau + sigma2));
-    }
+
+    return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(suff_one_side, 2) / (sigma2 * (ntau + sigma2));
 }
 
-double NormalModel::likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const
-{
-    // the likelihood of no-split option is a bit different from others
-    // because the sufficient statistics is y_sum here
-    // write a separate function, more flexibility
-    double ntau = suff_stat[2] * tau;
-    double sigma2 = pow(state->sigma, 2);
-    double value = suff_stat[2] * suff_stat[0]; // sum of y
+// double NormalModel::likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const
+// {
+//     // the likelihood of no-split option is a bit different from others
+//     // because the sufficient statistics is y_sum here
+//     // write a separate function, more flexibility
+//     double ntau = suff_stat[2] * tau;
+//     // double sigma2 = pow(state->sigma, 2);
+//     double sigma2 = state->sigma2;
+//     double value = suff_stat[2] * suff_stat[0]; // sum of y
 
-    return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
-}
+//     return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
+// }
 
 double NormalModel::predictFromTheta(const std::vector<double> &theta_vector) const
 {
