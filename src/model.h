@@ -39,6 +39,8 @@ public:
     // Abstract functions
     virtual void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats) { return; };
 
+    virtual void incSuffStat2(double next_obs, std::vector<double> &suffstats) { return; };
+
     virtual void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf) { return; };
 
     virtual void update_state(std::unique_ptr<State> &state, size_t tree_ind) { return; };
@@ -105,6 +107,8 @@ public:
     Model *clone() { return new NormalModel(*this); }
 
     void incSuffStat(std::vector<double> &y_std, size_t ix, std::vector<double> &suffstats);
+
+    void incSuffStat2(double next_obs, std::vector<double> &suffstats);
 
     void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 

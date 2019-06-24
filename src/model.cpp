@@ -14,6 +14,12 @@ void NormalModel::incSuffStat(std::vector<double> &y_std, size_t ix, std::vector
     return;
 }
 
+void NormalModel::incSuffStat2(double next_obs, std::vector<double> &suffstats)
+{
+    suffstats[0] += next_obs;
+    return;
+}
+
 void NormalModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
 {
     std::normal_distribution<double> normal_samp(0.0, 1.0);

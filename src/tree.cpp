@@ -1437,7 +1437,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                 for (size_t j = 0; j < N_Xorder - 1; j++)
                 {
-                    calcSuffStat_continuous(temp_suff_stat, xorder, state->residual_std, candidate_index, j, false, model);
+                    calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index, j, false, model, state);
 
                     loglike[(N_Xorder - 1) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, true, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, false, state);
 
@@ -1479,7 +1479,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     for (size_t j = 0; j < state->n_cutpoints; j++)
                     {
 
-                        calcSuffStat_continuous(temp_suff_stat, xorder, state->residual_std, candidate_index2, j, true, model);
+                        calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index2, j, true, model, state);
 
                         loglike[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, state);
 
@@ -1568,7 +1568,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
                     // modify sufficient statistics vector directly inside model class
                     // model->calcSuffStat_categorical(temp_suff_stat, state->residual_std, Xorder_std, n1, temp, i);
-                    calcSuffStat_categorical(temp_suff_stat, state->residual_std, Xorder_std, n1, temp, i, model);
+                    calcSuffStat_categorical(temp_suff_stat, Xorder_std[i], n1, temp, model, state);
 
                     n1 = n1 + X_counts[j];
                     // n1tau = (double)n1 * model->tau;
@@ -1667,7 +1667,7 @@ void predict_from_datapointers(size_t tree_ind, Model *model, std::unique_ptr<St
     return;
 }
 
-void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var, Model *model)
+void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, size_t &start, size_t &end, Model *model, std::unique_ptr<State>& state)
 {
     // calculate sufficient statistics for categorical variables
 
@@ -1675,12 +1675,13 @@ void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<d
     for (size_t i = start; i <= end; i++)
     {
         // Model::suff_stat_model[0] += y[Xorder[var][i]];
-        model->incSuffStat(y, Xorder[var][i], temp_suff_stat);
+        // model->incSuffStat(y, Xorder[var][i], temp_suff_stat);
+        model->incSuffStat2(state->residual_std[xorder[i]], temp_suff_stat);
     }
     return;
 }
 
-void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint, Model *model)
+void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint, Model *model, std::unique_ptr<State>& state)
 {
     // calculate sufficient statistics for continuous variables
 
@@ -1690,19 +1691,22 @@ void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<si
         if (index == 0)
         {
             // initialize, only for the first cutpoint candidate, thus index == 0
-            model->incSuffStat(y_std, xorder[0], temp_suff_stat);
+            // model->incSuffStat(y_std, xorder[0], temp_suff_stat);
+            model->incSuffStat2(state->residual_std[xorder[0]], temp_suff_stat);
         }
 
         // if use adaptive number of cutpoints, calculated based on vector candidate_index
         for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
         {
-            model->incSuffStat(y_std, xorder[q], temp_suff_stat);
+            // model->incSuffStat(y_std, xorder[q], temp_suff_stat);
+            model->incSuffStat2(state->residual_std[xorder[q]], temp_suff_stat);
         }
     }
     else
     {
         // use all data points as candidates
-        model->incSuffStat(y_std, xorder[index], temp_suff_stat);
+        // model->incSuffStat(y_std, xorder[index], temp_suff_stat);
+        model->incSuffStat2(state->residual_std[xorder[index]], temp_suff_stat);
     }
     return;
 }
