@@ -622,7 +622,6 @@ double tree::prior_prob(NormalModel *model)
 void tree::grow_from_root(std::unique_ptr<State> &state, xinfo_sizet &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree)
 {
     // grow a tree, users can control number of split points
-    size_t max_depth = (*state->max_depth_std)[sweeps][tree_ind];
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
     size_t ind;
@@ -634,7 +633,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, xinfo_sizet &Xorder_std
         return;
     }
 
-    if (this->depth >= max_depth - 1)
+    if (this->depth >= state->max_depth - 1)
     {
         return;
     }

@@ -1,6 +1,6 @@
 #include "mcmc_loop.h"
 
-void mcmc_loop(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct)
+void mcmc_loop(xinfo_sizet &Xorder_std, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct)
 {
 
     if (state->parallel)
@@ -34,7 +34,7 @@ void mcmc_loop(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burni
             // then it's m - 1 trees residual
             state->yhat_std = state->yhat_std - state->predictions_std[tree_ind];
 
-            if (state->use_all && (sweeps > burnin) && (state->mtry != state->p))
+            if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
             {
                 state->use_all = false;
             }
@@ -141,7 +141,7 @@ void predict_std_multinomial(const double *Xtestpointer, size_t N_test, size_t p
     return;
 }
 
-void mcmc_loop_clt(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, CLTClass *model, std::unique_ptr<X_struct> &x_struct)
+void mcmc_loop_clt(xinfo_sizet &Xorder_std, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, CLTClass *model, std::unique_ptr<X_struct> &x_struct)
 {
     if (state->parallel)
         thread_pool.start();
@@ -166,7 +166,7 @@ void mcmc_loop_clt(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t b
 
             model->total_fit = state->yhat_std;
 
-            if ((sweeps > burnin) && (state->mtry < state->p))
+            if ((sweeps > state->burnin) && (state->mtry < state->p))
             {
                 state->use_all = false;
             }
@@ -208,7 +208,7 @@ void mcmc_loop_clt(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t b
     delete model;
 }
 
-void mcmc_loop_multinomial(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitClass *model, std::unique_ptr<X_struct> &x_struct)
+void mcmc_loop_multinomial(xinfo_sizet &Xorder_std, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitClass *model, std::unique_ptr<X_struct> &x_struct)
 {
 
     // if (parallel)
@@ -251,7 +251,7 @@ void mcmc_loop_multinomial(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, 
 
     //         model->total_fit = state->yhat_std;
 
-    //         if ((sweeps > burnin) && (mtry < p))
+    //         if ((sweeps > state->burnin) && (mtry < p))
     //         {
     //             state->use_all = false;
     //         }
@@ -294,7 +294,7 @@ void mcmc_loop_multinomial(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, 
     // delete model;
 }
 
-void mcmc_loop_probit(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct)
+void mcmc_loop_probit(xinfo_sizet &Xorder_std, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct)
 {
 
     if (state->parallel)
@@ -358,7 +358,7 @@ void mcmc_loop_probit(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_
             // then it's m - 1 trees residual
             state->yhat_std = state->yhat_std - state->predictions_std[tree_ind];
 
-            if (state->use_all && (sweeps > burnin) && (state->mtry != state->p))
+            if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
             {
                 state->use_all = false;
             }
@@ -405,7 +405,7 @@ void mcmc_loop_probit(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_
     delete model;
 }
 
-void mcmc_loop_MH(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t burnin, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &accept_count, std::vector<double> &MH_vector, std::vector<double> &P_ratio, std::vector<double> &Q_ratio, std::vector<double> &prior_ratio)
+void mcmc_loop_MH(xinfo_sizet &Xorder_std, bool verbose, xinfo &yhats_xinfo, xinfo &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &accept_count, std::vector<double> &MH_vector, std::vector<double> &P_ratio, std::vector<double> &Q_ratio, std::vector<double> &prior_ratio)
 {
 
     if (state->parallel)
@@ -458,7 +458,7 @@ void mcmc_loop_MH(xinfo_sizet &Xorder_std, xinfo_sizet &max_depth_std, size_t bu
             // then it's m - 1 trees residual
             state->yhat_std = state->yhat_std - state->predictions_std[tree_ind];
 
-            if (state->use_all && (sweeps > burnin) && (state->mtry != state->p))
+            if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
             {
                 state->use_all = false;
             }
