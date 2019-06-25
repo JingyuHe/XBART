@@ -57,7 +57,10 @@ public:
 
     virtual void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder) { return; };
 
+    virtual void ini_residual_std(std::unique_ptr<State> &state) { return; };
+
     virtual double predictFromTheta(const std::vector<double> &theta_vector) const { return 0.0; };
+
     virtual Model *clone() { return nullptr; };
 
     // Getters and Setters
@@ -122,6 +125,8 @@ public:
     double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const;
 
     // double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const;
+
+    void ini_residual_std(std::unique_ptr<State> &state);
 
     double predictFromTheta(const std::vector<double> &theta_vector) const;
 

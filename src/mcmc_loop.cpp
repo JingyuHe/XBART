@@ -7,8 +7,8 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhats_x
         thread_pool.start();
 
     // Residual for 0th tree
-    state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
-    // model->ini_residual_std(state);
+    // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
+    model->ini_residual_std(state);
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {

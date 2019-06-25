@@ -143,13 +143,13 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
 //     return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
 // }
 
-// void NormalModel::ini_residual_std(std::unique_ptr<State> &state){
-//     double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double) state->num_trees;
-//     for(size_t i=0; i < state->residual_std.size(); i ++ ){
-//         state->residual_std[i] = (*state->y_std)[i] - value; 
-//     }
-//     return;
-// }
+void NormalModel::ini_residual_std(std::unique_ptr<State> &state){
+    double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double) state->num_trees;
+    for(size_t i=0; i < state->residual_std.size(); i ++ ){
+        state->residual_std[i] = (*state->y_std)[i] - value; 
+    }
+    return;
+}
 
 
 double NormalModel::predictFromTheta(const std::vector<double> &theta_vector) const
