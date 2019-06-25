@@ -2,9 +2,9 @@
 
 ThreadPool thread_pool;
 
-void ini_xinfo(xinfo &X, size_t N, size_t p)
+void ini_xinfo(matrix<double> &X, size_t N, size_t p)
 {
-    // xinfo X;
+    // matrix<double> X;
     X.resize(p);
 
     for (size_t i = 0; i < p; i++)
@@ -16,9 +16,9 @@ void ini_xinfo(xinfo &X, size_t N, size_t p)
     return;
 }
 
-void ini_xinfo(xinfo &X, size_t N, size_t p, double var)
+void ini_xinfo(matrix<double> &X, size_t N, size_t p, double var)
 {
-    // xinfo X;
+    // matrix<double> X;
     X.resize(p);
 
     for (size_t i = 0; i < p; i++)
@@ -30,9 +30,9 @@ void ini_xinfo(xinfo &X, size_t N, size_t p, double var)
     return;
 }
 
-void ini_xinfo_sizet(xinfo_sizet &X, size_t N, size_t p)
+void ini_xinfo_sizet(matrix<size_t> &X, size_t N, size_t p)
 {
-    // xinfo_sizet X;
+    // matrix<size_t> X;
     X.resize(p);
 
     for (size_t i = 0; i < p; i++)
@@ -44,7 +44,7 @@ void ini_xinfo_sizet(xinfo_sizet &X, size_t N, size_t p)
     return;
 }
 
-double subnode_mean(const std::vector<double> &y, xinfo_sizet &Xorder, const size_t &split_var)
+double subnode_mean(const std::vector<double> &y, matrix<size_t> &Xorder, const size_t &split_var)
 {
     // calculate mean of y falls into the same subnode
     double output = 0.0;
@@ -57,7 +57,7 @@ double subnode_mean(const std::vector<double> &y, xinfo_sizet &Xorder, const siz
     return output;
 }
 
-double subnode_mean_newXorder(const std::vector<double> &y, const xinfo_sizet &Xorder_full, const xinfo_sizet &Xorder_next_index, const size_t &split_var, const std::vector<size_t> &Xorder_firstline, const size_t &N_Xorder)
+double subnode_mean_newXorder(const std::vector<double> &y, const matrix<size_t> &Xorder_full, const matrix<size_t> &Xorder_next_index, const size_t &split_var, const std::vector<size_t> &Xorder_firstline, const size_t &N_Xorder)
 {
     // calculate mean of y falls into the same subnode
     double output = 0.0;
@@ -73,7 +73,7 @@ double subnode_mean_newXorder(const std::vector<double> &y, const xinfo_sizet &X
     return output;
 }
 
-void row_sum(xinfo &X, std::vector<double> &output)
+void row_sum(matrix<double> &X, std::vector<double> &output)
 {
     size_t p = X.size();
     size_t N = X[0].size();
@@ -89,7 +89,7 @@ void row_sum(xinfo &X, std::vector<double> &output)
     return;
 }
 
-void col_sum(xinfo &X, std::vector<double> &output)
+void col_sum(matrix<double> &X, std::vector<double> &output)
 {
     size_t p = X.size();
     size_t N = X[0].size();
@@ -208,7 +208,7 @@ void calculate_y_cumsum_std(const double *y, const size_t N_y, double y_sum, std
     return;
 }
 
-void compute_partial_sum_adaptive(std::vector<double> &y_std, std::vector<size_t> &candidate_index, std::vector<double> &y_cumsum, xinfo_sizet &Xorder_std, const size_t &var)
+void compute_partial_sum_adaptive(std::vector<double> &y_std, std::vector<size_t> &candidate_index, std::vector<double> &y_cumsum, matrix<size_t> &Xorder_std, const size_t &var)
 {
     size_t M = y_cumsum.size();
     size_t N_Xorder = Xorder_std[0].size();
@@ -233,7 +233,7 @@ void compute_partial_sum_adaptive(std::vector<double> &y_std, std::vector<size_t
     return;
 }
 
-void compute_partial_sum_adaptive_newXorder(std::vector<double> &y_std, std::vector<size_t> &candidate_index, std::vector<double> &y_cumsum, xinfo_sizet &Xorder_std, const size_t &var, xinfo_sizet &Xorder_next_index, std::vector<size_t> &Xorder_firstline, size_t N_Xorder, std::vector<double> &possible_cutpoints, size_t N_y, const double *X_std)
+void compute_partial_sum_adaptive_newXorder(std::vector<double> &y_std, std::vector<size_t> &candidate_index, std::vector<double> &y_cumsum, matrix<size_t> &Xorder_std, const size_t &var, matrix<size_t> &Xorder_next_index, std::vector<size_t> &Xorder_firstline, size_t N_Xorder, std::vector<double> &possible_cutpoints, size_t N_y, const double *X_std)
 {
     size_t M = y_cumsum.size();
 
@@ -309,7 +309,7 @@ double sq_vec_diff_sizet(std::vector<size_t> &v1, std::vector<size_t> &v2)
     return output;
 }
 
-void recover_Xorder(xinfo_sizet &Xorder, std::vector<size_t> &Xorder_firstline, xinfo_sizet &Xorder_next_index, xinfo_sizet &Xorder_new)
+void recover_Xorder(matrix<size_t> &Xorder, std::vector<size_t> &Xorder_firstline, matrix<size_t> &Xorder_next_index, matrix<size_t> &Xorder_new)
 {
     size_t p = Xorder.size();
     // size_t n = Xorder[0].size();
@@ -330,7 +330,7 @@ void recover_Xorder(xinfo_sizet &Xorder, std::vector<size_t> &Xorder_firstline, 
     return;
 }
 
-void create_y_sort(std::vector<double> &Y_sort, const std::vector<double> &y_std, const xinfo_sizet &Xorder, const xinfo_sizet &Xorder_next_index, const std::vector<size_t> &Xorder_firstline, const size_t &var)
+void create_y_sort(std::vector<double> &Y_sort, const std::vector<double> &y_std, const matrix<size_t> &Xorder, const matrix<size_t> &Xorder_next_index, const std::vector<size_t> &Xorder_firstline, const size_t &var)
 {
     // recover sorted Y using Xorder linked list object
     // only consider variable var
@@ -347,7 +347,7 @@ void create_y_sort(std::vector<double> &Y_sort, const std::vector<double> &y_std
     return;
 }
 
-void create_y_sort_2(std::vector<double> &Y_sort, std::vector<double> &possible_cutpoints, const double *X_std, const std::vector<double> &y_std, const xinfo_sizet &Xorder, const xinfo_sizet &Xorder_next_index, const std::vector<size_t> &Xorder_firstline, const size_t &var, const size_t &N_y)
+void create_y_sort_2(std::vector<double> &Y_sort, std::vector<double> &possible_cutpoints, const double *X_std, const std::vector<double> &y_std, const matrix<size_t> &Xorder, const matrix<size_t> &Xorder_next_index, const std::vector<size_t> &Xorder_firstline, const size_t &var, const size_t &N_y)
 {
     // recover sorted Y using Xorder linked list object
     // only consider variable var
@@ -367,7 +367,7 @@ void create_y_sort_2(std::vector<double> &Y_sort, std::vector<double> &possible_
     return;
 }
 
-void compute_partial_sum_newXorder(const std::vector<double> &y_std, const xinfo_sizet &Xorder, const xinfo_sizet &Xorder_next_index, const std::vector<size_t> &Xorder_firstline, const size_t &var, const size_t N_y, std::vector<double> &y_cumsum, std::vector<double> &possible_cutpoints, const double *X_std)
+void compute_partial_sum_newXorder(const std::vector<double> &y_std, const matrix<size_t> &Xorder, const matrix<size_t> &Xorder_next_index, const std::vector<size_t> &Xorder_firstline, const size_t &var, const size_t N_y, std::vector<double> &y_cumsum, std::vector<double> &possible_cutpoints, const double *X_std)
 {
     size_t current_index = Xorder_firstline[var];
     size_t i = 0;
@@ -387,7 +387,7 @@ void compute_partial_sum_newXorder(const std::vector<double> &y_std, const xinfo
     return;
 }
 
-void create_y_sort_3(std::vector<double> &Y_sort, std::vector<double> &possible_cutpoints, const double *X_std, const std::vector<double> &y_std, const xinfo_sizet &Xorder, const xinfo_sizet &Xorder_next_index, const std::vector<size_t> &Xorder_firstline, const size_t &var, const size_t &N_y, std::vector<size_t> &candidate_index)
+void create_y_sort_3(std::vector<double> &Y_sort, std::vector<double> &possible_cutpoints, const double *X_std, const std::vector<double> &y_std, const matrix<size_t> &Xorder, const matrix<size_t> &Xorder_next_index, const std::vector<size_t> &Xorder_firstline, const size_t &var, const size_t &N_y, std::vector<size_t> &candidate_index)
 {
     // recover sorted Y using Xorder linked list object
     // only consider variable var
@@ -413,7 +413,7 @@ void create_y_sort_3(std::vector<double> &Y_sort, std::vector<double> &possible_
     return;
 }
 
-void compute_partial_sum(std::vector<double> &Y, xinfo_sizet &Xorder, const size_t &var, std::vector<double> &y_cumsum)
+void compute_partial_sum(std::vector<double> &Y, matrix<size_t> &Xorder, const size_t &var, std::vector<double> &y_cumsum)
 {
     // size_t p = Xorder.size();
     size_t N = Xorder[0].size();
@@ -428,7 +428,7 @@ void compute_partial_sum(std::vector<double> &Y, xinfo_sizet &Xorder, const size
     return;
 }
 
-void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, double &y_sum, const size_t &var)
+void partial_sum_y(std::vector<double> &y, matrix<size_t> &Xorder, size_t &start, size_t &end, double &y_sum, const size_t &var)
 {
     // compute sum of y[Xorder[start:end, var]]
     size_t loop_count = 0;
@@ -441,7 +441,7 @@ void partial_sum_y(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, s
     return;
 }
 
-void unique_value_count2(const double *Xpointer, xinfo_sizet &Xorder_std, //std::vector<size_t> &X_values,
+void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, //std::vector<size_t> &X_values,
                          std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique, size_t &p_categorical, size_t &p_continuous)
 {
     size_t N = Xorder_std[0].size();

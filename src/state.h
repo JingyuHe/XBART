@@ -10,11 +10,14 @@ struct State
 {
 public:
     // Result containers
-    xinfo predictions_std;
-    xinfo predictions_std_copy;
+    matrix<double> predictions_std;
+    matrix<double> predictions_std_copy;
     std::vector<double> yhat_std;
     std::vector<double> residual_std;
     std::vector<double> residual_std_full;
+
+    std::vector<double> fit_current_tree;
+    std::vector<double> fit_previous_tree;
 
     // Random
     std::vector<double> prob;
@@ -23,7 +26,7 @@ public:
     std::discrete_distribution<> d;
 
     // Splits
-    xinfo split_count_all_tree;
+    matrix<double> split_count_all_tree;
     std::vector<double> split_count_current_tree;
     std::vector<double> mtry_weight_current_tree;
 
@@ -59,7 +62,7 @@ public:
         return;
     }
 
-    State(const double *Xpointer, xinfo_sizet &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin)
+    State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin)
     {
 
         // Init containers
@@ -68,6 +71,8 @@ public:
 
         // initialize yhat at given value
         yhat_std = std::vector<double>(N, ini_var_yhat);
+        fit_current_tree = std::vector<double>(N, 0.0);
+        fit_previous_tree = std::vector<double>(N, 0.0);
 
         this->residual_std = std::vector<double>(N);
 

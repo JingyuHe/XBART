@@ -44,7 +44,7 @@ void NormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::v
     return;
 }
 
-void NormalModel::updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, xinfo_sizet &Xorder_std, size_t &split_var, size_t row_ind)
+void NormalModel::updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
     suff_stat[0] += residual_std[Xorder_std[split_var][row_ind]];
     suff_stat[1] += pow(residual_std[Xorder_std[split_var][row_ind]], 2);
@@ -81,7 +81,7 @@ void NormalModel::calculateOtherSideSuffStat(std::vector<double> &parent_suff_st
     return;
 }
 
-void NormalModel::state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
+void NormalModel::state_sweep(const matrix<double> &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
 {
     size_t next_index = tree_ind + 1;
     if (next_index == M)
@@ -89,6 +89,16 @@ void NormalModel::state_sweep(const xinfo &predictions_std, size_t tree_ind, siz
         next_index = 0;
     }
     residual_std = residual_std - predictions_std[tree_ind] + predictions_std[next_index];
+
+    // for(size_t i = 0; i < residual_std.size(); i++ ){
+        // residual_std[i] = residual_std[i] - ((x_struct->data_pointers[tree_ind][0])[i]) + (x_struct->data_pointers[next_index][0])[i];
+    // }
+
+    // cout << residual_std[0] - (*(x_struct->data_pointers[tree_ind][0])[0]) << endl;
+
+    // cout << residual_std[0] - *x_struct->data_pointers[tree_ind][0] << endl;
+
+    // cout << predictions_std[tree_ind][0] - predictions_std[next_index][0] << "   " << (x_struct->data_pointers[tree_ind][0])[0] - (x_struct->data_pointers[next_index][0])[0] << endl;
     return;
 }
 
@@ -103,11 +113,11 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
     double suff_one_side;
 
     /////////////////////////////////////////////////////////////////////////
-    //                                                                     //
-    //  I know combining likelihood and likelihood_no_split looks nicer    //
-    //  but this is a very fundamental function, executed many times       //
-    //  the extra if(no_split) statement makes the code about 5% slower!!  //
-    //                                                                     //
+    //                                                                     
+    //  I know combining likelihood and likelihood_no_split looks nicer    
+    //  but this is a very fundamental function, executed many times       
+    //  the extra if(no_split) statement and value assignment make the code about 5% slower!!  
+    //                                                                     
     /////////////////////////////////////////////////////////////////////////
 
     if (no_split)

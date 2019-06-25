@@ -30,7 +30,7 @@ Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std:
     std::vector<std::vector<tree>> *trees = tree_pnt;
 
     // Result Container
-    xinfo yhats_test_xinfo;
+    matrix<double> yhats_test_xinfo;
     size_t N_sweeps = (*trees).size();
     size_t M = (*trees)[0].size();
     ini_xinfo(yhats_test_xinfo, N, N_sweeps);

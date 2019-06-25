@@ -45,11 +45,11 @@ public:
 
     virtual void initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat) { return; };
 
-    virtual void updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, xinfo_sizet &Xorder_std, size_t &split_var, size_t row_ind) { return; };
+    virtual void updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind) { return; };
 
     virtual void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side) { return; };
 
-    virtual void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const { return; };
+    virtual void state_sweep(const matrix<double> &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const { return; };
 
     virtual double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const { return 0.0; };
 
@@ -113,11 +113,11 @@ public:
 
     void initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat);
 
-    void updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, xinfo_sizet &Xorder_std, size_t &split_var, size_t row_ind);
+    void updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
 
     void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side);
 
-    void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const;
+    void state_sweep(const matrix<double> &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const;
 
     double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const;
 
@@ -181,7 +181,7 @@ public:
         return;
     }
     void incrementSuffStat() const { return; };
-    void samplePars(double y_mean, size_t N_Xorder, double sigma, std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder, double &prob_leaf)
+    void samplePars(double y_mean, size_t N_Xorder, double sigma, std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, matrix<size_t> &Xorder, double &prob_leaf)
     {
         // Update params
         updateFullSuffStat(y_std, Xorder[0]);
@@ -197,7 +197,7 @@ public:
         return;
     }
 
-    void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
+    void state_sweep(const matrix<double> &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
     {
         size_t next_index = tree_ind + 1;
         if (next_index == M)
@@ -208,7 +208,7 @@ public:
         return;
     }
 
-    void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var)
+    void calcSuffStat_categorical(std::vector<double> &y, matrix<size_t> &Xorder, size_t &start, size_t &end, const size_t &var)
     {
         // calculate sufficient statistics for categorical variables
 
@@ -338,7 +338,7 @@ public:
 
     Model *clone() { return new CLTClass(*this); }
 
-    virtual void updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, xinfo_sizet &Xorder_std, size_t &split_var, size_t row_ind)
+    virtual void updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
     {
         suff_stat[0] += residual_std[Xorder_std[split_var][row_ind]];
         suff_stat[1] += pow(residual_std[Xorder_std[split_var][row_ind]], 2);
@@ -490,7 +490,7 @@ public:
     // This function call can be much simplified too --  should only require (maybe) theta plus a flag?
     void samplePars(double y_mean, size_t N_Xorder, double sigma,
                     std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std,
-                    xinfo_sizet &Xorder, double &prob_leaf)
+                    matrix<size_t> &Xorder, double &prob_leaf)
     {
         // Update params
         updateFullSuffStat(y_std, Xorder[0]);
@@ -510,7 +510,7 @@ public:
 
     /*
 
-    void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
+    void state_sweep(const matrix<double> &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
     {
         size_t next_index = tree_ind + 1;
         if (next_index == M)
@@ -523,7 +523,7 @@ public:
     */
 
     //    void state_sweepNew(size_t tree_ind, size_t M, std::unique_ptr<State> state, std::vector<std::vector<double> > &slop) {
-    void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
+    void state_sweep(const matrix<double> &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
     {
         size_t next_index = tree_ind + 1;
         if (next_index == M)

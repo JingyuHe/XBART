@@ -17,7 +17,7 @@ using namespace chrono;
 //                                                                    //
 ////////////////////////////////////////////////////////////////////////
 
-void rcpp_to_std2(arma::mat y, arma::mat X, arma::mat Xtest, std::vector<double> &y_std, double &y_mean, Rcpp::NumericMatrix &X_std, Rcpp::NumericMatrix &Xtest_std, xinfo_sizet &Xorder_std)
+void rcpp_to_std2(arma::mat y, arma::mat X, arma::mat Xtest, std::vector<double> &y_std, double &y_mean, Rcpp::NumericMatrix &X_std, Rcpp::NumericMatrix &Xtest_std, matrix<size_t> &Xorder_std)
 {
     // The goal of this function is to convert RCPP object to std objects
 
@@ -105,17 +105,14 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, si
     }
 
     arma::umat Xorder(X.n_rows, X.n_cols);
-    xinfo_sizet Xorder_std;
-    ini_xinfo_sizet(Xorder_std, N, p);
+    matrix<size_t> Xorder_std;
+    ini_matrix(Xorder_std, N, p);
 
     std::vector<double> y_std(N);
     double y_mean = 0.0;
 
     Rcpp::NumericMatrix X_std(N, p);
     Rcpp::NumericMatrix Xtest_std(N_test, p);
-
-    
-    
 
     rcpp_to_std2(y, X, Xtest, y_std, y_mean, X_std, Xtest_std, Xorder_std);
 
@@ -125,19 +122,20 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, si
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
-    xinfo yhats_std;
-    ini_xinfo(yhats_std, N, num_sweeps);
-    xinfo yhats_test_std;
-    ini_xinfo(yhats_test_std, N_test, num_sweeps);
+    matrix<double> yhats_std;
+    ini_matrix(yhats_std, N, num_sweeps);
+    
+    matrix<double> yhats_test_std;
+    ini_matrix(yhats_test_std, N_test, num_sweeps);
 
-    xinfo yhats_xinfo;
-    ini_xinfo(yhats_xinfo, N, num_sweeps);
+    matrix<double> yhats_xinfo;
+    ini_matrix(yhats_xinfo, N, num_sweeps);
 
-    xinfo yhats_test_xinfo;
-    ini_xinfo(yhats_test_xinfo, N, num_sweeps);
+    matrix<double> yhats_test_xinfo;
+    ini_matrix(yhats_test_xinfo, N, num_sweeps);
 
-    xinfo sigma_draw_xinfo;
-    ini_xinfo(sigma_draw_xinfo, num_trees, num_sweeps);
+    matrix<double> sigma_draw_xinfo;
+    ini_matrix(sigma_draw_xinfo, num_trees, num_sweeps);
 
     // // Create trees
     vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
@@ -206,9 +204,6 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, si
 
     // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
-
-
-
     // clean memory
     delete model;
     state.reset();
@@ -255,17 +250,14 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     }
 
     arma::umat Xorder(X.n_rows, X.n_cols);
-    xinfo_sizet Xorder_std;
-    ini_xinfo_sizet(Xorder_std, N, p);
+    matrix<size_t> Xorder_std;
+    ini_matrix(Xorder_std, N, p);
 
     std::vector<double> y_std(N);
     double y_mean = 0.0;
 
     Rcpp::NumericMatrix X_std(N, p);
     Rcpp::NumericMatrix Xtest_std(N_test, p);
-
-    
-    
 
     rcpp_to_std2(y, X, Xtest, y_std, y_mean, X_std, Xtest_std, Xorder_std);
 
@@ -275,19 +267,19 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
-    xinfo yhats_std;
-    ini_xinfo(yhats_std, N, num_sweeps);
-    xinfo yhats_test_std;
-    ini_xinfo(yhats_test_std, N_test, num_sweeps);
+    matrix<double> yhats_std;
+    ini_matrix(yhats_std, N, num_sweeps);
+    matrix<double> yhats_test_std;
+    ini_matrix(yhats_test_std, N_test, num_sweeps);
 
-    xinfo yhats_xinfo;
-    ini_xinfo(yhats_xinfo, N, num_sweeps);
+    matrix<double> yhats_xinfo;
+    ini_matrix(yhats_xinfo, N, num_sweeps);
 
-    xinfo yhats_test_xinfo;
-    ini_xinfo(yhats_test_xinfo, N, num_sweeps);
+    matrix<double> yhats_test_xinfo;
+    ini_matrix(yhats_test_xinfo, N, num_sweeps);
 
-    xinfo sigma_draw_xinfo;
-    ini_xinfo(sigma_draw_xinfo, num_trees, num_sweeps);
+    matrix<double> sigma_draw_xinfo;
+    ini_matrix(sigma_draw_xinfo, num_trees, num_sweeps);
 
     // // Create trees
     vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
@@ -401,17 +393,14 @@ Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest, size_t n
     }
 
     arma::umat Xorder(X.n_rows, X.n_cols);
-    xinfo_sizet Xorder_std;
-    ini_xinfo_sizet(Xorder_std, N, p);
+    matrix<size_t> Xorder_std;
+    ini_matrix(Xorder_std, N, p);
 
     std::vector<double> y_std(N);
     double y_mean = 0.0;
 
     Rcpp::NumericMatrix X_std(N, p);
     Rcpp::NumericMatrix Xtest_std(N_test, p);
-
-    
-    
 
     rcpp_to_std2(y, X, Xtest, y_std, y_mean, X_std, Xtest_std, Xorder_std);
 
@@ -421,19 +410,19 @@ Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest, size_t n
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
-    xinfo yhats_std;
-    ini_xinfo(yhats_std, N, num_sweeps);
-    xinfo yhats_test_std;
-    ini_xinfo(yhats_test_std, N_test, num_sweeps);
+    matrix<double> yhats_std;
+    ini_matrix(yhats_std, N, num_sweeps);
+    matrix<double> yhats_test_std;
+    ini_matrix(yhats_test_std, N_test, num_sweeps);
 
-    xinfo yhats_xinfo;
-    ini_xinfo(yhats_xinfo, N, num_sweeps);
+    matrix<double> yhats_xinfo;
+    ini_matrix(yhats_xinfo, N, num_sweeps);
 
-    xinfo yhats_test_xinfo;
-    ini_xinfo(yhats_test_xinfo, N, num_sweeps);
+    matrix<double> yhats_test_xinfo;
+    ini_matrix(yhats_test_xinfo, N, num_sweeps);
 
-    xinfo sigma_draw_xinfo;
-    ini_xinfo(sigma_draw_xinfo, num_trees, num_sweeps);
+    matrix<double> sigma_draw_xinfo;
+    ini_matrix(sigma_draw_xinfo, num_trees, num_sweeps);
 
     // // Create trees
     vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
@@ -556,17 +545,14 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
     }
 
     arma::umat Xorder(X.n_rows, X.n_cols);
-    xinfo_sizet Xorder_std;
-    ini_xinfo_sizet(Xorder_std, N, p);
+    matrix<size_t> Xorder_std;
+    ini_matrix(Xorder_std, N, p);
 
     std::vector<double> y_std(N);
     double y_mean = 0.0;
 
     Rcpp::NumericMatrix X_std(N, p);
     Rcpp::NumericMatrix Xtest_std(N_test, p);
-
-    
-    
 
     rcpp_to_std2(y, X, Xtest, y_std, y_mean, X_std, Xtest_std, Xorder_std);
 
@@ -576,19 +562,19 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
-    xinfo yhats_std;
-    ini_xinfo(yhats_std, N, num_sweeps);
-    xinfo yhats_test_std;
-    ini_xinfo(yhats_test_std, N_test, num_sweeps);
+    matrix<double> yhats_std;
+    ini_matrix(yhats_std, N, num_sweeps);
+    matrix<double> yhats_test_std;
+    ini_matrix(yhats_test_std, N_test, num_sweeps);
 
-    xinfo yhats_xinfo;
-    ini_xinfo(yhats_xinfo, N, num_sweeps);
+    matrix<double> yhats_xinfo;
+    ini_matrix(yhats_xinfo, N, num_sweeps);
 
-    xinfo yhats_test_xinfo;
-    ini_xinfo(yhats_test_xinfo, N, num_sweeps);
+    matrix<double> yhats_test_xinfo;
+    ini_matrix(yhats_test_xinfo, N, num_sweeps);
 
-    xinfo sigma_draw_xinfo;
-    ini_xinfo(sigma_draw_xinfo, num_trees, num_sweeps);
+    matrix<double> sigma_draw_xinfo;
+    ini_matrix(sigma_draw_xinfo, num_trees, num_sweeps);
 
     // // Create trees
     vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
@@ -703,17 +689,14 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees,
     }
 
     arma::umat Xorder(X.n_rows, X.n_cols);
-    xinfo_sizet Xorder_std;
-    ini_xinfo_sizet(Xorder_std, N, p);
+    matrix<size_t> Xorder_std;
+    ini_matrix(Xorder_std, N, p);
 
     std::vector<double> y_std(N);
     double y_mean = 0.0;
 
     Rcpp::NumericMatrix X_std(N, p);
     Rcpp::NumericMatrix Xtest_std(N_test, p);
-
-    
-    
 
     rcpp_to_std2(y, X, Xtest, y_std, y_mean, X_std, Xtest_std, Xorder_std);
 
@@ -723,19 +706,19 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees,
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
-    xinfo yhats_std;
-    ini_xinfo(yhats_std, N, num_sweeps);
-    xinfo yhats_test_std;
-    ini_xinfo(yhats_test_std, N_test, num_sweeps);
+    matrix<double> yhats_std;
+    ini_matrix(yhats_std, N, num_sweeps);
+    matrix<double> yhats_test_std;
+    ini_matrix(yhats_test_std, N_test, num_sweeps);
 
-    xinfo yhats_xinfo;
-    ini_xinfo(yhats_xinfo, N, num_sweeps);
+    matrix<double> yhats_xinfo;
+    ini_matrix(yhats_xinfo, N, num_sweeps);
 
-    xinfo yhats_test_xinfo;
-    ini_xinfo(yhats_test_xinfo, N, num_sweeps);
+    matrix<double> yhats_test_xinfo;
+    ini_matrix(yhats_test_xinfo, N, num_sweeps);
 
-    xinfo sigma_draw_xinfo;
-    ini_xinfo(sigma_draw_xinfo, num_trees, num_sweeps);
+    matrix<double> sigma_draw_xinfo;
+    ini_matrix(sigma_draw_xinfo, num_trees, num_sweeps);
 
     // // Create trees
     vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
