@@ -38,8 +38,11 @@ void NormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind)
 
 void NormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
 {
+    // sum of y
     suff_stat[0] = sum_vec(state->residual_std);
+    // sum of y squared
     suff_stat[1] = sum_squared(state->residual_std);
+    // number of observations in the node
     suff_stat[2] = state->n_y;
     return;
 }
@@ -48,7 +51,7 @@ void NormalModel::updateNodeSuffStat(std::vector<double> &suff_stat, std::vector
 {
     suff_stat[0] += residual_std[Xorder_std[split_var][row_ind]];
     suff_stat[1] += pow(residual_std[Xorder_std[split_var][row_ind]], 2);
-    suff_stat[2] = suff_stat[2] + 1;
+    suff_stat[2] += 1;
     return;
 }
 
@@ -69,24 +72,22 @@ void NormalModel::calculateOtherSideSuffStat(std::vector<double> &parent_suff_st
     return;
 }
 
-void NormalModel::state_sweep(const matrix<double> &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
+void NormalModel::state_sweep(size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
 {
     size_t next_index = tree_ind + 1;
     if (next_index == M)
     {
         next_index = 0;
     }
-    residual_std = residual_std - predictions_std[tree_ind] + predictions_std[next_index];
 
-    // for(size_t i = 0; i < residual_std.size(); i++ ){
-        // residual_std[i] = residual_std[i] - ((x_struct->data_pointers[tree_ind][0])[i]) + (x_struct->data_pointers[next_index][0])[i];
-    // }
+    ////////////////////////////////////////////////////////
+    // Be care of line 151 in train_all.cpp, initial_theta
+    ////////////////////////////////////////////////////////
 
-    // cout << residual_std[0] - (*(x_struct->data_pointers[tree_ind][0])[0]) << endl;
+    for(size_t i = 0; i < residual_std.size(); i++ ){
+        residual_std[i] = residual_std[i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + (*(x_struct->data_pointers[next_index][i]))[0];
+    }
 
-    // cout << residual_std[0] - *x_struct->data_pointers[tree_ind][0] << endl;
-
-    // cout << predictions_std[tree_ind][0] - predictions_std[next_index][0] << "   " << (x_struct->data_pointers[tree_ind][0])[0] - (x_struct->data_pointers[next_index][0])[0] << endl;
     return;
 }
 
@@ -141,6 +142,15 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
 
 //     return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
 // }
+
+// void NormalModel::ini_residual_std(std::unique_ptr<State> &state){
+//     double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double) state->num_trees;
+//     for(size_t i=0; i < state->residual_std.size(); i ++ ){
+//         state->residual_std[i] = (*state->y_std)[i] - value; 
+//     }
+//     return;
+// }
+
 
 double NormalModel::predictFromTheta(const std::vector<double> &theta_vector) const
 {

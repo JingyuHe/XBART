@@ -49,6 +49,7 @@ public:
     size_t num_sweeps;
     size_t burnin;
     bool sample_weights_flag;
+    double ini_var_yhat;
 
     // residual standard deviation
     double sigma;
@@ -108,6 +109,7 @@ public:
         this->sigma2 = pow(sigma, 2);
         this->max_depth = max_depth;
         this->burnin = burnin;
+        this->ini_var_yhat = ini_var_yhat;
 
         return;
     }

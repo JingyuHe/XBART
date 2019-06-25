@@ -82,8 +82,10 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, si
     auto start = system_clock::now();
 
     size_t N = X.n_rows;
+    
     // number of total variables
     size_t p = X.n_cols;
+
     size_t N_test = Xtest.n_rows;
 
     // number of continuous variables
@@ -92,6 +94,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, si
     // suppose first p_continuous variables are continuous, then categorical
 
     assert(mtry <= p);
+
     assert(burnin <= num_sweeps);
 
     if (mtry == 0)
@@ -145,7 +148,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, si
     }
 
     // State settings
-    std::vector<double> initial_theta(1, 0);
+    std::vector<double> initial_theta(1, y_mean / (double) num_trees);
     std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin));
 
     // initialize X_struct

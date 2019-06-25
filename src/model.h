@@ -49,7 +49,7 @@ public:
 
     virtual void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side) { return; };
 
-    virtual void state_sweep(const matrix<double> &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const { return; };
+    virtual void state_sweep(size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const { return; };
 
     virtual double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const { return 0.0; };
 
@@ -83,7 +83,7 @@ public:
 class NormalModel : public Model
 {
 public:
-    size_t dim_suffstat = 3;
+    size_t dim_suffstat = 4;
     std::vector<double> suff_stat_total;
     // model prior
     // prior on sigma
@@ -92,7 +92,7 @@ public:
     // prior on leaf parameter
     double tau;
 
-    NormalModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 3)
+    NormalModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 4)
     {
         this->kap = kap;
         this->s = s;
@@ -117,7 +117,7 @@ public:
 
     void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side);
 
-    void state_sweep(const matrix<double> &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const;
+    void state_sweep(size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const;
 
     double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const;
 
@@ -197,14 +197,14 @@ public:
         return;
     }
 
-    void state_sweep(const matrix<double> &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
+    void state_sweep(size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
     {
         size_t next_index = tree_ind + 1;
         if (next_index == M)
         {
             next_index = 0;
         }
-        residual_std = residual_std - predictions_std[tree_ind] + predictions_std[next_index];
+        // residual_std = residual_std - predictions_std[tree_ind] + predictions_std[next_index];
         return;
     }
 
@@ -353,11 +353,23 @@ public:
 
         if (compute_left_side)
         {
-            rchild_suff_stat = parent_suff_stat - lchild_suff_stat;
+            rchild_suff_stat[0] = (parent_suff_stat[0] * N_parent - lchild_suff_stat[0]) / N_right;
+
+            rchild_suff_stat[1] = parent_suff_stat[1] - lchild_suff_stat[1];
+
+            lchild_suff_stat[0] = lchild_suff_stat[0] / N_left;
+
+            rchild_suff_stat[2] = parent_suff_stat[2] - lchild_suff_stat[2];
         }
         else
         {
-            lchild_suff_stat = parent_suff_stat - rchild_suff_stat;
+            lchild_suff_stat[0] = (parent_suff_stat[0] * N_parent - rchild_suff_stat[0]) / N_left;
+
+            lchild_suff_stat[1] = parent_suff_stat[1] - rchild_suff_stat[1];
+
+            rchild_suff_stat[0] = rchild_suff_stat[0] / N_right;
+
+            lchild_suff_stat[2] = parent_suff_stat[2] - rchild_suff_stat[2];
         }
         return;
     }
@@ -511,7 +523,7 @@ public:
     */
 
     //    void state_sweepNew(size_t tree_ind, size_t M, std::unique_ptr<State> state, std::vector<std::vector<double> > &slop) {
-    void state_sweep(const matrix<double> &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
+    void state_sweep(size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
     {
         size_t next_index = tree_ind + 1;
         if (next_index == M)

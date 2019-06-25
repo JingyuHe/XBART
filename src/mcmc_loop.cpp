@@ -8,6 +8,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhats_x
 
     // Residual for 0th tree
     state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
+    // model->ini_residual_std(state);
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {
@@ -61,7 +62,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhats_x
             predict_from_datapointers(tree_ind, model, state, x_struct);
 
             // update residual, now it's residual of m trees
-            model->state_sweep(state->predictions_std, tree_ind, state->num_trees, state->residual_std, x_struct);
+            model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
 
             // state->yhat_std = state->yhat_std + state->predictions_std[tree_ind];
         }
@@ -197,7 +198,7 @@ void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yha
             predict_from_datapointers(tree_ind, model, state, x_struct);
 
             // update residual, now it's residual of m trees
-            model->state_sweep(state->predictions_std, tree_ind, state->num_trees, state->residual_std, x_struct);
+            model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
 
             state->yhat_std = state->yhat_std + state->predictions_std[tree_ind];
 
@@ -391,7 +392,7 @@ void mcmc_loop_probit(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
             predict_from_datapointers(tree_ind, model, state, x_struct);
 
             // update residual, now it's residual of m trees
-            model->state_sweep(state->predictions_std, tree_ind, state->num_trees, state->residual_std, x_struct);
+            model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
             for (size_t i = 0; i < state->n_y; i++)
             {
                 state->residual_std[i] = state->residual_std[i] - z_prev[i] + z[i];
@@ -638,7 +639,7 @@ void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhat
             // }
 
             // update residual
-            model->state_sweep(state->predictions_std, tree_ind, state->num_trees, state->residual_std, x_struct);
+            model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
 
             state->yhat_std = state->yhat_std + state->predictions_std[tree_ind];
         }
