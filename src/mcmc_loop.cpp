@@ -57,17 +57,10 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhats_x
 
             state->update_split_counts(tree_ind);
 
-            // Update Predict
-            // predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
-            predict_from_datapointers(tree_ind, model, state, x_struct);
-
-            // update residual, now it's residual of m trees
+            // update partial residual for the next tree to fit
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
 
-            // state->yhat_std = state->yhat_std + state->predictions_std[tree_ind];
         }
-        // save predictions to output matrix
-        // yhats_xinfo[sweeps] = state->yhat_std;
     }
     thread_pool.stop();
 

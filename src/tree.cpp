@@ -695,7 +695,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
         if (update_theta)
         {
             model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
-
         }
 
         this->l = 0;
@@ -1616,7 +1615,7 @@ void predict_from_datapointers(size_t tree_ind, Model *model, std::unique_ptr<St
     // return;
 }
 
-void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, size_t &start, size_t &end, Model *model, std::unique_ptr<State>& state)
+void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, size_t &start, size_t &end, Model *model, std::unique_ptr<State> &state)
 {
     // calculate sufficient statistics for categorical variables
 
@@ -1629,7 +1628,7 @@ void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<s
     return;
 }
 
-void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint, Model *model, std::unique_ptr<State>& state)
+void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint, Model *model, std::unique_ptr<State> &state)
 {
     // calculate sufficient statistics for continuous variables
 
@@ -1652,6 +1651,64 @@ void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<si
     {
         // use all data points as candidates
         model->incSuffStat(state->residual_std[xorder[index]], temp_suff_stat);
+    }
+    return;
+}
+
+void getTheta_Insample(size_t tree_ind, std::unique_ptr<State> &state, matrix<double> output, std::unique_ptr<X_struct> &x_struct)
+{
+    // get theta of ALL observations of ONE tree, in sample fit
+    // input is x_struct because it is in sample
+    for (size_t i = 0; i < state->n_y; i++)
+    {
+        output[i] = *(x_struct->data_pointers[tree_ind][i]);
+    }
+    return;
+}
+
+void getTheta_Outsample(tree &tree, std::unique_ptr<State> &state, matrix<double> output, const double *Xtest, size_t N_Xtest)
+{
+    // get theta of ALL observations of ONE tree, out sample fit
+    // input is a pointer to testing set matrix because it is out of sample
+    // tree is a single tree to look at
+
+    tree::tree_p bn;    // pointer to bottom node
+    for (size_t i = 0; i < state->n_y; i++)
+    {
+        // loop over observations
+        // tree search
+        bn = tree.search_bottom_std(Xtest, i, state->p, N_Xtest);
+        output[i] = bn->theta_vector;
+    }
+
+    return;
+}
+
+void getThetaForObs_Insample(size_t x_index, std::unique_ptr<State> &state, matrix<double> output, std::unique_ptr<X_struct> &x_struct)
+{
+    // get theta of ONE observation of ALL trees, in sample fit
+    // input is x_struct because it is in sample
+    for (size_t i = 0; i < state->num_trees; i++)
+    {
+        output[i] = *(x_struct->data_pointers[i][x_index]);
+    }
+
+    return;
+}
+
+void getThetaForObs_Outsample(std::vector<tree> &tree, size_t x_index, std::unique_ptr<State> &state, matrix<double> output, const double *Xtest, size_t N_Xtest)
+{
+    // get theta of ONE observation of ALL trees, out sample fit
+    // input is a pointer to testing set matrix because it is out of sample
+    // tree is a vector of all trees
+
+    tree::tree_p bn;    // pointer to bottom node
+    for (size_t i = 0; i < state->num_trees; i++)
+    {
+        // loop over trees
+        // tree search
+        bn = tree[i].search_bottom_std(Xtest, x_index, state->p, N_Xtest);
+        output[i] = bn->theta_vector;
     }
     return;
 }
