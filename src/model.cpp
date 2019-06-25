@@ -19,10 +19,10 @@ void NormalModel::samplePars(std::unique_ptr<State> &state, std::vector<double> 
     std::normal_distribution<double> normal_samp(0.0, 1.0);
 
     // test result should be theta
-    theta_vector[0] = suff_stat[0] * suff_stat[2] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)) + sqrt(1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2))) * normal_samp(state->gen); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
+    theta_vector[0] = suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)) + sqrt(1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2))) * normal_samp(state->gen); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
 
     // also update probability of leaf parameters
-    prob_leaf = normal_density(theta_vector[0], suff_stat[0] * suff_stat[2] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), 1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), true);
+    prob_leaf = normal_density(theta_vector[0], suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), 1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), true);
 
     return;
 }
@@ -38,7 +38,7 @@ void NormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind)
 
 void NormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
 {
-    suff_stat[0] = sum_vec(state->residual_std) / (double)state->n_y;
+    suff_stat[0] = sum_vec(state->residual_std);
     suff_stat[1] = sum_squared(state->residual_std);
     suff_stat[2] = state->n_y;
     return;
@@ -60,23 +60,11 @@ void NormalModel::calculateOtherSideSuffStat(std::vector<double> &parent_suff_st
 
     if (compute_left_side)
     {
-        rchild_suff_stat[0] = (parent_suff_stat[0] * N_parent - lchild_suff_stat[0]) / N_right;
-
-        rchild_suff_stat[1] = parent_suff_stat[1] - lchild_suff_stat[1];
-
-        lchild_suff_stat[0] = lchild_suff_stat[0] / N_left;
-
-        rchild_suff_stat[2] = parent_suff_stat[2] - lchild_suff_stat[2];
+        rchild_suff_stat = parent_suff_stat - lchild_suff_stat;
     }
     else
     {
-        lchild_suff_stat[0] = (parent_suff_stat[0] * N_parent - rchild_suff_stat[0]) / N_left;
-
-        lchild_suff_stat[1] = parent_suff_stat[1] - rchild_suff_stat[1];
-
-        rchild_suff_stat[0] = rchild_suff_stat[0] / N_right;
-
-        lchild_suff_stat[2] = parent_suff_stat[2] - rchild_suff_stat[2];
+        lchild_suff_stat = parent_suff_stat - rchild_suff_stat;
     }
     return;
 }
@@ -107,7 +95,8 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
     // likelihood equation,
     // note the difference of left_side == true / false
     // node_suff_stat is mean of y, sum of square of y, saved in tree class
-    double y_sum = (double)suff_stat_all[2] * suff_stat_all[0];
+    // double y_sum = (double)suff_stat_all[2] * suff_stat_all[0];
+    double y_sum = suff_stat_all[0];
     double sigma2 = state->sigma2;
     double ntau;
     double suff_one_side;

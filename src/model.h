@@ -101,7 +101,7 @@ public:
         this->beta = beta;
     }
 
-    NormalModel() : Model(1, 3) {}
+    NormalModel() : Model(1, 4) {}
 
     Model *clone() { return new NormalModel(*this); }
 
@@ -353,23 +353,11 @@ public:
 
         if (compute_left_side)
         {
-            rchild_suff_stat[0] = (parent_suff_stat[0] * N_parent - lchild_suff_stat[0]) / N_right;
-
-            rchild_suff_stat[1] = parent_suff_stat[1] - lchild_suff_stat[1];
-
-            lchild_suff_stat[0] = lchild_suff_stat[0] / N_left;
-
-            rchild_suff_stat[2] = parent_suff_stat[2] - lchild_suff_stat[2];
+            rchild_suff_stat = parent_suff_stat - lchild_suff_stat;
         }
         else
         {
-            lchild_suff_stat[0] = (parent_suff_stat[0] * N_parent - rchild_suff_stat[0]) / N_left;
-
-            lchild_suff_stat[1] = parent_suff_stat[1] - rchild_suff_stat[1];
-
-            rchild_suff_stat[0] = rchild_suff_stat[0] / N_right;
-
-            lchild_suff_stat[2] = parent_suff_stat[2] - rchild_suff_stat[2];
+            lchild_suff_stat = parent_suff_stat - rchild_suff_stat;
         }
         return;
     }
