@@ -1607,13 +1607,13 @@ void predict_from_tree(tree &tree, const double *X_std, size_t N, size_t p, std:
 
 void predict_from_datapointers(size_t tree_ind, Model *model, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct)
 {
-    // tree search, but read from the matrix of pointers to end node directly
-    // easier to get fitted value of training set
-    for (size_t i = 0; i < state->n_y; i++)
-    {
-        state->predictions_std[tree_ind][i] = model->predictFromTheta(*(x_struct->data_pointers[tree_ind][i]));
-    }
-    return;
+    // // tree search, but read from the matrix of pointers to end node directly
+    // // easier to get fitted value of training set
+    // for (size_t i = 0; i < state->n_y; i++)
+    // {
+    //     state->predictions_std[tree_ind][i] = model->predictFromTheta(*(x_struct->data_pointers[tree_ind][i]));
+    // }
+    // return;
 }
 
 void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, size_t &start, size_t &end, Model *model, std::unique_ptr<State>& state)

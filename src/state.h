@@ -10,8 +10,8 @@ struct State
 {
 public:
     // Result containers
-    matrix<double> predictions_std;
-    matrix<double> predictions_std_copy;
+    // matrix<double> predictions_std;
+    // matrix<double> predictions_std_copy;
     std::vector<double> yhat_std;
     std::vector<double> residual_std;
     std::vector<double> residual_std_full;
@@ -68,7 +68,7 @@ public:
 
         // Init containers
         // initialize predictions_std at given value / number of trees
-        ini_xinfo(this->predictions_std, N, num_trees, ini_var_yhat / (double)num_trees);
+        // ini_xinfo(this->predictions_std, N, num_trees, ini_var_yhat / (double)num_trees);
 
         // initialize yhat at given value
         yhat_std = std::vector<double>(N, ini_var_yhat);
@@ -76,6 +76,7 @@ public:
         fit_previous_tree = std::vector<double>(N, 0.0);
 
         this->residual_std = std::vector<double>(N);
+        this->residual_std_full = std::vector<double>(N);
 
         // Random
         this->prob = std::vector<double>(2, 0.5);

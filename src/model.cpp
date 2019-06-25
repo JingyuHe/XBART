@@ -27,10 +27,16 @@ void NormalModel::samplePars(std::unique_ptr<State> &state, std::vector<double> 
     return;
 }
 
-void NormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind)
+void NormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
     // Draw Sigma
-    state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
+    // state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
+
+    for (size_t i = 0; i < state->residual_std.size(); i++)
+    {
+        state->residual_std_full[i] = state->residual_std[i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
+    }
+
     std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(state->residual_std_full) + s));
     state->update_sigma(1.0 / sqrt(gamma_samp(state->gen)));
     return;
@@ -84,7 +90,8 @@ void NormalModel::state_sweep(size_t tree_ind, size_t M, std::vector<double> &re
     // Be care of line 151 in train_all.cpp, initial_theta
     ////////////////////////////////////////////////////////
 
-    for(size_t i = 0; i < residual_std.size(); i++ ){
+    for (size_t i = 0; i < residual_std.size(); i++)
+    {
         residual_std[i] = residual_std[i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + (*(x_struct->data_pointers[next_index][i]))[0];
     }
 
@@ -103,18 +110,20 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
     double suff_one_side;
 
     /////////////////////////////////////////////////////////////////////////
-    //                                                                     
-    //  I know combining likelihood and likelihood_no_split looks nicer    
-    //  but this is a very fundamental function, executed many times       
-    //  the extra if(no_split) statement and value assignment make the code about 5% slower!!  
-    //                                                                     
+    //
+    //  I know combining likelihood and likelihood_no_split looks nicer
+    //  but this is a very fundamental function, executed many times
+    //  the extra if(no_split) statement and value assignment make the code about 5% slower!!
+    //
     /////////////////////////////////////////////////////////////////////////
 
     if (no_split)
     {
         ntau = suff_stat_all[2] * tau;
         suff_one_side = y_sum;
-    }else{
+    }
+    else
+    {
         if (left_side)
         {
             ntau = (N_left + 1) * tau;
@@ -143,14 +152,15 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
 //     return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
 // }
 
-void NormalModel::ini_residual_std(std::unique_ptr<State> &state){
-    double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double) state->num_trees;
-    for(size_t i=0; i < state->residual_std.size(); i ++ ){
-        state->residual_std[i] = (*state->y_std)[i] - value; 
+void NormalModel::ini_residual_std(std::unique_ptr<State> &state)
+{
+    double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
+    for (size_t i = 0; i < state->residual_std.size(); i++)
+    {
+        state->residual_std[i] = (*state->y_std)[i] - value;
     }
     return;
 }
-
 
 double NormalModel::predictFromTheta(const std::vector<double> &theta_vector) const
 {
