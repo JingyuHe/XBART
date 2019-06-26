@@ -38,12 +38,14 @@ void NormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, s
 
     // residual_std is only 1 dimensional for regression model
 
+    std::vector<double> full_residual(state->n_y);
+
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
-        state->residual_std_full[0][i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
+        full_residual[i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
     }
 
-    std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(state->residual_std_full[0]) + s));
+    std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(full_residual) + s));
     state->update_sigma(1.0 / sqrt(gamma_samp(state->gen)));
     return;
 }

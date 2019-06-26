@@ -553,71 +553,6 @@ void cumulative_sum_std(std::vector<double> &y_cumsum, std::vector<double> &y_cu
 //     return output;
 // }
 
-double tree::tree_likelihood(size_t N, double sigma, vector<double> y)
-{
-    /*
-        This function calculate the log of 
-        the likelihood of all leaf parameters of given tree
-    */
-    npv tree_vec;
-    this->getbots(tree_vec);
-    // cout << "bottom size " << tree_vec.size() << endl;
-    double output = 0.0;
-    for (size_t i = 0; i < tree_vec.size(); i++)
-    {
-        output += tree_vec[i]->loglike_node;
-    }
-
-    // cout << "output of tree_likelihood " << output << endl;
-
-    // add constant
-    // output = output - N * log(2 * 3.14159265359) / 2.0 - N * log(sigma) - std::inner_product(y.begin(), y.end(), y.begin(), 0.0) / pow(sigma, 2) / 2.0;
-
-    tree_like = output;
-    return output;
-}
-
-double tree::prior_prob(NormalModel *model)
-{
-    /*
-        This function calculate the log of 
-        the prior probability of drawing the given tree
-    */
-    double output = 0.0;
-    double log_split_prob = 0.0;
-    double log_leaf_prob = 0.0;
-    npv tree_vec;
-
-    // get a vector of all nodess
-    this->getnodes(tree_vec);
-
-    for (size_t i = 0; i < tree_vec.size(); i++)
-    {
-        if (tree_vec[i]->getl() == 0)
-        {
-            // if no children, it is end node, count leaf parameter probability
-
-            // leaf prob, normal center at ZERO
-            log_leaf_prob += normal_density(tree_vec[i]->theta_vector[0], 0.0, model->tau, true);
-
-            // log_split_prob += log(1 - alpha * pow((1 + tree_vec[i]->depth()), -beta));
-            log_split_prob += log(1.0 - model->alpha * pow(1 + tree_vec[i]->depth, -1.0 * model->beta));
-
-            // add prior of split point
-            log_split_prob = log_split_prob - log(tree_vec[i]->getnum_cutpoint_candidates());
-        }
-        else
-        {
-            // otherwise count cutpoint probability
-            // log_split_prob += log(alpha * pow((1.0 + tree_vec[i]->depth()), -beta));
-
-            log_split_prob += log(model->alpha) - model->beta * log(1.0 + tree_vec[i]->depth);
-        }
-    }
-    output = log_split_prob + log_leaf_prob;
-    // output = log_split_prob;
-    return output;
-}
 
 void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree)
 {
@@ -780,46 +715,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     return;
 }
 
-double tree::transition_prob()
-{
-    /*
-        This function calculate probability of given tree
-        log P(all cutpoints) + log P(leaf parameters)
-        Used in M-H ratio calculation
-    */
-
-    double output = 0.0;
-    double log_p_cutpoints = 0.0;
-    double log_p_leaf = 0.0;
-    npv tree_vec;
-
-    // get a vector of all nodess
-    this->getnodes(tree_vec);
-
-    for (size_t i = 0; i < tree_vec.size(); i++)
-    {
-        if (tree_vec[i]->getl() == 0)
-        {
-            // if no children, it is end node, count leaf parameter probability
-
-            // prob_leaf is already in log scale
-            log_p_leaf += tree_vec[i]->getprob_leaf();
-
-            // prob_split is in original scale, need to take log
-            log_p_cutpoints += log(tree_vec[i]->getprob_split());
-        }
-        else
-        {
-            // otherwise count cutpoint probability
-            log_p_cutpoints += log(tree_vec[i]->getprob_split());
-        }
-    }
-    // cout << "log_p_cutpoints " << log_p_cutpoints << endl;
-    // cout << "log_p_leaf " << log_p_leaf << endl;
-    output = log_p_cutpoints + log_p_leaf;
-
-    return output;
-};
 
 void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, Model *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<State> &state, tree *current_node)
 {

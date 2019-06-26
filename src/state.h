@@ -6,19 +6,14 @@
 #include "utility.h"
 #include <chrono>
 
-struct State
+class State
 {
 public:
-    // Result containers
-    // matrix<double> predictions_std;
-    // matrix<double> predictions_std_copy;
-
     // residual size
     size_t dim_residual;
 
     // vectors (slop?)
     matrix<double> residual_std;
-    matrix<double> residual_std_full;
 
     // Random
     std::vector<double> prob;
@@ -56,14 +51,13 @@ public:
     double sigma;
     double sigma2; // sigma squared
 
-
     void update_sigma(double sigma)
     {
         this->sigma = sigma;
         this->sigma2 = pow(sigma, 2);
         return;
     }
-
+    
     State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual)
     {
 
@@ -76,9 +70,8 @@ public:
         // this->residual_std = std::vector<double>(N);
         // this->residual_std_full = std::vector<double>(N);
 
-        // Warning! ini_matrix(matrix, N, p)
+        // Warning! ini_matrix(matrix, N, p).
         ini_matrix(this->residual_std, N, dim_residual);
-        ini_matrix(this->residual_std_full, N, dim_residual);
 
         // Random
         this->prob = std::vector<double>(2, 0.5);
@@ -108,8 +101,6 @@ public:
         this->num_sweeps = num_sweeps;
         this->sample_weights_flag = sample_weights_flag;
         this->y_std = y_std;
-        this->sigma = sigma;
-        this->sigma2 = pow(sigma, 2);
         this->max_depth = max_depth;
         this->burnin = burnin;
         this->ini_var_yhat = ini_var_yhat;
@@ -122,6 +113,18 @@ public:
         mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
         split_count_all_tree[tree_ind] = split_count_current_tree;
         return;
+    }
+};
+
+class NormalState : public State
+{
+public:
+
+
+    NormalState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry, X_std, num_sweeps, sample_weights_flag, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual)
+    {
+        this->sigma = sigma;
+        this->sigma2 = pow(sigma, 2);
     }
 };
 
