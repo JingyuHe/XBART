@@ -1486,6 +1486,9 @@ void getTheta_Insample(matrix<double> &output, size_t tree_ind, std::unique_ptr<
 {
     // get theta of ALL observations of ONE tree, in sample fit
     // input is x_struct because it is in sample
+
+    // output should have dimension (dim_theta, num_obs)
+
     for (size_t i = 0; i < state->n_y; i++)
     {
         output[i] = *(x_struct->data_pointers[tree_ind][i]);
@@ -1498,6 +1501,8 @@ void getTheta_Outsample(matrix<double> &output, tree &tree, const double *Xtest,
     // get theta of ALL observations of ONE tree, out sample fit
     // input is a pointer to testing set matrix because it is out of sample
     // tree is a single tree to look at
+
+    // output should have dimension (dim_theta, num_obs)
 
     tree::tree_p bn;    // pointer to bottom node
     for (size_t i = 0; i < N_Xtest; i++)
@@ -1515,6 +1520,9 @@ void getThetaForObs_Insample(matrix<double> &output, size_t x_index, std::unique
 {
     // get theta of ONE observation of ALL trees, in sample fit
     // input is x_struct because it is in sample
+
+    // output should have dimension (dim_theta, num_trees)
+
     for (size_t i = 0; i < state->num_trees; i++)
     {
         output[i] = *(x_struct->data_pointers[i][x_index]);
@@ -1529,6 +1537,8 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
     // input is a pointer to testing set matrix because it is out of sample
     // tree is a vector of all trees
 
+    // output should have dimension (dim_theta, num_trees)
+    
     tree::tree_p bn;    // pointer to bottom node
     for (size_t i = 0; i < tree.size(); i++)
     {
