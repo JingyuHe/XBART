@@ -35,8 +35,10 @@ Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std:
     size_t M = (*trees)[0].size();
     ini_xinfo(yhats_test_xinfo, N, N_sweeps);
 
+    NormalModel *model = new NormalModel();
+
     // Predict
-    predict_std(Xpointer, N, p, M, N_sweeps,
+    model->predict_std(Xpointer, N, p, M, N_sweeps,
                 yhats_test_xinfo, *trees);
 
     // Convert back to Rcpp

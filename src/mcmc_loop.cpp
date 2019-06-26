@@ -30,7 +30,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhats_x
             // Draw Sigma
 
             model->update_state(state, tree_ind, x_struct);
-            
+
             sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
 
             // add prediction of current tree back to residual
@@ -59,46 +59,10 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhats_x
 
             // update partial residual for the next tree to fit
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
-
         }
     }
     thread_pool.stop();
 
-    return;
-}
-
-void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees,
-                 size_t num_sweeps, matrix<double> &yhats_test_xinfo,
-                 vector<vector<tree>> &trees)
-{
-
-    NormalModel *model = new NormalModel();
-    matrix<double> predictions_test_std;
-    ini_xinfo(predictions_test_std, N_test, num_trees);
-
-    std::vector<double> yhat_test_std(N_test);
-    row_sum(predictions_test_std, yhat_test_std);
-
-    // // initialize predcitions and predictions_test
-    // for (size_t ii = 0; ii < num_trees; ii++)
-    // {
-    //     std::fill(predictions_test_std[ii].begin(), predictions_test_std[ii].end(), y_mean / (double)num_trees);
-    // }
-    row_sum(predictions_test_std, yhat_test_std);
-
-    for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
-    {
-        for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
-        {
-
-            yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
-            predict_from_tree(trees[sweeps][tree_ind], Xtestpointer, N_test, p, predictions_test_std[tree_ind], model);
-            yhat_test_std = yhat_test_std + predictions_test_std[tree_ind];
-        }
-        yhats_test_xinfo[sweeps] = yhat_test_std;
-    }
-
-    delete model;
     return;
 }
 
@@ -146,7 +110,6 @@ void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yha
     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
     // model->ini_residual_std(state);
 
-
     // for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     // {
 
@@ -181,7 +144,6 @@ void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yha
 
     //         // set sufficient statistics at root node first
     //         model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
-
 
     //         trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
@@ -376,7 +338,6 @@ void mcmc_loop_probit(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
     //         // set sufficient statistics at root node first
     //         model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
-
     //         trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
     //         state->update_split_counts(tree_ind);
@@ -486,7 +447,6 @@ void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhat
     //             // set sufficient statistics at root node first
     //             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
-
     //             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
     //             accept_count.push_back(0);
     //             MH_vector.push_back(0);
@@ -574,9 +534,9 @@ void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhat
 
     //                 // // update theta
     //                 /*
-                    
+
     //                     update_theta() not only update leaf parameters, but also state->data_pointers
-                    
+
     //                 */
 
     //                 // update_theta = true, update_split_prob = true

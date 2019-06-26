@@ -161,7 +161,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, si
     ////////////////////////////////////////////////////////////////
     mcmc_loop(Xorder_std, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
 
-    predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
+    model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
     // R Objects to Return
     Rcpp::NumericMatrix yhats(N, num_sweeps);
@@ -306,7 +306,7 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
 
     mcmc_loop_clt(Xorder_std, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
 
-    predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
+    model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
     // R Objects to Return
     Rcpp::NumericMatrix yhats(N, num_sweeps);
@@ -600,7 +600,7 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
 
     mcmc_loop_probit(Xorder_std, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
 
-    predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
+    model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
     // R Objects to Return
     Rcpp::NumericMatrix yhats(N, num_sweeps);
@@ -748,7 +748,7 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees,
 
     mcmc_loop_MH(Xorder_std, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct, accept_count, MH_vector, P_ratio, Q_ratio, prior_ratio);
 
-    predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
+    model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
     // R Objects to Return
     Rcpp::NumericMatrix yhats(N, num_sweeps);

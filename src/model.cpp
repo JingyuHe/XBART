@@ -1,3 +1,4 @@
+#include "tree.h"
 #include "model.h"
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -34,7 +35,6 @@ void NormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, s
 {
     // Draw Sigma
     // state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
-
 
     // residual_std is only 1 dimensional for regression model
 
@@ -174,6 +174,36 @@ double NormalModel::predictFromTheta(const std::vector<double> &theta_vector) co
     return theta_vector[0];
 }
 
+void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees)
+{
+
+    matrix<double> predictions_test_std;
+    ini_xinfo(predictions_test_std, N_test, num_trees);
+
+    std::vector<double> yhat_test_std(N_test);
+    row_sum(predictions_test_std, yhat_test_std);
+
+    // // initialize predcitions and predictions_test
+    // for (size_t ii = 0; ii < num_trees; ii++)
+    // {
+    //     std::fill(predictions_test_std[ii].begin(), predictions_test_std[ii].end(), y_mean / (double)num_trees);
+    // }
+    row_sum(predictions_test_std, yhat_test_std);
+
+    for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
+    {
+        for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
+        {
+
+            yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
+            predict_from_tree(trees[sweeps][tree_ind], Xtestpointer, N_test, p, predictions_test_std[tree_ind], this);
+            yhat_test_std = yhat_test_std + predictions_test_std[tree_ind];
+        }
+        yhats_test_xinfo[sweeps] = yhat_test_std;
+    }
+
+    return;
+}
 //////////////////////////////////////////////////////////////////////////////////////
 //
 //
