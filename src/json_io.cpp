@@ -8,7 +8,7 @@ json get_forest_json(std::vector<std::vector<tree>> &trees, double y_mean)
     result["xbart_serialization_version"] = 0;
     result["num_sweeps"] = trees.size();
     result["num_trees"] = trees[0].size();
-    result["num_classes"] = trees[0][0].theta_vector.size();
+    result["dim_theta"] = trees[0][0].theta_vector.size();
     result["y_mean"] = y_mean;
 
     json trees_j;
@@ -38,8 +38,8 @@ void from_json_to_forest(std::string &json_string, vector<vector<tree>> &trees, 
     size_t num_trees;
     j3.at("num_trees").get_to(num_trees);
 
-    size_t num_classes;
-    j3.at("num_classes").get_to(num_classes);
+    size_t dim_theta;
+    j3.at("dim_theta").get_to(dim_theta);
 
     j3.at("y_mean").get_to(y_mean);
 
@@ -54,7 +54,7 @@ void from_json_to_forest(std::string &json_string, vector<vector<tree>> &trees, 
     {
         for (size_t j = 0; j < num_trees; j++)
         {
-            trees[i][j].from_json(j3["trees"][std::to_string(i)][std::to_string(j)], num_classes);
+            trees[i][j].from_json(j3["trees"][std::to_string(i)][std::to_string(j)], dim_theta);
         }
     }
 

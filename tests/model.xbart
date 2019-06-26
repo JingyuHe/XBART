@@ -1,5 +1,5 @@
 {
-    "num_classes": 1,
+    "dim_theta": 1,
     "num_sweeps": 2,
     "num_trees": 5,
     "trees": {

@@ -3,7 +3,7 @@
 #include "tree.h"
 #include "forest.h"
 #include <chrono>
-#include "fit_std_main_loop.h"
+#include "mcmc_loop.h"
 #include "utility.h"
 #include "json_io.h"
 
@@ -30,14 +30,16 @@ Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std:
     std::vector<std::vector<tree>> *trees = tree_pnt;
 
     // Result Container
-    xinfo yhats_test_xinfo;
+    matrix<double> yhats_test_xinfo;
     size_t N_sweeps = (*trees).size();
     size_t M = (*trees)[0].size();
     ini_xinfo(yhats_test_xinfo, N, N_sweeps);
 
+    NormalModel *model = new NormalModel();
+
     // Predict
-    predict_std(Xpointer, N, p, M, N_sweeps,
-                yhats_test_xinfo, *trees, y_mean);
+    model->predict_std(Xpointer, N, p, M, N_sweeps,
+                yhats_test_xinfo, *trees);
 
     // Convert back to Rcpp
     Rcpp::NumericMatrix yhats(N, N_sweeps);

@@ -5,7 +5,7 @@
 #include "common.h"
 #include "utility.h"
 #include <memory>
-#include "fit_info.h"
+#include "state.h"
 
 using namespace std;
 
@@ -13,7 +13,7 @@ class Model
 {
 
   protected:
-    size_t num_classes;
+    size_t dim_theta;
     size_t dim_suffstat;
     size_t dim_suffstat_total;
     std::vector<double> suff_stat_model;
@@ -21,18 +21,18 @@ class Model
     double no_split_penality;
 
   public:
-    Model(size_t num_classes, size_t dim_suff)
+    Model(size_t dim_theta, size_t dim_suff)
     {
-        this->num_classes = num_classes;
+        this->dim_theta = dim_theta;
         this->dim_suffstat = dim_suff;
         Model::suff_stat_model.resize(dim_suff);
     };
 
     // Abstract functions
     virtual void incrementSuffStat() const { return; };
-    virtual void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
+    virtual void samplePars(double y_mean, size_t N_Xorder, double sigma, double tau,
                             std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder) { return; };
-    virtual void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M,
+    virtual void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M,
                                 std::vector<double> &residual_std) const { return; };
     virtual void calcSuffStat_categorical(std::vector<double> &y, xinfo_sizet &Xorder, size_t &start, size_t &end, const size_t &var) { return; };
     virtual void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint) { return; };
@@ -43,8 +43,8 @@ class Model
 
     // Getters and Setters
     // num classes
-    size_t getNumClasses() const { return num_classes; };
-    void setNumClasses(size_t n_class) { num_classes = n_class; };
+    size_t getNumClasses() const { return dim_theta; };
+    void setNumClasses(size_t n_class) { dim_theta = n_class; };
     // dim suff stat
     size_t getDimSuffstat() const { return dim_suffstat; };
     void setDimSuffStat(size_t dim_suff) { dim_suffstat = dim_suff; };
@@ -89,25 +89,17 @@ class NormalModel : public Model
         return;
     }
     void incrementSuffStat() const { return; };
-    void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
+    void samplePars(double y_mean, size_t N_Xorder, double sigma, double tau,
                     std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder)
     {
         std::normal_distribution<double> normal_samp(0.0, 1.0);
-        if (draw_mu == true)
-        {
-
             // test result should be theta
             theta_vector[0] = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2)) + sqrt(1.0 / (1.0 / tau + N_Xorder / pow(sigma, 2))) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-        }
-        else
-        {
-            // test result should be theta
-            theta_vector[0] = y_mean * N_Xorder / pow(sigma, 2) / (1.0 / tau + N_Xorder / pow(sigma, 2));
-        }
+
         return;
     }
 
-    void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
+    void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
     {
         size_t next_index = tree_ind + 1;
         if (next_index == M)
@@ -217,28 +209,21 @@ class CLTClass : public Model
         return;
     }
     void incrementSuffStat() const { return; };
-    void samplePars(bool draw_mu, double y_mean, size_t N_Xorder, double sigma, double tau,
+    void samplePars(double y_mean, size_t N_Xorder, double sigma, double tau,
                     std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, xinfo_sizet &Xorder)
     {
         // Update params
         updateFullSuffStat(y_std, Xorder[0]);
 
         std::normal_distribution<double> normal_samp(0.0, 1.0);
-        if (draw_mu == true)
-        {
 
             // test result should be theta
             theta_vector[0] = suff_stat_total[0] / (1.0 / tau + suff_stat_total[1]) + sqrt(1.0 / (1.0 / tau + suff_stat_total[1])) * normal_samp(generator); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-        }
-        else
-        {
-            // test result should be theta
-            theta_vector[0] = suff_stat_total[0] / (1.0 / tau + suff_stat_total[1]);
-        }
+
         return;
     }
 
-    void updateResidual(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
+    void state_sweep(const xinfo &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std) const
     {
         size_t next_index = tree_ind + 1;
         if (next_index == M)

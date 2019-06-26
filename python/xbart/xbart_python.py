@@ -71,7 +71,7 @@ class XBART(object):
 				num_cutpoints: int = 100,alpha: float = 0.95, beta: float = 1.25, tau = "auto",
                 burnin: int = 15, mtry = "auto", max_depth_num: int = 250,
                 kap: float = 16.0,s: float = 4.0,verbose: bool = False,
-                draw_mu: bool = True,parallel: bool = False,seed: int = 0,model: str = "Normal",
+                parallel: bool = False,seed: int = 0,model: str = "Normal",
 				no_split_penality = "auto",sample_weights_flag: bool = True):
 
 		assert num_sweeps > burnin, "num_sweep must be greater than burnin"
@@ -87,7 +87,7 @@ class XBART(object):
 			num_sweeps = num_sweeps,n_min = n_min,num_cutpoints = num_cutpoints,
 			alpha = alpha,beta = beta, tau = tau,burnin = burnin, mtry=mtry, 
 			max_depth_num=max_depth_num,kap=kap,s=s,
-			verbose=verbose,draw_mu=draw_mu,
+			verbose=verbose,
 			parallel=parallel,seed=seed,model_num=model_num,no_split_penality =no_split_penality,
 			sample_weights_flag=sample_weights_flag)
 		args = self.__convert_params_check_types(**self.params)
@@ -169,7 +169,6 @@ class XBART(object):
                         ,("alpha",0.95),("beta",1.25 ),("tau",0.3),# CHANGE
                         ("burnin",15),("mtry",0),("max_depth_num",250) # CHANGE
                         ,("kap",16.0),("s",4.0),("verbose",False),
-                        ("draw_mu",True),
                         ("parallel",False),("seed",0),("model_num",0),("sample_weights_flag",True)])
 		new_params = DEFAULT_PARAMS.copy()
 

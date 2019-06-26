@@ -36,7 +36,7 @@ def __convert_params_check_types(self,params):
                         ,("alpha",0.95),("beta",1.25 ),("tau",0.3),# CHANGE
                         ("burnin",15),("mtry",2),("max_depth_num",250), # CHANGE
                         ("draw_sigma",False),("kap",16),("s",4),("verbose",False),
-                        ("m_update_sigma",True), ("draw_mu",True),
+                        ("m_update_sigma",True), 
                         ("parallel",False),("seed",0)])
 
     list_params = []
@@ -83,12 +83,12 @@ def __init__(self,num_trees= 200, l = 1 ,num_sweeps = 40, n_min =1,
                 num_cutpoints=100,alpha=0.95,beta = 1.25, tau = 0.3,
                 burnin = 15, mtry = 1, max_depth_num = 250,
                 draw_sigma= False,kap= 16,s = 4,verbose=False,
-                m_update_sigma = True, draw_mu = True,
+                m_update_sigma = True,
                 parallel=False,seed=0):  
 
     this = __xbart_cpp.new_XBARTcpp(num_trees,l,num_sweeps,n_min,num_cutpoints,
             alpha,beta, tau,burnin, mtry, max_depth_num,draw_sigma,kap,s,
-            verbose,m_update_sigma, draw_mu,parallel,seed)  
+            verbose,m_update_sigma,parallel,seed)  
     # init
     try:
         self.this.append(this)

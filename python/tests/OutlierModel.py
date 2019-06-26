@@ -88,8 +88,7 @@ params = OrderedDict([('M',m),('L',1),("N_sweeps",250)
 							,("alpha",0.95),("beta",1.75),("tau",tau),
 							("burnin",15),("mtry",8),("max_depth_num",30),
 							("draw_sigma",False),("kap",16),("s",4),("verbose",True),
-							("m_update_sigma",False),
-							("draw_mu",False),("parallel",False)])
+							("m_update_sigma",False),("parallel",False)])
 
 
 

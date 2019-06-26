@@ -78,7 +78,7 @@ parl = F
 t = proc.time()
 out = XBART(as.matrix(y)-mean(y), as.matrix(x), as.matrix(xtest), num_trees = params$M, L = 1, num_sweeps = params$nsweeps, max_depth = params$max_depth, Nmin = params$Nmin, num_cutpoints = params$Ncutpoints,
 alpha = params$alpha, beta = params$beta, tau = var(y)/params$M, s= 1,kap = 1,
-mtry = params$mtry, p_categorical = dcat, draw_sigma = FALSE, m_update_sigma = TRUE,draw_mu= TRUE,
+mtry = params$mtry, p_categorical = dcat, draw_sigma = FALSE, m_update_sigma = TRUE,
 parallel = parl,random_seed = 10, no_split_penality = 0)
 pred = predict(out,as.matrix(xtest))
 t = proc.time() - t
@@ -105,7 +105,7 @@ params_clt = get_XBART_params(n,d,y)
 t = proc.time()
 out_clt = XBART.CLT(matrix(y)-mean(y), as.matrix(x), as.matrix(xtest), num_trees = params_clt$M, L = 1, num_sweeps = params_clt$nsweeps, max_depth = params_clt$max_depth, Nmin = params_clt$Nmin, num_cutpoints = params_clt$Ncutpoints,
 alpha = params_clt$alpha, beta = params_clt$beta, tau = params_clt$tau, s= 1,kap = 1,
-mtry = params_clt$mtry, p_categorical = dcat, draw_sigma = FALSE, m_update_sigma = TRUE,draw_mu= TRUE,
+mtry = params_clt$mtry, p_categorical = dcat, draw_sigma = FALSE, m_update_sigma = TRUE,
 parallel = parl,random_seed = 10)
 pred.clt = predict(out_clt,as.matrix(xtest))
 t = proc.time() - t
@@ -116,7 +116,7 @@ yhat.clt.pred = apply(pred.clt[,params$burnin:params$nsweeps],1,mean)+mean(y)
 t = proc.time()
 out_probit = XBART.Probit(as.matrix(y), as.matrix(x), as.matrix(xtest), num_trees = params$M, L = 1, num_sweeps = params$nsweeps, max_depth = params$max_depth, Nmin = 10, num_cutpoints = params$Ncutpoints,
 alpha = params$alpha, beta = params$beta, tau = params$tau, s= 1,kap = 1,
-mtry = params$mtry, p_categorical = dcat, draw_sigma = FALSE, m_update_sigma = TRUE,draw_mu= TRUE,
+mtry = params$mtry, p_categorical = dcat, draw_sigma = FALSE, m_update_sigma = TRUE,
 parallel = parl,random_seed = 10)
 pred.probit = predict(out_probit,as.matrix(xtest))
 t = proc.time() - t

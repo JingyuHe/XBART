@@ -65,19 +65,19 @@ public:
 //         return;
 //     }
 
-//     NodeData(size_t N_Xorder, size_t p, const double *Xpointer, FitInfo *fit_info)
+//     NodeData(size_t N_Xorder, size_t p, const double *Xpointer, State *state)
 //     {
 //         // initialize Xorder_std with prespecify size
 //         // count X_counts and X_num_unique from data
 //         // Use for initialize NodeData for ROOT node
 //         ini_xinfo_sizet(Xorder_std, N_Xorder, p);
 
-//         this->ini_categorical_var(Xpointer, fit_info);
+//         this->ini_categorical_var(Xpointer, state);
 
 //         return;
 //     }
 
-//     void ini_categorical_var(const double *Xpointer, FitInfo *fit_info)
+//     void ini_categorical_var(const double *Xpointer, State *state)
 //     {
 //         size_t total_points = 0;
 //         size_t N = Xorder_std[0].size();
@@ -85,16 +85,16 @@ public:
 //         double current_value = 0.0;
 //         size_t count_unique = 0;
 //         size_t N_unique;
-//         fit_info->variable_ind[0] = 0;
+//         state->variable_ind[0] = 0;
 
-//         for (size_t i = fit_info->p_continuous; i < p; i++)
+//         for (size_t i = state->p_continuous; i < p; i++)
 //         {
 //             // only loop over categorical variables
 //             // suppose p = (p_continuous, p_categorical)
 //             // index starts from p_continuous
 //             this->X_counts.push_back(1);
 //             current_value = *(Xpointer + i * N + this->Xorder_std[i][0]);
-//             fit_info->X_values.push_back(current_value);
+//             state->X_values.push_back(current_value);
 //             count_unique = 1;
 
 //             for (size_t j = 1; j < N; j++)
@@ -106,14 +106,14 @@ public:
 //                 else
 //                 {
 //                     current_value = *(Xpointer + i * N + this->Xorder_std[i][j]);
-//                     fit_info->X_values.push_back(current_value);
+//                     state->X_values.push_back(current_value);
 //                     this->X_counts.push_back(1);
 //                     count_unique++;
 //                     total_points++;
 //                 }
 //             }
-//             fit_info->variable_ind[i + 1 - fit_info->p_continuous] = count_unique + fit_info->variable_ind[i - fit_info->p_continuous];
-//             this->X_num_unique[i - fit_info->p_continuous] = count_unique;
+//             state->variable_ind[i + 1 - state->p_continuous] = count_unique + state->variable_ind[i - state->p_continuous];
+//             this->X_num_unique[i - state->p_continuous] = count_unique;
 //             total_points++;
 //         }
 //         return;
