@@ -509,3 +509,74 @@ size_t count_non_zero(std::vector<double> &vec){
     }
     return output;
 }
+
+
+void unique_value_count(const double *Xpointer, matrix<size_t> &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique)
+{
+    size_t N = Xorder_std[0].size();
+    size_t p = Xorder_std.size();
+    double current_value = 0.0;
+    size_t count_unique = 0;
+    size_t N_unique;
+    variable_ind[0] = 0;
+
+    total_points = 0;
+    for (size_t i = 0; i < p; i++)
+    {
+        X_counts.push_back(1);
+        current_value = *(Xpointer + i * N + Xorder_std[i][0]);
+        X_values.push_back(current_value);
+        count_unique = 1;
+
+        for (size_t j = 1; j < N; j++)
+        {
+            if (*(Xpointer + i * N + Xorder_std[i][j]) == current_value)
+            {
+                X_counts[total_points]++;
+            }
+            else
+            {
+                current_value = *(Xpointer + i * N + Xorder_std[i][j]);
+                X_values.push_back(current_value);
+                X_counts.push_back(1);
+                count_unique++;
+                total_points++;
+            }
+        }
+        variable_ind[i + 1] = count_unique + variable_ind[i];
+        X_num_unique[i] = count_unique;
+        total_points++;
+    }
+
+    return;
+}
+
+
+
+void cumulative_sum_std(std::vector<double> &y_cumsum, std::vector<double> &y_cumsum_inv, double &y_sum, double *y, matrix<size_t> &Xorder, size_t &i, size_t &N)
+{
+    // y_cumsum is the output cumulative sum
+    // y is the original data
+    // Xorder is sorted index matrix
+    // i means take the i-th column of Xorder
+    // N is length of y and y_cumsum
+    if (N > 1)
+    {
+        y_cumsum[0] = y[Xorder[i][0]];
+        for (size_t j = 1; j < N; j++)
+        {
+            y_cumsum[j] = y_cumsum[j - 1] + y[Xorder[i][j]];
+        }
+    }
+    else
+    {
+        y_cumsum[0] = y[Xorder[i][0]];
+    }
+    y_sum = y_cumsum[N - 1];
+
+    for (size_t j = 1; j < N; j++)
+    {
+        y_cumsum_inv[j] = y_sum - y_cumsum[j];
+    }
+    return;
+}

@@ -20,6 +20,15 @@ public:
 
     size_t dim_residual;
 
+
+    /////////////////////////////////////
+    //
+    //  suff_stat_model and suff_stat_total
+    //  are useless for NormalModel now
+    //  They are still here because CLT class depends on them
+    //  Delelte them later
+    //
+    /////////////////////////////////////
     std::vector<double> suff_stat_model;
 
     std::vector<double> suff_stat_total;
@@ -35,7 +44,6 @@ public:
     {
         this->dim_theta = dim_theta;
         this->dim_suffstat = dim_suff;
-        Model::suff_stat_model.resize(dim_suff);
     };
 
     // Abstract functions
@@ -89,7 +97,7 @@ class NormalModel : public Model
 {
 public:
     size_t dim_suffstat = 4;
-    std::vector<double> suff_stat_total;
+
     // model prior
     // prior on sigma
     double kap;

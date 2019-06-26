@@ -170,4 +170,11 @@ double normal_density(double y, double mean, double var, bool take_log);
 bool is_non_zero(size_t x);
 
 size_t count_non_zero(std::vector<double> &vec);
+
+
+
+void unique_value_count(const double *Xpointer, matrix<size_t> &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique);
+
+void cumulative_sum_std(std::vector<double> &y_cumsum, std::vector<double> &y_cumsum_inv, double &y_sum, double *y, matrix<size_t> &Xorder, size_t &i, size_t &N);
+
 #endif
