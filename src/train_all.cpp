@@ -82,7 +82,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, si
     auto start = system_clock::now();
 
     size_t N = X.n_rows;
-    
+
     // number of total variables
     size_t p = X.n_cols;
 
@@ -147,18 +147,18 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, si
         (*trees2)[i] = vector<tree>(num_trees);
     }
 
-    // State settings
-    std::vector<double> initial_theta(1, y_mean / (double) num_trees);
-    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin));
-
-    // initialize X_struct
-    std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
-
     // define model
     NormalModel *model = new NormalModel(kap, s, tau, alpha, beta);
     model->setNoSplitPenality(no_split_penality);
 
-    /////////////////////////////////////////////////////////////////
+    // State settings
+    std::vector<double> initial_theta(1, y_mean / (double) num_trees);
+    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual));
+
+    // initialize X_struct
+    std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
+
+    ////////////////////////////////////////////////////////////////
     mcmc_loop(Xorder_std, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
 
     predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
@@ -291,17 +291,16 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
         (*trees2)[i] = vector<tree>(num_trees);
     }
 
-    // State settings
-    std::vector<double> initial_theta(1, 0);
-    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin));
-
-    // initialize X_struct
-    std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
-
-
     // define model
     CLTClass *model = new CLTClass(kap, s, tau, alpha, beta);
     model->setNoSplitPenality(no_split_penality);
+
+    // State settings
+    std::vector<double> initial_theta(1, 0);
+    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual));
+
+    // initialize X_struct
+    std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
     /////////////////////////////////////////////////////////////////
 
@@ -444,13 +443,13 @@ Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest, size_t n
 
     size_t n_class;
 
-    // State settings
-    std::vector<double> initial_theta(1, 0);
-    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin));
-
     // define model
     LogitClass *model = new LogitClass();
     model->setNoSplitPenality(no_split_penality);
+
+    // State settings
+    std::vector<double> initial_theta(1, 0);
+    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual));
 
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
@@ -586,17 +585,16 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
         (*trees2)[i] = vector<tree>(num_trees);
     }
 
-    // State settings
-    std::vector<double> initial_theta(1, 0);
-    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin));
-
     // define model
     NormalModel *model = new NormalModel(kap, s, tau, alpha, beta);
     model->setNoSplitPenality(no_split_penality);
 
+    // State settings
+    std::vector<double> initial_theta(1, 0);
+    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual));
+
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
-
 
     /////////////////////////////////////////////////////////////////
 
@@ -730,16 +728,16 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees,
         (*trees2)[i] = vector<tree>(num_trees);
     }
 
+    // define model
+    NormalModel *model = new NormalModel(kap, s, tau, alpha, beta);
+
     // State settings
     std::vector<double> initial_theta(1, 0);
-    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin));
+    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual));
 
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
-
-    // define model
-    NormalModel *model = new NormalModel(kap, s, tau, alpha, beta);
 
     /////////////////////////////////////////////////////////////////
     std::vector<double> accept_count;

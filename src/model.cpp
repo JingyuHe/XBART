@@ -8,9 +8,12 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////
 
-void NormalModel::incSuffStat(double next_obs, std::vector<double> &suffstats)
+void NormalModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
 {
-    suffstats[0] += next_obs;
+    // I have to pass matrix<double> &residual_std, size_t index_next_obs
+    // which allows more flexibility for multidimensional residual_std
+
+    suffstats[0] += residual_std[0][index_next_obs];
     return;
 }
 
@@ -32,12 +35,15 @@ void NormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, s
     // Draw Sigma
     // state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
 
-    for (size_t i = 0; i < state->residual_std.size(); i++)
+
+    // residual_std is only 1 dimensional for regression model
+
+    for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
-        state->residual_std_full[i] = state->residual_std[i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
+        state->residual_std_full[0][i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
     }
 
-    std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(state->residual_std_full) + s));
+    std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(state->residual_std_full[0]) + s));
     state->update_sigma(1.0 / sqrt(gamma_samp(state->gen)));
     return;
 }
@@ -45,18 +51,18 @@ void NormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, s
 void NormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
 {
     // sum of y
-    suff_stat[0] = sum_vec(state->residual_std);
+    suff_stat[0] = sum_vec(state->residual_std[0]);
     // sum of y squared
-    suff_stat[1] = sum_squared(state->residual_std);
+    suff_stat[1] = sum_squared(state->residual_std[0]);
     // number of observations in the node
     suff_stat[2] = state->n_y;
     return;
 }
 
-void NormalModel::updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
+void NormalModel::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
-    suff_stat[0] += residual_std[Xorder_std[split_var][row_ind]];
-    suff_stat[1] += pow(residual_std[Xorder_std[split_var][row_ind]], 2);
+    suff_stat[0] += residual_std[0][Xorder_std[split_var][row_ind]];
+    suff_stat[1] += pow(residual_std[0][Xorder_std[split_var][row_ind]], 2);
     suff_stat[2] += 1;
     return;
 }
@@ -78,7 +84,7 @@ void NormalModel::calculateOtherSideSuffStat(std::vector<double> &parent_suff_st
     return;
 }
 
-void NormalModel::state_sweep(size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
+void NormalModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
 {
     size_t next_index = tree_ind + 1;
     if (next_index == M)
@@ -90,11 +96,10 @@ void NormalModel::state_sweep(size_t tree_ind, size_t M, std::vector<double> &re
     // Be care of line 151 in train_all.cpp, initial_theta
     ////////////////////////////////////////////////////////
 
-    for (size_t i = 0; i < residual_std.size(); i++)
+    for (size_t i = 0; i < residual_std[0].size(); i++)
     {
-        residual_std[i] = residual_std[i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + (*(x_struct->data_pointers[next_index][i]))[0];
+        residual_std[0][i] = residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + (*(x_struct->data_pointers[next_index][i]))[0];
     }
-
     return;
 }
 
@@ -155,9 +160,9 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
 void NormalModel::ini_residual_std(std::unique_ptr<State> &state)
 {
     double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
-    for (size_t i = 0; i < state->residual_std.size(); i++)
+    for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
-        state->residual_std[i] = (*state->y_std)[i] - value;
+        state->residual_std[0][i] = (*state->y_std)[i] - value;
     }
     return;
 }

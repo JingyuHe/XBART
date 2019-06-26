@@ -1623,7 +1623,7 @@ void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<s
     for (size_t i = start; i <= end; i++)
     {
         // Model::suff_stat_model[0] += y[Xorder[var][i]];
-        model->incSuffStat(state->residual_std[xorder[i]], temp_suff_stat);
+        model->incSuffStat(state->residual_std, xorder[i], temp_suff_stat);
     }
     return;
 }
@@ -1638,19 +1638,19 @@ void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<si
         if (index == 0)
         {
             // initialize, only for the first cutpoint candidate, thus index == 0
-            model->incSuffStat(state->residual_std[xorder[0]], temp_suff_stat);
+            model->incSuffStat(state->residual_std, xorder[0], temp_suff_stat);
         }
 
         // if use adaptive number of cutpoints, calculated based on vector candidate_index
         for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
         {
-            model->incSuffStat(state->residual_std[xorder[q]], temp_suff_stat);
+            model->incSuffStat(state->residual_std, xorder[q], temp_suff_stat);
         }
     }
     else
     {
         // use all data points as candidates
-        model->incSuffStat(state->residual_std[xorder[index]], temp_suff_stat);
+        model->incSuffStat(state->residual_std, xorder[index], temp_suff_stat);
     }
     return;
 }
