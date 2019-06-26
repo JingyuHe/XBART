@@ -70,7 +70,7 @@ public:
 
     virtual void ini_residual_std(std::unique_ptr<State> &state) { return; };
 
-    virtual double predictFromTheta(const std::vector<double> &theta_vector) const { return 0.0; };
+    // virtual double predictFromTheta(const std::vector<double> &theta_vector) const { return 0.0; };
 
     virtual void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees) { return; };
 
@@ -142,7 +142,7 @@ public:
 
     void ini_residual_std(std::unique_ptr<State> &state);
 
-    double predictFromTheta(const std::vector<double> &theta_vector) const;
+    // double predictFromTheta(const std::vector<double> &theta_vector) const;
 
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
 

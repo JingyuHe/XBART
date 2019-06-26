@@ -169,41 +169,35 @@ void NormalModel::ini_residual_std(std::unique_ptr<State> &state)
     return;
 }
 
-double NormalModel::predictFromTheta(const std::vector<double> &theta_vector) const
-{
-    return theta_vector[0];
-}
+// double NormalModel::predictFromTheta(const std::vector<double> &theta_vector) const
+// {
+//     return theta_vector[0];
+// }
 
 void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees)
 {
+    matrix<double> output;
 
-    matrix<double> predictions_test_std;
-    ini_xinfo(predictions_test_std, N_test, num_trees);
-
-    std::vector<double> yhat_test_std(N_test);
-    row_sum(predictions_test_std, yhat_test_std);
-
-    // // initialize predcitions and predictions_test
-    // for (size_t ii = 0; ii < num_trees; ii++)
-    // {
-    //     std::fill(predictions_test_std[ii].begin(), predictions_test_std[ii].end(), y_mean / (double)num_trees);
-    // }
-    row_sum(predictions_test_std, yhat_test_std);
+    // row : dimension of theta, column : number of trees
+    ini_matrix(output, this->dim_theta, trees.size());
 
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
-        for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
+        for (size_t data_ind = 0; data_ind < N_test; data_ind++)
         {
+            getThetaForObs_Outsample(output, trees[sweeps], data_ind, Xtestpointer, N_test, p);
 
-            yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
-            predict_from_tree(trees[sweeps][tree_ind], Xtestpointer, N_test, p, predictions_test_std[tree_ind], this);
-            yhat_test_std = yhat_test_std + predictions_test_std[tree_ind];
+            // take sum of predictions of each tree, as final prediction
+            for (size_t i = 0; i < trees.size(); i++)
+            {
+                yhats_test_xinfo[sweeps][data_ind] += output[i][0];
+            }
+
         }
-        yhats_test_xinfo[sweeps] = yhat_test_std;
     }
-
     return;
 }
+
 //////////////////////////////////////////////////////////////////////////////////////
 //
 //

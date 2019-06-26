@@ -66,40 +66,40 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhats_x
     return;
 }
 
-void predict_std_multinomial(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees,
-                             size_t num_sweeps, matrix<double> &yhats_test_xinfo,
-                             vector<vector<tree>> &trees)
-{
+// void predict_std_multinomial(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees,
+//                              size_t num_sweeps, matrix<double> &yhats_test_xinfo,
+//                              vector<vector<tree>> &trees)
+// {
 
-    NormalModel *model = new NormalModel();
-    matrix<double> predictions_test_std;
-    ini_xinfo(predictions_test_std, N_test, num_trees);
+//     NormalModel *model = new NormalModel();
+//     matrix<double> predictions_test_std;
+//     ini_xinfo(predictions_test_std, N_test, num_trees);
 
-    std::vector<double> yhat_test_std(N_test);
-    row_sum(predictions_test_std, yhat_test_std);
+//     std::vector<double> yhat_test_std(N_test);
+//     row_sum(predictions_test_std, yhat_test_std);
 
-    // // initialize predcitions and predictions_test
-    // for (size_t ii = 0; ii < num_trees; ii++)
-    // {
-    //     std::fill(predictions_test_std[ii].begin(), predictions_test_std[ii].end(), y_mean / (double)num_trees);
-    // }
-    row_sum(predictions_test_std, yhat_test_std);
+//     // // initialize predcitions and predictions_test
+//     // for (size_t ii = 0; ii < num_trees; ii++)
+//     // {
+//     //     std::fill(predictions_test_std[ii].begin(), predictions_test_std[ii].end(), y_mean / (double)num_trees);
+//     // }
+//     row_sum(predictions_test_std, yhat_test_std);
 
-    for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
-    {
-        for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
-        {
+//     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
+//     {
+//         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
+//         {
 
-            yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
-            predict_from_tree(trees[sweeps][tree_ind], Xtestpointer, N_test, p, predictions_test_std[tree_ind], model);
-            yhat_test_std = yhat_test_std + predictions_test_std[tree_ind];
-        }
-        yhats_test_xinfo[sweeps] = yhat_test_std;
-    }
+//             yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
+//             predict_from_tree(trees[sweeps][tree_ind], Xtestpointer, N_test, p, predictions_test_std[tree_ind], model);
+//             yhat_test_std = yhat_test_std + predictions_test_std[tree_ind];
+//         }
+//         yhats_test_xinfo[sweeps] = yhat_test_std;
+//     }
 
-    delete model;
-    return;
-}
+//     delete model;
+//     return;
+// }
 
 void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhats_xinfo, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, CLTClass *model, std::unique_ptr<X_struct> &x_struct)
 {

@@ -458,7 +458,7 @@ Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest, size_t n
     /////////////////////////////////////////////////////////////////
     mcmc_loop_multinomial(Xorder_std, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
 
-    predict_std_multinomial(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
+    // predict_std_multinomial(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
     // R Objects to Return
     Rcpp::NumericMatrix yhats(N, num_sweeps);

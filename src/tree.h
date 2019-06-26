@@ -213,16 +213,16 @@ private:
 std::istream &operator>>(std::istream &, tree &);
 std::ostream &operator<<(std::ostream &, const tree &);
 
-void predict_from_tree(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output, Model *model);
+// void predict_from_tree(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output, Model *model);
 
-void predict_from_datapointers(size_t tree_ind, Model *model, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct);
+// void predict_from_datapointers(size_t tree_ind, Model *model, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct);
 
-void getTheta_Insample(size_t tree_ind, std::unique_ptr<State> &state, matrix<double> output, std::unique_ptr<X_struct> &x_struct);
+void getTheta_Insample(matrix<double> &output, size_t tree_ind, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct);
 
-void getTheta_Outsample(tree &tree, std::unique_ptr<State> &state, matrix<double> output, const double *Xtest, size_t N_Xtest);
+void getTheta_Outsample(matrix<double> &output, tree &tree, const double *Xtest, size_t N_Xtest, size_t p);
 
-void getThetaForObs_Insample(size_t x_index, std::unique_ptr<State> &state, matrix<double> output, std::unique_ptr<X_struct> &x_struct);
+void getThetaForObs_Insample(matrix<double> &output, size_t x_index, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct);
 
-void getThetaForObs_Outsample(std::vector<tree> &tree, size_t x_index, std::unique_ptr<State> &state, matrix<double> output, const double *Xtest, size_t N_Xtest);
+void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p);
 
 #endif

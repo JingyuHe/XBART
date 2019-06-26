@@ -1420,27 +1420,27 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
     }
 }
 
-void predict_from_tree(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output, Model *model)
-{
-    tree::tree_p bn;
-    for (size_t i = 0; i < N; i++)
-    {
-        bn = tree.search_bottom_std(X_std, i, p, N);
-        output[i] = model->predictFromTheta(bn->theta_vector);
-    }
-    return;
-}
+// void predict_from_tree(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output, Model *model)
+// {
+//     tree::tree_p bn;
+//     for (size_t i = 0; i < N; i++)
+//     {
+//         bn = tree.search_bottom_std(X_std, i, p, N);
+//         output[i] = model->predictFromTheta(bn->theta_vector);
+//     }
+//     return;
+// }
 
-void predict_from_datapointers(size_t tree_ind, Model *model, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct)
-{
-    // // tree search, but read from the matrix of pointers to end node directly
-    // // easier to get fitted value of training set
-    // for (size_t i = 0; i < state->n_y; i++)
-    // {
-    //     state->predictions_std[tree_ind][i] = model->predictFromTheta(*(x_struct->data_pointers[tree_ind][i]));
-    // }
-    // return;
-}
+// void predict_from_datapointers(size_t tree_ind, Model *model, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct)
+// {
+//     // // tree search, but read from the matrix of pointers to end node directly
+//     // // easier to get fitted value of training set
+//     // for (size_t i = 0; i < state->n_y; i++)
+//     // {
+//     //     state->predictions_std[tree_ind][i] = model->predictFromTheta(*(x_struct->data_pointers[tree_ind][i]));
+//     // }
+//     // return;
+// }
 
 void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, size_t &start, size_t &end, Model *model, std::unique_ptr<State> &state)
 {
@@ -1482,7 +1482,7 @@ void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<si
     return;
 }
 
-void getTheta_Insample(size_t tree_ind, std::unique_ptr<State> &state, matrix<double> output, std::unique_ptr<X_struct> &x_struct)
+void getTheta_Insample(matrix<double> &output, size_t tree_ind, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct)
 {
     // get theta of ALL observations of ONE tree, in sample fit
     // input is x_struct because it is in sample
@@ -1493,25 +1493,25 @@ void getTheta_Insample(size_t tree_ind, std::unique_ptr<State> &state, matrix<do
     return;
 }
 
-void getTheta_Outsample(tree &tree, std::unique_ptr<State> &state, matrix<double> output, const double *Xtest, size_t N_Xtest)
+void getTheta_Outsample(matrix<double> &output, tree &tree, const double *Xtest, size_t N_Xtest, size_t p)
 {
     // get theta of ALL observations of ONE tree, out sample fit
     // input is a pointer to testing set matrix because it is out of sample
     // tree is a single tree to look at
 
     tree::tree_p bn;    // pointer to bottom node
-    for (size_t i = 0; i < state->n_y; i++)
+    for (size_t i = 0; i < N_Xtest; i++)
     {
         // loop over observations
         // tree search
-        bn = tree.search_bottom_std(Xtest, i, state->p, N_Xtest);
+        bn = tree.search_bottom_std(Xtest, i, p, N_Xtest);
         output[i] = bn->theta_vector;
     }
 
     return;
 }
 
-void getThetaForObs_Insample(size_t x_index, std::unique_ptr<State> &state, matrix<double> output, std::unique_ptr<X_struct> &x_struct)
+void getThetaForObs_Insample(matrix<double> &output, size_t x_index, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct)
 {
     // get theta of ONE observation of ALL trees, in sample fit
     // input is x_struct because it is in sample
@@ -1523,18 +1523,18 @@ void getThetaForObs_Insample(size_t x_index, std::unique_ptr<State> &state, matr
     return;
 }
 
-void getThetaForObs_Outsample(std::vector<tree> &tree, size_t x_index, std::unique_ptr<State> &state, matrix<double> output, const double *Xtest, size_t N_Xtest)
+void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p)
 {
     // get theta of ONE observation of ALL trees, out sample fit
     // input is a pointer to testing set matrix because it is out of sample
     // tree is a vector of all trees
 
     tree::tree_p bn;    // pointer to bottom node
-    for (size_t i = 0; i < state->num_trees; i++)
+    for (size_t i = 0; i < tree.size(); i++)
     {
         // loop over trees
         // tree search
-        bn = tree[i].search_bottom_std(Xtest, x_index, state->p, N_Xtest);
+        bn = tree[i].search_bottom_std(Xtest, x_index, p, N_Xtest);
         output[i] = bn->theta_vector;
     }
     return;
