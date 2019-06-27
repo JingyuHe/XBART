@@ -22,20 +22,11 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhats_x
 
         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
         {
-            // if (sweeps == 0)
-            // {
-            //     trees[sweeps][tree_ind].resize_suff_stat(model->dim_suffstat);
-            // }
-
             // Draw Sigma
 
             model->update_state(state, tree_ind, x_struct);
 
             sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
-
-            // add prediction of current tree back to residual
-            // then it's m - 1 trees residual
-            // state->yhat_std = state->yhat_std - state->predictions_std[tree_ind];
 
             if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
             {
