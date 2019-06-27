@@ -169,11 +169,6 @@ void NormalModel::ini_residual_std(std::unique_ptr<State> &state)
     return;
 }
 
-// double NormalModel::predictFromTheta(const std::vector<double> &theta_vector) const
-// {
-//     return theta_vector[0];
-// }
-
 void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees)
 {
     matrix<double> output;

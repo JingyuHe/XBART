@@ -66,8 +66,6 @@ public:
 
     // virtual double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const { return 0.0; };
 
-    virtual void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder) { return; };
-
     virtual void ini_residual_std(std::unique_ptr<State> &state) { return; };
 
     // virtual double predictFromTheta(const std::vector<double> &theta_vector) const { return 0.0; };
@@ -142,16 +140,8 @@ public:
 
     void ini_residual_std(std::unique_ptr<State> &state);
 
-    // double predictFromTheta(const std::vector<double> &theta_vector) const;
-
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
 
-    void suff_stat_fill(std::vector<double> &y_std, std::vector<size_t> &xorder)
-    {
-        // fill the suff_stat_model with a value
-        std::fill(Model::suff_stat_model.begin(), Model::suff_stat_model.end(), y_std[xorder[0]]);
-        return;
-    }
 };
 
 class CLTClass : public Model
