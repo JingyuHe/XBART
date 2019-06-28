@@ -573,11 +573,11 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
     }
 
     // define model
-    NormalModel *model = new NormalModel(kap, s, tau, alpha, beta);
+    ProbitClass *model = new ProbitClass(kap, s, tau, alpha, beta, y_std);
     model->setNoSplitPenality(no_split_penality);
 
     // State settings
-    std::vector<double> initial_theta(1, 0);
+    std::vector<double> initial_theta(1, y_mean / (double)num_trees);
     std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual));
 
     // initialize X_struct
@@ -634,6 +634,13 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
     // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
+
+
+    // clean memory
+    delete model;
+    state.reset();
+    x_struct.reset();
+
     return Rcpp::List::create(
         Rcpp::Named("yhats") = yhats,
         Rcpp::Named("yhats_test") = yhats_test,

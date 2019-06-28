@@ -7,6 +7,7 @@
 #include <memory>
 #include "state.h"
 #include "X_struct.h"
+#include "cdf.h"
 
 using namespace std;
 
@@ -141,7 +142,31 @@ public:
     void ini_residual_std(std::unique_ptr<State> &state);
 
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
+};
 
+class ProbitClass : public NormalModel
+{
+public:
+    std::vector<double> z;
+    std::vector<double> z_prev;
+
+    double a = 0;
+    double b = 1;
+
+
+    ProbitClass(double kap, double s, double tau, double alpha, double beta, std::vector<double> &y_std) : NormalModel(kap, s, tau, alpha, beta)
+    {
+        this->z = std::vector<double>(y_std.size(), 0);
+        this->z_prev = std::vector<double>(y_std.size(), 0);
+        for(size_t i = 0; i < y_std.size(); i ++ ){
+            this->z[i] = y_std[i];
+        }
+        return;
+    }
+
+    void update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct);
+
+    void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const;
 };
 
 class CLTClass : public Model

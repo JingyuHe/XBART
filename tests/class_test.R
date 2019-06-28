@@ -66,7 +66,7 @@ get_XBART_params <- function(n,d,y){
     mtry = 10,
     burnin = 15)
     num_tress = XBART_params$M
-    XBART_params$max_depth = matrix(250, num_tress, XBART_params$nsweeps)
+    XBART_params$max_depth = 250
     XBART_params$Ncutpoints = 100;XBART_params$tau = var(y)/(num_tress)
     XBART_params$a = 0.000001; XBART_params$b = 0.000001;
     return(XBART_params)
@@ -75,42 +75,42 @@ params = get_XBART_params(n,d,y)
 dcat = 0
 parl = F
 
-t = proc.time()
-out = XBART(as.matrix(y)-mean(y), as.matrix(x), as.matrix(xtest), num_trees = params$M, L = 1, num_sweeps = params$nsweeps, max_depth = params$max_depth, Nmin = params$Nmin, num_cutpoints = params$Ncutpoints,
-alpha = params$alpha, beta = params$beta, tau = var(y)/params$M, s= 1,kap = 1,
-mtry = params$mtry, p_categorical = dcat, draw_sigma = FALSE, m_update_sigma = TRUE,
-parallel = parl,random_seed = 10, no_split_penality = 0)
-pred = predict(out,as.matrix(xtest))
-t = proc.time() - t
-print(t)
-yhat.pred = apply(pred[,params$burnin:params$nsweeps],1,mean) + mean(y)
+# t = proc.time()
+# out = XBART(as.matrix(y)-mean(y), as.matrix(x), as.matrix(xtest), num_trees = params$M, L = 1, num_sweeps = params$nsweeps, max_depth = params$max_depth, Nmin = params$Nmin, num_cutpoints = params$Ncutpoints,
+# alpha = params$alpha, beta = params$beta, tau = var(y)/params$M, s= 1,kap = 1,
+# mtry = params$mtry, p_categorical = dcat, draw_sigma = FALSE, m_update_sigma = TRUE,
+# parallel = parl,random_seed = 10, no_split_penality = 0)
+# pred = predict(out,as.matrix(xtest))
+# t = proc.time() - t
+# print(t)
+# yhat.pred = apply(pred[,params$burnin:params$nsweeps],1,mean) + mean(y)
 
 
-### CLT ###
-get_XBART_params_clt <- function(n,d,y){
-   XBART_params = list(M = 15,
-   L = 1,
-   nsweeps = 150,
-   Nmin = 100,
-   alpha = 0.95,
-   beta = 1.25,
-   mtry = 10,
-   burnin = 15)
-   num_tress = XBART_params$M
-   XBART_params$max_depth = matrix(250, num_tress, XBART_params$nsweeps)
-   XBART_params$Ncutpoints = 100;XBART_params$tau = var(y)/(num_tress)
-   return(XBART_params)
-}
-params_clt = get_XBART_params(n,d,y)
-t = proc.time()
-out_clt = XBART.CLT(matrix(y)-mean(y), as.matrix(x), as.matrix(xtest), num_trees = params_clt$M, L = 1, num_sweeps = params_clt$nsweeps, max_depth = params_clt$max_depth, Nmin = params_clt$Nmin, num_cutpoints = params_clt$Ncutpoints,
-alpha = params_clt$alpha, beta = params_clt$beta, tau = params_clt$tau, s= 1,kap = 1,
-mtry = params_clt$mtry, p_categorical = dcat, draw_sigma = FALSE, m_update_sigma = TRUE,
-parallel = parl,random_seed = 10)
-pred.clt = predict(out_clt,as.matrix(xtest))
-t = proc.time() - t
-print(t)
-yhat.clt.pred = apply(pred.clt[,params$burnin:params$nsweeps],1,mean)+mean(y)
+# ### CLT ###
+# get_XBART_params_clt <- function(n,d,y){
+#    XBART_params = list(M = 15,
+#    L = 1,
+#    nsweeps = 150,
+#    Nmin = 100,
+#    alpha = 0.95,
+#    beta = 1.25,
+#    mtry = 10,
+#    burnin = 15)
+#    num_tress = XBART_params$M
+#    XBART_params$max_depth = matrix(250, num_tress, XBART_params$nsweeps)
+#    XBART_params$Ncutpoints = 100;XBART_params$tau = var(y)/(num_tress)
+#    return(XBART_params)
+# }
+# params_clt = get_XBART_params(n,d,y)
+# t = proc.time()
+# out_clt = XBART.CLT(matrix(y)-mean(y), as.matrix(x), as.matrix(xtest), num_trees = params_clt$M, L = 1, num_sweeps = params_clt$nsweeps, max_depth = params_clt$max_depth, Nmin = params_clt$Nmin, num_cutpoints = params_clt$Ncutpoints,
+# alpha = params_clt$alpha, beta = params_clt$beta, tau = params_clt$tau, s= 1,kap = 1,
+# mtry = params_clt$mtry, p_categorical = dcat, draw_sigma = FALSE, m_update_sigma = TRUE,
+# parallel = parl,random_seed = 10)
+# pred.clt = predict(out_clt,as.matrix(xtest))
+# t = proc.time() - t
+# print(t)
+# yhat.clt.pred = apply(pred.clt[,params$burnin:params$nsweeps],1,mean)+mean(y)
 
 ### Probit ###
 t = proc.time()
@@ -123,8 +123,8 @@ t = proc.time() - t
 print(t)
 yhat.probit.pred = apply(pnorm(pred.probit[,params$burnin:params$nsweeps]),1,mean)
 
-printTPR(yhat.pred,ytest)
-printTPR(yhat.clt.pred ,ytest)
+# printTPR(yhat.pred,ytest)
+# printTPR(yhat.clt.pred ,ytest)
 printTPR(yhat.probit.pred ,ytest)
 
 

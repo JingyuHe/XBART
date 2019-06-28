@@ -187,9 +187,84 @@ void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t 
             {
                 yhats_test_xinfo[sweeps][data_ind] += output[i][0];
             }
-
         }
     }
+    return;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//
+//
+//  Probit Model
+//
+//
+//////////////////////////////////////////////////////////////////////////////////////
+void ProbitClass::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
+{
+    // Draw Sigma
+    // state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
+
+    // residual_std is only 1 dimensional for regression model
+
+    std::vector<double> full_residual(state->n_y);
+
+    for (size_t i = 0; i < state->residual_std[0].size(); i++)
+    {
+        full_residual[i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
+    }
+
+    // For probit model, do not need to sample gamma
+    // std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(full_residual) + s));
+    // state->update_sigma(1.0 / sqrt(gamma_samp(state->gen)));
+
+    // update latent variable Z
+
+    z_prev = z;
+
+    double mu_temp;
+    double u;
+
+    for (size_t i = 0; i < state->n_y; i++)
+    {
+        a = 0;
+        b = 1;
+
+        mu_temp = normCDF(z_prev[i]);
+
+        // Draw from truncated normal via inverse CDF methods
+        if ((*state->y_std)[i] > 0)
+        {
+            a = std::min(mu_temp, 0.999);
+        }
+        else
+        {
+            b = std::max(mu_temp, 0.001);
+        }
+
+        std::uniform_real_distribution<double> unif(a, b);
+        u = unif(state->gen);
+        z[i] = normCDFInv(u) + mu_temp;
+    }
+    return;
+}
+
+void ProbitClass::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
+{
+    size_t next_index = tree_ind + 1;
+    if (next_index == M)
+    {
+        next_index = 0;
+    }
+
+    ////////////////////////////////////////////////////////
+    // Be care of line 151 in train_all.cpp, initial_theta
+    ////////////////////////////////////////////////////////
+
+    for (size_t i = 0; i < residual_std[0].size(); i++)
+    {
+        residual_std[0][i] = residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + (*(x_struct->data_pointers[next_index][i]))[0] - z_prev[i] + z[i];
+    }
+
     return;
 }
 
