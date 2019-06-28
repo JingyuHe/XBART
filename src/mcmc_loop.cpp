@@ -357,254 +357,242 @@ void mcmc_loop_probit(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
 void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhats_xinfo, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &accept_count, std::vector<double> &MH_vector, std::vector<double> &P_ratio, std::vector<double> &Q_ratio, std::vector<double> &prior_ratio)
 {
 
-    // if (state->parallel)
-    //     thread_pool.start();
+    if (state->parallel)
+        thread_pool.start();
 
-    // // Residual for 0th tree
+    // Residual for 0th tree
     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
-    // // std::fill(state->residual_std.begin(), state->residual_std.end(), y_mean / (double) num_trees * ((double) num_trees - 1.0));
+    model->ini_residual_std(state);
 
-    // // std::vector<tree> temp_tree = trees[0];
+    double MH_ratio = 0.0;
+    double P_new;
+    double P_old;
+    double Q_new;
+    double Q_old;
+    double prior_new;
+    double prior_old;
 
-    // double MH_ratio = 0.0;
-
-    // double P_new;
-    // double P_old;
-    // double Q_new;
-    // double Q_old;
-    // double prior_new;
-    // double prior_old;
+    std::uniform_real_distribution<> unif_dist(0, 1);
 
-    // std::uniform_real_distribution<> unif_dist(0, 1);
+    tree temp_treetree = tree();
 
-    // tree temp_treetree = tree();
+    std::vector<double> temp_vec_proposal(state->n_y);
+    std::vector<double> temp_vec(state->n_y);
+    std::vector<double> temp_vec2(state->n_y);
+    std::vector<double> temp_vec3(state->n_y);
+    std::vector<double> temp_vec4(state->n_y);
 
-    // std::vector<double> temp_vec_proposal(state->n_y);
-    // std::vector<double> temp_vec(state->n_y);
-    // std::vector<double> temp_vec2(state->n_y);
-    // std::vector<double> temp_vec3(state->n_y);
-    // std::vector<double> temp_vec4(state->n_y);
+    bool accept_flag = true;
 
-    // bool accept_flag = true;
+    for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
+    {
 
-    // for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
-    // {
+        if (verbose == true)
+        {
+            COUT << "--------------------------------" << endl;
+            COUT << "number of sweeps " << sweeps << endl;
+            COUT << "--------------------------------" << endl;
+        }
 
-    //     if (verbose == true)
-    //     {
-    //         COUT << "--------------------------------" << endl;
-    //         COUT << "number of sweeps " << sweeps << endl;
-    //         COUT << "--------------------------------" << endl;
-    //     }
+        for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
+        {
+            // Draw Sigma
 
-    //     for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
-    //     {
-    //         // Draw Sigma
-    //         model->update_state(state, tree_ind, x_struct);
-    //         sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
+            model->update_state(state, tree_ind, x_struct);
 
-    //         // add prediction of current tree back to residual
-    //         // then it's m - 1 trees residual
-    //         state->yhat_std = state->yhat_std - state->predictions_std[tree_ind];
+            sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
 
-    //         if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
-    //         {
-    //             state->use_all = false;
-    //         }
-
-    //         // clear counts of splits for one tree
-    //         std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
-
-    //         // subtract old tree for sampling case
-    //         if (state->sample_weights_flag)
-    //         {
-    //             state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
-    //         }
-
-    //         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //         // X_counts and X_num_unique should not be in state because they depend on node
-    //         // but they are initialized in state object
-    //         // so I'll pass x_struct->X_counts to root node, then create X_counts_left, X_counts_right for other nodes
-    //         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
+            {
+                state->use_all = false;
+            }
 
-    //         if (sweeps < 10)
-    //         {
+            // clear counts of splits for one tree
+            std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
 
-    //             // The first several sweeps are used as initialization
-    //             // state->data_pointers is calculated in this function
-    //             // trees[sweeps][tree_ind].tonull();
-    //             // cout << "aaa" << endl;
+            // subtract old tree for sampling case
+            if (state->sample_weights_flag)
+            {
+                state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
+            }
 
-    //             // set sufficient statistics at root node first
-    //             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+            //         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            //         // X_counts and X_num_unique should not be in state because they depend on node
+            //         // but they are initialized in state object
+            //         // so I'll pass x_struct->X_counts to root node, then create X_counts_left, X_counts_right for other nodes
+            //         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    //             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-    //             accept_count.push_back(0);
-    //             MH_vector.push_back(0);
-    //             // cout << "bbb" << endl;
-    //         }
-    //         else
-    //         {
-    //             //     // fit a proposal
+            if (sweeps < 10)
+            {
 
-    //             /*
+                // The first several sweeps are used as initialization
+                // state->data_pointers is calculated in this function
+                // trees[sweeps][tree_ind].tonull();
 
-    //                 BE CAREFUL! Growing proposal update data_pointers in state object implictly
-    //                 need to creat a backup, copy from the backup if the proposal is rejected
+                model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
-    //             */
+                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
-    //             // set sufficient statistics at root node first
-    //             trees[sweeps][tree_ind].suff_stat[0] = sum_vec(state->residual_std) / (double)state->n_y;
-    //             trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
-    //             trees[sweeps][tree_ind].suff_stat[2] = state->n_y;
+                accept_count.push_back(0);
+                MH_vector.push_back(0);
+            }
+            else
+            {
+                //     // fit a proposal
 
-    //             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+                /*
 
-    //             predict_from_tree(trees[sweeps][tree_ind], state->X_std, state->n_y, state->p, temp_vec_proposal, model);
+                    BE CAREFUL! Growing proposal update data_pointers in state object implictly
+                    need to creat a backup, copy from the backup if the proposal is rejected
 
-    //             // evaluate old tree on new residual, thus need to update sufficient statistics on new data first
-    //             // update_theta = false and update_split_prob = true
-    //             trees[sweeps - 1][tree_ind].suff_stat[0] = sum_vec(state->residual_std) / (double)state->n_y;
-    //             trees[sweeps - 1][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, false, true, false);
+                */
 
-    //             Q_old = trees[sweeps - 1][tree_ind].transition_prob();
-    //             P_old = trees[sweeps - 1][tree_ind].tree_likelihood(state->n_y, state->sigma, state->residual_std);
+                //             // set sufficient statistics at root node first
+                model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
-    //             prior_old = trees[sweeps - 1][tree_ind].prior_prob(model);
+                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
-    //             // // proposal
-    //             Q_new = trees[sweeps][tree_ind].transition_prob();
-    //             P_new = trees[sweeps][tree_ind].tree_likelihood(state->n_y, state->sigma, state->residual_std);
-    //             // P_new = trees[sweeps][tree_ind].tree_likelihood(N, sigma, tree_ind, model, state, Xpointer, state->residual_std, true);
+                //             predict_from_tree(trees[sweeps][tree_ind], state->X_std, state->n_y, state->p, temp_vec_proposal, model);
 
-    //             prior_new = trees[sweeps][tree_ind].prior_prob(model);
+                // evaluate old tree on new residual, thus need to update sufficient statistics on new data first
+                // update_theta = false and update_split_prob = true
+                model->initialize_root_suffstat(state, trees[sweeps - 1][tree_ind].suff_stat);
 
-    //             // cout << "tree size comparison " << trees[sweeps - 1][tree_ind].treesize() << "   " << trees[sweeps][tree_ind].treesize() << endl;
+                trees[sweeps - 1][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, false, true, false);
 
-    //             MH_ratio = P_new + prior_new + Q_old - P_old - prior_old - Q_new;
+                Q_old = transition_prob(trees[sweeps - 1][tree_ind]);
+                P_old = tree_likelihood(trees[sweeps - 1][tree_ind]);
 
-    //             if (MH_ratio > 0)
-    //             {
-    //                 MH_ratio = 1;
-    //             }
-    //             else
-    //             {
-    //                 MH_ratio = exp(MH_ratio);
-    //             }
-    //             MH_vector.push_back(MH_ratio);
+                prior_old = prior_prob(model, trees[sweeps - 1][tree_ind]);
 
-    //             Q_ratio.push_back(Q_old - Q_new);
-    //             P_ratio.push_back(P_new - P_old);
-    //             prior_ratio.push_back(prior_new - prior_old);
+                // // proposal
+                Q_new = transition_prob(trees[sweeps][tree_ind]);
+                P_new = tree_likelihood(trees[sweeps][tree_ind]);
+                // P_new = trees[sweeps][tree_ind].tree_likelihood(N, sigma, tree_ind, model, state, Xpointer, state->residual_std, true);
 
-    //             // cout << "ratio is fine " << endl;
+                prior_new = prior_prob(model, trees[sweeps][tree_ind]);
 
-    //             if (unif_dist(state->gen) <= MH_ratio)
-    //             {
-    //                 // accept
-    //                 // do nothing
-    //                 // cout << "accept " << endl;
-    //                 accept_flag = true;
-    //                 accept_count.push_back(1);
-    //             }
-    //             else
-    //             {
-    //                 // reject
-    //                 // cout << "reject " << endl;
-    //                 accept_flag = false;
-    //                 accept_count.push_back(0);
+                // cout << "tree size comparison " << trees[sweeps - 1][tree_ind].treesize() << "   " << trees[sweeps][tree_ind].treesize() << endl;
 
-    //                 // // // keep the old tree
+                MH_ratio = P_new + prior_new + Q_old - P_old - prior_old - Q_new;
 
-    //                 // predict_from_tree(trees[sweeps - 1][tree_ind], Xpointer, N, p, temp_vec2, model);
+                if (MH_ratio > 0)
+                {
+                    MH_ratio = 1;
+                }
+                else
+                {
+                    MH_ratio = exp(MH_ratio);
+                }
+                MH_vector.push_back(MH_ratio);
 
-    //                 trees[sweeps][tree_ind].copy_only_root(&trees[sweeps - 1][tree_ind]);
+                Q_ratio.push_back(Q_old - Q_new);
+                P_ratio.push_back(P_new - P_old);
+                prior_ratio.push_back(prior_new - prior_old);
 
-    //                 // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec3, model);
+                // cout << "ratio is fine " << endl;
 
-    //                 // // update theta
-    //                 /*
+                if (unif_dist(state->gen) <= MH_ratio)
+                {
+                    // accept
+                    // do nothing
+                    // cout << "accept " << endl;
+                    accept_flag = true;
+                    accept_count.push_back(1);
+                }
+                else
+                {
+                    // reject
+                    // cout << "reject " << endl;
+                    accept_flag = false;
+                    accept_count.push_back(0);
 
-    //                     update_theta() not only update leaf parameters, but also state->data_pointers
+                    // // // keep the old tree
 
-    //                 */
+                    // predict_from_tree(trees[sweeps - 1][tree_ind], Xpointer, N, p, temp_vec2, model);
 
-    //                 // update_theta = true, update_split_prob = true
-    //                 // resample leaf parameters
-    //                 trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, true, false);
+                    trees[sweeps][tree_ind].copy_only_root(&trees[sweeps - 1][tree_ind]);
 
-    //                 // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec4, model);
+                    // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec3, model);
 
-    //                 // // keep the old tree, need to update state object properly
-    //                 // state->data_pointers[tree_ind] = state->data_pointers_copy[tree_ind];
-    //                 x_struct->restore_data_pointers(tree_ind);
-    //             }
+                    // // update theta
+                    /*
+                        update_theta() not only update leaf parameters, but also state->data_pointers
 
-    //             // cout << "copy is ok" << endl;
-    //         }
+                    */
 
-    //         if (accept_flag)
-    //         {
-    //             state->update_split_counts(tree_ind);
-    //         }
+                    // update_theta = true, update_split_prob = true
+                    // resample leaf parameters
 
-    //         // Update Predict
-    //         // I think this line can update corresponding column of predictions_std if the proposal is rejected. Not necessary to restore manually
-    //         // predict_from_datapointers(Xpointer, N, tree_ind, temp_vec, state->data_pointers, model);
-    //         // cout << "before datapointers " << endl;
-    //         // cout << "tree size " << trees[sweeps][tree_ind].treesize() << endl;
-    //         // predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
-    //         predict_from_datapointers(tree_ind, model, state, x_struct);
+                    trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, true, false);
 
-    //         // cout << "after datapointers " << endl;
+                    //                 // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec4, model);
 
-    //         // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, state->predictions_std[tree_ind], model);
+                    // // keep the old tree, need to update state object properly
+                    //                 // state->data_pointers[tree_ind] = state->data_pointers_copy[tree_ind];
+                    x_struct->restore_data_pointers(tree_ind);
+                }
 
-    //         // if(!accept_flag){
-    //         //     cout << "tree index " << tree_ind << endl;
+                // cout << "copy is ok" << endl;
+            }
 
-    //         //     cout << "diff of proposal and vec2 " << sq_vec_diff(temp_vec_proposal, temp_vec2) << endl;
+            if (accept_flag)
+            {
+                state->update_split_counts(tree_ind);
+            }
 
-    //         //     cout << "diff of proposal and vec3 " << sq_vec_diff(temp_vec_proposal, temp_vec3) << endl;
+            // Update Predict
+            // I think this line can update corresponding column of predictions_std if the proposal is rejected. Not necessary to restore manually
+            // predict_from_datapointers(Xpointer, N, tree_ind, temp_vec, state->data_pointers, model);
+            // cout << "before datapointers " << endl;
+            // cout << "tree size " << trees[sweeps][tree_ind].treesize() << endl;
+            // predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
+            // predict_from_datapointers(tree_ind, model, state, x_struct);
 
-    //         //     cout << "diff of vec2 and vec3 " << sq_vec_diff(temp_vec2, temp_vec3) << endl;
+            // cout << "after datapointers " << endl;
 
-    //         //     cout << "diff of vec3 and vec4 " << sq_vec_diff(temp_vec2, temp_vec4) << endl;
+            // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, state->predictions_std[tree_ind], model);
 
-    //         //     cout << "diff of vec and vec3 " << sq_vec_diff(temp_vec, temp_vec3) << endl;
+            // if(!accept_flag){
+            //     cout << "tree index " << tree_ind << endl;
 
-    //         //     cout << "diff of vec and vec4 " << sq_vec_diff(temp_vec, temp_vec4) << endl;
+            //     cout << "diff of proposal and vec2 " << sq_vec_diff(temp_vec_proposal, temp_vec2) << endl;
 
-    //         //     cout << "diff of prediction and vec4 " << sq_vec_diff(state->predictions_std[tree_ind], temp_vec4) << endl;
+            //     cout << "diff of proposal and vec3 " << sq_vec_diff(temp_vec_proposal, temp_vec3) << endl;
 
-    //         //     cout << "diff of prediction and vec " << sq_vec_diff(temp_vec, state->predictions_std[tree_ind]) << endl;
+            //     cout << "diff of vec2 and vec3 " << sq_vec_diff(temp_vec2, temp_vec3) << endl;
 
-    //         //     cout << "------------" << endl;
-    //         // }
+            //     cout << "diff of vec3 and vec4 " << sq_vec_diff(temp_vec2, temp_vec4) << endl;
 
-    //         // update residual
-    //         model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
+            //     cout << "diff of vec and vec3 " << sq_vec_diff(temp_vec, temp_vec3) << endl;
 
-    //         state->yhat_std = state->yhat_std + state->predictions_std[tree_ind];
-    //     }
+            //     cout << "diff of vec and vec4 " << sq_vec_diff(temp_vec, temp_vec4) << endl;
 
-    //     // after loop over all trees, backup the data_pointers matrix
-    //     // data_pointers_copy save result of previous sweep
-    //     x_struct->data_pointers_copy = x_struct->data_pointers;
-    //     // state->create_backup_data_pointers();
+            //     cout << "diff of prediction and vec4 " << sq_vec_diff(state->predictions_std[tree_ind], temp_vec4) << endl;
 
-    //     double average = accumulate(accept_count.end() - state->num_trees, accept_count.end(), 0.0) / state->num_trees;
-    //     double MH_average = accumulate(MH_vector.end() - state->num_trees, MH_vector.end(), 0.0) / state->num_trees;
-    //     // cout << "size of MH " << accept_count.size() << "  " << MH_vector.size() << endl;
+            //     cout << "diff of prediction and vec " << sq_vec_diff(temp_vec, state->predictions_std[tree_ind]) << endl;
 
-    //     cout << "percentage of proposal acceptance " << average << endl;
-    //     cout << "average MH ratio " << MH_average << endl;
+            //     cout << "------------" << endl;
+            // }
 
-    //     // save predictions to output matrix
-    //     yhats_xinfo[sweeps] = state->yhat_std;
-    // }
-    // thread_pool.stop();
+            // update residual
+            model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
+        }
 
-    // delete model;
+        // after loop over all trees, backup the data_pointers matrix
+        // data_pointers_copy save result of previous sweep
+        x_struct->data_pointers_copy = x_struct->data_pointers;
+        // state->create_backup_data_pointers();
+
+        double average = accumulate(accept_count.end() - state->num_trees, accept_count.end(), 0.0) / state->num_trees;
+        double MH_average = accumulate(MH_vector.end() - state->num_trees, MH_vector.end(), 0.0) / state->num_trees;
+        // cout << "size of MH " << accept_count.size() << "  " << MH_vector.size() << endl;
+
+        cout << "percentage of proposal acceptance " << average << endl;
+        cout << "average MH ratio " << MH_average << endl;
+
+    }
+    thread_pool.stop();
+
+    delete model;
 }
