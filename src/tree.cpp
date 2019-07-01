@@ -525,7 +525,6 @@ std::istream &operator>>(std::istream &is, tree &t)
 //     return output;
 // }
 
-
 void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree)
 {
     // grow a tree, users can control number of split points
@@ -589,7 +588,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
     BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this, update_split_prob);
 
-// cout << suff_stat << endl;
+    // cout << suff_stat << endl;
 
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
 
@@ -652,6 +651,9 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
         lchild->depth = this->depth + 1;
         rchild->depth = this->depth + 1;
+
+        lchild->ID = 2 * (this->ID);
+        rchild->ID = lchild->ID + 1;
     }
     else
     {
@@ -689,7 +691,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
     return;
 }
-
 
 void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, Model *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<State> &state, tree *current_node)
 {
@@ -1507,7 +1508,7 @@ void getTheta_Outsample(matrix<double> &output, tree &tree, const double *Xtest,
 
     // output should have dimension (dim_theta, num_obs)
 
-    tree::tree_p bn;    // pointer to bottom node
+    tree::tree_p bn; // pointer to bottom node
     for (size_t i = 0; i < N_Xtest; i++)
     {
         // loop over observations
@@ -1541,8 +1542,8 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
     // tree is a vector of all trees
 
     // output should have dimension (dim_theta, num_trees)
-    
-    tree::tree_p bn;    // pointer to bottom node
+
+    tree::tree_p bn; // pointer to bottom node
     for (size_t i = 0; i < tree.size(); i++)
     {
         // loop over trees
