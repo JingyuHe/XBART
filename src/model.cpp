@@ -26,7 +26,7 @@ void NormalModel::samplePars(std::unique_ptr<State> &state, std::vector<double> 
     theta_vector[0] = suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)) + sqrt(1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2))) * normal_samp(state->gen); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
 
     // also update probability of leaf parameters
-    prob_leaf = normal_density(theta_vector[0], suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), 1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), true);
+    // prob_leaf = normal_density(theta_vector[0], suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), 1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), true);
 
     return;
 }
@@ -111,10 +111,10 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
     // note the difference of left_side == true / false
     // node_suff_stat is mean of y, sum of square of y, saved in tree class
     // double y_sum = (double)suff_stat_all[2] * suff_stat_all[0];
-    double y_sum = suff_stat_all[0];
+    // double y_sum = suff_stat_all[0];
     double sigma2 = state->sigma2;
     double ntau;
-    double suff_one_side;
+    // double suff_one_side;
 
     /////////////////////////////////////////////////////////////////////////
     //
@@ -124,26 +124,47 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
     //
     /////////////////////////////////////////////////////////////////////////
 
+    size_t nb;
+    double nbtau;
+    double y_sum;
+    double y_squared_sum;
+
     if (no_split)
     {
-        ntau = suff_stat_all[2] * tau;
-        suff_one_side = y_sum;
+        // ntau = suff_stat_all[2] * tau;
+        // suff_one_side = y_sum;
+
+        nb = suff_stat_all[2];
+        nbtau = nb * tau;
+        y_sum = suff_stat_all[0];
+        y_squared_sum = suff_stat_all[1];
     }
     else
     {
         if (left_side)
         {
-            ntau = (N_left + 1) * tau;
-            suff_one_side = temp_suff_stat[0];
+            nb = N_left + 1;
+            nbtau = nb * tau;
+            // ntau = (N_left + 1) * tau;
+            y_sum = temp_suff_stat[0];
+            y_squared_sum = temp_suff_stat[1];
+            // suff_one_side = temp_suff_stat[0];
         }
         else
         {
-            ntau = (suff_stat_all[2] - N_left - 1) * tau;
-            suff_one_side = y_sum - temp_suff_stat[0];
+            nb = suff_stat_all[2] - N_left - 1;
+            nbtau = nb * tau;
+            y_sum = suff_stat_all[0] - temp_suff_stat[0];
+            y_squared_sum = suff_stat_all[1] - temp_suff_stat[1];
+
+            // ntau = (suff_stat_all[2] - N_left - 1) * tau;
+            // suff_one_side = y_sum - temp_suff_stat[0];
         }
     }
 
-    return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(suff_one_side, 2) / (sigma2 * (ntau + sigma2));
+    // return 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
+
+    return - 0.5 * y_squared_sum / sigma2 + 0.5 * (tau * pow(y_sum, 2)) / (sigma2 * (sigma2 + nbtau));
 }
 
 // double NormalModel::likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const
@@ -206,12 +227,12 @@ void ProbitClass::update_state(std::unique_ptr<State> &state, size_t tree_ind, s
 
     // residual_std is only 1 dimensional for regression model
 
-    std::vector<double> full_residual(state->n_y);
+    // std::vector<double> full_residual(state->n_y);
 
-    for (size_t i = 0; i < state->residual_std[0].size(); i++)
-    {
-        full_residual[i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
-    }
+    // for (size_t i = 0; i < state->residual_std[0].size(); i++)
+    // {
+    //     full_residual[i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
+    // }
 
     // For probit model, do not need to sample gamma
     // std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(full_residual) + s));

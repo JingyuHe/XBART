@@ -656,13 +656,13 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
 Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true)
 {
 
-    cout << "MHMHMH" << endl;
-
     auto start = system_clock::now();
 
     size_t N = X.n_rows;
+
     // number of total variables
     size_t p = X.n_cols;
+
     size_t N_test = Xtest.n_rows;
 
     // number of continuous variables
@@ -671,6 +671,7 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees,
     // suppose first p_continuous variables are continuous, then categorical
 
     assert(mtry <= p);
+
     assert(burnin <= num_sweeps);
 
     if (mtry == 0)
@@ -701,11 +702,6 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees,
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
-    matrix<double> yhats_std;
-    ini_matrix(yhats_std, N, num_sweeps);
-    matrix<double> yhats_test_std;
-    ini_matrix(yhats_test_std, N_test, num_sweeps);
-
     matrix<double> yhats_xinfo;
     ini_matrix(yhats_xinfo, N, num_sweeps);
 
@@ -724,21 +720,24 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees,
 
     // define model
     NormalModel *model = new NormalModel(kap, s, tau, alpha, beta);
+    model->setNoSplitPenality(no_split_penality);
 
     // State settings
-    std::vector<double> initial_theta(1, 0);
-    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual));
+    std::vector<double> initial_theta(1, y_mean / (double)num_trees);
+    std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual));
 
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
-    /////////////////////////////////////////////////////////////////
+
     std::vector<double> accept_count;
     std::vector<double> MH_vector;
     std::vector<double> Q_ratio;
     std::vector<double> P_ratio;
     std::vector<double> prior_ratio;
 
+
+    ////////////////////////////////////////////////////////////////
     mcmc_loop_MH(Xorder_std, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct, accept_count, MH_vector, P_ratio, Q_ratio, prior_ratio);
 
     model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
@@ -787,18 +786,15 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees,
 
     // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
-    // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
+    // clean memory
+    delete model;
+    state.reset();
+    x_struct.reset();
+
     return Rcpp::List::create(
         Rcpp::Named("yhats") = yhats,
         Rcpp::Named("yhats_test") = yhats_test,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
-        Rcpp::Named("accept_count") = accept_count,
-        Rcpp::Named("MH") = MH_vector,
-        Rcpp::Named("Q_ratio") = Q_ratio,
-        Rcpp::Named("P_ratio") = P_ratio,
-        Rcpp::Named("prior_ratio") = prior_ratio,
-        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt,
-                                                       Rcpp::Named("y_mean") = y_mean,
-                                                       Rcpp::Named("p") = p));
+        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p));
 }

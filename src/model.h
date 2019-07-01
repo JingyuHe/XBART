@@ -98,7 +98,7 @@ public:
 class NormalModel : public Model
 {
 public:
-    size_t dim_suffstat = 4;
+    size_t dim_suffstat = 3;
 
     // model prior
     // prior on sigma
@@ -107,7 +107,7 @@ public:
     // prior on leaf parameter
     double tau;
 
-    NormalModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 4)
+    NormalModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 3)
     {
         this->kap = kap;
         this->s = s;
@@ -117,7 +117,7 @@ public:
         this->dim_residual = 1;
     }
 
-    NormalModel() : Model(1, 4) {}
+    NormalModel() : Model(1, 3) {}
 
     Model *clone() { return new NormalModel(*this); }
 

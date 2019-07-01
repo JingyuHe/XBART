@@ -85,25 +85,8 @@ double transition_prob(tree &tree)
 
     for (size_t i = 0; i < tree_vec.size(); i++)
     {
-        if (tree_vec[i]->getl() == 0)
-        {
-            // if no children, it is end node, count leaf parameter probability
-
-            // prob_leaf is already in log scale
-            log_p_leaf += tree_vec[i]->getprob_leaf();
-
-            // prob_split is in original scale, need to take log
-            log_p_cutpoints += log(tree_vec[i]->getprob_split());
-        }
-        else
-        {
-            // otherwise count cutpoint probability
-            log_p_cutpoints += log(tree_vec[i]->getprob_split());
-        }
+        output += tree_vec[i]->getloglike_node();
     }
-    // cout << "log_p_cutpoints " << log_p_cutpoints << endl;
-    // cout << "log_p_leaf " << log_p_leaf << endl;
-    output = log_p_cutpoints + log_p_leaf;
-
+    
     return output;
 };
