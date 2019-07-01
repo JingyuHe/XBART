@@ -514,6 +514,12 @@ void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhat
     double Q_old;
     double prior_new;
     double prior_old;
+    double logdetA_new;
+    double logdetA_old;
+    double val_new;
+    double val_old;
+    double sign_new;
+    double sign_old;
 
     bool accept_flag = true;
 
@@ -574,11 +580,24 @@ void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhat
                 Q_new = transition_prob(trees[sweeps][tree_ind]);
                 P_new = tree_likelihood(trees[sweeps][tree_ind]);
 
-                MH_ratio = P_new + Q_old - P_old - Q_new;
-
                 // cout << MH_ratio << endl;
 
-                cout << "P_new " << P_new << " P_old " << P_old << " Q_new " << Q_new << " Q_old " << Q_old << endl;
+                // cout << "P_new " << P_new << " P_old " << P_old << " Q_new " << Q_new << " Q_old " << Q_old << endl;
+
+                determinant_precision(trees[sweeps][tree_ind], model->tau, state->sigma2, state, val_new, sign_new, logdetA_new);
+
+                determinant_precision(trees[sweeps - 1][tree_ind], model->tau, state->sigma2, state, val_old, sign_old, logdetA_old);
+
+                // cout << " ----- " << endl;
+
+                // cout << logdetA_old << "  " << logdetA_new << endl;
+                MH_ratio = P_new + Q_old - P_old - Q_new + logdetA_old - logdetA_new + val_old  - val_new;
+
+
+                // cout << P_new - P_old << "   " << logdetA_old - logdetA_new << "   " << Q_old - Q_new << "   " << val_old - val_new << "   " << MH_ratio << endl;
+
+
+                cout << MH_ratio << endl;
 
                 if (MH_ratio > 0)
                 {
@@ -586,7 +605,7 @@ void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhat
                 }
                 else
                 {
-                    MH_ratio = exp(MH_ratio);
+                    MH_ratio = exp(MH_ratio) * sign_old / sign_new;
                 }
 
                 MH_vector.push_back(MH_ratio);
@@ -645,10 +664,6 @@ void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhat
             // update partial residual for the next tree to fit
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
         }
-
-        // after loop over all trees, backup the data_pointers matrix data_pointers_copy save result of previous sweep
-        x_struct->data_pointers_copy = x_struct->data_pointers;
-        // state->create_backup_data_pointers();
     }
     thread_pool.stop();
 

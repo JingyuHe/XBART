@@ -534,6 +534,8 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     size_t split_var;
     size_t split_point;
 
+    this-> N = N_Xorder;
+
     if (N_Xorder <= state->n_min)
     {
         return;

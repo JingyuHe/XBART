@@ -16,6 +16,6 @@ bool check_same_path(tree *node1, tree *node2);
 
 double w_overlap(tree *node1, tree *node2);
 
-double determinant_precision(tree &root, double t, double s2, std::unique_ptr<State> &state);
+void determinant_precision(tree &root, double t, double s2, std::unique_ptr<State> &state, double& val, double& sign, double& logdetA);
 
 #endif

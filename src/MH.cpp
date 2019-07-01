@@ -162,21 +162,27 @@ double w_overlap(tree *node1, tree *node2)
     return output;
 }
 
-double determinant_precision(tree &root, double t, double s2, std::unique_ptr<State> &state)
+void determinant_precision(tree &root, double t, double s2, std::unique_ptr<State> &state, double& val, double& sign, double& logdetA)
 {
     // this function calculate determinat of precision matrix given a tree
     // use for adjusted prior of MH ratio
 
+    /////////////////////////////////////////////////
+    //
+    // Warning! The tree depth start from 0, 
+    // but in the calculation below, it should start from 1
+    //
+    /////////////////////////////////////////////////     
+
     // first find a list of all nodes
     std::vector<tree *> all_nodes;
     root.getnodes(all_nodes);
-    double output = 0.0;
 
     size_t tree_size = all_nodes.size();
 
     arma::mat M(tree_size, tree_size);
 
-    double logdetA = 0.0;
+    logdetA = 0.0;
 
     // M is symmetric matrix, only need to loop lower triangle
     for (size_t i = 0; i < tree_size; i++)
@@ -185,7 +191,9 @@ double determinant_precision(tree &root, double t, double s2, std::unique_ptr<St
         if (!(all_nodes[i]->getl()))
         {
             // if no left child, it is leaf node
-            logdetA = logdetA + (double)all_nodes[i]->getN() * log((double)all_nodes[i]->getdepth());
+            logdetA = logdetA + (double)all_nodes[i]->getN() * log((double)all_nodes[i]->getdepth() + 1);
+
+        // cout << "aaaa " << all_nodes[i]->getN()  << "  " << log((double)all_nodes[i]->getdepth()) << "  " << (double)all_nodes[i]->getN() * log((double)all_nodes[i]->getdepth() + 1) << endl;
         }
         for (size_t j = 0; j <= i; j++)
         {
@@ -199,9 +207,7 @@ double determinant_precision(tree &root, double t, double s2, std::unique_ptr<St
     // adjust detA with constant
     logdetA = logdetA - state->n_y * log(s2);
 
-    double val;
-    double sign;
     arma::log_det(val, sign, arma::eye<arma::mat>(tree_size, tree_size) - M);
 
-    return output;
+    return;
 }
