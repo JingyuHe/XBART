@@ -534,7 +534,14 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     size_t split_var;
     size_t split_point;
 
-    this-> N = N_Xorder;
+    this->N = N_Xorder;
+
+    // tau is prior VARIANCE, do not take squares
+
+    if (update_theta)
+    {
+        model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
+    }
 
     if (N_Xorder <= state->n_min)
     {
@@ -544,13 +551,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     if (this->depth >= state->max_depth - 1)
     {
         return;
-    }
-
-    // tau is prior VARIANCE, do not take squares
-
-    if (update_theta)
-    {
-        model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
     }
 
     bool no_split = false;
