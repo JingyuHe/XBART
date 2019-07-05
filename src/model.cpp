@@ -164,7 +164,7 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
 
     // return 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
 
-    return - 0.5 * y_squared_sum / sigma2 + 0.5 * (tau * pow(y_sum, 2)) / (sigma2 * (sigma2 + nbtau));
+    return - 0.5 * nb * log(2 * 3.141592653) -  0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
 }
 
 // double NormalModel::likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const
