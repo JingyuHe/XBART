@@ -1569,44 +1569,24 @@ void getThetaForObs_Outsample_ave(matrix<double> &output, std::vector<tree> &tre
     tree::tree_p bn; // pointer to bottom node
     size_t count = 1;
 
-    // tree::tree_p bn2;
-    // std::vector<double> temp;
     for (size_t i = 0; i < tree.size(); i++)
     {
-
-        // bn2 = tree[i].search_bottom_std(Xtest, x_index, p, N_Xtest);
-
-        // temp = bn2->theta_vector;
-
-        // cout << "-------------------" << endl;
-        // cout << temp << endl;
 
         // loop over trees
         // tree search
         bn = &tree[i]; // start from root node
 
         std::fill(output[i].begin(), output[i].end(), 0.0);
-        count = 1;
+        count = 0;
 
         while (bn->getl())
         {
-            // cout << bn->theta_vector << endl;
+            // while bn has child (not bottom node)
+
             output[i] = output[i] + bn->theta_vector;
             count++;
 
-            // if ((!bn->getl()) && (!bn->getr()))
-            // {
-            //     output[i] = bn->theta_vector;
-            //     if (output[i] != temp)
-            //     {
-            //         cout << output[i] << "    " << temp << endl;
-
-            //         cout << bn->getID() << endl;
-            //         cout << bn2->getID() << endl;
-            //     }
-            // }
-
-            // if have child, search the tree
+            // move to the next level
             if (*(Xtest + N_Xtest * bn->getv() + x_index) <= bn->getc())
             {
                 bn = bn->getl();
@@ -1617,18 +1597,17 @@ void getThetaForObs_Outsample_ave(matrix<double> &output, std::vector<tree> &tre
             }
         }
 
-        // cout << bn->theta_vector <<"   " << bn2->theta_vector << endl;
+        // bn is the bottom node
 
-        // cout << bn->theta_vector << endl;
+        output[i] = output[i] + bn->theta_vector;
+        count ++ ;
 
+        // take average of the path
         for (size_t j = 0; j < output[i].size(); j++)
         {
             output[i][j] = output[i][j] / (double)count;
         }
 
-        // output[i] = bn->theta_vector;
-
-        // output[i] = temp;
     }
 
     return;
