@@ -1556,5 +1556,83 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
     return;
 }
 
+void getThetaForObs_Outsample_ave(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p)
+{
+    // This function takes AVERAGE of ALL thetas on the PATH to leaf node
+
+    // get theta of ONE observation of ALL trees, out sample fit
+    // input is a pointer to testing set matrix because it is out of sample
+    // tree is a vector of all trees
+
+    // output should have dimension (dim_theta, num_trees)
+
+    tree::tree_p bn; // pointer to bottom node
+    size_t count = 1;
+
+    // tree::tree_p bn2;
+    // std::vector<double> temp;
+    for (size_t i = 0; i < tree.size(); i++)
+    {
+
+        // bn2 = tree[i].search_bottom_std(Xtest, x_index, p, N_Xtest);
+
+        // temp = bn2->theta_vector;
+
+        // cout << "-------------------" << endl;
+        // cout << temp << endl;
+
+        // loop over trees
+        // tree search
+        bn = &tree[i]; // start from root node
+
+        std::fill(output[i].begin(), output[i].end(), 0.0);
+        count = 1;
+
+        while (bn->getl())
+        {
+            // cout << bn->theta_vector << endl;
+            output[i] = output[i] + bn->theta_vector;
+            count++;
+
+            // if ((!bn->getl()) && (!bn->getr()))
+            // {
+            //     output[i] = bn->theta_vector;
+            //     if (output[i] != temp)
+            //     {
+            //         cout << output[i] << "    " << temp << endl;
+
+            //         cout << bn->getID() << endl;
+            //         cout << bn2->getID() << endl;
+            //     }
+            // }
+
+            // if have child, search the tree
+            if (*(Xtest + N_Xtest * bn->getv() + x_index) <= bn->getc())
+            {
+                bn = bn->getl();
+            }
+            else
+            {
+                bn = bn->getr();
+            }
+        }
+
+        // cout << bn->theta_vector <<"   " << bn2->theta_vector << endl;
+
+        // cout << bn->theta_vector << endl;
+
+        for (size_t j = 0; j < output[i].size(); j++)
+        {
+            output[i][j] = output[i][j] / (double)count;
+        }
+
+        // output[i] = bn->theta_vector;
+
+        // output[i] = temp;
+    }
+
+    return;
+}
+
 #ifndef NoRcpp
 #endif
