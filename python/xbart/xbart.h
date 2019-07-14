@@ -4,6 +4,7 @@
 //#endif
 #include <mcmc_loop.h>
 #include <json_io.h>
+#include <model.h>
 
 // #include <cstddef>
 // #include <armadillo>
@@ -59,7 +60,7 @@ private:
 	size_t model_num; // 0 : normal, 1 : clt
 	double no_split_penality;
 
-	Model *model;
+	// NormalModel *model = nullptr;
 
 	//= forest(10);
 

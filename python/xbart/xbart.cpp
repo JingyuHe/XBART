@@ -53,14 +53,17 @@ XBARTcpp::XBARTcpp (size_t M ,size_t N_sweeps ,
   for(size_t i = 0; i < N_sweeps;i++){
         this->trees[i]=  vector<tree>(M); 
     }
-  return;
+
 
   // Initialize model
-  if(this->model_num == 0){ // NORMAL
-    // define model
-    this->model = new NormalModel(this->params.kap, this->params.s, this->params.tau, this->params.alpha, this->params.beta);
-    model->setNoSplitPenality(no_split_penality);
-  }
+  //if(this->model_num == 0){ // NORMAL
+    //define model
+    // this->model = new NormalModel(this->params.kap, this->params.s, this->params.tau, this->params.alpha, this->params.beta);
+    // this->model->setNoSplitPenality(no_split_penality);
+    
+  //}
+
+    return;
 }
 
 XBARTcpp::XBARTcpp(std::string json_string){
@@ -69,6 +72,7 @@ XBARTcpp::XBARTcpp(std::string json_string){
   this->params.N_sweeps = this->trees.size();
   this->params.M = this->trees[0].size();
 }
+
 
 std::string XBARTcpp::_to_json(void){
   json j = get_forest_json(this->trees,this->y_mean);
@@ -91,8 +95,13 @@ void XBARTcpp::_predict(int n,int d,double *a){//,int size, double *arr){
   double *Xtestpointer = &x_test_std_flat[0];//&x_test_std[0][0];
 
   // Predict
-  this->model->predict_std(Xtestpointer,n,d,this->params.M,this->params.N_sweeps,
+  NormalModel *model = new NormalModel(this->params.kap, this->params.s, this->params.tau, this->params.alpha, this->params.beta);
+  model->setNoSplitPenality(no_split_penality);
+
+  model->predict_std(Xtestpointer,n,d,this->params.M,this->params.N_sweeps,
         this->yhats_test_xinfo,this->trees); 
+
+  delete model;
 }
 
 
@@ -143,13 +152,13 @@ void XBARTcpp::_fit(int n,int d,double *a,
       double *ypointer = &a_y[0];
       double *Xpointer = &x_std_flat[0];
 
-
   if(this->model_num == 0){ // NORMAL
+  
     // define model
     NormalModel *model = new NormalModel(this->params.kap, this->params.s, this->params.tau, this->params.alpha, this->params.beta);
     model->setNoSplitPenality(no_split_penality);
 
-    // State settings
+    // // //State settings
     std::vector<double> initial_theta(1, y_mean / (double)this->params.M);
     std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, n, d, this->params.M, p_cat, d-p_cat, 
     this->seed_flag, this->seed, this->params.Nmin, this->params.Ncutpoints, this->params.parallel, this->params.mtry, 
@@ -159,8 +168,12 @@ void XBARTcpp::_fit(int n,int d,double *a,
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, n, Xorder_std, p_cat, d-p_cat, &initial_theta, this->params.M));
 
-    mcmc_loop(Xorder_std, this->params.verbose, yhats_xinfo, sigma_draw_xinfo, trees, this->no_split_penality, 
+    mcmc_loop(Xorder_std, this->params.verbose, yhats_xinfo, sigma_draw_xinfo, this->trees, this->no_split_penality, 
     state, model,x_struct);
+
+    delete model;
+    state.reset();
+    x_struct.reset();
 
   }else if(this->model_num == 1){ // CLT
   //     mcmc_loop_clt(Xpointer,y_std,y_mean, Xorder_std,n,d,
