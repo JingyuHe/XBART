@@ -51,6 +51,7 @@ print("Xbart fit time:" + str(time_start_predict - time_start_fit))
 print("Xbart predict time:" + str(time_end_predict - time_start_predict))
 
 assert np.array_equal(y_pred_json,y_pred) , "JSON prediction not working"
+print(y_pred_json)
 
 
 
