@@ -14,7 +14,7 @@ class XBARTTesting1(unittest.TestCase):
 
 
 	def setUp(self):
-		self.params = {"num_trees":5,"num_sweeps":2,"num_cutpoints":10,
+		self.params = {"num_trees":10,"num_sweeps":40,"num_cutpoints":10,
 						"max_depth_num":5,"burnin":1}
 		self.model = xbart.XBART(**self.params)
 		self.model_2 = xbart.XBART(**self.params)
@@ -160,7 +160,7 @@ class XBARTExceptionTesting(unittest.TestCase):
 		xbart.XBART(parallel = 0.0)
 
 if __name__ == "__main__":
-	test_classes_to_run = [XBARTTesting1, XBARTExceptionTesting]
+	test_classes_to_run = [XBARTTesting1] # XBARTExceptionTesting
 
 	loader = unittest.TestLoader()
 

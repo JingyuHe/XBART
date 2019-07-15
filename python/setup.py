@@ -42,6 +42,6 @@ setup(name='xbart',
       install_requires=['numpy'],
       license="Apache-2.0",
       py_modules=["xbart"],
-      python_requires='>3.6',
+      #python_requires='>3.6',
       packages=find_packages()
       )

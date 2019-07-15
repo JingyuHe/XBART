@@ -38,10 +38,19 @@ time_start_predict = time.time()
 y_pred = xbart.predict(valid_data,return_mean=False)
 time_end_predict = time.time()
 y_hat_xbart = y_pred[:,15:].mean(axis=1)
+xbart.to_json("model.xbart")
+
+xbart_json = XBART()
+xbart_json.from_json("model.xbart")
+y_pred_json = xbart_json.predict(valid_data,return_mean=False)
+
+
 print("Done!")
 print("Xbart rmse:" + str(rmse(y_hat_xbart,target_valid)))
 print("Xbart fit time:" + str(time_start_predict - time_start_fit))
 print("Xbart predict time:" + str(time_end_predict - time_start_predict))
+
+assert np.array_equal(y_pred_json,y_pred) , "JSON prediction not working"
 
 
 
