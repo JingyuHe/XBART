@@ -175,7 +175,7 @@ void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t 
     matrix<double> output;
 
     // row : dimension of theta, column : number of trees
-    ini_matrix(output, this->dim_theta, trees.size());
+    ini_matrix(output, this->dim_theta, trees[0].size());
 
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
@@ -184,7 +184,7 @@ void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t 
             getThetaForObs_Outsample(output, trees[sweeps], data_ind, Xtestpointer, N_test, p);
 
             // take sum of predictions of each tree, as final prediction
-            for (size_t i = 0; i < trees.size(); i++)
+            for (size_t i = 0; i < trees[0].size(); i++)
             {
                 yhats_test_xinfo[sweeps][data_ind] += output[i][0];
             }

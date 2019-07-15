@@ -14,7 +14,7 @@ class XBARTTesting1(unittest.TestCase):
 
 
 	def setUp(self):
-		self.params = {"num_trees":5,"num_sweeps":2,"num_cutpoints":10,
+		self.params = {"num_trees":10,"num_sweeps":5,"num_cutpoints":10,
 						"max_depth_num":5,"burnin":1}
 		self.model = xbart.XBART(**self.params)
 		self.model_2 = xbart.XBART(**self.params)
@@ -23,7 +23,7 @@ class XBARTTesting1(unittest.TestCase):
 			
 
 	def test_fit_predict_discrete_2d(self):
-		n = 1000
+		n = 10000
 		d = 7
 		prob = np.random.uniform(0.2,0.8,d)
 
@@ -47,7 +47,7 @@ class XBARTTesting1(unittest.TestCase):
 			return level
 
 		ftrue = discrete_function(x) 	
-		sigma = 3*np.std(ftrue)	
+		sigma = 0#0.05*np.std(ftrue)	
 
 		y = ftrue + sigma*np.random.rand(n)
 		y_test = discrete_function(x_test)
