@@ -18,7 +18,7 @@ XBART_cpp_module = Extension('_xbart_cpp_',
                                       "src/sample_int_crank.cpp",
                                       "src/common.cpp",   "src/forest.cpp",
                                       "src/tree.cpp", "src/thread_pool.cpp",
-                                      "src/cdf.cpp", "src/json_io.cpp"
+                                      "src/cdf.cpp", "src/json_io.cpp","src/model.cpp"
                                       ],
                              language="c++",
                              include_dirs=[
@@ -42,6 +42,6 @@ setup(name='xbart',
       install_requires=['numpy'],
       license="Apache-2.0",
       py_modules=["xbart"],
-      python_requires='>3.6',
+      #python_requires='>3.6',
       packages=find_packages()
       )

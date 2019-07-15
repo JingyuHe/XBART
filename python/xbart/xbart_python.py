@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 from .xbart_cpp_ import XBARTcpp
 import collections
+from collections import OrderedDict
 import numpy as np
 import json
 
@@ -83,14 +84,15 @@ class XBART(object):
 			raise ValueError("model must be either Normal,CLT, or Probit")
 
 		self.model = model
-		self.params = dict(num_trees = num_trees,
-			num_sweeps = num_sweeps,n_min = n_min,num_cutpoints = num_cutpoints,
-			alpha = alpha,beta = beta, tau = tau,burnin = burnin, mtry=mtry, 
-			max_depth_num=max_depth_num,kap=kap,s=s,
-			verbose=verbose,
-			parallel=parallel,seed=seed,model_num=model_num,no_split_penality =no_split_penality,
-			sample_weights_flag=sample_weights_flag)
-		args = self.__convert_params_check_types(**self.params)
+		self.params = OrderedDict([("num_trees",num_trees),
+			("num_sweeps" , num_sweeps),("n_min" , n_min),("num_cutpoints" , num_cutpoints),
+			("alpha" ,alpha),("beta" , beta),( "tau" ,tau),("burnin", burnin),( "mtry",mtry), 
+			("max_depth_num",max_depth_num),
+			("kap",kap),("s",s),
+			("verbose",verbose),
+			("parallel",parallel),("seed",seed),("model_num",model_num),("no_split_penality",no_split_penality),
+			("sample_weights_flag",sample_weights_flag)])
+		self.__convert_params_check_types(**self.params)
 		self._xbart_cpp = None
 
 		# Additional Members
@@ -147,7 +149,7 @@ class XBART(object):
 		if self.params["mtry"] == "auto":
 			self.params["mtry"] = self.num_columns 
 		if self.params["tau"]  == "auto":
-			self.params["tau"] = 1/self.params["num_trees"]
+			self.params["tau"] = float(1/self.params["num_trees"])
 		
 		if self.params["no_split_penality"] == "auto":
 			from math import log
@@ -164,44 +166,67 @@ class XBART(object):
 		''' 
 		import warnings
 		from collections import OrderedDict
-		DEFAULT_PARAMS = OrderedDict([('num_trees',100),("num_sweeps",40)
+		DEFAULT_PARAMS = OrderedDict([('num_trees',5),("num_sweeps",40)
                         ,("n_min",1),("num_cutpoints",100) # CHANGE
                         ,("alpha",0.95),("beta",1.25 ),("tau",0.3),# CHANGE
                         ("burnin",15),("mtry",0),("max_depth_num",250) # CHANGE
                         ,("kap",16.0),("s",4.0),("verbose",False),
-                        ("parallel",False),("seed",0),("model_num",0),("sample_weights_flag",True)])
-		new_params = DEFAULT_PARAMS.copy()
+                        ("parallel",False),("seed",0),("model_num",0),("no_split_penality",0.0),("sample_weights_flag",True)])
 
-		#list_params = []
-		for key,value in DEFAULT_PARAMS.items():
-			true_type = type(value) # Get type
-			new_value = params.get(key,value) #
-			if not isinstance(new_value,type(value)):  
-				if (key in ["mtry","tau"]) and new_value == "auto":
+		DEFAULT_PARAMS_ = OrderedDict([('num_trees',int),("num_sweeps",int)
+                        ,("n_min",int),("num_cutpoints",int) # CHANGE
+                        ,("alpha",float),("beta",float ),("tau",float),# CHANGE
+                        ("burnin",int),("mtry",int),("max_depth_num",int) # CHANGE
+                        ,("kap",float),("s",float),("verbose",bool),
+                        ("parallel",bool),("seed",int),("model_num",int),("no_split_penality",float),("sample_weights_flag",bool)])
+		
+		for param,type_class in DEFAULT_PARAMS_.items():
+			default_value = DEFAULT_PARAMS[param]
+			new_value = params.get(param,default_value)
+
+			if (param in ["mtry","tau","no_split_penality"]) and new_value == "auto":
 					continue
-				elif true_type == int:
-					if isinstance(new_value,float):
-						if int(new_value) == new_value:
-							new_value = int(new_value)
-							warnings.warn("Value was of " + str(key) + " converted from float to int")
-						else:
-							raise TypeError(str(key) +" should be a positive integer value")
-					else:
-						raise TypeError(str(key) +" should be a positive integer")
-				elif true_type == float:
-					if isinstance(new_value,int):
-						new_value = float(new_value)  
-						## warnings.warn("Value was of " + str(key) + " converted from int to float")          
-					else:
-						raise TypeError(str(key) + " should be a float")
-				elif true_type == bool:
-					if int(new_value) in [0,1]:
-						new_value = bool(new_value)
-					else:    
-						raise TypeError(str(key) + " should be a bool")               
-			#list_params.append(new_value)         
-			self.params[key] = new_value    
-		#return list_params    
+
+			try:
+				self.params[param] = type_class(new_value)
+			except:
+				raise TypeError(str(param) + " should conform to type " + str(type_class))
+
+
+		# new_params = DEFAULT_PARAMS.copy()
+		# list_params = []
+		# for key,value in DEFAULT_PARAMS.items():
+		# 	true_type = type(value) # Get type
+		# 	new_value = params.get(key,value) #
+
+		# 	if not isinstance(new_value,type(value)):  
+		# 		if (key in ["mtry","tau"]) and new_value == "auto":
+		# 			continue
+		# 		elif true_type == int:
+		# 			if isinstance(new_value,float):
+		# 				if int(new_value) == new_value:
+		# 					new_value = int(new_value)
+		# 					warnings.warn("Value was of " + str(key) + " converted from float to int")
+		# 				else:
+		# 					raise TypeError(str(key) +" should be a positive integer value")
+		# 			else:
+		# 				raise TypeError(str(key) +" should be a positive integer")
+		# 		elif true_type == float:
+		# 			if isinstance(new_value,int):
+		# 				new_value = float(new_value)  
+		# 				## warnings.warn("Value was of " + str(key) + " converted from int to float")          
+		# 			else:
+		# 				raise TypeError(str(key) + " should be a float")
+		# 		elif true_type == bool:
+		# 			if int(new_value) in [0,1]:
+		# 				new_value = bool(new_value)
+		# 			else:    
+		# 				raise TypeError(str(key) + " should be a bool")               
+		# 	#list_params.append(new_value)         
+		# 	self.params[key] = new_value
+		# 	list_params.append(new_value)
+			    
+		# return list_params    
 
 
 	def fit(self,x,y,p_cat=0):
@@ -231,6 +256,7 @@ class XBART(object):
 
 		# Create xbart_cpp object #
 		if self._xbart_cpp is None:
+			#self.args = self.__convert_params_check_types(**self.params)
 			args = list(self.params.values())
 			self._xbart_cpp = XBARTcpp(*args) # Makes C++ object
 
