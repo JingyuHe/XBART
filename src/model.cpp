@@ -192,6 +192,7 @@ void NormalModel::ini_residual_std(std::unique_ptr<State> &state)
 
 void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees)
 {
+
     matrix<double> output;
 
     // row : dimension of theta, column : number of trees

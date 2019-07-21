@@ -1546,6 +1546,7 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
     // output should have dimension (dim_theta, num_trees)
 
     tree::tree_p bn; // pointer to bottom node
+    
     for (size_t i = 0; i < tree.size(); i++)
     {
         // loop over trees
