@@ -39,7 +39,7 @@ public:
     size_t mtry;
     size_t n_y;                       // number of total data points in root node
     const double *X_std;              // pointer to original data
-    const std::vector<double> *y_std; // pointer to y data
+    std::vector<double> *y_std; // pointer to y data
     size_t max_depth;
     size_t num_trees;
     size_t num_sweeps;
@@ -87,7 +87,7 @@ public:
 
         this->split_count_current_tree = std::vector<double>(p, 0);
         this->mtry_weight_current_tree = std::vector<double>(p, 0);
-
+        this->sigma = sigma;
         this->n_min = n_min;
         this->n_cutpoints = n_cutpoints;
         this->parallel = parallel;
