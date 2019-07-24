@@ -119,6 +119,10 @@ pred = rowMeans(pred[, params$burnin:params$num_sweeps])
 
 time_XBART = round(time[3], 3)
 
+pred2 = predict(fit, xtest)
+pred2 = rowMeans(pred2[, params$burnin:params$num_sweeps])
+print(pred[0:5] - pred2[0:5])
+stopifnot(pred == pred2)
 
 #######################################################################
 # dbarts

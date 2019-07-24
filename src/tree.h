@@ -10,7 +10,8 @@
 #include "node_data.h"
 #include "X_struct.h"
 #include "json.h"
-#include <armadillo>
+
+//#include <armadillo>
 
 // for convenience
 using json = nlohmann::json;

@@ -78,7 +78,10 @@ class XBARTTesting1(unittest.TestCase):
 		self.assertTrue(np.array_equal(y_copy,y))
 		self.assertTrue(np.array_equal(x_copy,x))
 		self.assertTrue(np.array_equal(x_test_copy,x_test))
-		# self.failUnless(np.array_equal(y_pred,y))
+
+		y_pred_4 = self.model.predict(x_test,True)
+		y_pred_5 = self.model.predict(x_test,True)
+		self.assertTrue(np.array_equal(y_pred_4,y_pred_5))
 
 	#@unittest.skip("demonstrating skipping")
 	def test_to_json(self):
