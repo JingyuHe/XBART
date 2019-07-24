@@ -125,8 +125,8 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, si
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
-    matrix<double> yhats_xinfo;
-    ini_matrix(yhats_xinfo, N, num_sweeps);
+    // matrix<double> yhats_xinfo;
+    // ini_matrix(yhats_xinfo, N, num_sweeps);
 
     matrix<double> yhats_test_xinfo;
     ini_matrix(yhats_test_xinfo, N, num_sweeps);
@@ -153,25 +153,25 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, si
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
     ////////////////////////////////////////////////////////////////
-    mcmc_loop(Xorder_std, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
+    mcmc_loop(Xorder_std, verbose, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
 
     model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
     // R Objects to Return
-    Rcpp::NumericMatrix yhats(N, num_sweeps);
+    // Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum(p);                // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
 
     // TODO: Make these functions
-    for (size_t i = 0; i < N; i++)
-    {
-        for (size_t j = 0; j < num_sweeps; j++)
-        {
-            yhats(i, j) = yhats_xinfo[j][i];
-        }
-    }
+    // for (size_t i = 0; i < N; i++)
+    // {
+    //     for (size_t j = 0; j < num_sweeps; j++)
+    //     {
+    //         yhats(i, j) = yhats_xinfo[j][i];
+    //     }
+    // }
     for (size_t i = 0; i < N_test; i++)
     {
         for (size_t j = 0; j < num_sweeps; j++)
@@ -207,7 +207,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, si
     x_struct.reset();
 
     return Rcpp::List::create(
-        Rcpp::Named("yhats") = yhats,
+        // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("yhats_test") = yhats_test,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
@@ -265,8 +265,8 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
-    matrix<double> yhats_xinfo;
-    ini_matrix(yhats_xinfo, N, num_sweeps);
+    // matrix<double> yhats_xinfo;
+    // ini_matrix(yhats_xinfo, N, num_sweeps);
 
     matrix<double> yhats_test_xinfo;
     ini_matrix(yhats_test_xinfo, N, num_sweeps);
@@ -294,25 +294,25 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
 
     /////////////////////////////////////////////////////////////////
 
-    mcmc_loop_clt(Xorder_std, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
+    mcmc_loop_clt(Xorder_std, verbose, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
 
     model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
     // R Objects to Return
-    Rcpp::NumericMatrix yhats(N, num_sweeps);
+    // Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum(p);                // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
 
     // TODO: Make these functions
-    for (size_t i = 0; i < N; i++)
-    {
-        for (size_t j = 0; j < num_sweeps; j++)
-        {
-            yhats(i, j) = yhats_xinfo[j][i];
-        }
-    }
+    // for (size_t i = 0; i < N; i++)
+    // {
+    //     for (size_t j = 0; j < num_sweeps; j++)
+    //     {
+    //         yhats(i, j) = yhats_xinfo[j][i];
+    //     }
+    // }
     for (size_t i = 0; i < N_test; i++)
     {
         for (size_t j = 0; j < num_sweeps; j++)
@@ -345,7 +345,7 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
 
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
     return Rcpp::List::create(
-        Rcpp::Named("yhats") = yhats,
+        // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("yhats_test") = yhats_test,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
@@ -405,8 +405,8 @@ Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest, size_t n
     matrix<double> yhats_test_std;
     ini_matrix(yhats_test_std, N_test, num_sweeps);
 
-    matrix<double> yhats_xinfo;
-    ini_matrix(yhats_xinfo, N, num_sweeps);
+    // matrix<double> yhats_xinfo;
+    // ini_matrix(yhats_xinfo, N, num_sweeps);
 
     matrix<double> yhats_test_xinfo;
     ini_matrix(yhats_test_xinfo, N, num_sweeps);
@@ -443,25 +443,25 @@ Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest, size_t n
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
     /////////////////////////////////////////////////////////////////
-    mcmc_loop_multinomial(Xorder_std, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
+    mcmc_loop_multinomial(Xorder_std, verbose, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
 
     // predict_std_multinomial(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
     // R Objects to Return
-    Rcpp::NumericMatrix yhats(N, num_sweeps);
+    // Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum(p);                // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
 
     // TODO: Make these functions
-    for (size_t i = 0; i < N; i++)
-    {
-        for (size_t j = 0; j < num_sweeps; j++)
-        {
-            yhats(i, j) = yhats_xinfo[j][i];
-        }
-    }
+    // for (size_t i = 0; i < N; i++)
+    // {
+    //     for (size_t j = 0; j < num_sweeps; j++)
+    //     {
+    //         yhats(i, j) = yhats_xinfo[j][i];
+    //     }
+    // }
     for (size_t i = 0; i < N_test; i++)
     {
         for (size_t j = 0; j < num_sweeps; j++)
@@ -494,7 +494,7 @@ Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest, size_t n
 
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
     return Rcpp::List::create(
-        Rcpp::Named("yhats") = yhats,
+        // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("yhats_test") = yhats_test,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
@@ -556,8 +556,8 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
     matrix<double> yhats_test_std;
     ini_matrix(yhats_test_std, N_test, num_sweeps);
 
-    matrix<double> yhats_xinfo;
-    ini_matrix(yhats_xinfo, N, num_sweeps);
+    // matrix<double> yhats_xinfo;
+    // ini_matrix(yhats_xinfo, N, num_sweeps);
 
     matrix<double> yhats_test_xinfo;
     ini_matrix(yhats_test_xinfo, N, num_sweeps);
@@ -585,25 +585,25 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
 
     /////////////////////////////////////////////////////////////////
 
-    mcmc_loop_probit(Xorder_std, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
+    mcmc_loop_probit(Xorder_std, verbose, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
 
     model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
     // R Objects to Return
-    Rcpp::NumericMatrix yhats(N, num_sweeps);
+    // Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum(p);                // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
 
     // TODO: Make these functions
-    for (size_t i = 0; i < N; i++)
-    {
-        for (size_t j = 0; j < num_sweeps; j++)
-        {
-            yhats(i, j) = yhats_xinfo[j][i];
-        }
-    }
+    // for (size_t i = 0; i < N; i++)
+    // {
+    //     for (size_t j = 0; j < num_sweeps; j++)
+    //     {
+    //         yhats(i, j) = yhats_xinfo[j][i];
+    //     }
+    // }
     for (size_t i = 0; i < N_test; i++)
     {
         for (size_t j = 0; j < num_sweeps; j++)
@@ -642,7 +642,7 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
     x_struct.reset();
 
     return Rcpp::List::create(
-        Rcpp::Named("yhats") = yhats,
+        // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("yhats_test") = yhats_test,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
@@ -702,8 +702,8 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees,
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
-    matrix<double> yhats_xinfo;
-    ini_matrix(yhats_xinfo, N, num_sweeps);
+    // matrix<double> yhats_xinfo;
+    // ini_matrix(yhats_xinfo, N, num_sweeps);
 
     matrix<double> yhats_test_xinfo;
     ini_matrix(yhats_test_xinfo, N, num_sweeps);
@@ -738,25 +738,25 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees,
 
 
     ////////////////////////////////////////////////////////////////
-    //mcmc_loop_MH(Xorder_std, verbose, yhats_xinfo, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct, accept_count, MH_vector, P_ratio, Q_ratio, prior_ratio);
+    //mcmc_loop_MH(Xorder_std, verbose, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct, accept_count, MH_vector, P_ratio, Q_ratio, prior_ratio);
 
     model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
     // R Objects to Return
-    Rcpp::NumericMatrix yhats(N, num_sweeps);
+    // Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum(p);                // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
 
     // TODO: Make these functions
-    for (size_t i = 0; i < N; i++)
-    {
-        for (size_t j = 0; j < num_sweeps; j++)
-        {
-            yhats(i, j) = yhats_xinfo[j][i];
-        }
-    }
+    // for (size_t i = 0; i < N; i++)
+    // {
+    //     for (size_t j = 0; j < num_sweeps; j++)
+    //     {
+    //         yhats(i, j) = yhats_xinfo[j][i];
+    //     }
+    // }
     for (size_t i = 0; i < N_test; i++)
     {
         for (size_t j = 0; j < num_sweeps; j++)
@@ -792,7 +792,7 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees,
     x_struct.reset();
 
     return Rcpp::List::create(
-        Rcpp::Named("yhats") = yhats,
+        // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("yhats_test") = yhats_test,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
