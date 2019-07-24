@@ -294,13 +294,14 @@ class XBART(object):
 		assert self.is_fit, "Must run fit before running predict"
 
 		# Check inputs # 
+	
 		self.__check_input_type(x_test)
-		pred_x = x_test 
+		pred_x = x_test.copy()
 		self.__check_test_shape(pred_x)
 		self.__update_fit_x_y(x_test,pred_x)
 
 		# Run Predict
-		x_pred = self._xbart_cpp._predict(pred_x)
+		self._xbart_cpp._predict(pred_x)
 		# Convert to numpy
 		yhats_test = self._xbart_cpp.get_yhats_test(self.params["num_sweeps"]*pred_x.shape[0])
 		# Convert from colum major 

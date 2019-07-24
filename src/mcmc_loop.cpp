@@ -495,186 +495,186 @@ void mcmc_loop_probit(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
 //     delete model;
 // }
 
-void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhats_xinfo, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &accept_count, std::vector<double> &MH_vector, std::vector<double> &P_ratio, std::vector<double> &Q_ratio, std::vector<double> &prior_ratio)
-{
+// void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &yhats_xinfo, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &accept_count, std::vector<double> &MH_vector, std::vector<double> &P_ratio, std::vector<double> &Q_ratio, std::vector<double> &prior_ratio)
+// {
 
-    if (state->parallel)
-        thread_pool.start();
+//     if (state->parallel)
+//         thread_pool.start();
 
-    // Residual for 0th tree
-    // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
-    model->ini_residual_std(state);
+//     // Residual for 0th tree
+//     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
+//     model->ini_residual_std(state);
 
-    std::uniform_real_distribution<> unif_dist(0, 1);
+//     std::uniform_real_distribution<> unif_dist(0, 1);
 
-    double MH_ratio = 0.0;
-    double P_new;
-    double P_old;
-    double Q_new;
-    double Q_old;
-    double prior_new;
-    double prior_old;
-    double logdetA_new;
-    double logdetA_old;
-    double val_new;
-    double val_old;
-    double sign_new;
-    double sign_old;
+//     double MH_ratio = 0.0;
+//     double P_new;
+//     double P_old;
+//     double Q_new;
+//     double Q_old;
+//     double prior_new;
+//     double prior_old;
+//     double logdetA_new;
+//     double logdetA_old;
+//     double val_new;
+//     double val_old;
+//     double sign_new;
+//     double sign_old;
 
-    bool accept_flag = true;
+//     bool accept_flag = true;
 
-    for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
-    {
+//     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
+//     {
 
-        if (verbose == true)
-        {
-            COUT << "--------------------------------" << endl;
-            COUT << "number of sweeps " << sweeps << endl;
-            COUT << "--------------------------------" << endl;
-        }
+//         if (verbose == true)
+//         {
+//             COUT << "--------------------------------" << endl;
+//             COUT << "number of sweeps " << sweeps << endl;
+//             COUT << "--------------------------------" << endl;
+//         }
 
-        for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
-        {
-            // Draw Sigma
+//         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
+//         {
+//             // Draw Sigma
 
-            model->update_state(state, tree_ind, x_struct);
+//             model->update_state(state, tree_ind, x_struct);
 
-            sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
+//             sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
 
-            if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
-            {
-                state->use_all = false;
-            }
+//             if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
+//             {
+//                 state->use_all = false;
+//             }
 
-            // clear counts of splits for one tree
-            std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
+//             // clear counts of splits for one tree
+//             std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
 
-            // subtract old tree for sampling case
-            if (state->sample_weights_flag)
-            {
-                state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
-            }
+//             // subtract old tree for sampling case
+//             if (state->sample_weights_flag)
+//             {
+//                 state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
+//             }
 
-            if (sweeps < 10)
-            {
-                model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+//             if (sweeps < 10)
+//             {
+//                 model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
-                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-            }
-            else
-            {
-                // fit proposal
-                model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+//                 trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+//             }
+//             else
+//             {
+//                 // fit proposal
+//                 model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
-                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+//                 trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
-                // update old tree on new data
-                model->initialize_root_suffstat(state, trees[sweeps - 1][tree_ind].suff_stat);
-                // cout << "likelihood on old data " <<  transition_prob(trees[sweeps - 1][tree_ind]) << endl;
-                // update leaf node likelihood of old tree on new data
-                trees[sweeps - 1][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, false, true, false);
-                // cout << "likelihood on new  data " <<  transition_prob(trees[sweeps - 1][tree_ind]) << endl;
+//                 // update old tree on new data
+//                 model->initialize_root_suffstat(state, trees[sweeps - 1][tree_ind].suff_stat);
+//                 // cout << "likelihood on old data " <<  transition_prob(trees[sweeps - 1][tree_ind]) << endl;
+//                 // update leaf node likelihood of old tree on new data
+//                 trees[sweeps - 1][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, false, true, false);
+//                 // cout << "likelihood on new  data " <<  transition_prob(trees[sweeps - 1][tree_ind]) << endl;
 
-                Q_old = transition_prob(trees[sweeps - 1][tree_ind]);
-                P_old = tree_likelihood(trees[sweeps - 1][tree_ind]);
+//                 Q_old = transition_prob(trees[sweeps - 1][tree_ind]);
+//                 P_old = tree_likelihood(trees[sweeps - 1][tree_ind]);
 
-                // // proposal
-                Q_new = transition_prob(trees[sweeps][tree_ind]);
-                P_new = tree_likelihood(trees[sweeps][tree_ind]);
+//                 // // proposal
+//                 Q_new = transition_prob(trees[sweeps][tree_ind]);
+//                 P_new = tree_likelihood(trees[sweeps][tree_ind]);
 
-                // cout << MH_ratio << endl;
+//                 // cout << MH_ratio << endl;
 
-                // cout << "P_new " << P_new << " P_old " << P_old << " Q_new " << Q_new << " Q_old " << Q_old << endl;
+//                 // cout << "P_new " << P_new << " P_old " << P_old << " Q_new " << Q_new << " Q_old " << Q_old << endl;
 
-                // cout <<  P_new + Q_old - P_old - Q_new << endl;
+//                 // cout <<  P_new + Q_old - P_old - Q_new << endl;
 
-                determinant_precision(trees[sweeps][tree_ind], model->tau, state->sigma2, state, val_new, sign_new, logdetA_new);
+//                 determinant_precision(trees[sweeps][tree_ind], model->tau, state->sigma2, state, val_new, sign_new, logdetA_new);
 
-                determinant_precision(trees[sweeps - 1][tree_ind], model->tau, state->sigma2, state, val_old, sign_old, logdetA_old);
+//                 determinant_precision(trees[sweeps - 1][tree_ind], model->tau, state->sigma2, state, val_old, sign_old, logdetA_old);
 
-                // cout << " ----- " << endl;
+//                 // cout << " ----- " << endl;
 
-                // cout << logdetA_old << "  " << logdetA_new << endl;
-                MH_ratio = P_new + Q_old - P_old - Q_new + logdetA_old - logdetA_new + val_old - val_new;
+//                 // cout << logdetA_old << "  " << logdetA_new << endl;
+//                 MH_ratio = P_new + Q_old - P_old - Q_new + logdetA_old - logdetA_new + val_old - val_new;
 
-                // MH_ratio = P_new - P_old;
+//                 // MH_ratio = P_new - P_old;
 
-                // MH_ratio = 1;
+//                 // MH_ratio = 1;
 
-                // cout << P_new - P_old << "   " << logdetA_old - logdetA_new << "   " << Q_old - Q_new << "   " << val_old - val_new << "   " << MH_ratio << endl;
+//                 // cout << P_new - P_old << "   " << logdetA_old - logdetA_new << "   " << Q_old - Q_new << "   " << val_old - val_new << "   " << MH_ratio << endl;
 
-                cout << MH_ratio << endl;
+//                 cout << MH_ratio << endl;
 
-                if (MH_ratio > 0)
-                {
-                    MH_ratio = 1;
-                }
-                else
-                {
-                    MH_ratio = exp(MH_ratio) * sign_old / sign_new;
-                }
+//                 if (MH_ratio > 0)
+//                 {
+//                     MH_ratio = 1;
+//                 }
+//                 else
+//                 {
+//                     MH_ratio = exp(MH_ratio) * sign_old / sign_new;
+//                 }
 
-                MH_vector.push_back(MH_ratio);
+//                 MH_vector.push_back(MH_ratio);
 
-                Q_ratio.push_back(Q_old - Q_new);
+//                 Q_ratio.push_back(Q_old - Q_new);
 
-                P_ratio.push_back(P_new - P_old);
+//                 P_ratio.push_back(P_new - P_old);
 
-                if (unif_dist(state->gen) <= MH_ratio)
-                {
-                    // accept
-                    // do nothing
-                    cout << "accept " << endl;
-                    accept_flag = true;
-                    accept_count.push_back(1);
-                }
-                else
-                {
-                    // reject
-                    cout << "reject " << endl;
-                    accept_flag = false;
-                    accept_count.push_back(0);
+//                 if (unif_dist(state->gen) <= MH_ratio)
+//                 {
+//                     // accept
+//                     // do nothing
+//                     cout << "accept " << endl;
+//                     accept_flag = true;
+//                     accept_count.push_back(1);
+//                 }
+//                 else
+//                 {
+//                     // reject
+//                     cout << "reject " << endl;
+//                     accept_flag = false;
+//                     accept_count.push_back(0);
 
-                    // // // keep the old tree
+//                     // // // keep the old tree
 
-                    // predict_from_tree(trees[sweeps - 1][tree_ind], Xpointer, N, p, temp_vec2, model);
+//                     // predict_from_tree(trees[sweeps - 1][tree_ind], Xpointer, N, p, temp_vec2, model);
 
-                    trees[sweeps][tree_ind].copy_only_root(&trees[sweeps - 1][tree_ind]);
+//                     trees[sweeps][tree_ind].copy_only_root(&trees[sweeps - 1][tree_ind]);
 
-                    // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec3, model);
+//                     // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec3, model);
 
-                    // // update theta
-                    /*
-                        update_theta() not only update leaf parameters, but also state->data_pointers
+//                     // // update theta
+//                     /*
+//                         update_theta() not only update leaf parameters, but also state->data_pointers
 
-                    */
+//                     */
 
-                    // update_theta = true, update_split_prob = true
-                    // resample leaf parameters
+//                     // update_theta = true, update_split_prob = true
+//                     // resample leaf parameters
 
-                    trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, true, false);
+//                     trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, true, false);
 
-                    //                 // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec4, model);
+//                     //                 // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec4, model);
 
-                    // // keep the old tree, need to update state object properly
-                    //                 // state->data_pointers[tree_ind] = state->data_pointers_copy[tree_ind];
-                    x_struct->restore_data_pointers(tree_ind);
-                }
-            }
+//                     // // keep the old tree, need to update state object properly
+//                     //                 // state->data_pointers[tree_ind] = state->data_pointers_copy[tree_ind];
+//                     x_struct->restore_data_pointers(tree_ind);
+//                 }
+//             }
 
-            if (accept_flag)
-            {
-                state->update_split_counts(tree_ind);
-            }
+//             if (accept_flag)
+//             {
+//                 state->update_split_counts(tree_ind);
+//             }
 
-            // update partial residual for the next tree to fit
-            model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
-        }
+//             // update partial residual for the next tree to fit
+//             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
+//         }
 
-        // create a backup of data_pointers for useage of the next sweep
-        x_struct->create_backup_data_pointers();
-    }
-    thread_pool.stop();
+//         // create a backup of data_pointers for useage of the next sweep
+//         x_struct->create_backup_data_pointers();
+//     }
+//     thread_pool.stop();
 
-    return;
-}
+//     return;
+// }

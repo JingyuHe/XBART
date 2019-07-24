@@ -83,20 +83,20 @@ std::string XBARTcpp::_to_json(void){
 int XBARTcpp::get_M(){return((int)params.M);} 
 
 void XBARTcpp::_predict(int n,int d,double *a){//,int size, double *arr){
-
+  
   // Convert *a to col_major std::vector
   vec_d x_test_std_flat(n*d);
   XBARTcpp::np_to_col_major_vec(n,d,a,x_test_std_flat);
 
   // Initialize result
-  ini_xinfo(this->yhats_test_xinfo, n, this->params.N_sweeps);
+  ini_matrix(this->yhats_test_xinfo, n, this->params.N_sweeps);
+  for(size_t i = 0;i<n;i++)for(size_t j = 0;j<this->params.N_sweeps;j++) this->yhats_test_xinfo[j][i]=0;
 
   // Convert column major vector to pointer
-  double *Xtestpointer = &x_test_std_flat[0];//&x_test_std[0][0];
+  const double *Xtestpointer = &x_test_std_flat[0];//&x_test_std[0][0];
 
   // Predict
-  NormalModel *model = new NormalModel(this->params.kap, this->params.s, this->params.tau, this->params.alpha, this->params.beta);
-  model->setNoSplitPenality(no_split_penality);
+  NormalModel *model = new NormalModel(); //(this->params.kap, this->params.s, this->params.tau, this->params.alpha, this->params.beta);
 
   model->predict_std(Xtestpointer,n,d,this->params.M,this->params.N_sweeps,
         this->yhats_test_xinfo,this->trees); 
