@@ -39,7 +39,9 @@ void fit_std(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
             // Draw Sigma
             fit_info->residual_std_full = fit_info->residual_std - fit_info->predictions_std[tree_ind];
             std::gamma_distribution<double> gamma_samp((fit_info->n_y + prior.kap) / 2.0, 2.0 / (sum_squared(fit_info->residual_std_full) + prior.s));
-            sigma = 1.0 / sqrt(gamma_samp(fit_info->gen));
+            // sigma = 1.0 / sqrt(gamma_samp(fit_info->gen));
+
+            sigma = 2.43;
             sigma_draw_xinfo[sweeps][tree_ind] = sigma;
 
             // add prediction of current tree back to residual
@@ -74,7 +76,9 @@ void fit_std(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
             fit_info->split_count_all_tree[tree_ind] = fit_info->split_count_current_tree;
 
             // Update Predict
-            predict_from_datapointers(fit_info->X_std, fit_info->n_y, tree_ind, fit_info->predictions_std[tree_ind], fit_info->data_pointers, model);
+            // predict_from_datapointers(fit_info->X_std, fit_info->n_y, tree_ind, fit_info->predictions_std[tree_ind], fit_info->data_pointers, model);
+
+            predict_from_tree(trees[sweeps][tree_ind], fit_info->X_std, fit_info->n_y, fit_info->p, fit_info->predictions_std[tree_ind], model);
 
             // update residual, now it's residual of m trees
             model->updateResidual(fit_info->predictions_std, tree_ind, fit_info->num_trees, fit_info->residual_std);

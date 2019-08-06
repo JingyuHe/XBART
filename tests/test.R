@@ -88,6 +88,7 @@ if (new_data) {
   y_test = ftest + sigma * rnorm(nt)
 }
 
+cat("sigma ", sigma)
 #######################################################################
 # XBART
 categ <- function(z, j) {
