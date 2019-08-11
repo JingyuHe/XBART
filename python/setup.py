@@ -33,8 +33,8 @@ def readme():
 
 
 setup(name='xbart',
-      version='0.1.6',
-      author="Jingyu He, Saar Yalov, P. Richard Hahn, Lee Reeves",
+      version='0.1.7',
+      author="Jingyu He, Saar Yalov, P. Richard Hahn",
       description="""XBART project""",
       long_descripition=readme(),
       include_dirs=[numpy.get_include(), '.', "src", "xbart"],

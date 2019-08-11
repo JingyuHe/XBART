@@ -88,6 +88,7 @@ public:
         this->split_count_current_tree = std::vector<double>(p, 0);
         this->mtry_weight_current_tree = std::vector<double>(p, 0);
         this->sigma = sigma;
+        
         this->n_min = n_min;
         this->n_cutpoints = n_cutpoints;
         this->parallel = parallel;

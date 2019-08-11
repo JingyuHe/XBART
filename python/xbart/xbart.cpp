@@ -168,8 +168,10 @@ void XBARTcpp::_fit(int n,int d,double *a,
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, n, Xorder_std, p_cat, d-p_cat, &initial_theta, this->params.M));
 
-    mcmc_loop(Xorder_std, this->params.verbose, yhats_xinfo, sigma_draw_xinfo, this->trees, this->no_split_penality, 
+    mcmc_loop(Xorder_std, this->params.verbose, sigma_draw_xinfo, this->trees, this->no_split_penality, 
     state, model,x_struct);
+
+    this->mtry_weight_current_tree = state->mtry_weight_current_tree;
 
     delete model;
     state.reset();
@@ -185,17 +187,30 @@ void XBARTcpp::_fit(int n,int d,double *a,
   //               this->params.parallel,
   //               yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees,
   //               this->seed_flag, this->seed, this->no_split_penality, this->params.sample_weights_flag);
-  // }else if(this->model_num == 2){ // Probit
-          // mcmc_loop_probit(Xpointer,y_std,y_mean, Xorder_std,n,d,
-          //       this->params.M,  this->params.N_sweeps, max_depth_std, 
-          //       this->params.Nmin, this->params.Ncutpoints, this->params.alpha, 
-          //       this->params.beta, this->params.tau, this->params.burnin, 
-          //       this->params.mtry,  this->params.kap , 
-          //       this->params.s, this->params.verbose,
-          //       this->params.parallel,
-          //       yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees,
-          //       this->seed_flag, this->seed,this->no_split_penality,  this->params.sample_weights_flag);
+  }else if(this->model_num == 2){ // Probit
+    // define model
+    ProbitClass *model = new ProbitClass(this->params.kap, this->params.s, this->params.tau, 
+                                          this->params.alpha, this->params.beta,y_std);
+    model->setNoSplitPenality(no_split_penality);
 
+    // // //State settings
+    std::vector<double> initial_theta(1, y_mean / (double)this->params.M);
+    std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, n, d, this->params.M, p_cat, d-p_cat, 
+    this->seed_flag, this->seed, this->params.Nmin, this->params.Ncutpoints, this->params.parallel, this->params.mtry, 
+    Xpointer, this->params.N_sweeps, this->params.sample_weights_flag, &y_std, 1.0, 
+    this->params.max_depth_num, y_mean, this->params.burnin, model->dim_residual));
+
+    // initialize X_struct
+    std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, n, Xorder_std, p_cat, d-p_cat, &initial_theta, this->params.M));
+
+    mcmc_loop_probit(Xorder_std, this->params.verbose, sigma_draw_xinfo, this->trees, this->no_split_penality, 
+    state, model,x_struct);
+
+    this->mtry_weight_current_tree = state->mtry_weight_current_tree;
+
+    delete model;
+    state.reset();
+    x_struct.reset();
   }
 }    
 

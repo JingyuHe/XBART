@@ -239,8 +239,8 @@ void ProbitClass::update_state(std::unique_ptr<State> &state, size_t tree_ind, s
     // std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(full_residual) + s));
     // state->update_sigma(1.0 / sqrt(gamma_samp(state->gen)));
 
-    // update latent variable Z
-
+    //update latent variable Z
+    
     z_prev = z;
 
     double mu_temp;
@@ -268,10 +268,14 @@ void ProbitClass::update_state(std::unique_ptr<State> &state, size_t tree_ind, s
         z[i] = normCDFInv(u) + mu_temp;
     }
     return;
+
+    //NormalModel::update_state(state, tree_ind, x_struct);
 }
 
 void ProbitClass::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
-{
+{   
+
+    NormalModel::state_sweep( tree_ind,  M, residual_std, x_struct);
     size_t next_index = tree_ind + 1;
     if (next_index == M)
     {
@@ -284,7 +288,7 @@ void ProbitClass::state_sweep(size_t tree_ind, size_t M, matrix<double> &residua
 
     for (size_t i = 0; i < residual_std[0].size(); i++)
     {
-        residual_std[0][i] = residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + (*(x_struct->data_pointers[next_index][i]))[0] - z_prev[i] + z[i];
+        residual_std[0][i] = residual_std[0][i] - z_prev[i] + z[i];
     }
 
     return;
