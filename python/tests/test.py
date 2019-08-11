@@ -129,8 +129,6 @@ class XBARTTesting1(unittest.TestCase):
 		n_test = 1000; d = 10
 		x_test= np.random.rand(n_test,d)
 		y_pred_json = model.predict(x_test,return_mean=False)
-		y_hat = y_pred[:,self.params["burnin"]:].mean(axis=1)
-		rmse(y_hat,y_test)
 		self.assertFalse(np.array_equal(y_pred_json,y_pred_json*0))
 
 	def test_probit(self):
