@@ -141,6 +141,27 @@ class XBARTTesting1(unittest.TestCase):
 		acc = np.mean(y_pred == y_bin)
 		print("Accuracy:" + str(acc))
 		self.assertTrue(acc > 0.6)
+
+	def test_dimension_mismatch_x_y(self):
+		with self.assertRaises(AssertionError):
+			x,x_test,y,y_test,d = self.make_data()
+
+			# Make y not match x
+			y = np.concatenate((y,y))
+
+			model = xbart.XBART(model="Probit",**self.params)
+			model.fit(x,y,d-1)
+
+	def test_dimension_mismatch_x_x(self):
+		with self.assertRaises(AssertionError):
+			x,x_test,y,y_test,d = self.make_data()
+
+			model = xbart.XBART(model="Probit",**self.params)
+			model.fit(x,y,d-1)
+
+			# Make x_test not match
+			x_test = np.concatenate((x_test,x_test),axis=1)
+			model.predict(x_test)
 			
 class XBARTExceptionTesting(unittest.TestCase):
 

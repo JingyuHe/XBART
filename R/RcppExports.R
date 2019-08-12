@@ -46,7 +46,7 @@
 
 
 
-XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, no_split_penality = "Auto", burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL,sample_weights_flag = TRUE ,...) {
+XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth=250, Nmin=1, num_cutpoints=100, alpha=0.95, beta=1.25, tau="Auto", no_split_penality = "Auto", burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL,sample_weights_flag = TRUE ,...) {
 
     if(class(X) != "matrix"){
         cat("Input X is not a matrix, try to convert type.\n")
@@ -59,6 +59,13 @@ XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpo
     if(class(y) != "matrix"){
         cat("Input y is not a matrix, try to convert type.\n")
         y = as.matrix(y)
+    }
+    if(dim(X)[1] != length(y)){
+        stop("Length of X must match length of y")
+    }
+
+    if(dim(X)[2] != dim(X)[2]){
+        stop("Column of X must match columns of Xtest")
     }
 
     if(is.null(random_seed)){
@@ -75,6 +82,9 @@ XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpo
     }
     if(no_split_penality == "Auto"){
         no_split_penality = log(num_cutpoints)
+    }
+    if(tau == "Auto"){
+        tau = 1.0/num_trees
     }
 
     obj = .Call(`_XBART`, y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau,no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed,sample_weights_flag)
@@ -82,7 +92,7 @@ XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpo
     return(obj)
 }
 
-XBART.CLT <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, no_split_penality = "Auto", burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE, ...) {
+XBART.CLT <- function(y, X, Xtest, num_trees, num_sweeps,  max_depth=250, Nmin=1, num_cutpoints=100, alpha=0.95, beta=1.25, tau="Auto",  no_split_penality = "Auto", burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE, ...) {
 
     if(class(X) != "matrix"){
         cat("Input X is not a matrix, try to convert type.\n")
@@ -95,6 +105,14 @@ XBART.CLT <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_c
     if(class(y) != "matrix"){
         cat("Input y is not a matrix, try to convert type.\n")
         y = as.matrix(y)
+    }
+
+    if(dim(X)[1] != length(y)){
+        stop("Length of X must match length of y")
+    }
+
+    if(dim(X)[2] != dim(X)[2]){
+        stop("Column of X must match columns of Xtest")
     }
 
     if(is.null(random_seed)){
@@ -111,13 +129,16 @@ XBART.CLT <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_c
     }
     if(no_split_penality == "Auto"){
         no_split_penality = log(num_cutpoints)
+    }
+    if(tau == "Auto"){
+        tau = 1.0/num_trees
     }
     obj = .Call(`_XBART_CLT`, y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, no_split_penality,burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag)
     class(obj) = "XBART" # Change to XBARTProbit?
     return(obj)
 }
 
-XBART.multinomial <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, no_split_penality = "Auto", burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE, ...) {
+XBART.multinomial <- function(y, X, Xtest, num_trees, num_sweeps, max_depth=250, Nmin=1, num_cutpoints=100, alpha=0.95, beta=1.25, tau="Auto",  no_split_penality = "Auto", burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE, ...) {
 
     if(class(X) != "matrix"){
         cat("Input X is not a matrix, try to convert type.\n")
@@ -130,6 +151,10 @@ XBART.multinomial <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmi
     if(class(y) != "matrix"){
         cat("Input y is not a matrix, try to convert type.\n")
         y = as.matrix(y)
+    }
+
+    if(dim(X)[2] != dim(X)[2]){
+        stop("Column of X must match columns of Xtest")
     }
 
     if(is.null(random_seed)){
@@ -147,12 +172,15 @@ XBART.multinomial <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmi
     if(no_split_penality == "Auto"){
         no_split_penality = log(num_cutpoints)
     }
+    if(tau == "Auto"){
+        tau = 1.0/num_trees
+    }
     obj = .Call(`_XBART_multinomial`, y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, no_split_penality,burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag)
     class(obj) = "XBART" # Change to XBARTProbit?
     return(obj)
 }
 
-XBART.Probit <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, no_split_penality = "Auto",burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE,...) {
+XBART.Probit <- function(y, X, Xtest, num_trees, num_sweeps,  max_depth=250, Nmin=1, num_cutpoints=100, alpha=0.95, beta=1.25, tau="Auto", no_split_penality = "Auto",burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE,...) {
 
     if(class(X) != "matrix"){
         cat("Input X is not a matrix, try to convert type.\n")
@@ -165,6 +193,14 @@ XBART.Probit <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, nu
     if(class(y) != "matrix"){
         cat("Input y is not a matrix, try to convert type.\n")
         y = as.matrix(y)
+    }
+
+    if(dim(X)[1] != length(y)){
+        stop("Length of X must match length of y")
+    }
+
+    if(dim(X)[2] != dim(X)[2]){
+        stop("Column of X must match columns of Xtest")
     }
 
     if(is.null(random_seed)){
@@ -181,6 +217,9 @@ XBART.Probit <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, nu
     }
     if(no_split_penality == "Auto"){
         no_split_penality = 0
+    }
+    if(tau == "Auto"){
+        tau = 1.0/num_trees
     }
     obj = .Call(`_XBART_Probit`, y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, no_split_penality,burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed,sample_weights_flag)
     class(obj) = "XBART" # Change to XBARTProbit?

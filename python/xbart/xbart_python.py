@@ -131,10 +131,18 @@ class XBART(object):
 		if not isinstance(x,(np.ndarray,DataFrame)):
 			raise TypeError("x must be numpy array or pandas DataFrame")
 
+		if np.any(np.isnan(x)):
+			 raise TypeError("Cannot have missing values!")
+
 		if y is not None: 
 			if not isinstance(y,(np.ndarray,Series)):
 				raise TypeError("y must be numpy array or pandas Series")
 
+			if np.any(np.isnan(y)):
+				raise TypeError("Cannot have missing values!")
+
+			assert x.shape[0] == y.shape[0], "X and y must be the same length"
+		
 	def __check_test_shape(self,x):
 		assert x.shape[1] == self.num_columns, "Mismatch on number of columns"
 
