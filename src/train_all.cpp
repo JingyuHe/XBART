@@ -186,6 +186,23 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
     Rcpp::NumericVector split_count_sum(p);                // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
 
+    arma::cube all_pred(N, num_trees, num_sweeps);
+
+    tree::tree_p bn;
+
+    for (size_t i = 0; i < num_sweeps; i++)
+    {
+        for (size_t j = 0; j < num_trees; j++)
+        {
+            for (size_t k = 0; k < N; k++)
+            {
+                bn = ((*trees2)[i][j]).search_bottom_std(Xpointer, k, p, N);
+                // cout << bn->theta_vector << endl;
+                all_pred(k, j, i) = (bn->theta_vector)[0];
+            }
+        }
+    }
+
     // TODO: Make these functions
     for (size_t i = 0; i < N; i++)
     {
@@ -229,6 +246,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest,
         Rcpp::Named("yhats_test") = yhats_test,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
+        Rcpp::Named("insample") = all_pred,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt,
                                                        Rcpp::Named("y_mean") = y_mean,
                                                        Rcpp::Named("p") = p));
