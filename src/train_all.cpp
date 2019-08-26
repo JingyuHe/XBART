@@ -129,7 +129,7 @@ Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, si
     // ini_matrix(yhats_xinfo, N, num_sweeps);
 
     matrix<double> yhats_test_xinfo;
-    ini_matrix(yhats_test_xinfo, N, num_sweeps);
+    ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
 
     matrix<double> sigma_draw_xinfo;
     ini_matrix(sigma_draw_xinfo, num_trees, num_sweeps);
@@ -269,7 +269,7 @@ Rcpp::List XBART_CLT(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     // ini_matrix(yhats_xinfo, N, num_sweeps);
 
     matrix<double> yhats_test_xinfo;
-    ini_matrix(yhats_test_xinfo, N, num_sweeps);
+    ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
 
     matrix<double> sigma_draw_xinfo;
     ini_matrix(sigma_draw_xinfo, num_trees, num_sweeps);
@@ -409,7 +409,7 @@ Rcpp::List XBART_multinomial(arma::mat y, arma::mat X, arma::mat Xtest, size_t n
     // ini_matrix(yhats_xinfo, N, num_sweeps);
 
     matrix<double> yhats_test_xinfo;
-    ini_matrix(yhats_test_xinfo, N, num_sweeps);
+    ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
 
     matrix<double> sigma_draw_xinfo;
     ini_matrix(sigma_draw_xinfo, num_trees, num_sweeps);
@@ -560,7 +560,7 @@ Rcpp::List XBART_Probit(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
     // ini_matrix(yhats_xinfo, N, num_sweeps);
 
     matrix<double> yhats_test_xinfo;
-    ini_matrix(yhats_test_xinfo, N, num_sweeps);
+    ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
 
     matrix<double> sigma_draw_xinfo;
     ini_matrix(sigma_draw_xinfo, num_trees, num_sweeps);
@@ -706,7 +706,7 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees,
     // ini_matrix(yhats_xinfo, N, num_sweeps);
 
     matrix<double> yhats_test_xinfo;
-    ini_matrix(yhats_test_xinfo, N, num_sweeps);
+    ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
 
     matrix<double> sigma_draw_xinfo;
     ini_matrix(sigma_draw_xinfo, num_trees, num_sweeps);
