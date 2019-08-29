@@ -598,6 +598,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     {
         if (!update_split_prob)
         {
+            // If growing a new tree, update data_pointers matrix (same size as training data, point to corresponding end leaf)
             for (size_t i = 0; i < N_Xorder; i++)
             {
                 x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
@@ -623,23 +624,20 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
         // If GROW FROM ROOT MODE
         this->v = split_var;
         this->c = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
-    }
 
-    // Update Cutpoint to be a true seperating point
-    // Increase split_point (index) until it is no longer equal to cutpoint value
-    while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
-    {
-        split_point = split_point + 1;
-    }
+        // Update Cutpoint to be a true seperating point
+        // Increase split_point (index) until it is no longer equal to cutpoint value
+        while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
+        {
+            split_point = split_point + 1;
+        }
 
-    // If our current split is same as parent, exit
-    if ((this->p) && (this->v == (this->p)->v) && (this->c == (this->p)->c))
-    {
-        return;
-    }
+        // If our current split is same as parent, exit
+        if ((this->p) && (this->v == (this->p)->v) && (this->c == (this->p)->c))
+        {
+            return;
+        }
 
-    if (grow_new_tree)
-    {
         // If do not update split prob ONLY
         // grow from root, initialize new nodes
 
@@ -1053,6 +1051,8 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
 
         if (update_split_prob)
         {
+            // if update_split_prob == true, only update split prob based on given split point, for MH update usage
+            // Do not sample split point, keep the old one
             ind = tree_pointer->drawn_ind;
         }
         else
@@ -1128,6 +1128,8 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
 
         if (update_split_prob)
         {
+            // if update_split_prob == true, only update split prob based on given split point, for MH update usage
+            // Do not sample split point, keep the old one
             ind = tree_pointer->drawn_ind;
         }
         else
@@ -1546,7 +1548,7 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
     // output should have dimension (dim_theta, num_trees)
 
     tree::tree_p bn; // pointer to bottom node
-    
+
     for (size_t i = 0; i < tree.size(); i++)
     {
         // loop over trees
@@ -1601,17 +1603,153 @@ void getThetaForObs_Outsample_ave(matrix<double> &output, std::vector<tree> &tre
         // bn is the bottom node
 
         output[i] = output[i] + bn->theta_vector;
-        count ++ ;
+        count++;
 
         // take average of the path
         for (size_t j = 0; j < output[i].size(); j++)
         {
             output[i][j] = output[i][j] / (double)count;
         }
-
     }
 
     return;
+}
+
+// Metropolis Hastings
+double tree::tree_likelihood(size_t N, double sigma)
+{
+    /*
+        Calculate loglikelihood of a given tree
+        loop over all end node, take sum of loglikelihood in each end node
+    */
+    npv tree_vec;
+
+    // search bottom nodes
+    this->getbots(tree_vec);
+
+    double output = 0.0;
+
+    for (size_t i = 0; i < tree_vec.size(); i++)
+    {
+        output += tree_vec[i]->loglike_node;
+    }
+
+    // cout << "output of tree_likelihood " << output << endl;
+
+    // add constant
+    // output = output - N * log(2 * 3.14159265359) / 2.0 - N * log(sigma) - std::inner_product(y.begin(), y.end(), y.begin(), 0.0) / pow(sigma, 2) / 2.0;
+
+    tree_like = output;
+    return output;
+}
+
+double tree::prior_prob(NormalModel *model)
+{
+    /*
+        calculate log-prior of a given tree
+        including prior of split at interior nodes, prior of stop split at bottom node and prior of leaf parameter at bottom node
+    */
+
+    double output = 0.0;
+    double log_split_prob = 0.0;
+    double log_leaf_prob = 0.0;
+    npv tree_vec;
+
+    // get a vector of ALL nodess
+    this->getnodes(tree_vec);
+
+    for (size_t i = 0; i < tree_vec.size(); i++)
+    {
+        if (tree_vec[i]->getl() == 0)
+        {
+            // if no children, it is end node, count leaf parameter probability
+
+            // leaf prob, normal center at ZERO
+            log_leaf_prob += normal_density(tree_vec[i]->theta_vector[0], 0.0, model->tau, true);
+
+            // log_split_prob += log(1 - alpha * pow((1 + tree_vec[i]->depth()), -beta));
+            log_split_prob += log(1.0 - model->alpha * pow(1 + tree_vec[i]->depth, -1.0 * model->beta));
+
+            // add prior of split point
+            log_split_prob = log_split_prob - log(tree_vec[i]->getnum_cutpoint_candidates());
+        }
+        else
+        {
+            // otherwise count cutpoint probability
+
+            // log_split_prob += log(alpha * pow((1.0 + tree_vec[i]->depth()), -beta));
+
+            log_split_prob += log(model->alpha) - model->beta * log(1.0 + tree_vec[i]->depth);
+        }
+    }
+    output = log_split_prob + log_leaf_prob;
+
+    return output;
+}
+
+double tree::transition_prob()
+{
+    /*
+        This function calculate probability of given tree
+        log P(all cutpoints) + log P(leaf parameters)
+        Used in M-H ratio calculation
+    */
+
+    double output = 0.0;
+
+    double log_p_cutpoints = 0.0;
+
+    double log_p_leaf = 0.0;
+
+    npv tree_vec;
+
+    // get a vector of all nodess
+    this->getnodes(tree_vec);
+
+    for (size_t i = 0; i < tree_vec.size(); i++)
+    {
+        if (tree_vec[i]->getl() == 0)
+        {
+            // if no children, it is end node, count leaf parameter probability
+
+            // prob_leaf is already in log scale
+            log_p_leaf += tree_vec[i]->getprob_leaf();
+
+            // prob_split is in original scale, need to take log
+            log_p_cutpoints += log(tree_vec[i]->getprob_split());
+        }
+        else
+        {
+            // otherwise count cutpoint probability
+            log_p_cutpoints += log(tree_vec[i]->getprob_split());
+        }
+    }
+    // cout << "log_p_cutpoints " << log_p_cutpoints << endl;
+    // cout << "log_p_leaf " << log_p_leaf << endl;
+    output = log_p_cutpoints + log_p_leaf;
+
+    return output;
+};
+
+double tree::log_like_tree(double sigma2, double tau)
+{
+    double output = 0.0;
+
+    npv tree_vec;
+
+    // get a vector of bottom nodes
+    this->getbots(tree_vec);
+
+    // calculate loglikelihood
+
+    // be careful of y^ty term, second order
+    // it is changed with new residual
+    for (size_t i = 0; i < tree_vec.size(); i++)
+    {
+        output += 0.5 * (log(sigma2 / (sigma2 + tau * tree_vec[i]->getN())) + tau / sigma2 / (sigma2 + tau * tree_vec[i]->getN()) * pow(tree_vec[i]->getN() * tree_vec[i]->theta_vector[0] / tree_vec[i]->theta_vector[1], 2));
+    }
+
+    return output;
 }
 
 #ifndef NoRcpp

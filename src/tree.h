@@ -173,6 +173,16 @@ public:
 
     void copy_only_root(tree_p o); // copy tree, point new root to old structure
 
+    //Metropolis Hastings's algorithm'
+    double tree_likelihood(size_t N, double sigma);
+
+    double prior_prob(NormalModel *model);
+
+    double transition_prob();
+
+    double log_like_tree(double sigma2, double tau);
+
+
     //friends--------------------
     friend std::istream &operator>>(std::istream &, tree &);
 
