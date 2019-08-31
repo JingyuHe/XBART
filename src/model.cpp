@@ -40,6 +40,7 @@ void NormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, s
 
     // residual_std is only 1 dimensional for regression model
 
+    // SLOW ! initialize a new vector each time
     std::vector<double> full_residual(state->n_y);
 
     for (size_t i = 0; i < state->residual_std[0].size(); i++)

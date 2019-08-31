@@ -99,7 +99,7 @@ categ <- function(z, j) {
 
 params = get_XBART_params(n, d, y)
 time = proc.time()
-fit = XBART_MH(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat,
+fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat,
             params$num_trees, params$num_sweeps, params$max_depth,
             params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1,
             mtry = params$mtry, 

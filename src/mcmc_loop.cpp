@@ -529,11 +529,14 @@ void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigm
             COUT << "--------------------------------" << endl;
         }
 
+        accept_count.clear();
+        MH_vector.clear();
+
         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
         {
             // Draw Sigma
 
-            cout << tree_ind << " tree " << state->num_trees << endl;
+            // cout << tree_ind << " tree " << state->num_trees << endl;
 
             model->update_state(state, tree_ind, x_struct);
 
@@ -561,20 +564,28 @@ void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigm
                 model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
                 trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+
+                accept_count.push_back(0);
+                MH_vector.push_back(0);
             }
             else
             {
-                cout << "ok" << endl;
+                cout << "ok1 " << endl;
 
                 // fit a proposal
                 model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
                 trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
+                cout << "ok2 " << endl;
+
                 // evaluate old tree on NEW residual and calculate corresponding probabilities
-                model->initialize_root_suffstat(state, trees[sweeps - 1][tree_ind].suff_stat);
+                // model->initialize_root_suffstat(state, trees[sweeps - 1][tree_ind].suff_stat);
+                trees[sweeps - 1][tree_ind].suff_stat = trees[sweeps][tree_ind].suff_stat;
 
                 trees[sweeps - 1][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, false, true, false);
+
+                cout << "ok3 " << endl;
 
                 Q_old = trees[sweeps - 1][tree_ind].transition_prob();
 
@@ -599,6 +610,10 @@ void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigm
                 {
                     MH_ratio = exp(MH_ratio);
                 }
+                cout << "ok4 " << endl;
+
+                // cout << "MH_ratio " << MH_ratio << " Qold " << Q_old << " Qnew " << Q_new << " Pold " << P_old << " Pnew " << P_new << " priorold " << prior_old << " priornew " << prior_new << endl;
+
                 MH_vector.push_back(MH_ratio);
 
                 Q_ratio.push_back(Q_old - Q_new);
@@ -613,6 +628,7 @@ void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigm
                     // do nothing
                     // cout << "accept " << endl;
                     accept_flag = true;
+
                     accept_count.push_back(1);
                 }
                 else
@@ -620,11 +636,8 @@ void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigm
                     // reject
                     // cout << "reject " << endl;
                     accept_flag = false;
+
                     accept_count.push_back(0);
-
-                    // // // keep the old tree
-
-                    // predict_from_tree(trees[sweeps - 1][tree_ind], Xpointer, N, p, temp_vec2, model);
 
                     trees[sweeps][tree_ind].copy_only_root(&trees[sweeps - 1][tree_ind]);
 
@@ -647,6 +660,8 @@ void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigm
                     // fit_info->data_pointers[tree_ind] = fit_info->data_pointers_copy[tree_ind];
                     x_struct->restore_data_pointers(tree_ind);
                 }
+
+                cout << "ok5 " << endl;
             }
             // update partial residual for the next tree to fit
 
@@ -658,10 +673,12 @@ void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigm
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
         }
 
-        // average = accumulate(accept_count.end() - state->num_trees, accept_count.end(), 0.0) / state->num_trees;
-        // MH_average = accumulate(MH_vector.end() - state->num_trees, MH_vector.end(), 0.0) / state->num_trees;
+        average = accumulate(accept_count.end() - state->num_trees, accept_count.end(), 0.0) / state->num_trees;
+        MH_average = accumulate(MH_vector.end() - state->num_trees, MH_vector.end(), 0.0) / state->num_trees;
         // cout << "size of MH " << accept_count.size() << "  " << MH_vector.size() << endl;
 
+        // after one sweep
+        x_struct->create_backup_data_pointers();
         cout << "percentage of proposal acceptance " << average << endl;
         cout << "average MH ratio " << MH_average << endl;
     }

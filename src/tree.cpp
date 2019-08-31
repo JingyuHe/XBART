@@ -540,6 +540,8 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
     if (update_theta)
     {
+        // samplePars not only update leaf parameter
+        // but also update prob_leaf, the probability of drawing the leaf parameter, normal density
         model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
     }
 
@@ -591,6 +593,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this, update_split_prob);
 
     // cout << suff_stat << endl;
+cout << "fine 1" << endl;
 
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
 
@@ -614,10 +617,11 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
         this->r = 0;
 
         // update leaf prob, for MH update useage
-        // this->loglike_node = model->likelihood_no_split(this->suff_stat, state);
+        this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
 
         return;
     }
+cout << "fine 2" << endl;
 
     if (grow_new_tree)
     {
@@ -660,6 +664,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
         // For MH update usage, update probability of cutpoints given new data
         // Do not need to initialize new nodes
     }
+cout << "fine 3" << endl;
 
     this->l->ini_suff_stat();
     this->r->ini_suff_stat();
@@ -684,10 +689,12 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     {
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
+cout << "fine 4" << endl;
 
     this->l->grow_from_root(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree);
 
     this->r->grow_from_root(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree);
+cout << "fine 5" << endl;
 
     return;
 }
