@@ -39,10 +39,13 @@ void fit_std(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
             // Draw Sigma
             fit_info->residual_std_full = fit_info->residual_std - fit_info->predictions_std[tree_ind];
             std::gamma_distribution<double> gamma_samp((fit_info->n_y + prior.kap) / 2.0, 2.0 / (sum_squared(fit_info->residual_std_full) + prior.s));
-            // sigma = 1.0 / sqrt(gamma_samp(fit_info->gen));
+            
+            
+            sigma = 1.0 / sqrt(gamma_samp(fit_info->gen));
    
-            sigma = 0.707;
+            // sigma = 1;
 
+            // cout << sigma << endl;
    
             sigma_draw_xinfo[sweeps][tree_ind] = sigma;
 
@@ -75,7 +78,10 @@ void fit_std(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
             trees[sweeps][tree_ind].suff_stat[1] = sum_squared(fit_info->residual_std);
 
             // initialize node data for the root node
-            root_data.update_value(sigma, fit_info->n_y);
+            // root_data.update_value(sigma, fit_info->n_y);
+
+
+            root_data.update_value(sigma / 30.0 / pow(1.1, 1), fit_info->n_y);
 
             trees[sweeps][tree_ind].grow_from_root(fit_info, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, prior, root_data, true, false, true);
 

@@ -661,7 +661,12 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
     this->setN_Xorder(N_Xorder);
 
     // change node_data
-    double sigma = 1.0 / 30.0 / pow(1.1, this->depth / 2.0);
+    // double sigma = 1.0 / 30.0 / pow(1.1, this->depth / 2.0);
+
+    // cout << node_data.sigma << "   " << sigma << "   " << 1.0 / 30.0 / pow(1.1, this->depth / 2.0) << endl;
+
+
+    double sigma = node_data.sigma;
     double tau = prior.tau / pow(1.1, this->depth);
 
     // double sigma = node_data.sigma;
@@ -673,9 +678,10 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
 
     if (update_theta)
     {
-        model->samplePars(fit_info->draw_mu, this->suff_stat[0], N_Xorder, node_data.sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+        model->samplePars(fit_info->draw_mu, this->suff_stat[0], N_Xorder, sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
 
         this->sig = node_data.sigma;
+        // this->sig = 1.0;
 
         // node_data.sigma = sigma;
     }
@@ -820,8 +826,8 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, fit_info, this);
     }
 
-    NodeData left_node_data(node_data.sigma, split_point + 1);
-    NodeData right_node_data(node_data.sigma, node_data.N_Xorder - split_point - 1);
+    NodeData left_node_data(node_data.sigma / 1.1, split_point + 1);
+    NodeData right_node_data(node_data.sigma / 1.1, node_data.N_Xorder - split_point - 1);
 
     this->l->grow_from_root(fit_info, max_depth, Xorder_left_std, mtry_weight_current_tree, X_counts_left, X_num_unique_left, model, tree_ind, prior, left_node_data, update_theta, update_split_prob, grow_new_tree);
 
