@@ -81,7 +81,12 @@ void fit_std(std::vector<double> &y_std, double y_mean, xinfo_sizet &Xorder_std,
             // root_data.update_value(sigma, fit_info->n_y);
 
 
-            root_data.update_value(sigma / 30.0 / pow(1.1, 1), fit_info->n_y);
+            // initial value of sigma
+            // root_data.update_value(sigma / pow(1.1, 1), fit_info->n_y);
+
+            root_data.update_value(sigma, fit_info->n_y);
+
+
 
             trees[sweeps][tree_ind].grow_from_root(fit_info, max_depth_std[sweeps][tree_ind], Xorder_std, mtry_weight_current_tree, fit_info->X_counts, fit_info->X_num_unique, model, tree_ind, prior, root_data, true, false, true);
 
