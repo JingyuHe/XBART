@@ -661,22 +661,27 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
     this->setN_Xorder(N_Xorder);
 
 
-    // double leftnode_sigma = node_data.sigma;
-    // double rightnode_sigma = node_data.sigma;
-    // double tau = prior.tau;
+    double leftnode_sigma = node_data.sigma;
+    double rightnode_sigma = node_data.sigma;
+    double tau = prior.tau * 20;
 
-    double leftnode_sigma = node_data.sigma / 1.1;
-    double rightnode_sigma = node_data.sigma / 1.1;
-    double tau = prior.tau / pow(1.1, this->depth);
+    // restore to correct sigma when drawing theta at leaf node
+    double sigma_sampling_theta = node_data.sigma / sqrt(20);
+    double tau_sampling_theta = prior.tau;
+
+// cout << sigma_sampling_theta << endl;
+    // double leftnode_sigma = node_data.sigma / 1.1;
+    // double rightnode_sigma = node_data.sigma / 1.1;
+    // double tau = prior.tau / pow(1.1, this->depth);
     
 
     // tau is prior VARIANCE, do not take squares
 
     if (update_theta)
     {
-        model->samplePars(fit_info->draw_mu, this->suff_stat[0], N_Xorder, node_data.sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+        model->samplePars(fit_info->draw_mu, this->suff_stat[0], N_Xorder, sigma_sampling_theta, tau_sampling_theta, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
 
-        this->sig = node_data.sigma;
+        this->sig = sigma_sampling_theta;
         // this->sig = 1.0;
 
         // node_data.sigma = sigma;
@@ -741,7 +746,7 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
 
         if (update_theta)
         {
-            model->samplePars(fit_info->draw_mu, this->suff_stat[0], N_Xorder, node_data.sigma, tau, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
+            model->samplePars(fit_info->draw_mu, this->suff_stat[0], N_Xorder, sigma_sampling_theta, tau_sampling_theta, fit_info->gen, this->theta_vector, fit_info->residual_std, Xorder_std, this->prob_leaf);
         }
 
         this->l = 0;
@@ -1746,48 +1751,48 @@ void predict_from_tree(tree &tree, const double *X_std, size_t N, size_t p, std:
 
     double r = 1.05;
 
-    for (size_t i = 0; i < N; i++)
-    {
-        // bn = tree.search_bottom_std(X_std, i, p, N);
-        // restore temp containers
-        bn = &tree;
-        value = 0.0;
-        count = 0;
-        total_weight = 0.0;
+    // for (size_t i = 0; i < N; i++)
+    // {
+    //     // bn = tree.search_bottom_std(X_std, i, p, N);
+    //     // restore temp containers
+    //     bn = &tree;
+    //     value = 0.0;
+    //     count = 0;
+    //     total_weight = 0.0;
 
-        while (bn->getl() != 0)
-        {
-            // when children exists
-            count = count + 1;
+    //     while (bn->getl() != 0)
+    //     {
+    //         // when children exists
+    //         count = count + 1;
 
-            value = value + weight * pow(r, count) * model->predictFromTheta(bn->theta_vector);
-            total_weight = total_weight + weight * pow(r, count);
+    //         value = value + weight * pow(r, count) * model->predictFromTheta(bn->theta_vector);
+    //         total_weight = total_weight + weight * pow(r, count);
 
-            // cout << bn->getdepth() << "   " << count << endl;
-            // search to the bottom
-            if (*(X_std + N * bn->getv() + i) <= bn->getc())
-            {
-                bn = bn->getl();
-            }
-            else
-            {
-                bn = bn->getr();
-            }
-        }
+    //         // cout << bn->getdepth() << "   " << count << endl;
+    //         // search to the bottom
+    //         if (*(X_std + N * bn->getv() + i) <= bn->getc())
+    //         {
+    //             bn = bn->getl();
+    //         }
+    //         else
+    //         {
+    //             bn = bn->getr();
+    //         }
+    //     }
 
-        // when you reach the bottom, do not forget to add the leaf node
-        count = count + 1;
+    //     // when you reach the bottom, do not forget to add the leaf node
+    //     count = count + 1;
 
-        value = value + weight * pow(r, count) * model->predictFromTheta(bn->theta_vector);
-        total_weight = total_weight + weight * pow(r, count);
+    //     value = value + weight * pow(r, count) * model->predictFromTheta(bn->theta_vector);
+    //     total_weight = total_weight + weight * pow(r, count);
 
-        output[i] = value / total_weight;
-    }
-
-    // for(size_t i = 0; i < N; i ++ ){
-    //     bn = tree.search_bottom_std(X_std, i, p, N);
-    //     output[i] = model->predictFromTheta(bn->theta_vector);
+    //     output[i] = value / total_weight;
     // }
+
+    for(size_t i = 0; i < N; i ++ ){
+        bn = tree.search_bottom_std(X_std, i, p, N);
+        output[i] = model->predictFromTheta(bn->theta_vector);
+    }
 
     return;
 }
