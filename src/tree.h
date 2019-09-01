@@ -100,6 +100,9 @@ public:
     tree_p getp() { return p; }
     tree_p getl() { return l; }
     tree_p getr() { return r; }
+
+    size_t getdepth() { return depth;}
+
     //tree functions--------------------
     tree_p getptr(size_t nid); //get node pointer from node id, 0 if not there
     void pr(bool pc = true);   //to screen, pc is "print children"
@@ -147,6 +150,8 @@ public:
     // size_t depth();     //depth of a node
     char ntype();       //node type t:top, b:bot, n:no grandchildren i:interior (t can be b)
     bool isnog();
+
+
 
     json to_json();
     void from_json(json &j3, size_t num_classes);
