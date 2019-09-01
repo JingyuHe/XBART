@@ -660,23 +660,15 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
 
     this->setN_Xorder(N_Xorder);
 
-    // change node_data
-    // double sigma = 1.0 / 30.0 / pow(1.1, this->depth / 2.0);
 
-    // cout << node_data.sigma << "   " << sigma << "   " << 1.0 / 30.0 / pow(1.1, this->depth / 2.0) << endl;
-    double leftnode_sigma = node_data.sigma;
-    double rightnode_sigma = node_data.sigma;
-    double tau = prior.tau;
-
-    // double leftnode_sigma = node_data.sigma / 1.1;
-    // double rightnode_sigma = node_data.sigma / 1.1;
-    // double tau = prior.tau / pow(1.1, this->depth);
-
-
-    // double sigma = node_data.sigma;
+    // double leftnode_sigma = node_data.sigma;
+    // double rightnode_sigma = node_data.sigma;
     // double tau = prior.tau;
 
-    // cout << node_data.sigma << "    " << sigma << endl;
+    double leftnode_sigma = node_data.sigma / 1.1;
+    double rightnode_sigma = node_data.sigma / 1.1;
+    double tau = prior.tau / pow(1.1, this->depth);
+    
 
     // tau is prior VARIANCE, do not take squares
 
@@ -1749,6 +1741,11 @@ void predict_from_tree(tree &tree, const double *X_std, size_t N, size_t p, std:
     double value = 0.0;
 
     double total_weight = 0.0;
+
+    double weight = 1;
+
+    double r = 1.05;
+
     for (size_t i = 0; i < N; i++)
     {
         // bn = tree.search_bottom_std(X_std, i, p, N);
@@ -1763,8 +1760,8 @@ void predict_from_tree(tree &tree, const double *X_std, size_t N, size_t p, std:
             // when children exists
             count = count + 1;
 
-            value = value + 30 * pow(1.1, count) * model->predictFromTheta(bn->theta_vector);
-            total_weight = total_weight + 30 * pow(1.1, count);
+            value = value + weight * pow(r, count) * model->predictFromTheta(bn->theta_vector);
+            total_weight = total_weight + weight * pow(r, count);
 
             // cout << bn->getdepth() << "   " << count << endl;
             // search to the bottom
@@ -1781,8 +1778,8 @@ void predict_from_tree(tree &tree, const double *X_std, size_t N, size_t p, std:
         // when you reach the bottom, do not forget to add the leaf node
         count = count + 1;
 
-        value = value + 30 * pow(1.1, count) * model->predictFromTheta(bn->theta_vector);
-        total_weight = total_weight + 30 * pow(1.1, count);
+        value = value + weight * pow(r, count) * model->predictFromTheta(bn->theta_vector);
+        total_weight = total_weight + weight * pow(r, count);
 
         output[i] = value / total_weight;
     }

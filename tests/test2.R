@@ -20,7 +20,7 @@ get_XBART_params <- function(n, d, y) {
 #######################################################################
 library(XBART)
 
-set.seed(100)
+# set.seed(100)
 d = 1 # number of TOTAL variables
 dcat = 0 # number of categorical variables
 

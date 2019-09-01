@@ -171,4 +171,3 @@ legend("topleft", c("dbarts", "XBART"), col = c("orange", "slategray"), pch = c(
 stopifnot(xbart_rmse < 1)
 stopifnot(time_XBART < 5)
 
-
