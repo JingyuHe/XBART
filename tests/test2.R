@@ -58,6 +58,7 @@ fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat,
             params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1,
             mtry = params$mtry, draw_mu = TRUE,
             num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100,no_split_penality=params$no_split_penality)
+time = proc.time() - time
 
 fhat.1 = apply(fit$yhats_test[, params$burnin:params$num_sweeps], 1, mean)
 fhat = apply(fit$yhats[, params$burnin:params$num_sweeps], 1, mean)
@@ -69,4 +70,4 @@ rmse = sqrt(mean((ytest - fhat.1)^2))
 
 
 print(rmse)
-
+print(time)
