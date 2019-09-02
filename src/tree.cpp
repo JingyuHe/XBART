@@ -663,10 +663,10 @@ void tree::grow_from_root(std::unique_ptr<FitInfo> &fit_info, size_t max_depth, 
 
     double leftnode_sigma = node_data.sigma;
     double rightnode_sigma = node_data.sigma;
-    double tau = prior.tau * 20;
+    double tau = prior.tau;// * 20;
 
     // restore to correct sigma when drawing theta at leaf node
-    double sigma_sampling_theta = node_data.sigma / sqrt(20);
+    double sigma_sampling_theta = node_data.sigma;// / sqrt(20);
     double tau_sampling_theta = prior.tau;
 
 // cout << sigma_sampling_theta << endl;
@@ -1749,7 +1749,7 @@ void predict_from_tree(tree &tree, const double *X_std, size_t N, size_t p, std:
 
     double weight = 1;
 
-    double r = 1.05;
+    // double r = 1.05;
 
     // for (size_t i = 0; i < N; i++)
     // {
