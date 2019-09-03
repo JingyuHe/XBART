@@ -22,6 +22,10 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
 
         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
         {
+
+            if(verbose){
+                cout << "sweep " << sweeps << " tree " << tree_ind << endl;
+            }
             // Draw Sigma
 
             model->update_state(state, tree_ind, x_struct);
