@@ -1,6 +1,6 @@
 #######################################################################
 # set parameters of XBART
-get_XBART_params <- function(n, d, y) {
+get_XBART_params <- function(y) {
   XBART_params = list(num_trees = 30, # number of trees 
                       num_sweeps = 40, # number of sweeps (samples of the forest)
                       n_min = 1, # minimal node size
@@ -110,7 +110,7 @@ categ <- function(z, j) {
 }
 
 
-params = get_XBART_params(n, d, y)
+params = get_XBART_params(y)
 time = proc.time()
 fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat,
             params$num_trees, params$num_sweeps, params$max_depth,
