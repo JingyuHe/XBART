@@ -23,7 +23,6 @@ get_XBART_params <- function(y) {
 library(XBART)
 
 set.seed(100)
-verbose = TRUE # print the progress on screen
 new_data = TRUE # generate new data
 run_dbarts = FALSE # run dbarts
 run_xgboost = FALSE # run xgboost
@@ -31,8 +30,9 @@ run_lightgbm = FALSE # run lightgbm
 parl = TRUE # parallel computing
 
 
-
 small_case = TRUE # run simulation on small data set
+verbose = FALSE # print the progress on screen
+
 
 if (small_case) {
   n = 10000 # size of training set
