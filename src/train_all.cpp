@@ -947,6 +947,8 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     ini_matrix(Xorder_std, N, p);
 
     std::vector<double> y_std(N);
+    std::vector<double> z_std(N);
+    std::vector<double> b(N);
     double y_mean = 0.0;
 
     Rcpp::NumericMatrix X_std(N, p);
@@ -954,10 +956,20 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
 
     //    rcpp_to_std2(y, X, Xtest, y_std, y_mean, X_std, Xtest_std, Xorder_std);
     arma_to_std(y, y_std);
+    arma_to_std(z, z_std);
     arma_to_rcpp(X, X_std);
     arma_to_std_ordered(X, Xorder_std);
     y_mean = compute_mean(y_std);
     ///////////////////////////////////////////////////////////////////
+
+    double bscale0 = -1;
+    double bscale1 = 1;
+    // assuming we have presorted data (treated individuals first, then control group)
+
+    for (size_t i = 0; i < N; i++)
+    {
+        b[i] = z[i] * bscale1 + (1 - z[i]) * bscale0;
+    }
 
     // double *ypointer = &y_std[0];
 
@@ -1007,7 +1019,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     std::unique_ptr<X_struct> x_struct_pr(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_pr, num_trees_pr));
 
     // initialize X_struct for the treatment term
-    std::unique_ptr<X_struct> x_struct_trt(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_trt, num_trees_trt));
+    std::unique_ptr<X_struct> x_struct_trt(new X_struct(Xpointer, &y_std, &b, N, Xorder_std, p_categorical, p_continuous, &initial_theta_trt, num_trees_trt));
 
     // mcmc_loop returns tauhat [N x sweeps] matrix
     mcmc_loop_xbcf(Xorder_std, verbose, tauhats_xinfo, sigma_draw_xinfo_pr, sigma_draw_xinfo_trt, *trees_pr, *trees_trt, no_split_penality,
