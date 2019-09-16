@@ -2,7 +2,7 @@
 
 // BCF main loop
 // input includes information about two sets of trees (one for prognostic term, the other for treatment term)
-// thus there are two of each tree-object, model-object, state-object
+// thus there are two of each tree-object, model-object, state-object, x_struct-object
 
 void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
                     matrix<double> &tauhats_xinfo,
@@ -13,7 +13,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
                     double no_split_penality,
                     std::unique_ptr<State> &state_ps,
                     std::unique_ptr<State> &state_trt,
-                    xbcfModel *model_ps,
+                    NormalModel *model_ps,
                     xbcfModel *model_trt,
                     std::unique_ptr<X_struct> &x_struct_ps,
                     std::unique_ptr<X_struct> &x_struct_trt)
@@ -41,7 +41,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
     {
       // Draw Sigma
 
-      model_ps->update_state(state_ps, tree_ind, x_struct_ps);
+      model_ps->update_state(state_ps, tree_ind, x_struct_ps); // state_ps->sigma and state_ps->sigma2 are updated via state->update_sigma
 
       sigma_draw_xinfo_ps[sweeps][tree_ind] = state_ps->sigma;
 
@@ -85,7 +85,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
 
       model_trt->update_state(state_trt, tree_ind, x_struct_trt);
 
-      sigma_draw_xinfo_trt[sweeps][tree_ind] = state_trt->sigma;
+      // sigma_draw_xinfo_trt[sweeps][tree_ind] = state_trt->sigma; // commented because purpose of the line is unclear
 
       if (state_trt->use_all && (sweeps > state_trt->burnin) && (state_trt->mtry != state_trt->p))
       {

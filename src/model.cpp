@@ -169,6 +169,20 @@ void NormalModel::ini_residual_std(std::unique_ptr<State> &state)
     return;
 }
 
+// NEW
+// called in xbcf_mcmc_loop.cpp
+// called from xbcf_mcmc_loop
+// passes over the residual from the prognostic term forest to the treatment term forest
+void NormalModel::transfer_residual_std(std::unique_ptr<State> &state_trt, std::unique_ptr<State> &state_ps)
+{
+    for (size_t i = 0; i < state_ps->residual_std[0].size(); i++)
+    {
+        state_ps->residual_std[0][i] = state_trt->residual_std[0][i];
+    }
+
+    return;
+}
+
 void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees)
 {
     matrix<double> output;
@@ -187,7 +201,6 @@ void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t 
             {
                 yhats_test_xinfo[sweeps][data_ind] += output[i][0];
             }
-
         }
     }
     return;

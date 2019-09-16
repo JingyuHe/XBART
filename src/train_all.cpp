@@ -155,7 +155,7 @@ double compute_mean(const std::vector<double> &vec)
 
     for (size_t i = 0; i < length; i++)
     {
-        mean = mean + y_std[i];
+        mean = mean + vec[i];
     }
     mean = mean / (double)length;
     return mean;
@@ -988,7 +988,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
         (*trees_trt)[i] = vector<tree>(num_trees_trt);
     }
     // define the model for the prognostic term
-    xbcfModel *model_pr = new xbcfModel(kap_pr, s_pr, tau_pr, alpha_pr, beta_pr);
+    NormalModel *model_pr = new NormalModel(kap_pr, s_pr, tau_pr, alpha_pr, beta_pr);
     model_pr->setNoSplitPenality(no_split_penality);
 
     // define the model for the treatment term

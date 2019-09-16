@@ -9,6 +9,9 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////
 
+// called in tree.cpp
+// called from calcSuffStat_categorical, calcSuffStat_continuous
+// adds residual to suff stats for normalmodel (updates the suff stats by adding new values to the old ones)
 void xbcfModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
 {
   // I have to pass matrix<double> &residual_std, size_t index_next_obs
@@ -18,6 +21,9 @@ void xbcfModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs,
   return;
 }
 
+// called in tree.cpp
+// called from GFR
+// samples theta for leafs (does it depend on the task or it's really just a matter of prior choice?)
 void xbcfModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
 {
   std::normal_distribution<double> normal_samp(0.0, 1.0);
@@ -31,6 +37,9 @@ void xbcfModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &s
   return;
 }
 
+// called in xbcf_mcmc_loop.cpp
+// called from xbcf_mcmc_loop
+// updates sigma and sigma2 (is it for normalmodel only?)
 void xbcfModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
   // Draw Sigma
@@ -50,6 +59,9 @@ void xbcfModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std
   return;
 }
 
+// called in xbcf_mcmc_loop.cpp
+// called from xbcf_mcmc_loop
+// initializes root suffstats
 void xbcfModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
 {
   // sum of y
@@ -61,6 +73,10 @@ void xbcfModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vec
   return;
 }
 
+// called in tree.cpp
+// called from split_xorder_std_continuous, split_xorder_std_categorical
+// updates node suffstats for the split (or after the split? no, doesn't seem so)
+// it is executed after suffstats for the node has been initialized by suff_stats_ini [defined in tree.h]
 void xbcfModel::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
   suff_stat[0] += residual_std[0][Xorder_std[split_var][row_ind]];
@@ -69,6 +85,10 @@ void xbcfModel::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double
   return;
 }
 
+// called in tree.cpp
+// called from split_xorder_std_continuous, split_xorder_std_categorical
+// updates the other side node's side suffstats for the split
+// probably should be completely changed for xbcf (no, it's just vector subtraction)
 void xbcfModel::calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side)
 {
 
@@ -86,6 +106,9 @@ void xbcfModel::calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat
   return;
 }
 
+// called in xbcf_mcmc_loop.cpp
+// called from xbcf_mcmc_loop
+// updates partial residual for the next tree to fit
 void xbcfModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
 {
   size_t next_index = tree_ind + 1;
@@ -105,6 +128,9 @@ void xbcfModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_
   return;
 }
 
+// called in tree.cpp
+// called from GFR, calculate_loglikelihood_continuous, calculate_loglikelihood_categorical, calculate_loglikelihood_nosplit
+// computes likelihood of a split
 double xbcfModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const
 {
   // likelihood equation,
@@ -159,6 +185,9 @@ double xbcfModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<do
 //     return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
 // }
 
+// called in xbcf_mcmc_loop.cpp
+// called from xbcf_mcmc_loop
+// initializes the residual for 0th tree
 void xbcfModel::ini_residual_std(std::unique_ptr<State> &state)
 {
   double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
@@ -169,8 +198,11 @@ void xbcfModel::ini_residual_std(std::unique_ptr<State> &state)
   return;
 }
 
-// passing over residual from the prognostic term forest to the treatment term forest
-void xbcfModel::transfer_residual_std(std::unique_ptr<State> &state_trt, std::unique_ptr<State> &state_ps)
+// NEW
+// called in xbcf_mcmc_loop.cpp
+// called from xbcf_mcmc_loop
+// passes over the residual from the prognostic term forest to the treatment term forest
+void xbcfModel::transfer_residual_std(std::unique_ptr<State> &state_ps, std::unique_ptr<State> &state_trt)
 {
   for (size_t i = 0; i < state_trt->residual_std[0].size(); i++)
   {

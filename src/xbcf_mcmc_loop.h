@@ -2,6 +2,7 @@
 #include "tree.h"
 #include "forest.h"
 #include <chrono>
+#include "model.h"
 #include "xbcf_model.h"
 #include "node_data.h"
 #include "state.h"
@@ -18,7 +19,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
                     double no_split_penality,
                     std::unique_ptr<State> &state_ps,
                     std::unique_ptr<State> &state_trt,
-                    xbcfModel *model_ps,
+                    NormalModel *model_ps,
                     xbcfModel *model_trt,
-                    std::unique_ptr<X_struct> &x_struct_pr,
+                    std::unique_ptr<X_struct> &x_struct_ps,
                     std::unique_ptr<X_struct> &x_struct_trt);

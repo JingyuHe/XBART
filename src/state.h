@@ -49,6 +49,8 @@ public:
 
     // residual standard deviation
     double sigma;
+    double sigma_ctrl;
+    double sigma_trt;
     double sigma2; // sigma squared
 
     void update_sigma(double sigma)
@@ -57,7 +59,14 @@ public:
         this->sigma2 = pow(sigma, 2);
         return;
     }
-    
+
+    void update_sigma(double sigma_ctrl, double sigma_trt)
+    {
+        this->sigma_ctrl = sigma_ctrl;
+        this->sigma_trt = sigma_trt;
+        return;
+    }
+
     State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual)
     {
 
@@ -119,8 +128,6 @@ public:
 class NormalState : public State
 {
 public:
-
-
     NormalState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry, X_std, num_sweeps, sample_weights_flag, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual)
     {
         this->sigma = sigma;

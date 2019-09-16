@@ -138,10 +138,11 @@ public:
 
     // double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const;
 
+    void transfer_residual_std(std::unique_ptr<State> &state_trt, std::unique_ptr<State> &state_ps);
+
     void ini_residual_std(std::unique_ptr<State> &state);
 
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
-
 };
 
 class CLTClass : public Model
@@ -471,7 +472,7 @@ public:
         // fill the suff_stat_model with a value
         // in function call, a = 0.0 to reset sufficient statistics vector
 
-        size_t n = xorder.size();   
+        size_t n = xorder.size();
         size_t x_order_0 = xorder[0];
         double current_fit_val = total_fit[x_order_0];
 
@@ -527,7 +528,7 @@ public:
         if (next_index == M)
         {
             next_index = 0;
-        }  
+        }
         residual_std = residual_std - predictions_std[tree_ind] + predictions_std[next_index];
         return;
     }
