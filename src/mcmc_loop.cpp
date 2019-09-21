@@ -165,87 +165,63 @@ void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sig
 void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitClass *model, std::unique_ptr<X_struct> &x_struct)
 {
 
-    // if (parallel)
-    //     thread_pool.start();
 
-    // // initialize Phi
-    // std::vector<double> Phi(N,1.0);
+    if (state->parallel)
+        thread_pool.start();
 
-    //   // initialize partialFits
-    // std::vector<std::vector<double>> partialFits(N, std::vector<double>(n_class, 1.0));
-
-    // model->slop = &partialFits
-    // model->phi = &Phi
-
-    // // initialize predcitions and predictions_test
-    // for (size_t ii = 0; ii < num_trees; ii++)
-    // {
-    //     std::fill(state->predictions_std[ii].begin(), state->predictions_std[ii].end(), y_mean / (double)num_trees);
-    // }
-
-    // // Residual for 0th tree
+    // Residual for 0th tree
     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
+    model->ini_residual_std(state);
 
-    // double sigma = 0.0;
+    for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
+    {
 
-    // for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
-    // {
+        if (verbose == true)
+        {
+            COUT << "--------------------------------" << endl;
+            COUT << "number of sweeps " << sweeps << endl;
+            COUT << "--------------------------------" << endl;
+        }
 
-    //     if (verbose == true)
-    //     {
-    //         COUT << "--------------------------------" << endl;
-    //         COUT << "number of sweeps " << sweeps << endl;
-    //         COUT << "--------------------------------" << endl;
-    //     }
+        for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
+        {
 
-    //     for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
-    //     {
-    //         std::cout << "Tree " << tree_ind << std::endl;
-    //         state->yhat_std = state->yhat_std - state->predictions_std[tree_ind];
+            if(verbose){
+                cout << "sweep " << sweeps << " tree " << tree_ind << endl;
+            }
+            // Draw latents -- do last?
 
-    //         model->total_fit = state->yhat_std;
+            model->update_state(state, tree_ind, x_struct);
 
-    //         if ((sweeps > state->burnin) && (mtry < p))
-    //         {
-    //             state->use_all = false;
-    //         }
+            //sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
 
-    //         // clear counts of splits for one tree
-    //         std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
+            if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
+            {
+                state->use_all = false;
+            }
 
-    //         //COUT << state->split_count_current_tree << endl;
+            // clear counts of splits for one tree
+            std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
 
-    //         // subtract old tree for sampling case
-    //         if(sample_weights_flag){
-    //             mtry_weight_current_tree = mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
-    //         }
+            // subtract old tree for sampling case
+            if (state->sample_weights_flag)
+            {
+                state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
+            }
 
-    // // set sufficient statistics at root node first
-    // trees[sweeps][tree_ind].suff_stat[0] = sum_vec(state->residual_std) / (double)N;
-    // trees[sweeps][tree_ind].suff_stat[1] = sum_squared(state->residual_std);
+            model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
-    //         trees[sweeps][tree_ind].grow_from_root(state, sum_vec(state->residual_std) / (double)N, 0, max_depth_std[sweeps][tree_ind], n_min, Ncutpoints, tau, sigma, alpha, beta, parallel, Xorder_std, Xpointer, mtry, mtry_weight_current_tree, p_categorical, p_continuous, x_struct->X_counts, x_struct->X_num_unique, model, tree_ind, sample_weights_flag);
+            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
-    //         mtry_weight_current_tree = mtry_weight_current_tree + state->split_count_current_tree;
+            state->update_split_counts(tree_ind);
 
-    //         state->split_count_all_tree[tree_ind] = state->split_count_current_tree;
+            // update partial fits for the next tree 
+            model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
+        }
+    }
+    thread_pool.stop();
 
-    //         // fit_new_std(trees[sweeps][tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
-    //         predict_from_datapointers(Xpointer, N, tree_ind, state->predictions_std[tree_ind], state->data_pointers,model);
 
-    //        //state_sweep(const matrix<double> &predictions_std, size_t tree_ind, size_t M, std::vector<double> &residual_std)
-    //         // update residual, now it's residual of m trees
-    //         model->state_sweep(state->predictions_std, tree_ind, num_trees, slop);
-
-    //         state->yhat_std = state->yhat_std + state->predictions_std[tree_ind];
-
-    //         std::cout << "stuff stat" << model->suff_stat_total << std::endl;
-    //     }
-    //     // save predictions to output matrix
-    //     yhats_xinfo[sweeps] = state->yhat_std;
-    // }
-    // thread_pool.stop();
-    // delete model;
 }
 
 void mcmc_loop_probit(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, ProbitClass *model, std::unique_ptr<X_struct> &x_struct)
