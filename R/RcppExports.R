@@ -8,12 +8,14 @@ check_scalar <- function(x, obj_name) {
 check_positive_integer <- function(x, obj_name) {
     if (x <= 0 || length(x) != 1L) {
         error_message = paste(obj_name, " should be a positive integer.\n")
+        
     }
 }
 
 check_non_negative_integer <- function(x, obj_name) {
     if (x < 0 || length(x) != 1L) {
         error_message = paste(obj_name, " should be a non-negative integer.\n")
+        stop(error_message)
     }
 }
 
@@ -75,9 +77,13 @@ XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
 
     if (mtry > dim(X)[2]){
         mtry = dim(X)[2]
-        cat("mtry cannot exceed p, set to mtry = p. ")
+        cat("mtry cannot exceed p, set to mtry = p. \n")
     }
-    
+
+    if(p_categorical > dim(X)[2]){
+        p_categorical = dim(X)[2]
+        cat("p_categorical cannot exceed p, set to p_categorical = p. \n")
+    }
     # check input type
     
     check_non_negative_integer(burnin, "burnin")
@@ -161,7 +167,12 @@ XBART.CLT <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
     
     if (mtry > dim(X)[2]){
         mtry = dim(X)[2]
-        cat("mtry cannot exceed p, set to mtry = p. ")
+        cat("mtry cannot exceed p, set to mtry = p. \n")
+    }
+
+    if(p_categorical > dim(X)[2]){
+        p_categorical = dim(X)[2]
+        cat("p_categorical cannot exceed p, set to p_categorical = p. \n")
     }
     # check input type
     
@@ -245,7 +256,12 @@ XBART.multinomial <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 25
     
     if (mtry > dim(X)[2]){
         mtry = dim(X)[2]
-        cat("mtry cannot exceed p, set to mtry = p. ")
+        cat("mtry cannot exceed p, set to mtry = p. \n")
+    }    
+    
+    if(p_categorical > dim(X)[2]){
+        p_categorical = dim(X)[2]
+        cat("p_categorical cannot exceed p, set to p_categorical = p. \n")
     }
     # check input type
     
@@ -330,7 +346,12 @@ XBART.Probit <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
     
     if (mtry > dim(X)[2]){
         mtry = dim(X)[2]
-        cat("mtry cannot exceed p, set to mtry = p. ")
+        cat("mtry cannot exceed p, set to mtry = p. \n")
+    }
+
+    if(p_categorical > dim(X)[2]){
+        p_categorical = dim(X)[2]
+        cat("p_categorical cannot exceed p, set to p_categorical = p. \n")
     }
     # check input type
     
@@ -440,7 +461,12 @@ XBART_MH <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
     
     if (mtry > dim(X)[2]){
         mtry = dim(X)[2]
-        cat("mtry cannot exceed p, set to mtry = p. ")
+        cat("mtry cannot exceed p, set to mtry = p. \n")
+    }
+
+    if(p_categorical > dim(X)[2]){
+        p_categorical = dim(X)[2]
+        cat("p_categorical cannot exceed p, set to p_categorical = p. \n")
     }
     # check input type
     
