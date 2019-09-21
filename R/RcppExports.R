@@ -72,6 +72,11 @@ XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
         mtry = dim(X)[2]
         cat("mtry = p, use all variables. \n")
     }
+
+    if (mtry > dim(X)[2]){
+        mtry = dim(X)[2]
+        cat("mtry cannot exceed p, set to mtry = p. ")
+    }
     
     # check input type
     
@@ -154,6 +159,10 @@ XBART.CLT <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
         cat("mtry = p, use all variables. \n")
     }
     
+    if (mtry > dim(X)[2]){
+        mtry = dim(X)[2]
+        cat("mtry cannot exceed p, set to mtry = p. ")
+    }
     # check input type
     
     check_non_negative_integer(burnin, "burnin")
@@ -234,6 +243,10 @@ XBART.multinomial <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 25
         cat("mtry = p, use all variables. \n")
     }
     
+    if (mtry > dim(X)[2]){
+        mtry = dim(X)[2]
+        cat("mtry cannot exceed p, set to mtry = p. ")
+    }
     # check input type
     
     check_non_negative_integer(burnin, "burnin")
@@ -315,6 +328,10 @@ XBART.Probit <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
         cat("mtry = p, use all variables. \n")
     }
     
+    if (mtry > dim(X)[2]){
+        mtry = dim(X)[2]
+        cat("mtry cannot exceed p, set to mtry = p. ")
+    }
     # check input type
     
     check_non_negative_integer(burnin, "burnin")
@@ -421,6 +438,10 @@ XBART_MH <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
         cat("mtry = p, use all variables. \n")
     }
     
+    if (mtry > dim(X)[2]){
+        mtry = dim(X)[2]
+        cat("mtry cannot exceed p, set to mtry = p. ")
+    }
     # check input type
     
     check_non_negative_integer(burnin, "burnin")
