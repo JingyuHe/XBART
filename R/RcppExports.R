@@ -82,7 +82,7 @@ XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
 
     if(p_categorical > dim(X)[2]){
         p_categorical = dim(X)[2]
-        cat("p_categorical cannot exceed p, set to p_categorical = p. \n")
+        stop("p_categorical cannot exceed p")
     }
     # check input type
     
@@ -172,7 +172,7 @@ XBART.CLT <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
 
     if(p_categorical > dim(X)[2]){
         p_categorical = dim(X)[2]
-        cat("p_categorical cannot exceed p, set to p_categorical = p. \n")
+        stop("p_categorical cannot exceed p")
     }
     # check input type
     
@@ -261,7 +261,7 @@ XBART.multinomial <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 25
     
     if(p_categorical > dim(X)[2]){
         p_categorical = dim(X)[2]
-        cat("p_categorical cannot exceed p, set to p_categorical = p. \n")
+        stop("p_categorical cannot exceed p")
     }
     # check input type
     
@@ -351,7 +351,7 @@ XBART.Probit <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
 
     if(p_categorical > dim(X)[2]){
         p_categorical = dim(X)[2]
-        cat("p_categorical cannot exceed p, set to p_categorical = p. \n")
+        stop("p_categorical cannot exceed p")
     }
     # check input type
     
@@ -466,7 +466,7 @@ XBART_MH <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
 
     if(p_categorical > dim(X)[2]){
         p_categorical = dim(X)[2]
-        cat("p_categorical cannot exceed p, set to p_categorical = p. \n")
+        stop("p_categorical cannot exceed p")
     }
     # check input type
     
