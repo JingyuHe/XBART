@@ -294,7 +294,9 @@ XBCF <- function(y, X, z,
         no_split_penality = log(num_cutpoints)
     }
 
-    obj = .Call(`_XBCF`, y, X, z,
+    index = order(z, decreasing=TRUE)
+
+    obj = .Call(`_XBCF`, y[index], X[index,], z[index],
                          num_sweeps, burnin,
                          max_depth, Nmin,
                          num_cutpoints,
