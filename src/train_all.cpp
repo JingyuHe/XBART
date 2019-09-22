@@ -1019,7 +1019,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     std::unique_ptr<X_struct> x_struct_pr(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_pr, num_trees_pr));
 
     // initialize X_struct for the treatment term
-    std::unique_ptr<X_struct> x_struct_trt(new X_struct(Xpointer, &y_std, &b, N, Xorder_std, p_categorical, p_continuous, &initial_theta_trt, num_trees_trt));
+    std::unique_ptr<X_struct> x_struct_trt(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_trt, num_trees_trt));
 
     // mcmc_loop returns tauhat [N x sweeps] matrix
     mcmc_loop_xbcf(Xorder_std, verbose, tauhats_xinfo, sigma_draw_xinfo_pr, sigma_draw_xinfo_trt, *trees_pr, *trees_trt, no_split_penality,
