@@ -966,12 +966,18 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     double bscale0 = -1;
     double bscale1 = 1;
 
+    size_t n_trt = 0; // number of treated individuals
+
     // assuming we have presorted data (treated individuals first, then control group)
 
     for (size_t i = 0; i < N; i++)
     {
         b[i] = z[i] * bscale1 + (1 - z[i]) * bscale0;
         sigma_vec[i] = 1.0;
+        if (z[i] == 1)
+        {
+            n_trt++;
+        }
     }
 
     // double *ypointer = &y_std[0];
@@ -1016,7 +1022,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
 
     // State settings for the treatment term
     std::vector<double> initial_theta_trt(1, y_mean / (double)num_trees_trt);
-    std::unique_ptr<State> state_trt(new xbcfState(Xpointer, Xorder_std, N, p, num_trees_trt, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, &b, sigma_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
+    std::unique_ptr<State> state_trt(new xbcfState(Xpointer, Xorder_std, N, n_trt, p, num_trees_trt, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, &b, sigma_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
 
     // initialize X_struct for the prognostic term
     std::unique_ptr<X_struct> x_struct_pr(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_pr, num_trees_pr));

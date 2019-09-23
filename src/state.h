@@ -41,6 +41,7 @@ public:
     const double *X_std;              // pointer to original data
     const std::vector<double> *y_std; // pointer to y data
     std::vector<double> *b_std;       // the scaled treatment vector            TODO: move to xbcfClass
+    size_t n_trt;                     // the number of treated individuals      TODO: move to xbcfClass
     size_t max_depth;
     size_t num_trees;
     size_t num_sweeps;
@@ -191,9 +192,10 @@ public:
 class xbcfState : public State
 {
 public:
-    xbcfState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> *b_std, std::vector<double> sigma_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry, X_std, num_sweeps, sample_weights_flag, y_std, b_std, sigma_vec, max_depth, ini_var_yhat, burnin, dim_residual)
+    xbcfState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t n_trt, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> *b_std, std::vector<double> sigma_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry, X_std, num_sweeps, sample_weights_flag, y_std, b_std, sigma_vec, max_depth, ini_var_yhat, burnin, dim_residual)
     {
         this->sigma_vec = sigma_vec;
+        this->n_trt = n_trt;
     }
 };
 
