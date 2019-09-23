@@ -64,9 +64,19 @@ public:
     }
 
     // sigma update for xbcfModel       TODO: move to xbcfClass
-    void update_sigma(std::vector<double> sigma_vec)
+    void update_sigma(double sigma0, double sigma1)
     {
-        this->sigma_vec = sigma_vec;
+        // update sigma for all individuals in the treatment group
+        for (size_t i = 0; i < this->n_trt - 1; i++)
+        {
+            this->sigma_vec[i] = sigma1;
+        }
+
+        // update sigma for all individuals in the control group
+        for (size_t i = this->n_trt; i < this->n_y; i++)
+        {
+            this->sigma_vec[i] = sigma0;
+        }
         return;
     }
 

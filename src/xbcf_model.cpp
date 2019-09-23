@@ -47,15 +47,29 @@ void xbcfModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std
 
   // residual_std is only 1 dimensional for regression model
 
-  std::vector<double> full_residual(state->n_y);
+  std::vector<double> full_residual_trt(state->n_trt);               // residual for the treated group
+  std::vector<double> full_residual_ctrl(state->n_y - state->n_trt); // residual for the control group
 
-  for (size_t i = 0; i < state->residual_std[0].size(); i++)
+  for (size_t i = 0; i < state->n_trt - 1; i++)
   {
-    full_residual[i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
+    full_residual_trt[i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
   }
 
-  std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(full_residual) + s));
-  state->update_sigma(1.0 / sqrt(gamma_samp(state->gen)));
+  for (size_t i = state->n_trt; i < state->residual_std[0].size(); i++)
+  {
+    full_residual_ctrl[i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
+  }
+
+  // compute sigma1 for the treated group
+  std::gamma_distribution<double> gamma_samp1((state->n_trt + kap) / 2.0, 2.0 / (sum_squared(full_residual_trt) + s));
+  double sigma1 = 1.0 / sqrt(gamma_samp1(state->gen));
+
+  // compute sigma0 for the control group
+  std::gamma_distribution<double> gamma_samp0((state->n_y - state->n_trt + kap) / 2.0, 2.0 / (sum_squared(full_residual_ctrl) + s));
+  double sigma0 = 1.0 / sqrt(gamma_samp0(state->gen));
+
+  //update sigma vector for the state
+  state->update_sigma(sigma0, sigma1);
   return;
 }
 
