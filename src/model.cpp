@@ -318,6 +318,9 @@ void LogitModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::ve
     // number of observations in the node
     suff_stat[2] = state->n_y;
     */
+    
+    // JINGYU check -- should i always plan to resize this vector?
+    suff_stat.resize(2*dim_theta);
     std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
     for(size_t i=0; i<state->n_y; ++i) {
         incSuffStat(state->residual_std, i, suff_stat);
@@ -399,22 +402,24 @@ double LogitModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<d
     //could rewrite without all these local assigments if that helps...
     std::vector<double> local_suff_stat = suff_stat_all; // no split
   
-  COUT << "LIK" << endl;
+  //COUT << "LIK" << endl;
+  
+  //COUT << "all suff stat dim " << suff_stat_all.size();
 
     if(!no_split)
     {
         if (left_side)
         {
-          COUT << "LEFTWARD HO" << endl;
-          COUT << "local suff stat dim " << local_suff_stat.size() << endl;
-          COUT << "temp suff stat dim " << temp_suff_stat.size() << endl;
+          //COUT << "LEFTWARD HO" << endl;
+          //COUT << "local suff stat dim " << local_suff_stat.size() << endl;
+          //COUT << "temp suff stat dim " << temp_suff_stat.size() << endl;
             local_suff_stat = temp_suff_stat;
         }
         else
         {
-          COUT << "RIGHT HO" << endl;
-          COUT << "local suff stat dim " << local_suff_stat.size() << endl;
-          COUT << "temp suff stat dim " << temp_suff_stat.size() << endl;
+          //COUT << "RIGHT HO" << endl;
+          //COUT << "local suff stat dim " << local_suff_stat.size() << endl;
+          //COUT << "temp suff stat dim " << temp_suff_stat.size() << endl;
             local_suff_stat = suff_stat_all - temp_suff_stat;
 
             // ntau = (suff_stat_all[2] - N_left - 1) * tau;
