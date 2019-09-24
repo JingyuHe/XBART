@@ -74,6 +74,55 @@ void rcpp_to_std2(arma::mat y, arma::mat X, arma::mat Xtest, std::vector<double>
     return;
 }
 
+void rcpp_to_std2(arma::mat X, arma::mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp::NumericMatrix &Xtest_std, matrix<size_t> &Xorder_std)
+{
+  // The goal of this function is to convert RCPP object to std objects
+  
+  // TODO: Refactor code so for loops are self contained functions
+  // TODO: Why RCPP and not std?
+  // TODO: inefficient Need Replacement?
+  
+  size_t N = X.n_rows;
+  size_t p = X.n_cols;
+  size_t N_test = Xtest.n_rows;
+  
+  // X_std
+  for (size_t i = 0; i < N; i++)
+  {
+    for (size_t j = 0; j < p; j++)
+    {
+      X_std(i, j) = X(i, j);
+    }
+  }
+  
+  //X_std_test
+  for (size_t i = 0; i < N_test; i++)
+  {
+    for (size_t j = 0; j < p; j++)
+    {
+      Xtest_std(i, j) = Xtest(i, j);
+    }
+  }
+  
+  // Create Xorder
+  // Order
+  arma::umat Xorder(X.n_rows, X.n_cols);
+  for (size_t i = 0; i < X.n_cols; i++)
+  {
+    Xorder.col(i) = arma::sort_index(X.col(i));
+  }
+  // Create
+  for (size_t i = 0; i < N; i++)
+  {
+    for (size_t j = 0; j < p; j++)
+    {
+      Xorder_std[j][i] = Xorder(i, j);
+    }
+  }
+  
+  return;
+}
+
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List XBART(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true)
@@ -392,14 +441,18 @@ Rcpp::List XBART_multinomial(Rcpp::IntegerVector y, int num_class, arma::mat X, 
 
     std::vector<size_t> y_size_t(N);
     for(size_t i=0; i<N; ++i) y_size_t[i] = y[i];
-
+    
+    
+    //TODO: check if I need to carry this
     std::vector<double> y_std(N);
     double y_mean = 0.0;
+    for(size_t i=0; i<N; ++i) y_std[i] = y[i];
 
     Rcpp::NumericMatrix X_std(N, p);
     Rcpp::NumericMatrix Xtest_std(N_test, p);
 
-    rcpp_to_std2(y, X, Xtest, y_std, y_mean, X_std, Xtest_std, Xorder_std);
+    //dumb little hack to make this work, should write a new one of these
+    rcpp_to_std2(X, Xtest, X_std, Xtest_std, Xorder_std);
 
     ///////////////////////////////////////////////////////////////////
 
