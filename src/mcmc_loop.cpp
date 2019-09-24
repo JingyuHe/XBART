@@ -1,4 +1,5 @@
 #include "mcmc_loop.h"
+#include <Rcpp.h>
 
 void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct)
 {
@@ -176,6 +177,8 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
     // Residual for 0th tree
     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
     model->ini_residual_std(state);
+    
+
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {
@@ -194,11 +197,13 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
                 cout << "sweep " << sweeps << " tree " << tree_ind << endl;
             }
             // Draw latents -- do last?
+            
+            //Rcpp::Rcout << "Updating state";
 
             model->update_state(state, tree_ind, x_struct);
 
             //sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
-
+            
             if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
             {
                 state->use_all = false;
@@ -212,12 +217,18 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
             {
                 state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
             }
-
+            
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
+            COUT << "GFR" << endl;
+            
             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-
+            
+            COUT << "GFR end" << endl;
+            
             state->update_split_counts(tree_ind);
+            
+            COUT << "STATE SWEEP";
 
             // update partial fits for the next tree 
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);

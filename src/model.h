@@ -472,6 +472,8 @@ public:
 
     LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi) : Model(num_classes, 2*num_classes)
     {
+      this->y_size_t = y_size_t;
+      this->phi = phi;
         this->tau_a = tau_a;
         this->tau_b = tau_b;
         this->alpha = alpha;

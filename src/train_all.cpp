@@ -480,9 +480,14 @@ Rcpp::List XBART_multinomial(Rcpp::IntegerVector y, int num_class, arma::mat X, 
     double tau_a = 1/tau + 0.5;
     double tau_b = 1/tau;
     std::vector<double> phi(N);
+    for(size_t i=0; i<N; ++i) phi[i] = 1;
     
-    LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, (&y_size_t), (&phi));
+    LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi);
+    COUT << model->y_size_t->size();
+    COUT << model->phi->size();
     model->setNoSplitPenality(no_split_penality);
+    
+
 
     // State settings
     // Logit doesn't need an inherited state class at the moment
@@ -496,8 +501,12 @@ Rcpp::List XBART_multinomial(Rcpp::IntegerVector y, int num_class, arma::mat X, 
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
+
+    
     ////////////////////////////////////////////////////////////////
     mcmc_loop_multinomial(Xorder_std, verbose, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
+
+    
 
     // TODO: Implement predict OOS
     //model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);

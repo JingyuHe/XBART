@@ -287,6 +287,8 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     //std::vector<double> sum_fits(state->n_y);
 
     double sum_fits = 0;
+  
+  
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
         sum_fits = 0;
@@ -294,10 +296,12 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         {
             sum_fits += state->residual_std[j][i]*(*(x_struct->data_pointers[tree_ind][i]))[j];
         }
-
+        
+        //COUT << "got scale";
         std::gamma_distribution<double> gammadist(1, 1);
-
+        //COUT << "draw phi ";
         (*phi)[i] = gammadist(state->gen) / sum_fits;
+        //COUT << "draw phi complete";
     }
 
     return;
@@ -393,7 +397,9 @@ double LogitModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<d
     /////////////////////////////////////////////////////////////////////////
 
     //could rewrite without all these local assigments if that helps...
-    std::vector<double> local_suff_stat = suff_stat_all;
+    std::vector<double> local_suff_stat = suff_stat_all; // no split
+  
+  COUT << "LIK";
 
     if(!no_split)
     {
@@ -477,8 +483,6 @@ double LogitModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<d
 
 //     return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
 // }
-
-//HERE
 
 void LogitModel::ini_residual_std(std::unique_ptr<State> &state)
 {
