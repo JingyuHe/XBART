@@ -162,7 +162,11 @@ void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sig
     // delete model;
 }
 
-void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitClass *model, std::unique_ptr<X_struct> &x_struct)
+void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, 
+                           matrix<double> &sigma_draw_xinfo, 
+                           vector<vector<tree>> &trees, double no_split_penality, 
+                           std::unique_ptr<State> &state, LogitClass *model, 
+                           std::unique_ptr<X_struct> &x_struct)
 {
 
 

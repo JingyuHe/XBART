@@ -230,7 +230,7 @@ void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t 
 
 
 //incSuffStat should take a state as its first argument
-void Logit::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
+void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
 {
     // I have to pass matrix<double> &residual_std, size_t index_next_obs
     // which allows more flexibility for multidimensional residual_std
@@ -239,8 +239,8 @@ void Logit::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std
 
         for (size_t j = 0; j < dim_theta; ++j)
         {
-            if (*y_size_t[index_next_obs]==j) suffstats[j] += 1; 
-            suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[index_next_obs,j];
+            if ((*y_size_t)[index_next_obs]==j) suffstats[j] += 1; 
+            suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
         }
 
     return;
@@ -259,7 +259,7 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 
             std::gamma_distribution<double> gammadist(tau_a + r, 1);
 
-            theta_vector[j] = gammadist(generator) / (tau_b + s);
+            theta_vector[j] = gammadist(state->gen) / (tau_b + s);
         }
 
     return;
@@ -297,7 +297,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 
         std::gamma_distribution<double> gammadist(1, 1);
 
-        (*phi)[i] = gammadist(generator) / sum_fits;
+        (*phi)[i] = gammadist(state->gen) / sum_fits;
     }
 
     return;
@@ -314,7 +314,7 @@ void LogitModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::ve
     // number of observations in the node
     suff_stat[2] = state->n_y;
     */
-    suff_stat.fill(0.0);
+    std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
     for(size_t i=0; i<state->n_y; ++i) {
         incSuffStat(state->residual_std, i, suff_stat);
     }
@@ -330,7 +330,7 @@ void LogitModel::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<doubl
     suff_stat[2] += 1;
     */
 
-    incSuffStat(state->residual_std, Xorder_std[split_var][row_ind], suff_stat);
+    incSuffStat(residual_std, Xorder_std[split_var][row_ind], suff_stat);
 
     return;
 }
@@ -354,6 +354,7 @@ void LogitModel::calculateOtherSideSuffStat(std::vector<double> &parent_suff_sta
 
 void LogitModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
 {
+  
     size_t next_index = tree_ind + 1;
     if (next_index == M)
     {
@@ -370,6 +371,7 @@ void LogitModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual
             residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j] / (*(x_struct->data_pointers[next_index][i]))[j];
         }
     }
+   
     return;
 }
 

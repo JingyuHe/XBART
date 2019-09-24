@@ -470,7 +470,7 @@ public:
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
     std::vector<double> *phi; // latent variables for mnl
 
-    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta) : Model(num_classes, 2*num_classes)
+    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi) : Model(num_classes, 2*num_classes)
     {
         this->tau_a = tau_a;
         this->tau_b = tau_b;
