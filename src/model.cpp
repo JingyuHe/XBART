@@ -515,18 +515,27 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
     // output is a 3D array (armadillo cube), nsweeps by n by number of categories
 
     tree::tree_p bn;
+  
+    std::fill(output.begin(), output.end(), 1.0);
 
     for(size_t sweeps = 0; sweeps < num_sweeps; sweeps++){
-        
         for(size_t data_ind = 0; data_ind < N_test; data_ind++){
-
             for(size_t i = 0; i < trees.size(); i++ ){
                 // search leaf
                 bn = trees[sweeps][i].search_bottom_std(Xtestpointer, data_ind, p, N_test);
-                for(size_t k = 0; k < bn->theta_vector.size(); k++){
+                for(size_t k = 0; k < dim_theta; k++){
                     // add all trees
-                    output(sweeps, data_ind, k) = output(sweeps, data_ind, k) + bn->theta_vector[k];
+                    output(sweeps, data_ind, k) *= bn->theta_vector[k];
                 }
+            }
+            
+            //will we regret this numerically?
+            double denom = 0;
+            for(size_t k=0; k<dim_theta; ++k) {
+              denom += output(sweeps, data_ind, k);
+            }
+            for(size_t k=0; k<dim_theta; ++k) {
+              output(sweeps, data_ind, k) /= denom;
             }
         }
     }
