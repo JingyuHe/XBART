@@ -509,27 +509,47 @@ void LogitModel::ini_residual_std(std::unique_ptr<State> &state)
 }
 
 // Not implemented yet, needs to return a nsweeps by n by num categories array with predicted category probabilities 9/10/2019 
-void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees)
+void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, arma::cube &output)
 {
 
-    matrix<double> output;
+    // output is a 3D array (armadillo cube), nsweeps by n by number of categories
 
-    // row : dimension of theta, column : number of trees
-    ini_matrix(output, this->dim_theta, trees[0].size());
+    tree::tree_p bn;
 
-    for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
-    {
-        for (size_t data_ind = 0; data_ind < N_test; data_ind++)
-        {
-            getThetaForObs_Outsample(output, trees[sweeps], data_ind, Xtestpointer, N_test, p);
+    for(size_t sweeps = 0; sweeps < num_sweeps; sweeps++){
+        
+        for(size_t data_ind = 0; data_ind < N_test; data_ind++){
 
-            // take sum of predictions of each tree, as final prediction
-            for (size_t i = 0; i < trees[0].size(); i++)
-            {
-                yhats_test_xinfo[sweeps][data_ind] += output[i][0];
+            for(size_t i = 0; i < trees.size(); i++ ){
+                // search leaf
+                bn = trees[sweeps][i].search_bottom_std(Xtestpointer, data_ind, p, N_test);
+                for(size_t k = 0; k < bn->theta_vector.size(); k++){
+                    // add all trees
+                    output(sweeps, data_ind, k) = output(sweeps, data_ind, k) + bn->theta_vector[k];
+                }
             }
         }
     }
+
+
+    // matrix<double> output_mat;
+
+    // // row : dimension of theta, column : number of trees
+    // ini_matrix(output, this->dim_theta, trees[0].size());
+
+    // for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
+    // {
+    //     for (size_t data_ind = 0; data_ind < N_test; data_ind++)
+    //     {
+    //         getThetaForObs_Outsample(output_mat, trees[sweeps], data_ind, Xtestpointer, N_test, p);
+
+    //         // take sum of predictions of each tree, as final prediction
+    //         for (size_t i = 0; i < trees[0].size(); i++)
+    //         {
+    //             yhats_test_xinfo[sweeps][data_ind] += output_mat[i][0];
+    //         }
+    //     }
+    // }
     return;
 }
 

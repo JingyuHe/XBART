@@ -9,6 +9,8 @@
 #include "X_struct.h"
 #include "cdf.h"
 
+#include "RcppArmadillo.h"
+
 using namespace std;
 
 class tree;
@@ -506,7 +508,7 @@ public:
 
     void ini_residual_std(std::unique_ptr<State> &state);
 
-    void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
+    void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, arma::cube &output);
 };
 
 

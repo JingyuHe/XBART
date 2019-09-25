@@ -509,7 +509,11 @@ Rcpp::List XBART_multinomial(Rcpp::IntegerVector y, int num_class, arma::mat X, 
     
 
     // TODO: Implement predict OOS
-    //model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
+
+    // output is in arma::cube, number of sweeps * observations * number of classes
+    arma::cube output(num_sweeps, N_test, num_class);
+
+    model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output);
 
 
     // STOPPED HERE
@@ -568,7 +572,7 @@ Rcpp::List XBART_multinomial(Rcpp::IntegerVector y, int num_class, arma::mat X, 
 
     return Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,
-        Rcpp::Named("yhats_test") = yhats_test,
+        Rcpp::Named("yhats_test") = output,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p));
