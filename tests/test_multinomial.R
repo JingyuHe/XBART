@@ -35,11 +35,11 @@ X_test = X_train
 }
 
 
-fit = XBART_multinomial(y=y_train, num_class=2, X=X_train, Xtest=X_test, 
+fit = XBART.multinomial(y=y_train, num_class=2, X=X_train, Xtest=X_test, 
             num_trees=100, num_sweeps=num_sweeps, max_depth=300, 
-            n_min=5, num_cutpoints=50, alpha=0.95, beta=1.25, tau=1, 
+            Nmin=5, num_cutpoints=50, alpha=0.95, beta=1.25, tau=1, 
             no_split_penality = 0.5, burnin = 1L, mtry = 0L, p_categorical = 0L, 
-            kap = 16, s = 4, verbose = FALSE, parallel = TRUE, set_random_seed = FALSE, 
+            kap = 16, s = 4, verbose = FALSE, parallel = TRUE, set_random_seed = TRUE, 
             random_seed = seed, sample_weights_flag = TRUE) 
 
 # number of sweeps * number of observations * number of classes
@@ -74,7 +74,7 @@ pred3 = as.numeric(pred3$predictions > 0.5)
 
 
 
-# OUT SAMPLE error
+# OUT SAMPLE accuracy
 sum(pred == y_test)
 sum(pred2 == y_test)
 sum(pred3 == y_test)
