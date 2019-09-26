@@ -551,7 +551,9 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
 
                 for(size_t k = 0; k < bn->theta_vector.size(); k++){
                     // add all trees
-                    output(sweeps, data_ind, k) = output(sweeps, data_ind, k) + bn->theta_vector[k];
+
+                    // product of trees, thus sum of logs 
+                    output(sweeps, data_ind, k) = output(sweeps, data_ind, k) + log(bn->theta_vector[k]);
                 }
             }
         }

@@ -22,7 +22,7 @@ y_test = y[1001:2000]
 X_train = X[1:1000, ]
 X_test = X[1001:2000, ]
 
-num_sweeps = 200
+num_sweeps = 50
 burnin = 20
 
 
@@ -43,10 +43,15 @@ fit = XBART_multinomial(y=y_train, num_class=2, X=X_train, Xtest=X_test,
             random_seed = seed, sample_weights_flag = TRUE) 
 
 # number of sweeps * number of observations * number of classes
+
+# this is sum of log trees
 dim(fit$yhats_test)
 
-a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), prod)
+a = fit$yhats_test[burnin:num_sweeps,,]
 
+a = exp(a - max(a))
+
+a = apply(a, c(2,3), mean)
 
 pred = as.numeric(a[,1] < a[,2])
 
