@@ -525,7 +525,7 @@ void LogitModel::ini_residual_std(std::unique_ptr<State> &state)
 }
 
 // Not implemented yet, needs to return a nsweeps by n by num categories array with predicted category probabilities 9/10/2019
-void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, arma::cube &output)
+void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec)
 {
 
     // output is a 3D array (armadillo cube), nsweeps by n by number of categories
@@ -548,7 +548,8 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
                     // add all trees
 
                     // product of trees, thus sum of logs
-                    output(sweeps, data_ind, k) = output(sweeps, data_ind, k) + log(bn->theta_vector[k]);
+
+                    output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] += log(bn->theta_vector[k]);
                 }
             }
         }
@@ -573,29 +574,28 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
             // find max of probability for all classes
             for (size_t k = 0; k < dim_residual; k++)
             {
-                if (output(sweeps, data_ind, k) > max_log_prob)
-                {
-                    max_log_prob = output(sweeps, data_ind, k);
+                if(output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] > max_log_prob){
+                    max_log_prob = output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test];
                 }
             }
 
             // take exp after subtracting max to avoid overflow
             for (size_t k = 0; k < dim_residual; k++)
             {
-                output(sweeps, data_ind, k) = exp(output(sweeps, data_ind, k) - max_log_prob);
+                output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] = exp(output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] - max_log_prob);
             }
 
             // calculate normalizing constant
             denom = 0.0;
             for (size_t k = 0; k < dim_residual; k++)
             {
-                denom += output(sweeps, data_ind, k);
+                denom += output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test];
             }
 
             // normalizing
             for (size_t k = 0; k < dim_residual; k++)
             {
-                output(sweeps, data_ind, k) = output(sweeps, data_ind, k) / denom;
+                output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] = output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] / denom;
             }
         }
     }

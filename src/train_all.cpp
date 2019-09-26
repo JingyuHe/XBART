@@ -508,12 +508,19 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
 
     // TODO: Implement predict OOS
 
-    // output is in arma::cube, number of sweeps * observations * number of classes
-    arma::cube output(num_sweeps, N_test, num_class);
+    // output is in 3 dim, stacked as a vector, number of sweeps * observations * number of classes
+    std::vector<double> output_vec(num_sweeps * N_test * num_class);
 
-    model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output);
+    ////////////////////////////////////////////////
+    // for a n * p * m matrix, the (i,j,k) element is
+    // i + j * n + k * n * p in the stacked vector
+    // if stack by column, index starts from 0
+    ////////////////////////////////////////////////
 
+    model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
 
+    Rcpp::NumericVector output = Rcpp::wrap(output_vec);
+    output.attr("dim") = Rcpp::Dimension(num_sweeps, N_test, num_class);
 
     // STOPPED HERE
     // TODO: Figure out how we should store and return in sample preds

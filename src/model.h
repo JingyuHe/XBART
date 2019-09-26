@@ -9,8 +9,6 @@
 #include "X_struct.h"
 #include "cdf.h"
 
-#include "RcppArmadillo.h"
-
 using namespace std;
 
 class tree;
@@ -466,7 +464,7 @@ public:
  //   size_t dim_suffstat = 3;
 
     // prior on leaf parameter
-    double tau_a, tau_b; //leaf parameter is ~ G(tau_a, tau_b). tau_a = ntree/tau + 1/2, tau_b = ntree/tau -> f(x)\sim N(0,tau) approx
+    double tau_a, tau_b; //leaf parameter is ~ G(tau_a, tau_b). tau_a = 1/tau + 1/2, tau_b = 1/tau -> f(x)\sim N(0,tau) approx
 
     // Should these pointers live in model subclass or state subclass?
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
@@ -508,7 +506,7 @@ public:
 
     void ini_residual_std(std::unique_ptr<State> &state);
 
-    void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, arma::cube &output);
+    void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec);
 };
 
 
