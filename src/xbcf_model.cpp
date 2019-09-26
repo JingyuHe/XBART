@@ -70,6 +70,7 @@ void xbcfModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std
 
   //update sigma vector for the state
   state->update_sigma(sigma0, sigma1);
+  state->update_precision_squared(sigma0, sigma1);
   return;
 }
 

@@ -55,6 +55,7 @@ public:
 
     // residual standard deviation      TODO: move to xbcfClass
     std::vector<double> sigma_vec;
+    std::vector<double> precision_squared;
 
     void update_sigma(double sigma)
     {
@@ -76,6 +77,24 @@ public:
         for (size_t i = this->n_trt; i < this->n_y; i++)
         {
             this->sigma_vec[i] = sigma0;
+        }
+        return;
+    }
+
+    // update precision squared vector based on recently updated sigmas
+    void update_precision_squared(double sigma0, double sigma1)
+    {
+
+        // update for all individuals in the treatment group
+        for (size_t i = 0; i < this->n_trt - 1; i++)
+        {
+            this->precision_squared[i] = 1 / pow(sigma1, 2);
+        }
+
+        // update for all individuals in the control group
+        for (size_t i = this->n_trt; i < this->n_y; i++)
+        {
+            this->precision_squared[i] = 1 / pow(sigma0, 2);
         }
         return;
     }
