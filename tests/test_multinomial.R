@@ -9,7 +9,9 @@ seed = 10
 set.seed(seed)
 
 
-n = 2000
+n = 7000
+n_train = 6000
+
 p = 2
 X = matrix(runif(n*p), nrow=n)
 logodds = -1 + 2*X[,1] + X[,2]^2 #- 0.5*X[,1]*X[,2]
@@ -17,10 +19,10 @@ logodds = -1 + 2*X[,1] + X[,2]^2 #- 0.5*X[,1]*X[,2]
 pr = plogis(logodds)
 y = rbinom(n, 1, pr)
 
-y_train = y[1:1000]
-y_test = y[1001:2000]
-X_train = X[1:1000, ]
-X_test = X[1001:2000, ]
+y_train = y[1:n_train]
+y_test = y[(n_train + 1):n]
+X_train = X[1:n_train, ]
+X_test = X[(n_train + 1):n, ]
 
 num_sweeps = 30
 burnin = 20
