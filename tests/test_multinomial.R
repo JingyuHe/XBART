@@ -22,7 +22,7 @@ y_test = y[1001:2000]
 X_train = X[1:1000, ]
 X_test = X[1001:2000, ]
 
-num_sweeps = 100
+num_sweeps = 200
 burnin = 20
 
 

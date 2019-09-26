@@ -506,14 +506,13 @@ Rcpp::List XBART_multinomial(Rcpp::IntegerVector y, int num_class, arma::mat X, 
     ////////////////////////////////////////////////////////////////
     mcmc_loop_multinomial(Xorder_std, verbose, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
 
-    
-
     // TODO: Implement predict OOS
 
     // output is in arma::cube, number of sweeps * observations * number of classes
     arma::cube output(num_sweeps, N_test, num_class);
 
     model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output);
+
 
 
     // STOPPED HERE
