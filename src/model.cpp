@@ -182,6 +182,7 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
 
 void NormalModel::ini_residual_std(std::unique_ptr<State> &state)
 {
+    // initialize partial residual at (num_tree - 1) / num_tree * yhat
     double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
@@ -237,9 +238,14 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
 
     // suffstats[0] += residual_std[0][index_next_obs];
 
+
+    // sufficient statistics have 2 * num_classes
         for (size_t j = 0; j < dim_theta; ++j)
         {
+            // count number of observations, y_{ij}
             if ((*y_size_t)[index_next_obs]==j) suffstats[j] += 1; 
+
+            // psi * f
             suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
         }
 
@@ -252,14 +258,22 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
         //redefine these to use prior pars from Model class
         int c = dim_theta;//suffstats.size() / 2;
 
+        // double r;
+        // double s;
+
         for (int j = 0; j < c; j++)
         {
-            double r = suff_stat[j];
-            double s = suff_stat[c + j];
+            // not necessary to assign to r and s again
+            // r = suff_stat[j];
+            // s = suff_stat[c + j];
 
-            std::gamma_distribution<double> gammadist(tau_a + r, 1);
+            // std::gamma_distribution<double> gammadist(tau_a + r, 1);
 
-            theta_vector[j] = gammadist(state->gen) / (tau_b + s);
+            // theta_vector[j] = gammadist(state->gen) / (tau_b + s);
+
+            std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1);
+
+            theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[c + j]);
         }
 
     return;
@@ -285,6 +299,9 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 */
     // compute \sum _j f_j(x_i) by reintroducing tree nuber tree_ind's multiplicitive fit contrib and summing
     //std::vector<double> sum_fits(state->n_y);
+
+
+    // size of state->residual_std is num_classes * num_train
 
     double sum_fits = 0;
   
@@ -320,9 +337,15 @@ void LogitModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::ve
     */
     
     // JINGYU check -- should i always plan to resize this vector?
+    // reply: use it for now. Not sure how to call constructor of tree when initialize vector<vector<tree>>, see definition of trees2 in XBART_multinomial, train_all.cpp
+
+
+    // remove resizing it does not work, strange
+     
     suff_stat.resize(2*dim_theta);
     std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
-    for(size_t i=0; i<state->n_y; ++i) {
+    for(size_t i=0; i<state->n_y; i++) {
+        // from 0
         incSuffStat(state->residual_std, i, suff_stat);
     }
 
@@ -371,6 +394,8 @@ void LogitModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual
     ////////////////////////////////////////////////////////
     // Be care of line 151 in train_all.cpp, initial_theta
     ////////////////////////////////////////////////////////
+
+    // cumulative product of trees, multiply current one, divide by next one
 
     for (size_t i = 0; i < residual_std[0].size(); i++)
     {

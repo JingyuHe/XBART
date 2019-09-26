@@ -3,7 +3,7 @@ library(BART)
 library(ranger)
 
 
-seed = 200
+seed = 123
 
 
 set.seed(seed)
@@ -12,7 +12,8 @@ set.seed(seed)
 n = 2000
 p = 2
 X = matrix(runif(n*p), nrow=n)
-logodds = -1 + 2*X[,1] + X[,2]^2 - 0.5*X[,1]*X[,2]
+logodds = -1 + 2*X[,1] + X[,2]^2 #- 0.5*X[,1]*X[,2]
+# logodds = X[,1] + X[,2]
 pr = plogis(logodds)
 y = rbinom(n, 1, pr)
 
@@ -21,35 +22,33 @@ y_test = y[1001:2000]
 X_train = X[1:1000, ]
 X_test = X[1001:2000, ]
 
-num_sweeps = 50
+num_sweeps = 100
 burnin = 20
 
 
-if(1){
-    # insample error 
-    y_test = y_train
-    X_test = X_train
+if(0){
+# insample error 
+y_test = y_train
+X_test = X_train
 }else{
 
 }
 
 
 fit = XBART_multinomial(y=y_train, num_class=2, X=X_train, Xtest=X_test, 
-                  num_trees=100, num_sweeps=num_sweeps, max_depth=300, 
-                  n_min=5, num_cutpoints=50, alpha=0.95, beta=1.25, tau=1, 
-                  no_split_penality = 0.5, burnin = 1L, mtry = 0L, p_categorical = 0L, 
-                  kap = 16, s = 4, verbose = TRUE, parallel = TRUE, set_random_seed = FALSE, 
-                  random_seed = seed, sample_weights_flag = TRUE) 
+            num_trees=100, num_sweeps=num_sweeps, max_depth=300, 
+            n_min=5, num_cutpoints=50, alpha=0.95, beta=1.25, tau=1, 
+            no_split_penality = 0.5, burnin = 1L, mtry = 0L, p_categorical = 0L, 
+            kap = 16, s = 4, verbose = TRUE, parallel = TRUE, set_random_seed = FALSE, 
+            random_seed = seed, sample_weights_flag = TRUE) 
 
 # number of sweeps * number of observations * number of classes
 dim(fit$yhats_test)
 
-a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), mean)
+a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), prod)
 
 
-prob_1 = exp(a[,2]) / (exp(a[,1]) + exp(a[,2]))
-
-pred = as.numeric(prob_1 > 0.5)
+pred = as.numeric(a[,1] < a[,2])
 
 
 # Compare with BART probit
