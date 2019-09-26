@@ -79,11 +79,15 @@ void xbcfModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std
 // initializes root suffstats
 void xbcfModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
 {
-  // sum of y
-  suff_stat[0] = sum_vec(state->residual_std[0]);
-  // sum of y squared
-  suff_stat[1] = sum_squared(state->residual_std[0]);
-  // number of observations in the node
+  suff_stat[0] = sum_vec(state->precision_squared); // sum of 1 / sigma_squared
+  suff_stat[1] = 0;                                 // sum of y / sigma_squared
+
+  for (size_t i = 0; i < state->n_y; i++)
+  {
+    suff_stat[1] += state->residual_std[0][i] * state->precision_squared[i];
+  }
+
+  // number of observations in the node [keep it for now, but do we need it for any further computations?]
   suff_stat[2] = state->n_y;
   return;
 }
