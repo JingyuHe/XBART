@@ -466,9 +466,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     matrix<double> yhats_test_xinfo;
     ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
 
-    matrix<double> sigma_draw_xinfo;
-    ini_matrix(sigma_draw_xinfo, num_trees, num_sweeps);
-
     // // Create trees
     vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++)
@@ -487,7 +484,8 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     COUT << model->phi->size();
     model->setNoSplitPenality(no_split_penality);
     
-
+cout << "!!!!!!!!!!!!!!!! " << endl;
+cout << model->dim_residual << endl;
 
     // State settings
     // Logit doesn't need an inherited state class at the moment
@@ -504,7 +502,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
 
     
     ////////////////////////////////////////////////////////////////
-    mcmc_loop_multinomial(Xorder_std, verbose, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
+    mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct);
 
     // TODO: Implement predict OOS
 
@@ -530,7 +528,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     // R Objects to Return
     // Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
-    Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum(p);                // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
 
@@ -547,13 +544,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         for (size_t j = 0; j < num_sweeps; j++)
         {
             yhats_test(i, j) = yhats_test_xinfo[j][i];
-        }
-    }
-    for (size_t i = 0; i < num_trees; i++)
-    {
-        for (size_t j = 0; j < num_sweeps; j++)
-        {
-            sigma_draw(i, j) = sigma_draw_xinfo[j][i];
         }
     }
     for (size_t i = 0; i < p; i++)
@@ -579,7 +569,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     return Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("yhats_test") = output,
-        Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p));
 

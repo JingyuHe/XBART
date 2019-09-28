@@ -165,7 +165,6 @@ void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sig
 }
 
 void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
-                           matrix<double> &sigma_draw_xinfo,
                            vector<vector<tree>> &trees, double no_split_penality,
                            std::unique_ptr<State> &state, LogitModel *model,
                            std::unique_ptr<X_struct> &x_struct)
@@ -201,8 +200,6 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
 
             model->update_state(state, tree_ind, x_struct);
 
-            //sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
-
             if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
             {
                 state->use_all = false;
@@ -218,6 +215,8 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
             }
 
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+
+            trees[sweeps][tree_ind].theta_vector.resize(3);
 
             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 

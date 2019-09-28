@@ -250,12 +250,12 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 {
 
     //redefine these to use prior pars from Model class
-    int c = dim_theta; //suffstats.size() / 2;
+    // int c = dim_theta; //suffstats.size() / 2;
 
     // double r;
     // double s;
 
-    for (int j = 0; j < c; j++)
+    for (size_t j = 0; j < dim_theta; j++)
     {
         // not necessary to assign to r and s again
         // r = suff_stat[j];
@@ -267,7 +267,7 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 
         std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1);
 
-        theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[c + j]);
+        theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
     }
 
     return;
