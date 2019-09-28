@@ -437,9 +437,9 @@ private:
         double ret = 0;
         for (size_t j = 0; j < c; j++)
         {
-            double r = suffstats[j];
-            double s = suffstats[c + j];
-            ret += (tau_a + r) * log(tau_b + s) - lgamma(tau_a + r);
+            // double r = suffstats[j];
+            // double s = suffstats[c + j];
+            ret += (tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) - lgamma(tau_a + suffstats[j]);
         }
         return ret;
     }

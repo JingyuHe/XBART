@@ -233,11 +233,15 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
     // suffstats[0] += residual_std[0][index_next_obs];
 
     // sufficient statistics have 2 * num_classes
+
+    suffstats[(*y_size_t)[index_next_obs]] += 1;
+
+
     for (size_t j = 0; j < dim_theta; ++j)
     {
         // count number of observations, y_{ij}
-        if ((*y_size_t)[index_next_obs] == j)
-            suffstats[j] += 1;
+        // if ((*y_size_t)[index_next_obs] == j)
+            // suffstats[j] += 1;
 
         // psi * f
         suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
@@ -298,6 +302,8 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 
     double sum_fits = 0;
 
+    std::gamma_distribution<double> gammadist(1, 1);
+
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
         sum_fits = 0;
@@ -307,7 +313,6 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         }
 
         //COUT << "got scale";
-        std::gamma_distribution<double> gammadist(1, 1);
         //COUT << "draw phi ";
         (*phi)[i] = gammadist(state->gen) / sum_fits;
         //COUT << "draw phi complete";
