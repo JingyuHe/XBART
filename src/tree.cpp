@@ -525,7 +525,6 @@ std::istream &operator>>(std::istream &is, tree &t)
 //     return output;
 // }
 
-
 void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree)
 {
     // grow a tree, users can control number of split points
@@ -687,7 +686,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     return;
 }
 
-
 void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, Model *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<State> &state, tree *current_node)
 {
 
@@ -716,14 +714,14 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
         {
             if (*(temp_pointer + Xorder_std[split_var][j]) <= cutvalue)
             {
-                model->updateNodeSuffStat(current_node->l->suff_stat, state->residual_std, Xorder_std, split_var, j);
+                model->updateNodeSuffStat(current_node->l->suff_stat, state, Xorder_std, split_var, j);
             }
         }
         else
         {
             if (*(temp_pointer + Xorder_std[split_var][j]) > cutvalue)
             {
-                model->updateNodeSuffStat(current_node->r->suff_stat, state->residual_std, Xorder_std, split_var, j);
+                model->updateNodeSuffStat(current_node->r->suff_stat, state, Xorder_std, split_var, j);
             }
         }
     }
@@ -829,7 +827,7 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
 
                     if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
                     {
-                        model->updateNodeSuffStat(current_node->l->suff_stat, state->residual_std, Xorder_std, split_var, j);
+                        model->updateNodeSuffStat(current_node->l->suff_stat, state, Xorder_std, split_var, j);
 
                         Xorder_left_std[i][left_ix] = Xorder_std[i][j];
 
@@ -856,7 +854,7 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
                     }
                     else
                     {
-                        model->updateNodeSuffStat(current_node->r->suff_stat, state->residual_std, Xorder_std, split_var, j);
+                        model->updateNodeSuffStat(current_node->r->suff_stat, state, Xorder_std, split_var, j);
 
                         Xorder_right_std[i][right_ix] = Xorder_std[i][j];
 
@@ -1450,7 +1448,7 @@ void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<s
     for (size_t i = start; i <= end; i++)
     {
         // Model::suff_stat_model[0] += y[Xorder[var][i]];
-        model->incSuffStat(state->residual_std, xorder[i], temp_suff_stat);
+        model->incSuffStat(state, xorder[i], temp_suff_stat);
     }
     return;
 }
@@ -1465,19 +1463,19 @@ void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<si
         if (index == 0)
         {
             // initialize, only for the first cutpoint candidate, thus index == 0
-            model->incSuffStat(state->residual_std, xorder[0], temp_suff_stat);
+            model->incSuffStat(state, xorder[0], temp_suff_stat);
         }
 
         // if use adaptive number of cutpoints, calculated based on vector candidate_index
         for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
         {
-            model->incSuffStat(state->residual_std, xorder[q], temp_suff_stat);
+            model->incSuffStat(state, xorder[q], temp_suff_stat);
         }
     }
     else
     {
         // use all data points as candidates
-        model->incSuffStat(state->residual_std, xorder[index], temp_suff_stat);
+        model->incSuffStat(state, xorder[index], temp_suff_stat);
     }
     return;
 }
@@ -1504,7 +1502,7 @@ void getTheta_Outsample(matrix<double> &output, tree &tree, const double *Xtest,
 
     // output should have dimension (dim_theta, num_obs)
 
-    tree::tree_p bn;    // pointer to bottom node
+    tree::tree_p bn; // pointer to bottom node
     for (size_t i = 0; i < N_Xtest; i++)
     {
         // loop over observations
@@ -1538,8 +1536,8 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
     // tree is a vector of all trees
 
     // output should have dimension (dim_theta, num_trees)
-    
-    tree::tree_p bn;    // pointer to bottom node
+
+    tree::tree_p bn; // pointer to bottom node
     for (size_t i = 0; i < tree.size(); i++)
     {
         // loop over trees

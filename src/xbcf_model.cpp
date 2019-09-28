@@ -12,12 +12,13 @@
 // called in tree.cpp
 // called from calcSuffStat_categorical, calcSuffStat_continuous
 // adds residual to suff stats for normalmodel (updates the suff stats by adding new values to the old ones)
-void xbcfModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
+void xbcfModel::incSuffStat(std::unique_ptr<State> &state, size_t index_next_obs, std::vector<double> &suffstats)
 {
   // I have to pass matrix<double> &residual_std, size_t index_next_obs
   // which allows more flexibility for multidimensional residual_std
 
-  suffstats[0] += residual_std[0][index_next_obs];
+  suffstats[0] += state->precision_squared[index_next_obs];
+  suffstats[1] += state->residual_std[0][index_next_obs] * state->precision_squared[index_next_obs];
   return;
 }
 
@@ -96,11 +97,11 @@ void xbcfModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vec
 // called from split_xorder_std_continuous, split_xorder_std_categorical
 // updates node suffstats for the split (or after the split? no, doesn't seem so)
 // it is executed after suffstats for the node has been initialized by suff_stats_ini [defined in tree.h]
-void xbcfModel::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
+void xbcfModel::updateNodeSuffStat(std::vector<double> &suff_stat, std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
-  suff_stat[0] += residual_std[0][Xorder_std[split_var][row_ind]];
-  suff_stat[1] += pow(residual_std[0][Xorder_std[split_var][row_ind]], 2);
-  suff_stat[2] += 1;
+  suff_stat[0] += state->precision_squared[Xorder_std[split_var][row_ind]];
+  suff_stat[1] += state->residual_std[0][Xorder_std[split_var][row_ind]] * state->precision_squared[Xorder_std[split_var][row_ind]];
+  suff_stat[2] += 1; // TODO: check if suff_stat[2] is ever used
   return;
 }
 

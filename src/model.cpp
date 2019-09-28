@@ -9,12 +9,12 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////
 
-void NormalModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
+void NormalModel::incSuffStat(std::unique_ptr<State> &state, size_t index_next_obs, std::vector<double> &suffstats)
 {
     // I have to pass matrix<double> &residual_std, size_t index_next_obs
     // which allows more flexibility for multidimensional residual_std
 
-    suffstats[0] += residual_std[0][index_next_obs];
+    suffstats[0] += state->residual_std[0][index_next_obs];
     return;
 }
 
@@ -61,10 +61,10 @@ void NormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::v
     return;
 }
 
-void NormalModel::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
+void NormalModel::updateNodeSuffStat(std::vector<double> &suff_stat, std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
-    suff_stat[0] += residual_std[0][Xorder_std[split_var][row_ind]];
-    suff_stat[1] += pow(residual_std[0][Xorder_std[split_var][row_ind]], 2);
+    suff_stat[0] += state->residual_std[0][Xorder_std[split_var][row_ind]];
+    suff_stat[1] += pow(state->residual_std[0][Xorder_std[split_var][row_ind]], 2);
     suff_stat[2] += 1;
     return;
 }
