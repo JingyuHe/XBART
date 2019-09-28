@@ -483,9 +483,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     COUT << model->y_size_t->size();
     COUT << model->phi->size();
     model->setNoSplitPenality(no_split_penality);
-    
-cout << "!!!!!!!!!!!!!!!! " << endl;
-cout << model->dim_residual << endl;
+
 
     // State settings
     // Logit doesn't need an inherited state class at the moment

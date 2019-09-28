@@ -216,7 +216,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
 
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
-            trees[sweeps][tree_ind].theta_vector.resize(3);
+            trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
 
             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
