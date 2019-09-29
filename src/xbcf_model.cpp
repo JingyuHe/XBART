@@ -155,15 +155,12 @@ double xbcfModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<do
 {
   // likelihood equation,
   // note the difference of left_side == true / false
-  // node_suff_stat is mean of y, sum of square of y, saved in tree class
-  // double y_sum = (double)suff_stat_all[2] * suff_stat_all[0];
-  double y_sum = suff_stat_all[0];
-  double sigma2 = state->sigma2;
-  double ntau;
-  double suff_one_side;
+
+  double denominator;   // the denominator (1 + tau * precision_squared) is the same for both terms
+  double s_psi_squared; // (residual * precision_squared)^2
 
   /////////////////////////////////////////////////////////////////////////
-  //
+  //  [Jingyu's note]
   //  I know combining likelihood and likelihood_no_split looks nicer
   //  but this is a very fundamental function, executed many times
   //  the extra if(no_split) statement and value assignment make the code about 5% slower!!
@@ -172,24 +169,24 @@ double xbcfModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<do
 
   if (no_split)
   {
-    ntau = suff_stat_all[2] * tau;
-    suff_one_side = y_sum;
+    denominator = 1 + suff_stat_all[0] * tau;
+    s_psi_squared = pow(suff_stat_all[1], 2);
   }
   else
   {
     if (left_side)
     {
-      ntau = (N_left + 1) * tau;
-      suff_one_side = temp_suff_stat[0];
+      denominator = 1 + temp_suff_stat[0] * tau;
+      s_psi_squared = pow(temp_suff_stat[1], 2);
     }
     else
     {
-      ntau = (suff_stat_all[2] - N_left - 1) * tau;
-      suff_one_side = y_sum - temp_suff_stat[0];
+      denominator = 1 + (suff_stat_all[0] - temp_suff_stat[0]) * tau;
+      s_psi_squared = pow(suff_stat_all[1] - temp_suff_stat[1], 2);
     }
   }
 
-  return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(suff_one_side, 2) / (sigma2 * (ntau + sigma2));
+  return 0.5 * log(1 / denominator) + 0.5 * s_psi_squared * tau / denominator;
 }
 
 // double xbcfModel::likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const
@@ -231,6 +228,8 @@ void xbcfModel::transfer_residual_std(std::unique_ptr<State> &state_ps, std::uni
 
   return;
 }
+
+// TODO: to be removed
 
 void xbcfModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees)
 {
