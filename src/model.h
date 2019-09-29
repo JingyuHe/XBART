@@ -433,13 +433,21 @@ private:
 
         //suffstats[0] .. suffstats[c-1]is count of y's in cat 0,...,c-1, i.e. r in proposal
         //suffstats[c] .. suffstats[2c-1] is sum of phi_i*(partial fit j)'s ie s in proposal
-
-        double ret = 0;
+      //  double nh = 0;
+      //  for (size_t j = 0; j < c; j++)
+      //  {
+      //    nh += suffstats[j];
+      //  }
+        
+      double ret = 0;
+        
+        
         for (size_t j = 0; j < c; j++)
         {
             // double r = suffstats[j];
             // double s = suffstats[c + j];
-            ret += (tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) - lgamma(tau_a + suffstats[j]);
+            // ret += -(tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]) ;
+            ret += -(tau_a + suffstats[j] ) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]);// - lgamma(suffstats[j] +1);
         }
         return ret;
     }

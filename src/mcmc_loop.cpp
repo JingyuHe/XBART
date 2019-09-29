@@ -198,7 +198,6 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
 
             //Rcpp::Rcout << "Updating state";
 
-            model->update_state(state, tree_ind, x_struct);
 
             if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
             {
@@ -216,6 +215,8 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
 
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
+            //cout << trees[sweeps][tree_ind].suff_stat << endl;
+            
             trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
 
             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
@@ -223,7 +224,12 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
             state->update_split_counts(tree_ind);
 
             // update partial fits for the next tree
+            model->update_state(state, tree_ind, x_struct);
+            
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
+            
+            
+            
         }
     }
     thread_pool.stop();

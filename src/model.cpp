@@ -269,7 +269,7 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 
         // theta_vector[j] = gammadist(state->gen) / (tau_b + s);
 
-        std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1);
+        std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1.0);
 
         theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
     }
@@ -302,7 +302,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 
     double sum_fits = 0;
 
-    std::gamma_distribution<double> gammadist(1, 1);
+    std::gamma_distribution<double> gammadist(1.0, 1.0);
 
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
@@ -314,7 +314,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 
         //COUT << "got scale";
         //COUT << "draw phi ";
-        (*phi)[i] = gammadist(state->gen) / sum_fits;
+        (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits);
         //COUT << "draw phi complete";
     }
 
