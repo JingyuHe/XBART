@@ -253,7 +253,7 @@ XBCF <- function(y, X, z,
                 max_depth, Nmin,
                 num_cutpoints,
                 no_split_penality = "Auto", mtry = 0L,
-                p_categorical_pr = 0L,
+                p_categorical = 0L,
                 num_trees_pr,
                 alpha_pr, beta_pr, tau_pr,
                 kap_pr = 16, s_pr = 4,
@@ -264,6 +264,12 @@ XBCF <- function(y, X, z,
                 trt_scale = FALSE,
                 verbose = FALSE, parallel = TRUE,
                 random_seed = NULL, sample_weights_flag = TRUE) {
+
+    index = order(z, decreasing=TRUE)
+
+    y = y[index]
+    X = X[index]
+    z = z[index]
 
     if(class(X) != "matrix"){
         cat("Input X is not a matrix, try to convert type.\n")
@@ -294,9 +300,7 @@ XBCF <- function(y, X, z,
         no_split_penality = log(num_cutpoints)
     }
 
-    index = order(z, decreasing=TRUE)
-
-    obj = .Call(`_XBCF`, y[index], X[index,], z[index],
+    obj = .Call(`_XBCF`, y, X, z,
                          num_sweeps, burnin,
                          max_depth, Nmin,
                          num_cutpoints,

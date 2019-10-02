@@ -56,6 +56,8 @@ public:
 
   void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const;
 
+  void update_xinfo(matrix<double> &yhats_xinfo, size_t sweep_num, size_t num_trees, size_t N, std::unique_ptr<X_struct> &x_struct);
+
   double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const;
 
   // double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const;

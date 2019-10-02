@@ -40,7 +40,7 @@ public:
     size_t n_y;                       // number of total data points in root node
     const double *X_std;              // pointer to original data
     const std::vector<double> *y_std; // pointer to y data
-    std::vector<double> *b_std;       // the scaled treatment vector            TODO: move to xbcfClass
+    std::vector<double> b_std;        // the scaled treatment vector            TODO: move to xbcfClass
     size_t n_trt;                     // the number of treated individuals      TODO: move to xbcfClass
     size_t max_depth;
     size_t num_trees;
@@ -81,20 +81,20 @@ public:
         return;
     }
 
-    // update precision squared vector based on recently updated sigmas
+    // update precision squared vector (also scales included) based on recently updated sigmas
     void update_precision_squared(double sigma0, double sigma1)
     {
 
         // update for all individuals in the treatment group
         for (size_t i = 0; i < this->n_trt - 1; i++)
         {
-            this->precision_squared[i] = 1 / pow(sigma1, 2);
+            this->precision_squared[i] = pow(this->b_std[i], 2) / pow(sigma1, 2);
         }
 
         // update for all individuals in the control group
-        for (size_t i = this->n_trt; i < this->n_y; i++)
+        for (size_t i = this->n_trt; i < this->n_y - 1; i++)
         {
-            this->precision_squared[i] = 1 / pow(sigma0, 2);
+            this->precision_squared[i] = pow(this->b_std[i], 2) / pow(sigma0, 2);
         }
         return;
     }
@@ -149,7 +149,7 @@ public:
         return;
     }
 
-    State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> *b_std, std::vector<double> sigma_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual)
+    State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> b_std, std::vector<double> sigma_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual)
     {
 
         // Init containers
@@ -192,7 +192,7 @@ public:
         this->num_sweeps = num_sweeps;
         this->sample_weights_flag = sample_weights_flag;
         this->y_std = y_std;
-        this->b_std = b_std;
+        //        this->b_std = b_std;
         this->max_depth = max_depth;
         this->burnin = burnin;
         this->ini_var_yhat = ini_var_yhat;
@@ -221,10 +221,12 @@ public:
 class xbcfState : public State
 {
 public:
-    xbcfState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t n_trt, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> *b_std, std::vector<double> sigma_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry, X_std, num_sweeps, sample_weights_flag, y_std, b_std, sigma_vec, max_depth, ini_var_yhat, burnin, dim_residual)
+    xbcfState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t n_trt, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> b_std, std::vector<double> sigma_vec, std::vector<double> precision_squared, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry, X_std, num_sweeps, sample_weights_flag, y_std, b_std, sigma_vec, max_depth, ini_var_yhat, burnin, dim_residual)
     {
         this->sigma_vec = sigma_vec;
+        this->precision_squared = precision_squared;
         this->n_trt = n_trt;
+        this->b_std = b_std;
     }
 };
 

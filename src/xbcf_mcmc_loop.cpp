@@ -71,11 +71,11 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
 
     thread_pool.stop();
 
-    if (state_trt->parallel)
-      thread_pool.start();
-
     // pass over residual to the treatment term model
     model_trt->transfer_residual_std(state_trt, state_ps);
+
+    if (state_trt->parallel)
+      thread_pool.start();
 
     // Treatment term loop
 
@@ -110,8 +110,15 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
       // update partial residual for the next tree to fit
       model_trt->state_sweep(tree_ind, state_trt->num_trees, state_trt->residual_std, x_struct_trt);
     }
+
+    // store fitted values in tauhats_xinfo
+    model_trt->update_xinfo(tauhats_xinfo, sweeps, state_trt->num_trees, state_trt->n_y, x_struct_trt);
+
+    thread_pool.stop();
+
+    // pass over residual to the prognostic term model
+    model_trt->transfer_residual_std(state_ps, state_trt);
   }
-  thread_pool.stop();
 
   return;
 }

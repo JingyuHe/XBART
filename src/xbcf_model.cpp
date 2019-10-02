@@ -40,7 +40,7 @@ void xbcfModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &s
 
 // called in xbcf_mcmc_loop.cpp
 // called from xbcf_mcmc_loop
-// updates sigma and sigma2 (is it for normalmodel only?)
+// updates sigma and precision_squared vector
 void xbcfModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
   // Draw Sigma
@@ -56,9 +56,9 @@ void xbcfModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std
     full_residual_trt[i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
   }
 
-  for (size_t i = state->n_trt; i < state->residual_std[0].size(); i++)
+  for (size_t i = state->n_trt; i < state->residual_std[0].size() - 1; i++)
   {
-    full_residual_ctrl[i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
+    full_residual_ctrl[i - state->n_trt] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
   }
 
   // compute sigma1 for the treated group
@@ -146,6 +146,17 @@ void xbcfModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_
     residual_std[0][i] = residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + (*(x_struct->data_pointers[next_index][i]))[0];
   }
   return;
+}
+
+void xbcfModel::update_xinfo(matrix<double> &xinfo, size_t sweep_num, size_t num_trees, size_t N, std::unique_ptr<X_struct> &x_struct)
+{
+  for (size_t i = 0; i < N; i++)
+  {
+    for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
+    {
+      xinfo[sweep_num][i] += (*(x_struct->data_pointers[tree_ind][i]))[0];
+    }
+  }
 }
 
 // called in tree.cpp
