@@ -1,19 +1,8 @@
-//#ifndef SWIG
 #include <iostream>
 #include <vector>
-//#endif
 #include <mcmc_loop.h>
 #include <json_io.h>
 #include <model.h>
-
-// #include <cstddef>
-// #include <armadillo>
-// #include "../src/python_train_forest_std_mtrywithinnode.h"
-//double vector
-// typedef std::vector<double> vec_d;
-
-//vector of vectors, will be split rules
-// typedef std::vector<vec_d> xinfo;
 
 struct XBARTcppParams
 {
@@ -48,6 +37,10 @@ private:
 	matrix<double>  yhats_test_xinfo;
 	matrix<double>  sigma_draw_xinfo;
 	vec_d mtry_weight_current_tree;
+
+	// multinomial
+	vec_d yhats_test_multinomial;
+	size_t num_classes;
 	//xinfo split_count_all_tree;
 
 	// helper functions
@@ -57,14 +50,9 @@ private:
 	void compute_Xorder(size_t n, size_t d, const vec_d &x_std_flat, matrix<size_t> &Xorder_std);
 	size_t seed;
 	bool seed_flag;
-	size_t model_num; // 0 : normal, 1 : clt
+	size_t model_num; // 0 : normal, 1 : multinomial; 2 : probit
 	double no_split_penality;
 
-	// NormalModel *model = nullptr;
-
-	//= forest(10);
-
-	// void params_to_struct;
 public:
 	// Constructors
 	XBARTcpp(XBARTcppParams params);
@@ -74,7 +62,7 @@ public:
 			 size_t burnin, size_t mtry,
 			 size_t max_depth_num, double kap,
 			 double s, bool verbose,
-			 bool parallel, int seed, size_t model_num, double no_split_penality, bool sample_weights_flag);
+			 bool parallel, int seed, size_t model_num, double no_split_penality, bool sample_weights_flag, size_t num_classes);
 
 	XBARTcpp(std::string json_string);
 
@@ -83,6 +71,7 @@ public:
 	void _fit(int n, int d, double *a, // Train X
 			  int n_y, double *a_y, size_t p_cat);
 	void _predict(int n, int d, double *a); //,int size, double *arr);
+	void _predict_multinomial(int n, int d, double *a); //,int size, double *arr);
 
 	// Getters
 	int get_M(void);
@@ -90,6 +79,7 @@ public:
 	int get_burnin(void) { return ((int)params.burnin); };
 	void get_yhats(int size, double *arr);
 	void get_yhats_test(int size, double *arr);
+	void get_yhats_test_multinomial(int size,double *arr);
 	void get_sigma_draw(int size, double *arr);
 	void _get_importance(int size, double *arr);
 };
