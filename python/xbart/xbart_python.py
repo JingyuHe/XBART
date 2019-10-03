@@ -59,29 +59,32 @@ class XBART(object):
 	model: str
 		"Normal": Regression problems 
 				: Classification problems (encode Y \in{ -1,1})
+		"Multinomial" : Classes encoded as integers
 		"Probit": Classification problems (encode Y \in{ -1,1})
-		"CLT" : (beta) Classification problems (encode Y \in{ -1,1})
+
 	no_split_penality: double
 		Weight of no-split option. The default value in the normal model is log(num_cutpoints). 
 		Values should be considered in log scale.
 	sample_weights_flag: bool (True)
 		To sample weights according to Dirchlet distribution
+	num_classes: int (1)
+		Number of classes
 	
 	'''
-	def __init__(self,num_trees: int = 100, num_sweeps: int = 40, n_min: int = 1,
-				num_cutpoints: int = 100,alpha: float = 0.95, beta: float = 1.25, tau = "auto",
+	def __init__(self, num_trees: int = 100, num_sweeps: int = 40, n_min: int = 1,
+				num_cutpoints: int = 100, alpha: float = 0.95, beta: float = 1.25, tau = "auto",
                 burnin: int = 15, mtry = "auto", max_depth_num: int = 250,
-                kap: float = 16.0,s: float = 4.0,verbose: bool = False,
-                parallel: bool = False,seed: int = 0,model: str = "Normal",
-				no_split_penality = "auto",sample_weights_flag: bool = True):
+                kap: float = 16.0, s: float = 4.0, verbose: bool = False,
+                parallel: bool = False, seed: int = 0, model: str = "Normal",
+				no_split_penality = "auto", sample_weights_flag: bool = True, num_classes = 1):
 
 		assert num_sweeps > burnin, "num_sweep must be greater than burnin"
 
-		MODEL_MAPPINGS = {"Normal":0,"CLT":1,"Probit":2}
+		MODEL_MAPPINGS = {"Normal":0,"Multinomial":1,"Probit":2}
 		if model in MODEL_MAPPINGS:
 			model_num = MODEL_MAPPINGS[model]
 		else:
-			raise ValueError("model must be either Normal,CLT, or Probit")
+			raise ValueError("model must be either Normal,Multinomial, or Probit")
 
 		self.model = model
 		self.params = OrderedDict([("num_trees",num_trees),
@@ -91,7 +94,7 @@ class XBART(object):
 			("kap",kap),("s",s),
 			("verbose",verbose),
 			("parallel",parallel),("seed",seed),("model_num",model_num),("no_split_penality",no_split_penality),
-			("sample_weights_flag",sample_weights_flag)])
+			("sample_weights_flag",sample_weights_flag),("num_classes",num_classes)])
 		self.__convert_params_check_types(**self.params)
 		self._xbart_cpp = None
 
@@ -131,7 +134,7 @@ class XBART(object):
 		if not isinstance(x,(np.ndarray,DataFrame)):
 			raise TypeError("x must be numpy array or pandas DataFrame")
 
-		if np.any(np.isnan(x)):
+		if np.any(np.isnan(x)) or np.any(~np.isfinite(x)):
 			 raise TypeError("Cannot have missing values!")
 
 		if y is not None: 
@@ -142,6 +145,9 @@ class XBART(object):
 				raise TypeError("Cannot have missing values!")
 
 			assert x.shape[0] == y.shape[0], "X and y must be the same length"
+
+			if self.model == "Multinomial":
+				assert all(y >=0) and all(y.astype(int) == y), "y must be a positive integer"
 		
 	def __check_test_shape(self,x):
 		assert x.shape[1] == self.num_columns, "Mismatch on number of columns"
@@ -198,44 +204,29 @@ class XBART(object):
 			try:
 				self.params[param] = type_class(new_value)
 			except:
-				raise TypeError(str(param) + " should conform to type " + str(type_class))
+				raise TypeError(str(param) + " should conform to type " + str(type_class)) 
 
+	def _predict_normal(self,pred_x):
+		# Run Predict
+		self._xbart_cpp._predict(pred_x)
+		# Convert to numpy
+		yhats_test = self._xbart_cpp.get_yhats_test(self.params["num_sweeps"]*pred_x.shape[0])
+		# Convert from colum major 
+		self.yhats_test = yhats_test.reshape((pred_x.shape[0],self.params["num_sweeps"]),order='C')
+		# Compute mean
+		self.yhats_mean =  self.yhats_test[:,self.params["burnin"]:].mean(axis=1)
 
-		# new_params = DEFAULT_PARAMS.copy()
-		# list_params = []
-		# for key,value in DEFAULT_PARAMS.items():
-		# 	true_type = type(value) # Get type
-		# 	new_value = params.get(key,value) #
-
-		# 	if not isinstance(new_value,type(value)):  
-		# 		if (key in ["mtry","tau"]) and new_value == "auto":
-		# 			continue
-		# 		elif true_type == int:
-		# 			if isinstance(new_value,float):
-		# 				if int(new_value) == new_value:
-		# 					new_value = int(new_value)
-		# 					warnings.warn("Value was of " + str(key) + " converted from float to int")
-		# 				else:
-		# 					raise TypeError(str(key) +" should be a positive integer value")
-		# 			else:
-		# 				raise TypeError(str(key) +" should be a positive integer")
-		# 		elif true_type == float:
-		# 			if isinstance(new_value,int):
-		# 				new_value = float(new_value)  
-		# 				## warnings.warn("Value was of " + str(key) + " converted from int to float")          
-		# 			else:
-		# 				raise TypeError(str(key) + " should be a float")
-		# 		elif true_type == bool:
-		# 			if int(new_value) in [0,1]:
-		# 				new_value = bool(new_value)
-		# 			else:    
-		# 				raise TypeError(str(key) + " should be a bool")               
-		# 	#list_params.append(new_value)         
-		# 	self.params[key] = new_value
-		# 	list_params.append(new_value)
-			    
-		# return list_params    
-
+	def _predict_multinomial(self,pred_x):
+		# Run Predict
+		self._xbart_cpp._predict_multinomial(pred_x)
+		# Convert to numpy
+		yhats_test = self._xbart_cpp.get_yhats_test_multinomial(self.params["num_sweeps"]*pred_x.shape[0]*self.params["num_classes"])
+		# Convert from colum major 
+		self.yhats_test = yhats_test.reshape((pred_x.shape[0],self.params["num_sweeps"],
+												self.params["num_classes"]),
+												order='F')
+		# # Compute mean
+		self.yhats_mean =  self.yhats_test[:,self.params["burnin"]:,:].mean(axis=1)
 
 	def fit(self,x,y,p_cat=0):
 		'''
@@ -308,14 +299,10 @@ class XBART(object):
 		self.__check_test_shape(pred_x)
 		self.__update_fit_x_y(x_test,pred_x)
 
-		# Run Predict
-		self._xbart_cpp._predict(pred_x)
-		# Convert to numpy
-		yhats_test = self._xbart_cpp.get_yhats_test(self.params["num_sweeps"]*pred_x.shape[0])
-		# Convert from colum major 
-		self.yhats_test = yhats_test.reshape((pred_x.shape[0],self.params["num_sweeps"]),order='C')
-		# Compute mean
-		self.yhats_mean =  self.yhats_test[:,self.params["burnin"]:].mean(axis=1)
+		if self.model == "Multinomial":
+			self._predict_multinomial(pred_x)
+		else:
+			self._predict_normal(pred_x)
 
 		if return_mean:
 			return self.yhats_mean

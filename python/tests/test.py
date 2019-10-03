@@ -142,6 +142,18 @@ class XBARTTesting1(unittest.TestCase):
 		print("Accuracy:" + str(acc))
 		self.assertTrue(acc > 0.6)
 
+
+	def test_multinomial(self):
+		x,x_test,y,y_test,d = self.make_data()
+		y = (y >0)*1 ; y_test = (y_test > 0)*1
+		model = xbart.XBART(model="Multinomial",**self.params,num_classes=2)
+		model.fit(x,y,d-1)
+		y_pred = (model.predict(x_test)[:,1] > 0)*1
+		y_bin = (y_test > 0 )*1
+		acc = np.mean(y_pred == y_bin)
+		print("Accuracy:" + str(acc))
+		self.assertTrue(acc > 0.6)
+
 	def test_dimension_mismatch_x_y(self):
 		with self.assertRaises(AssertionError):
 			x,x_test,y,y_test,d = self.make_data()
@@ -162,6 +174,21 @@ class XBARTTesting1(unittest.TestCase):
 			# Make x_test not match
 			x_test = np.concatenate((x_test,x_test),axis=1)
 			model.predict(x_test)
+
+	@unittest.expectedFailure
+	def test_missing_values(self):
+		x,x_test,y,y_test,d = self.make_data()
+		x[0,5] = np.nan
+		model = xbart.XBART(**self.params)
+		model.fit(x,y,d-1)
+
+	@unittest.expectedFailure
+	def test_missing_values(self):
+		x,x_test,y,y_test,d = self.make_data()
+		x[0,5] = np.NINF
+		model = xbart.XBART(**self.params)
+		model.fit(x,y,d-1)
+
 			
 class XBARTExceptionTesting(unittest.TestCase):
 

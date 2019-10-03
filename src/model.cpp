@@ -315,6 +315,8 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         //COUT << "got scale";
         //COUT << "draw phi ";
         (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits);
+        // std::cout << "phi: "<<(*phi)[i] << std::endl;
+        // std::cout << "sum fit "<<sum_fits<< std::endl;
         //COUT << "draw phi complete";
     }
 

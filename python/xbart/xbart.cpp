@@ -18,7 +18,7 @@ XBARTcpp::XBARTcpp (size_t M ,size_t N_sweeps ,
         double alpha , double beta , double tau , //CHANGE!
         size_t burnin, 
         size_t mtry , size_t max_depth_num, double kap , 
-        double s , bool verbose, bool parallel,int seed,size_t model_num,double no_split_penality,bool sample_weights_flag){
+        double s , bool verbose, bool parallel,int seed,size_t model_num,double no_split_penality,bool sample_weights_flag,size_t num_classes){
   this->params.M = M; 
   this->params.N_sweeps = N_sweeps;
   this->params.Nmin = Nmin;
@@ -37,6 +37,7 @@ XBARTcpp::XBARTcpp (size_t M ,size_t N_sweeps ,
   this->model_num =  model_num;
   this->no_split_penality =  no_split_penality;
   this->params.sample_weights_flag =  sample_weights_flag;
+  this->num_classes = num_classes;
 
   // handling seed
   
@@ -91,15 +92,49 @@ void XBARTcpp::_predict(int n,int d,double *a){//,int size, double *arr){
   // Initialize result
   ini_matrix(this->yhats_test_xinfo, n, this->params.N_sweeps);
   for(size_t i = 0;i<n;i++)for(size_t j = 0;j<this->params.N_sweeps;j++) this->yhats_test_xinfo[j][i]=0;
-
   // Convert column major vector to pointer
   const double *Xtestpointer = &x_test_std_flat[0];//&x_test_std[0][0];
+  
 
   // Predict
   NormalModel *model = new NormalModel(); //(this->params.kap, this->params.s, this->params.tau, this->params.alpha, this->params.beta);
 
   model->predict_std(Xtestpointer,n,d,this->params.M,this->params.N_sweeps,
         this->yhats_test_xinfo,this->trees); 
+
+  delete model;
+}
+
+
+void XBARTcpp::_predict_multinomial(int n, int d, double *a){//,int size, double *arr){
+  
+  // Convert *a to col_major std::vector
+  vec_d x_test_std_flat(n*d);
+  XBARTcpp::np_to_col_major_vec(n,d,a,x_test_std_flat);
+
+  // Initialize result
+  ini_matrix(this->yhats_test_xinfo, n, this->params.N_sweeps);
+  for(size_t i = 0;i<n;i++)for(size_t j = 0;j<this->params.N_sweeps;j++) this->yhats_test_xinfo[j][i]=0;
+
+  // Convert column major vector to pointer
+  const double *Xtestpointer = &x_test_std_flat[0];//&x_test_std[0][0];
+  this->yhats_test_multinomial = vector<double>(this->params.N_sweeps * n * this->num_classes);
+  
+  // define model
+  double tau_a = 1/this->params.tau + 0.5;
+  double tau_b = 1/this->params.tau;
+  std::vector<double> dummy_phi(n);
+  std::vector<size_t> dummy_y(n);
+  for(size_t i=0; i<n; ++i){
+    dummy_phi[i] = 1;
+    dummy_y[i] = 1;
+  }
+  LogitModel *model = new LogitModel(this->num_classes, tau_a, tau_b, this->params.alpha, 
+                                     this->params.beta, &dummy_y, &dummy_phi);
+
+  // Predict
+  model->predict_std(Xtestpointer,n,d,this->params.M,this->params.N_sweeps,
+        this->yhats_test_xinfo,this->trees,this->yhats_test_multinomial); 
 
   delete model;
 }
@@ -177,16 +212,40 @@ void XBARTcpp::_fit(int n,int d,double *a,
     state.reset();
     x_struct.reset();
 
-  }else if(this->model_num == 1){ // CLT
-  //     mcmc_loop_clt(Xpointer,y_std,y_mean, Xorder_std,n,d,
-  //               this->params.M,  this->params.N_sweeps, max_depth_std, 
-  //               this->params.Nmin, this->params.Ncutpoints, this->params.alpha, 
-  //               this->params.beta, this->params.tau, this->params.burnin, 
-  //               this->params.mtry,  this->params.kap , 
-  //               this->params.s, this->params.verbose,
-  //               this->params.parallel,
-  //               yhats_xinfo,this->sigma_draw_xinfo,this->mtry_weight_current_tree,p_cat,d-p_cat,this->trees,
-  //               this->seed_flag, this->seed, this->no_split_penality, this->params.sample_weights_flag);
+  }else if(this->model_num == 1){ // Multinomial
+    
+
+
+    // define model
+  double tau_a = 1/this->params.tau + 0.5;
+  double tau_b = 1/this->params.tau;
+  std::vector<double> phi(n);
+  for(size_t i=0; i<n; ++i){
+    phi[i] = 1;
+  }
+  std::vector<size_t> y_size_t(n);
+  for(size_t i=0; i<n; ++i) y_size_t[i] = (size_t)y_std[i];
+  LogitModel *model = new LogitModel(this->num_classes, tau_a, tau_b, this->params.alpha, 
+                                     this->params.beta, &y_size_t, &phi);
+  model->setNoSplitPenality(no_split_penality);
+  
+  //data
+  std::vector<double> initial_theta(this->num_classes, 1); 
+  std::unique_ptr<State> state(new State(Xpointer, Xorder_std, n, d, this->params.M, p_cat, d-p_cat, 
+  this->seed_flag, this->seed, this->params.Nmin, this->params.Ncutpoints, this->params.parallel, this->params.mtry, 
+  Xpointer, this->params.N_sweeps, this->params.sample_weights_flag, &y_std, 1.0, 
+  this->params.max_depth_num, y_mean, this->params.burnin, model->dim_residual));
+  std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, n, Xorder_std, p_cat, d-p_cat, &initial_theta, this->params.M));
+
+  // fit
+  mcmc_loop_multinomial(Xorder_std,this->params.verbose, this->trees, this->no_split_penality, 
+                        state, model, x_struct);
+  this->mtry_weight_current_tree = state->mtry_weight_current_tree;
+
+  delete model;
+  state.reset();
+  x_struct.reset();
+
   }else if(this->model_num == 2){ // Probit
     // define model
     ProbitClass *model = new ProbitClass(this->params.kap, this->params.s, this->params.tau, 
@@ -221,6 +280,10 @@ void XBARTcpp::get_yhats(int size,double *arr){
 void XBARTcpp::get_yhats_test(int size,double *arr){
   xinfo_to_np(this->yhats_test_xinfo,arr);
 }
+void XBARTcpp::get_yhats_test_multinomial(int size,double *arr){
+  for(size_t i=0; i < size; i++){arr[i]=this->yhats_test_multinomial[i];}
+}
+
 void XBARTcpp::get_sigma_draw(int size,double *arr){
   xinfo_to_np(this->sigma_draw_xinfo,arr);
 }
@@ -252,6 +315,7 @@ void XBARTcpp::np_to_col_major_vec(int n, int d,double *a,vec_d &x_std){
 
 }
 
+
 void XBARTcpp::xinfo_to_np(matrix<double>  x_std,double *arr){
   // Fill in array values from xinfo
   for(size_t i = 0 ,n = (size_t)x_std[0].size();i<n;i++){
@@ -262,6 +326,7 @@ void XBARTcpp::xinfo_to_np(matrix<double>  x_std,double *arr){
   }
   return;
 }
+
 
 void XBARTcpp::compute_Xorder(size_t n, size_t d,const vec_d &x_std_flat,matrix<size_t>  & Xorder_std){
         // Create Xorder
