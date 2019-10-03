@@ -480,8 +480,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     for(size_t i=0; i<N; ++i) phi[i] = 1;
     
     LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi);
-    COUT << model->y_size_t->size();
-    COUT << model->phi->size();
     model->setNoSplitPenality(no_split_penality);
 
 
