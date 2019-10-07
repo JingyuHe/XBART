@@ -391,6 +391,7 @@ json tree::to_json()
     {
         j["variable"] = this->v;
         j["cutpoint"] = this->c;
+        j["nodeid"] = this->nid();
         j["left"] = this->l->to_json();
         j["right"] = this->r->to_json();
     }
