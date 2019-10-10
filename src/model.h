@@ -153,12 +153,12 @@ public:
     double a = 0;
     double b = 1;
 
-
     ProbitClass(double kap, double s, double tau, double alpha, double beta, std::vector<double> &y_std) : NormalModel(kap, s, tau, alpha, beta)
     {
         this->z = std::vector<double>(y_std.size(), 0);
         this->z_prev = std::vector<double>(y_std.size(), 0);
-        for(size_t i = 0; i < y_std.size(); i ++ ){
+        for (size_t i = 0; i < y_std.size(); i++)
+        {
             this->z[i] = y_std[i];
         }
         return;
@@ -419,7 +419,6 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////////////////
 
-
 class LogitModel : public Model
 {
 private:
@@ -433,21 +432,20 @@ private:
 
         //suffstats[0] .. suffstats[c-1]is count of y's in cat 0,...,c-1, i.e. r in proposal
         //suffstats[c] .. suffstats[2c-1] is sum of phi_i*(partial fit j)'s ie s in proposal
-      //  double nh = 0;
-      //  for (size_t j = 0; j < c; j++)
-      //  {
-      //    nh += suffstats[j];
-      //  }
-        
-      double ret = 0;
-        
-        
+        //  double nh = 0;
+        //  for (size_t j = 0; j < c; j++)
+        //  {
+        //    nh += suffstats[j];
+        //  }
+
+        double ret = 0;
+
         for (size_t j = 0; j < c; j++)
         {
             // double r = suffstats[j];
             // double s = suffstats[c + j];
             // ret += -(tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]) ;
-            ret += -(tau_a + suffstats[j] ) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]);// - lgamma(suffstats[j] +1);
+            ret += -(tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]); // - lgamma(suffstats[j] +1);
         }
         return ret;
     }
@@ -469,25 +467,33 @@ private:
     // }
 
 public:
- //   size_t dim_suffstat = 3;
+    //   size_t dim_suffstat = 3;
 
     // prior on leaf parameter
     double tau_a, tau_b; //leaf parameter is ~ G(tau_a, tau_b). tau_a = 1/tau + 1/2, tau_b = 1/tau -> f(x)\sim N(0,tau) approx
 
     // Should these pointers live in model subclass or state subclass?
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
-    std::vector<double> *phi; // latent variables for mnl
+    std::vector<double> *phi;      // latent variables for mnl
 
-    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi) : Model(num_classes, 2*num_classes)
+    std::vector<double> tau_vec;
+    std::vector<double> tau_a_vec;
+    std::vector<double> tau_b_vec;
+
+    LogitModel(int num_classes, double tau, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi) : Model(num_classes, 2 * num_classes)
     {
-      this->y_size_t = y_size_t;
-      this->phi = phi;
+        this->y_size_t = y_size_t;
+        this->phi = phi;
         this->tau_a = tau_a;
         this->tau_b = tau_b;
         this->alpha = alpha;
         this->beta = beta;
         //what should this be?
         this->dim_residual = num_classes;
+
+        this->tau_vec = std::vector<double>(num_classes, tau);
+        this->tau_a_vec = std::vector<double>(num_classes, tau_a);
+        this->tau_b_vec = std::vector<double>(num_classes, tau_b);
     }
 
     LogitModel() : Model(2, 4) {}
@@ -516,9 +522,5 @@ public:
 
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec);
 };
-
-
-
-
 
 #endif
