@@ -18,7 +18,7 @@ void NormalModel::incSuffStat(matrix<double> &residual_std, size_t index_next_ob
     return;
 }
 
-void NormalModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
+void NormalModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf, const size_t &tree_ind)
 {
     std::normal_distribution<double> normal_samp(0.0, 1.0);
 
@@ -250,15 +250,10 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
     return;
 }
 
-void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
+void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf, const size_t &tree_ind)
 {
 
     //redefine these to use prior pars from Model class
-    // int c = dim_theta; //suffstats.size() / 2;
-
-    // double r;
-    // double s;
-
     for (size_t j = 0; j < dim_theta; j++)
     {
         // not necessary to assign to r and s again
@@ -272,6 +267,10 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
         std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1.0);
 
         theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
+
+        suff_stat_draw_tau_all_trees[j][0] += theta_vector[j];
+
+        suff_stat_draw_tau_all_trees[j][0] += log(theta_vector[j]);
     }
 
     return;

@@ -539,18 +539,16 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
     // tau is prior VARIANCE, do not take squares
 
-    if (update_theta)
+    if ((N_Xorder <= state->n_min) || (this->depth >= state->max_depth - 1))
     {
-        model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
-    }
+        // if few observations or reach max depth, stop splitting
+        // this is leaf node, update leaf parameter
 
-    if (N_Xorder <= state->n_min)
-    {
-        return;
-    }
+        if (update_theta)
+        {
+            model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf, tree_ind);
+        }
 
-    if (this->depth >= state->max_depth - 1)
-    {
         return;
     }
 
@@ -607,7 +605,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
         if (update_theta)
         {
-            model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
+            model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf, tree_ind);
         }
 
         this->l = 0;
@@ -1376,8 +1374,8 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
 {
 
     loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + log(model->getNoSplitPenality());
-  
-//cout << loglike << endl;
+
+    //cout << loglike << endl;
     // then adjust according to number of variables and split points
 
     ////////////////////////////////////////////////////////////////
@@ -1548,7 +1546,7 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
     // output should have dimension (dim_theta, num_trees)
 
     tree::tree_p bn; // pointer to bottom node
-    
+
     for (size_t i = 0; i < tree.size(); i++)
     {
         // loop over trees
@@ -1603,14 +1601,13 @@ void getThetaForObs_Outsample_ave(matrix<double> &output, std::vector<tree> &tre
         // bn is the bottom node
 
         output[i] = output[i] + bn->theta_vector;
-        count ++ ;
+        count++;
 
         // take average of the path
         for (size_t j = 0; j < output[i].size(); j++)
         {
             output[i][j] = output[i][j] / (double)count;
         }
-
     }
 
     return;

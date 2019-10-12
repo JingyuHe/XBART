@@ -44,6 +44,20 @@ void ini_xinfo_sizet(matrix<size_t> &X, size_t N, size_t p)
     return;
 }
 
+void reset_xinfo(matrix<double> &X){
+    for(size_t i = 0; i < X.size(); i ++ ){
+        std::fill(X[i].begin(), X[i].end(), 0.0);
+    }
+    return;
+}
+
+void reset_xinfo_sizet(matrix<size_t> &X){
+    for(size_t i = 0; i < X.size(); i ++ ){
+        std::fill(X[i].begin(), X[i].end(), 0);
+    }
+    return;
+}
+
 void row_sum(matrix<double> &X, std::vector<double> &output)
 {
     size_t p = X.size();

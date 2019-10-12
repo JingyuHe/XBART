@@ -8,7 +8,7 @@ get_XBART_params <- function(y) {
                       beta = 1.25, # BART prior parameter
                       mtry = 10, # number of variables sampled in each split
                       burnin = 15,
-                      no_split_penality = "Auto"
+                      no_split_penality = 1 #"Auto"
                       ) # burnin of MCMC sample
   num_tress = XBART_params$num_trees
   XBART_params$max_depth = 250
@@ -22,7 +22,7 @@ get_XBART_params <- function(y) {
 #######################################################################
 library(XBART)
 
-set.seed(100)
+set.seed(2)
 new_data = TRUE # generate new data
 run_dbarts = FALSE # run dbarts
 run_xgboost = FALSE # run xgboost

@@ -479,7 +479,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     std::vector<double> phi(N);
     for(size_t i=0; i<N; ++i) phi[i] = 1;
     
-    LogitModel *model = new LogitModel(num_class, tau, tau_a, tau_b, alpha, beta, &y_size_t, &phi);
+    LogitModel *model = new LogitModel(num_class, num_trees, tau, tau_a, tau_b, alpha, beta, &y_size_t, &phi);
     model->setNoSplitPenality(no_split_penality);
 
 
@@ -500,6 +500,10 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     ////////////////////////////////////////////////////////////////
     mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct);
 
+
+    for(size_t j = 0; j < num_trees; j++ ){
+        cout << model->suff_stat_draw_tau_all_trees[j] << endl;
+    }
     // TODO: Implement predict OOS
 
     // output is in 3 dim, stacked as a vector, number of sweeps * observations * number of classes

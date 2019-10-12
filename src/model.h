@@ -51,7 +51,7 @@ public:
     // Abstract functions
     virtual void incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats) { return; };
 
-    virtual void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf) { return; };
+    virtual void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf, const size_t &tree_ind) { return; };
 
     virtual void update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct) { return; };
 
@@ -123,7 +123,7 @@ public:
 
     void incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats);
 
-    void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
+    void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf, const size_t &tree_ind);
 
     void update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct);
 
@@ -217,7 +217,7 @@ public:
         return;
     }
     void incrementSuffStat() const { return; };
-    void samplePars(double y_mean, size_t N_Xorder, double sigma, std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, matrix<size_t> &Xorder, double &prob_leaf)
+    void samplePars(double y_mean, size_t N_Xorder, double sigma, std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, matrix<size_t> &Xorder, double &prob_leaf, const size_t &tree_ind)
     {
         // Update params
         updateFullSuffStat(y_std, Xorder[0]);
@@ -476,11 +476,22 @@ public:
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
     std::vector<double> *phi;      // latent variables for mnl
 
+    // sample tau for each class
     std::vector<double> tau_vec;
     std::vector<double> tau_a_vec;
     std::vector<double> tau_b_vec;
 
-    LogitModel(int num_classes, double tau, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi) : Model(num_classes, 2 * num_classes)
+
+    // sufficient statistics used when sampling tau
+    // first element is sum of leaf parameters
+    // second element is sum of log leaf parameters
+    std::vector<double> suff_stat_draw_tau;
+    
+    // 2 dimensional * number of trees
+
+    matrix<double> suff_stat_draw_tau_all_trees;
+
+    LogitModel(size_t num_classes, size_t num_trees, double tau, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi) : Model(num_classes, 2 * num_classes)
     {
         this->y_size_t = y_size_t;
         this->phi = phi;
@@ -494,6 +505,9 @@ public:
         this->tau_vec = std::vector<double>(num_classes, tau);
         this->tau_a_vec = std::vector<double>(num_classes, tau_a);
         this->tau_b_vec = std::vector<double>(num_classes, tau_b);
+
+        this->suff_stat_draw_tau = std::vector<double>(2, 0);
+        ini_xinfo(this->suff_stat_draw_tau_all_trees, num_trees, 2);
     }
 
     LogitModel() : Model(2, 4) {}
@@ -502,7 +516,7 @@ public:
 
     void incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats);
 
-    void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
+    void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf, const size_t &tree_ind);
 
     void update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct);
 
