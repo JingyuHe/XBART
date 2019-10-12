@@ -445,7 +445,7 @@ private:
             // double r = suffstats[j];
             // double s = suffstats[c + j];
             // ret += -(tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]) ;
-            ret += -(tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]); // - lgamma(suffstats[j] +1);
+            ret += -(tau_a_vec[j] + suffstats[j]) * log(tau_b_vec[j] + suffstats[c + j]) + lgamma(tau_a_vec[j] + suffstats[j]); // - lgamma(suffstats[j] +1);
         }
         return ret;
     }
