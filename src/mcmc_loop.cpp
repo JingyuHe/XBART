@@ -224,15 +224,15 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
                 model->ini_suff_stat_draw_tau();
             }
 
-            // this line below is for multinomial only
+            // this line below is for multinomial only, sampling tau
             model->clean_suff_stat_draw_tau_all_trees(tree_ind);
 
             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
-            // this line below is for multinomial only
+            // this line below is for multinomial only, sampling tau
             model->update_suff_stat_draw_tau(tree_ind);
-
             model->draw_tau(state);
+
 
             state->update_split_counts(tree_ind);
 
@@ -240,9 +240,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
             model->update_state(state, tree_ind, x_struct);
             
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
-            
-            
-            
+               
         }
     }
     thread_pool.stop();
