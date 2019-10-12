@@ -15,7 +15,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
 
 void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, CLTClass *model, std::unique_ptr<X_struct> &x_struct);
 
-void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModel *model, std::unique_ptr<X_struct> &x_struct);
+void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModel *model, std::unique_ptr<X_struct> &x_struct, matrix<double> &tau_samples, matrix<double> &tau_a_samples, matrix<double> &tau_b_samples);
 
 void mcmc_loop_probit(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, ProbitClass *model, std::unique_ptr<X_struct> &x_struct);
 

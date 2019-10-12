@@ -163,10 +163,7 @@ void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sig
     // delete model;
 }
 
-void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
-                           vector<vector<tree>> &trees, double no_split_penality,
-                           std::unique_ptr<State> &state, LogitModel *model,
-                           std::unique_ptr<X_struct> &x_struct)
+void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModel *model, std::unique_ptr<X_struct> &x_struct, matrix<double> &tau_samples, matrix<double> &tau_a_samples, matrix<double> &tau_b_samples)
 {
 
     if (state->parallel)
@@ -235,6 +232,9 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
                 // this line below is for multinomial only, sampling tau
                 model->update_suff_stat_draw_tau(tree_ind);
                 model->draw_tau(state);
+                tau_samples[sweeps * state->num_trees + tree_ind] = model->tau_vec;
+                tau_a_samples[sweeps * state->num_trees + tree_ind] = model->tau_a_vec;
+                tau_b_samples[sweeps * state->num_trees + tree_ind] = model->tau_b_vec;
             }
 
             state->update_split_counts(tree_ind);

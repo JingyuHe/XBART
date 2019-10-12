@@ -99,7 +99,7 @@ fit2 = XBART.multinomial(y=matrix(y_train), num_class=3, X=X_train, Xtest=X_test
             Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, 
             no_split_penality = 1, burnin = burnin, mtry = 3, p_categorical = 0L, 
             kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 
-            random_seed = NULL, sample_weights_flag = TRUE, draw_tau = TRUE, MH_step_size = 0.05) 
+            random_seed = NULL, sample_weights_flag = TRUE, draw_tau = TRUE, MH_step_size = 0.01) 
 
 # number of sweeps * number of observations * number of classes
 #dim(fit$yhats_test)
@@ -190,3 +190,6 @@ par(mfrow=c(2,2))
 plot(a[,1],pr[,1],pch=20,cex=0.75)
 plot(a[,2],pr[,2],pch=20,cex=0.75)
 plot(a[,3],pr[,3],pch=20,cex=0.75)
+
+
+

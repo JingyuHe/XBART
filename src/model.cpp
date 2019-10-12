@@ -304,7 +304,7 @@ void LogitModel::ini_suff_stat_draw_tau(){
 void LogitModel::draw_tau(std::unique_ptr<State> &state){
     // update tau by random walk metropolis hastings algorithm
 
-    double tau_proposal;
+    // double tau_proposal;
     double A;
     double tau_a_prop;
     double tau_b_prop;
@@ -312,18 +312,18 @@ void LogitModel::draw_tau(std::unique_ptr<State> &state){
     std::uniform_real_distribution<double> unif_samp(0.0,1.0);
 
     for(size_t j = 0; j < dim_residual; j ++ ){
-        tau_proposal = tau_vec[j] + normal_samp(state->gen);
+        // tau_proposal = tau_vec[j] + normal_samp(state->gen);
 
-        tau_a_prop = 1.0 / tau_proposal + 0.5;
-        tau_b_prop = 1.0 / tau_proposal;
+        tau_a_prop = tau_a_vec[j] + normal_samp(state->gen);
+        tau_b_prop = tau_b_vec[j] + normal_samp(state->gen);
 
         // put prior on initial tau_a and tau_b, with synthetic observations 1
 
-        A = LogitModel::tau_log_posterior(j, tau_a_prop, tau_b_prop, tau_a, tau_b, 1.0, 1.0) - LogitModel::tau_log_posterior(j, 1.0 / tau_vec[j] + 0.5, 1.0 / tau_vec[j], tau_a, tau_b, 1.0, 1.0);
+        A = LogitModel::tau_log_posterior(j, tau_a_prop, tau_b_prop, tau_a, tau_b, 1.0, 1.0) - LogitModel::tau_log_posterior(j, tau_a_vec[j], tau_b_vec[j], tau_a, tau_b, 1.0, 1.0);
 
         if(unif_samp(state->gen) < exp(A)){
             cout << "accept" << endl;
-            tau_vec[j] = tau_proposal;
+            // tau_vec[j] = tau_proposal;
             tau_a_vec[j] = tau_a_prop;
             tau_b_vec[j] = tau_b_prop;
         }else{

@@ -496,9 +496,14 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
 
-    
+    matrix<double> tau_samples;
+    ini_xinfo(tau_samples, num_class, num_sweeps * num_trees);
+    matrix<double> tau_a_samples;
+    ini_xinfo(tau_a_samples, num_class, num_sweeps * num_trees);
+    matrix<double> tau_b_samples;
+    ini_xinfo(tau_b_samples, num_class, num_sweeps * num_trees);
     ////////////////////////////////////////////////////////////////
-    mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct);
+    mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, tau_samples, tau_a_samples, tau_b_samples);
 
     // output is in 3 dim, stacked as a vector, number of sweeps * observations * number of classes
     std::vector<double> output_vec(num_sweeps * N_test * num_class);
@@ -545,6 +550,33 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         split_count_sum(i) = (int)state->mtry_weight_current_tree[i];
     }
 
+    Rcpp::NumericMatrix tau_return(num_sweeps * num_trees, num_class);
+
+    for(size_t i = 0; i < num_sweeps * num_trees; i ++ ){
+        for(size_t j = 0; j < num_class; j ++ ){
+            tau_return(i, j) = tau_samples[i][j]; 
+        }
+    }
+
+
+    Rcpp::NumericMatrix tau_a_return(num_sweeps * num_trees, num_class);
+
+    for(size_t i = 0; i < num_sweeps * num_trees; i ++ ){
+        for(size_t j = 0; j < num_class; j ++ ){
+            tau_a_return(i, j) = tau_a_samples[i][j]; 
+        }
+    }
+
+
+    Rcpp::NumericMatrix tau_b_return(num_sweeps * num_trees, num_class);
+
+    for(size_t i = 0; i < num_sweeps * num_trees; i ++ ){
+        for(size_t j = 0; j < num_class; j ++ ){
+            tau_b_return(i, j) = tau_b_samples[i][j]; 
+        }
+    }
+
+
     auto end = system_clock::now();
 
     auto duration = duration_cast<microseconds>(end - start);
@@ -564,6 +596,9 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("yhats_test") = output,
         Rcpp::Named("importance") = split_count_sum,
+        Rcpp::Named("tau") = tau_return,
+        Rcpp::Named("tau_a") = tau_a_return,
+        Rcpp::Named("tau_b") = tau_b_return,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p));
 
 }
