@@ -219,7 +219,20 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
             
             trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
 
+            if(sweeps == state->burnin){
+                // after burnin period, first calculate suff_stat_draw_tau vector, sum over trees
+                model->ini_suff_stat_draw_tau();
+            }
+
+            // this line below is for multinomial only
+            model->clean_suff_stat_draw_tau_all_trees(tree_ind);
+
             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+
+            // this line below is for multinomial only
+            model->update_suff_stat_draw_tau(tree_ind);
+
+            model->draw_tau(state);
 
             state->update_split_counts(tree_ind);
 

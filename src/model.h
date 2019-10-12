@@ -487,8 +487,8 @@ public:
     // second element is sum of log leaf parameters
     std::vector<double> suff_stat_draw_tau;
     
-    // 2 dimensional * number of trees
-
+    // number of trees * (3 * num_classes)
+    // sum of leaf parameters, sum of log leaf parameters and count of leaves
     matrix<double> suff_stat_draw_tau_all_trees;
 
     LogitModel(size_t num_classes, size_t num_trees, double tau, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi) : Model(num_classes, 2 * num_classes)
@@ -506,13 +506,24 @@ public:
         this->tau_a_vec = std::vector<double>(num_classes, tau_a);
         this->tau_b_vec = std::vector<double>(num_classes, tau_b);
 
-        this->suff_stat_draw_tau = std::vector<double>(2, 0);
-        ini_xinfo(this->suff_stat_draw_tau_all_trees, num_trees, 2);
+        this->suff_stat_draw_tau = std::vector<double>(3 * num_classes, 0);
+
+        ini_xinfo(this->suff_stat_draw_tau_all_trees, 3 * num_classes, num_trees);
     }
 
     LogitModel() : Model(2, 4) {}
 
     Model *clone() { return new LogitModel(*this); }
+
+    void clean_suff_stat_draw_tau_all_trees(size_t &tree_ind);
+
+    void update_suff_stat_draw_tau(size_t &tree_ind);
+
+    void ini_suff_stat_draw_tau();
+
+    void draw_tau(std::unique_ptr<State> &state);
+    
+    double tau_log_posterior(size_t &class_ind, double a, double b, double p, double q, double r, double s);
 
     void incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats);
 

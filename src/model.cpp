@@ -264,17 +264,82 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 
         // theta_vector[j] = gammadist(state->gen) / (tau_b + s);
 
-        std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1.0);
+        std::gamma_distribution<double> gammadist(tau_a_vec[j] + suff_stat[j], 1.0);
 
-        theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
+        theta_vector[j] = gammadist(state->gen) / (tau_b_vec[j] + suff_stat[dim_theta + j]);
 
-        suff_stat_draw_tau_all_trees[j][0] += theta_vector[j];
+        suff_stat_draw_tau_all_trees[tree_ind][j * 3] += theta_vector[j];
 
-        suff_stat_draw_tau_all_trees[j][0] += log(theta_vector[j]);
+        suff_stat_draw_tau_all_trees[tree_ind][j * 3 + 1] += log(theta_vector[j]);
+
+        suff_stat_draw_tau_all_trees[tree_ind][j * 3 + 2] += 1;
     }
 
     return;
 }
+
+void LogitModel::clean_suff_stat_draw_tau_all_trees(size_t &tree_ind){
+    suff_stat_draw_tau = suff_stat_draw_tau - suff_stat_draw_tau_all_trees[tree_ind];
+
+    std::fill(suff_stat_draw_tau_all_trees[tree_ind].begin(), suff_stat_draw_tau_all_trees[tree_ind].end(), 0.0);
+    
+    return;
+}
+
+void LogitModel::update_suff_stat_draw_tau(size_t &tree_ind){
+    suff_stat_draw_tau = suff_stat_draw_tau + suff_stat_draw_tau_all_trees[tree_ind];
+
+    return;
+}
+
+void LogitModel::ini_suff_stat_draw_tau(){
+    std::fill(suff_stat_draw_tau.begin(), suff_stat_draw_tau.end(), 0.0);
+
+    for(size_t i = 0; i < suff_stat_draw_tau_all_trees.size(); i++){
+        suff_stat_draw_tau = suff_stat_draw_tau + suff_stat_draw_tau_all_trees[i];
+    }
+    return;
+}
+
+void LogitModel::draw_tau(std::unique_ptr<State> &state){
+    // update tau by random walk metropolis hastings algorithm
+
+    double tau_proposal;
+    double A;
+    double tau_a;
+    double tau_b;
+    std::normal_distribution<double> normal_samp(0.0, 0.1);
+    std::uniform_real_distribution<double> unif_samp(0.0,1.0);
+
+    for(size_t j = 0; j < dim_residual; j ++ ){
+        tau_proposal = tau_vec[j] + normal_samp(state->gen);
+
+        tau_a = 1.0 / tau_proposal + 0.5;
+        tau_b = 1.0 / tau_proposal;
+
+        A = LogitModel::tau_log_posterior(j, tau_a, tau_b, alpha, beta, 1.0, 1.0) - LogitModel::tau_log_posterior(j, 1.0 / tau_vec[j] + 0.5, 1.0 / tau_vec[j], alpha, beta, 1, 1);
+
+        if(unif_samp(state->gen) < exp(A)){
+            tau_vec[j] = tau_proposal;
+            tau_a_vec[j] = tau_a;
+            tau_b_vec[j] = tau_b;
+        }
+
+    }
+    return;
+}
+
+double LogitModel::tau_log_posterior(size_t &class_ind, double a, double b, double p, double q, double r, double s){
+
+    double x_sum = suff_stat_draw_tau[3 * class_ind];
+    double logx_sum = suff_stat_draw_tau[3 * class_ind + 1];
+    double n = suff_stat_draw_tau[3 * class_ind + 2];
+
+    double output = (a-1) * (log(p) + logx_sum) - b * (q + x_sum) - (r + n)*lgamma(a) + a * (s + n) * log(b);
+    
+    return(output);
+}
+
 
 void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {

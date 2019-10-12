@@ -504,7 +504,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     for(size_t j = 0; j < num_trees; j++ ){
         cout << model->suff_stat_draw_tau_all_trees[j] << endl;
     }
-    // TODO: Implement predict OOS
+
 
     // output is in 3 dim, stacked as a vector, number of sweeps * observations * number of classes
     std::vector<double> output_vec(num_sweeps * N_test * num_class);
