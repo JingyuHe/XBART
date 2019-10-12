@@ -481,6 +481,9 @@ public:
     std::vector<double> tau_a_vec;
     std::vector<double> tau_b_vec;
 
+    bool draw_tau_flag;
+
+    double MH_step_size;
 
     // sufficient statistics used when sampling tau
     // first element is sum of leaf parameters
@@ -491,7 +494,7 @@ public:
     // sum of leaf parameters, sum of log leaf parameters and count of leaves
     matrix<double> suff_stat_draw_tau_all_trees;
 
-    LogitModel(size_t num_classes, size_t num_trees, double tau, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi) : Model(num_classes, 2 * num_classes)
+    LogitModel(size_t num_classes, size_t num_trees, double tau, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, bool draw_tau_flag, double MH_step_size) : Model(num_classes, 2 * num_classes)
     {
         this->y_size_t = y_size_t;
         this->phi = phi;
@@ -501,6 +504,8 @@ public:
         this->beta = beta;
         //what should this be?
         this->dim_residual = num_classes;
+        this->draw_tau_flag = draw_tau_flag;
+        this->MH_step_size = MH_step_size;
 
         this->tau_vec = std::vector<double>(num_classes, tau);
         this->tau_a_vec = std::vector<double>(num_classes, tau_a);

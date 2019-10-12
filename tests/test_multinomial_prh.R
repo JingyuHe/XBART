@@ -82,7 +82,7 @@ fit = XBART.multinomial(y=matrix(y_train), num_class=3, X=X_train, Xtest=X_test,
             Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, 
             no_split_penality = 1, burnin = burnin, mtry = 3, p_categorical = 0L, 
             kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 
-            random_seed = NULL, sample_weights_flag = TRUE) 
+            random_seed = NULL, sample_weights_flag = TRUE, draw_tau = FALSE) 
 
 # number of sweeps * number of observations * number of classes
 #dim(fit$yhats_test)
@@ -91,6 +91,23 @@ cat(paste("\n", "xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 # take average of all sweeps, discard burn-in
 a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
 pred = apply(a,1,which.max)-1
+
+
+tm2 = proc.time()
+fit2 = XBART.multinomial(y=matrix(y_train), num_class=3, X=X_train, Xtest=X_test, 
+            num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
+            Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, 
+            no_split_penality = 1, burnin = burnin, mtry = 3, p_categorical = 0L, 
+            kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 
+            random_seed = NULL, sample_weights_flag = TRUE, draw_tau = TRUE, MH_step_size = 0.05) 
+
+# number of sweeps * number of observations * number of classes
+#dim(fit$yhats_test)
+tm2 = proc.time()-tm2
+cat(paste("\n", "xbart drawing tau runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
+# take average of all sweeps, discard burn-in
+a2 = apply(fit2$yhats_test[burnin:num_sweeps,,], c(2,3), median)
+pred2 = apply(a2,1,which.max)-1
 
 # final predcition
 #pred = as.numeric(a[,1] < a[,2])
@@ -150,6 +167,7 @@ yhat.xgb <- max.col(phat.xgb) - 1
 #print(mean(pred3 == y_test))
 
 cat(paste("xbart rmse on probabilities: ", round(sqrt(mean((a-pr)^2)),3)),"\n")
+cat(paste("xbart sampling tau rmse on probabilities: ", round(sqrt(mean((a2-pr)^2)),3)),"\n")
 cat(paste("ranger rmse on probabilities: ", round(sqrt(mean((pred3-pr)^2)),3)),"\n")
 cat(paste("xgboost rmse on probabilities: ", round(sqrt(mean((phat.xgb-pr)^2)),3)),"\n")
 
@@ -158,15 +176,17 @@ cat(paste("xgboost rmse on probabilities: ", round(sqrt(mean((phat.xgb-pr)^2)),3
 #plot(pred3[,2],pr[,2],pch=20,cex=0.5)
 #plot(pred3[,3],pr[,3],pch=20,cex=0.5)
 
-par(mfrow=c(1,3))
-plot(a[,1],pr[,1],pch=20,cex=0.75)
-plot(a[,2],pr[,2],pch=20,cex=0.75)
-plot(a[,3],pr[,3],pch=20,cex=0.75)
-
 
 
 yhat = apply(a,1,which.max)-1
+yhat2 = apply(a2, 1, which.max)-1
 yhat.rf = apply(pred3,1,which.max)-1
 cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
+cat(paste("xbart sampling tau classification accuracy: ",round(mean(y_test == yhat2),3)),"\n")
 cat(paste("ranger classification accuracy: ", round(mean(y_test == yhat.rf),3)),"\n")
 cat(paste("xgboost classification accuracy: ", round(mean(yhat.xgb == y_test),3)),"\n")
+
+par(mfrow=c(2,2))
+plot(a[,1],pr[,1],pch=20,cex=0.75)
+plot(a[,2],pr[,2],pch=20,cex=0.75)
+plot(a[,3],pr[,3],pch=20,cex=0.75)

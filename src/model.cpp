@@ -308,7 +308,7 @@ void LogitModel::draw_tau(std::unique_ptr<State> &state){
     double A;
     double tau_a_prop;
     double tau_b_prop;
-    std::normal_distribution<double> normal_samp(0.0, 0.1);
+    std::normal_distribution<double> normal_samp(0.0, MH_step_size);
     std::uniform_real_distribution<double> unif_samp(0.0,1.0);
 
     for(size_t j = 0; j < dim_residual; j ++ ){
@@ -317,9 +317,9 @@ void LogitModel::draw_tau(std::unique_ptr<State> &state){
         tau_a_prop = 1.0 / tau_proposal + 0.5;
         tau_b_prop = 1.0 / tau_proposal;
 
-        // put prior on initial tau_a and tau_b, with synthetic observations 10
+        // put prior on initial tau_a and tau_b, with synthetic observations 1
 
-        A = LogitModel::tau_log_posterior(j, tau_a_prop, tau_b_prop, tau_a, tau_b, 10.0, 10.0) - LogitModel::tau_log_posterior(j, 1.0 / tau_vec[j] + 0.5, 1.0 / tau_vec[j], tau_a, tau_b, 10.0, 10.0);
+        A = LogitModel::tau_log_posterior(j, tau_a_prop, tau_b_prop, tau_a, tau_b, 1.0, 1.0) - LogitModel::tau_log_posterior(j, 1.0 / tau_vec[j] + 0.5, 1.0 / tau_vec[j], tau_a, tau_b, 1.0, 1.0);
 
         if(unif_samp(state->gen) < exp(A)){
             cout << "accept" << endl;
