@@ -268,7 +268,7 @@ XBCF <- function(y, X, z,
     index = order(z, decreasing=TRUE)
 
     y = y[index]
-    X = X[index]
+    X = matrix(c(x[,1][index],x[,2][index],x[,3][index]),nrow=length(x[,1]))
     z = z[index]
 
     if(class(X) != "matrix"){

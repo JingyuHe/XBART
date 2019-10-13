@@ -30,10 +30,10 @@ void xbcfModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &s
   std::normal_distribution<double> normal_samp(0.0, 1.0);
 
   // test result should be theta
-  theta_vector[0] = suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)) + sqrt(1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2))) * normal_samp(state->gen); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
+  theta_vector[0] = suff_stat[1] / (1.0 / tau + suff_stat[0]) + sqrt(1.0 / (1.0 / tau + suff_stat[0])) * normal_samp(state->gen); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
 
   // also update probability of leaf parameters
-  prob_leaf = normal_density(theta_vector[0], suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), 1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), true);
+  prob_leaf = normal_density(theta_vector[0], suff_stat[1] / (1.0 / tau + suff_stat[0]), 1.0 / (1.0 / tau + suff_stat[0]), true);
 
   return;
 }
@@ -240,7 +240,7 @@ void xbcfModel::transfer_residual_std(std::unique_ptr<State> &state_ps, std::uni
   return;
 }
 
-// TODO: to be removed
+// predict function: running the original matrix X through it gives the treatment effect matrix
 
 void xbcfModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees)
 {

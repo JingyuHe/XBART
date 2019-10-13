@@ -5,7 +5,6 @@
 // thus there are two of each tree-object, model-object, state-object, x_struct-object
 
 void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
-                    matrix<double> &tauhats_xinfo,
                     matrix<double> &sigma_draw_xinfo_ps,
                     matrix<double> &sigma_draw_xinfo_trt,
                     vector<vector<tree>> &trees_ps,
@@ -69,13 +68,11 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
       model_ps->state_sweep(tree_ind, state_ps->num_trees, state_ps->residual_std, x_struct_ps);
     }
 
-    thread_pool.stop();
+    // store fitted values in tauhats_xinfo
+    // model_ps->update_xinfo(muhats_xinfo, sweeps, state_ps->num_trees, state_ps->n_y, x_struct_ps);
 
     // pass over residual to the treatment term model
-    model_trt->transfer_residual_std(state_trt, state_ps);
-
-    if (state_trt->parallel)
-      thread_pool.start();
+    model_trt->transfer_residual_std(state_ps, state_trt);
 
     // Treatment term loop
 
@@ -85,7 +82,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
 
       model_trt->update_state(state_trt, tree_ind, x_struct_trt);
 
-      // sigma_draw_xinfo_trt[sweeps][tree_ind] = state_trt->sigma; // commented because purpose of the line is unclear
+      // sigma_draw_xinfo_trt[sweeps][tree_ind] = state_trt->sigma; // storing sigmas
 
       if (state_trt->use_all && (sweeps > state_trt->burnin) && (state_trt->mtry != state_trt->p))
       {
@@ -112,13 +109,12 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
     }
 
     // store fitted values in tauhats_xinfo
-    model_trt->update_xinfo(tauhats_xinfo, sweeps, state_trt->num_trees, state_trt->n_y, x_struct_trt);
-
-    thread_pool.stop();
+    // model_trt->update_xinfo(tauhats_xinfo, sweeps, state_trt->num_trees, state_trt->n_y, x_struct_trt);
 
     // pass over residual to the prognostic term model
-    model_trt->transfer_residual_std(state_ps, state_trt);
+    model_trt->transfer_residual_std(state_trt, state_ps);
   }
 
+  thread_pool.stop();
   return;
 }

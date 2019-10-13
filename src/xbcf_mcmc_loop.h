@@ -11,7 +11,6 @@
 #include "MH.h"
 
 void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
-                    matrix<double> &tauhats_xinfo,
                     matrix<double> &sigma_draw_xinfo_ps,
                     matrix<double> &sigma_draw_xinfo_trt,
                     vector<vector<tree>> &trees_ps,

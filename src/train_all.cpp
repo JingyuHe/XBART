@@ -989,8 +989,8 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
 
     matrix<double> tauhats_xinfo;
     ini_matrix(tauhats_xinfo, N, num_sweeps);
-    // yhats_xinfo.matrix<double> yhats_test_xinfo;
-    // ini_matrix(yhats_test_xinfo, N, num_sweeps);
+    matrix<double> muhats_xinfo;
+    ini_matrix(muhats_xinfo, N, num_sweeps);
 
     matrix<double> sigma_draw_xinfo_pr;
     ini_matrix(sigma_draw_xinfo_pr, num_trees_pr, num_sweeps);
@@ -1033,13 +1033,21 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     std::unique_ptr<X_struct> x_struct_trt(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_trt, num_trees_trt));
 
     // mcmc_loop returns tauhat [N x sweeps] matrix
-    mcmc_loop_xbcf(Xorder_std, verbose, tauhats_xinfo, sigma_draw_xinfo_pr, sigma_draw_xinfo_trt, *trees_pr, *trees_trt, no_split_penality,
+    mcmc_loop_xbcf(Xorder_std, verbose, sigma_draw_xinfo_pr, sigma_draw_xinfo_trt, *trees_pr, *trees_trt, no_split_penality,
                    state_pr, state_trt, model_pr, model_trt, x_struct_pr, x_struct_trt);
+
+    //predict tauhats and muhats
+    model_trt->predict_std(Xpointer, N, p, num_trees_trt, num_sweeps, tauhats_xinfo, *trees_trt);
+    model_pr->predict_std(Xpointer, N, p, num_trees_pr, num_sweeps, muhats_xinfo, *trees_pr);
 
     // R Objects to Return
     Rcpp::NumericMatrix tauhats(N, num_sweeps);
 
+    Rcpp::NumericMatrix muhats(N, num_sweeps);
+
     std_to_rcpp(tauhats_xinfo, tauhats);
+    std_to_rcpp(muhats_xinfo, muhats);
+
     auto end = system_clock::now();
 
     auto duration = duration_cast<microseconds>(end - start);
@@ -1060,8 +1068,10 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
 
     // R Objects to Return
     return Rcpp::List::create(
-        Rcpp::Named("tauhats") = tauhats
-
+        Rcpp::Named("tauhats_out") = tauhats,
+        Rcpp::Named("muhats_copy") = muhats
+        //Rcpp::Named("sigma_draws") = sigma_draws,
+        //Rcpp::Named("scale_factors") = scale_factors
         //XBART
         //       Rcpp::Named("sigma") = sigma_draw,
         //BCF
