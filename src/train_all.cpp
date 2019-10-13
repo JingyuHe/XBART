@@ -404,7 +404,7 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, bool draw_tau_flag = true, double MH_step_size = 0.1)
+Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double tau_later, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, bool draw_tau_flag = true, double MH_step_size = 0.1, size_t num_tree_fix = 0, size_t tree_burnin = 0)
 {
 
     auto start = system_clock::now();
@@ -478,8 +478,10 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     double tau_b = 1/tau;
     std::vector<double> phi(N);
     for(size_t i=0; i<N; ++i) phi[i] = 1;
+
+    cout << " fix first " << num_tree_fix << endl;
     
-    LogitModel *model = new LogitModel(num_class, num_trees, tau, tau_a, tau_b, alpha, beta, &y_size_t, &phi, draw_tau_flag, MH_step_size);
+    LogitModel *model = new LogitModel(num_class, num_trees, tau, tau_later, tau_a, tau_b, alpha, beta, &y_size_t, &phi, draw_tau_flag, MH_step_size, num_tree_fix, tree_burnin);
     model->setNoSplitPenality(no_split_penality);
 
 

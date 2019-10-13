@@ -1,4 +1,4 @@
-XBART.multinomial <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth = 250, Nmin = 1, num_cutpoints = 100, alpha = 0.95, beta = 1.25, tau = NULL, no_split_penality = NULL, burnin = 1L, mtry = NULL, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE, draw_tau_flag = FALSE, MH_step_size = 0.1, ...) {
+XBART.multinomial <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth = 250, Nmin = 1, num_cutpoints = 100, alpha = 0.95, beta = 1.25, tau = NULL, tau_later = NULL, no_split_penality = NULL, burnin = 1L, mtry = NULL, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE, draw_tau_flag = FALSE, MH_step_size = 0.1, num_tree_fix = 0, tree_burnin = 0, ...) {
 
   if (class(X) != "matrix") {
     cat("Input X is not a matrix, try to convert type.\n")
@@ -76,7 +76,10 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max
   check_scalar(kap, "kap")
   check_scalar(s, "s")
 
-  obj = XBART_multinomial_cpp(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, draw_tau_flag, MH_step_size)
+  if(is.null(tau_later)){
+    tau_later = tau
+  }
+  obj = XBART_multinomial_cpp(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, tau_later, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, draw_tau_flag, MH_step_size, num_tree_fix, tree_burnin)
   class(obj) = "XBART" # Change to XBARTProbit?
   return(obj)
 }

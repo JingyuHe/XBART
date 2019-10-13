@@ -79,10 +79,10 @@ num_trees = 10
 tm = proc.time()
 fit = XBART.multinomial(y=matrix(y_train), num_class=3, X=X_train, Xtest=X_test, 
             num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
-            Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, 
+            Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, tau_later = 50,
             no_split_penality = 1, burnin = burnin, mtry = 3, p_categorical = 0L, 
             kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 
-            random_seed = NULL, sample_weights_flag = TRUE, draw_tau = FALSE) 
+            random_seed = NULL, sample_weights_flag = TRUE, draw_tau = FALSE, num_tree_fix = 2, tree_burnin = 1) 
 
 # number of sweeps * number of observations * number of classes
 #dim(fit$yhats_test)
@@ -96,10 +96,10 @@ pred = apply(a,1,which.max)-1
 tm2 = proc.time()
 fit2 = XBART.multinomial(y=matrix(y_train), num_class=3, X=X_train, Xtest=X_test, 
             num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
-            Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, 
+            Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, tau_later = 50,
             no_split_penality = 1, burnin = burnin, mtry = 3, p_categorical = 0L, 
             kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 
-            random_seed = NULL, sample_weights_flag = TRUE, draw_tau = TRUE, MH_step_size = 0.01) 
+            random_seed = NULL, sample_weights_flag = TRUE, draw_tau = TRUE, MH_step_size = 0.01, num_tree_fix = 2, tree_burnin = 1) 
 
 # number of sweeps * number of observations * number of classes
 #dim(fit$yhats_test)

@@ -472,6 +472,8 @@ public:
     // prior on leaf parameter
     double tau_a, tau_b; //leaf parameter is ~ G(tau_a, tau_b). tau_a = 1/tau + 1/2, tau_b = 1/tau -> f(x)\sim N(0,tau) approx
 
+    double tau_later;
+
     // Should these pointers live in model subclass or state subclass?
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
     std::vector<double> *phi;      // latent variables for mnl
@@ -485,6 +487,10 @@ public:
 
     double MH_step_size;
 
+    size_t num_tree_fix;
+    
+    size_t tree_burnin;
+
     // sufficient statistics used when sampling tau
     // first element is sum of leaf parameters
     // second element is sum of log leaf parameters
@@ -494,7 +500,7 @@ public:
     // sum of leaf parameters, sum of log leaf parameters and count of leaves
     matrix<double> suff_stat_draw_tau_all_trees;
 
-    LogitModel(size_t num_classes, size_t num_trees, double tau, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, bool draw_tau_flag, double MH_step_size) : Model(num_classes, 2 * num_classes)
+    LogitModel(size_t num_classes, size_t num_trees, double tau, double tau_later, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, bool draw_tau_flag, double MH_step_size, size_t num_tree_fix, size_t tree_burnin) : Model(num_classes, 2 * num_classes)
     {
         this->y_size_t = y_size_t;
         this->phi = phi;
@@ -507,6 +513,8 @@ public:
         this->draw_tau_flag = draw_tau_flag;
         this->MH_step_size = MH_step_size;
 
+        this->tau_later = tau_later;
+
         this->tau_vec = std::vector<double>(num_classes, tau);
         this->tau_a_vec = std::vector<double>(num_classes, tau_a);
         this->tau_b_vec = std::vector<double>(num_classes, tau_b);
@@ -514,6 +522,9 @@ public:
         this->suff_stat_draw_tau = std::vector<double>(3 * num_classes, 0);
 
         ini_xinfo(this->suff_stat_draw_tau_all_trees, 3 * num_classes, num_trees);
+
+        this->num_tree_fix = num_tree_fix;
+        this->tree_burnin = tree_burnin;
     }
 
     LogitModel() : Model(2, 4) {}
@@ -527,6 +538,8 @@ public:
     void ini_suff_stat_draw_tau();
 
     void draw_tau(std::unique_ptr<State> &state);
+
+    void switch_tau();
     
     double tau_log_posterior(size_t &class_ind, double a, double b, double p, double q, double r, double s);
 

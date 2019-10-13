@@ -175,12 +175,26 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {
-
+cout << "tau value of sweeps " << sweeps << "  tau_a " << model->tau_a_vec[0] << " tau_b " << model->tau_b_vec[0] << endl;
         if (verbose == true)
         {
             COUT << "--------------------------------" << endl;
             COUT << "number of sweeps " << sweeps << endl;
             COUT << "--------------------------------" << endl;
+        }
+
+        if (sweeps == model->tree_burnin - 1)
+        {
+            // change tau for later sweeps
+            model->switch_tau();
+        }
+
+        if (sweeps == model->tree_burnin && model->draw_tau_flag)
+        {
+            // after burnin period, first calculate suff_stat_draw_tau vector, sum over trees
+            model->ini_suff_stat_draw_tau();
+
+            // sweeps == model->tree_burnin to get rid of lambdas under first tau 
         }
 
         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
@@ -209,23 +223,27 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             }
 
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
-            
-            //cout << trees[sweeps][tree_ind].suff_stat << endl;
 
             trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
-
-            if (sweeps == state->burnin && model->draw_tau_flag)
-            {
-                // after burnin period, first calculate suff_stat_draw_tau vector, sum over trees
-                model->ini_suff_stat_draw_tau();
-            }
 
             if (model->draw_tau_flag)
             {
                 // this line below is for multinomial only, sampling tau
                 model->clean_suff_stat_draw_tau_all_trees(tree_ind);
             }
-            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+
+            if (sweeps >= model->tree_burnin && tree_ind < model->num_tree_fix)
+            {
+                // copy the tree from previous sweeps, unchanged
+
+                trees[sweeps][tree_ind] = trees[sweeps - 1][tree_ind];
+            }
+            else
+            {
+                // grow a new tree
+
+                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+            }
 
             if (model->draw_tau_flag)
             {
