@@ -245,6 +245,8 @@ cout << "tau value of sweeps " << sweeps << "  tau_a " << model->tau_a_vec[0] <<
                 trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
             }
 
+            cout << "tree size " << trees[sweeps][tree_ind].treesize() << endl;
+
             if (model->draw_tau_flag)
             {
                 // this line below is for multinomial only, sampling tau
