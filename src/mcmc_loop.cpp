@@ -183,13 +183,13 @@ cout << "tau value of sweeps " << sweeps << "  tau_a " << model->tau_a_vec[0] <<
             COUT << "--------------------------------" << endl;
         }
 
-        if (sweeps == model->tree_burnin - 1)
+        if (sweeps == model->tree_burnin)
         {
             // change tau for later sweeps
             model->switch_tau();
         }
 
-        if (sweeps == model->tree_burnin && model->draw_tau_flag)
+        if ((sweeps == model->tree_burnin + 1) && model->draw_tau_flag)
         {
             // after burnin period, first calculate suff_stat_draw_tau vector, sum over trees
             model->ini_suff_stat_draw_tau();
@@ -235,6 +235,8 @@ cout << "tau value of sweeps " << sweeps << "  tau_a " << model->tau_a_vec[0] <<
             if (sweeps >= model->tree_burnin && tree_ind < model->num_tree_fix)
             {
                 // copy the tree from previous sweeps, unchanged
+
+                cout << "tree is fixed" << endl;
 
                 trees[sweeps][tree_ind] = trees[sweeps - 1][tree_ind];
             }
