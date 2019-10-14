@@ -238,9 +238,9 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             {
                 cout << "aa" << sweeps << " " << tree_ind << " " << class_ind << endl; 
                 model->class_operating_now = class_ind;
-
+cout << "line 1" << endl;
                 model->initialize_root_suffstat(state, trees[class_ind][sweeps][tree_ind].suff_stat);
-
+cout << "line 2" << endl;
                 trees[class_ind][sweeps][tree_ind].theta_vector.resize(model->dim_residual);
 
                 if (model->draw_tau_flag)
@@ -248,11 +248,11 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                     // this line below is for multinomial only, sampling tau
                     model->clean_suff_stat_draw_tau_all_trees(tree_ind);
                 }
-
+cout << "line 3" << endl;
                 trees[class_ind][sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
             }
             // }
-
+cout << "line 4" << endl;
             // cout << "tree size " << trees[sweeps][tree_ind].treesize() << endl;
 
             if (model->draw_tau_flag)
@@ -264,13 +264,14 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                 tau_a_samples[sweeps * state->num_trees + tree_ind] = model->tau_a_vec;
                 tau_b_samples[sweeps * state->num_trees + tree_ind] = model->tau_b_vec;
             }
-
+cout << "line 5" << endl;
             state->update_split_counts(tree_ind);
-
+cout << "line 6" << endl;
             // update partial fits for the next tree
             model->update_state(state, tree_ind, x_struct);
-
+cout << "line 7" << endl;
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
+cout << "line 8" << endl;
         }
     }
     thread_pool.stop();

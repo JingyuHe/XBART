@@ -23,6 +23,8 @@ public:
 
     size_t dim_residual;
 
+    size_t class_operating_now;
+
     /////////////////////////////////////
     //
     //  suff_stat_model and suff_stat_total
@@ -476,7 +478,7 @@ public:
 
     // Should these pointers live in model subclass or state subclass?
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
-    std::vector<double> *phi;      // latent variables for mnl
+    std::vector< std::vector<double> > *phi;      // latent variables for mnl
 
     // sample tau for each class
     std::vector<double> tau_vec;
@@ -503,7 +505,7 @@ public:
     // sum of leaf parameters, sum of log leaf parameters and count of leaves
     matrix<double> suff_stat_draw_tau_all_trees;
 
-    LogitModel(size_t num_classes, size_t num_trees, double tau, double tau_later, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, bool draw_tau_flag, double MH_step_size, size_t num_tree_fix, size_t tree_burnin) : Model(num_classes, 2 * num_classes)
+    LogitModel(size_t num_classes, size_t num_trees, double tau, double tau_later, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector< std::vector<double> > *phi, bool draw_tau_flag, double MH_step_size, size_t num_tree_fix, size_t tree_burnin) : Model(num_classes, 2 * num_classes)
     {
         this->y_size_t = y_size_t;
         this->phi = phi;

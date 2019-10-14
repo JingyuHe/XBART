@@ -244,7 +244,7 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
 
     // psi * f
     size_t j = class_operating_now;
-    suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
+    suffstats[dim_theta + j] += (*phi)[j][index_next_obs] * residual_std[j][index_next_obs];
     // }
 
     return;
@@ -400,12 +400,12 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         sum_fits = 0;
         // for (size_t j = 0; j < dim_theta; ++j)
         // {
-        sum_fits += state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j];
+        sum_fits += state->residual_std[j][i] * (*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j];
         // }
 
         //COUT << "got scale";
         //COUT << "draw phi ";
-        (*phi)[i] = gammadist(state->gen) / (1.0 * sum_fits);
+        (*phi)[j][i] = gammadist(state->gen) / (1.0 * sum_fits);
         // std::cout << "phi: "<<(*phi)[i] << std::endl;
         // std::cout << "sum fit "<<sum_fits<< std::endl;
         //COUT << "draw phi complete";
@@ -492,7 +492,7 @@ void LogitModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual
     size_t j = class_operating_now;
     for (size_t i = 0; i < residual_std[0].size(); i++)
     {
-        residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j] / (*(x_struct->data_pointers[next_index][i]))[j];
+        residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j] / (*(x_struct->data_pointers_multinomial[j][next_index][i]))[j];
     }
     // }
 

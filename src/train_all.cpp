@@ -481,9 +481,12 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     // define model
     double tau_a = 1 / tau + 0.5;
     double tau_b = 1 / tau;
-    std::vector<double> phi(N);
-    for (size_t i = 0; i < N; ++i)
-        phi[i] = 1;
+    std::vector< std::vector<double> > phi(num_class);
+    for (size_t i = 0; i < num_class; ++i){
+        phi[i].resize(N);
+        std::fill(phi[i].begin(), phi[i].end(), 1.0);
+    }
+        
 
     LogitModel *model = new LogitModel(num_class, num_trees, tau, tau_later, tau_a, tau_b, alpha, beta, &y_size_t, &phi, draw_tau_flag, MH_step_size, num_tree_fix, tree_burnin);
     model->setNoSplitPenality(no_split_penality);
@@ -507,8 +510,10 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     matrix<double> tau_b_samples;
     ini_xinfo(tau_b_samples, num_class, num_sweeps * num_trees);
     ////////////////////////////////////////////////////////////////
-    mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, tau_samples, tau_a_samples, tau_b_samples);
 
+    cout << "gft start " << endl;
+    mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, tau_samples, tau_a_samples, tau_b_samples);
+cout << "gfr end " << endl;
     // output is in 3 dim, stacked as a vector, number of sweeps * observations * number of classes
     std::vector<double> output_vec(num_sweeps * N_test * num_class);
 

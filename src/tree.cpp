@@ -592,17 +592,18 @@ cout << "ok 3" << endl;
     // cout << suff_stat << endl;
 
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
-
+cout << "ok 33" << no_split << endl;
     if (no_split == true)
     {
+        cout << "ok stop 1" << endl;
         if (!update_split_prob)
         {
             for (size_t i = 0; i < N_Xorder; i++)
             {
-                x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
+                x_struct->data_pointers_multinomial[model->class_operating_now][tree_ind][Xorder_std[0][i]] = &this->theta_vector;
             }
         }
-
+        cout << "ok stop 2" << endl;
         if (update_theta)
         {
             model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf, tree_ind);
@@ -610,20 +611,20 @@ cout << "ok 3" << endl;
 
         this->l = 0;
         this->r = 0;
-
+        cout << "ok stop 3" << endl;
         // update leaf prob, for MH update useage
         // this->loglike_node = model->likelihood_no_split(this->suff_stat, state);
 
         return;
     }
-
+cout << "ok 4" << endl;
     if (grow_new_tree)
     {
         // If GROW FROM ROOT MODE
         this->v = split_var;
         this->c = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
     }
-
+cout << "ok 5" << endl;
     // Update Cutpoint to be a true seperating point
     // Increase split_point (index) until it is no longer equal to cutpoint value
     while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
@@ -636,7 +637,7 @@ cout << "ok 3" << endl;
     {
         return;
     }
-
+cout << "ok 6" << endl;
     if (grow_new_tree)
     {
         // If do not update split prob ONLY
