@@ -551,7 +551,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
         return;
     }
-
+cout << " ok 1 " << endl;
     bool no_split = false;
 
     std::vector<size_t> subset_vars(p);
@@ -586,9 +586,9 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
             subset_vars = sample_int_ccrank(p, state->mtry, state->mtry_weight_current_tree, state->gen);
         }
     }
-
+cout << "ok 2" << endl;
     BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this, update_split_prob);
-
+cout << "ok 3" << endl;
     // cout << suff_stat << endl;
 
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);

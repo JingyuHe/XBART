@@ -491,6 +491,9 @@ public:
     
     size_t tree_burnin;
 
+    // which class is operating now
+    size_t class_operating_now;
+
     // sufficient statistics used when sampling tau
     // first element is sum of leaf parameters
     // second element is sum of log leaf parameters
@@ -563,7 +566,7 @@ public:
 
     void ini_residual_std(std::unique_ptr<State> &state);
 
-    void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec);
+    void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<vector<tree>>> &trees, std::vector<double> &output_vec);
 };
 
 #endif

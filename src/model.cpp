@@ -236,15 +236,16 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
 
     suffstats[(*y_size_t)[index_next_obs]] += 1;
 
-    for (size_t j = 0; j < dim_theta; ++j)
-    {
-        // count number of observations, y_{ij}
-        // if ((*y_size_t)[index_next_obs] == j)
-        // suffstats[j] += 1;
+    // for (size_t j = 0; j < dim_theta; ++j)
+    // {
+    // count number of observations, y_{ij}
+    // if ((*y_size_t)[index_next_obs] == j)
+    // suffstats[j] += 1;
 
-        // psi * f
-        suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
-    }
+    // psi * f
+    size_t j = class_operating_now;
+    suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
+    // }
 
     return;
 }
@@ -253,26 +254,27 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 {
 
     //redefine these to use prior pars from Model class
-    for (size_t j = 0; j < dim_theta; j++)
-    {
-        // not necessary to assign to r and s again
-        // r = suff_stat[j];
-        // s = suff_stat[c + j];
+    // for (size_t j = 0; j < dim_theta; j++)
+    // {
+    size_t j = class_operating_now;
+    // not necessary to assign to r and s again
+    // r = suff_stat[j];
+    // s = suff_stat[c + j];
 
-        // std::gamma_distribution<double> gammadist(tau_a + r, 1);
+    // std::gamma_distribution<double> gammadist(tau_a + r, 1);
 
-        // theta_vector[j] = gammadist(state->gen) / (tau_b + s);
+    // theta_vector[j] = gammadist(state->gen) / (tau_b + s);
 
-        std::gamma_distribution<double> gammadist(tau_a_vec[j] + suff_stat[j], 1.0);
+    std::gamma_distribution<double> gammadist(tau_a_vec[j] + suff_stat[j], 1.0);
 
-        theta_vector[j] = gammadist(state->gen) / (tau_b_vec[j] + suff_stat[dim_theta + j]);
+    theta_vector[j] = gammadist(state->gen) / (tau_b_vec[j] + suff_stat[dim_theta + j]);
 
-        suff_stat_draw_tau_all_trees[tree_ind][j * 3] += theta_vector[j];
+    suff_stat_draw_tau_all_trees[tree_ind][j * 3] += theta_vector[j];
 
-        suff_stat_draw_tau_all_trees[tree_ind][j * 3 + 1] += log(theta_vector[j]);
+    suff_stat_draw_tau_all_trees[tree_ind][j * 3 + 1] += log(theta_vector[j]);
 
-        suff_stat_draw_tau_all_trees[tree_ind][j * 3 + 2] += 1;
-    }
+    suff_stat_draw_tau_all_trees[tree_ind][j * 3 + 2] += 1;
+    // }
 
     return;
 }
@@ -305,7 +307,8 @@ void LogitModel::ini_suff_stat_draw_tau()
     return;
 }
 
-void LogitModel::switch_tau(){
+void LogitModel::switch_tau()
+{
     // switch initialization of tau for later sweeps
     std::fill(tau_vec.begin(), tau_vec.end(), tau_later);
     std::fill(tau_a_vec.begin(), tau_a_vec.end(), 1.0 / tau_later + 0.5);
@@ -390,13 +393,15 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 
     std::gamma_distribution<double> gammadist(1.0, 1.0);
 
+    size_t j = class_operating_now;
+
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
         sum_fits = 0;
-        for (size_t j = 0; j < dim_theta; ++j)
-        {
-            sum_fits += state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j];
-        }
+        // for (size_t j = 0; j < dim_theta; ++j)
+        // {
+        sum_fits += state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j];
+        // }
 
         //COUT << "got scale";
         //COUT << "draw phi ";
@@ -482,13 +487,14 @@ void LogitModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual
 
     // cumulative product of trees, multiply current one, divide by next one
 
-    for (size_t j = 0; j < dim_theta; ++j)
+    // for (size_t j = 0; j < dim_theta; ++j)
+    // {
+    size_t j = class_operating_now;
+    for (size_t i = 0; i < residual_std[0].size(); i++)
     {
-        for (size_t i = 0; i < residual_std[0].size(); i++)
-        {
-            residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j] / (*(x_struct->data_pointers[next_index][i]))[j];
-        }
+        residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j] / (*(x_struct->data_pointers[next_index][i]))[j];
     }
+    // }
 
     return;
 }
@@ -618,31 +624,34 @@ void LogitModel::ini_residual_std(std::unique_ptr<State> &state)
 }
 
 // Not implemented yet, needs to return a nsweeps by n by num categories array with predicted category probabilities 9/10/2019
-void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec)
+void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<vector<tree>>> &trees, std::vector<double> &output_vec)
 {
 
     // output is a 3D array (armadillo cube), nsweeps by n by number of categories
 
     tree::tree_p bn;
 
-    for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
+    for (size_t class_ind = 0; class_ind < dim_residual; class_ind++)
     {
-
-        for (size_t data_ind = 0; data_ind < N_test; data_ind++)
+        for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
         {
 
-            for (size_t i = 0; i < trees[0].size(); i++)
+            for (size_t data_ind = 0; data_ind < N_test; data_ind++)
             {
-                // search leaf
-                bn = trees[sweeps][i].search_bottom_std(Xtestpointer, data_ind, p, N_test);
 
-                for (size_t k = 0; k < dim_residual; k++)
+                for (size_t i = 0; i < trees[0].size(); i++)
                 {
-                    // add all trees
+                    // search leaf
+                    bn = trees[class_ind][sweeps][i].search_bottom_std(Xtestpointer, data_ind, p, N_test);
 
-                    // product of trees, thus sum of logs
+                    // for (size_t k = 0; k < dim_residual; k++)
+                    // {
+                        // add all trees
 
-                    output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] += log(bn->theta_vector[k]);
+                        // product of trees, thus sum of logs
+
+                        output_vec[sweeps + data_ind * num_sweeps + class_ind * num_sweeps * N_test] += log(bn->theta_vector[class_ind]);
+                    // }
                 }
             }
         }

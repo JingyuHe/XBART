@@ -163,7 +163,7 @@ void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sig
     // delete model;
 }
 
-void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModel *model, std::unique_ptr<X_struct> &x_struct, matrix<double> &tau_samples, matrix<double> &tau_a_samples, matrix<double> &tau_b_samples)
+void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModel *model, std::unique_ptr<X_struct> &x_struct, matrix<double> &tau_samples, matrix<double> &tau_a_samples, matrix<double> &tau_b_samples)
 {
 
     if (state->parallel)
@@ -175,7 +175,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {
-cout << "tau value of sweeps " << sweeps << "  tau_a " << model->tau_a_vec[0] << " tau_b " << model->tau_b_vec[0] << endl;
+        cout << "tau value of sweeps " << sweeps << "  tau_a " << model->tau_a_vec[0] << " tau_b " << model->tau_b_vec[0] << endl;
         if (verbose == true)
         {
             COUT << "--------------------------------" << endl;
@@ -194,7 +194,7 @@ cout << "tau value of sweeps " << sweeps << "  tau_a " << model->tau_a_vec[0] <<
             // after burnin period, first calculate suff_stat_draw_tau vector, sum over trees
             model->ini_suff_stat_draw_tau();
 
-            // sweeps == model->tree_burnin to get rid of lambdas under first tau 
+            // sweeps == model->tree_burnin to get rid of lambdas under first tau
         }
 
         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
@@ -222,32 +222,38 @@ cout << "tau value of sweeps " << sweeps << "  tau_a " << model->tau_a_vec[0] <<
                 state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
             }
 
-            model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+            // if (sweeps >= model->tree_burnin && tree_ind < model->num_tree_fix)
+            // {
+            //     // copy the tree from previous sweeps, unchanged
 
-            trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
+            //     cout << "tree is fixed" << endl;
 
-            if (model->draw_tau_flag)
+            //     trees[sweeps][tree_ind] = trees[sweeps - 1][tree_ind];
+            // }
+            // else
+            // {
+            //     // grow a new tree
+
+            for (size_t class_ind = 0; class_ind < model->dim_residual; class_ind++)
             {
-                // this line below is for multinomial only, sampling tau
-                model->clean_suff_stat_draw_tau_all_trees(tree_ind);
+                cout << "aa" << sweeps << " " << tree_ind << " " << class_ind << endl; 
+                model->class_operating_now = class_ind;
+
+                model->initialize_root_suffstat(state, trees[class_ind][sweeps][tree_ind].suff_stat);
+
+                trees[class_ind][sweeps][tree_ind].theta_vector.resize(model->dim_residual);
+
+                if (model->draw_tau_flag)
+                {
+                    // this line below is for multinomial only, sampling tau
+                    model->clean_suff_stat_draw_tau_all_trees(tree_ind);
+                }
+
+                trees[class_ind][sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
             }
+            // }
 
-            if (sweeps >= model->tree_burnin && tree_ind < model->num_tree_fix)
-            {
-                // copy the tree from previous sweeps, unchanged
-
-                cout << "tree is fixed" << endl;
-
-                trees[sweeps][tree_ind] = trees[sweeps - 1][tree_ind];
-            }
-            else
-            {
-                // grow a new tree
-
-                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-            }
-
-            cout << "tree size " << trees[sweeps][tree_ind].treesize() << endl;
+            // cout << "tree size " << trees[sweeps][tree_ind].treesize() << endl;
 
             if (model->draw_tau_flag)
             {
