@@ -110,9 +110,6 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
 
     // store fitted values in tauhats_xinfo
     // model_trt->update_xinfo(tauhats_xinfo, sweeps, state_trt->num_trees, state_trt->n_y, x_struct_trt);
-
-    // pass over residual to the prognostic term model
-    model_trt->transfer_residual_std(state_trt, state_ps);
   }
 
   thread_pool.stop();
