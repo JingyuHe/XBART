@@ -961,8 +961,10 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     arma_to_std_ordered(X, Xorder_std);
     y_mean = compute_mean(y_std);
     ///////////////////////////////////////////////////////////////////
-    std::vector<double> sigma_vec(N);         // vector of sigmas
-    std::vector<double> precision_squared(N); // vector of sigmas
+    std::vector<double> sigma_vec(2); // vector of sigma0, sigma1
+    sigma_vec[0] = 1.0;
+    sigma_vec[1] = 1.0;
+    //std::vector<double> precision_squared(N); // vector of sigmas
 
     double bscale0 = -1;
     double bscale1 = 1;
@@ -974,8 +976,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     for (size_t i = 0; i < N; i++)
     {
         b[i] = z[i] * bscale1 + (1 - z[i]) * bscale0;
-        sigma_vec[i] = 1.0;
-        precision_squared[i] = 1.0 / pow(sigma_vec[i], 2);
+        //precision_squared[i] = 1.0 / pow(sigma_vec[i], 2);
         if (z[i] == 1)
         {
             n_trt++;
@@ -1024,7 +1025,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
 
     // State settings for the treatment term
     std::vector<double> initial_theta_trt(1, y_mean / (double)num_trees_trt);
-    std::unique_ptr<State> state_trt(new xbcfState(Xpointer, Xorder_std, N, n_trt, p, num_trees_trt, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, b, sigma_vec, precision_squared, max_depth, y_mean, burnin, model_trt->dim_residual));
+    std::unique_ptr<State> state_trt(new xbcfState(Xpointer, Xorder_std, N, n_trt, p, num_trees_trt, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, b, sigma_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
 
     // initialize X_struct for the prognostic term
     std::unique_ptr<X_struct> x_struct_pr(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_pr, num_trees_pr));

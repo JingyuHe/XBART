@@ -35,7 +35,6 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
     }
 
     // Prognostic term loop
-
     for (size_t tree_ind = 0; tree_ind < state_ps->num_trees; tree_ind++)
     {
       // Draw Sigma
@@ -75,7 +74,6 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
     model_trt->transfer_residual_std(state_ps, state_trt);
 
     // Treatment term loop
-
     for (size_t tree_ind = 0; tree_ind < state_trt->num_trees; tree_ind++)
     {
       // Draw Sigma

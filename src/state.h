@@ -55,7 +55,7 @@ public:
 
     // residual standard deviation      TODO: move to xbcfClass
     std::vector<double> sigma_vec;
-    std::vector<double> precision_squared;
+    //std::vector<double> precision_squared;
 
     void update_sigma(double sigma)
     {
@@ -67,22 +67,14 @@ public:
     // sigma update for xbcfModel       TODO: move to xbcfClass
     void update_sigma(double sigma0, double sigma1)
     {
-        // update sigma for all individuals in the treatment group
-        for (size_t i = 0; i < this->n_trt - 1; i++)
-        {
-            this->sigma_vec[i] = sigma1;
-        }
+        this->sigma_vec[0] = sigma0; // sigma for the control group
+        this->sigma_vec[1] = sigma1; // sigma for the treatment group
 
-        // update sigma for all individuals in the control group
-        for (size_t i = this->n_trt; i < this->n_y; i++)
-        {
-            this->sigma_vec[i] = sigma0;
-        }
         return;
     }
 
     // update precision squared vector (also scales included) based on recently updated sigmas
-    void update_precision_squared(double sigma0, double sigma1)
+    /*    void update_precision_squared(double sigma0, double sigma1)
     {
 
         // update for all individuals in the treatment group
@@ -98,7 +90,7 @@ public:
         }
         return;
     }
-
+*/
     State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual)
     {
 
@@ -221,10 +213,10 @@ public:
 class xbcfState : public State
 {
 public:
-    xbcfState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t n_trt, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> b_std, std::vector<double> sigma_vec, std::vector<double> precision_squared, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry, X_std, num_sweeps, sample_weights_flag, y_std, b_std, sigma_vec, max_depth, ini_var_yhat, burnin, dim_residual)
+    xbcfState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t n_trt, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> b_std, std::vector<double> sigma_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry, X_std, num_sweeps, sample_weights_flag, y_std, b_std, sigma_vec, max_depth, ini_var_yhat, burnin, dim_residual)
     {
         this->sigma_vec = sigma_vec;
-        this->precision_squared = precision_squared;
+        //this->precision_squared = precision_squared;
         this->n_trt = n_trt;
         this->b_std = b_std;
     }
