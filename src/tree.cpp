@@ -588,7 +588,7 @@ cout << " ok 1 " << endl;
     }
 cout << "ok 2" << endl;
     BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this, update_split_prob);
-cout << "ok 3" << endl;
+cout << "ok 3 " << split_var << " " << split_point << " " << no_split << endl;
     // cout << suff_stat << endl;
 
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
@@ -1008,14 +1008,15 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
 
     // calculate likelihood of no-split option
     calculate_likelihood_no_split(loglike, N_Xorder, loglike_max, model, x_struct, total_categorical_split_candidates, state, tree_pointer);
-
     // transfer loglikelihood to likelihood
+
+
     for (size_t ii = 0; ii < loglike.size(); ii++)
     {
         // if a variable is not selected, take exp will becomes 0
         loglike[ii] = exp(loglike[ii] - loglike_max);
     }
-    // cout << "loglike " << loglike << endl;
+
     // cout << " ok " << endl;
 
     // sampling cutpoints

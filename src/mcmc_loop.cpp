@@ -241,6 +241,8 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 cout << "line 1" << endl;
                 model->initialize_root_suffstat(state, trees[class_ind][sweeps][tree_ind].suff_stat);
 cout << "line 2" << endl;
+            cout << "suff " << trees[class_ind][sweeps][tree_ind].suff_stat << endl;
+
                 trees[class_ind][sweeps][tree_ind].theta_vector.resize(model->dim_residual);
 
                 if (model->draw_tau_flag)

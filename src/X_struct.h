@@ -14,7 +14,7 @@ public:
     matrix<std::vector<double> *> data_pointers_copy;
 
     // data pointers for multinomial separate trees case
-    std::vector<std::vector<std::vector<std::vector<double> *>>> data_pointers_multinomial;
+    std::vector< std::vector <std::vector< std::vector<double>* > > > data_pointers_multinomial;
     std::vector<double> X_values;
     std::vector<size_t> X_counts;
     std::vector<size_t> variable_ind;
@@ -81,8 +81,11 @@ public:
             for (size_t j = 0; j < num_trees; j++)
             {
                 data_pointers_multinomial[i][j].resize(N);
+                std::fill(data_pointers_multinomial[i][j].begin(), data_pointers_multinomial[i][j].end(), initial_theta);
             }
         }
+
+        cout << "size of data pinters " << data_pointers_multinomial.size() << "  " << data_pointers_multinomial[1].size() << "  " << data_pointers_multinomial[1][1].size() << endl;
 
         return;
     }

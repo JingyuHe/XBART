@@ -388,20 +388,28 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     //std::vector<double> sum_fits(state->n_y);
 
     // size of state->residual_std is num_classes * num_train
-
+cout << "update state 1 " << endl;
     double sum_fits = 0;
 
     std::gamma_distribution<double> gammadist(1.0, 1.0);
 
     size_t j = class_operating_now;
+cout << "update state 2 " << endl;
 
+    // loop over total number of observations
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
+        cout << "update state 3 " << i << endl;
+
         sum_fits = 0;
         // for (size_t j = 0; j < dim_theta; ++j)
         // {
+
+                    cout << "update state 3 tt " << i << endl;
+
         sum_fits += state->residual_std[j][i] * (*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j];
         // }
+        cout << "update state 3 aa " << i << endl;
 
         //COUT << "got scale";
         //COUT << "draw phi ";
@@ -409,7 +417,10 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         // std::cout << "phi: "<<(*phi)[i] << std::endl;
         // std::cout << "sum fit "<<sum_fits<< std::endl;
         //COUT << "draw phi complete";
+                cout << "update state 3  bb" << i << endl;
+
     }
+cout << "update state 4 "<< endl;
 
     return;
 }
