@@ -564,6 +564,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
 
     return Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,
+        Rcpp::Named("num_class") = num_class,
         Rcpp::Named("yhats_test") = output,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p));
