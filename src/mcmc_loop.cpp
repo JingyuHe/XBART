@@ -167,7 +167,7 @@ void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sig
 void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
                            vector<vector<tree>> &trees, double no_split_penality,
                            std::unique_ptr<State> &state, LogitModel *model,
-                           std::unique_ptr<X_struct> &x_struct)
+                           std::unique_ptr<X_struct> &x_struct, std::vector< std::vector<double> > &phi_samples)
 {
 
     if (state->parallel)
@@ -228,7 +228,9 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
             
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
             
-            
+            for(size_t kk = 0; kk < Xorder_std[0].size(); kk ++ ){
+                phi_samples[sweeps * state->num_trees + tree_ind][kk] = (*(model->phi))[kk];
+            }     
             
         }
     }

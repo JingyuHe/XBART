@@ -495,10 +495,11 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
-
+    std::vector< std::vector<double> > phi_samples;
+    ini_matrix(phi_samples, N, num_sweeps * num_trees);
     
     ////////////////////////////////////////////////////////////////
-    mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct);
+    mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples);
 
     // TODO: Implement predict OOS
 
@@ -526,6 +527,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericVector split_count_sum(p);                // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
+    Rcpp::NumericMatrix phi_sample_rcpp(N, num_sweeps * num_trees);
 
     // TODO: Make these functions
     // for (size_t i = 0; i < N; i++)
@@ -535,6 +537,12 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     //         yhats(i, j) = yhats_xinfo[j][i];
     //     }
     // }
+
+    for(size_t i = 0; i < N; i ++ ){
+        for(size_t j = 0; j < num_trees * num_sweeps; j ++ ){
+            phi_sample_rcpp(i, j) = phi_samples[j][i];
+        }
+    }
     for (size_t i = 0; i < N_test; i++)
     {
         for (size_t j = 0; j < num_sweeps; j++)
@@ -566,6 +574,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("num_class") = num_class,
         Rcpp::Named("yhats_test") = output,
+        Rcpp::Named("phi") = phi_sample_rcpp,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p));
 
