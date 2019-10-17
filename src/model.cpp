@@ -267,7 +267,7 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 
     std::gamma_distribution<double> gammadist(tau_a_vec[j] + suff_stat[j], 1.0);
 
-cout << "j is " << j << " sample " << suff_stat << endl;
+// cout << "j is " << j << " sample " << suff_stat << endl;
     theta_vector[j] = gammadist(state->gen) / (tau_b_vec[j] + suff_stat[dim_theta + j]);
 
     suff_stat_draw_tau_all_trees[tree_ind][j * 3] += theta_vector[j];
@@ -488,14 +488,15 @@ void LogitModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual
 
     // cumulative product of trees, multiply current one, divide by next one
 
-    // for (size_t j = 0; j < dim_theta; ++j)
-    // {
-    size_t j = class_operating_now;
+    for (size_t j = 0; j < dim_theta; ++j)
+    {
+    // size_t j = class_operating_now;
     for (size_t i = 0; i < residual_std[0].size(); i++)
     {
+        // cout << (*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j] << "  " << (*(x_struct->data_pointers_multinomial[j][next_index][i]))[j] << "  ";
         residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j] / (*(x_struct->data_pointers_multinomial[j][next_index][i]))[j];
     }
-    // }
+    }
 
     return;
 }
