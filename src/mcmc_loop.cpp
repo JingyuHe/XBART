@@ -175,7 +175,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {
-        cout << "tau value of sweeps " << sweeps << "  tau_a " << model->tau_a_vec[0] << " tau_b " << model->tau_b_vec[0] << endl;
+
         if (verbose == true)
         {
             COUT << "--------------------------------" << endl;
@@ -236,12 +236,10 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 
             for (size_t class_ind = 0; class_ind < model->dim_residual; class_ind++)
             {
-                cout << "aa" << sweeps << " " << tree_ind << " " << class_ind << endl; 
-                model->class_operating_now = class_ind;
-cout << "line 1" << endl;
+
+                model->set_class_operating_now(class_ind);
+
                 model->initialize_root_suffstat(state, trees[class_ind][sweeps][tree_ind].suff_stat);
-cout << "line 2" << endl;
-            cout << "suff " << trees[class_ind][sweeps][tree_ind].suff_stat << endl;
 
                 trees[class_ind][sweeps][tree_ind].theta_vector.resize(model->dim_residual);
 
@@ -250,11 +248,13 @@ cout << "line 2" << endl;
                     // this line below is for multinomial only, sampling tau
                     model->clean_suff_stat_draw_tau_all_trees(tree_ind);
                 }
-cout << "line 3" << endl;
+
                 trees[class_ind][sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+
+
             }
             // }
-cout << "line 4" << endl;
+
             // cout << "tree size " << trees[sweeps][tree_ind].treesize() << endl;
 
             if (model->draw_tau_flag)
@@ -266,14 +266,13 @@ cout << "line 4" << endl;
                 tau_a_samples[sweeps * state->num_trees + tree_ind] = model->tau_a_vec;
                 tau_b_samples[sweeps * state->num_trees + tree_ind] = model->tau_b_vec;
             }
-cout << "line 5" << endl;
+
             state->update_split_counts(tree_ind);
-cout << "line 6" << endl;
+
             // update partial fits for the next tree
             model->update_state(state, tree_ind, x_struct);
-cout << "line 7" << endl;
+
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
-cout << "line 8" << endl;
         }
     }
     thread_pool.stop();

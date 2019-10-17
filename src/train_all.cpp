@@ -479,14 +479,9 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     }
 
     // define model
-    double tau_a = 1 / tau + 0.5;
-    double tau_b = 1 / tau;
-    std::vector< std::vector<double> > phi(num_class);
-    for (size_t i = 0; i < num_class; ++i){
-        phi[i].resize(N);
-        std::fill(phi[i].begin(), phi[i].end(), 1.0);
-    }
-        
+    double tau_a = 1.0 / tau + 0.5;
+    double tau_b = 1.0 / tau;
+    std::vector<double> phi(N);
 
     LogitModel *model = new LogitModel(num_class, num_trees, tau, tau_later, tau_a, tau_b, alpha, beta, &y_size_t, &phi, draw_tau_flag, MH_step_size, num_tree_fix, tree_burnin);
     model->setNoSplitPenality(no_split_penality);
@@ -511,9 +506,8 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     ini_xinfo(tau_b_samples, num_class, num_sweeps * num_trees);
     ////////////////////////////////////////////////////////////////
 
-    cout << "gft start " << endl;
     mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, tau_samples, tau_a_samples, tau_b_samples);
-cout << "gfr end " << endl;
+
     // output is in 3 dim, stacked as a vector, number of sweeps * observations * number of classes
     std::vector<double> output_vec(num_sweeps * N_test * num_class);
 
@@ -523,7 +517,7 @@ cout << "gfr end " << endl;
     // if stack by column, index starts from 0
     ////////////////////////////////////////////////
 
-    // model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
+    model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
 
     Rcpp::NumericVector output = Rcpp::wrap(output_vec);
     output.attr("dim") = Rcpp::Dimension(num_sweeps, N_test, num_class);

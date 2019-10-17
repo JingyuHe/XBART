@@ -50,6 +50,14 @@ public:
         this->dim_suffstat = dim_suff;
     };
 
+    virtual size_t get_class_operating_now() { return class_operating_now; };
+
+    virtual void set_class_operating_now(size_t i)
+    {
+        class_operating_now = i;
+        return;
+    };
+
     // Abstract functions
     virtual void incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats) { return; };
 
@@ -108,7 +116,7 @@ public:
     double s;
     // prior on leaf parameter
     double tau;
-
+    size_t class_operating_now;
     NormalModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 3)
     {
         this->kap = kap;
@@ -441,14 +449,16 @@ private:
         //  }
 
         double ret = 0;
+        size_t j = class_operating_now;
 
-        for (size_t j = 0; j < c; j++)
-        {
+        // cout << "suff " << suffstats << " class " << class_operating_now << endl;
+        // for (size_t j = 0; j < c; j++) 
+        // {
             // double r = suffstats[j];
             // double s = suffstats[c + j];
             // ret += -(tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]) ;
             ret += -(tau_a_vec[j] + suffstats[j]) * log(tau_b_vec[j] + suffstats[c + j]) + lgamma(tau_a_vec[j] + suffstats[j]); // - lgamma(suffstats[j] +1);
-        }
+        // }
         return ret;
     }
 
@@ -478,7 +488,7 @@ public:
 
     // Should these pointers live in model subclass or state subclass?
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
-    std::vector< std::vector<double> > *phi;      // latent variables for mnl
+    std::vector<double> *phi;      // latent variables for mnl
 
     // sample tau for each class
     std::vector<double> tau_vec;
@@ -490,7 +500,7 @@ public:
     double MH_step_size;
 
     size_t num_tree_fix;
-    
+
     size_t tree_burnin;
 
     // which class is operating now
@@ -500,12 +510,12 @@ public:
     // first element is sum of leaf parameters
     // second element is sum of log leaf parameters
     std::vector<double> suff_stat_draw_tau;
-    
+
     // number of trees * (3 * num_classes)
     // sum of leaf parameters, sum of log leaf parameters and count of leaves
     matrix<double> suff_stat_draw_tau_all_trees;
 
-    LogitModel(size_t num_classes, size_t num_trees, double tau, double tau_later, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector< std::vector<double> > *phi, bool draw_tau_flag, double MH_step_size, size_t num_tree_fix, size_t tree_burnin) : Model(num_classes, 2 * num_classes)
+    LogitModel(size_t num_classes, size_t num_trees, double tau, double tau_later, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, bool draw_tau_flag, double MH_step_size, size_t num_tree_fix, size_t tree_burnin) : Model(num_classes, 2 * num_classes)
     {
         this->y_size_t = y_size_t;
         this->phi = phi;
@@ -530,6 +540,8 @@ public:
 
         this->num_tree_fix = num_tree_fix;
         this->tree_burnin = tree_burnin;
+
+        this->class_operating_now = 0;
     }
 
     LogitModel() : Model(2, 4) {}
@@ -545,7 +557,11 @@ public:
     void draw_tau(std::unique_ptr<State> &state);
 
     void switch_tau();
-    
+
+    size_t get_class_operating_now() { return class_operating_now; };
+
+    void set_class_operating_now(size_t i) {class_operating_now = i; return; };
+
     double tau_log_posterior(size_t &class_ind, double a, double b, double p, double q, double r, double s);
 
     void incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats);

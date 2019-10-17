@@ -64,8 +64,8 @@ pr = t(scale(t(pr),center=FALSE, scale = rowSums(pr)))
 #y_train = rbinom(n, 1, pr)
 y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 
-num_sweeps = 30
-burnin = 15
+num_sweeps = 40
+burnin = 10
 
 
 if(0){
@@ -79,7 +79,7 @@ num_trees = 10
 tm = proc.time()
 fit = XBART.multinomial(y=matrix(y_train), num_class=3, X=X_train, Xtest=X_test, 
             num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
-            Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, tau_later = 50,
+            Nmin=10, num_cutpoints=100, alpha=0.95, beta=2, tau=100/num_trees, tau_later = 100/num_trees,
             no_split_penality = 1, burnin = burnin, mtry = 3, p_categorical = 0L, 
             kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 
             random_seed = NULL, sample_weights_flag = TRUE, draw_tau = FALSE, num_tree_fix = 2, tree_burnin = 1) 
@@ -93,21 +93,21 @@ a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
 pred = apply(a,1,which.max)-1
 
 
-tm2 = proc.time()
-fit2 = XBART.multinomial(y=matrix(y_train), num_class=3, X=X_train, Xtest=X_test, 
-            num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
-            Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, tau_later = 50,
-            no_split_penality = 1, burnin = burnin, mtry = 3, p_categorical = 0L, 
-            kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 
-            random_seed = NULL, sample_weights_flag = TRUE, draw_tau = TRUE, MH_step_size = 0.01, num_tree_fix = 2, tree_burnin = 1) 
+# tm2 = proc.time()
+# fit2 = XBART.multinomial(y=matrix(y_train), num_class=3, X=X_train, Xtest=X_test, 
+#             num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
+#             Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, tau_later = 50,
+#             no_split_penality = 1, burnin = burnin, mtry = 3, p_categorical = 0L, 
+#             kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 
+#             random_seed = NULL, sample_weights_flag = TRUE, draw_tau = TRUE, MH_step_size = 0.01, num_tree_fix = 2, tree_burnin = 1) 
 
-# number of sweeps * number of observations * number of classes
-#dim(fit$yhats_test)
-tm2 = proc.time()-tm2
-cat(paste("\n", "xbart drawing tau runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
-# take average of all sweeps, discard burn-in
-a2 = apply(fit2$yhats_test[burnin:num_sweeps,,], c(2,3), median)
-pred2 = apply(a2,1,which.max)-1
+# # number of sweeps * number of observations * number of classes
+# #dim(fit$yhats_test)
+# tm2 = proc.time()-tm2
+# cat(paste("\n", "xbart drawing tau runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
+# # take average of all sweeps, discard burn-in
+# a2 = apply(fit2$yhats_test[burnin:num_sweeps,,], c(2,3), median)
+# pred2 = apply(a2,1,which.max)-1
 
 # final predcition
 #pred = as.numeric(a[,1] < a[,2])
@@ -167,7 +167,7 @@ yhat.xgb <- max.col(phat.xgb) - 1
 #print(mean(pred3 == y_test))
 
 cat(paste("xbart rmse on probabilities: ", round(sqrt(mean((a-pr)^2)),3)),"\n")
-cat(paste("xbart sampling tau rmse on probabilities: ", round(sqrt(mean((a2-pr)^2)),3)),"\n")
+# cat(paste("xbart sampling tau rmse on probabilities: ", round(sqrt(mean((a2-pr)^2)),3)),"\n")
 cat(paste("ranger rmse on probabilities: ", round(sqrt(mean((pred3-pr)^2)),3)),"\n")
 cat(paste("xgboost rmse on probabilities: ", round(sqrt(mean((phat.xgb-pr)^2)),3)),"\n")
 
@@ -179,17 +179,13 @@ cat(paste("xgboost rmse on probabilities: ", round(sqrt(mean((phat.xgb-pr)^2)),3
 
 
 yhat = apply(a,1,which.max)-1
-yhat2 = apply(a2, 1, which.max)-1
+# yhat2 = apply(a2, 1, which.max)-1
 yhat.rf = apply(pred3,1,which.max)-1
 cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
-cat(paste("xbart sampling tau classification accuracy: ",round(mean(y_test == yhat2),3)),"\n")
+# cat(paste("xbart sampling tau classification accuracy: ",round(mean(y_test == yhat2),3)),"\n")
 cat(paste("ranger classification accuracy: ", round(mean(y_test == yhat.rf),3)),"\n")
 cat(paste("xgboost classification accuracy: ", round(mean(yhat.xgb == y_test),3)),"\n")
 
-par(mfrow=c(2,2))
-plot(a[,1],pr[,1],pch=20,cex=0.75)
-plot(a[,2],pr[,2],pch=20,cex=0.75)
-plot(a[,3],pr[,3],pch=20,cex=0.75)
 
 
 

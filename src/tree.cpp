@@ -528,6 +528,7 @@ std::istream &operator>>(std::istream &is, tree &t)
 
 void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree)
 {
+
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
@@ -551,7 +552,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
         return;
     }
-cout << " ok 1 " << endl;
     bool no_split = false;
 
     std::vector<size_t> subset_vars(p);
@@ -586,24 +586,23 @@ cout << " ok 1 " << endl;
             subset_vars = sample_int_ccrank(p, state->mtry, state->mtry_weight_current_tree, state->gen);
         }
     }
-cout << "ok 2" << endl;
+
     BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this, update_split_prob);
-cout << "ok 3 " << split_var << " " << split_point << " " << no_split << endl;
+
     // cout << suff_stat << endl;
 
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
-cout << "ok 33" << no_split << endl;
+
     if (no_split == true)
     {
-        cout << "ok stop 1" << endl;
+
         if (!update_split_prob)
         {
             for (size_t i = 0; i < N_Xorder; i++)
             {
-                x_struct->data_pointers_multinomial[model->class_operating_now][tree_ind][Xorder_std[0][i]] = &this->theta_vector;
+                x_struct->data_pointers_multinomial[model->get_class_operating_now()][tree_ind][Xorder_std[0][i]] = &this->theta_vector;
             }
         }
-        cout << "ok stop 2" << endl;
         if (update_theta)
         {
             model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf, tree_ind);
@@ -611,20 +610,17 @@ cout << "ok 33" << no_split << endl;
 
         this->l = 0;
         this->r = 0;
-        cout << "ok stop 3" << endl;
         // update leaf prob, for MH update useage
         // this->loglike_node = model->likelihood_no_split(this->suff_stat, state);
 
         return;
     }
-cout << "ok 4" << endl;
     if (grow_new_tree)
     {
         // If GROW FROM ROOT MODE
         this->v = split_var;
         this->c = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
     }
-cout << "ok 5" << endl;
     // Update Cutpoint to be a true seperating point
     // Increase split_point (index) until it is no longer equal to cutpoint value
     while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
@@ -637,7 +633,6 @@ cout << "ok 5" << endl;
     {
         return;
     }
-cout << "ok 6" << endl;
     if (grow_new_tree)
     {
         // If do not update split prob ONLY
@@ -1009,7 +1004,6 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
     // calculate likelihood of no-split option
     calculate_likelihood_no_split(loglike, N_Xorder, loglike_max, model, x_struct, total_categorical_split_candidates, state, tree_pointer);
     // transfer loglikelihood to likelihood
-
 
     for (size_t ii = 0; ii < loglike.size(); ii++)
     {
