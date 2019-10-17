@@ -241,6 +241,8 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 
                 model->initialize_root_suffstat(state, trees[class_ind][sweeps][tree_ind].suff_stat);
 
+                // cout << "tree " << tree_ind << " class " << class_ind <<  " root suff " << trees[class_ind][sweeps][tree_ind].suff_stat << endl;
+
                 trees[class_ind][sweeps][tree_ind].theta_vector.resize(model->dim_residual);
 
                 if (model->draw_tau_flag)
@@ -250,6 +252,9 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                 }
 
                 trees[class_ind][sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+    // cout << "class " << class_ind << " tree size " << trees[class_ind][sweeps][tree_ind].treesize() << endl;
+
+// cout << "-----------" << endl;
             }
             // }
 

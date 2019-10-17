@@ -270,6 +270,9 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 // cout << "j is " << j << " sample " << suff_stat << endl;
     theta_vector[j] = gammadist(state->gen) / (tau_b_vec[j] + suff_stat[dim_theta + j]);
 
+
+    // cout << "sample theta " << theta_vector[j] << " parames " << (tau_b_vec[j]) << endl;
+
     suff_stat_draw_tau_all_trees[tree_ind][j * 3] += theta_vector[j];
 
     suff_stat_draw_tau_all_trees[tree_ind][j * 3 + 1] += log(theta_vector[j]);
@@ -646,11 +649,16 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
 
                     // product of trees, thus sum of logs
 
+                    // cout << "one obs " << log(bn->theta_vector[k]) << "  "  << bn->theta_vector[k]  << endl;
+
                     output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] += log(bn->theta_vector[k]);
                 }
             }
         }
     }
+
+
+    // cout << "output " << output_vec << endl;
 
     // normalizing probability
 

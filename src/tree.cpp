@@ -542,14 +542,13 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
     if ((N_Xorder <= state->n_min) || (this->depth >= state->max_depth - 1))
     {
-        // if few observations or reach max depth, stop splitting
-        // this is leaf node, update leaf parameter
-
         if (update_theta)
         {
             model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf, tree_ind);
         }
 
+        // if few observations or reach max depth, stop splitting
+        // this is leaf node, update leaf parameter
         return;
     }
     bool no_split = false;
@@ -631,6 +630,11 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     // If our current split is same as parent, exit
     if ((this->p) && (this->v == (this->p)->v) && (this->c == (this->p)->c))
     {
+        if (update_theta)
+        {
+            model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf, tree_ind);
+        }
+
         return;
     }
     if (grow_new_tree)
