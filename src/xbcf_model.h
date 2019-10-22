@@ -64,7 +64,9 @@ public:
 
   void ini_residual_std(std::unique_ptr<State> &state);
 
-  void transfer_residual_std(std::unique_ptr<State> &state_ps, std::unique_ptr<State> &state_trt);
+  void compute_residual_trt(std::unique_ptr<State> &state_ps, std::unique_ptr<State> &state_trt, std::unique_ptr<X_struct> &x_struct_ps, std::unique_ptr<X_struct> &x_struct_trt);
+
+  void compute_residual_ps(std::unique_ptr<State> &state_trt, std::unique_ptr<State> &state_ps, std::unique_ptr<X_struct> &x_struct_trt, std::unique_ptr<X_struct> &x_struct_ps);
 
   void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
 };

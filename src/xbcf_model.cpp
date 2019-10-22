@@ -38,13 +38,13 @@ void xbcfModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &s
   std::normal_distribution<double> normal_samp(0.0, 1.0);
 
   // step 1 (control group)
-  double denominator0 = 1.0 / tau + suff_stat[0] / pow(state->sigma_vec[0], 2);
-  double m0 = (suff_stat[2] / pow(state->sigma_vec[0], 2)) / denominator0;
+  double denominator0 = 1.0 / tau + suff_stat[2] / pow(state->sigma_vec[0], 2);
+  double m0 = (suff_stat[0] / pow(state->sigma_vec[0], 2)) / denominator0;
   double v0 = 1.0 / denominator0;
 
   // step 2 (treatment group)
-  double denominator1 = (1.0 / tau + suff_stat[1] / pow(state->sigma_vec[1], 2));
-  double m1 = (1.0 / v0) * m0 / denominator1 + suff_stat[3] / pow(state->sigma_vec[1], 2) / denominator1;
+  double denominator1 = (1.0 / tau + suff_stat[3] / pow(state->sigma_vec[1], 2));
+  double m1 = (1.0 / v0) * m0 / denominator1 + suff_stat[1] / pow(state->sigma_vec[1], 2) / denominator1;
   double v1 = 1.0 / denominator1;
 
   // test result should be theta
@@ -71,12 +71,12 @@ void xbcfModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std
 
   for (size_t i = 0; i < state->n_trt; i++)
   {
-    full_residual_trt[i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
+    full_residual_trt[i] = (state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0]) * state->b_std[i];
   }
 
   for (size_t i = state->n_trt; i < state->residual_std[0].size(); i++)
   {
-    full_residual_ctrl[i - state->n_trt] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
+    full_residual_ctrl[i - state->n_trt] = (state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0]) * state->b_std[i];
   }
 
   // compute sigma1 for the treated group
@@ -264,11 +264,22 @@ void xbcfModel::ini_residual_std(std::unique_ptr<State> &state)
 // called in xbcf_mcmc_loop.cpp
 // called from xbcf_mcmc_loop
 // passes over the residual from the prognostic term forest to the treatment term forest
-void xbcfModel::transfer_residual_std(std::unique_ptr<State> &state_ps, std::unique_ptr<State> &state_trt)
+void xbcfModel::compute_residual_trt(std::unique_ptr<State> &state_ps, std::unique_ptr<State> &state_trt, std::unique_ptr<X_struct> &x_struct_ps, std::unique_ptr<X_struct> &x_struct_trt)
 {
   for (size_t i = 0; i < state_trt->residual_std[0].size(); i++)
   {
-    state_trt->residual_std[0][i] = state_ps->residual_std[0][i];
+    state_trt->residual_std[0][i] = (state_ps->residual_std[0][i] - (*(x_struct_ps->data_pointers[0][i]))[0] + state_trt->b_std[i] * (*(x_struct_trt->data_pointers[0][i]))[0]) / state_trt->b_std[i];
+  }
+
+  return;
+}
+
+// passes over the residual from the treatment term forest to the prognostic term forest
+void xbcfModel::compute_residual_ps(std::unique_ptr<State> &state_trt, std::unique_ptr<State> &state_ps, std::unique_ptr<X_struct> &x_struct_trt, std::unique_ptr<X_struct> &x_struct_ps)
+{
+  for (size_t i = 0; i < state_trt->residual_std[0].size(); i++)
+  {
+    state_ps->residual_std[0][i] = (state_trt->residual_std[0][i] - (*(x_struct_trt->data_pointers[0][i]))[0]) * state_trt->b_std[i] + (*(x_struct_ps->data_pointers[0][i]))[0];
   }
 
   return;

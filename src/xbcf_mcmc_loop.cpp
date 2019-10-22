@@ -5,8 +5,8 @@
 // thus there are two of each tree-object, model-object, state-object, x_struct-object
 
 void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
-                    matrix<double> &sigma_draw_xinfo_ps,
-                    matrix<double> &sigma_draw_xinfo_trt,
+                    matrix<double> &sigma0_draw_xinfo,
+                    matrix<double> &sigma1_draw_xinfo,
                     vector<vector<tree>> &trees_ps,
                     vector<vector<tree>> &trees_trt,
                     double no_split_penality,
@@ -23,6 +23,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
 
   // Residual for 0th tree in Prognostic term forest
   model_ps->ini_residual_std(state_ps);
+  //model_trt->ini_residual_std(state_ps);
 
   for (size_t sweeps = 0; sweeps < state_ps->num_sweeps; sweeps++)
   {
@@ -41,7 +42,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
 
       model_ps->update_state(state_ps, tree_ind, x_struct_ps); // state_ps->sigma and state_ps->sigma2 are updated via state->update_sigma
 
-      sigma_draw_xinfo_ps[sweeps][tree_ind] = state_ps->sigma;
+      //sigma_draw_xinfo_ps[sweeps][tree_ind] = state_ps->sigma;
 
       if (state_ps->use_all && (sweeps > state_ps->burnin) && (state_ps->mtry != state_ps->p))
       {
@@ -70,8 +71,8 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
     // store fitted values in tauhats_xinfo
     // model_ps->update_xinfo(muhats_xinfo, sweeps, state_ps->num_trees, state_ps->n_y, x_struct_ps);
 
-    // pass over residual to the treatment term model
-    model_trt->transfer_residual_std(state_ps, state_trt);
+    // update the residual to pass it over to the treatment term loop
+    model_trt->compute_residual_trt(state_ps, state_trt, x_struct_ps, x_struct_trt);
 
     // Treatment term loop
     for (size_t tree_ind = 0; tree_ind < state_trt->num_trees; tree_ind++)
@@ -80,7 +81,8 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
 
       model_trt->update_state(state_trt, tree_ind, x_struct_trt);
 
-      // sigma_draw_xinfo_trt[sweeps][tree_ind] = state_trt->sigma; // storing sigmas
+      sigma0_draw_xinfo[sweeps][tree_ind] = state_trt->sigma_vec[0]; // storing sigmas
+      sigma1_draw_xinfo[sweeps][tree_ind] = state_trt->sigma_vec[1]; // storing sigmas
 
       if (state_trt->use_all && (sweeps > state_trt->burnin) && (state_trt->mtry != state_trt->p))
       {
@@ -105,6 +107,9 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
       // update partial residual for the next tree to fit
       model_trt->state_sweep(tree_ind, state_trt->num_trees, state_trt->residual_std, x_struct_trt);
     }
+
+    // update the residual to pass it over to the prognostic term loop
+    model_trt->compute_residual_ps(state_trt, state_ps, x_struct_trt, x_struct_ps);
 
     // store fitted values in tauhats_xinfo
     // model_trt->update_xinfo(tauhats_xinfo, sweeps, state_trt->num_trees, state_trt->n_y, x_struct_trt);

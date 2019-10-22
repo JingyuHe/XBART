@@ -993,11 +993,11 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     matrix<double> muhats_xinfo;
     ini_matrix(muhats_xinfo, N, num_sweeps);
 
-    matrix<double> sigma_draw_xinfo_pr;
-    ini_matrix(sigma_draw_xinfo_pr, num_trees_pr, num_sweeps);
+    matrix<double> sigma0_draw_xinfo;
+    ini_matrix(sigma0_draw_xinfo, num_trees_trt, num_sweeps);
 
-    matrix<double> sigma_draw_xinfo_trt;
-    ini_matrix(sigma_draw_xinfo_trt, num_trees_trt, num_sweeps);
+    matrix<double> sigma1_draw_xinfo;
+    ini_matrix(sigma1_draw_xinfo, num_trees_trt, num_sweeps);
     // // Create trees
     vector<vector<tree>> *trees_pr = new vector<vector<tree>>(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++)
@@ -1024,7 +1024,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     std::unique_ptr<State> state_pr(new NormalState(Xpointer, Xorder_std, N, p, num_trees_pr, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model_pr->dim_residual));
 
     // State settings for the treatment term
-    std::vector<double> initial_theta_trt(1, y_mean / (double)num_trees_trt);
+    std::vector<double> initial_theta_trt(1, 0);
     std::unique_ptr<State> state_trt(new xbcfState(Xpointer, Xorder_std, N, n_trt, p, num_trees_trt, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, b, sigma_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
 
     // initialize X_struct for the prognostic term
@@ -1034,7 +1034,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     std::unique_ptr<X_struct> x_struct_trt(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_trt, num_trees_trt));
 
     // mcmc_loop returns tauhat [N x sweeps] matrix
-    mcmc_loop_xbcf(Xorder_std, verbose, sigma_draw_xinfo_pr, sigma_draw_xinfo_trt, *trees_pr, *trees_trt, no_split_penality,
+    mcmc_loop_xbcf(Xorder_std, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, *trees_pr, *trees_trt, no_split_penality,
                    state_pr, state_trt, model_pr, model_trt, x_struct_pr, x_struct_trt);
 
     //predict tauhats and muhats
@@ -1046,8 +1046,14 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
 
     Rcpp::NumericMatrix muhats(N, num_sweeps);
 
+    Rcpp::NumericMatrix sigma0_draws(num_trees_trt, num_sweeps);
+
+    Rcpp::NumericMatrix sigma1_draws(num_trees_trt, num_sweeps);
+
     std_to_rcpp(tauhats_xinfo, tauhats);
     std_to_rcpp(muhats_xinfo, muhats);
+    std_to_rcpp(sigma0_draw_xinfo, sigma0_draws);
+    std_to_rcpp(sigma1_draw_xinfo, sigma1_draws);
 
     auto end = system_clock::now();
 
@@ -1070,8 +1076,9 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     // R Objects to Return
     return Rcpp::List::create(
         Rcpp::Named("tauhats_out") = tauhats,
-        Rcpp::Named("muhats_copy") = muhats
-        //Rcpp::Named("sigma_draws") = sigma_draws,
+        Rcpp::Named("muhats_copy") = muhats,
+        Rcpp::Named("sigma0_draws") = sigma0_draws,
+        Rcpp::Named("sigma1_draws") = sigma1_draws
         //Rcpp::Named("scale_factors") = scale_factors
         //XBART
         //       Rcpp::Named("sigma") = sigma_draw,
