@@ -16,7 +16,7 @@ void xbcfModel::incSuffStat(std::unique_ptr<State> &state, size_t index_next_obs
 {
   // I have to pass matrix<double> &residual_std, size_t index_next_obs
   // which allows more flexibility for multidimensional residual_std
-  if (index_next_obs < state->n_trt)
+  if (state->b_std[index_next_obs] > 0.0)
   {
     suffstats[1] += state->residual_std[0][index_next_obs];
     suffstats[3] += 1;
@@ -43,16 +43,17 @@ void xbcfModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &s
   double v0 = 1.0 / denominator0;
 
   // step 2 (treatment group)
-  double denominator1 = (1.0 / tau + suff_stat[3] / pow(state->sigma_vec[1], 2));
+  double denominator1 = (1.0 / v0 + suff_stat[3] / pow(state->sigma_vec[1], 2));
   double m1 = (1.0 / v0) * m0 / denominator1 + suff_stat[1] / pow(state->sigma_vec[1], 2) / denominator1;
   double v1 = 1.0 / denominator1;
 
   // test result should be theta
   theta_vector[0] = m1 + sqrt(v1) * normal_samp(state->gen); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
 
-  // also update probability of leaf parameters
-  prob_leaf = normal_density(theta_vector[0], m1, v1, true);
+  //cout << state->sigma_vec[0] << " " << state->sigma_vec[1] << " " << v1 << " " << m1 << endl;
 
+  // also update probability of leaf parameters
+  prob_leaf = 1.0;
   return;
 }
 
@@ -66,17 +67,15 @@ void xbcfModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std
 
   // residual_std is only 1 dimensional for regression model
 
-  std::vector<double> full_residual_trt(state->n_trt);               // residual for the treated group
-  std::vector<double> full_residual_ctrl(state->n_y - state->n_trt); // residual for the control group
+  std::vector<double> full_residual_trt;  //(state->n_trt);               // residual for the treated group
+  std::vector<double> full_residual_ctrl; //(state->n_y - state->n_trt); // residual for the control group
 
-  for (size_t i = 0; i < state->n_trt; i++)
+  for (size_t i = 0; i < state->n_y; i++)
   {
-    full_residual_trt[i] = (state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0]) * state->b_std[i];
-  }
-
-  for (size_t i = state->n_trt; i < state->residual_std[0].size(); i++)
-  {
-    full_residual_ctrl[i - state->n_trt] = (state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0]) * state->b_std[i];
+    if (state->b_std[i] > 0.0)
+      full_residual_trt.push_back(state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0]); // * state->b_std[i];
+    else
+      full_residual_ctrl.push_back(state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0]); //* state->b_std[i];
   }
 
   // compute sigma1 for the treated group
@@ -98,20 +97,23 @@ void xbcfModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std
 // initializes root suffstats
 void xbcfModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
 {
-  suff_stat[0] = 0;                         // sum of y control
-  suff_stat[1] = 0;                         // sum of y treated
-  suff_stat[2] = state->n_y - state->n_trt; // number of individuals in the control group
-  suff_stat[3] = state->n_trt;              // number of treated individuals
+  suff_stat[0] = 0; // sum of y control
+  suff_stat[1] = 0; // sum of y treated
+  suff_stat[2] = 0; // number of individuals in the control group
+  suff_stat[3] = 0; // number of treated individuals
 
-  for (size_t i = 0; i < state->n_trt; i++) // loop over the treatment group
+  for (size_t i = 0; i < state->n_y; i++)
   {
-    suff_stat[1] += state->residual_std[0][i];
-    //cout << state->residual_std[0][i] << " ";
-  }
-
-  for (size_t i = state->n_trt; i < state->residual_std[0].size(); i++) // loop over the control group
-  {
-    suff_stat[0] += state->residual_std[0][i];
+    if (state->b_std[i] > 0.0)
+    {
+      suff_stat[1] += state->residual_std[0][i];
+      suff_stat[3] += 1;
+    }
+    else
+    {
+      suff_stat[0] += state->residual_std[0][i];
+      suff_stat[2] += 1;
+    }
   }
 
   return;
@@ -123,16 +125,8 @@ void xbcfModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vec
 // it is executed after suffstats for the node has been initialized by suff_stats_ini [defined in tree.h]
 void xbcfModel::updateNodeSuffStat(std::vector<double> &suff_stat, std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
-  if (Xorder_std[split_var][row_ind] < state->n_trt)
-  {
-    suff_stat[1] += state->residual_std[0][Xorder_std[split_var][row_ind]];
-    suff_stat[3] += 1;
-  }
-  else
-  {
-    suff_stat[0] += state->residual_std[0][Xorder_std[split_var][row_ind]];
-    suff_stat[2] += 1;
-  }
+
+  incSuffStat(state, Xorder_std[split_var][row_ind], suff_stat);
 
   return;
 }
@@ -231,7 +225,7 @@ double xbcfModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<do
     }
   }
 
-  return 0.5 * log(1 / denominator) + 0.5 * s_psi_squared * tau / denominator;
+  return 0.5 * log(1 / denominator) + 0.5 * pow(s_psi_squared, 2) * tau / denominator;
 }
 
 // double xbcfModel::likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const

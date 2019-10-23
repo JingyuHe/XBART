@@ -966,8 +966,8 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     sigma_vec[1] = 1.0;
     //std::vector<double> precision_squared(N); // vector of sigmas
 
-    double bscale0 = -1;
-    double bscale1 = 1;
+    double bscale0 = -1.0;
+    double bscale1 = 1.0;
 
     size_t n_trt = 0; // number of treated individuals
 
@@ -976,11 +976,6 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     for (size_t i = 0; i < N; i++)
     {
         b[i] = z[i] * bscale1 + (1 - z[i]) * bscale0;
-        //precision_squared[i] = 1.0 / pow(sigma_vec[i], 2);
-        if (z[i] == 1)
-        {
-            n_trt++;
-        }
     }
 
     // double *ypointer = &y_std[0];
@@ -1012,7 +1007,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
         (*trees_trt)[i] = vector<tree>(num_trees_trt);
     }
     // define the model for the prognostic term
-    NormalModel *model_pr = new NormalModel(kap_pr, s_pr, tau_pr, alpha_pr, beta_pr);
+    xbcfModel *model_pr = new xbcfModel(kap_pr, s_pr, tau_pr, alpha_pr, beta_pr);
     model_pr->setNoSplitPenality(no_split_penality);
 
     // define the model for the treatment term
@@ -1021,7 +1016,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
 
     // State settings for the prognostic term
     std::vector<double> initial_theta_pr(1, y_mean / (double)num_trees_pr);
-    std::unique_ptr<State> state_pr(new NormalState(Xpointer, Xorder_std, N, p, num_trees_pr, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model_pr->dim_residual));
+    std::unique_ptr<State> state_pr(new xbcfState(Xpointer, Xorder_std, N, n_trt, p, num_trees_trt, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, b, sigma_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
 
     // State settings for the treatment term
     std::vector<double> initial_theta_trt(1, 0);
@@ -1075,8 +1070,8 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
 
     // R Objects to Return
     return Rcpp::List::create(
-        Rcpp::Named("tauhats_out") = tauhats,
-        Rcpp::Named("muhats_copy") = muhats,
+        Rcpp::Named("tauhats") = tauhats,
+        Rcpp::Named("muhats") = muhats,
         Rcpp::Named("sigma0_draws") = sigma0_draws,
         Rcpp::Named("sigma1_draws") = sigma1_draws
         //Rcpp::Named("scale_factors") = scale_factors

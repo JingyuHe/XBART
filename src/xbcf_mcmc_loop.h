@@ -18,7 +18,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
                     double no_split_penality,
                     std::unique_ptr<State> &state_ps,
                     std::unique_ptr<State> &state_trt,
-                    NormalModel *model_ps,
+                    xbcfModel *model_ps,
                     xbcfModel *model_trt,
                     std::unique_ptr<X_struct> &x_struct_ps,
                     std::unique_ptr<X_struct> &x_struct_trt);

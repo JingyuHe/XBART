@@ -630,6 +630,11 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     // If our current split is same as parent, exit
     if ((this->p) && (this->v == (this->p)->v) && (this->c == (this->p)->c))
     {
+        if (update_theta)
+        {
+            model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
+        }
+
         return;
     }
 

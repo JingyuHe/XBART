@@ -265,11 +265,11 @@ XBCF <- function(y, X, z,
                 verbose = FALSE, parallel = TRUE,
                 random_seed = NULL, sample_weights_flag = TRUE) {
 
-    index = order(z, decreasing=TRUE)
+    #index = order(z, decreasing=TRUE)
 
-    y = y[index]
-    X = matrix(c(x[,1][index],x[,2][index],x[,3][index]),nrow=length(x[,1]))
-    z = z[index]
+    #y = y[index]
+    #X = matrix(c(x[,1][index],x[,2][index],x[,3][index]),nrow=length(x[,1]))
+    #z = z[index]
 
     if(class(X) != "matrix"){
         cat("Input X is not a matrix, try to convert type.\n")
