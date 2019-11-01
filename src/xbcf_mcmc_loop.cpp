@@ -39,7 +39,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
     for (size_t tree_ind = 0; tree_ind < state_ps->num_trees; tree_ind++)
     {
       // Draw Sigma
-      //model_ps->update_state(state_ps, tree_ind, x_struct_ps); // state_ps->sigma and state_ps->sigma2 are updated via state->update_sigma
+      model_ps->update_state_ps(state_ps, tree_ind, x_struct_ps); // state_ps->sigma and state_ps->sigma2 are updated via state->update_sigma
 
       sigma0_draw_xinfo[sweeps][tree_ind] = state_ps->sigma_vec[0];
       sigma1_draw_xinfo[sweeps][tree_ind] = state_ps->sigma_vec[1];
@@ -70,7 +70,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
 
     // store fitted values in tauhats_xinfo
     // model_ps->update_xinfo(muhats_xinfo, sweeps, state_ps->num_trees, state_ps->n_y, x_struct_ps);
-    /*
+
     // update the residual to pass it over to the treatment term loop
     model_trt->compute_residual_trt(state_ps, state_trt, x_struct_ps, x_struct_trt);
 
@@ -110,7 +110,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
 
     // update the residual to pass it over to the prognostic term loop
     model_trt->compute_residual_ps(state_trt, state_ps, x_struct_trt, x_struct_ps);
-*/
+
     // store fitted values in tauhats_xinfo
     // model_trt->update_xinfo(tauhats_xinfo, sweeps, state_trt->num_trees, state_trt->n_y, x_struct_trt);
   }

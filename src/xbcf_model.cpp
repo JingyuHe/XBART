@@ -60,13 +60,9 @@ void xbcfModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &s
 // called in xbcf_mcmc_loop.cpp
 // called from xbcf_mcmc_loop
 // updates sigma and precision_squared vector
-void xbcfModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
+void xbcfModel::update_state_ps(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
-  // Draw Sigma
-  // state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
-
   // residual_std is only 1 dimensional for regression model
-
   std::vector<double> full_residual_trt;  //(state->n_trt);               // residual for the treated group
   std::vector<double> full_residual_ctrl; //(state->n_y - state->n_trt); // residual for the control group
 
@@ -92,28 +88,46 @@ void xbcfModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std
   return;
 }
 
+void xbcfModel::update_state_trt(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
+{
+  // residual_std is only 1 dimensional for regression model
+  std::vector<double> full_residual_trt;  //(state->n_trt);               // residual for the treated group
+  std::vector<double> full_residual_ctrl; //(state->n_y - state->n_trt); // residual for the control group
+
+  for (size_t i = 0; i < state->n_y; i++)
+  {
+    if (state->b_std[i] > 0.0)
+      full_residual_trt.push_back((state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0]) * state->b_std[i]);
+    else
+      full_residual_ctrl.push_back((state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0]) * state->b_std[i]);
+  }
+
+  // compute sigma1 for the treated group
+  std::gamma_distribution<double> gamma_samp1((state->n_trt + kap) / 2.0, 2.0 / (sum_squared(full_residual_trt) + s));
+  double sigma1 = 1.0 / sqrt(gamma_samp1(state->gen));
+
+  // compute sigma0 for the control group
+  std::gamma_distribution<double> gamma_samp0((state->n_y - state->n_trt + kap) / 2.0, 2.0 / (sum_squared(full_residual_ctrl) + s));
+  double sigma0 = 1.0 / sqrt(gamma_samp0(state->gen));
+
+  //update sigma vector for the state
+  state->update_sigma(sigma0, sigma1);
+  //state->update_precision_squared(sigma0, sigma1);
+  return;
+}
+
 // called in xbcf_mcmc_loop.cpp
 // called from xbcf_mcmc_loop
 // initializes root suffstats
 void xbcfModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
 {
-  suff_stat[0] = 0; // sum of y control
-  suff_stat[1] = 0; // sum of y treated
-  suff_stat[2] = 0; // number of individuals in the control group
-  suff_stat[3] = 0; // number of treated individuals
+  suff_stat.resize(4);
+
+  std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
 
   for (size_t i = 0; i < state->n_y; i++)
   {
-    if (state->b_std[i] > 0.0)
-    {
-      suff_stat[1] += state->residual_std[0][i];
-      suff_stat[3] += 1;
-    }
-    else
-    {
-      suff_stat[0] += state->residual_std[0][i];
-      suff_stat[2] += 1;
-    }
+    incSuffStat(state, i, suff_stat);
   }
 
   return;
