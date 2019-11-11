@@ -5,6 +5,9 @@
 .DS_Store
 .idea/
 src-i386/
+*.pdf
+*.xbart
+*.json
 
 # Prerequisites
 *.d
@@ -223,9 +226,7 @@ dmypy.json
 # R package: bookdown caching files
 /*_files/
 
-*.pdf
-*.xbart
-*.json
+
 
 
 
