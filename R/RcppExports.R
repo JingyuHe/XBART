@@ -263,7 +263,8 @@ XBCF <- function(y, X, z,
                 kap_trt = 16, s_trt = 4,
                 trt_scale = FALSE,
                 verbose = FALSE, parallel = TRUE,
-                random_seed = NULL, sample_weights_flag = TRUE) {
+                random_seed = NULL, sample_weights_flag = TRUE,
+                b_scaling = TRUE) {
 
     #index = order(z, decreasing=TRUE)
 
@@ -315,7 +316,8 @@ XBCF <- function(y, X, z,
                          kap_trt, s_trt,
                          trt_scale,
                          verbose, parallel, set_random_seed,
-                         random_seed, sample_weights_flag)
+                         random_seed, sample_weights_flag,
+                         b_scaling)
     class(obj) = "XBCF"
     return(obj)
 }

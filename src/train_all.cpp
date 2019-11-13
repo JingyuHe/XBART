@@ -89,6 +89,19 @@ void arma_to_std(const arma::mat &matrix_in, std::vector<double> &vector_out)
     return;
 }
 
+// transfers data from an armadillo matrix object (column 0) to an std vector object
+void arma_to_std(const arma::mat &matrix_in, std::vector<size_t> &vector_out)
+{
+    size_t dim = matrix_in.n_rows;
+
+    for (size_t i = 0; i < dim; i++)
+    {
+        vector_out[i] = (size_t)matrix_in(i, 0);
+    }
+
+    return;
+}
+
 // FUNCTION arma_to_rcpp (instance 1)                    ?? Rcpp matrix or std matrix ??
 // transfers data from an armadillo matrix object to an Rcpp matrix object
 void arma_to_rcpp(const arma::mat &matrix_in, Rcpp::NumericMatrix &matrix_out)
@@ -913,7 +926,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
                 bool trt_scale = false,                                             // use half-Normal prior
                 bool verbose = false, bool parallel = true,                         // optional parameters
                 bool set_random_seed = false, size_t random_seed = 0,
-                bool sample_weights_flag = true)
+                bool sample_weights_flag = true, bool b_scaling = true)
 {
 
     auto start = system_clock::now();
@@ -947,7 +960,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     ini_matrix(Xorder_std, N, p);
 
     std::vector<double> y_std(N);
-    std::vector<double> z_std(N);
+    std::vector<size_t> z_std(N);
     std::vector<double> b(N);
     double y_mean = 0.0;
 
@@ -964,18 +977,23 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     std::vector<double> sigma_vec(2); // vector of sigma0, sigma1
     sigma_vec[0] = 1.0;
     sigma_vec[1] = 1.0;
-    //std::vector<double> precision_squared(N); // vector of sigmas
 
-    double bscale0 = -1.0;
-    double bscale1 = 1.0;
+    double bscale0 = -0.5;
+    double bscale1 = 0.5;
 
-    size_t n_trt = 0; // number of treated individuals
+    std::vector<double> b_vec(2); // vector of sigma0, sigma1
+    b_vec[0] = bscale0;
+    b_vec[1] = bscale1;
+
+    size_t n_trt = 0; // number of treated individuals TODO: remove from here and from constructor as well
 
     // assuming we have presorted data (treated individuals first, then control group)
 
     for (size_t i = 0; i < N; i++)
     {
         b[i] = z[i] * bscale1 + (1 - z[i]) * bscale0;
+        if (z[i] == 1)
+            n_trt++;
     }
 
     // double *ypointer = &y_std[0];
@@ -987,12 +1005,24 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     ini_matrix(tauhats_xinfo, N, num_sweeps);
     matrix<double> muhats_xinfo;
     ini_matrix(muhats_xinfo, N, num_sweeps);
+    matrix<double> total_fit;
+    ini_matrix(total_fit, N, num_sweeps);
 
     matrix<double> sigma0_draw_xinfo;
     ini_matrix(sigma0_draw_xinfo, num_trees_trt, num_sweeps);
 
     matrix<double> sigma1_draw_xinfo;
     ini_matrix(sigma1_draw_xinfo, num_trees_trt, num_sweeps);
+
+    matrix<double> b0_draw_xinfo;
+    ini_matrix(b0_draw_xinfo, num_trees_trt, num_sweeps);
+
+    matrix<double> b1_draw_xinfo;
+    ini_matrix(b1_draw_xinfo, num_trees_trt, num_sweeps);
+
+    matrix<double> b_xinfo;
+    ini_matrix(b_xinfo, num_sweeps, 2);
+
     // // Create trees
     vector<vector<tree>> *trees_pr = new vector<vector<tree>>(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++)
@@ -1016,11 +1046,11 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
 
     // State settings for the prognostic term
     std::vector<double> initial_theta_pr(1, y_mean / (double)num_trees_pr);
-    std::unique_ptr<State> state_pr(new xbcfState(Xpointer, Xorder_std, N, n_trt, p, num_trees_trt, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, b, sigma_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
+    std::unique_ptr<State> state_pr(new xbcfState(Xpointer, Xorder_std, N, n_trt, p, num_trees_trt, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, b, z_std, sigma_vec, b_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
 
     // State settings for the treatment term
     std::vector<double> initial_theta_trt(1, 0);
-    std::unique_ptr<State> state_trt(new xbcfState(Xpointer, Xorder_std, N, n_trt, p, num_trees_trt, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, b, sigma_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
+    std::unique_ptr<State> state_trt(new xbcfState(Xpointer, Xorder_std, N, n_trt, p, num_trees_trt, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, b, z_std, sigma_vec, b_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
 
     // initialize X_struct for the prognostic term
     std::unique_ptr<X_struct> x_struct_pr(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_pr, num_trees_pr));
@@ -1029,8 +1059,8 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     std::unique_ptr<X_struct> x_struct_trt(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_trt, num_trees_trt));
 
     // mcmc_loop returns tauhat [N x sweeps] matrix
-    mcmc_loop_xbcf(Xorder_std, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, *trees_pr, *trees_trt, no_split_penality,
-                   state_pr, state_trt, model_pr, model_trt, x_struct_pr, x_struct_trt);
+    mcmc_loop_xbcf(Xorder_std, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, b_xinfo, b0_draw_xinfo, b1_draw_xinfo, total_fit, *trees_pr, *trees_trt, no_split_penality,
+                   state_pr, state_trt, model_pr, model_trt, x_struct_pr, x_struct_trt, b_scaling);
 
     //predict tauhats and muhats
     model_trt->predict_std(Xpointer, N, p, num_trees_trt, num_sweeps, tauhats_xinfo, *trees_trt);
@@ -1038,17 +1068,22 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
 
     // R Objects to Return
     Rcpp::NumericMatrix tauhats(N, num_sweeps);
-
     Rcpp::NumericMatrix muhats(N, num_sweeps);
-
+    Rcpp::NumericMatrix b_tau(N, num_sweeps);
     Rcpp::NumericMatrix sigma0_draws(num_trees_trt, num_sweeps);
-
     Rcpp::NumericMatrix sigma1_draws(num_trees_trt, num_sweeps);
+    Rcpp::NumericMatrix b0_draws(num_trees_trt, num_sweeps);
+    Rcpp::NumericMatrix b1_draws(num_trees_trt, num_sweeps);
+    Rcpp::NumericMatrix b_draws(num_sweeps, 2);
 
     std_to_rcpp(tauhats_xinfo, tauhats);
     std_to_rcpp(muhats_xinfo, muhats);
+    std_to_rcpp(total_fit, b_tau);
     std_to_rcpp(sigma0_draw_xinfo, sigma0_draws);
     std_to_rcpp(sigma1_draw_xinfo, sigma1_draws);
+    std_to_rcpp(b0_draw_xinfo, b0_draws);
+    std_to_rcpp(b1_draw_xinfo, b1_draws);
+    std_to_rcpp(b_xinfo, b_draws);
 
     auto end = system_clock::now();
 
@@ -1072,8 +1107,12 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     return Rcpp::List::create(
         Rcpp::Named("tauhats") = tauhats,
         Rcpp::Named("muhats") = muhats,
+        Rcpp::Named("b_tau") = b_tau,
         Rcpp::Named("sigma0_draws") = sigma0_draws,
-        Rcpp::Named("sigma1_draws") = sigma1_draws
+        Rcpp::Named("sigma1_draws") = sigma1_draws,
+        Rcpp::Named("b0_draws") = b0_draws,
+        Rcpp::Named("b1_draws") = b1_draws,
+        Rcpp::Named("b_draws") = b_draws
         //Rcpp::Named("scale_factors") = scale_factors
         //XBART
         //       Rcpp::Named("sigma") = sigma_draw,

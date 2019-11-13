@@ -279,7 +279,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,             // responses 
                 bool trt_scale,                                    // use half-Normal prior
                 bool verbose, bool parallel,                       // optional parameters
                 bool set_random_seed, size_t random_seed,
-                bool sample_weights_flag);
+                bool sample_weights_flag, bool b_scaling);
 RcppExport SEXP _XBCF(SEXP ySEXP, SEXP XSEXP, SEXP zSEXP,
                       SEXP num_sweepsSEXP, SEXP burninSEXP,
                       SEXP max_depthSEXP, SEXP n_minSEXP,
@@ -296,7 +296,7 @@ RcppExport SEXP _XBCF(SEXP ySEXP, SEXP XSEXP, SEXP zSEXP,
                       SEXP trt_scaleSEXP,
                       SEXP verboseSEXP, SEXP parallelSEXP,
                       SEXP set_random_seedSEXP, SEXP random_seedSEXP,
-                      SEXP sample_weights_flagSEXP)
+                      SEXP sample_weights_flagSEXP, SEXP b_scalingSEXP)
 {
     BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -331,6 +331,7 @@ RcppExport SEXP _XBCF(SEXP ySEXP, SEXP XSEXP, SEXP zSEXP,
     Rcpp::traits::input_parameter<bool>::type set_random_seed(set_random_seedSEXP);
     Rcpp::traits::input_parameter<size_t>::type random_seed(random_seedSEXP);
     Rcpp::traits::input_parameter<bool>::type sample_weights_flag(sample_weights_flagSEXP);
+    Rcpp::traits::input_parameter<bool>::type b_scaling(b_scalingSEXP);
     rcpp_result_gen = Rcpp::wrap(XBCF(y, X, z,
                                       num_sweeps, burnin, max_depth, n_min,
                                       num_cutpoints, no_split_penality, mtry, p_categorical,
@@ -339,7 +340,7 @@ RcppExport SEXP _XBCF(SEXP ySEXP, SEXP XSEXP, SEXP zSEXP,
                                       num_trees_trt, alpha_trt, beta_trt, tau_trt,
                                       kap_trt, s_trt, trt_scale,
                                       verbose, parallel, set_random_seed,
-                                      random_seed, sample_weights_flag));
+                                      random_seed, sample_weights_flag, b_scaling));
     return rcpp_result_gen;
     END_RCPP
 }
@@ -377,7 +378,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART_CLT", (DL_FUNC)&_XBART_CLT, 22},
     {"_XBART_multinomial", (DL_FUNC)&_XBART_CLT, 22},
     {"_XBART_Probit", (DL_FUNC)&_XBART_Probit, 22},
-    {"_XBCF", (DL_FUNC)&_XBCF, 30},
+    {"_XBCF", (DL_FUNC)&_XBCF, 31},
     {"_xbart_predict", (DL_FUNC)&_xbart_predict, 3},
     {"_json_to_r", (DL_FUNC)&_json_to_r, 1},
     {"_r_to_json", (DL_FUNC)&_r_to_json, 2},

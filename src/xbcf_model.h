@@ -71,6 +71,24 @@ public:
   void compute_residual_ps(std::unique_ptr<State> &state_trt, std::unique_ptr<State> &state_ps, std::unique_ptr<X_struct> &x_struct_trt, std::unique_ptr<X_struct> &x_struct_ps);
 
   void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
+
+  void compute_residual_b(std::unique_ptr<State> &state_ps, std::unique_ptr<X_struct> &x_struct_ps, std::vector<double> &res);
+
+  void compute_tau_fit(std::vector<double> &fit, size_t tree_ind, std::unique_ptr<X_struct> &x_struct_trt);
+
+  void adjust_tau_fit(std::vector<double> &fit, size_t tree_ind, std::unique_ptr<X_struct> &x_struct_trt);
+
+  void compute_total_fit(std::vector<double> &fit, size_t tree_ind, std::unique_ptr<X_struct> &x_struct_trt, std::vector<double> &b_values);
+
+  void update_b_values(std::unique_ptr<State> &state, std::vector<double> &res, std::vector<double> &taufit);
+
+  void update_b_vector(std::unique_ptr<State> &state);
+
+  void compute_average_b_value(std::unique_ptr<State> &state, size_t sweep_num, matrix<double> &b0_values, matrix<double> &b1_values, matrix<double> &avg);
+
+  void adjust_residual_trt(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct, std::vector<double> &b);
+
+  void state_sweep_trt(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct, std::vector<double> &b) const;
 };
 
 #endif

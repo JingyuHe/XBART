@@ -11,8 +11,12 @@
 #include "MH.h"
 
 void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
-                    matrix<double> &sigma_draw_xinfo_ps,
-                    matrix<double> &sigma_draw_xinfo_trt,
+                    matrix<double> &sigma0_draw_xinfo,
+                    matrix<double> &sigma1_draw_xinfo,
+                    matrix<double> &b_xinfo,
+                    matrix<double> &b0_draw_xinfo,
+                    matrix<double> &b1_draw_xinfo,
+                    matrix<double> &total_fit,
                     vector<vector<tree>> &trees_ps,
                     vector<vector<tree>> &trees_trt,
                     double no_split_penality,
@@ -21,4 +25,5 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
                     xbcfModel *model_ps,
                     xbcfModel *model_trt,
                     std::unique_ptr<X_struct> &x_struct_ps,
-                    std::unique_ptr<X_struct> &x_struct_trt);
+                    std::unique_ptr<X_struct> &x_struct_trt,
+                    bool b_scaling);
