@@ -37,7 +37,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
 
   for (size_t sweeps = 0; sweeps < state_ps->num_sweeps; sweeps++)
   {
-
+    cout << "sweep: " << sweeps << endl;
     if (verbose == true)
     {
       COUT << "--------------------------------" << endl;
@@ -148,6 +148,16 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
 
         // complete state sweep
         model_trt->state_sweep_trt(tree_ind, state_trt->num_trees, state_trt->residual_std, x_struct_trt, state_trt->b_std);
+
+        // subtract the value of the old fit for the next tree we will be growing
+        if (tree_ind + 1 == state_trt->num_trees)
+        {
+          model_trt->adjust_tau_fit(tau_fit, 0, x_struct_trt);
+        }
+        else
+        {
+          model_trt->adjust_tau_fit(tau_fit, tree_ind + 1, x_struct_trt);
+        }
       }
       else
       {
@@ -167,7 +177,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
 
     // update the residual to pass it over back to the prognostic term loop
     model_trt->compute_residual_ps(state_trt, state_ps, x_struct_trt, x_struct_ps);
-    std::fill(tau_fit.begin(), tau_fit.end(), 0.0);
+    //std::fill(tau_fit.begin(), tau_fit.end(), 0.0);
     // store fitted values in tauhats_xinfo
     // model_trt->update_xinfo(tauhats_xinfo, sweeps, state_trt->num_trees, state_trt->n_y, x_struct_trt);
   }

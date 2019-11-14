@@ -367,6 +367,8 @@ void xbcfModel::compute_total_fit(std::vector<double> &fit, size_t tree_ind, std
 
 void xbcfModel::update_b_values(std::unique_ptr<State> &state, std::vector<double> &res, std::vector<double> &taufit)
 {
+  std::normal_distribution<double> normal_samp(0.0, 1.0);
+
   double tau2sum_ctrl = 0;
   double tau2sum_trt = 0;
   double tauressum_ctrl = 0;
@@ -389,10 +391,14 @@ void xbcfModel::update_b_values(std::unique_ptr<State> &state, std::vector<doubl
   double v0 = 1 / (2 + tau2sum_ctrl / pow(state->sigma_vec[0], 2));
   double v1 = 1 / (2 + tau2sum_trt / pow(state->sigma_vec[1], 2));
 
-  double b0 = v0 * (tauressum_ctrl) / pow(state->sigma_vec[0], 2);
-  double b1 = v1 * (tauressum_trt) / pow(state->sigma_vec[1], 2);
-  //cout << "b1: " << b1 << " s1: " << state->sigma_vec[1] << " taures: " << tauressum_trt << " tau2: " << tau2sum_trt << endl;
-  //cout << "b0: " << b0 << " s0: " << state->sigma_vec[0] << " taures: " << tauressum_ctrl << " tau2: " << tau2sum_ctrl << endl;
+  double m0 = v0 * (tauressum_ctrl) / pow(state->sigma_vec[0], 2);
+  double m1 = v1 * (tauressum_trt) / pow(state->sigma_vec[1], 2);
+
+  double b0 = m0 + sqrt(v0) * normal_samp(state->gen);
+  double b1 = m1 + sqrt(v1) * normal_samp(state->gen);
+
+  cout << "b1: " << b1 << " m1: " << m1 << " v1: " << v1 << endl;
+  cout << "b0: " << b0 << " s0: " << state->sigma_vec[0] << " taures: " << tauressum_ctrl << " tau2: " << tau2sum_ctrl << endl;
 
   state->b_vec[1] = b1;
   state->b_vec[0] = b0;
