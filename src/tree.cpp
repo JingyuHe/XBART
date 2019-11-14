@@ -442,6 +442,20 @@ tree &tree::operator=(const tree &rhs)
     return *this;
 }
 //--------------------------------------------------
+std::ostream& operator<<(std::ostream& os, const tree& t)
+{
+   tree::cnpv nds;
+   t.getnodes(nds);
+   os << nds.size() << std::endl;
+   cout << "number of all nodes " << nds.size() << endl;
+   for(size_t i=0;i<nds.size();i++) {
+      os << nds[i]->nid() << " ";
+      os << nds[i]->getv() << " ";
+      os << nds[i]->getc_index() << " ";
+      os << nds[i]->theta_vector[0] << std::endl;
+   }
+   return os;
+}
 
 std::istream &operator>>(std::istream &is, tree &t)
 {
@@ -624,6 +638,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
         // If GROW FROM ROOT MODE
         this->v = split_var;
         this->c = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
+        this->c_index = (size_t) ((double) split_point / (double) state->n_y * (double)state->n_cutpoints);
     }
 
     // Update Cutpoint to be a true seperating point
