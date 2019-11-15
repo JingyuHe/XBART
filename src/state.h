@@ -71,8 +71,8 @@ public:
     // sigma update for xbcfModel       TODO: move to xbcfClass
     void update_sigma(double sigma0, double sigma1)
     {
-        this->sigma_vec[0] = pow(sigma0 / this->b_vec[0], 1); // sigma for the control group
-        this->sigma_vec[1] = pow(sigma1 / this->b_vec[1], 1); // sigma for the treatment group
+        this->sigma_vec[0] = sigma0; // this->b_vec[0], 1); // sigma for the control group
+        this->sigma_vec[1] = sigma1; // this->b_vec[1], 1); // sigma for the treatment group
 
         return;
     }

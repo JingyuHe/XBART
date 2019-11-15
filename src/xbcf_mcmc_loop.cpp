@@ -37,7 +37,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
 
   for (size_t sweeps = 0; sweeps < state_ps->num_sweeps; sweeps++)
   {
-    cout << "sweep: " << sweeps << endl;
+    //cout << "sweep: " << sweeps << endl;
     if (verbose == true)
     {
       COUT << "--------------------------------" << endl;
@@ -100,7 +100,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
     // Treatment term loop
     for (size_t tree_ind = 0; tree_ind < state_trt->num_trees; tree_ind++)
     {
-
+      //cout << state_trt->sigma_vec[0] << " <- s0 | s1 -> " << state_trt->sigma_vec[1] << endl;
       // Draw Sigma
       model_trt->update_state_trt(state_trt, tree_ind, x_struct_trt);
 
@@ -135,7 +135,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
       {
         // compute the current tau fit, needed for b update
         model_trt->compute_tau_fit(tau_fit, tree_ind, x_struct_trt);
-        model_trt->compute_total_fit(total_fit[sweeps], tree_ind, x_struct_trt, state_trt->b_vec);
+        //model_trt->compute_total_fit(total_fit[sweeps], tree_ind, x_struct_trt, state_trt->b_vec);
 
         // update partial residual for the next tree to fit
         model_trt->adjust_residual_trt(tree_ind, state_trt->num_trees, state_trt->residual_std, x_struct_trt, state_trt->b_std);

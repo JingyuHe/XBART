@@ -222,20 +222,20 @@ double xbcfModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<do
 
   if (no_split)
   {
-    denominator = 1 + (suff_stat_all[2] / pow(state->sigma_vec[0], 2) + suff_stat_all[3] / pow(state->sigma_vec[1], 2)) * tau;
-    s_psi_squared = suff_stat_all[0] / pow(state->sigma_vec[0], 2) + suff_stat_all[1] / pow(state->sigma_vec[1], 2);
+    denominator = 1 + (suff_stat_all[2] / pow(state->sigma_vec[0] / state->b_vec[0], 2) + suff_stat_all[3] / pow(state->sigma_vec[1] / state->b_vec[1], 2)) * tau;
+    s_psi_squared = suff_stat_all[0] / pow(state->sigma_vec[0] / state->b_vec[0], 2) + suff_stat_all[1] / pow(state->sigma_vec[1] / state->b_vec[1], 2);
   }
   else
   {
     if (left_side)
     {
-      denominator = 1 + (temp_suff_stat[2] / pow(state->sigma_vec[0], 2) + temp_suff_stat[3] / pow(state->sigma_vec[1], 2)) * tau;
-      s_psi_squared = temp_suff_stat[0] / pow(state->sigma_vec[0], 2) + temp_suff_stat[1] / pow(state->sigma_vec[1], 2);
+      denominator = 1 + (temp_suff_stat[2] / pow(state->sigma_vec[0] / state->b_vec[0], 2) + temp_suff_stat[3] / pow(state->sigma_vec[1] / state->b_vec[1], 2)) * tau;
+      s_psi_squared = temp_suff_stat[0] / pow(state->sigma_vec[0] / state->b_vec[0], 2) + temp_suff_stat[1] / pow(state->sigma_vec[1] / state->b_vec[1], 2);
     }
     else
     {
-      denominator = 1 + ((suff_stat_all[2] - temp_suff_stat[2]) / pow(state->sigma_vec[0], 2) + (suff_stat_all[3] - temp_suff_stat[3]) / pow(state->sigma_vec[1], 2)) * tau;
-      s_psi_squared = (suff_stat_all[0] - temp_suff_stat[0]) / pow(state->sigma_vec[0], 2) + (suff_stat_all[1] - temp_suff_stat[1]) / pow(state->sigma_vec[1], 2);
+      denominator = 1 + ((suff_stat_all[2] - temp_suff_stat[2]) / pow(state->sigma_vec[0] / state->b_vec[0], 2) + (suff_stat_all[3] - temp_suff_stat[3]) / pow(state->sigma_vec[1] / state->b_vec[1], 2)) * tau;
+      s_psi_squared = (suff_stat_all[0] - temp_suff_stat[0]) / pow(state->sigma_vec[0] / state->b_vec[0], 2) + (suff_stat_all[1] - temp_suff_stat[1]) / pow(state->sigma_vec[1] / state->b_vec[1], 2);
     }
   }
 
@@ -397,8 +397,8 @@ void xbcfModel::update_b_values(std::unique_ptr<State> &state, std::vector<doubl
   double b0 = m0 + sqrt(v0) * normal_samp(state->gen);
   double b1 = m1 + sqrt(v1) * normal_samp(state->gen);
 
-  cout << "b1: " << b1 << " m1: " << m1 << " v1: " << v1 << endl;
-  cout << "b0: " << b0 << " s0: " << state->sigma_vec[0] << " taures: " << tauressum_ctrl << " tau2: " << tau2sum_ctrl << endl;
+  // cout << "b1: " << b1 << " m1: " << m1 << " v1: " << v1 << endl;
+  // cout << "b0: " << b0 << " s0: " << state->sigma_vec[0] << " taures: " << tauressum_ctrl << " tau2: " << tau2sum_ctrl << endl;
 
   state->b_vec[1] = b1;
   state->b_vec[0] = b0;
