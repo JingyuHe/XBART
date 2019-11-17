@@ -638,7 +638,17 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
         // If GROW FROM ROOT MODE
         this->v = split_var;
         this->c = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
-        this->c_index = (size_t) ((double) split_point / (double) state->n_y * (double)state->n_cutpoints);
+// cout << (state->Xorder_std)[0] << endl;
+        size_t index_in_full = 0;
+
+        while((state->Xorder_std)[split_var][index_in_full]!=Xorder_std[split_var][split_point]){
+            index_in_full++;
+        }
+
+        this->c_index = (size_t) round((double) index_in_full / (double) state->n_y * (double)state->n_cutpoints);
+        // cout << "variable " << this->v << " " << split_point << " " << this->c << endl;
+        // cout << "split" << split_point << " " << state->n_y << " " << state->n_cutpoints << " " << this->c_index << endl;
+        // cout << "compare cut values " << this->c << " " << (state->Xcut)[this->v][this->c_index] << endl;
     }
 
     // Update Cutpoint to be a true seperating point

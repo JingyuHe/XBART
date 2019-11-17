@@ -185,15 +185,16 @@ Rcpp::List XBART_cpp(Rcpp::NumericMatrix Xcut, arma::mat y, arma::mat X, arma::m
 
 cout << "before xcutmat" << endl;
     matrix<double> Xcutmat;
-    ini_matrix(Xcutmat, Xcut.ncol(), Xcut.nrow());
+    ini_matrix(Xcutmat, Xcut.nrow(), Xcut.ncol());
 
-cout << "xcutmat" << endl;
+cout << "xcutmat " << Xcut.nrow() << " " << Xcut.ncol() << endl;
+cout << "size " << Xcutmat.size() << " " << Xcutmat[0].size() << endl;
     for(size_t i = 0; i < Xcut.nrow(); i ++ ){
         for(size_t j = 0; j < Xcut.ncol(); j ++ ){
             Xcutmat[j][i] = Xcut(i, j);
         }
     }
-cout << "after xcutmat" << endl;
+    
 
     // // Create trees
     vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);

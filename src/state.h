@@ -48,6 +48,7 @@ public:
     double ini_var_yhat;
 
     matrix<double> Xcut;
+    matrix<size_t> Xorder_std;
 
     // residual standard deviation
     double sigma;
@@ -169,6 +170,7 @@ public:
         this->ini_var_yhat = ini_var_yhat;
 
         this->Xcut = Xcut;
+        this->Xorder_std = Xorder_std;
 
         return;
     }
