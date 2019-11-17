@@ -125,7 +125,7 @@ void rcpp_to_std2(arma::mat X, arma::mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true)
+Rcpp::List XBART_cpp(Rcpp::NumericMatrix Xcut, arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true)
 {
 
     auto start = system_clock::now();
@@ -183,20 +183,34 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     matrix<double> sigma_draw_xinfo;
     ini_matrix(sigma_draw_xinfo, num_trees, num_sweeps);
 
+cout << "before xcutmat" << endl;
+    matrix<double> Xcutmat;
+    ini_matrix(Xcutmat, Xcut.ncol(), Xcut.nrow());
+
+cout << "xcutmat" << endl;
+    for(size_t i = 0; i < Xcut.nrow(); i ++ ){
+        for(size_t j = 0; j < Xcut.ncol(); j ++ ){
+            Xcutmat[j][i] = Xcut(i, j);
+        }
+    }
+cout << "after xcutmat" << endl;
+
     // // Create trees
     vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++)
     {
         (*trees2)[i] = vector<tree>(num_trees);
     }
-
+cout << "init trees " << endl;
     // define model
     NormalModel *model = new NormalModel(kap, s, tau, alpha, beta);
     model->setNoSplitPenality(no_split_penality);
-
+cout << "fine here " << endl;
     // State settings
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
-    std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual));
+    std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, Xcutmat));
+
+    // state->set_Xcut(Xcutmat);
 
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
@@ -278,6 +292,11 @@ cout << "tree size of the last forest " << endl;;
 cout << "first tree of output XBART " << (*trees2)[num_sweeps - 1][0].getv() << " " << (*trees2)[num_sweeps - 1][0].getc_index() << (*trees2)[num_sweeps - 1][0].theta_vector << endl;
 cout << "first tree size " << (*trees2)[num_sweeps - 1][0].treesize() << endl;
 cout << "second tree size " << (*trees2)[num_sweeps - 1][1].treesize() << endl;
+
+
+cout << "cut points of trees " << endl;
+cout << (*trees2)[num_sweeps - 1][0].getc() << endl;
+cout << (*trees2)[num_sweeps - 1][0].getl()->getc() << endl;
 
     return Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,
