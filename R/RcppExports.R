@@ -33,8 +33,8 @@ sample_int_expjs <- function(n, size, prob) {
     .Call(`_XBART_sample_int_expjs`, n, size, prob)
 }
 
-XBART_cpp <- function(Xcut, y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights_flag = TRUE) {
-    .Call(`_XBART_XBART_cpp`, Xcut, y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag)
+XBART_cpp <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights_flag = TRUE) {
+    .Call(`_XBART_XBART_cpp`, y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag)
 }
 
 XBART_CLT_cpp <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights_flag = TRUE) {
