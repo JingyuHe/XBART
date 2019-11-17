@@ -985,6 +985,10 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     b_vec[0] = bscale0;
     b_vec[1] = bscale1;
 
+    std::vector<size_t> num_trees(2); // vector of tree number for each of mu and tau
+    num_trees[0] = num_trees_pr;
+    num_trees[1] = num_trees_trt;
+
     size_t n_trt = 0; // number of treated individuals TODO: remove from here and from constructor as well
 
     // assuming we have presorted data (treated individuals first, then control group)
@@ -1045,22 +1049,22 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     model_trt->setNoSplitPenality(no_split_penality);
 
     // State settings for the prognostic term
-    std::vector<double> initial_theta_pr(1, y_mean / (double)num_trees_pr);
-    std::unique_ptr<State> state_pr(new xbcfState(Xpointer, Xorder_std, N, n_trt, p, num_trees_trt, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, b, z_std, sigma_vec, b_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
+    std::unique_ptr<State> state(new xbcfState(Xpointer, Xorder_std, N, n_trt, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, b, z_std, sigma_vec, b_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
 
     // State settings for the treatment term
-    std::vector<double> initial_theta_trt(1, 0);
-    std::unique_ptr<State> state_trt(new xbcfState(Xpointer, Xorder_std, N, n_trt, p, num_trees_trt, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, b, z_std, sigma_vec, b_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
+    // std::unique_ptr<State> state_trt(new xbcfState(Xpointer, Xorder_std, N, n_trt, p, num_trees_trt, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, b, z_std, sigma_vec, b_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
 
     // initialize X_struct for the prognostic term
+    std::vector<double> initial_theta_pr(1, y_mean / (double)num_trees_pr);
     std::unique_ptr<X_struct> x_struct_pr(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_pr, num_trees_pr));
 
     // initialize X_struct for the treatment term
+    std::vector<double> initial_theta_trt(1, 0);
     std::unique_ptr<X_struct> x_struct_trt(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_trt, num_trees_trt));
 
     // mcmc_loop returns tauhat [N x sweeps] matrix
     mcmc_loop_xbcf(Xorder_std, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, b_xinfo, b0_draw_xinfo, b1_draw_xinfo, total_fit, *trees_pr, *trees_trt, no_split_penality,
-                   state_pr, state_trt, model_pr, model_trt, x_struct_pr, x_struct_trt, b_scaling);
+                   state, model_pr, model_trt, x_struct_pr, x_struct_trt, b_scaling);
 
     //predict tauhats and muhats
     model_trt->predict_std(Xpointer, N, p, num_trees_trt, num_sweeps, tauhats_xinfo, *trees_trt);
@@ -1098,8 +1102,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     // clean memory
     delete model_pr;
     delete model_trt;
-    state_pr.reset();
-    state_trt.reset();
+    state.reset();
     x_struct_pr.reset();
     x_struct_trt.reset();
 

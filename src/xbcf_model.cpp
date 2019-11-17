@@ -4,7 +4,7 @@
 //////////////////////////////////////////////////////////////////////////////////////
 //
 //
-//  XBCF Model ||| a copy of Normal Model atm
+//  XBCF Model
 //
 //
 //////////////////////////////////////////////////////////////////////////////////////
@@ -14,17 +14,33 @@
 // adds residual to suff stats for normalmodel (updates the suff stats by adding new values to the old ones)
 void xbcfModel::incSuffStat(std::unique_ptr<State> &state, size_t index_next_obs, std::vector<double> &suffstats)
 {
-  // I have to pass matrix<double> &residual_std, size_t index_next_obs
-  // which allows more flexibility for multidimensional residual_std
-  if (state->b_std[index_next_obs] > 0.0)
+  if (state->fl == 0)
   {
-    suffstats[1] += state->residual_std[0][index_next_obs];
-    suffstats[3] += 1;
+    if (state->z[index_next_obs] == 1)
+    {
+      // old: suffstats[1] += state->residual_std[0][index_next_obs];
+      suffstats[1] += (*state->y_std)[index_next_obs] - state->mu_fit[index_next_obs] - state->b_vec[1] * state->tau_fit[index_next_obs];
+      suffstats[3] += 1;
+    }
+    else
+    {
+      suffstats[0] += (*state->y_std)[index_next_obs] - state->mu_fit[index_next_obs] - state->b_vec[0] * state->tau_fit[index_next_obs];
+      suffstats[2] += 1;
+    }
   }
   else
   {
-    suffstats[0] += state->residual_std[0][index_next_obs];
-    suffstats[2] += 1;
+    if (state->z[index_next_obs] == 1)
+    {
+      // old: suffstats[1] += state->residual_std[0][index_next_obs];
+      suffstats[1] += ((*state->y_std)[index_next_obs] - state->mu_fit[index_next_obs] - state->b_vec[1] * state->tau_fit[index_next_obs]) / state->b_vec[1];
+      suffstats[3] += 1;
+    }
+    else
+    {
+      suffstats[0] += ((*state->y_std)[index_next_obs] - state->mu_fit[index_next_obs] - state->b_vec[0] * state->tau_fit[index_next_obs]) / state->b_vec[0];
+      suffstats[2] += 1;
+    }
   }
 
   return;
@@ -59,8 +75,8 @@ void xbcfModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &s
 
 // called in xbcf_mcmc_loop.cpp
 // called from xbcf_mcmc_loop
-// updates sigmas in prognostic term loop
-void xbcfModel::update_state_ps(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
+// updates sigmas
+void xbcfModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
   // residual_std is only 1 dimensional for regression model
   std::vector<double> full_residual_trt;  //(state->n_trt);               // residual for the treated group
@@ -69,37 +85,9 @@ void xbcfModel::update_state_ps(std::unique_ptr<State> &state, size_t tree_ind, 
   for (size_t i = 0; i < state->n_y; i++)
   {
     if (state->z[i] == 1)
-      full_residual_trt.push_back(state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0]); // * state->b_std[i];
+      full_residual_trt.push_back((*state->y_std)[i] - state->mu_fit[i] - state->b_vec[1] * state->tau_fit[i]);
     else
-      full_residual_ctrl.push_back(state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0]); //* state->b_std[i];
-  }
-
-  // compute sigma1 for the treated group
-  std::gamma_distribution<double> gamma_samp1((state->n_trt + kap) / 2.0, 2.0 / (sum_squared(full_residual_trt) + s));
-  double sigma1 = 1.0 / sqrt(gamma_samp1(state->gen));
-
-  // compute sigma0 for the control group
-  std::gamma_distribution<double> gamma_samp0((state->n_y - state->n_trt + kap) / 2.0, 2.0 / (sum_squared(full_residual_ctrl) + s));
-  double sigma0 = 1.0 / sqrt(gamma_samp0(state->gen));
-
-  //update sigma vector for the state
-  state->update_sigma(sigma0, sigma1);
-  //state->update_precision_squared(sigma0, sigma1);
-  return;
-}
-
-void xbcfModel::update_state_trt(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
-{
-  // residual_std is only 1 dimensional for regression model
-  std::vector<double> full_residual_trt;  //(state->n_trt);               // residual for the treated group
-  std::vector<double> full_residual_ctrl; //(state->n_y - state->n_trt); // residual for the control group
-
-  for (size_t i = 0; i < state->n_y; i++)
-  {
-    if (state->z[i] == 1)
-      full_residual_trt.push_back((state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0]) * state->b_std[i]);
-    else
-      full_residual_ctrl.push_back((state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0]) * state->b_std[i]);
+      full_residual_ctrl.push_back((*state->y_std)[i] - state->mu_fit[i] - state->b_vec[0] * state->tau_fit[i]);
   }
 
   // compute sigma1 for the treated group
@@ -169,36 +157,25 @@ void xbcfModel::calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat
 // called in xbcf_mcmc_loop.cpp
 // called from xbcf_mcmc_loop
 // updates partial residual for the next tree to fit
-void xbcfModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
+void xbcfModel::state_sweep(size_t tree_ind, std::vector<double> &fit, std::unique_ptr<X_struct> &x_struct) const
 {
-  size_t next_index = tree_ind + 1;
+  /*  size_t next_index = tree_ind + 1;
   if (next_index == M)
   {
     next_index = 0;
   }
-
+*/
   ////////////////////////////////////////////////////////
   // Be care of line 151 in train_all.cpp, initial_theta
   ////////////////////////////////////////////////////////
 
   //cout << (*(x_struct->data_pointers[tree_ind][0]))[0] << " " << (*(x_struct->data_pointers[next_index][0]))[0] << endl;
 
-  for (size_t i = 0; i < residual_std[0].size(); i++)
+  for (size_t i = 0; i < fit.size(); i++)
   {
-    residual_std[0][i] = residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + (*(x_struct->data_pointers[next_index][i]))[0];
+    fit[i] += (*(x_struct->data_pointers[tree_ind][i]))[0];
   }
   return;
-}
-
-void xbcfModel::update_xinfo(matrix<double> &xinfo, size_t sweep_num, size_t num_trees, size_t N, std::unique_ptr<X_struct> &x_struct)
-{
-  for (size_t i = 0; i < N; i++)
-  {
-    for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
-    {
-      xinfo[sweep_num][i] += (*(x_struct->data_pointers[tree_ind][i]))[0];
-    }
-  }
 }
 
 // called in tree.cpp
@@ -208,7 +185,8 @@ double xbcfModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<do
 {
   // likelihood equation,
   // note the difference of left_side == true / false
-
+  double s0 = 0;
+  double s1 = 0;
   double denominator;   // the denominator (1 + tau * precision_squared) is the same for both terms
   double s_psi_squared; // (residual * precision_squared)^2
 
@@ -220,47 +198,42 @@ double xbcfModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<do
   //
   /////////////////////////////////////////////////////////////////////////
 
+  if (state->fl == 0)
+  {
+    s0 = state->sigma_vec[0];
+    s1 = state->sigma_vec[1];
+  }
+  else
+  {
+    s0 = state->sigma_vec[0] / fabs(state->b_vec[0]);
+    s1 = state->sigma_vec[1] / fabs(state->b_vec[1]);
+  }
+
   if (no_split)
   {
-    denominator = 1 + (suff_stat_all[2] / pow(state->sigma_vec[0] / state->b_vec[0], 2) + suff_stat_all[3] / pow(state->sigma_vec[1] / state->b_vec[1], 2)) * tau;
-    s_psi_squared = suff_stat_all[0] / pow(state->sigma_vec[0] / state->b_vec[0], 2) + suff_stat_all[1] / pow(state->sigma_vec[1] / state->b_vec[1], 2);
+    denominator = 1 + (suff_stat_all[2] / pow(s0, 2) + suff_stat_all[3] / pow(s1, 2)) * tau;
+    s_psi_squared = suff_stat_all[0] / pow(s0, 2) + suff_stat_all[1] / pow(s1, 2);
   }
   else
   {
     if (left_side)
     {
-      denominator = 1 + (temp_suff_stat[2] / pow(state->sigma_vec[0] / state->b_vec[0], 2) + temp_suff_stat[3] / pow(state->sigma_vec[1] / state->b_vec[1], 2)) * tau;
-      s_psi_squared = temp_suff_stat[0] / pow(state->sigma_vec[0] / state->b_vec[0], 2) + temp_suff_stat[1] / pow(state->sigma_vec[1] / state->b_vec[1], 2);
+      denominator = 1 + (temp_suff_stat[2] / pow(s0, 2) + temp_suff_stat[3] / pow(s1, 2)) * tau;
+      s_psi_squared = temp_suff_stat[0] / pow(s0, 2) + temp_suff_stat[1] / pow(s1, 2);
     }
     else
     {
-      denominator = 1 + ((suff_stat_all[2] - temp_suff_stat[2]) / pow(state->sigma_vec[0] / state->b_vec[0], 2) + (suff_stat_all[3] - temp_suff_stat[3]) / pow(state->sigma_vec[1] / state->b_vec[1], 2)) * tau;
-      s_psi_squared = (suff_stat_all[0] - temp_suff_stat[0]) / pow(state->sigma_vec[0] / state->b_vec[0], 2) + (suff_stat_all[1] - temp_suff_stat[1]) / pow(state->sigma_vec[1] / state->b_vec[1], 2);
+      denominator = 1 + ((suff_stat_all[2] - temp_suff_stat[2]) / pow(s0, 2) + (suff_stat_all[3] - temp_suff_stat[3]) / pow(s1, 2)) * tau;
+      s_psi_squared = (suff_stat_all[0] - temp_suff_stat[0]) / pow(s0, 2) + (suff_stat_all[1] - temp_suff_stat[1]) / pow(s1, 2);
     }
   }
 
   return 0.5 * log(1 / denominator) + 0.5 * pow(s_psi_squared, 2) * tau / denominator;
 }
 
-// double xbcfModel::likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const
-// {
-//     // the likelihood of no-split option is a bit different from others
-//     // because the sufficient statistics is y_sum here
-//     // write a separate function, more flexibility
-//     double ntau = suff_stat[2] * tau;
-//     // double sigma2 = pow(state->sigma, 2);
-//     double sigma2 = state->sigma2;
-//     double value = suff_stat[2] * suff_stat[0]; // sum of y
-
-//     return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
-// }
-
-// called in xbcf_mcmc_loop.cpp
-// called from xbcf_mcmc_loop
-// initializes the residual for 0th tree
 void xbcfModel::ini_residual_std(std::unique_ptr<State> &state)
 {
-  double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
+  double value = state->ini_var_yhat * ((double)state->num_trees_vec[0] - 1.0) / (double)state->num_trees_vec[0];
   for (size_t i = 0; i < state->residual_std[0].size(); i++)
   {
     state->residual_std[0][i] = (*state->y_std)[i] - value;
@@ -268,37 +241,7 @@ void xbcfModel::ini_residual_std(std::unique_ptr<State> &state)
   return;
 }
 
-// NEW
-// called in xbcf_mcmc_loop.cpp
-// called from xbcf_mcmc_loop
-// passes over the residual from the prognostic term forest to the treatment term forest
-void xbcfModel::compute_residual_trt(std::unique_ptr<State> &state_ps, std::unique_ptr<State> &state_trt, std::unique_ptr<X_struct> &x_struct_ps, std::unique_ptr<X_struct> &x_struct_trt)
-{
-  for (size_t i = 0; i < state_trt->residual_std[0].size(); i++)
-  {
-    state_trt->residual_std[0][i] = (state_ps->residual_std[0][i] - (*(x_struct_ps->data_pointers[0][i]))[0] + state_trt->b_std[i] * (*(x_struct_trt->data_pointers[0][i]))[0]) / state_trt->b_std[i];
-  }
-
-  state_trt->sigma_vec[0] = state_ps->sigma_vec[0];
-  state_trt->sigma_vec[1] = state_ps->sigma_vec[1];
-  return;
-}
-
-// passes over the residual from the treatment term forest to the prognostic term forest
-void xbcfModel::compute_residual_ps(std::unique_ptr<State> &state_trt, std::unique_ptr<State> &state_ps, std::unique_ptr<X_struct> &x_struct_trt, std::unique_ptr<X_struct> &x_struct_ps)
-{
-  for (size_t i = 0; i < state_trt->residual_std[0].size(); i++)
-  {
-    state_ps->residual_std[0][i] = (state_trt->residual_std[0][i] - (*(x_struct_trt->data_pointers[0][i]))[0]) * state_trt->b_std[i] + (*(x_struct_ps->data_pointers[0][i]))[0];
-  }
-
-  state_ps->sigma_vec[0] = state_trt->sigma_vec[0];
-  state_ps->sigma_vec[1] = state_trt->sigma_vec[1];
-  return;
-}
-
 // predict function: running the original matrix X through it gives the treatment effect matrix
-
 void xbcfModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees)
 {
   matrix<double> output;
@@ -322,50 +265,7 @@ void xbcfModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p,
   return;
 }
 
-void xbcfModel::compute_residual_b(std::unique_ptr<State> &state_ps, std::unique_ptr<X_struct> &x_struct_ps, std::vector<double> &res)
-{
-  double tree_sum = 0;
-  for (size_t i = 0; i < state_ps->n_y; i++)
-  {
-    for (size_t tree_ind = 0; tree_ind < state_ps->num_trees; tree_ind++)
-    {
-      tree_sum += (*(x_struct_ps->data_pointers[tree_ind][i]))[0];
-    }
-    res[i] = (*state_ps->y_std)[i] - tree_sum;
-    tree_sum = 0;
-  }
-
-  return;
-}
-
-void xbcfModel::compute_tau_fit(std::vector<double> &fit, size_t tree_ind, std::unique_ptr<X_struct> &x_struct_trt)
-{
-  for (size_t i = 0; i < fit.size(); i++)
-  {
-    fit[i] += (*(x_struct_trt->data_pointers[tree_ind][i]))[0];
-  }
-  return;
-}
-
-void xbcfModel::adjust_tau_fit(std::vector<double> &fit, size_t tree_ind, std::unique_ptr<X_struct> &x_struct_trt)
-{
-  for (size_t i = 0; i < fit.size(); i++)
-  {
-    fit[i] -= (*(x_struct_trt->data_pointers[tree_ind][i]))[0];
-  }
-  return;
-}
-
-void xbcfModel::compute_total_fit(std::vector<double> &fit, size_t tree_ind, std::unique_ptr<X_struct> &x_struct_trt, std::vector<double> &b_values)
-{
-  for (size_t i = 0; i < fit.size(); i++)
-  {
-    fit[i] += (b_values[1] - b_values[0]) * (*(x_struct_trt->data_pointers[tree_ind][i]))[0];
-  }
-  return;
-}
-
-void xbcfModel::update_b_values(std::unique_ptr<State> &state, std::vector<double> &res, std::vector<double> &taufit)
+void xbcfModel::update_b_values(std::unique_ptr<State> &state)
 {
   std::normal_distribution<double> normal_samp(0.0, 1.0);
 
@@ -374,17 +274,25 @@ void xbcfModel::update_b_values(std::unique_ptr<State> &state, std::vector<doubl
   double tauressum_ctrl = 0;
   double tauressum_trt = 0;
 
+  // take taufit right from the state
+  // compute the residual y-mu(x) using state's objects y and mu
+  std::vector<double> residual; // y - mu(x) residual
+  for (size_t i = 0; i < state->n_y; i++)
+  {
+    residual.push_back((*state->y_std)[i] - state->mu_fit[i]);
+  }
+
   for (size_t i = 0; i < state->n_y; i++)
   {
     if (state->z[i] == 1)
     {
-      tau2sum_trt += taufit[i] * taufit[i];
-      tauressum_trt += taufit[i] * res[i];
+      tau2sum_trt += state->tau_fit[i] * state->tau_fit[i];
+      tauressum_trt += state->tau_fit[i] * residual[i];
     }
     else
     {
-      tau2sum_ctrl += taufit[i] * taufit[i];
-      tauressum_ctrl += taufit[i] * res[i];
+      tau2sum_ctrl += state->tau_fit[i] * state->tau_fit[i];
+      tauressum_ctrl += state->tau_fit[i] * residual[i];
     }
   }
 
@@ -397,91 +305,25 @@ void xbcfModel::update_b_values(std::unique_ptr<State> &state, std::vector<doubl
   double b0 = m0 + sqrt(v0) * normal_samp(state->gen);
   double b1 = m1 + sqrt(v1) * normal_samp(state->gen);
 
-  // cout << "b1: " << b1 << " m1: " << m1 << " v1: " << v1 << endl;
-  // cout << "b0: " << b0 << " s0: " << state->sigma_vec[0] << " taures: " << tauressum_ctrl << " tau2: " << tau2sum_ctrl << endl;
-
   state->b_vec[1] = b1;
   state->b_vec[0] = b0;
 
-  for (size_t i = 0; i < state->b_std.size(); i++)
-  {
-    if (state->z[i] == 1)
-    {
-      state->b_std[i] = b1;
-    }
-    else
-    {
-      state->b_std[i] = b0;
-    }
-  }
-
   return;
 }
 
-void xbcfModel::update_b_vector(std::unique_ptr<State> &state)
+/// new functions for a single-state loop
+
+void xbcfModel::set_flag(size_t &flag, size_t value)
 {
-  for (size_t i = 0; i < state->b_std.size(); i++)
-  {
-    if (state->z[i] == 1)
-    {
-      state->b_std[i] = state->b_vec[1];
-    }
-    else
-    {
-      state->b_std[i] = state->b_vec[0];
-    }
-  }
-  return;
+  flag = value;
 }
 
-void xbcfModel::compute_average_b_value(std::unique_ptr<State> &state, size_t sweep_num, matrix<double> &b0_values, matrix<double> &b1_values, matrix<double> &avg)
+//
+void xbcfModel::subtract_old_tree_fit(size_t tree_ind, std::vector<double> &fit, std::unique_ptr<X_struct> &x_struct)
 {
-  double sum0 = 0;
-  double sum1 = 0;
-  for (size_t i = 0; i < b0_values[sweep_num].size(); i++)
+  for (size_t i = 0; i < fit.size(); i++)
   {
-    sum0 += b0_values[sweep_num][i];
-    sum1 += b1_values[sweep_num][i];
-  }
-  state->b_vec[0] = sum0 / (double)b0_values[sweep_num].size();
-  state->b_vec[1] = sum1 / (double)b1_values[sweep_num].size();
-
-  avg[0][sweep_num] = sum0 / (double)b0_values[sweep_num].size();
-  avg[1][sweep_num] = sum1 / (double)b1_values[sweep_num].size();
-  return;
-}
-
-// state_sweep is split into two steps to update residual appropriately (need to have b updated between these two steps)
-// step 1: subtract fitted values for current tree and adjust residual for the corresponding values of b drawn for this tree
-void xbcfModel::adjust_residual_trt(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct, std::vector<double> &b)
-{
-  size_t next_index = tree_ind + 1;
-  if (next_index == M)
-  {
-    next_index = 0;
-  }
-
-  for (size_t i = 0; i < residual_std[0].size(); i++)
-  {
-    residual_std[0][i] = (residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0]) * b[i];
-  }
-  return;
-}
-
-// state_sweep is split into two steps to update residual appropriately (need to have b updated between these two steps)
-// step 2: add previously fitted values for the next tree in sequence back into residual
-//         and adjust the residual for the new values of b (just computed, corresponding to the next tree)
-void xbcfModel::state_sweep_trt(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct, std::vector<double> &b) const
-{
-  size_t next_index = tree_ind + 1;
-  if (next_index == M)
-  {
-    next_index = 0;
-  }
-
-  for (size_t i = 0; i < residual_std[0].size(); i++)
-  {
-    residual_std[0][i] = (residual_std[0][i] + (*(x_struct->data_pointers[next_index][i]))[0] * b[i]) / b[i];
+    fit[i] -= (*(x_struct->data_pointers[tree_ind][i]))[0];
   }
   return;
 }

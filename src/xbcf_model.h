@@ -46,9 +46,7 @@ public:
 
   void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
-  void update_state_ps(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct);
-
-  void update_state_trt(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct);
+  void update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct);
 
   void initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat);
 
@@ -56,39 +54,21 @@ public:
 
   void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side);
 
-  void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const;
+  void state_sweep(size_t tree_ind, std::vector<double> &fit, std::unique_ptr<X_struct> &x_struct) const;
 
   void update_xinfo(matrix<double> &yhats_xinfo, size_t sweep_num, size_t num_trees, size_t N, std::unique_ptr<X_struct> &x_struct);
 
   double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const;
 
-  // double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const;
-
   void ini_residual_std(std::unique_ptr<State> &state);
-
-  void compute_residual_trt(std::unique_ptr<State> &state_ps, std::unique_ptr<State> &state_trt, std::unique_ptr<X_struct> &x_struct_ps, std::unique_ptr<X_struct> &x_struct_trt);
-
-  void compute_residual_ps(std::unique_ptr<State> &state_trt, std::unique_ptr<State> &state_ps, std::unique_ptr<X_struct> &x_struct_trt, std::unique_ptr<X_struct> &x_struct_ps);
 
   void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
 
-  void compute_residual_b(std::unique_ptr<State> &state_ps, std::unique_ptr<X_struct> &x_struct_ps, std::vector<double> &res);
+  void update_b_values(std::unique_ptr<State> &state);
 
-  void compute_tau_fit(std::vector<double> &fit, size_t tree_ind, std::unique_ptr<X_struct> &x_struct_trt);
+  void set_flag(size_t &flag, size_t value);
 
-  void adjust_tau_fit(std::vector<double> &fit, size_t tree_ind, std::unique_ptr<X_struct> &x_struct_trt);
-
-  void compute_total_fit(std::vector<double> &fit, size_t tree_ind, std::unique_ptr<X_struct> &x_struct_trt, std::vector<double> &b_values);
-
-  void update_b_values(std::unique_ptr<State> &state, std::vector<double> &res, std::vector<double> &taufit);
-
-  void update_b_vector(std::unique_ptr<State> &state);
-
-  void compute_average_b_value(std::unique_ptr<State> &state, size_t sweep_num, matrix<double> &b0_values, matrix<double> &b1_values, matrix<double> &avg);
-
-  void adjust_residual_trt(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct, std::vector<double> &b);
-
-  void state_sweep_trt(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct, std::vector<double> &b) const;
+  void subtract_old_tree_fit(size_t tree_ind, std::vector<double> &fit, std::unique_ptr<X_struct> &x_struct);
 };
 
 #endif

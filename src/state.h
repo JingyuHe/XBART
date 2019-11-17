@@ -23,6 +23,8 @@ public:
 
     // Splits
     matrix<double> split_count_all_tree;
+    matrix<double> split_count_all_tree_pr;
+    matrix<double> split_count_all_tree_trt;
     std::vector<double> split_count_current_tree;
     std::vector<double> mtry_weight_current_tree;
 
@@ -42,23 +44,26 @@ public:
     const std::vector<double> *y_std; // pointer to y data
     std::vector<double> b_std;        // the scaled treatment vector            TODO: move to xbcfClass
     std::vector<size_t> z;            // the scaled treatment vector            TODO: move to xbcfClass
-    size_t n_trt;                     // the number of treated individuals      TODO: remove
+    size_t n_trt;                     // the number of treated individuals      TODO: check if it's used anywhere after restructuring
+    std::vector<double> mu_fit;       // total mu_fit                           TODO: move to xbcfClass
+    std::vector<double> tau_fit;      // total tau_fit                          TODO: move to xbcfClass
+    std::vector<double> b_vec;        // scaling parameters for tau (b0,b1)     TODO: move to xbcfClass
+    std::vector<double> sigma_vec;    // residual standard deviations           TODO: move to xbcfClass
+    double a;                         // scaling parameter for mu               TODO: move to xbcfClass
+
     size_t max_depth;
     size_t num_trees;
+    std::vector<size_t> num_trees_vec;
     size_t num_sweeps;
     size_t burnin;
     bool sample_weights_flag;
     double ini_var_yhat;
+    size_t fl; // flag for likelihood function to alternate between mu loop and tau loop calculations
 
     // residual standard deviation
     double sigma;
     double sigma2; // sigma squared
 
-    // residual standard deviation      TODO: move to xbcfClass
-    std::vector<double> sigma_vec;
-
-    // bscales      TODO: move to xbcfClass
-    std::vector<double> b_vec;
     //std::vector<double> precision_squared;
 
     void update_sigma(double sigma)
@@ -71,8 +76,8 @@ public:
     // sigma update for xbcfModel       TODO: move to xbcfClass
     void update_sigma(double sigma0, double sigma1)
     {
-        this->sigma_vec[0] = sigma0; // this->b_vec[0], 1); // sigma for the control group
-        this->sigma_vec[1] = sigma1; // this->b_vec[1], 1); // sigma for the treatment group
+        this->sigma_vec[0] = sigma0; // sigma for the control group
+        this->sigma_vec[1] = sigma1; // sigma for the treatment group
 
         return;
     }
@@ -155,7 +160,7 @@ public:
     }
 
     //  TODO: update the constructor / get rid of it (if all new vars can be moved to xbcf)
-    State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual)
+    State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, std::vector<size_t> num_trees_vec, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual)
     {
 
         // Init containers
@@ -180,7 +185,8 @@ public:
         this->d = std::discrete_distribution<>(prob.begin(), prob.end());
 
         // Splits
-        ini_xinfo(this->split_count_all_tree, p, num_trees);
+        ini_xinfo(this->split_count_all_tree_pr, p, num_trees_vec[0]);
+        ini_xinfo(this->split_count_all_tree_trt, p, num_trees_vec[1]);
 
         this->split_count_current_tree = std::vector<double>(p, 0);
         this->mtry_weight_current_tree = std::vector<double>(p, 0);
@@ -194,7 +200,7 @@ public:
         this->X_std = X_std;
         this->p = p_categorical + p_continuous;
         this->n_y = N;
-        this->num_trees = num_trees;
+        this->num_trees_vec = num_trees_vec; // stays the same even for vector
         this->num_sweeps = num_sweeps;
         this->sample_weights_flag = sample_weights_flag;
         this->y_std = y_std;
@@ -210,6 +216,19 @@ public:
     {
         mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
         split_count_all_tree[tree_ind] = split_count_current_tree;
+    }
+
+    void update_split_counts(size_t tree_ind, size_t flag)
+    {
+        mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
+        if (flag == 0)
+        {
+            split_count_all_tree_pr[tree_ind] = split_count_current_tree;
+        }
+        else
+        {
+            split_count_all_tree_trt[tree_ind] = split_count_current_tree;
+        }
         return;
     }
 };
@@ -230,14 +249,17 @@ public:
     //std::vector<double> b_res;
     //std::vector<double> current_tau_fit;
 
-    xbcfState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t n_trt, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry, X_std, num_sweeps, sample_weights_flag, y_std, b_std, z, sigma_vec, b_vec, max_depth, ini_var_yhat, burnin, dim_residual)
+    xbcfState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t n_trt, size_t p, std::vector<size_t> num_trees_vec, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std, N, p, num_trees_vec, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry, X_std, num_sweeps, sample_weights_flag, y_std, b_std, z, sigma_vec, b_vec, max_depth, ini_var_yhat, burnin, dim_residual)
     {
         this->sigma_vec = sigma_vec;
         this->b_vec = b_vec;
-        //this->precision_squared = precision_squared;
         this->n_trt = n_trt;
+        this->num_trees_vec = num_trees_vec;
         this->b_std = b_std;
         this->z = z;
+        this->a = 1; // initialize a at 1 for now
+        this->mu_fit = std::vector<double>(N, 0);
+        this->tau_fit = std::vector<double>(N, 0);
     }
 };
 
