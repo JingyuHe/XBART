@@ -248,12 +248,13 @@ XBART_MH <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cu
     return(obj)
 }
 
-XBCF <- function(y, X, z,
+XBCF <- function(y, X, X_tau, z,
                 num_sweeps, burnin = 1L,
                 max_depth, Nmin,
                 num_cutpoints,
-                no_split_penality = "Auto", mtry = 0L,
+                no_split_penality = "Auto", mtry_pr = 0L, mtry_trt = 0L,
                 p_categorical = 0L,
+                p_categorical_tau = 0L,
                 num_trees_pr,
                 alpha_pr, beta_pr, tau_pr,
                 kap_pr = 16, s_pr = 4,
@@ -275,6 +276,10 @@ XBCF <- function(y, X, z,
     if(class(X) != "matrix"){
         cat("Input X is not a matrix, try to convert type.\n")
         X = as.matrix(X)
+    }
+    if(class(X_tau) != "matrix"){
+        cat("Input X_tau is not a matrix, try to convert type.\n")
+        X_tau = as.matrix(X_tau)
     }
     if(class(z) != "matrix"){
         cat("Input z is not a matrix, try to convert type.\n")
@@ -301,12 +306,13 @@ XBCF <- function(y, X, z,
         no_split_penality = log(num_cutpoints)
     }
 
-    obj = .Call(`_XBCF`, y, X, z,
+    obj = .Call(`_XBCF`, y, X, X_tau, z,
                          num_sweeps, burnin,
                          max_depth, Nmin,
                          num_cutpoints,
-                         no_split_penality, mtry,
+                         no_split_penality, mtry_pr, mtry_trt,
                          p_categorical,
+                         p_categorical_tau,
                          num_trees_pr,
                          alpha_pr, beta_pr, tau_pr,
                          kap_pr, s_pr,

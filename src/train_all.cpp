@@ -910,12 +910,14 @@ Rcpp::List XBART_MH(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees,
 //                     num_trees,
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                              // responses vec y, covariates mat x, treatment assignment vec z
+Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z,             // responses vec y, covariates mat x, treatment assignment vec z
                 size_t num_sweeps, size_t burnin = 1,                               // burnin is the # of burn-in sweeps
                 size_t max_depth = 1, size_t n_min = 5,                             // n_min is the minimum node size
                 size_t num_cutpoints = 1,                                           // # of adaptive cutpoints considered at each split for cont variables
-                double no_split_penality = 0.001, size_t mtry = 0,                  // mtry is the # of variables considered at each split
+                double no_split_penality = 0.001,                                   // penalty for not splitting
+                size_t mtry_pr = 0, size_t mtry_trt = 0,                            // mtry is the # of variables considered at each split
                 size_t p_categorical = 0,                                           // # of categorical regressors
+                size_t p_categorical_tau = 0,                                       // # of categorical regressors
                 size_t num_trees_pr = 200,                                          // --- Prognostic term parameters start here
                 double alpha_pr = 0.95, double beta_pr = 2, double tau_pr = 0.5,    // BART prior parameters
                 double kap_pr = 16, double s_pr = 4,                                // prior parameters of sigma
@@ -935,29 +937,46 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
 
     // number of total variables
     size_t p = X.n_cols;
+    size_t p_tau = X_tau.n_cols;
 
     // number of continuous variables
     size_t p_continuous = p - p_categorical;
+    size_t p_continuous_tau = p_tau - p_categorical_tau;
 
     // suppose first p_continuous variables are continuous, then categorical
 
-    assert(mtry <= p);
+    assert(mtry_pr <= p);
+    assert(mtry_trt <= p_tau);
 
     assert(burnin <= num_sweeps);
 
-    if (mtry == 0)
+    if (mtry_pr == 0)
     {
-        mtry = p;
+        mtry_pr = p;
     }
 
-    if (mtry != p)
+    if (mtry_pr != p)
     {
-        COUT << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
+        COUT << "Sample " << mtry_pr << " out of " << p << " variables when grow each tree." << endl;
+    }
+
+    if (mtry_trt == 0)
+    {
+        mtry_trt = p_tau;
+    }
+
+    if (mtry_trt != p_tau)
+    {
+        COUT << "Sample " << mtry_trt << " out of " << p_tau << " variables when grow each tree." << endl;
     }
 
     arma::umat Xorder(X.n_rows, X.n_cols);
     matrix<size_t> Xorder_std;
     ini_matrix(Xorder_std, N, p);
+
+    arma::umat Xorder_tau(X_tau.n_rows, X_tau.n_cols);
+    matrix<size_t> Xorder_tau_std;
+    ini_matrix(Xorder_tau_std, N, p_tau);
 
     std::vector<double> y_std(N);
     std::vector<size_t> z_std(N);
@@ -965,6 +984,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     double y_mean = 0.0;
 
     Rcpp::NumericMatrix X_std(N, p);
+    Rcpp::NumericMatrix X_tau_std(N, p_tau);
     // Rcpp::NumericMatrix Xtest_std(N_test, p);
 
     //    rcpp_to_std2(y, X, Xtest, y_std, y_mean, X_std, Xtest_std, Xorder_std);
@@ -972,6 +992,8 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     arma_to_std(z, z_std);
     arma_to_rcpp(X, X_std);
     arma_to_std_ordered(X, Xorder_std);
+    arma_to_rcpp(X_tau, X_tau_std);
+    arma_to_std_ordered(X_tau, Xorder_tau_std);
     y_mean = compute_mean(y_std);
     ///////////////////////////////////////////////////////////////////
     std::vector<double> sigma_vec(2); // vector of sigma0, sigma1
@@ -1003,6 +1025,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     // double *ypointer = &y_std[0];
 
     double *Xpointer = &X_std[0];
+    double *Xpointer_tau = &X_tau_std[0];
     // double *Xtestpointer = &Xtest_std[0];
 
     matrix<double> tauhats_xinfo;
@@ -1049,10 +1072,7 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
     model_trt->setNoSplitPenality(no_split_penality);
 
     // State settings for the prognostic term
-    std::unique_ptr<State> state(new xbcfState(Xpointer, Xorder_std, N, n_trt, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, b, z_std, sigma_vec, b_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
-
-    // State settings for the treatment term
-    // std::unique_ptr<State> state_trt(new xbcfState(Xpointer, Xorder_std, N, n_trt, p, num_trees_trt, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, b, z_std, sigma_vec, b_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
+    std::unique_ptr<State> state(new xbcfState(Xpointer, Xorder_std, N, n_trt, p, p_tau, num_trees, p_categorical, p_categorical_tau, p_continuous, p_continuous_tau, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry_pr, mtry_trt, Xpointer, num_sweeps, sample_weights_flag, &y_std, b, z_std, sigma_vec, b_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
 
     // initialize X_struct for the prognostic term
     std::vector<double> initial_theta_pr(1, y_mean / (double)num_trees_pr);
@@ -1060,14 +1080,14 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
 
     // initialize X_struct for the treatment term
     std::vector<double> initial_theta_trt(1, 0);
-    std::unique_ptr<X_struct> x_struct_trt(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_trt, num_trees_trt));
+    std::unique_ptr<X_struct> x_struct_trt(new X_struct(Xpointer_tau, &y_std, N, Xorder_tau_std, p_categorical_tau, p_continuous_tau, &initial_theta_trt, num_trees_trt));
 
     // mcmc_loop returns tauhat [N x sweeps] matrix
-    mcmc_loop_xbcf(Xorder_std, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, b_xinfo, b0_draw_xinfo, b1_draw_xinfo, total_fit, *trees_pr, *trees_trt, no_split_penality,
+    mcmc_loop_xbcf(Xorder_std, Xorder_tau_std, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, b_xinfo, b0_draw_xinfo, b1_draw_xinfo, total_fit, *trees_pr, *trees_trt, no_split_penality,
                    state, model_pr, model_trt, x_struct_pr, x_struct_trt, b_scaling);
 
     //predict tauhats and muhats
-    model_trt->predict_std(Xpointer, N, p, num_trees_trt, num_sweeps, tauhats_xinfo, *trees_trt);
+    model_trt->predict_std(Xpointer_tau, N, p_tau, num_trees_trt, num_sweeps, tauhats_xinfo, *trees_trt);
     model_pr->predict_std(Xpointer, N, p, num_trees_pr, num_sweeps, muhats_xinfo, *trees_pr);
 
     // R Objects to Return
@@ -1115,14 +1135,5 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,                          
         Rcpp::Named("sigma1_draws") = sigma1_draws,
         Rcpp::Named("b0_draws") = b0_draws,
         Rcpp::Named("b1_draws") = b1_draws,
-        Rcpp::Named("b_draws") = b_draws
-        //Rcpp::Named("scale_factors") = scale_factors
-        //XBART
-        //       Rcpp::Named("sigma") = sigma_draw,
-        //BCF
-        // sigma, yhat, tau, mu, tau_scale, perm
-        //   _["yhat_post"] = yhat_post, _["b_post"] = b_post, _["b_est_post"] = b_est_post,
-        //                 _["sigma"] = sigma_post, _["msd"] = msd_post, _["bsd"] = bsd_post,
-        //                 _["gamma"] = gamma_post, _["random_var_post"] = random_var_post
-    );
+        Rcpp::Named("b_draws") = b_draws);
 }

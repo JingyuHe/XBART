@@ -4,7 +4,7 @@
 // input includes information about two sets of trees (one for prognostic term, the other for treatment term)
 // thus there are two of each tree-object, model-object, state-object, x_struct-object
 
-void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
+void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std, bool verbose,
                     matrix<double> &sigma0_draw_xinfo,
                     matrix<double> &sigma1_draw_xinfo,
                     matrix<double> &b_xinfo,
@@ -37,7 +37,8 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
     }
 
     model_ps->set_flag(state->fl, 0); // set this flag to 0 so that likelihood function can recognize the mu-loop
-
+    state->iniSplitStorage(state->fl);
+    state->adjustMtry(state->fl);
     ////////////// Prognostic term loop
     for (size_t tree_ind = 0; tree_ind < state->num_trees_vec[0]; tree_ind++)
     {
@@ -58,7 +59,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
       model_ps->subtract_old_tree_fit(tree_ind, state->mu_fit, x_struct_ps); // for GFR we will need partial mu_fit -- thus take out the old fitted values
 
       model_ps->initialize_root_suffstat(state, trees_ps[sweeps][tree_ind].suff_stat); // initialize suff stat using partial fit
-      //GFR
+                                                                                       //GFR
       trees_ps[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct_ps->X_counts, x_struct_ps->X_num_unique, model_ps, x_struct_ps, sweeps, tree_ind, true, false, true);
 
       model_ps->state_sweep(tree_ind, state->mu_fit, x_struct_ps); // update total mu_fit by adding just fitted values
@@ -69,7 +70,8 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
     model_ps->set_flag(state->fl, 1); // set this flag to 1 so that likelihood function can recognize the tau-loop
 
     ////////////// Treatment term loop
-
+    state->iniSplitStorage(state->fl);
+    state->adjustMtry(state->fl);
     for (size_t tree_ind = 0; tree_ind < state->num_trees_vec[1]; tree_ind++)
     {
       // Draw Sigma
@@ -95,7 +97,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
 
       model_trt->initialize_root_suffstat(state, trees_trt[sweeps][tree_ind].suff_stat); // initialize suff stat using partial fit
       // GFR
-      trees_trt[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct_trt->X_counts, x_struct_trt->X_num_unique, model_trt, x_struct_trt, sweeps, tree_ind, true, false, true);
+      trees_trt[sweeps][tree_ind].grow_from_root(state, Xorder_tau_std, x_struct_trt->X_counts, x_struct_trt->X_num_unique, model_trt, x_struct_trt, sweeps, tree_ind, true, false, true);
 
       model_trt->state_sweep(tree_ind, state->tau_fit, x_struct_trt); // update total tau_fit by adding just fitted values
 
@@ -106,7 +108,6 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
         model_trt->update_b_values(state);
       }
     }
-
     // store draws for b0 and b1
     b_xinfo[0][sweeps] = state->b_vec[0];
     b_xinfo[1][sweeps] = state->b_vec[1];

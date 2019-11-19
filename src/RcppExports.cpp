@@ -263,12 +263,14 @@ RcppExport SEXP _XBART_MH(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP num_trees
 // obtaining data from R and passing it over to the main code via Rcpp::wrap(XBCF(...))
 // ?? maybe we can use Rcpp::NumericMatrix type for y, X, z ??
 // this way we can save time on converting types arma::mat -> Rccp::NumericMatrix in the main code
-Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,             // responses vec y, covariates mat x, treatment assignment vec z
-                size_t num_sweeps, size_t burnin,                  // burnin is the # of burn-in sweeps
-                size_t max_depth, size_t n_min,                    // n_min is the minimum node size
-                size_t num_cutpoints,                              // # of adaptive cutpoints considered at each split for cont variables
-                double no_split_penality, size_t mtry,             // mtry is the # of variables considered at each split
-                size_t p_categorical,                              // # of categorical regressors
+Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z, // responses vec y, covariates mat x, treatment assignment vec z
+                size_t num_sweeps, size_t burnin,                       // burnin is the # of burn-in sweeps
+                size_t max_depth, size_t n_min,                         // n_min is the minimum node size
+                size_t num_cutpoints,                                   // # of adaptive cutpoints considered at each split for cont variables
+                double no_split_penality,
+                size_t mtry_pr, size_t mtry_trt, // mtry is the # of variables considered at each split
+                size_t p_categorical,            // # of categorical regressors
+                size_t p_categorical_tau,
                 size_t num_trees_pr,                               // --- Prognostic term parameters start here
                 double alpha_pr, double beta_pr, double tau_pr,    // BART prior parameters
                 double kap_pr, double s_pr,                        // prior parameters of sigma
@@ -280,12 +282,13 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat z,             // responses 
                 bool verbose, bool parallel,                       // optional parameters
                 bool set_random_seed, size_t random_seed,
                 bool sample_weights_flag, bool b_scaling);
-RcppExport SEXP _XBCF(SEXP ySEXP, SEXP XSEXP, SEXP zSEXP,
+RcppExport SEXP _XBCF(SEXP ySEXP, SEXP XSEXP, SEXP X_tauSEXP, SEXP zSEXP,
                       SEXP num_sweepsSEXP, SEXP burninSEXP,
                       SEXP max_depthSEXP, SEXP n_minSEXP,
                       SEXP num_cutpointsSEXP,
-                      SEXP no_split_penalitySEXP, SEXP mtrySEXP,
+                      SEXP no_split_penalitySEXP, SEXP mtry_prSEXP, SEXP mtry_trtSEXP,
                       SEXP p_categoricalSEXP,
+                      SEXP p_categorical_tauSEXP,
                       SEXP num_trees_prSEXP,
                       SEXP alpha_prSEXP, SEXP beta_prSEXP, SEXP tau_prSEXP,
                       SEXP kap_prSEXP, SEXP s_prSEXP,
@@ -303,6 +306,7 @@ RcppExport SEXP _XBCF(SEXP ySEXP, SEXP XSEXP, SEXP zSEXP,
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter<arma::mat>::type y(ySEXP);
     Rcpp::traits::input_parameter<arma::mat>::type X(XSEXP);
+    Rcpp::traits::input_parameter<arma::mat>::type X_tau(X_tauSEXP);
     Rcpp::traits::input_parameter<arma::mat>::type z(zSEXP);
     Rcpp::traits::input_parameter<size_t>::type num_sweeps(num_sweepsSEXP);
     Rcpp::traits::input_parameter<size_t>::type burnin(burninSEXP);
@@ -310,8 +314,10 @@ RcppExport SEXP _XBCF(SEXP ySEXP, SEXP XSEXP, SEXP zSEXP,
     Rcpp::traits::input_parameter<size_t>::type n_min(n_minSEXP);
     Rcpp::traits::input_parameter<size_t>::type num_cutpoints(num_cutpointsSEXP);
     Rcpp::traits::input_parameter<double>::type no_split_penality(no_split_penalitySEXP);
-    Rcpp::traits::input_parameter<size_t>::type mtry(mtrySEXP);
+    Rcpp::traits::input_parameter<size_t>::type mtry_pr(mtry_prSEXP);
+    Rcpp::traits::input_parameter<size_t>::type mtry_trt(mtry_trtSEXP);
     Rcpp::traits::input_parameter<size_t>::type p_categorical(p_categoricalSEXP);
+    Rcpp::traits::input_parameter<size_t>::type p_categorical_tau(p_categorical_tauSEXP);
     Rcpp::traits::input_parameter<size_t>::type num_trees_pr(num_trees_prSEXP);
     Rcpp::traits::input_parameter<double>::type alpha_pr(alpha_prSEXP);
     Rcpp::traits::input_parameter<double>::type beta_pr(beta_prSEXP);
@@ -332,9 +338,9 @@ RcppExport SEXP _XBCF(SEXP ySEXP, SEXP XSEXP, SEXP zSEXP,
     Rcpp::traits::input_parameter<size_t>::type random_seed(random_seedSEXP);
     Rcpp::traits::input_parameter<bool>::type sample_weights_flag(sample_weights_flagSEXP);
     Rcpp::traits::input_parameter<bool>::type b_scaling(b_scalingSEXP);
-    rcpp_result_gen = Rcpp::wrap(XBCF(y, X, z,
+    rcpp_result_gen = Rcpp::wrap(XBCF(y, X, X_tau, z,
                                       num_sweeps, burnin, max_depth, n_min,
-                                      num_cutpoints, no_split_penality, mtry, p_categorical,
+                                      num_cutpoints, no_split_penality, mtry_pr, mtry_trt, p_categorical, p_categorical_tau,
                                       num_trees_pr, alpha_pr, beta_pr, tau_pr,
                                       kap_pr, s_pr, pr_scale,
                                       num_trees_trt, alpha_trt, beta_trt, tau_trt,
@@ -378,7 +384,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART_CLT", (DL_FUNC)&_XBART_CLT, 22},
     {"_XBART_multinomial", (DL_FUNC)&_XBART_CLT, 22},
     {"_XBART_Probit", (DL_FUNC)&_XBART_Probit, 22},
-    {"_XBCF", (DL_FUNC)&_XBCF, 31},
+    {"_XBCF", (DL_FUNC)&_XBCF, 34},
     {"_xbart_predict", (DL_FUNC)&_xbart_predict, 3},
     {"_json_to_r", (DL_FUNC)&_json_to_r, 1},
     {"_r_to_json", (DL_FUNC)&_r_to_json, 2},

@@ -10,7 +10,7 @@
 #include "X_struct.h"
 #include "MH.h"
 
-void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, bool verbose,
+void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std, bool verbose,
                     matrix<double> &sigma0_draw_xinfo,
                     matrix<double> &sigma1_draw_xinfo,
                     matrix<double> &b_xinfo,

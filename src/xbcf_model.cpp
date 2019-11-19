@@ -64,9 +64,7 @@ void xbcfModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &s
   double v1 = 1.0 / denominator1;
 
   // test result should be theta
-  theta_vector[0] = m1 + sqrt(v1) * normal_samp(state->gen); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-
-  //cout << state->sigma_vec[0] << " " << state->sigma_vec[1] << " " << v1 << " " << m1 << endl;
+  theta_vector[0] = m1 + sqrt(v1) * normal_samp(state->gen);
 
   // also update probability of leaf parameters
   prob_leaf = 1.0;

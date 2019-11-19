@@ -23,8 +23,8 @@ public:
 
     // Splits
     matrix<double> split_count_all_tree;
-    matrix<double> split_count_all_tree_pr;
-    matrix<double> split_count_all_tree_trt;
+    matrix<double> split_count_all_tree_pr;  // TODO: move to xbcfState
+    matrix<double> split_count_all_tree_trt; // TODO: move to xbcfState
     std::vector<double> split_count_current_tree;
     std::vector<double> mtry_weight_current_tree;
 
@@ -42,14 +42,19 @@ public:
     size_t n_y;                       // number of total data points in root node
     const double *X_std;              // pointer to original data
     const std::vector<double> *y_std; // pointer to y data
-    std::vector<double> b_std;        // the scaled treatment vector            TODO: move to xbcfClass
-    std::vector<size_t> z;            // the scaled treatment vector            TODO: move to xbcfClass
+    std::vector<double> b_std;        // the scaled treatment vector            TODO: move to xbcfState
+    std::vector<size_t> z;            // the scaled treatment vector            TODO: move to xbcfState
     size_t n_trt;                     // the number of treated individuals      TODO: check if it's used anywhere after restructuring
-    std::vector<double> mu_fit;       // total mu_fit                           TODO: move to xbcfClass
-    std::vector<double> tau_fit;      // total tau_fit                          TODO: move to xbcfClass
-    std::vector<double> b_vec;        // scaling parameters for tau (b0,b1)     TODO: move to xbcfClass
-    std::vector<double> sigma_vec;    // residual standard deviations           TODO: move to xbcfClass
-    double a;                         // scaling parameter for mu               TODO: move to xbcfClass
+    std::vector<double> mu_fit;       // total mu_fit                           TODO: move to xbcfState
+    std::vector<double> tau_fit;      // total tau_fit                          TODO: move to xbcfState
+    std::vector<double> b_vec;        // scaling parameters for tau (b0,b1)     TODO: move to xbcfState
+    std::vector<double> sigma_vec;    // residual standard deviations           TODO: move to xbcfState
+    double a;                         // scaling parameter for mu               TODO: move to xbcfState
+    size_t p_categorical_tau;         // TODO: move to xbcfState
+    size_t p_continuous_tau;          // TODO: move to xbcfState
+    size_t p_tau;                     // total number of variables for tau          TODO: move to xbcfState
+    size_t mtry_pr;                   // TODO: move to xbcfState
+    size_t mtry_trt;                  // TODO: move to xbcfState
 
     size_t max_depth;
     size_t num_trees;
@@ -58,7 +63,7 @@ public:
     size_t burnin;
     bool sample_weights_flag;
     double ini_var_yhat;
-    size_t fl; // flag for likelihood function to alternate between mu loop and tau loop calculations
+    size_t fl; // flag for likelihood function to alternate between mu loop and tau loop calculations  TODO: move to xbcfState
 
     // residual standard deviation
     double sigma;
@@ -159,8 +164,8 @@ public:
         return;
     }
 
-    //  TODO: update the constructor / get rid of it (if all new vars can be moved to xbcf)
-    State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, std::vector<size_t> num_trees_vec, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual)
+    //  TODO: update the constructor / get rid of it (if all new vars can be moved to xbcfState constructor)
+    State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t p_tau, std::vector<size_t> num_trees_vec, size_t p_categorical, size_t p_categorical_tau, size_t p_continuous, size_t p_continuous_tau, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry_pr, size_t mtry_trt, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual)
     {
 
         // Init containers
@@ -186,25 +191,25 @@ public:
 
         // Splits
         ini_xinfo(this->split_count_all_tree_pr, p, num_trees_vec[0]);
-        ini_xinfo(this->split_count_all_tree_trt, p, num_trees_vec[1]);
-
-        this->split_count_current_tree = std::vector<double>(p, 0);
-        this->mtry_weight_current_tree = std::vector<double>(p, 0);
+        ini_xinfo(this->split_count_all_tree_trt, p_tau, num_trees_vec[1]);
 
         this->n_min = n_min;
         this->n_cutpoints = n_cutpoints;
         this->parallel = parallel;
         this->p_categorical = p_categorical;
         this->p_continuous = p_continuous;
-        this->mtry = mtry;
+        this->p_categorical_tau = p_categorical_tau;
+        this->p_continuous_tau = p_continuous_tau;
+        this->mtry_pr = mtry_pr;
+        this->mtry_trt = mtry_trt;
         this->X_std = X_std;
         this->p = p_categorical + p_continuous;
+        this->p_tau = p_categorical_tau + p_continuous_tau;
         this->n_y = N;
         this->num_trees_vec = num_trees_vec; // stays the same even for vector
         this->num_sweeps = num_sweeps;
         this->sample_weights_flag = sample_weights_flag;
         this->y_std = y_std;
-        //        this->b_std = b_std;
         this->max_depth = max_depth;
         this->burnin = burnin;
         this->ini_var_yhat = ini_var_yhat;
@@ -231,6 +236,32 @@ public:
         }
         return;
     }
+
+    void iniSplitStorage(size_t flag)
+    {
+        if (flag == 0)
+        {
+            this->split_count_current_tree = std::vector<double>(this->p, 0);
+            this->mtry_weight_current_tree = std::vector<double>(this->p, 0);
+        }
+        else if (flag == 1)
+        {
+            this->split_count_current_tree = std::vector<double>(this->p_tau, 0);
+            this->mtry_weight_current_tree = std::vector<double>(this->p_tau, 0);
+        }
+    }
+
+    void adjustMtry(size_t flag)
+    {
+        if (flag == 0)
+        {
+            this->mtry = this->mtry_pr;
+        }
+        else if (flag == 1)
+        {
+            this->mtry = this->mtry_trt;
+        }
+    }
 };
 
 class NormalState : public State
@@ -246,10 +277,7 @@ public:
 class xbcfState : public State
 {
 public:
-    //std::vector<double> b_res;
-    //std::vector<double> current_tau_fit;
-
-    xbcfState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t n_trt, size_t p, std::vector<size_t> num_trees_vec, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std, N, p, num_trees_vec, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry, X_std, num_sweeps, sample_weights_flag, y_std, b_std, z, sigma_vec, b_vec, max_depth, ini_var_yhat, burnin, dim_residual)
+    xbcfState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t n_trt, size_t p, size_t p_tau, std::vector<size_t> num_trees_vec, size_t p_categorical, size_t p_categorical_tau, size_t p_continuous, size_t p_continuous_tau, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry_pr, size_t mtry_trt, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std, N, p, p_tau, num_trees_vec, p_categorical, p_categorical_tau, p_continuous, p_continuous_tau, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry_pr, mtry_trt, X_std, num_sweeps, sample_weights_flag, y_std, b_std, z, sigma_vec, b_vec, max_depth, ini_var_yhat, burnin, dim_residual)
     {
         this->sigma_vec = sigma_vec;
         this->b_vec = b_vec;
@@ -258,6 +286,7 @@ public:
         this->b_std = b_std;
         this->z = z;
         this->a = 1; // initialize a at 1 for now
+
         this->mu_fit = std::vector<double>(N, 0);
         this->tau_fit = std::vector<double>(N, 0);
     }
