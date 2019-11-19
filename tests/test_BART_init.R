@@ -2,7 +2,7 @@
 # set parameters of XBART
 get_XBART_params <- function(y) {
   XBART_params = list(num_trees = 30, # number of trees 
-                      num_sweeps = 40, # number of sweeps (samples of the forest)
+                      num_sweeps = 50, # number of sweeps (samples of the forest)
                       n_min = 1, # minimal node size
                       alpha = 0.95, # BART prior parameter 
                       beta = 1.25, # BART prior parameter
@@ -116,7 +116,6 @@ categ <- function(z, j) {
 
 
 
-xtest = xtest[1:10,]
 params = get_XBART_params(y)
 time = proc.time()
 
@@ -129,16 +128,16 @@ time = proc.time()
 
 #####
 # bart with default initialization
-fit_bart = wbart(x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees)
+fit_bart = wbart(x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, ndpost = 2000, nskip = 500)
 
 pred_bart = colMeans(predict(fit_bart, xtest))
 
 
 # XBART
-fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat,
+fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat, 
             params$num_trees, params$num_sweeps, params$max_depth,
             params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1,
-            mtry = params$mtry, verbose = verbose,
+            mtry = params$mtry, verbose = TRUE,
             num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100, no_split_penality = params$no_split_penality)
 
 ################################
@@ -163,7 +162,7 @@ stopifnot(pred == pred2)
 
 
 # bart with XBART initialization
-fit_bart2 = wbart_ini(treedraws = fit$treedraws, x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 50)
+fit_bart2 = wbart_ini(treedraws = fit$treedraws, x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 100)
 
 
 pred_bart_ini = colMeans(predict(fit_bart2, xtest))
@@ -180,4 +179,39 @@ bart_ini_rmse = sqrt(mean((pred_bart_ini - ftest[1:10])^2))
 xbart_rmse
 bart_rmse
 bart_ini_rmse
+
+
+
+
+# coverage of the real average
+coverage = c(0,0,0)
+
+for(i in 1:nt){
+  lower = quantile(fit$yhats_test[i, 15:1000], 0.025)
+  higher = quantile(fit$yhats_test[i, 15:1000], 0.975)
+  if(ftest[i] < higher && ftest[i] > lower){
+    coverage[1] = coverage[1] + 1
+  }
+
+  lower = quantile(fit_bart$yhat.test[,i], 0.025)
+  higher = quantile(fit_bart$yhat.test[,i], 0.975)
+  if(ftest[i] < higher && ftest[i] > lower){
+    coverage[2] = coverage[2] + 1
+  }
+
+  lower = quantile(fit_bart2$yhat.test[,i], 0.025)
+  higher = quantile(fit_bart2$yhat.test[,i], 0.975)
+  if(ftest[i] < higher && ftest[i] > lower){
+    coverage[3] = coverage[3] + 1
+  }
+
+}
+
+coverage / nt
+
+
+
+
+
+
 
