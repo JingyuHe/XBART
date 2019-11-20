@@ -52,15 +52,27 @@ void xbcfModel::incSuffStat(std::unique_ptr<State> &state, size_t index_next_obs
 void xbcfModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
 {
   std::normal_distribution<double> normal_samp(0.0, 1.0);
+  double s0 = 0;
+  double s1 = 0;
 
+  if (state->fl == 0)
+  {
+    s0 = state->sigma_vec[0] / fabs(state->a);
+    s1 = state->sigma_vec[1] / fabs(state->a);
+  }
+  else
+  {
+    s0 = state->sigma_vec[0] / fabs(state->b_vec[0]);
+    s1 = state->sigma_vec[1] / fabs(state->b_vec[1]);
+  }
   // step 1 (control group)
-  double denominator0 = 1.0 / tau + suff_stat[2] / pow(state->sigma_vec[0], 2);
-  double m0 = (suff_stat[0] / pow(state->sigma_vec[0], 2)) / denominator0;
+  double denominator0 = 1.0 / tau + suff_stat[2] / pow(s0, 2);
+  double m0 = (suff_stat[0] / pow(s0, 2)) / denominator0;
   double v0 = 1.0 / denominator0;
 
   // step 2 (treatment group)
-  double denominator1 = (1.0 / v0 + suff_stat[3] / pow(state->sigma_vec[1], 2));
-  double m1 = (1.0 / v0) * m0 / denominator1 + suff_stat[1] / pow(state->sigma_vec[1], 2) / denominator1;
+  double denominator1 = (1.0 / v0 + suff_stat[3] / pow(s1, 2));
+  double m1 = (1.0 / v0) * m0 / denominator1 + suff_stat[1] / pow(s1, 2) / denominator1;
   double v1 = 1.0 / denominator1;
 
   // test result should be theta

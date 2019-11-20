@@ -66,16 +66,22 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std,
       model_ps->subtract_old_tree_fit(tree_ind, state->mu_fit, x_struct_ps); // for GFR we will need partial mu_fit -- thus take out the old fitted values
 
       model_ps->initialize_root_suffstat(state, trees_ps[sweeps][tree_ind].suff_stat); // initialize suff stat using partial fit
-                                                                                       //GFR
+      //GFR
       trees_ps[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct_ps->X_counts, x_struct_ps->X_num_unique, model_ps, x_struct_ps, sweeps, tree_ind, true, false, true);
 
       model_ps->state_sweep(tree_ind, state->mu_fit, x_struct_ps); // update total mu_fit by adding just fitted values
 
       state->update_split_counts(tree_ind, 0); // update split counts for mu
-
-      if (a_scaling) // in case b_scaling on, we update b0 and b1
+      if (sweeps != 0)
       {
-        model_ps->update_a_value(state);
+        if (a_scaling) // in case b_scaling on, we update b0 and b1
+        {
+          model_ps->update_a_value(state);
+        }
+        if (b_scaling) // in case b_scaling on, we update b0 and b1
+        {
+          model_trt->update_b_values(state);
+        }
       }
     }
 
@@ -118,10 +124,16 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std,
       model_trt->state_sweep(tree_ind, state->tau_fit, x_struct_trt); // update total tau_fit by adding just fitted values
 
       state->update_split_counts(tree_ind, 1); // update split counts for tau
-
-      if (b_scaling) // in case b_scaling on, we update b0 and b1
+      if (sweeps != 0)
       {
-        model_trt->update_b_values(state);
+        if (a_scaling) // in case b_scaling on, we update b0 and b1
+        {
+          model_ps->update_a_value(state);
+        }
+        if (b_scaling) // in case b_scaling on, we update b0 and b1
+        {
+          model_trt->update_b_values(state);
+        }
       }
     }
     // store draws for b0 and b1
