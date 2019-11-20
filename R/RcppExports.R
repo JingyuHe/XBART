@@ -253,8 +253,8 @@ XBCF <- function(y, X, X_tau, z,
                 max_depth, Nmin,
                 num_cutpoints,
                 no_split_penality = "Auto", mtry_pr = 0L, mtry_trt = 0L,
-                p_categorical = 0L,
-                p_categorical_tau = 0L,
+                p_categorical_pr = 0L,
+                p_categorical_trt = 0L,
                 num_trees_pr,
                 alpha_pr, beta_pr, tau_pr,
                 kap_pr = 16, s_pr = 4,
@@ -265,7 +265,7 @@ XBCF <- function(y, X, X_tau, z,
                 trt_scale = FALSE,
                 verbose = FALSE, parallel = TRUE,
                 random_seed = NULL, sample_weights_flag = TRUE,
-                b_scaling = TRUE) {
+                a_scaling = TRUE, b_scaling = TRUE) {
 
     #index = order(z, decreasing=TRUE)
 
@@ -311,8 +311,8 @@ XBCF <- function(y, X, X_tau, z,
                          max_depth, Nmin,
                          num_cutpoints,
                          no_split_penality, mtry_pr, mtry_trt,
-                         p_categorical,
-                         p_categorical_tau,
+                         p_categorical_pr,
+                         p_categorical_trt,
                          num_trees_pr,
                          alpha_pr, beta_pr, tau_pr,
                          kap_pr, s_pr,
@@ -323,7 +323,7 @@ XBCF <- function(y, X, X_tau, z,
                          trt_scale,
                          verbose, parallel, set_random_seed,
                          random_seed, sample_weights_flag,
-                         b_scaling)
+                         a_scaling, b_scaling)
     class(obj) = "XBCF"
     return(obj)
 }

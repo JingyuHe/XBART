@@ -19,12 +19,12 @@ void xbcfModel::incSuffStat(std::unique_ptr<State> &state, size_t index_next_obs
     if (state->z[index_next_obs] == 1)
     {
       // old: suffstats[1] += state->residual_std[0][index_next_obs];
-      suffstats[1] += (*state->y_std)[index_next_obs] - state->mu_fit[index_next_obs] - state->b_vec[1] * state->tau_fit[index_next_obs];
+      suffstats[1] += ((*state->y_std)[index_next_obs] - state->a * state->mu_fit[index_next_obs] - state->b_vec[1] * state->tau_fit[index_next_obs]) / state->a;
       suffstats[3] += 1;
     }
     else
     {
-      suffstats[0] += (*state->y_std)[index_next_obs] - state->mu_fit[index_next_obs] - state->b_vec[0] * state->tau_fit[index_next_obs];
+      suffstats[0] += ((*state->y_std)[index_next_obs] - state->a * state->mu_fit[index_next_obs] - state->b_vec[0] * state->tau_fit[index_next_obs]) / state->a;
       suffstats[2] += 1;
     }
   }
@@ -33,12 +33,12 @@ void xbcfModel::incSuffStat(std::unique_ptr<State> &state, size_t index_next_obs
     if (state->z[index_next_obs] == 1)
     {
       // old: suffstats[1] += state->residual_std[0][index_next_obs];
-      suffstats[1] += ((*state->y_std)[index_next_obs] - state->mu_fit[index_next_obs] - state->b_vec[1] * state->tau_fit[index_next_obs]) / state->b_vec[1];
+      suffstats[1] += ((*state->y_std)[index_next_obs] - state->a * state->mu_fit[index_next_obs] - state->b_vec[1] * state->tau_fit[index_next_obs]) / state->b_vec[1];
       suffstats[3] += 1;
     }
     else
     {
-      suffstats[0] += ((*state->y_std)[index_next_obs] - state->mu_fit[index_next_obs] - state->b_vec[0] * state->tau_fit[index_next_obs]) / state->b_vec[0];
+      suffstats[0] += ((*state->y_std)[index_next_obs] - state->a * state->mu_fit[index_next_obs] - state->b_vec[0] * state->tau_fit[index_next_obs]) / state->b_vec[0];
       suffstats[2] += 1;
     }
   }
@@ -83,9 +83,9 @@ void xbcfModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std
   for (size_t i = 0; i < state->n_y; i++)
   {
     if (state->z[i] == 1)
-      full_residual_trt.push_back((*state->y_std)[i] - state->mu_fit[i] - state->b_vec[1] * state->tau_fit[i]);
+      full_residual_trt.push_back((*state->y_std)[i] - state->a * state->mu_fit[i] - state->b_vec[1] * state->tau_fit[i]);
     else
-      full_residual_ctrl.push_back((*state->y_std)[i] - state->mu_fit[i] - state->b_vec[0] * state->tau_fit[i]);
+      full_residual_ctrl.push_back((*state->y_std)[i] - state->a * state->mu_fit[i] - state->b_vec[0] * state->tau_fit[i]);
   }
 
   // compute sigma1 for the treated group
@@ -198,8 +198,8 @@ double xbcfModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<do
 
   if (state->fl == 0)
   {
-    s0 = state->sigma_vec[0];
-    s1 = state->sigma_vec[1];
+    s0 = state->sigma_vec[0] / fabs(state->a);
+    s1 = state->sigma_vec[1] / fabs(state->a);
   }
   else
   {
@@ -263,6 +263,54 @@ void xbcfModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p,
   return;
 }
 
+void xbcfModel::update_a_value(std::unique_ptr<State> &state)
+{
+  std::normal_distribution<double> normal_samp(0.0, 1.0);
+
+  double mu2sum_ctrl = 0;
+  double mu2sum_trt = 0;
+  double muressum_ctrl = 0;
+  double muressum_trt = 0;
+
+  // take mufit right from the state
+  // compute the residual y-b*tau(x) using state's objects y and mu
+  std::vector<double> residual; // y - b*tau(x) residual for control group
+  for (size_t i = 0; i < state->n_y; i++)
+  {
+    if (state->z[i] == 1)
+      residual.push_back((*state->y_std)[i] - state->tau_fit[i] * state->b_vec[1]);
+    else
+      residual.push_back((*state->y_std)[i] - state->tau_fit[i] * state->b_vec[0]);
+  }
+
+  for (size_t i = 0; i < state->n_y; i++)
+  {
+    if (state->z[i] == 1)
+    {
+      mu2sum_trt += state->mu_fit[i] * state->mu_fit[i];
+      muressum_trt += state->mu_fit[i] * residual[i];
+    }
+    else
+    {
+      mu2sum_ctrl += state->mu_fit[i] * state->mu_fit[i];
+      muressum_ctrl += state->mu_fit[i] * residual[i];
+    }
+  }
+
+  // step 1 (control group)
+  double v0 = 1 / (2 + mu2sum_ctrl / pow(state->sigma_vec[0], 2));
+  double m0 = v0 * (muressum_ctrl) / pow(state->sigma_vec[0], 2);
+
+  // step 2 (treatment group)
+  double v1 = 1 / (1.0 / v0 + mu2sum_trt / pow(state->sigma_vec[1], 2));
+  double m1 = v1 * (m0 / v0 + (muressum_trt) / pow(state->sigma_vec[1], 2));
+
+  // test result should be theta
+  state->a = m1 + sqrt(v1) * normal_samp(state->gen);
+
+  return;
+}
+
 void xbcfModel::update_b_values(std::unique_ptr<State> &state)
 {
   std::normal_distribution<double> normal_samp(0.0, 1.0);
@@ -274,10 +322,10 @@ void xbcfModel::update_b_values(std::unique_ptr<State> &state)
 
   // take taufit right from the state
   // compute the residual y-mu(x) using state's objects y and mu
-  std::vector<double> residual; // y - mu(x) residual
+  std::vector<double> residual; // y - a*mu(x) residual
   for (size_t i = 0; i < state->n_y; i++)
   {
-    residual.push_back((*state->y_std)[i] - state->mu_fit[i]);
+    residual.push_back((*state->y_std)[i] - state->a * state->mu_fit[i]);
   }
 
   for (size_t i = 0; i < state->n_y; i++)

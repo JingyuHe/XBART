@@ -269,8 +269,8 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z, // respo
                 size_t num_cutpoints,                                   // # of adaptive cutpoints considered at each split for cont variables
                 double no_split_penality,
                 size_t mtry_pr, size_t mtry_trt, // mtry is the # of variables considered at each split
-                size_t p_categorical,            // # of categorical regressors
-                size_t p_categorical_tau,
+                size_t p_categorical_pr,         // # of categorical regressors
+                size_t p_categorical_trt,
                 size_t num_trees_pr,                               // --- Prognostic term parameters start here
                 double alpha_pr, double beta_pr, double tau_pr,    // BART prior parameters
                 double kap_pr, double s_pr,                        // prior parameters of sigma
@@ -281,14 +281,14 @@ Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z, // respo
                 bool trt_scale,                                    // use half-Normal prior
                 bool verbose, bool parallel,                       // optional parameters
                 bool set_random_seed, size_t random_seed,
-                bool sample_weights_flag, bool b_scaling);
+                bool sample_weights_flag, bool a_scaling, bool b_scaling);
 RcppExport SEXP _XBCF(SEXP ySEXP, SEXP XSEXP, SEXP X_tauSEXP, SEXP zSEXP,
                       SEXP num_sweepsSEXP, SEXP burninSEXP,
                       SEXP max_depthSEXP, SEXP n_minSEXP,
                       SEXP num_cutpointsSEXP,
                       SEXP no_split_penalitySEXP, SEXP mtry_prSEXP, SEXP mtry_trtSEXP,
-                      SEXP p_categoricalSEXP,
-                      SEXP p_categorical_tauSEXP,
+                      SEXP p_categorical_prSEXP,
+                      SEXP p_categorical_trtSEXP,
                       SEXP num_trees_prSEXP,
                       SEXP alpha_prSEXP, SEXP beta_prSEXP, SEXP tau_prSEXP,
                       SEXP kap_prSEXP, SEXP s_prSEXP,
@@ -299,7 +299,7 @@ RcppExport SEXP _XBCF(SEXP ySEXP, SEXP XSEXP, SEXP X_tauSEXP, SEXP zSEXP,
                       SEXP trt_scaleSEXP,
                       SEXP verboseSEXP, SEXP parallelSEXP,
                       SEXP set_random_seedSEXP, SEXP random_seedSEXP,
-                      SEXP sample_weights_flagSEXP, SEXP b_scalingSEXP)
+                      SEXP sample_weights_flagSEXP, SEXP a_scalingSEXP, SEXP b_scalingSEXP)
 {
     BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -316,8 +316,8 @@ RcppExport SEXP _XBCF(SEXP ySEXP, SEXP XSEXP, SEXP X_tauSEXP, SEXP zSEXP,
     Rcpp::traits::input_parameter<double>::type no_split_penality(no_split_penalitySEXP);
     Rcpp::traits::input_parameter<size_t>::type mtry_pr(mtry_prSEXP);
     Rcpp::traits::input_parameter<size_t>::type mtry_trt(mtry_trtSEXP);
-    Rcpp::traits::input_parameter<size_t>::type p_categorical(p_categoricalSEXP);
-    Rcpp::traits::input_parameter<size_t>::type p_categorical_tau(p_categorical_tauSEXP);
+    Rcpp::traits::input_parameter<size_t>::type p_categorical_pr(p_categorical_prSEXP);
+    Rcpp::traits::input_parameter<size_t>::type p_categorical_trt(p_categorical_trtSEXP);
     Rcpp::traits::input_parameter<size_t>::type num_trees_pr(num_trees_prSEXP);
     Rcpp::traits::input_parameter<double>::type alpha_pr(alpha_prSEXP);
     Rcpp::traits::input_parameter<double>::type beta_pr(beta_prSEXP);
@@ -337,16 +337,17 @@ RcppExport SEXP _XBCF(SEXP ySEXP, SEXP XSEXP, SEXP X_tauSEXP, SEXP zSEXP,
     Rcpp::traits::input_parameter<bool>::type set_random_seed(set_random_seedSEXP);
     Rcpp::traits::input_parameter<size_t>::type random_seed(random_seedSEXP);
     Rcpp::traits::input_parameter<bool>::type sample_weights_flag(sample_weights_flagSEXP);
+    Rcpp::traits::input_parameter<bool>::type a_scaling(a_scalingSEXP);
     Rcpp::traits::input_parameter<bool>::type b_scaling(b_scalingSEXP);
     rcpp_result_gen = Rcpp::wrap(XBCF(y, X, X_tau, z,
                                       num_sweeps, burnin, max_depth, n_min,
-                                      num_cutpoints, no_split_penality, mtry_pr, mtry_trt, p_categorical, p_categorical_tau,
+                                      num_cutpoints, no_split_penality, mtry_pr, mtry_trt, p_categorical_pr, p_categorical_trt,
                                       num_trees_pr, alpha_pr, beta_pr, tau_pr,
                                       kap_pr, s_pr, pr_scale,
                                       num_trees_trt, alpha_trt, beta_trt, tau_trt,
                                       kap_trt, s_trt, trt_scale,
                                       verbose, parallel, set_random_seed,
-                                      random_seed, sample_weights_flag, b_scaling));
+                                      random_seed, sample_weights_flag, a_scaling, b_scaling));
     return rcpp_result_gen;
     END_RCPP
 }
@@ -384,7 +385,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART_CLT", (DL_FUNC)&_XBART_CLT, 22},
     {"_XBART_multinomial", (DL_FUNC)&_XBART_CLT, 22},
     {"_XBART_Probit", (DL_FUNC)&_XBART_Probit, 22},
-    {"_XBCF", (DL_FUNC)&_XBCF, 34},
+    {"_XBCF", (DL_FUNC)&_XBCF, 35},
     {"_xbart_predict", (DL_FUNC)&_xbart_predict, 3},
     {"_json_to_r", (DL_FUNC)&_json_to_r, 1},
     {"_r_to_json", (DL_FUNC)&_r_to_json, 2},

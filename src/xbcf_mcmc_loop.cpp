@@ -4,7 +4,9 @@
 // input includes information about two sets of trees (one for prognostic term, the other for treatment term)
 // thus there are two of each tree-object, model-object, state-object, x_struct-object
 
-void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std, bool verbose,
+void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std,
+                    const double *X_std, const double *X_tau_std,
+                    bool verbose,
                     matrix<double> &sigma0_draw_xinfo,
                     matrix<double> &sigma1_draw_xinfo,
                     matrix<double> &b_xinfo,
@@ -20,6 +22,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std, 
                     xbcfModel *model_trt,
                     std::unique_ptr<X_struct> &x_struct_ps,
                     std::unique_ptr<X_struct> &x_struct_trt,
+                    bool a_scaling,
                     bool b_scaling)
 {
 
@@ -39,12 +42,16 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std, 
     model_ps->set_flag(state->fl, 0); // set this flag to 0 so that likelihood function can recognize the mu-loop
     state->iniSplitStorage(state->fl);
     state->adjustMtry(state->fl);
+    state->X_std = X_std;
+    state->p = state->p_pr;
+    state->p_categorical = state->p_categorical_pr;
+    state->p_continuous = state->p_continuous_pr;
     ////////////// Prognostic term loop
     for (size_t tree_ind = 0; tree_ind < state->num_trees_vec[0]; tree_ind++)
     {
       model_ps->update_state(state, tree_ind, x_struct_ps); // Draw Sigma -- the residual needed for the update is computed inside of the function
 
-      if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
+      if (state->use_all && (sweeps > state->burnin) && (state->mtry_pr != state->p_pr))
       {
         state->use_all = false;
       }
@@ -65,6 +72,11 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std, 
       model_ps->state_sweep(tree_ind, state->mu_fit, x_struct_ps); // update total mu_fit by adding just fitted values
 
       state->update_split_counts(tree_ind, 0); // update split counts for mu
+
+      if (a_scaling) // in case b_scaling on, we update b0 and b1
+      {
+        model_ps->update_a_value(state);
+      }
     }
 
     model_ps->set_flag(state->fl, 1); // set this flag to 1 so that likelihood function can recognize the tau-loop
@@ -72,6 +84,10 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std, 
     ////////////// Treatment term loop
     state->iniSplitStorage(state->fl);
     state->adjustMtry(state->fl);
+    state->X_std = X_tau_std;
+    state->p = state->p_trt;
+    state->p_categorical = state->p_categorical_trt;
+    state->p_continuous = state->p_continuous_trt;
     for (size_t tree_ind = 0; tree_ind < state->num_trees_vec[1]; tree_ind++)
     {
       // Draw Sigma
@@ -81,7 +97,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std, 
       sigma0_draw_xinfo[sweeps][tree_ind] = state->sigma_vec[0]; // storing sigmas
       sigma1_draw_xinfo[sweeps][tree_ind] = state->sigma_vec[1]; // storing sigmas
 
-      if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
+      if (state->use_all && (sweeps > state->burnin) && (state->mtry_trt != state->p_trt))
       {
         state->use_all = false;
       }
