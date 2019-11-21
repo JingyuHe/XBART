@@ -260,17 +260,26 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     // print out tree structure, for usage of BART package
 
     std::stringstream treess;
-    treess.precision(10);
-    treess << num_trees << " " << p << endl;
 
-    for (size_t t = 0; t < num_trees; t++)
-    {
-        treess << (*trees2)[num_sweeps - 1][t];
-    }
+    Rcpp::StringVector output_tree(num_sweeps);
 
-    for (size_t t = 0; t < num_trees; t++)
-    {
-        cout << (*trees2)[num_sweeps - 1][t].treesize() << endl;
+    for(size_t i = 0; i < num_sweeps; i ++ ){
+        treess.precision(10);
+
+        treess.str(std::string());
+        treess << num_trees << " " << p << endl;
+
+        for (size_t t = 0; t < num_trees; t++)
+        {
+            treess << (*trees2)[i][t];
+        }
+
+        for (size_t t = 0; t < num_trees; t++)
+        {
+            cout << (*trees2)[i][t].treesize() << endl;
+        }
+
+        output_tree(i) = treess.str();
     }
 
     return Rcpp::List::create(
@@ -279,7 +288,8 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p),
-        Rcpp::Named("treedraws") = Rcpp::CharacterVector(treess.str()));
+        Rcpp::Named("treedraws") = output_tree
+        );
 }
 
 // [[Rcpp::plugins(cpp11)]]

@@ -95,9 +95,6 @@ if (new_data) {
   ftest = f(xtest)
   sigma = sd(ftrue)
 
-
-  sigma = sigma * 0.01
-
   #y = ftrue + sigma*(rgamma(n,1,1)-1)/(3+x[,d])
   #y_test = ftest + sigma*(rgamma(nt,1,1)-1)/(3+xtest[,d])
 
@@ -125,12 +122,6 @@ time = proc.time()
 
 
 
-
-#####
-# bart with default initialization
-fit_bart = wbart(x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, ndpost = 2000, nskip = 500)
-
-pred_bart = colMeans(predict(fit_bart, xtest))
 
 
 # XBART
@@ -160,20 +151,23 @@ stopifnot(pred == pred2)
 
 
 
+#####
+# bart with default initialization
+fit_bart = wbart(x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, ndpost = 200, nskip = 0)
+
+pred_bart = colMeans(predict(fit_bart, xtest))
+
 
 # bart with XBART initialization
-fit_bart2 = wbart_ini(treedraws = fit$treedraws, x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 100)
+fit_bart2 = wbart_ini(treedraws = fit$treedraws, x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 100, sigest = mean(fit$sigma))
 
 
 pred_bart_ini = colMeans(predict(fit_bart2, xtest))
 
 
-
-# #######################################################################
-# # print
-xbart_rmse = sqrt(mean((fhat.1 - ftest[1:10]) ^ 2))
-bart_rmse = sqrt(mean((pred_bart - ftest[1:10])^2))
-bart_ini_rmse = sqrt(mean((pred_bart_ini - ftest[1:10])^2))
+xbart_rmse = sqrt(mean((fhat.1 - ftest) ^ 2))
+bart_rmse = sqrt(mean((pred_bart - ftest)^2))
+bart_ini_rmse = sqrt(mean((pred_bart_ini - ftest)^2))
 
 
 xbart_rmse
@@ -183,32 +177,76 @@ bart_ini_rmse
 
 
 
+
+#######################################################################
+# Calculate coverage
+#######################################################################
+
 # coverage of the real average
+draw_BART_XBART = c()
+
+for(i in 15:50){
+  # bart with XBART initialization
+  cat("------------- i ", i , "\n")
+  set.seed(1)
+  fit_bart2 = wbart_ini(treedraws = fit$treedraws[i], x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 100)
+
+  draw_BART_XBART = rbind(draw_BART_XBART, fit_bart2$yhat.test)
+
+}
+
+
+i = 20
+set.seed(1)
+  fit_bart2 = wbart_ini(treedraws = fit$treedraws[i], x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 100)
+  plot(fit_bart2$yhat.test[1,])
+
+
+# #######################################################################
+# # print
+xbart_rmse = sqrt(mean((fhat.1 - ftest) ^ 2))
+bart_rmse = sqrt(mean((pred_bart - ftest)^2))
+bart_ini_rmse = sqrt(mean((colMeans(draw_BART_XBART) - ftest)^2))
+
+
+xbart_rmse
+bart_rmse
+bart_ini_rmse
+
+
+
+
+
 coverage = c(0,0,0)
 
+length = matrix(0, nt, 3)
+
 for(i in 1:nt){
-  lower = quantile(fit$yhats_test[i, 15:1000], 0.025)
-  higher = quantile(fit$yhats_test[i, 15:1000], 0.975)
+  lower = quantile(fit$yhats_test[i, 15:50], 0.025)
+  higher = quantile(fit$yhats_test[i, 15:50], 0.975)
   if(ftest[i] < higher && ftest[i] > lower){
     coverage[1] = coverage[1] + 1
   }
+  length[i,1] = higher - lower
 
   lower = quantile(fit_bart$yhat.test[,i], 0.025)
   higher = quantile(fit_bart$yhat.test[,i], 0.975)
   if(ftest[i] < higher && ftest[i] > lower){
     coverage[2] = coverage[2] + 1
   }
+  length[i,2] = higher - lower
 
-  lower = quantile(fit_bart2$yhat.test[,i], 0.025)
-  higher = quantile(fit_bart2$yhat.test[,i], 0.975)
+  lower = quantile(draw_BART_XBART[,i], 0.025)
+  higher = quantile(draw_BART_XBART[,i], 0.975)
   if(ftest[i] < higher && ftest[i] > lower){
     coverage[3] = coverage[3] + 1
   }
+  length[i,3] = higher - lower
 
 }
 
 coverage / nt
-
+colMeans(length)
 
 
 
