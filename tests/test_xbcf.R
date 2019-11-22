@@ -1,122 +1,91 @@
-#######################################################################
-# set parameters of XBART
-get_XBCF_params <- function(n, d, y) {
-  XBCF_params = list(num_sweeps = 40,           # number of sweeps (samples of the forest)
-                      burnin = 15,
-                      n_min = 1,               # minimal node size
-                      num_trees_pr = 20,
-                      alpha_pr = 0.95,           # BART prior parameter 
-                      beta_pr = 2,            # BART prior parameter
-                      num_trees_trt = 5,
-                      alpha_trt = 0.25,           # BART prior parameter 
-                      beta_trt = 3,            # BART prior parameter
-                      mtry = 10,               # number of variables sampled in each split
-                      no_split_penality = "Auto"
-  )            # burnin of MCMC sample
-  num_tress_pr = XBCF_params$num_trees_pr
-  num_tress_trt = XBCF_params$num_trees_trt
-  XBCF_params$max_depth = 250
-  XBCF_params$num_cutpoints = 50;                                           # number of adaptive cutpoints
-  XBCF_params$tau_pr = var(y) / num_tress_pr
-  XBCF_params$tau_trt = var(y) / num_tress_trt
-  XBCF_params$p_categorical = 10
-  # prior variance of mu (leaf parameter)
-  return(XBCF_params)
-}
-
-
-#######################################################################
 library(XBART)
+library(bcf)
+library(dbarts)
+# data generating process
+n = 5000
+#
+#set.seed(1)
 
-set.seed(100)
-d = 20 # number of TOTAL variables
-dcat = 10 # number of categorical variables
-# must be d >= dcat
+x1 = rnorm(n)
+x2 = rbinom(n,1,0.2)
+x3 = sample(1:3,n,replace=TRUE,prob = c(0.1,0.6,0.3))
 
-# (X_continuous, X_categorical), 10 and 10 for each case, 20 in total
+x4 = rnorm(n)
+x5 = rbinom(n,1,0.7)
+x = cbind(x1,x2,x3,x4,x5)
 
-
-
-n = 1000 # size of training set
-nt = 500 # size of testing set
-
-new_data = TRUE # generate new data
-run_dbarts = FALSE # run dbarts
-run_xgboost = FALSE # run xgboost
-run_lightgbm = FALSE # run lightgbm
-parl = TRUE # parallel computing
+#alpha = 0.5
+tau = 2 + 0.5*x[,4]*(2*x[,5]-1)
 
 
-#######################################################################
-# Data generating process
 
-#######################################################################
-# Have to put continuous variables first, then categorical variables  #
-# X = (X_continuous, X_cateogrical)                                   #
-#######################################################################
-if (new_data) {
-  if (d != dcat) {
-    x = matrix(runif((d - dcat) * n, -2, 2), n, d - dcat)
-    if (dcat > 0) {
-      x = cbind(x, matrix(as.numeric(sample(-2:2, dcat * n, replace = TRUE)), n, dcat))
-    }
-  } else {
-    x = matrix(as.numeric(sample(-2:2, dcat * n, replace = TRUE)), n, dcat)
-  }
+## RIC
+
+mu = function(x){
+  lev = c(-0.5,0.75,0)
+  result = 1 + x[,1]*(2*x[,2] - 2*(1-x[,2])) + lev[x3]
   
+  # nonlinear
+  #result = 1 + abs(x[,1])*(2*x[,2] - 2*(1-x[,2])) + lev[x3]
   
-  if (d != dcat) {
-    xtest = matrix(runif((d - dcat) * nt, -2, 2), nt, d - dcat)
-    if (dcat > 0) {
-      xtest = cbind(xtest, matrix(as.numeric(sample(-2:2, dcat * nt, replace = TRUE)), nt, dcat))
-    }
-  } else {
-    xtest = matrix(as.numeric(sample(-2:2, dcat * nt, replace = TRUE)), nt, dcat)
-  }
-  
-  f = function(x) {
-    sin(rowSums(x[, 3:4] ^ 2)) + sin(rowSums(x[, 1:2] ^ 2)) + (x[, 15] + x[, 14]) ^ 2 * (x[, 1] + x[, 2] ^ 2) / (3 + x[, 3] + x[, 14] ^ 2)
-    #rowSums(x[,1:30]^2)
-    #pmax(x[,1]*x[,2], abs(x[,3])*(x[,10]>x[,15])+abs(x[,4])*(x[,10]<=x[,15]))
-    #
-  }
-  
-  # to test if ties cause a crash in continuous variables
-  x[, 1] = round(x[, 1], 4)
-  #xtest[,1] = round(xtest[,1],2)
-  ftrue = f(x)
-  ftest = f(xtest)
-  sigma = sd(ftrue)
-  
-  #y = ftrue + sigma*(rgamma(n,1,1)-1)/(3+x[,d])
-  #y_test = ftest + sigma*(rgamma(nt,1,1)-1)/(3+xtest[,d])
-  
-  y = ftrue + sigma * rnorm(n)
-  y_test = ftest + sigma * rnorm(nt)
+  return(result)
 }
 
-#######################################################################
-# XBART
-categ <- function(z, j) {
-  q = as.numeric(quantile(x[, j], seq(0, 1, length.out = 100)))
-  output = findInterval(z, c(q, + Inf))
-  return(output)
-}
+pi = pnorm(-0.5 + mu(x) - x[,2] + 0.*x[,4],0,3)
+hist(pi,100)
+z = rbinom(n,1,pi)
+
+Ey = mu(x) + tau*z
+
+sig = 0.25*sd(Ey)
+
+y = Ey + sig*rnorm(n)
+# If you didn't know pi, you would estimate it here
+pihat = pi
+
+y = y - mean(y)
+sdy = sd(y)
+y = y/sdy
+
+burnin = 25
+sweeps = 100
+treesmu = 60
+treestau = 30
+
+tau1 = 0.9*var(y)/treesmu
+tau2 = 0.1*var(y)/treestau
+
+x <- data.frame(x)
+x[,3] <- as.factor(x[,3])
+x <- makeModelMatrixFromDataFrame(data.frame(x))
+x <- cbind(x[,1],x[,6],x[,-c(1,6)])
+x1 <- cbind(pihat,x)
+
+xbcf_fit = XBCF(y, x1, x, z, num_sweeps = sweeps, burnin = burnin, max_depth = 50, Nmin = 1, num_cutpoints = 30, no_split_penality = "Auto",
+                mtry_pr = ncol(x1), mtry_trt = ncol(x), p_categorical_pr = 5,  p_categorical_trt = 5,
+                num_trees_pr = treesmu, alpha_pr = 0.95, beta_pr = 1.25, tau_pr = tau1, kap_pr = 1, s_pr = 1, pr_scale = FALSE,
+                num_trees_trt = treestau, alpha_trt = 0.25, beta_trt = 2, tau_trt = tau2, kap_trt =1, s_trt = 1, trt_scale = FALSE, verbose = FALSE, a_scaling = TRUE, b_scaling = TRUE)
+
+qhat = rowSums(xbcf_fit$muhats[,(burnin+1):sweeps])/(sweeps-burnin)
+
+# compute tauhats as (b1-b0)*tau
+th = xbcf_fit$tauhats
+b = xbcf_fit$b_draws
+seq <- (burnin+1):sweeps
+for (i in seq)
+{ th[,i] = th[,i] * (b[i,2] - b[i,1]) }
+tauhats = rowSums(th[,(burnin+1):sweeps])/(sweeps-burnin)
+tauhats = tauhats*sdy
+plot(tau, tauhats); abline(0,1)
+
+# check bcf original
+bcf_fit = bcf(y, z, x, x, pihat, nburn=2000, nsim=2000, include_pi = "control",use_tauscale = TRUE)
+# Get posterior of treatment effects
+tau_post = bcf_fit$tau
+that = colMeans(tau_post)
+that = that*sdy
+plot(tau, that); abline(0,1)
 
 
-params = get_XBCF_params(n, d, y)
-p_categorical = dcat
-z <- rbinom(length(y), 1, 0.5)
-time = proc.time()
-fit = XBCF(as.matrix(y), as.matrix(x), as.matrix(z), 
-           params$num_sweeps, params$burnin,
-           params$max_depth, params$n_min,
-           params$num_cutpoints,
-           params$no_split_penality, params$mtry,
-           params$p_categorical,
-           params$num_trees_pr, params$alpha_pr, params$beta_pr, params$tau_pr, 1, 1, FALSE,
-           params$num_trees_trt, params$alpha_trt, params$beta_trt, params$tau_trt, 1, 1, FALSE,
-           random_seed = 100)
-
-
-print(paste("XBCF output: ", fit))
+print(sqrt(mean((tauhats - tau)^2)))
+print(sqrt(mean((that - tau)^2)))
