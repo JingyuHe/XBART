@@ -991,7 +991,7 @@ Rcpp::List XBART_MH_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
 //                     num_trees,
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBCF(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z,             // responses vec y, covariates mat x, treatment assignment vec z
+Rcpp::List XBCF_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z,             // responses vec y, covariates mat x, treatment assignment vec z
                 size_t num_sweeps, size_t burnin = 1,                               // burnin is the # of burn-in sweeps
                 size_t max_depth = 1, size_t n_min = 5,                             // n_min is the minimum node size
                 size_t num_cutpoints = 1,                                           // # of adaptive cutpoints considered at each split for cont variables

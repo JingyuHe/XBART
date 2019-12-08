@@ -4,7 +4,7 @@ library(dbarts)
 # data generating process
 n = 5000
 #
-#set.seed(1)
+set.seed(1)
 
 x1 = rnorm(n)
 x2 = rbinom(n,1,0.2)
@@ -61,10 +61,13 @@ x <- makeModelMatrixFromDataFrame(data.frame(x))
 x <- cbind(x[,1],x[,6],x[,-c(1,6)])
 x1 <- cbind(pihat,x)
 
+t1 = proc.time()
 xbcf_fit = XBCF(y, x1, x, z, num_sweeps = sweeps, burnin = burnin, max_depth = 50, Nmin = 1, num_cutpoints = 30, no_split_penality = "Auto",
                 mtry_pr = ncol(x1), mtry_trt = ncol(x), p_categorical_pr = 5,  p_categorical_trt = 5,
                 num_trees_pr = treesmu, alpha_pr = 0.95, beta_pr = 1.25, tau_pr = tau1, kap_pr = 1, s_pr = 1, pr_scale = FALSE,
                 num_trees_trt = treestau, alpha_trt = 0.25, beta_trt = 2, tau_trt = tau2, kap_trt =1, s_trt = 1, trt_scale = FALSE, verbose = FALSE, a_scaling = TRUE, b_scaling = TRUE)
+t1 = proc.time() - t1
+
 
 qhat = rowSums(xbcf_fit$muhats[,(burnin+1):sweeps])/(sweeps-burnin)
 
@@ -79,7 +82,9 @@ tauhats = tauhats*sdy
 plot(tau, tauhats); abline(0,1)
 
 # check bcf original
+t2 = proc.time()
 bcf_fit = bcf(y, z, x, x, pihat, nburn=2000, nsim=2000, include_pi = "control",use_tauscale = TRUE)
+t2 = proc.time() - t2
 # Get posterior of treatment effects
 tau_post = bcf_fit$tau
 that = colMeans(tau_post)
