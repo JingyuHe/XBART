@@ -14,7 +14,7 @@ class XBARTTesting1(unittest.TestCase):
 
 
 	def setUp(self):
-		self.params = {"num_trees":5,"num_sweeps":2,"num_cutpoints":10,
+		self.params = {"num_trees":10,"num_sweeps":40,"num_cutpoints":10,
 						"max_depth_num":5,"burnin":1}
 		self.model = xbart.XBART(**self.params)
 		self.model_2 = xbart.XBART(**self.params)
@@ -22,7 +22,7 @@ class XBARTTesting1(unittest.TestCase):
 		self.x = np.random.rand(n)
 			
 
-	def test_fit_predict_discrete_2d(self):
+	def make_data(self):
 		n = 1000
 		d = 7
 		prob = np.random.uniform(0.2,0.8,d)
@@ -47,11 +47,15 @@ class XBARTTesting1(unittest.TestCase):
 			return level
 
 		ftrue = discrete_function(x) 	
-		sigma = 3*np.std(ftrue)	
+		sigma = 0.5*np.std(ftrue)	
 
 		y = ftrue + sigma*np.random.rand(n)
 		y_test = discrete_function(x_test)
 
+		return x,x_test,y,y_test,d
+	def test_fit_predict_discrete_2d(self):
+
+		x,x_test,y,y_test,d = self.make_data()
 		x_copy = x.copy()
 		y_copy = y.copy()
 		x_test_copy = x_test.copy()
@@ -78,18 +82,26 @@ class XBARTTesting1(unittest.TestCase):
 		self.assertTrue(np.array_equal(y_copy,y))
 		self.assertTrue(np.array_equal(x_copy,x))
 		self.assertTrue(np.array_equal(x_test_copy,x_test))
-		# self.failUnless(np.array_equal(y_pred,y))
 
-	#@unittest.skip("demonstrating skipping")
+		y_pred_4 = self.model.predict(x_test,True)
+		y_pred_5 = self.model.predict(x_test,True)
+		self.assertTrue(np.array_equal(y_pred_4,y_pred_5))
+
+	def test_importance(self):
+		x,x_test,y,y_test,d = self.make_data()
+		y_pred = self.model.fit_predict(x,y,x_test,d-1,return_mean=False)
+		self.assertFalse(all(value == 0 for value in self.model.importance.values()))
+
 	def test_to_json(self):
 		n = 10000
 		d = 10
 		x= np.random.rand(n,d)
-		y = np.sin(x[:,0]**2)+x[:,1] + np.random.rand(n)
+		y = np.sin(x[:,0]**2)+x[:,1] + 0.01*np.random.rand(n)
 
 		n_test = 1000
 		x_test= np.random.rand(n_test,d)
 		y_test = np.sin(x_test[:,0]**2)+x_test[:,1] + np.random.rand(n_test)
+		self.y_test = y_test
 		y_pred = self.model.fit_predict(x,y,x_test,return_mean=False)
 		y_hat = y_pred[:,self.params["burnin"]:].mean(axis=1)
 
@@ -97,7 +109,8 @@ class XBARTTesting1(unittest.TestCase):
 		y_copy = y.copy()
 		x_test_copy = x_test.copy()
 
-		print("RMSE :"  + str(rmse(y_hat,y_test)))
+		self.rmse = rmse(y_hat,y_test)
+		print("RMSE :"  + str(self.rmse))
 		##print("unique values of prediction:"  +str(np.unique(y_pred)))
 
 		self.assertTrue(np.array_equal(y_copy,y))
@@ -117,6 +130,64 @@ class XBARTTesting1(unittest.TestCase):
 		x_test= np.random.rand(n_test,d)
 		y_pred_json = model.predict(x_test,return_mean=False)
 		self.assertFalse(np.array_equal(y_pred_json,y_pred_json*0))
+
+	def test_probit(self):
+		x,x_test,y,y_test,d = self.make_data()
+		y = (y >0)*2-1 ; y_test = (y_test > 0)*2-1
+		model = xbart.XBART(model="Probit",**self.params)
+		model.fit(x,y,d-1)
+		y_pred = (model.predict(x_test) > 0)*1
+		y_bin = (y_test > 0 )*1
+		acc = np.mean(y_pred == y_bin)
+		print("Accuracy:" + str(acc))
+		self.assertTrue(acc > 0.6)
+
+
+	def test_multinomial(self):
+		x,x_test,y,y_test,d = self.make_data()
+		y = (y >0)*1 ; y_test = (y_test > 0)*1
+		model = xbart.XBART(model="Multinomial",**self.params,num_classes=2)
+		model.fit(x,y,d-1)
+		y_pred = (model.predict(x_test)[:,1] > 0)*1
+		y_bin = (y_test > 0 )*1
+		acc = np.mean(y_pred == y_bin)
+		print("Accuracy:" + str(acc))
+		self.assertTrue(acc > 0.6)
+
+	def test_dimension_mismatch_x_y(self):
+		with self.assertRaises(AssertionError):
+			x,x_test,y,y_test,d = self.make_data()
+
+			# Make y not match x
+			y = np.concatenate((y,y))
+
+			model = xbart.XBART(model="Probit",**self.params)
+			model.fit(x,y,d-1)
+
+	def test_dimension_mismatch_x_x(self):
+		with self.assertRaises(AssertionError):
+			x,x_test,y,y_test,d = self.make_data()
+
+			model = xbart.XBART(model="Probit",**self.params)
+			model.fit(x,y,d-1)
+
+			# Make x_test not match
+			x_test = np.concatenate((x_test,x_test),axis=1)
+			model.predict(x_test)
+
+	@unittest.expectedFailure
+	def test_missing_values(self):
+		x,x_test,y,y_test,d = self.make_data()
+		x[0,5] = np.nan
+		model = xbart.XBART(**self.params)
+		model.fit(x,y,d-1)
+
+	@unittest.expectedFailure
+	def test_missing_values(self):
+		x,x_test,y,y_test,d = self.make_data()
+		x[0,5] = np.NINF
+		model = xbart.XBART(**self.params)
+		model.fit(x,y,d-1)
 
 			
 class XBARTExceptionTesting(unittest.TestCase):
@@ -160,7 +231,7 @@ class XBARTExceptionTesting(unittest.TestCase):
 		xbart.XBART(parallel = 0.0)
 
 if __name__ == "__main__":
-	test_classes_to_run = [XBARTTesting1, XBARTExceptionTesting]
+	test_classes_to_run = [XBARTTesting1] # XBARTExceptionTesting
 
 	loader = unittest.TestLoader()
 

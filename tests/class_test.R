@@ -1,4 +1,5 @@
 library("XBART")
+library("pROC")
 
 printTPR<- function(pihat,ytrue,add=FALSE,col = 'steelblue'){
     
@@ -66,7 +67,7 @@ get_XBART_params <- function(n,d,y){
     mtry = 10,
     burnin = 15)
     num_tress = XBART_params$M
-    XBART_params$max_depth = matrix(250, num_tress, XBART_params$nsweeps)
+    XBART_params$max_depth = 250
     XBART_params$Ncutpoints = 100;XBART_params$tau = var(y)/(num_tress)
     XBART_params$a = 0.000001; XBART_params$b = 0.000001;
     return(XBART_params)
@@ -86,31 +87,31 @@ print(t)
 yhat.pred = apply(pred[,params$burnin:params$nsweeps],1,mean) + mean(y)
 
 
-### CLT ###
-get_XBART_params_clt <- function(n,d,y){
-   XBART_params = list(M = 15,
-   L = 1,
-   nsweeps = 150,
-   Nmin = 100,
-   alpha = 0.95,
-   beta = 1.25,
-   mtry = 10,
-   burnin = 15)
-   num_tress = XBART_params$M
-   XBART_params$max_depth = matrix(250, num_tress, XBART_params$nsweeps)
-   XBART_params$Ncutpoints = 100;XBART_params$tau = var(y)/(num_tress)
-   return(XBART_params)
-}
-params_clt = get_XBART_params(n,d,y)
-t = proc.time()
-out_clt = XBART.CLT(matrix(y)-mean(y), as.matrix(x), as.matrix(xtest), num_trees = params_clt$M, L = 1, num_sweeps = params_clt$nsweeps, max_depth = params_clt$max_depth, Nmin = params_clt$Nmin, num_cutpoints = params_clt$Ncutpoints,
-alpha = params_clt$alpha, beta = params_clt$beta, tau = params_clt$tau, s= 1,kap = 1,
-mtry = params_clt$mtry, p_categorical = dcat, draw_sigma = FALSE, m_update_sigma = TRUE,
-parallel = parl,random_seed = 10)
-pred.clt = predict(out_clt,as.matrix(xtest))
-t = proc.time() - t
-print(t)
-yhat.clt.pred = apply(pred.clt[,params$burnin:params$nsweeps],1,mean)+mean(y)
+# ### CLT ###
+# get_XBART_params_clt <- function(n,d,y){
+#    XBART_params = list(M = 15,
+#    L = 1,
+#    nsweeps = 150,
+#    Nmin = 100,
+#    alpha = 0.95,
+#    beta = 1.25,
+#    mtry = 10,
+#    burnin = 15)
+#    num_tress = XBART_params$M
+#    XBART_params$max_depth = matrix(250, num_tress, XBART_params$nsweeps)
+#    XBART_params$Ncutpoints = 100;XBART_params$tau = var(y)/(num_tress)
+#    return(XBART_params)
+# }
+# params_clt = get_XBART_params(n,d,y)
+# t = proc.time()
+# out_clt = XBART.CLT(matrix(y)-mean(y), as.matrix(x), as.matrix(xtest), num_trees = params_clt$M, L = 1, num_sweeps = params_clt$nsweeps, max_depth = params_clt$max_depth, Nmin = params_clt$Nmin, num_cutpoints = params_clt$Ncutpoints,
+# alpha = params_clt$alpha, beta = params_clt$beta, tau = params_clt$tau, s= 1,kap = 1,
+# mtry = params_clt$mtry, p_categorical = dcat, draw_sigma = FALSE, m_update_sigma = TRUE,
+# parallel = parl,random_seed = 10)
+# pred.clt = predict(out_clt,as.matrix(xtest))
+# t = proc.time() - t
+# print(t)
+# yhat.clt.pred = apply(pred.clt[,params$burnin:params$nsweeps],1,mean)+mean(y)
 
 ### Probit ###
 t = proc.time()
@@ -123,18 +124,18 @@ t = proc.time() - t
 print(t)
 yhat.probit.pred = apply(pnorm(pred.probit[,params$burnin:params$nsweeps]),1,mean)
 
+print("Normal")
 printTPR(yhat.pred,ytest)
-printTPR(yhat.clt.pred ,ytest)
-printTPR(yhat.probit.pred ,ytest)
-
-
-print("Importance:")
-print("XBART: ")
+auc(ytest,yhat.pred )
 print(out$importance)
-print("XBART CLT: ")
-print(out_clt$importance)
-print("XBART Probit: ")
+# printTPR(yhat.clt.pred ,ytest)
+print("Probit")
+printTPR(yhat.probit.pred ,ytest)
+auc(ytest,yhat.probit.pred )
 print(out_probit$importance)
+
+
+
 
 
 

@@ -5,6 +5,9 @@
 .DS_Store
 .idea/
 src-i386/
+*.pdf
+*.xbart
+*.json
 
 # Prerequisites
 *.d
@@ -207,9 +210,6 @@ dmypy.json
 # RStudio files
 .Rproj.user/
 
-# produced vignettes
-vignettes/*.html
-vignettes/*.pdf
 
 # OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
 .httr-oauth
@@ -226,9 +226,7 @@ vignettes/*.pdf
 # R package: bookdown caching files
 /*_files/
 
-.pdf
-.xbart
-.json
+
 
 
 

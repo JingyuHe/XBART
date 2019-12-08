@@ -63,27 +63,28 @@ class ThreadPool
         auto sharedf = std::make_shared<std::packaged_task<return_type()>>(
             std::bind(std::forward<F>(f), std::forward<Args>(args)...));
 
-        // Add a new status, shared by the closure below and the queue for wait()
-        auto status = new ThreadPoolTaskStatus;
-        status_mutex.lock();
-        statuses.push(std::shared_ptr<ThreadPoolTaskStatus>(status));
-        status_mutex.unlock();
-
         // Get a future to pass back the return value from f
         std::future<return_type> res = sharedf->get_future();
 
+        // Acquire the mutex before altering the queues
+        // This must remain locked until after wake_worker.notify_one()
+        // or there's a deadlock on Windows 10. Unexplained but repeatable.
+        std::unique_lock<std::mutex> lock(this->pool_mutex);
+
+        // Add a new status, shared by the closure below and the queue for wait()
+        auto status = new ThreadPoolTaskStatus;
+        statuses.push(std::shared_ptr<ThreadPoolTaskStatus>(status));
+
+        // Add the task lambda
         // When this lambda is called by a worker, it will call f(args),
         // then set the done flag in the status.
-        tasks_mutex.lock();
         tasks.emplace(
             [this, sharedf, status]() {
                 (*sharedf)();
-                status_mutex.lock();
+                std::unique_lock<std::mutex> lock(this->pool_mutex);
                 status->done = true;
                 status->changed.notify_all();
-                status_mutex.unlock();
             });
-        tasks_mutex.unlock();
 
         // Wake a worker to perform the task
         wake_worker.notify_one();
@@ -104,8 +105,7 @@ class ThreadPool
     std::queue<std::function<void()>> tasks;
 
     // synchronization
-    std::mutex tasks_mutex;
-    std::mutex status_mutex;
+    std::mutex pool_mutex;
     std::condition_variable wake_worker;
     std::atomic<bool> stopping;
 };

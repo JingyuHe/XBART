@@ -18,7 +18,7 @@ XBART_cpp_module = Extension('_xbart_cpp_',
                                       "src/sample_int_crank.cpp",
                                       "src/common.cpp",   "src/forest.cpp",
                                       "src/tree.cpp", "src/thread_pool.cpp",
-                                      "src/cdf.cpp", "src/json_io.cpp"
+                                      "src/cdf.cpp", "src/json_io.cpp","src/model.cpp"
                                       ],
                              language="c++",
                              include_dirs=[
@@ -33,8 +33,8 @@ def readme():
 
 
 setup(name='xbart',
-      version='0.1.6',
-      author="Jingyu He, Saar Yalov, P. Richard Hahn, Lee Reeves",
+      version='0.1.7',
+      author="Jingyu He, Saar Yalov, P. Richard Hahn",
       description="""XBART project""",
       long_descripition=readme(),
       include_dirs=[numpy.get_include(), '.', "src", "xbart"],
@@ -42,6 +42,6 @@ setup(name='xbart',
       install_requires=['numpy'],
       license="Apache-2.0",
       py_modules=["xbart"],
-      python_requires='>3.6',
+      python_requires='>3.5',
       packages=find_packages()
       )

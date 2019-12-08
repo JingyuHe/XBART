@@ -391,6 +391,7 @@ json tree::to_json()
     {
         j["variable"] = this->v;
         j["cutpoint"] = this->c;
+        j["nodeid"] = this->nid();
         j["left"] = this->l->to_json();
         j["right"] = this->r->to_json();
     }
@@ -534,6 +535,15 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     size_t split_var;
     size_t split_point;
 
+    this->N = N_Xorder;
+
+    // tau is prior VARIANCE, do not take squares
+
+    if (update_theta)
+    {
+        model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
+    }
+
     if (N_Xorder <= state->n_min)
     {
         return;
@@ -542,13 +552,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     if (this->depth >= state->max_depth - 1)
     {
         return;
-    }
-
-    // tau is prior VARIANCE, do not take squares
-
-    if (update_theta)
-    {
-        model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
     }
 
     bool no_split = false;
@@ -588,6 +591,10 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
     BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this, update_split_prob);
 
+    // cout << suff_stat << endl;
+
+    this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
+
     if (no_split == true)
     {
         if (!update_split_prob)
@@ -608,7 +615,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
         // update leaf prob, for MH update useage
         // this->loglike_node = model->likelihood_no_split(this->suff_stat, state);
-        this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
 
         return;
     }
@@ -653,6 +659,9 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
         lchild->depth = this->depth + 1;
         rchild->depth = this->depth + 1;
+
+        lchild->ID = 2 * (this->ID);
+        rchild->ID = lchild->ID + 1;
     }
     else
     {
@@ -1371,8 +1380,9 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, double &loglike_max, Model *model, std::unique_ptr<X_struct> &x_struct, size_t &total_categorical_split_candidates, std::unique_ptr<State> &state, tree *tree_pointer)
 {
 
-    loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0);
-
+    loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + log(model->getNoSplitPenality());
+  
+//cout << loglike << endl;
     // then adjust according to number of variables and split points
 
     ////////////////////////////////////////////////////////////////
@@ -1543,6 +1553,7 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
     // output should have dimension (dim_theta, num_trees)
 
     tree::tree_p bn; // pointer to bottom node
+    
     for (size_t i = 0; i < tree.size(); i++)
     {
         // loop over trees
@@ -1550,6 +1561,63 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
         bn = tree[i].search_bottom_std(Xtest, x_index, p, N_Xtest);
         output[i] = bn->theta_vector;
     }
+    return;
+}
+
+void getThetaForObs_Outsample_ave(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p)
+{
+    // This function takes AVERAGE of ALL thetas on the PATH to leaf node
+
+    // get theta of ONE observation of ALL trees, out sample fit
+    // input is a pointer to testing set matrix because it is out of sample
+    // tree is a vector of all trees
+
+    // output should have dimension (dim_theta, num_trees)
+
+    tree::tree_p bn; // pointer to bottom node
+    size_t count = 1;
+
+    for (size_t i = 0; i < tree.size(); i++)
+    {
+
+        // loop over trees
+        // tree search
+        bn = &tree[i]; // start from root node
+
+        std::fill(output[i].begin(), output[i].end(), 0.0);
+        count = 0;
+
+        while (bn->getl())
+        {
+            // while bn has child (not bottom node)
+
+            output[i] = output[i] + bn->theta_vector;
+            count++;
+
+            // move to the next level
+            if (*(Xtest + N_Xtest * bn->getv() + x_index) <= bn->getc())
+            {
+                bn = bn->getl();
+            }
+            else
+            {
+                bn = bn->getr();
+            }
+        }
+
+        // bn is the bottom node
+
+        output[i] = output[i] + bn->theta_vector;
+        count ++ ;
+
+        // take average of the path
+        for (size_t j = 0; j < output[i].size(); j++)
+        {
+            output[i][j] = output[i][j] / (double)count;
+        }
+
+    }
+
     return;
 }
 

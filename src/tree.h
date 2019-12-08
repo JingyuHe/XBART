@@ -10,6 +10,9 @@
 #include "node_data.h"
 #include "X_struct.h"
 #include "json.h"
+
+//#include <armadillo>
+
 // for convenience
 using json = nlohmann::json;
 
@@ -48,38 +51,38 @@ public:
     typedef tree *tree_p;
 
     typedef const tree *tree_cp;
-    
+
     typedef std::vector<tree_p> npv;
-    
+
     typedef std::vector<tree_cp> cnpv;
 
     //contructors,destructors--------------------
-    tree() : depth(0), suff_stat(3, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
-    
-    tree(size_t dim_suffstat) : depth(0), suff_stat(dim_suffstat, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
-    
+    tree() : depth(0), suff_stat(3, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0), ID(1) {}
+
+    tree(size_t dim_suffstat) : depth(0), suff_stat(dim_suffstat, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0), ID(1) {}
+
     tree(const tree &n) : depth(0), suff_stat(2, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) { cp(this, &n); }
-    
+
     tree(double itheta) : depth(0), suff_stat(2, 0.0), theta_vector(itheta, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
-    
+
     tree(size_t dim_theta, const tree_p parent, size_t dim_suffstat) : suff_stat(dim_suffstat, 0.0), theta_vector(dim_theta, 0.0), v(0), c(0), p(parent), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
-    
+
     tree(size_t dim_theta, size_t dim_suffstat) : suff_stat(dim_suffstat, 0.0), theta_vector(dim_theta, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
     void tonull(); //like a "clear", null tree has just one node
-    
+
     ~tree() { tonull(); }
-    
+
     //operators----------
     tree &operator=(const tree &);
-    
+
     //interface--------------------
     //set
     void settheta(std::vector<double> theta_vector) { this->theta_vector = theta_vector; }
 
     void setv(size_t v) { this->v = v; }
-    
+
     void setc(size_t c) { this->c = c; }
-    
+
     //get
     std::vector<double> gettheta_vector() const { return theta_vector; }
 
@@ -107,65 +110,72 @@ public:
 
     tree_p getr() { return r; }
 
+    size_t getID() { return ID; }
+
+    void setID(size_t ID) { this->ID = ID; }
+
+    size_t getN() { return N; }
+
+    void setN(size_t N) { this->N = N; }
+
     //tree functions--------------------
     tree_p getptr(size_t nid); //get node pointer from node id, 0 if not there
-    
-    void pr(bool pc = true);   //to screen, pc is "print children"
-    
-    size_t treesize();         //number of nodes in tree
-    
-    size_t nnogs();            //number of nog nodes (no grandchildren nodes)
-    
-    size_t nbots();            //number of bottom nodes
 
-    void getbots(npv &bv);        //get bottom nodes
-    
-    void getnogs(npv &nv);        //get nog nodes (no granchildren)
-    
-    void getnodes(npv &v);        //get vector of all nodes
-    
+    void pr(bool pc = true); //to screen, pc is "print children"
+
+    size_t treesize(); //number of nodes in tree
+
+    size_t nnogs(); //number of nog nodes (no grandchildren nodes)
+
+    size_t nbots(); //number of bottom nodes
+
+    void getbots(npv &bv); //get bottom nodes
+
+    void getnogs(npv &nv); //get nog nodes (no granchildren)
+
+    void getnodes(npv &v); //get vector of all nodes
+
     void getnodes(cnpv &v) const; //get vector of all nodes (const)
-    
-    tree_p gettop();              // get pointer to the top node
-    
+
+    tree_p gettop(); // get pointer to the top node
+
     void ini_suff_stat() { std::fill(suff_stat.begin(), suff_stat.end(), 0.0); }
-    
+
     void resize_suff_stat(size_t dim_suffstat)
     {
         suff_stat.resize(dim_suffstat);
-    std:
-        fill(suff_stat.begin(), suff_stat.end(), 0.0);
+        std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
     };
 
     void grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree);
 
     tree_p bn(double *x, matrix<double> &xi); //find Bottom Node, original BART version
-    
-    tree_p bn_std(double *x);                 // find Bottom Node, std version, compare
-    
+
+    tree_p bn_std(double *x); // find Bottom Node, std version, compare
+
     tree_p search_bottom_std(const double *X, const size_t &i, const size_t &p, const size_t &N);
-    
+
     void rg(size_t v, size_t *L, size_t *U); //recursively find region [L,U] for var v
     //node functions--------------------
-    
+
     size_t nid() const; //nid of a node
     // size_t depth();     //depth of a node
-    
+
     char ntype(); //node type t:top, b:bot, n:no grandchildren i:interior (t can be b)
-    
+
     bool isnog();
 
     json to_json();
-    
+
     void from_json(json &j3, size_t dim_theta);
-    
-    void cp(tree_p n, tree_cp o);  //copy tree
-    
+
+    void cp(tree_p n, tree_cp o); //copy tree
+
     void copy_only_root(tree_p o); // copy tree, point new root to old structure
 
     //friends--------------------
     friend std::istream &operator>>(std::istream &, tree &);
-    
+
     friend void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &split_var, size_t &split_point, const std::vector<size_t> &subset_vars, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<State> &state, tree *tree_pointer, bool update_split_prob);
 
     friend void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std::vector<size_t> &subset_vars, size_t &N_Xorder, matrix<size_t> &Xorder_std, double &loglike_max, Model *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<State> &state, tree *tree_pointer);
@@ -181,6 +191,9 @@ public:
     // #ifndef NoRcpp
     // #endif
 private:
+    size_t N; // number of data points in the level
+
+    size_t ID;
 
     size_t depth;
 
@@ -224,5 +237,7 @@ void getTheta_Outsample(matrix<double> &output, tree &tree, const double *Xtest,
 void getThetaForObs_Insample(matrix<double> &output, size_t x_index, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct);
 
 void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p);
+
+void getThetaForObs_Outsample_ave(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p);
 
 #endif

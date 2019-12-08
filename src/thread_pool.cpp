@@ -18,13 +18,19 @@ void ThreadPool::start(size_t nthreads)
                 {
                     std::function<void()> task;
 
-                    // A new scope to contain the unique_lock required by wait
+                    // A new scope to contain the unique_lock
                     {
-                        std::unique_lock<std::mutex> lock(this->tasks_mutex);
+                        std::unique_lock<std::mutex> lock(this->pool_mutex);
+
+                        // Wait for something interesting to happen
                         this->wake_worker.wait(lock,
                                                [this] { return this->stopping || !this->tasks.empty(); });
+
+                        // If stopping, exit
                         if (this->stopping && this->tasks.empty())
                             return;
+
+                        // Otherwise, we must have a new task.
                         task = std::move(this->tasks.front());
                         this->tasks.pop();
                     }
@@ -37,7 +43,7 @@ void ThreadPool::start(size_t nthreads)
 
 void ThreadPool::wait()
 {
-    std::unique_lock<std::mutex> lock(this->status_mutex);
+    std::unique_lock<std::mutex> lock(this->pool_mutex);
     while (!statuses.empty())
     {
         while (!statuses.front()->done)

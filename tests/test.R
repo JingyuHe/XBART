@@ -1,19 +1,20 @@
 #######################################################################
 # set parameters of XBART
-get_XBART_params <- function(n, d, y) {
-  XBART_params = list(num_trees = 30,                 # number of trees 
-                      num_sweeps = 40,           # number of sweeps (samples of the forest)
-                      n_min = 1,               # minimal node size
-                      alpha = 0.95,           # BART prior parameter 
-                      beta = 1.25,            # BART prior parameter
-                      mtry = 10,               # number of variables sampled in each split
+get_XBART_params <- function(y) {
+  XBART_params = list(num_trees = 30, # number of trees 
+                      num_sweeps = 40, # number of sweeps (samples of the forest)
+                      n_min = 1, # minimal node size
+                      alpha = 0.95, # BART prior parameter 
+                      beta = 1.25, # BART prior parameter
+                      mtry = 10, # number of variables sampled in each split
                       burnin = 15,
                       no_split_penality = "Auto"
-                      )            # burnin of MCMC sample
+                      ) # burnin of MCMC sample
   num_tress = XBART_params$num_trees
   XBART_params$max_depth = 250
-  XBART_params$num_cutpoints = 50;                                           # number of adaptive cutpoints
-  XBART_params$tau = var(y) / num_tress                                   # prior variance of mu (leaf parameter)
+  XBART_params$num_cutpoints = 50;
+  # number of adaptive cutpoints
+  XBART_params$tau = var(y) / num_tress # prior variance of mu (leaf parameter)
   return(XBART_params)
 }
 
@@ -22,22 +23,34 @@ get_XBART_params <- function(n, d, y) {
 library(XBART)
 
 set.seed(100)
-d = 20 # number of TOTAL variables
-dcat = 10 # number of categorical variables
-# must be d >= dcat
-
-# (X_continuous, X_categorical), 10 and 10 for each case, 20 in total
-
-
-
-n = 10000 # size of training set
-nt = 5000 # size of testing set
-
 new_data = TRUE # generate new data
 run_dbarts = FALSE # run dbarts
 run_xgboost = FALSE # run xgboost
 run_lightgbm = FALSE # run lightgbm
 parl = TRUE # parallel computing
+
+
+small_case = TRUE # run simulation on small data set
+verbose = FALSE # print the progress on screen
+
+
+if (small_case) {
+  n = 10000 # size of training set
+  nt = 5000 # size of testing set
+  d = 20 # number of TOTAL variables
+  dcat = 10 # number of categorical variables
+  # must be d >= dcat
+  # (X_continuous, X_categorical), 10 and 10 for each case, 20 in total
+} else {
+  n = 1000000
+  nt = 10000
+  d = 50
+  dcat = 0
+}
+
+
+
+
 
 
 #######################################################################
@@ -97,13 +110,13 @@ categ <- function(z, j) {
 }
 
 
-params = get_XBART_params(n, d, y)
+params = get_XBART_params(y)
 time = proc.time()
 fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat,
             params$num_trees, params$num_sweeps, params$max_depth,
             params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1,
-            mtry = params$mtry, 
-            num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100,no_split_penality=params$no_split_penality)
+            mtry = params$mtry, verbose = verbose,
+            num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100, no_split_penality = params$no_split_penality)
 
 ################################
 # two ways to predict on testing set
@@ -119,6 +132,9 @@ pred = rowMeans(pred[, params$burnin:params$num_sweeps])
 
 time_XBART = round(time[3], 3)
 
+pred2 = predict(fit, xtest)
+pred2 = rowMeans(pred2[, params$burnin:params$num_sweeps])
+stopifnot(pred == pred2)
 
 #######################################################################
 # dbarts
@@ -131,7 +147,7 @@ if (run_dbarts) {
   print(time[3])
   fhat.db = fit$yhat.test.mean
   time_dbarts = round(time[3], 3)
-}else{
+} else {
   fhat.db = fhat.1
   time_dbarts = time_XBART
 }
@@ -139,7 +155,7 @@ if (run_dbarts) {
 
 #######################################################################
 # XGBoost
-if(run_xgboost){
+if (run_xgboost) {
   library(xgboost)
 }
 
@@ -147,7 +163,7 @@ if(run_xgboost){
 
 #######################################################################
 # LightGBM
-if(run_lightgbm){
+if (run_lightgbm) {
   library(xgboost)
 }
 
