@@ -68,6 +68,8 @@ public:
     double ini_var_yhat;
     size_t fl; // flag for likelihood function to alternate between mu loop and tau loop calculations  TODO: move to xbcfState
 
+    matrix<size_t> Xorder_std;
+
     // residual standard deviation
     double sigma;
     double sigma2; // sigma squared
@@ -164,6 +166,7 @@ public:
         this->max_depth = max_depth;
         this->burnin = burnin;
         this->ini_var_yhat = ini_var_yhat;
+        this->Xorder_std = Xorder_std;
 
         return;
     }
@@ -276,6 +279,8 @@ public:
         this->sigma = sigma;
         this->sigma2 = pow(sigma, 2);
     }
+
+
 };
 
 class xbcfState : public State
