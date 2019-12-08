@@ -220,6 +220,7 @@ public:
         this->max_depth = max_depth;
         this->burnin = burnin;
         this->ini_var_yhat = ini_var_yhat;
+        this->Xorder_std = Xorder_std;
 
         return;
     }

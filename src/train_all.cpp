@@ -1234,6 +1234,41 @@ Rcpp::List XBCF_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z,     
     x_struct_pr.reset();
     x_struct_trt.reset();
 
+
+
+    // print out tree structure, for usage of BART package
+
+    std::stringstream treess_pr;
+    std::stringstream treess_trt;
+
+    Rcpp::StringVector output_tree_pr(num_sweeps);
+    Rcpp::StringVector output_tree_trt(num_sweeps);
+
+    for(size_t i = 0; i < num_sweeps; i ++ ){
+        treess_pr.precision(10);
+        treess_trt.precision(10);
+
+        treess_pr.str(std::string());
+        treess_pr << num_trees_pr << " " << p_pr << endl;
+
+        treess_trt.str(std::string());
+        treess_trt << num_trees_trt << " " << p_trt << endl;
+
+        for (size_t t = 0; t < num_trees_pr; t++)
+        {
+            treess_pr << (*trees_pr)[i][t];
+        }
+
+        for (size_t t = 0; t < num_trees_trt; t++)
+        {
+            treess_trt << (*trees_trt)[i][t];
+        }
+
+        output_tree_pr(i) = treess_pr.str();
+        output_tree_trt(i) = treess_trt.str();
+    }
+
+
     // R Objects to Return
     return Rcpp::List::create(
         Rcpp::Named("tauhats") = tauhats,
@@ -1243,5 +1278,9 @@ Rcpp::List XBCF_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z,     
         Rcpp::Named("sigma1_draws") = sigma1_draws,
         Rcpp::Named("b0_draws") = b0_draws,
         Rcpp::Named("b1_draws") = b1_draws,
-        Rcpp::Named("b_draws") = b_draws);
+        Rcpp::Named("b_draws") = b_draws,
+        Rcpp::Named("treedraws_pr") = output_tree_pr,
+        Rcpp::Named("treedraws_trt") = output_tree_trt
+       
+        );
 }
