@@ -65,7 +65,7 @@ t1 = proc.time()
 xbcf_fit = XBCF(y, x1, x, z, num_sweeps = sweeps, burnin = burnin, max_depth = 50, Nmin = 1, num_cutpoints = 30, no_split_penality = "Auto",
                 mtry_pr = ncol(x1), mtry_trt = ncol(x), p_categorical_pr = 5,  p_categorical_trt = 5,
                 num_trees_pr = treesmu, alpha_pr = 0.95, beta_pr = 1.25, tau_pr = tau1, kap_pr = 1, s_pr = 1, pr_scale = FALSE,
-                num_trees_trt = treestau, alpha_trt = 0.25, beta_trt = 2, tau_trt = tau2, kap_trt =1, s_trt = 1, trt_scale = FALSE, verbose = FALSE, a_scaling = TRUE, b_scaling = TRUE)
+                num_trees_trt = treestau, alpha_trt = 0.25, beta_trt = 2, tau_trt = tau2, kap_trt =1, s_trt = 1, trt_scale = FALSE, verbose = FALSE, a_scaling = TRUE, b_scaling = TRUE, random_seed = 100)
 t1 = proc.time() - t1
 
 

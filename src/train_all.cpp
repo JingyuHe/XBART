@@ -1140,8 +1140,8 @@ Rcpp::List XBCF_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z,     
     ini_matrix(tauhats_xinfo, N, num_sweeps);
     matrix<double> muhats_xinfo;
     ini_matrix(muhats_xinfo, N, num_sweeps);
-    matrix<double> total_fit;
-    ini_matrix(total_fit, N, num_sweeps);
+    // matrix<double> total_fit;
+    // ini_matrix(total_fit, N, num_sweeps);
 
     matrix<double> sigma0_draw_xinfo;
     ini_matrix(sigma0_draw_xinfo, num_trees_trt, num_sweeps);
@@ -1149,11 +1149,14 @@ Rcpp::List XBCF_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z,     
     matrix<double> sigma1_draw_xinfo;
     ini_matrix(sigma1_draw_xinfo, num_trees_trt, num_sweeps);
 
-    matrix<double> b0_draw_xinfo;
-    ini_matrix(b0_draw_xinfo, num_trees_trt, num_sweeps);
+    matrix<double> a_xinfo;
+    ini_matrix(a_xinfo, num_sweeps, 1);
 
-    matrix<double> b1_draw_xinfo;
-    ini_matrix(b1_draw_xinfo, num_trees_trt, num_sweeps);
+    // matrix<double> b0_draw_xinfo;
+    // ini_matrix(b0_draw_xinfo, num_trees_trt, num_sweeps);
+
+    // matrix<double> b1_draw_xinfo;
+    // ini_matrix(b1_draw_xinfo, num_trees_trt, num_sweeps);
 
     matrix<double> b_xinfo;
     ini_matrix(b_xinfo, num_sweeps, 2);
@@ -1191,7 +1194,7 @@ Rcpp::List XBCF_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z,     
     std::unique_ptr<X_struct> x_struct_trt(new X_struct(Xpointer_tau, &y_std, N, Xorder_tau_std, p_categorical_trt, p_continuous_trt, &initial_theta_trt, num_trees_trt));
 
     // mcmc_loop returns tauhat [N x sweeps] matrix
-    mcmc_loop_xbcf(Xorder_std, Xorder_tau_std, Xpointer, Xpointer_tau, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, b_xinfo, b0_draw_xinfo, b1_draw_xinfo, total_fit, *trees_pr, *trees_trt, no_split_penality,
+    mcmc_loop_xbcf(Xorder_std, Xorder_tau_std, Xpointer, Xpointer_tau, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, b_xinfo, a_xinfo, *trees_pr, *trees_trt, no_split_penality,
                    state, model_pr, model_trt, x_struct_pr, x_struct_trt, a_scaling, b_scaling);
 
     //predict tauhats and muhats
@@ -1201,21 +1204,23 @@ Rcpp::List XBCF_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z,     
     // R Objects to Return
     Rcpp::NumericMatrix tauhats(N, num_sweeps);
     Rcpp::NumericMatrix muhats(N, num_sweeps);
-    Rcpp::NumericMatrix b_tau(N, num_sweeps);
+    // Rcpp::NumericMatrix b_tau(N, num_sweeps);
     Rcpp::NumericMatrix sigma0_draws(num_trees_trt, num_sweeps);
     Rcpp::NumericMatrix sigma1_draws(num_trees_trt, num_sweeps);
-    Rcpp::NumericMatrix b0_draws(num_trees_trt, num_sweeps);
-    Rcpp::NumericMatrix b1_draws(num_trees_trt, num_sweeps);
+    // Rcpp::NumericMatrix b0_draws(num_trees_trt, num_sweeps);
+    // Rcpp::NumericMatrix b1_draws(num_trees_trt, num_sweeps);
     Rcpp::NumericMatrix b_draws(num_sweeps, 2);
+    Rcpp::NumericMatrix a_draws(num_sweeps, 1);
 
     std_to_rcpp(tauhats_xinfo, tauhats);
     std_to_rcpp(muhats_xinfo, muhats);
-    std_to_rcpp(total_fit, b_tau);
+    // std_to_rcpp(total_fit, b_tau);
     std_to_rcpp(sigma0_draw_xinfo, sigma0_draws);
     std_to_rcpp(sigma1_draw_xinfo, sigma1_draws);
-    std_to_rcpp(b0_draw_xinfo, b0_draws);
-    std_to_rcpp(b1_draw_xinfo, b1_draws);
+    // std_to_rcpp(b0_draw_xinfo, b0_draws);
+    // std_to_rcpp(b1_draw_xinfo, b1_draws);
     std_to_rcpp(b_xinfo, b_draws);
+    std_to_rcpp(a_xinfo, a_draws);
 
     auto end = system_clock::now();
 
@@ -1273,12 +1278,13 @@ Rcpp::List XBCF_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z,     
     return Rcpp::List::create(
         Rcpp::Named("tauhats") = tauhats,
         Rcpp::Named("muhats") = muhats,
-        Rcpp::Named("b_tau") = b_tau,
+        // Rcpp::Named("b_tau") = b_tau,
         Rcpp::Named("sigma0_draws") = sigma0_draws,
         Rcpp::Named("sigma1_draws") = sigma1_draws,
-        Rcpp::Named("b0_draws") = b0_draws,
-        Rcpp::Named("b1_draws") = b1_draws,
+        // Rcpp::Named("b0_draws") = b0_draws,
+        // Rcpp::Named("b1_draws") = b1_draws,
         Rcpp::Named("b_draws") = b_draws,
+        Rcpp::Named("a_draws") = a_draws,
         Rcpp::Named("treedraws_pr") = output_tree_pr,
         Rcpp::Named("treedraws_trt") = output_tree_trt
        
