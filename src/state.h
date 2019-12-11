@@ -15,6 +15,17 @@ public:
     // vectors (slop?)
     matrix<double> residual_std;
 
+
+    // TODO: move to xbcfState
+    // residual vectors
+    // total residual vector
+    std::vector<double> residual;
+    // residual for treated group, length n_trt
+    std::vector<double> full_residual_trt;  //(state->n_trt);               // residual for the treated group
+    // residual for control group, length n_y - n_trt
+    std::vector<double> full_residual_ctrl; 
+
+
     // Random
     std::vector<double> prob;
     std::random_device rd;
@@ -168,6 +179,13 @@ public:
         this->ini_var_yhat = ini_var_yhat;
         this->Xorder_std = Xorder_std;
 
+
+
+        // those are for XBCF, initialize at a length 1 vector
+        this->residual = std::vector<double>(1, 0);
+        this->full_residual_ctrl = std::vector<double>(1, 0);
+        this->full_residual_trt = std::vector<double>(1, 0);
+
         return;
     }
 
@@ -222,6 +240,11 @@ public:
         this->ini_var_yhat = ini_var_yhat;
         this->Xorder_std = Xorder_std;
 
+
+        // those are for XBCF, initialize at a length 1 vector
+        this->residual = std::vector<double>(1, 0);
+        this->full_residual_ctrl = std::vector<double>(1, 0);
+        this->full_residual_trt = std::vector<double>(1, 0);
         return;
     }
 
@@ -299,6 +322,11 @@ public:
 
         this->mu_fit = std::vector<double>(N, 0);
         this->tau_fit = std::vector<double>(N, 0);
+
+        // those are for XBCF, initialize at a length 1 vector
+        this->residual = std::vector<double>(N, 0);
+        this->full_residual_ctrl = std::vector<double>(N - n_trt, 0);
+        this->full_residual_trt = std::vector<double>(n_trt, 0);
     }
 };
 

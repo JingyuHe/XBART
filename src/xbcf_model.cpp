@@ -89,23 +89,45 @@ void xbcfModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &s
 void xbcfModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
   // residual_std is only 1 dimensional for regression model
-  std::vector<double> full_residual_trt;  //(state->n_trt);               // residual for the treated group
-  std::vector<double> full_residual_ctrl; //(state->n_y - state->n_trt); // residual for the control group
+  // std::vector<double> full_residual_trt;  //(state->n_trt);               // residual for the treated group
+  // std::vector<double> full_residual_ctrl; //(state->n_y - state->n_trt); // residual for the control group
+
+  size_t index_trt = 0;
+  size_t index_ctrl = 0;
 
   for (size_t i = 0; i < state->n_y; i++)
   {
     if (state->z[i] == 1)
-      full_residual_trt.push_back((*state->y_std)[i] - state->a * state->mu_fit[i] - state->b_vec[1] * state->tau_fit[i]);
+    {
+      // full_residual_trt.push_back((*state->y_std)[i] - state->a * state->mu_fit[i] - state->b_vec[1] * state->tau_fit[i]);
+      state->full_residual_trt[index_trt] = (*state->y_std)[i] - state->a * state->mu_fit[i] - state->b_vec[1] * state->tau_fit[i];
+      index_trt ++ ;
+    }
     else
-      full_residual_ctrl.push_back((*state->y_std)[i] - state->a * state->mu_fit[i] - state->b_vec[0] * state->tau_fit[i]);
+    {
+      // full_residual_ctrl.push_back((*state->y_std)[i] - state->a * state->mu_fit[i] - state->b_vec[0] * state->tau_fit[i]);
+      state->full_residual_ctrl[index_ctrl] = (*state->y_std)[i] - state->a * state->mu_fit[i] - state->b_vec[0] * state->tau_fit[i];
+      index_ctrl ++ ;
+    }
   }
 
+  // // make sure two vectors are the same
+  // for(size_t i = 0; i < full_residual_trt.size(); i ++ ){
+  //   cout << "compare trt " << full_residual_trt[i] << " " << state->full_residual_trt[i] << endl;
+  // }
+
+  // for(size_t i = 0; i < full_residual_ctrl.size(); i ++ ){
+  //   cout << "compare ctrl " << full_residual_ctrl[i] << " " << state->full_residual_ctrl[i] << endl;
+  // }
+
+
+
   // compute sigma1 for the treated group
-  std::gamma_distribution<double> gamma_samp1((state->n_trt + kap) / 2.0, 2.0 / (sum_squared(full_residual_trt) + s));
+  std::gamma_distribution<double> gamma_samp1((state->n_trt + kap) / 2.0, 2.0 / (sum_squared(state->full_residual_trt) + s));
   double sigma1 = 1.0 / sqrt(gamma_samp1(state->gen));
 
   // compute sigma0 for the control group
-  std::gamma_distribution<double> gamma_samp0((state->n_y - state->n_trt + kap) / 2.0, 2.0 / (sum_squared(full_residual_ctrl) + s));
+  std::gamma_distribution<double> gamma_samp0((state->n_y - state->n_trt + kap) / 2.0, 2.0 / (sum_squared(state->full_residual_ctrl) + s));
   double sigma0 = 1.0 / sqrt(gamma_samp0(state->gen));
 
   //update sigma vector for the state
@@ -286,13 +308,21 @@ void xbcfModel::update_a_value(std::unique_ptr<State> &state)
 
   // take mufit right from the state
   // compute the residual y-b*tau(x) using state's objects y and mu
-  std::vector<double> residual; // y - b*tau(x) residual for control group
+  // std::vector<double> residual; // y - b*tau(x) residual for control group
   for (size_t i = 0; i < state->n_y; i++)
   {
     if (state->z[i] == 1)
-      residual.push_back((*state->y_std)[i] - state->tau_fit[i] * state->b_vec[1]);
+    {
+      // residual.push_back((*state->y_std)[i] - state->tau_fit[i] * state->b_vec[1]);
+      state->residual[i] = (*state->y_std)[i] - state->tau_fit[i] * state->b_vec[1];
+      // cout << "compare a " << residual[residual.size() - 1] << " " << state->residual[i] << endl; 
+    }
     else
-      residual.push_back((*state->y_std)[i] - state->tau_fit[i] * state->b_vec[0]);
+    {
+      // residual.push_back((*state->y_std)[i] - state->tau_fit[i] * state->b_vec[0]);
+      state->residual[i] = (*state->y_std)[i] - state->tau_fit[i] * state->b_vec[0];
+      // cout << "compare a " << residual[residual.size() - 1] << " " << state->residual[i] << endl; 
+    }
   }
 
   for (size_t i = 0; i < state->n_y; i++)
@@ -300,12 +330,12 @@ void xbcfModel::update_a_value(std::unique_ptr<State> &state)
     if (state->z[i] == 1)
     {
       mu2sum_trt += state->mu_fit[i] * state->mu_fit[i];
-      muressum_trt += state->mu_fit[i] * residual[i];
+      muressum_trt += state->mu_fit[i] * state->residual[i];
     }
     else
     {
       mu2sum_ctrl += state->mu_fit[i] * state->mu_fit[i];
-      muressum_ctrl += state->mu_fit[i] * residual[i];
+      muressum_ctrl += state->mu_fit[i] * state->residual[i];
     }
   }
 
@@ -334,10 +364,13 @@ void xbcfModel::update_b_values(std::unique_ptr<State> &state)
 
   // take taufit right from the state
   // compute the residual y-mu(x) using state's objects y and mu
-  std::vector<double> residual; // y - a*mu(x) residual
+  // std::vector<double> residual; // y - a*mu(x) residual
   for (size_t i = 0; i < state->n_y; i++)
   {
-    residual.push_back((*state->y_std)[i] - state->a * state->mu_fit[i]);
+    // residual.push_back((*state->y_std)[i] - state->a * state->mu_fit[i]);
+    state->residual[i] = (*state->y_std)[i] - state->a * state->mu_fit[i];
+
+    // cout << "compare b " << residual[residual.size() - 1] << " " << state->residual[i]  << endl;
   }
 
   for (size_t i = 0; i < state->n_y; i++)
@@ -345,12 +378,12 @@ void xbcfModel::update_b_values(std::unique_ptr<State> &state)
     if (state->z[i] == 1)
     {
       tau2sum_trt += state->tau_fit[i] * state->tau_fit[i];
-      tauressum_trt += state->tau_fit[i] * residual[i];
+      tauressum_trt += state->tau_fit[i] * state->residual[i];
     }
     else
     {
       tau2sum_ctrl += state->tau_fit[i] * state->tau_fit[i];
-      tauressum_ctrl += state->tau_fit[i] * residual[i];
+      tauressum_ctrl += state->tau_fit[i] * state->residual[i];
     }
   }
 
