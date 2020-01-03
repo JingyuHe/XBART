@@ -83,7 +83,7 @@ plot(tau, tauhats); abline(0,1)
 
 # check bcf original
 t2 = proc.time()
-bcf_fit = bcf_ini(xbcf_fit$treedraws_pr, xbcf_fit$treedraws_trt, y, z, x, x, pihat, nburn=2000, nsim=2000, include_pi = "control",use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
+bcf_fit = bcf_ini(xbcf_fit$treedraws_pr, xbcf_fit$treedraws_trt, muscale_ini = xbcf_fit$a_draws[100, 1], bscale0_ini = xbcf_fit$b_draws[100, 1], bscale1_ini = xbcf_fit$b_draws[100, 2], sigma_ini = xbcf_fit$sigma0_draws[30, 100], y, z, x, x, pihat, nburn=2000, nsim=2000, include_pi = "control",use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
 t2 = proc.time() - t2
 # Get posterior of treatment effects
 tau_post = bcf_fit$tau
