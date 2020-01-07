@@ -22,11 +22,13 @@ get_XBART_params <- function(y) {
 # data generating process
 # it can be a string of linear, singleindex, tripoly or max
 type = "singleindex"
-noise_ratio = 2
-rep = 100
+noise_ratio = 1
+rep = 5
 
-cover = matrix(0, 100, 3)
-len = matrix(0, 100, 3)
+cover = matrix(0, rep, 3)
+len = matrix(0, rep, 3)
+running_time = matrix(0, rep, 3)
+rmse = matrix(0, rep, 3)
 
 #######################################################################
 library(XBART)
@@ -185,26 +187,29 @@ stopifnot(pred == pred2)
 
 #####
 # bart with default initialization
-fit_bart = wbart(x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, ndpost = 200, nskip = 0)
+time = proc.time()
+fit_bart = wbart(x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, ndpost = 100 * (params$num_sweeps - params$burnin), nskip = 1000)
+time = proc.time() - time
+time_BART = round(time[3], 3)
 
 pred_bart = colMeans(predict(fit_bart, xtest))
 
 
-# bart with XBART initialization
-fit_bart2 = wbart_ini(treedraws = fit$treedraws, x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 100, sigest = mean(fit$sigma))
+# # bart with XBART initialization
+# fit_bart2 = wbart_ini(treedraws = fit$treedraws, x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 100, sigest = mean(fit$sigma))
 
 
-pred_bart_ini = colMeans(predict(fit_bart2, xtest))
+# pred_bart_ini = colMeans(predict(fit_bart2, xtest))
 
 
-xbart_rmse = sqrt(mean((fhat.1 - ftest) ^ 2))
-bart_rmse = sqrt(mean((pred_bart - ftest)^2))
-bart_ini_rmse = sqrt(mean((pred_bart_ini - ftest)^2))
+# xbart_rmse = sqrt(mean((fhat.1 - ftest) ^ 2))
+# bart_rmse = sqrt(mean((pred_bart - ftest)^2))
+# bart_ini_rmse = sqrt(mean((pred_bart_ini - ftest)^2))
 
 
-xbart_rmse
-bart_rmse
-bart_ini_rmse
+# xbart_rmse
+# bart_rmse
+# bart_ini_rmse
 
 
 
@@ -217,21 +222,19 @@ bart_ini_rmse
 # coverage of the real average
 draw_BART_XBART = c()
 
+time_warm_start_all = rep(0, length(params$burnin:params$num_sweeps))
 for(i in params$burnin:params$num_sweeps){
   # bart with XBART initialization
   cat("------------- i ", i , "\n")
   set.seed(1)
+  time = proc.time()
   fit_bart2 = wbart_ini(treedraws = fit$treedraws[i], x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 100)
+  time = proc.time() - time
 
   draw_BART_XBART = rbind(draw_BART_XBART, fit_bart2$yhat.test)
 
+  time_warm_start_all[i - params$burnin + 1] = time[3]
 }
-
-
-i = 20
-set.seed(1)
-  fit_bart2 = wbart_ini(treedraws = fit$treedraws[i], x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 100)
-  plot(fit_bart2$yhat.test[1,])
 
 
 # #######################################################################
@@ -279,7 +282,15 @@ for(i in 1:nt){
 
 cover[kk, ] = coverage / nt
 len[kk, ] = colMeans(length)
-
+running_time[kk, ] = c(time_XBART, time_BART, mean(time_warm_start_all))
+rmse[kk, ] = c(xbart_rmse, bart_rmse, bart_ini_rmse)
 }
 
+results = rbind(colMeans(cover), colMeans(len), colMeans(running_time), colMeans(rmse))
+colnames(results) = c("XBART", "BART", "warm start")
+rownames(results) = c("coverage", "interval length", "running time", "RMSE")
+
+results = round(results, 4)
+
+print(results)
 
