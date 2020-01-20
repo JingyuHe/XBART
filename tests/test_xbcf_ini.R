@@ -1,5 +1,5 @@
 library(XBART)
-library(bcf)
+library(bcf2)
 library(dbarts)
 # data generating process
 n = 5000
@@ -83,13 +83,21 @@ plot(tau, tauhats); abline(0,1)
 
 # check bcf original
 t2 = proc.time()
-# bcf_fit = bcf_ini(as.vector(xbcf_fit$treedraws_pr[100]), as.vector(xbcf_fit$treedraws_trt[100]), xbcf_fit$a_draws[100, 1], xbcf_fit$b_draws[100, 1], xbcf_fit$b_draws[100, 2], xbcf_fit$sigma0_draws[1,100], y, z, x, x, pihat, nburn=2000, nsim=2000, include_pi = "control",use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
+
+
+print("con trees \n")
+print(as.vector(xbcf_fit$treedraws_pr[100]))
+
+print("mod trees \n")
+print(as.vector(xbcf_fit$treedraws_trt[100]))
+
+# bcf_fit = bcf_ini(as.vector(xbcf_fit$treedraws_pr[100]), as.vector(xbcf_fit$treedraws_trt[100]), xbcf_fit$a_draws[100, 1], xbcf_fit$b_draws[100, 1], xbcf_fit$b_draws[100, 2], xbcf_fit$sigma0_draws[1,100], y, z, x, x, pihat, nburn=0, nsim=500, include_pi = "control",use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
+
+
+bcf_fit = bcf(y, z, x, x, pihat, nburn=0, nsim=500, include_pi = "control",use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
+
+
 t2 = proc.time() - t2
-
-
-bcf_fit = bcf_ini_2(as.vector(xbcf_fit$treedraws_pr[100]), as.vector(xbcf_fit$treedraws_trt[100]), xbcf_fit$a_draws[100, 1], xbcf_fit$b_draws[100, 1], xbcf_fit$b_draws[100, 2], xbcf_fit$sigma0_draws[1,100], y, z, x, x, pihat, nburn=100, nsim=500, include_pi = "control",use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
-# bcf_fit = bcf(y, z, x, x, pihat, nburn=100, nsim=500, include_pi = "control",use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
-
 # Get posterior of treatment effects
 tau_post = bcf_fit$tau
 that = colMeans(tau_post)
@@ -99,3 +107,4 @@ plot(tau, that); abline(0,1)
 
 print(sqrt(mean((tauhats - tau)^2)))
 print(sqrt(mean((that - tau)^2)))
+
