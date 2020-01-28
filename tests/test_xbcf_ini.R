@@ -85,17 +85,15 @@ plot(tau, tauhats); abline(0,1)
 t2 = proc.time()
 
 
-print("con trees \n")
-print(as.vector(xbcf_fit$treedraws_pr[100]))
+# print("con trees \n")
+# print(as.vector(xbcf_fit$treedraws_pr[100]))
 
-print("mod trees \n")
-print(as.vector(xbcf_fit$treedraws_trt[100]))
+# print("mod trees \n")
+# print(as.vector(xbcf_fit$treedraws_trt[100]))
 
-# bcf_fit = bcf_ini(as.vector(xbcf_fit$treedraws_pr[100]), as.vector(xbcf_fit$treedraws_trt[100]), xbcf_fit$a_draws[100, 1], xbcf_fit$b_draws[100, 1], xbcf_fit$b_draws[100, 2], xbcf_fit$sigma0_draws[1,100], y, z, x, x, pihat, nburn=0, nsim=500, include_pi = "control",use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
+bcf_fit = bcf2::bcf_ini(as.vector(xbcf_fit$treedraws_pr[100]), as.vector(xbcf_fit$treedraws_trt[100]), xbcf_fit$a_draws[100, 1], xbcf_fit$b_draws[100, 1], xbcf_fit$b_draws[100, 2], xbcf_fit$sigma0_draws[1,100], y, z, x, x, pihat, nburn=0, nsim=500, include_pi = "control",use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
 
-
-bcf_fit = bcf(y, z, x, x, pihat, nburn=0, nsim=500, include_pi = "control",use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
-
+bcf_fit2 = bcf(y, z, x, x, pihat, nburn=0, nsim=500, include_pi = "control",use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
 
 t2 = proc.time() - t2
 # Get posterior of treatment effects
