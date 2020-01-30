@@ -91,9 +91,11 @@ t2 = proc.time()
 # print("mod trees \n")
 # print(as.vector(xbcf_fit$treedraws_trt[100]))
 
+t = proc.time()
 bcf_fit = bcf2::bcf_ini(as.vector(xbcf_fit$treedraws_pr[100]), as.vector(xbcf_fit$treedraws_trt[100]), xbcf_fit$a_draws[100, 1], xbcf_fit$b_draws[100, 1], xbcf_fit$b_draws[100, 2], xbcf_fit$sigma0_draws[1,100], y, z, x, x, pihat, nburn=0, nsim=500, include_pi = "control",use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
+t = proc.time() - t
 
-bcf_fit2 = bcf(y, z, x, x, pihat, nburn=0, nsim=500, include_pi = "control",use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
+bcf_fit2 = bcf(y, z, x, x, pihat, nburn=0, nsim=500, include_pi = "control", use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
 
 t2 = proc.time() - t2
 # Get posterior of treatment effects
@@ -106,3 +108,66 @@ plot(tau, that); abline(0,1)
 print(sqrt(mean((tauhats - tau)^2)))
 print(sqrt(mean((that - tau)^2)))
 
+
+
+
+
+
+#######################################################################
+# Calculate coverage
+#######################################################################
+
+# coverage of the real average
+draw_BCF_XBCF = c()
+
+set.seed(1)
+
+for(i in 51:100){
+  # bart with XBART initialization
+  cat("------------- i ", i , "\n")
+  bcf_fit = bcf2::bcf_ini(as.vector(xbcf_fit$treedraws_pr[i]), as.vector(xbcf_fit$treedraws_trt[i]), xbcf_fit$a_draws[i, 1], xbcf_fit$b_draws[i, 1], xbcf_fit$b_draws[i, 2], xbcf_fit$sigma0_draws[1,i], y, z, x, x, pihat, nburn=0, nsim=100, include_pi = "control",use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
+
+  draw_BCF_XBCF = rbind(draw_BCF_XBCF, bcf_fit$tau[21:100,])
+}
+
+draw_BCF_XBCF = draw_BCF_XBCF * sdy
+
+
+bcf_fit2 = bcf(y, z, x, x, pihat, nburn=1000, nsim=4000, include_pi = "control", use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
+
+
+coverage = c(0,0,0)
+
+length = matrix(0, n, 3)
+
+confidence = 0.80
+
+bcf_draw = bcf_fit2$tau * sdy
+xbart_draw = th * sdy
+
+for(i in 1:n){
+  lower = quantile(xbart_draw[i, 15:50], (1 - confidence) / 2)
+  higher = quantile(xbart_draw[i, 15:50], confidence + (1 - confidence) / 2)
+  if(tau[i] < higher && tau[i] > lower){
+    coverage[1] = coverage[1] + 1
+  }
+  length[i,1] = higher - lower
+
+  lower = quantile(bcf_draw[,i], (1 - confidence) / 2)
+  higher = quantile(bcf_draw[,i], confidence + (1 - confidence) / 2)
+  if(tau[i] < higher && tau[i] > lower){
+    coverage[2] = coverage[2] + 1
+  }
+  length[i,2] = higher - lower
+
+  lower = quantile(draw_BCF_XBCF[,i], (1 - confidence) / 2)
+  higher = quantile(draw_BCF_XBCF[,i], confidence + (1 - confidence) / 2)
+  if(tau[i] < higher && tau[i] > lower){
+    coverage[3] = coverage[3] + 1
+  }
+  length[i,3] = higher - lower
+
+}
+
+coverage / n
+colMeans(length)
