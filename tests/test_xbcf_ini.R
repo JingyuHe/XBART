@@ -17,11 +17,11 @@ sweeps = 100
 treesmu = 60
 treestau = 30
 
-for (tt in 1:50) {
+# for (tt in 1:50) {
     # loop over all replications, (generate different data)
-    cat("-------------------------\n")
-    cat("number of replications", tt, "\n")
-    cat("-------------------------\n")
+    # cat("-------------------------\n")
+    # cat("number of replications", tt, "\n")
+    # cat("-------------------------\n")
     
 
     # data generating process
@@ -102,118 +102,120 @@ for (tt in 1:50) {
     t2 = proc.time()
     
     
-    # # print('con trees \n') # print(as.vector(xbcf_fit$treedraws_pr[100]))
+    # print('con trees \n') # print(as.vector(xbcf_fit$treedraws_pr[100]))
     
-    # # print('mod trees \n') # print(as.vector(xbcf_fit$treedraws_trt[100]))
+    # print('mod trees \n') # print(as.vector(xbcf_fit$treedraws_trt[100]))
     
-    # t = proc.time() bcf_fit = bcf2::bcf_ini(as.vector(xbcf_fit$treedraws_pr[100]),
-    # as.vector(xbcf_fit$treedraws_trt[100]), xbcf_fit$a_draws[100, 1],
-    # xbcf_fit$b_draws[100, 1], xbcf_fit$b_draws[100, 2],
-    # xbcf_fit$sigma0_draws[1,100], y, z, x, x, pihat, nburn=0, nsim=500, include_pi
-    # = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate =
-    # treestau) t = proc.time() - t
+    t = proc.time() 
+    bcf_fit = bcf2::bcf_ini(as.vector(xbcf_fit$treedraws_pr[100]), as.vector(xbcf_fit$treedraws_trt[100]), xbcf_fit$a_draws[100, 1], xbcf_fit$b_draws[100, 1], xbcf_fit$b_draws[100, 2], xbcf_fit$sigma0_draws[1,100], y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau) 
+    t = proc.time() - t
+    tau_post = bcf_fit$tau 
+    that = colMeans(tau_post) 
+    that = that*sdy 
+    plot(tau, that);
+    abline(0,1)
+
+
+    bcf_fit2 = bcf(y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control', use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
+    tau_post2 = bcf_fit2$tau
+    that2 = colMeans(tau_post2)
+    that2 = that2 * sdy
     
-    # bcf_fit2 = bcf(y, z, x, x, pihat, nburn=0, nsim=500, include_pi = 'control',
-    # use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
-    
-    # t2 = proc.time() - t2 # Get posterior of treatment effects tau_post =
-    # bcf_fit$tau that = colMeans(tau_post) that = that*sdy plot(tau, that);
-    # abline(0,1)
-    
-    
-    # print(sqrt(mean((tauhats - tau)^2))) print(sqrt(mean((that - tau)^2)))
-    
-    
-    
-    
+    print(sqrt(mean((tauhats - tau)^2))) 
+    print(sqrt(mean((that - tau)^2)))
+    print(sqrt(mean((that2 - tau)^2)))
     
     
-    ####################################################################### Calculate coverage
     
-    # coverage of the real average
-    draw_BCF_XBCF = c()
     
-    set.seed(1)
     
-    for (i in 51:100) {
-        # bart with XBART initialization
-        # discard first 50 trees
-        # initialize BCF at 50 trees, draw 100 samples for each
-        cat("------------- i ", i, "\n")
-        bcf_fit = bcf2::bcf_ini(as.vector(xbcf_fit$treedraws_pr[i]), as.vector(xbcf_fit$treedraws_trt[i]), 
-            xbcf_fit$a_draws[i, 1], xbcf_fit$b_draws[i, 1], xbcf_fit$b_draws[i, 2], 
-            xbcf_fit$sigma0_draws[1, i], y, z, x, x, pihat, nburn = 0, nsim = 100, 
-            include_pi = "control", use_tauscale = TRUE, ntree_control = treesmu, 
-            ntree_moderate = treestau)
+    
+#     ####################################################################### Calculate coverage
+    
+#     # coverage of the real average
+#     draw_BCF_XBCF = c()
+    
+#     set.seed(1)
+    
+#     for (i in 51:100) {
+#         # bart with XBART initialization
+#         # discard first 50 trees
+#         # initialize BCF at 50 trees, draw 100 samples for each
+#         cat("------------- i ", i, "\n")
+#         bcf_fit = bcf2::bcf_ini(as.vector(xbcf_fit$treedraws_pr[i]), as.vector(xbcf_fit$treedraws_trt[i]), 
+#             xbcf_fit$a_draws[i, 1], xbcf_fit$b_draws[i, 1], xbcf_fit$b_draws[i, 2], 
+#             xbcf_fit$sigma0_draws[1, i], y, z, x, x, pihat, nburn = 0, nsim = 100, 
+#             include_pi = "control", use_tauscale = TRUE, ntree_control = treesmu, 
+#             ntree_moderate = treestau)
         
-        draw_BCF_XBCF = rbind(draw_BCF_XBCF, bcf_fit$tau[21:100, ])
-    }
+#         draw_BCF_XBCF = rbind(draw_BCF_XBCF, bcf_fit$tau[21:100, ])
+#     }
     
-    # scaling!
-    draw_BCF_XBCF = draw_BCF_XBCF * sdy
+#     # scaling!
+#     draw_BCF_XBCF = draw_BCF_XBCF * sdy
     
-    # run a full bcf chain
-    bcf_fit2 = bcf(y, z, x, x, pihat, nburn = 1000, nsim = 4000, include_pi = "control", 
-        use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
+#     # run a full bcf chain
+#     bcf_fit2 = bcf(y, z, x, x, pihat, nburn = 1000, nsim = 4000, include_pi = "control", 
+#         use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
     
-    coverage = c(0, 0, 0)
+#     coverage = c(0, 0, 0)
     
-    length = matrix(0, n, 3)
+#     length = matrix(0, n, 3)
     
-    # scaling!
-    bcf_draw = bcf_fit2$tau * sdy
-    xbart_draw = th * sdy
+#     # scaling!
+#     bcf_draw = bcf_fit2$tau * sdy
+#     xbart_draw = th * sdy
     
-    for (i in 1:n) {
-        lower = quantile(xbart_draw[i, 15:50], (1 - confidence)/2)
-        higher = quantile(xbart_draw[i, 15:50], confidence + (1 - confidence)/2)
-        if (tau[i] < higher && tau[i] > lower) {
-            coverage[1] = coverage[1] + 1
-        }
-        length[i, 1] = higher - lower
+#     for (i in 1:n) {
+#         lower = quantile(xbart_draw[i, 15:50], (1 - confidence)/2)
+#         higher = quantile(xbart_draw[i, 15:50], confidence + (1 - confidence)/2)
+#         if (tau[i] < higher && tau[i] > lower) {
+#             coverage[1] = coverage[1] + 1
+#         }
+#         length[i, 1] = higher - lower
         
-        lower = quantile(bcf_draw[, i], (1 - confidence)/2)
-        higher = quantile(bcf_draw[, i], confidence + (1 - confidence)/2)
-        if (tau[i] < higher && tau[i] > lower) {
-            coverage[2] = coverage[2] + 1
-        }
-        length[i, 2] = higher - lower
+#         lower = quantile(bcf_draw[, i], (1 - confidence)/2)
+#         higher = quantile(bcf_draw[, i], confidence + (1 - confidence)/2)
+#         if (tau[i] < higher && tau[i] > lower) {
+#             coverage[2] = coverage[2] + 1
+#         }
+#         length[i, 2] = higher - lower
         
-        lower = quantile(draw_BCF_XBCF[, i], (1 - confidence)/2)
-        higher = quantile(draw_BCF_XBCF[, i], confidence + (1 - confidence)/2)
-        if (tau[i] < higher && tau[i] > lower) {
-            coverage[3] = coverage[3] + 1
-        }
-        length[i, 3] = higher - lower
+#         lower = quantile(draw_BCF_XBCF[, i], (1 - confidence)/2)
+#         higher = quantile(draw_BCF_XBCF[, i], confidence + (1 - confidence)/2)
+#         if (tau[i] < higher && tau[i] > lower) {
+#             coverage[3] = coverage[3] + 1
+#         }
+#         length[i, 3] = higher - lower
         
-    }
+#     }
     
-    coverage/n
-    colMeans(length)
+#     coverage/n
+#     colMeans(length)
     
     
-    Coverage[[tt]] = coverage
-    Length[[tt]] = length
-}
+#     Coverage[[tt]] = coverage
+#     Length[[tt]] = length
+# }
 
 
-# save(Length = Length, Coverage = Coverage, confidence = confidence,
-# file=paste(confidence, 'conf.rda', sep = ''))
+# # save(Length = Length, Coverage = Coverage, confidence = confidence,
+# # file=paste(confidence, 'conf.rda', sep = ''))
 
-Length_ave = c(0, 0, 0)
-Coverage_ave = c(0, 0, 0)
+# Length_ave = c(0, 0, 0)
+# Coverage_ave = c(0, 0, 0)
 
-for (i in 1:length(Length)) {
-    Coverage_ave = Coverage_ave + as.vector(Coverage[[i]])
-    Length_ave = Length_ave + as.vector(colMeans(Length[[i]]))
-}
+# for (i in 1:length(Length)) {
+#     Coverage_ave = Coverage_ave + as.vector(Coverage[[i]])
+#     Length_ave = Length_ave + as.vector(colMeans(Length[[i]]))
+# }
 
-Coverage_ave = Coverage_ave/length(Length)/5000
-Length_ave = Length_ave/length(Length)
+# Coverage_ave = Coverage_ave/length(Length)/5000
+# Length_ave = Length_ave/length(Length)
 
 
-results = rbind(confidence, Coverage_ave, Length_ave)
-colnames(results) = c("XBCF", "BCF", "warm start")
-rownames(results) = c("confidence level", "Coverage", "Length")
-results
+# results = rbind(confidence, Coverage_ave, Length_ave)
+# colnames(results) = c("XBCF", "BCF", "warm start")
+# rownames(results) = c("confidence level", "Coverage", "Length")
+# results
 
