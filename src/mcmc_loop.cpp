@@ -169,13 +169,71 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
                            std::unique_ptr<State> &state, LogitModel *model,
                            std::unique_ptr<X_struct> &x_struct, std::vector< std::vector<double> > &phi_samples)
 {
-  mcmc_loop_multinomial(Xorder_std, verbose, trees, no_split_penalty, state, model, x_struct);
+    if (state->parallel)
+        thread_pool.start();
+
+    // Residual for 0th tree
+    // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
+    model->ini_residual_std(state);
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
-      for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
-	for(size_t kk = 0; kk < Xorder_std[0].size(); kk++)
-	  phi_samples[sweeps * state->num_trees + tree_ind][kk] = (*(model->phi))[kk];
-	
+    {
+
+        if (verbose == true)
+        {
+            COUT << "--------------------------------" << endl;
+            COUT << "number of sweeps " << sweeps << endl;
+            COUT << "--------------------------------" << endl;
+        }
+
+        for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
+        {
+
+            if (verbose)
+            {
+                cout << "sweep " << sweeps << " tree " << tree_ind << endl;
+            }
+            // Draw latents -- do last?
+
+            //Rcpp::Rcout << "Updating state";
+
+
+            if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
+            {
+                state->use_all = false;
+            }
+
+            // clear counts of splits for one tree
+            std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
+
+            // subtract old tree for sampling case
+            if (state->sample_weights_flag)
+            {
+                state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
+            }
+
+            model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+
+            //cout << trees[sweeps][tree_ind].suff_stat << endl;
+            
+            trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
+
+            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+
+            state->update_split_counts(tree_ind);
+
+            // update partial fits for the next tree
+            model->update_state(state, tree_ind, x_struct);
+            
+            model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
+            
+            for(size_t kk = 0; kk < Xorder_std[0].size(); kk ++ ){
+                phi_samples[sweeps * state->num_trees + tree_ind][kk] = (*(model->phi))[kk];
+            }     
+            
+        }
+    }
+    thread_pool.stop();  
 }
 
 void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
