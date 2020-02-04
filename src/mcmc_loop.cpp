@@ -165,11 +165,24 @@ void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sig
 }
 
 void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
-                           vector<vector<tree>> &trees, double no_split_penality,
+                           vector<vector<tree>> &trees, double no_split_penalty,
                            std::unique_ptr<State> &state, LogitModel *model,
                            std::unique_ptr<X_struct> &x_struct, std::vector< std::vector<double> > &phi_samples)
 {
+  mcmc_loop_multinomial(Xorder_std, verbose, trees, no_split_penalty, state, model, x_struct);
 
+    for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
+      for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
+	for(size_t kk = 0; kk < Xorder_std[0].size(); kk++)
+	  phi_samples[sweeps * state->num_trees + tree_ind][kk] = (*(model->phi))[kk];
+	
+}
+
+void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
+                           vector<vector<tree>> &trees, double no_split_penality,
+                           std::unique_ptr<State> &state, LogitModel *model,
+                           std::unique_ptr<X_struct> &x_struct)
+{
     if (state->parallel)
         thread_pool.start();
 
@@ -228,9 +241,9 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
             
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
             
-            for(size_t kk = 0; kk < Xorder_std[0].size(); kk ++ ){
-                phi_samples[sweeps * state->num_trees + tree_ind][kk] = (*(model->phi))[kk];
-            }     
+            // for(size_t kk = 0; kk < Xorder_std[0].size(); kk ++ ){
+            //     phi_samples[sweeps * state->num_trees + tree_ind][kk] = (*(model->phi))[kk];
+            // }     
             
         }
     }
