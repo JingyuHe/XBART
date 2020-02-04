@@ -1,16 +1,22 @@
 from setuptools import setup, Extension, find_packages
+from distutils.sysconfig import get_config_var
+from distutils.version import LooseVersion
 import numpy
 import os
-
-from sys import platform
-if platform == "win32":
+import sys
+import platform 
+if sys.platform == "win32":
     compile_args = []
 else:
     compile_args = ["-std=gnu++11", "-fpic",  "-g"]
-if platform == "darwin":
-    # To ensure gnu+11 and all std libs
-    compile_args.append("-mmacosx-version-min=10.9")
-#    os.environ["MACOSX_DEPLOYMENT_TARGET"] = "10.9"
+if sys.platform == "darwin":
+    if 'MACOSX_DEPLOYMENT_TARGET' not in os.environ:
+        current_system = LooseVersion(platform.mac_ver()[0])
+        python_target = LooseVersion(
+            get_config_var('MACOSX_DEPLOYMENT_TARGET'))
+        if python_target < '10.9' and current_system >= '10.9':
+            os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
+
 
 XBART_cpp_module = Extension('_xbart_cpp_',
                              sources=['xbart/xbart_wrap.cxx', 'xbart/xbart.cpp',
