@@ -10,7 +10,7 @@ else:
 if platform == "darwin":
     # To ensure gnu+11 and all std libs
     compile_args.append("-mmacosx-version-min=10.9")
-    os.environ["MACOSX_DEPLOYMENT_TARGET"] = "10.9"
+#    os.environ["MACOSX_DEPLOYMENT_TARGET"] = "10.9"
 
 XBART_cpp_module = Extension('_xbart_cpp_',
                              sources=['xbart/xbart_wrap.cxx', 'xbart/xbart.cpp',
@@ -36,7 +36,7 @@ setup(name='xbart',
       version='0.1.7',
       author="Jingyu He, Saar Yalov, P. Richard Hahn",
       description="""XBART project""",
-      long_descripition=readme(),
+      long_description=readme(),
       include_dirs=[numpy.get_include(), '.', "src", "xbart"],
       ext_modules=[XBART_cpp_module],
       install_requires=['numpy'],
