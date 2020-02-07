@@ -4,7 +4,7 @@ library(dbarts)
 # data generating process
 n = 5000
 # 
-# set.seed(1)
+set.seed(1)
 
 confidence = 0.9
 
@@ -30,14 +30,14 @@ continuous = TRUE
 
     # data generating process
     x1 = rnorm(n)
-    x2 = rbinom(n, 1, 0.2)
-    x3 = sample(1:3, n, replace = TRUE, prob = c(0.1, 0.6, 0.3))
-    # x2 = rnorm(n)
-    # x3 = rnorm(n)
+    # x2 = rbinom(n, 1, 0.2)
+    # x3 = sample(1:3, n, replace = TRUE, prob = c(0.1, 0.6, 0.3))
+    x2 = rnorm(n)
+    x3 = rnorm(n)
     
     x4 = rnorm(n)
-    x5 = rbinom(n, 1, 0.7)
-    # x5 = rnorm(n)
+    # x5 = rbinom(n, 1, 0.7)
+    x5 = rnorm(n)
     x = cbind(x1, x2, x3, x4, x5)
     
     # alpha = 0.5
@@ -47,7 +47,7 @@ continuous = TRUE
     
     mu = function(x) {
         lev = c(-0.5, 0.75, 0)
-        result = 1 + x[, 1] * (2 * x[, 2] - 2 * (1 - x[, 2])) + lev[x3]
+        result = 1 + x[, 1] * (2 * x[, 2] - 2 * (1 - x[, 2])) # + lev[x3]
         
         # nonlinear result = 1 + abs(x[,1])*(2*x[,2] - 2*(1-x[,2])) + lev[x3]
         
@@ -77,9 +77,9 @@ continuous = TRUE
     tau2 = 0.1 * var(y)/treestau
     
     x <- data.frame(x)
-    x[, 3] <- as.factor(x[, 3])
-    x <- makeModelMatrixFromDataFrame(data.frame(x))
-    x <- cbind(x[, 1], x[, 6], x[, -c(1, 6)])
+    # x[, 3] <- as.factor(x[, 3])
+    # x <- makeModelMatrixFromDataFrame(data.frame(x))
+    # x <- cbind(x[, 1], x[, 6], x[, -c(1, 6)])
     x1 <- cbind(pihat, x)
 
     x = as.matrix(x)
@@ -104,14 +104,14 @@ continuous = TRUE
         th_xbcf[, i] = th_xbcf[, i] * (b_xbcf[i, 2] - b_xbcf[i, 1])
     }
     tauhats_xbcf = rowSums(th_xbcf[, (burnin + 1):sweeps])/(sweeps - burnin)
-    # tauhats_xbcf = tauhats_xbcf * sdy
+    tauhats_xbcf = tauhats_xbcf * sdy
     plot(tau, tauhats_xbcf)
     abline(0, 1)
 
     mu_xbcf = rowMeans(fit_xbcf$muhats[, (burnin + 1):sweeps]) * sdy
 
-    yhat_xbcf = rowMeans(fit_xbcf$muhats[, (burnin + 1):sweeps]) + tauhats_xbcf * z
-    yhat_xbcf = yhat_xbcf * sdy
+    yhat_xbcf = mu_xbcf + tauhats_xbcf * z
+    
 
     # check bcf original
     t2 = proc.time()    
@@ -127,22 +127,21 @@ continuous = TRUE
     plot(tau, that_warmstart);
     abline(0,1)
     yhat_warmstart = colMeans(fit_warmstart$yhat) * sdy
-    mu_warmstart = ( colMeans(fit_warmstart$yhat) - colMeans(fit_warmstart$tau) * z) * sdy
+    mu_warmstart = ( colMeans(fit_warmstart$yhat) - colMeans(fit_warmstart$tau) * z ) * sdy
 
     fit_bcf = bcf::bcf(y, z, x, x, pihat, nburn=1000, nsim=1000, include_pi = 'control', use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
     tau_post_bcf = fit_bcf$tau
     that_bcf = colMeans(tau_post_bcf)
     that_bcf = that_bcf * sdy
     yhat_bcf = colMeans(fit_bcf$yhat) * sdy
-    mu_bcf = ( colMeans(fit_bcf$yhat) - colMeans(fit_bcf$tau) * z) * sdy
+    mu_bcf = ( colMeans(fit_bcf$yhat) - colMeans(fit_bcf$tau) * z ) * sdy
     
-    fit_bcf2 = bcf2::bcf(y, z, x, x, pihat, nburn=1000, nsim=1000, include_pi = 'control', use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
+    fit_bcf2 = bcf2::bcf(y, z, x, x, pihat, nburn=5000, nsim=1000, include_pi = 'control', use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
     tau_post_bcf2 = fit_bcf2$tau
     that_bcf2 = colMeans(tau_post_bcf2)
     that_bcf2 = that_bcf2 * sdy
     yhat_bcf2 = colMeans(fit_bcf2$yhat) * sdy
-    mu_bcf2 = ( colMeans(fit_bcf2$yhat) - colMeans(fit_bcf2$tau) * z) * sdy
-
+    mu_bcf2 = ( colMeans(fit_bcf2$yhat) - colMeans(fit_bcf2$tau) * z ) * sdy
 
     RMSE_tau = c(sqrt(mean((tauhats_xbcf - tau)^2)), sqrt(mean((that_warmstart - tau)^2)), sqrt(mean((that_bcf - tau)^2)), sqrt(mean((that_bcf2 - tau)^2)))
     RMSE_Ey = c(sqrt(mean((Ey - yhat_xbcf)^2)), sqrt(mean((Ey - yhat_warmstart)^2)), sqrt(mean((Ey - yhat_bcf)^2)), sqrt(mean((Ey - yhat_bcf2)^2)))
