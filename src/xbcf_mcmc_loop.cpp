@@ -12,6 +12,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std,
                     matrix<double> &b_xinfo,
                     matrix<double> &b0_draw_xinfo,
                     matrix<double> &b1_draw_xinfo,
+                    matrix<double> &a_xinfo,
                     matrix<double> &total_fit,
                     vector<vector<tree>> &trees_ps,
                     vector<vector<tree>> &trees_trt,
@@ -136,9 +137,11 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std,
         }
       }
     }
-    // store draws for b0 and b1
+
+    // store draws for b0, b1 and a
     b_xinfo[0][sweeps] = state->b_vec[0];
     b_xinfo[1][sweeps] = state->b_vec[1];
+    a_xinfo[0][sweeps] = state->a;
   }
 
   thread_pool.stop();
