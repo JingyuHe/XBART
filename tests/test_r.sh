@@ -5,4 +5,4 @@ R CMD REMOVE XBART
 R CMD INSTALL XBART
 cd XBART/tests/
 echo Testing R
-Rscript test.R
+Rscript test_multinomial_prh.R

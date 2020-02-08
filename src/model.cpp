@@ -234,7 +234,7 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
 
     // sufficient statistics have 2 * num_classes
 
-    suffstats[(*y_size_t)[index_next_obs]] += 1;
+    suffstats[(*y_size_t)[index_next_obs]] += 3;
 
 
     for (size_t j = 0; j < dim_theta; ++j)
@@ -302,7 +302,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 
     double sum_fits = 0;
 
-    std::gamma_distribution<double> gammadist(1.0, 1.0);
+    std::gamma_distribution<double> gammadist(3.0, 1.0);
 
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
