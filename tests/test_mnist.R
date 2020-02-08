@@ -24,9 +24,9 @@ tau_later = 100 / num_trees
 
 
 t = proc.time()
-fit = XBART.multinomial(y=matrix(y_train), num_class=10, X=X_train, Xtest=X_test, 
+fit = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth, 
-                        Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau=50/num_trees, 
+                        Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau=100/num_trees, 
                         no_split_penality = 1, burnin = burnin, mtry = mtry, p_categorical = 0L, 
                         kap = 1, s = 1, verbose = TRUE, parallel = FALSE, set_random_seed = TRUE, 
                         random_seed = NULL, sample_weights_flag = TRUE) 
@@ -45,10 +45,6 @@ cat("XBART error rate ", mean(yhat != ytest), "\n")
 
 cat(paste("xbart logloss : ",round(logloss,3)),"\n")
 
-
-table(fit$delta)
-
-mean(fit$delta)
 
 for(i in 0:9){
   cat("XBART error rate in ", i, ": ", round(mean(yhat[ytest==i]!=i), 4), 
