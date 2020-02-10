@@ -59,10 +59,10 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max
     stop("p_categorical cannot exceed p")
   }
 
-  if (class(weight) != "vector") {
-    cat("Input weight is not a vector, try to convert type.\n")
-    weight = as.vector(weight)
-  }
+  # if (class(weight) != "vector") {
+  #   cat("Input weight is not a vector, try to convert type.\n")
+  #   weight = as.vector(weight)
+  # }
   # check input type
 
   check_non_negative_integer(burnin, "burnin")

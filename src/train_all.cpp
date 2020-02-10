@@ -478,8 +478,11 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     double tau_b = 1/tau;
     std::vector<double> phi(N);
     for(size_t i=0; i<N; ++i) phi[i] = 1;
+
+    std::vector<double> weight_std(weight.size());
+    for(size_t i=0; i<weight.size(); ++i) weight_std[i] = weight[i];
     
-    LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi);
+    LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight_std);
     model->setNoSplitPenality(no_split_penality);
 
 
