@@ -478,9 +478,9 @@ public:
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
     std::vector<double> *phi; // latent variables for mnl
 
-    matrix<double> weight_loglike_trees;
+    std::vector<double> weight_std;
 
-    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, std::vector<double> weight_std, size_t num_trees) : Model(num_classes, 2*num_classes)
+    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, std::vector<double> weight_std) : Model(num_classes, 2*num_classes)
     {
       this->y_size_t = y_size_t;
       this->phi = phi;
@@ -491,7 +491,7 @@ public:
         //what should this be?
         this->dim_residual = num_classes;
         this->weight = weight_std[0];
-        ini_matrix(weight_loglike_trees, weight_std.size(), num_trees);
+        this->weight_std = weight_std;
     }
 
     LogitModel() : Model(2, 4) {}

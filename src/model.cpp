@@ -279,28 +279,13 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 
 void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
-    // Draw Sigma
-    // state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
 
-    // residual_std is only 1 dimensional for regression model
-
-    /*
-    std::vector<double> full_residual(state->n_y);
- 
-    for (size_t i = 0; i < state->residual_std[0].size(); i++)
-    {
-        full_residual[i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
-    }
-
-    std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(full_residual) + s));
-    state->update_sigma(1.0 / sqrt(gamma_samp(state->gen)));
-*/
-    // compute \sum _j f_j(x_i) by reintroducing tree nuber tree_ind's multiplicitive fit contrib and summing
-    //std::vector<double> sum_fits(state->n_y);
-
-    // size of state->residual_std is num_classes * num_train
+    // Draw phi
 
     double sum_fits = 0;
+    double loglike_tree = 0;
+    size_t y_i;
+    
 
     std::gamma_distribution<double> gammadist(weight, 1.0);
 
@@ -311,7 +296,9 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         {
             sum_fits += state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j];
         }
-
+        
+        y_i = (*state->y_std)[i];
+        loglike_tree += log(state->residual_std[y_i][i]) + log((*(x_struct->data_pointers[tree_ind][i]))[y_i]) - log(sum_fits);
         //COUT << "got scale";
         //COUT << "draw phi ";
         (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits);
@@ -319,6 +306,25 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         // std::cout << "sum fit "<<sum_fits<< std::endl;
         //COUT << "draw phi complete";
     }
+
+    // cout << "loglike " << loglike_tree << endl;
+    // Draw weight
+    double max = -INFINITY;
+    size_t n = state->residual_std[0].size();
+    std::vector<double> loglike_weight(weight_std.size(), 0.0);
+    for (size_t i = 0; i < weight_std.size(); i++)
+    {
+        loglike_weight[i] = weight_std[i] * loglike_tree + lgamma(weight_std[i] * n + 1) - lgamma(n + 1) - lgamma((weight_std[i] - 1) * n + 1);
+        if (loglike_weight[i] > max){max = loglike_weight[i];}
+    }
+    for (size_t i = 0; i < weight_std.size(); i++)
+    {
+        loglike_weight[i] = exp(loglike_weight[i] - max);
+    }
+    // cout << "weight likelihood " << loglike_weight << endl;
+    std::discrete_distribution<> d(loglike_weight.begin(), loglike_weight.end());
+    weight = weight_std[d(state->gen)];
+
 
     return;
 }

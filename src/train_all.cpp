@@ -482,7 +482,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     std::vector<double> weight_std(weight.size());
     for(size_t i=0; i<weight.size(); ++i) weight_std[i] = weight[i];
     
-    LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight_std, num_trees);
+    LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight_std);
     model->setNoSplitPenality(no_split_penality);
 
 
@@ -500,9 +500,12 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
 
     std::vector< std::vector<double> > phi_samples;
     ini_matrix(phi_samples, N, num_sweeps * num_trees);
+
+    std::vector< std::vector<double> > weight_samples;
+    ini_matrix(weight_samples, num_trees, num_sweeps);
     
     ////////////////////////////////////////////////////////////////
-    mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples);
+    mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples, weight_samples);
 
     // TODO: Implement predict OOS
 
@@ -531,6 +534,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     Rcpp::NumericVector split_count_sum(p);                // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
     Rcpp::NumericMatrix phi_sample_rcpp(N, num_sweeps * num_trees);
+    Rcpp::NumericMatrix weight_sample_rcpp(num_trees, num_sweeps);
 
     // TODO: Make these functions
     // for (size_t i = 0; i < N; i++)
@@ -544,6 +548,11 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     for(size_t i = 0; i < N; i ++ ){
         for(size_t j = 0; j < num_trees * num_sweeps; j ++ ){
             phi_sample_rcpp(i, j) = phi_samples[j][i];
+        }
+    }
+    for(size_t i = 0; i < num_trees; i ++ ){
+        for(size_t j = 0; j < num_sweeps; j ++ ){
+            weight_sample_rcpp(i, j) = weight_samples[j][i];
         }
     }
     for (size_t i = 0; i < N_test; i++)
@@ -578,6 +587,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         Rcpp::Named("num_class") = num_class,
         Rcpp::Named("yhats_test") = output,
         Rcpp::Named("phi") = phi_sample_rcpp,
+        Rcpp::Named("weight") = weight_sample_rcpp,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p));
 

@@ -72,7 +72,7 @@ tm = proc.time()
 fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
                         Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, 
-                        no_split_penality = 1, weight = c(3),burnin = burnin, mtry = 3, p_categorical = 0L, 
+                        no_split_penality = 1, weight = c(1:20),burnin = burnin, mtry = 3, p_categorical = 0L, 
                         kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 
                         random_seed = NULL, sample_weights_flag = TRUE) 
 
@@ -110,7 +110,7 @@ fit.xgb <- xgboost(data = X_train, label=y_train,
                    params=list(objective="multi:softprob"))
 
 tm2 = proc.time()-tm2
-cat(paste("xgboost runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
+cat(paste("xgboost runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 phat.xgb <- predict(fit.xgb, X_test)
 phat.xgb <- matrix(phat.xgb, ncol=k, byrow=TRUE)
 
@@ -139,3 +139,5 @@ cat(paste("xbart logloss : ",round(logloss,3)),"\n")
 cat(paste("xgboost logloss : ", round(logloss.xgb,3)),"\n")
 
 cat(paste("\n", "xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
+
+table(fit$weight)
