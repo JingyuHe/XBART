@@ -1,20 +1,26 @@
 #######################################################################
+# install XBART package
+# library(devtools)
+# install_github("JingyuHe/XBART")
+
+
+
+#######################################################################
 # set parameters of XBART
 get_XBART_params <- function(y) {
-  XBART_params = list(num_trees = 30, # number of trees 
-                      num_sweeps = 40, # number of sweeps (samples of the forest)
-                      n_min = 1, # minimal node size
-                      alpha = 0.95, # BART prior parameter 
-                      beta = 1.25, # BART prior parameter
-                      mtry = 10, # number of variables sampled in each split
-                      burnin = 15,
-                      no_split_penality = "Auto"
-                      ) # burnin of MCMC sample
+  XBART_params = list(num_trees = 30,               # number of trees 
+                      num_sweeps = 40,              # number of sweeps (samples of the forest)
+                      n_min = 1,                    # minimal node size
+                      alpha = 0.95,                 # BART prior parameter 
+                      beta = 1.25,                  # BART prior parameter
+                      mtry = 10,                    # number of variables sampled in each split
+                      burnin = 15,                  # burnin samples
+                      no_split_penality = "Auto"    # whether add extra weight to no split option
+                      )         
   num_tress = XBART_params$num_trees
-  XBART_params$max_depth = 250
-  XBART_params$num_cutpoints = 50;
-  # number of adaptive cutpoints
-  XBART_params$tau = var(y) / num_tress # prior variance of mu (leaf parameter)
+  XBART_params$max_depth = 250                      # maximum depth of a tree
+  XBART_params$num_cutpoints = 50;                  # number of cutpoint candidates
+  XBART_params$tau = var(y) / num_tress             # prior variance of mu (leaf parameter)
   return(XBART_params)
 }
 
@@ -23,33 +29,27 @@ get_XBART_params <- function(y) {
 library(XBART)
 
 set.seed(100)
-new_data = TRUE # generate new data
-run_dbarts = FALSE # run dbarts
-run_xgboost = FALSE # run xgboost
-run_lightgbm = FALSE # run lightgbm
-parl = TRUE # parallel computing
-
-
-small_case = TRUE # run simulation on small data set
-verbose = FALSE # print the progress on screen
+new_data = TRUE             # generate new data
+run_dbarts = TRUE           # run dbarts
+parl = TRUE                 # parallel computing
+small_case = TRUE           # run simulation on small data set
+verbose = FALSE             # print the progress on screen
 
 
 if (small_case) {
-  n = 10000 # size of training set
-  nt = 5000 # size of testing set
-  d = 20 # number of TOTAL variables
-  dcat = 10 # number of categorical variables
-  # must be d >= dcat
-  # (X_continuous, X_categorical), 10 and 10 for each case, 20 in total
+  n = 10000                 # size of training set
+  nt = 5000                 # size of testing set
+  d = 20                    # number of TOTAL variables
+  dcat = 10                 # number of categorical variables
+                            # must be d >= dcat
+                            # in the X matrix, all continuous variables should be in the first place
+                            # (X_continuous, X_categorical), 10 and 10 for each case, 20 in total
 } else {
-  n = 1000000
+  n = 100000
   nt = 10000
   d = 50
   dcat = 0
 }
-
-
-
 
 
 
@@ -150,21 +150,6 @@ if (run_dbarts) {
 } else {
   fhat.db = fhat.1
   time_dbarts = time_XBART
-}
-
-
-#######################################################################
-# XGBoost
-if (run_xgboost) {
-  library(xgboost)
-}
-
-
-
-#######################################################################
-# LightGBM
-if (run_lightgbm) {
-  library(xgboost)
 }
 
 

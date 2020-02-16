@@ -30,14 +30,14 @@ continuous = TRUE
 
     # data generating process
     x1 = rnorm(n)
-    # x2 = rbinom(n, 1, 0.2)
-    # x3 = sample(1:3, n, replace = TRUE, prob = c(0.1, 0.6, 0.3))
-    x2 = rnorm(n)
-    x3 = rnorm(n)
+    x2 = rbinom(n, 1, 0.2)
+    x3 = sample(1:3, n, replace = TRUE, prob = c(0.1, 0.6, 0.3))
+    # x2 = rnorm(n)
+    # x3 = rnorm(n)
     
     x4 = rnorm(n)
-    # x5 = rbinom(n, 1, 0.7)
-    x5 = rnorm(n)
+    x5 = rbinom(n, 1, 0.7)
+    # x5 = rnorm(n)
     x = cbind(x1, x2, x3, x4, x5)
     
     # alpha = 0.5
@@ -47,7 +47,7 @@ continuous = TRUE
     
     mu = function(x) {
         lev = c(-0.5, 0.75, 0)
-        result = 1 + x[, 1] * (2 * x[, 2] - 2 * (1 - x[, 2])) # + lev[x3]
+        result = 1 + x[, 1] * (2 * x[, 2] - 2 * (1 - x[, 2]))  + lev[x3]
         
         # nonlinear result = 1 + abs(x[,1])*(2*x[,2] - 2*(1-x[,2])) + lev[x3]
         
@@ -77,9 +77,9 @@ continuous = TRUE
     tau2 = 0.1 * var(y)/treestau
     
     x <- data.frame(x)
-    # x[, 3] <- as.factor(x[, 3])
-    # x <- makeModelMatrixFromDataFrame(data.frame(x))
-    # x <- cbind(x[, 1], x[, 6], x[, -c(1, 6)])
+    x[, 3] <- as.factor(x[, 3])
+    x <- makeModelMatrixFromDataFrame(data.frame(x))
+    x <- cbind(x[, 1], x[, 6], x[, -c(1, 6)])
     x1 <- cbind(pihat, x)
 
     x = as.matrix(x)
@@ -88,7 +88,7 @@ continuous = TRUE
     t1 = proc.time()
     fit_xbcf = XBCF(y, x1, x, z, num_sweeps = sweeps, burnin = burnin, max_depth = 50, 
         Nmin = 1, num_cutpoints = 50, no_split_penality = "Auto", mtry_pr = ncol(x1), 
-        mtry_trt = ncol(x), p_categorical_pr = 0, p_categorical_trt = 0, num_trees_pr = treesmu, 
+        mtry_trt = ncol(x), p_categorical_pr = 5, p_categorical_trt = 5, num_trees_pr = treesmu, 
         alpha_pr = 0.95, beta_pr = 1.25, tau_pr = tau1, kap_pr = 1, s_pr = 1, pr_scale = FALSE, 
         num_trees_trt = treestau, alpha_trt = 0.25, beta_trt = 2, tau_trt = tau2, 
         kap_trt = 1, s_trt = 1, trt_scale = TRUE, verbose = FALSE, a_scaling = TRUE, 
@@ -118,8 +118,40 @@ continuous = TRUE
 
 
     # warm start
+    fit_bcf = bcf::bcf(y, z, x, x, pihat, nburn=1000, nsim=1000, include_pi = 'control', use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
+    tau_post_bcf = fit_bcf$tau
+    that_bcf = colMeans(tau_post_bcf)
+    that_bcf = that_bcf * sdy
+    yhat_bcf = colMeans(fit_bcf$yhat) * sdy
+    mu_bcf = ( colMeans(fit_bcf$yhat) - colMeans(fit_bcf$tau) * z ) * sdy
+    
+    fit_bcf2 = bcf2::bcf(y, z, x, x, pihat, nburn=1000, nsim=2, include_pi = 'control', use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
+    tau_post_bcf2 = fit_bcf2$tau
+    that_bcf2 = colMeans(tau_post_bcf2)
+    that_bcf2 = that_bcf2 * sdy
+    yhat_bcf2 = colMeans(fit_bcf2$yhat) * sdy
+    mu_bcf2 = ( colMeans(fit_bcf2$yhat) - colMeans(fit_bcf2$tau) * z ) * sdy
+
+
     t = proc.time() 
-    fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(fit_xbcf$treedraws_trt[100]), fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_xbcf$sigma0_draws[1,100], y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau) 
+    # initialize BCF2 at XBART
+    # fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(fit_xbcf$treedraws_trt[100]), fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, y, z, x, x, pihat, nburn=0, nsim=10, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau) 
+
+
+    # initialize BCF2 at BCF2, for debugging purpose
+    # fit_warmstart = bcf2::bcf_ini(fit_bcf2$tree_con, fit_bcf2$tree_mod, fit_bcf2$mscale, fit_bcf2$bscale0, fit_bcf2$bscale1, fit_bcf2$sigma[length(fit_bcf2$sigma)], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
+    
+    # compare estimations from BCF and XBCF
+    est = c(fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_bcf2$mscale, fit_bcf2$bscale0, fit_bcf2$bscale1)
+    est = matrix(est, 2, 3, byrow = TRUE)
+    colnames(est) = c("mscale", "bscale0", "bscale1")
+    rownames(est) = c("XBCF", "BCF")
+    print(est)
+
+    # some strange mixture of BCF2 and XBART initialization
+    fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), fit_bcf2$tree_mod, fit_xbcf$a_draws[100, 1], fit_bcf2$bscale0, fit_bcf2$bscale1, fit_bcf2$sigma[length(fit_bcf2$sigma)], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau) 
+
+
     t = proc.time() - t
     tau_post_warmstart = fit_warmstart$tau 
     that_warmstart = colMeans(tau_post_warmstart) 
@@ -129,19 +161,6 @@ continuous = TRUE
     yhat_warmstart = colMeans(fit_warmstart$yhat) * sdy
     mu_warmstart = ( colMeans(fit_warmstart$yhat) - colMeans(fit_warmstart$tau) * z ) * sdy
 
-    fit_bcf = bcf::bcf(y, z, x, x, pihat, nburn=1000, nsim=1000, include_pi = 'control', use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
-    tau_post_bcf = fit_bcf$tau
-    that_bcf = colMeans(tau_post_bcf)
-    that_bcf = that_bcf * sdy
-    yhat_bcf = colMeans(fit_bcf$yhat) * sdy
-    mu_bcf = ( colMeans(fit_bcf$yhat) - colMeans(fit_bcf$tau) * z ) * sdy
-    
-    fit_bcf2 = bcf2::bcf(y, z, x, x, pihat, nburn=5000, nsim=1000, include_pi = 'control', use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
-    tau_post_bcf2 = fit_bcf2$tau
-    that_bcf2 = colMeans(tau_post_bcf2)
-    that_bcf2 = that_bcf2 * sdy
-    yhat_bcf2 = colMeans(fit_bcf2$yhat) * sdy
-    mu_bcf2 = ( colMeans(fit_bcf2$yhat) - colMeans(fit_bcf2$tau) * z ) * sdy
 
     RMSE_tau = c(sqrt(mean((tauhats_xbcf - tau)^2)), sqrt(mean((that_warmstart - tau)^2)), sqrt(mean((that_bcf - tau)^2)), sqrt(mean((that_bcf2 - tau)^2)))
     RMSE_Ey = c(sqrt(mean((Ey - yhat_xbcf)^2)), sqrt(mean((Ey - yhat_warmstart)^2)), sqrt(mean((Ey - yhat_bcf)^2)), sqrt(mean((Ey - yhat_bcf2)^2)))
