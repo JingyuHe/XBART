@@ -1,5 +1,6 @@
 #include "tree.h"
 #include "model.h"
+#include <cfenv>
 
 //////////////////////////////////////////////////////////////////////////////////////
 //
@@ -279,11 +280,18 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 
 void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
+    std::feclearexcept(FE_OVERFLOW);
+    std::feclearexcept(FE_UNDERFLOW);
 
     // Draw phi
 
     double sum_fits = 0;
-    double loglike_tree = 0;
+    double loglike_pi = 0;
+    double min_fits = INFINITY;
+    std::vector<double> fits(dim_theta, 0.0);
+    std::vector<double> sum_fits_w(weight_std.size(), 0.0);
+    std::vector<double> loglike_weight(weight_std.size(), 0.0);
+
     size_t y_i;
     
 
@@ -292,13 +300,34 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
         sum_fits = 0;
+        std::fill(sum_fits_w.begin(), sum_fits_w.end(), 0.0);
         for (size_t j = 0; j < dim_theta; ++j)
         {
-            sum_fits += state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j];
+            fits[j] = state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j];
+        }
+        vec_sum(fits, sum_fits);
+
+        min_fits = *min_element(fits.begin(), fits.end());
+        for (size_t k = 0; k < weight_std.size(); ++k){
+            for (size_t j = 0; j < dim_theta; j++){
+                sum_fits_w[k] += pow(fits[j]/min_fits, weight_std[k]);
+                // check under/overflow
+                if((bool)std::fetestexcept(FE_UNDERFLOW)){
+                    cout << " !underflow! weight " << weight_std[k] << " fits: " << fits << endl;
+                    abort();
+                }
+                else if((bool)std::fetestexcept(FE_OVERFLOW)){
+                    cout << " !overflow! weight " << weight_std[k] << " fits: " << fits << endl;
+                    abort();
+                }
+            } 
+            loglike_weight[k] += log(sum_fits_w[k]) + weight_std[k] * log(min_fits);
         }
         
+
         y_i = (*state->y_std)[i];
-        loglike_tree += log(state->residual_std[y_i][i]) + log((*(x_struct->data_pointers[tree_ind][i]))[y_i]) - log(sum_fits);
+        // loglike_pi += log(state->residual_std[y_i][i]) + log((*(x_struct->data_pointers[tree_ind][i]))[y_i]) - log(sum_fits);
+        loglike_pi += log(fits[y_i]);
         //COUT << "got scale";
         //COUT << "draw phi ";
         (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits);
@@ -307,14 +336,14 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         //COUT << "draw phi complete";
     }
 
-    // cout << "loglike " << loglike_tree << endl;
     // Draw weight
     double max = -INFINITY;
     size_t n = state->residual_std[0].size();
-    std::vector<double> loglike_weight(weight_std.size(), 0.0);
+    // std::vector<double> loglike_weight(weight_std.size(), 0.0);
     for (size_t i = 0; i < weight_std.size(); i++)
     {
-        loglike_weight[i] = weight_std[i] * loglike_tree + lgamma(weight_std[i] * n + 1) - lgamma(n + 1) - lgamma((weight_std[i] - 1) * n + 1);
+        // loglike_weight[i] = weight_std[i] * loglike_pi + lgamma(weight_std[i] * n + 1) - lgamma(n + 1) - lgamma((weight_std[i] - 1) * n + 1);
+        loglike_weight[i] = weight_std[i] * loglike_pi - loglike_weight[i];
         if (loglike_weight[i] > max){max = loglike_weight[i];}
     }
     for (size_t i = 0; i < weight_std.size(); i++)
