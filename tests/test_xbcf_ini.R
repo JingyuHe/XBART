@@ -125,7 +125,7 @@ continuous = TRUE
     yhat_bcf = colMeans(fit_bcf$yhat) * sdy
     mu_bcf = ( colMeans(fit_bcf$yhat) - colMeans(fit_bcf$tau) * z ) * sdy
     
-    fit_bcf2 = bcf2::bcf(y, z, x, x, pihat, nburn=1000, nsim=2, include_pi = 'control', use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
+    fit_bcf2 = bcf2::bcf(y, z, x, x, pihat, nburn=1000, nsim=1000, include_pi = 'control', use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
     tau_post_bcf2 = fit_bcf2$tau
     that_bcf2 = colMeans(tau_post_bcf2)
     that_bcf2 = that_bcf2 * sdy
@@ -149,7 +149,7 @@ continuous = TRUE
     print(est)
 
     # some strange mixture of BCF2 and XBART initialization
-    fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), fit_bcf2$tree_mod, fit_xbcf$a_draws[100, 1], fit_bcf2$bscale0, fit_bcf2$bscale1, fit_bcf2$sigma[length(fit_bcf2$sigma)], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau) 
+    fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), fit_bcf2$tree_mod, fit_xbcf$a_draws[100, 1], fit_bcf2$bscale0, fit_bcf2$bscale1, fit_bcf2$sigma[length(fit_bcf2$sigma)], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_con_sigma, y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau) 
 
 
     t = proc.time() - t
