@@ -34,6 +34,7 @@ struct node_info
 {
     std::size_t id; //node id
     std::size_t v;  //variable
+    std::size_t c_index; // index of cutpoint in the design matrix, leave it blank, just for XBCF
     double c;       //cut point // different from BART
     std::vector<double> theta_vector;
 };
@@ -82,6 +83,8 @@ public:
     void setv(size_t v) { this->v = v; }
 
     void setc(size_t c) { this->c = c; }
+
+    void setc_index(size_t c_index) { this->c_index = c_index; }
 
     //get
     std::vector<double> gettheta_vector() const { return theta_vector; }

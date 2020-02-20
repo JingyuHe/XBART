@@ -1232,15 +1232,6 @@ Rcpp::List XBCF_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z,     
 
     // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
-    // clean memory
-    delete model_pr;
-    delete model_trt;
-    state.reset();
-    x_struct_pr.reset();
-    x_struct_trt.reset();
-
-
-
     // print out tree structure, for usage of BART package
 
     std::stringstream treess_pr;
@@ -1272,6 +1263,14 @@ Rcpp::List XBCF_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z,     
         output_tree_pr(i) = treess_pr.str();
         output_tree_trt(i) = treess_trt.str();
     }
+
+
+    // clean memory
+    delete model_pr;
+    delete model_trt;
+    state.reset();
+    x_struct_pr.reset();
+    x_struct_trt.reset();
 
 
     // R Objects to Return
