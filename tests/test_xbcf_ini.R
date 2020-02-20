@@ -177,16 +177,22 @@ print(est)
 
 
 # initialize BCF2 at XBART
-fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(fit_xbcf$treedraws_trt[100]), fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma, y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE) 
+# fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(fit_xbcf$treedraws_trt[100]), fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma, y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE) 
 
 
+# Nikolay's 
+fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(fit_xbcf$treedraws_trt[100]), fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma,  y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE) 
 
-# initialize BCF2 at BCF2, for debugging purpose
+
+# fit_warmstart = bcf2::bcf_ini(fit_bcf2$tree_con, fit_bcf2$tree_mod, fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma, y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE) 
+
+
+# # initialize BCF2 at BCF2, for debugging purpose
 # fit_warmstart = bcf2::bcf_ini(fit_bcf2$tree_con, fit_bcf2$tree_mod, fit_bcf2$mscale, fit_bcf2$bscale0, fit_bcf2$bscale1, fit_bcf2$sigma[length(fit_bcf2$sigma)], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma, y, z, x, x, pihat, nburn=0, nsim=100, ntree_control = treesmu, ntree_moderate = treestau, include_pi = 'control',use_tauscale = TRUE, ini_bcf = TRUE)
 
 
 
-# some strange mixture of BCF2 and XBART initialization
+# # some strange mixture of BCF2 and XBART initialization
 # fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), fit_xbcf$treedraws_trt[100], fit_xbcf$a_draws[100, 1], fit_bcf2$bscale0, fit_bcf2$bscale1, fit_bcf2$sigma[length(fit_bcf2$sigma)], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma, y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = FALSE, use_muscale = FALSE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE) 
 
 
