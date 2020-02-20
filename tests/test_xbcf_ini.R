@@ -15,7 +15,7 @@ treestau = 30
 
 
 # DGP continuous
-continuous = TRUE
+continuous = FALSE
 
 
 if(continuous){
@@ -127,7 +127,7 @@ fit_xbcf = XBCF(y, x1, x, z, num_sweeps = sweeps, burnin = burnin, max_depth = 5
     mtry_trt = ncol(x), p_categorical_pr = p_categorical_pr, p_categorical_trt = p_categorical_trt, num_trees_pr = treesmu, 
     alpha_pr = 0.95, beta_pr = 1.25, tau_pr = tau1, kap_pr = 1, s_pr = 1, pr_scale = FALSE, 
     num_trees_trt = treestau, alpha_trt = 0.25, beta_trt = 2, tau_trt = tau2, 
-    kap_trt = 1, s_trt = 1, trt_scale = TRUE, verbose = FALSE, a_scaling = FALSE, 
+    kap_trt = 1, s_trt = 1, trt_scale = TRUE, verbose = FALSE, a_scaling = TRUE, 
     b_scaling = TRUE)
 qhat_xbcf = rowSums(fit_xbcf$muhats[, (burnin + 1):sweeps])/(sweeps - burnin)
 
@@ -177,12 +177,12 @@ print(est)
 
 
 # initialize BCF2 at XBART
-# fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(fit_xbcf$treedraws_trt[100]), fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma, y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE) 
+fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(fit_xbcf$treedraws_trt[100]), fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma, y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE) 
 
 
 
 # initialize BCF2 at BCF2, for debugging purpose
-fit_warmstart = bcf2::bcf_ini(fit_bcf2$tree_con, fit_bcf2$tree_mod, fit_bcf2$mscale, fit_bcf2$bscale0, fit_bcf2$bscale1, fit_bcf2$sigma[length(fit_bcf2$sigma)], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma, y, z, x, x, pihat, nburn=0, nsim=100, ntree_control = treesmu, ntree_moderate = treestau, include_pi = 'control',use_tauscale = TRUE, ini_bcf = TRUE)
+# fit_warmstart = bcf2::bcf_ini(fit_bcf2$tree_con, fit_bcf2$tree_mod, fit_bcf2$mscale, fit_bcf2$bscale0, fit_bcf2$bscale1, fit_bcf2$sigma[length(fit_bcf2$sigma)], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma, y, z, x, x, pihat, nburn=0, nsim=100, ntree_control = treesmu, ntree_moderate = treestau, include_pi = 'control',use_tauscale = TRUE, ini_bcf = TRUE)
 
 
 
@@ -200,6 +200,17 @@ plot(tau, that_warmstart);
 abline(0,1)
 yhat_warmstart = colMeans(fit_warmstart$yhat) * sdy
 mu_warmstart = ( colMeans(fit_warmstart$yhat) - colMeans(fit_warmstart$tau) * z ) * sdy
+
+
+par(mfrow = c(2,2))
+plot(tau, tauhats_xbcf, main = "XBCF")
+abline(0,1, col = "red", lwd = 2)
+plot(tau, that_bcf, main = "BCF")
+abline(0,1, col = "red", lwd = 2)
+plot(tau, that_bcf2, main = "BCF2")
+abline(0,1, col = "red", lwd = 2)
+plot(tau, that_warmstart, main = "warmstart")
+abline(0,1, col = "red", lwd = 2)
 
 
 RMSE_tau = c(sqrt(mean((tauhats_xbcf - tau)^2)), sqrt(mean((that_warmstart - tau)^2)), sqrt(mean((that_bcf - tau)^2)), sqrt(mean((that_bcf2 - tau)^2)))
