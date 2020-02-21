@@ -142,11 +142,14 @@ tauhats_xbcf = rowSums(th_xbcf[, (burnin + 1):sweeps])/(sweeps - burnin)
 tauhats_xbcf = tauhats_xbcf * sdy
 plot(tau, tauhats_xbcf)
 abline(0, 1)
-
-mu_xbcf = rowMeans(fit_xbcf$muhats[, (burnin + 1):sweeps]) * sdy
-
+a_xbcf = fit_xbcf$a_draws
+mu_xbcf = fit_xbcf$muhats
+for (i in seq) {
+    mu_xbcf[, i] = mu_xbcf[, i] * a_xbcf[i]
+}
+mu_xbcf = rowMeans(mu_xbcf[, (burnin + 1):sweeps]) * sdyyhat_xbcf = mu_xbcf + tauhats_xbcf * z
 yhat_xbcf = mu_xbcf + tauhats_xbcf * z
-    
+
  
 # BCF package
 fit_bcf = bcf::bcf(y, z, x, x, pihat, nburn=1000, nsim=1000, include_pi = 'control', use_tauscale = TRUE, use_muscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau)
@@ -177,11 +180,24 @@ print(est)
 
 
 # initialize BCF2 at XBART
-# fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(fit_xbcf$treedraws_trt[100]), fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma, y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE) 
+n_draw_warmstart = 1
+burnin_warmstart = 0
+
+# pi_con_sigma_ini = abs(fit_xbcf$sigma0_draws[1,100] / fit_xbcf$a_draws[100, 1])
+# pi_mod_sigma_ini = abs(fit_xbcf$sigma0_draws[1,100])
+pi_con_sigma_ini = fit_bcf2$pi_con_sigma
+pi_mod_sigma_ini = fit_bcf2$pi_mod_sigma
+
+# this is b1 - b0, used to scale tau(x)
+mod_tree_scaling = fit_xbcf$b_draws[100, 2] - fit_xbcf$b_draws[100, 1]
+
+fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(fit_xbcf$treedraws_trt[100]), fit_xbcf$a_draws[100, 1], -0.5, 0.5, mod_tree_scaling = mod_tree_scaling, fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, pi_con_sigma_ini, fit_bcf2$pi_mod_tau, pi_mod_sigma_ini, y, z, x, x, pihat, nburn=0, nsim=n_draw_warmstart, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE) 
+
+# fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(fit_xbcf$treedraws_trt[100]), fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma, y, z, x, x, pihat, nburn=burnin_warmstart, nsim=n_draw_warmstart, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE) 
 
 
 # Nikolay's 
-fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(fit_xbcf$treedraws_trt[100]), fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma,  y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE) 
+# fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(fit_xbcf$treedraws_trt[100]), fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma,  y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE) 
 
 
 # fit_warmstart = bcf2::bcf_ini(fit_bcf2$tree_con, fit_bcf2$tree_mod, fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma, y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE) 
@@ -198,14 +214,14 @@ fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(f
 
 
 
-tau_post_warmstart = fit_warmstart$tau 
+tau_post_warmstart = matrix(fit_warmstart$tau, n_draw_warmstart, n)
 that_warmstart = colMeans(tau_post_warmstart) 
 
 that_warmstart = that_warmstart*sdy 
 plot(tau, that_warmstart);
 abline(0,1)
-yhat_warmstart = colMeans(fit_warmstart$yhat) * sdy
-mu_warmstart = ( colMeans(fit_warmstart$yhat) - colMeans(fit_warmstart$tau) * z ) * sdy
+yhat_warmstart = colMeans(matrix(fit_warmstart$yhat, n_draw_warmstart, n)) * sdy
+mu_warmstart = ( colMeans(matrix(fit_warmstart$yhat, n_draw_warmstart, n)) - colMeans(fit_warmstart$tau) * z ) * sdy
 
 
 par(mfrow = c(2,2))
