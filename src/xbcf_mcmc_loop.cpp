@@ -26,7 +26,8 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std,
                     bool a_scaling,
                     bool b_scaling)
 {
-
+cout << "size of Xorder std " << Xorder_std.size() << endl;
+cout << "size of Xorder tau " << Xorder_tau_std.size() << endl;
   if (state->parallel)
     thread_pool.start();
 
