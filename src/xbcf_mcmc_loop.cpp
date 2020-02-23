@@ -196,19 +196,19 @@ cout << "size of Xorder tau " << Xorder_tau_std.size() << endl;
     }
   }
 
-  cout << "-------------------------" << endl;
-  cout << "mu fit, data pointer  |  mu, tree search  |  tau fit data pointer  |  tau tree search " << endl;
-  for(size_t kk = 0; kk < 50; kk ++ ){
-    cout << kk << "  " << fit_ps[kk] << "  " << fit_trt[kk] << "  " << fit_ps2[kk] <<  "  " << fit_trt2[kk] << endl;
-  }
+  // cout << "-------------------------" << endl;
+  // cout << "mu fit, data pointer  |  mu, tree search  |  tau fit data pointer  |  tau tree search " << endl;
+  // for(size_t kk = 0; kk < 50; kk ++ ){
+  //   cout << kk << "  " << fit_ps[kk] << "  " << fit_trt[kk] << "  " << fit_ps2[kk] <<  "  " << fit_trt2[kk] << endl;
+  // }
 
 
 
-  cout << "++++++++++++++++++++++++++" << endl;
-  cout << "print mu trees " << endl;
-  for(size_t i = 0; i < state->num_trees_vec[0]; i ++){
-    cout << trees_ps[state->num_sweeps - 1][i] << endl;
-  }
+  // cout << "++++++++++++++++++++++++++" << endl;
+  // cout << "print mu trees " << endl;
+  // for(size_t i = 0; i < state->num_trees_vec[0]; i ++){
+  //   cout << trees_ps[state->num_sweeps - 1][i] << endl;
+  // }
   
   thread_pool.stop();
   return;
