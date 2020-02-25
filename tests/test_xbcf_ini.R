@@ -1,11 +1,13 @@
 rm(list = ls())
 library(XBART)
 library(bcf2)
+library(bcf)
 library(dbarts)
 # data generating process
 n = 5000
 
-seed = 1
+# seed = 1
+seed = 4
 set.seed(seed)
 
 # parameters of XBCF
@@ -202,28 +204,25 @@ if(0){
     mod_tree_scaling = 1
 }
 
-fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(fit_xbcf$treedraws_trt[100]), fit_xbcf$a_draws[100, 1], b0_ini, b1_ini, mod_tree_scaling = mod_tree_scaling, fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, pi_con_sigma_ini, fit_bcf2$pi_mod_tau, pi_mod_sigma_ini, y, z, x, x, pihat, nburn=burnin_warmstart, nsim=n_draw_warmstart, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE, update_mu_loading_tree = TRUE) 
+
+# # BCF2 + XBCF
+
+# fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(fit_xbcf$treedraws_trt[100]), fit_xbcf$a_draws[100, 1], b0_ini, b1_ini, mod_tree_scaling = mod_tree_scaling, fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, pi_con_sigma_ini, fit_bcf2$pi_mod_tau, pi_mod_sigma_ini, y, z, x, x, pihat, nburn=burnin_warmstart, nsim=n_draw_warmstart, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE, update_mu_loading_tree = TRUE) 
 
 
 
+# # BCF + XBCF
 
-
-
-
-
-
-# fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(fit_xbcf$treedraws_trt[100]), fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma, y, z, x, x, pihat, nburn=burnin_warmstart, nsim=n_draw_warmstart, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE) 
-
-
-# Nikolay's 
-# fit_warmstart = bcf2::bcf_ini(as.vector(fit_xbcf$treedraws_pr[100]), as.vector(fit_xbcf$treedraws_trt[100]), fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma,  y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE) 
-
-
-# fit_warmstart = bcf2::bcf_ini(fit_bcf2$tree_con, fit_bcf2$tree_mod, fit_xbcf$a_draws[100, 1], fit_xbcf$b_draws[100, 1], fit_xbcf$b_draws[100, 2], fit_xbcf$sigma0_draws[1,100], fit_bcf2$pi_con_tau, fit_bcf2$pi_con_sigma, fit_bcf2$pi_mod_tau, fit_bcf2$pi_mod_sigma, y, z, x, x, pihat, nburn=0, nsim=100, include_pi = 'control',use_tauscale = TRUE, ntree_control = treesmu, ntree_moderate = treestau, ini_bcf = FALSE) 
+fit_warmstart = bcf::bcf_ini(treedraws_con = as.vector(fit_xbcf$treedraws_pr[100]), treedraws_mod = as.vector(fit_xbcf$treedraws_trt[100]), muscale_ini = fit_xbcf$a_draws[100, 1], bscale0_ini = fit_xbcf$b_draws[100, 1], bscale1_ini = fit_xbcf$b_draws[100, 2], sigma_ini = fit_xbcf$sigma0_draws[1,100], pi_con_tau = fit_bcf$pi_con_tau, pi_con_sigma = fit_bcf$pi_con_sigma, pi_mod_tau = fit_bcf$pi_mod_tau, pi_mod_sigma = fit_bcf$pi_mod_sigma, mod_tree_scaling = 1, y, z, x, x, pihat, nburn=burnin_warmstart, nsim=n_draw_warmstart, ntree_control = treesmu, ntree_moderate = treestau, include_pi = 'control',use_tauscale = TRUE, ini_bcf = FALSE)
 
 
 # # initialize BCF2 at BCF2, for debugging purpose
 # fit_warmstart = bcf2::bcf_ini(treedraws_con = fit_bcf2$tree_con, treedraws_mod = fit_bcf2$tree_mod, muscale_ini = fit_bcf2$mscale, bscale0_ini = fit_bcf2$bscale0, bscale1_ini = fit_bcf2$bscale1, sigma_ini = fit_bcf2$sigma[length(fit_bcf2$sigma)], pi_con_tau = fit_bcf2$pi_con_tau, pi_con_sigma = fit_bcf2$pi_con_sigma, pi_mod_tau = fit_bcf2$pi_mod_tau, pi_mod_sigma = fit_bcf2$pi_mod_sigma, mod_tree_scaling = 1, y, z, x, x, pihat, nburn=burnin_warmstart, nsim=n_draw_warmstart, ntree_control = treesmu, ntree_moderate = treestau, include_pi = 'control',use_tauscale = TRUE, ini_bcf = TRUE)
+
+
+
+# # initialize BCF at BCF, for debugging purpose
+fit_warmstart = bcf::bcf_ini(treedraws_con = fit_bcf$tree_con, treedraws_mod = fit_bcf$tree_mod, muscale_ini = fit_bcf$mscale, bscale0_ini = fit_bcf$bscale0, bscale1_ini = fit_bcf$bscale1, sigma_ini = fit_bcf$sigma[length(fit_bcf2$sigma)], pi_con_tau = fit_bcf$pi_con_tau, pi_con_sigma = fit_bcf$pi_con_sigma, pi_mod_tau = fit_bcf$pi_mod_tau, pi_mod_sigma = fit_bcf$pi_mod_sigma, mod_tree_scaling = 1, y, z, x, x, pihat, nburn=burnin_warmstart, nsim=n_draw_warmstart, ntree_control = treesmu, ntree_moderate = treestau, include_pi = 'control',use_tauscale = TRUE, ini_bcf = TRUE)
 
 
 
@@ -259,7 +258,7 @@ RMSE_Ey = c(sqrt(mean((Ey - yhat_xbcf)^2)), sqrt(mean((Ey - yhat_warmstart)^2)),
 RMSE_mu = c(sqrt(mean((mu_xbcf - mu_true)^2)), sqrt(mean((mu_warmstart - mu_true)^2)), sqrt(mean((mu_bcf - mu_true)^2)), sqrt(mean((mu_bcf2 - mu_true)^2)))
 
 Result = rbind(RMSE_tau, RMSE_Ey, RMSE_mu)
-colnames(Result) = c("XBCF", "Warmstart + BCF2", "BCF", "BCF2")
+colnames(Result) = c("XBCF", "Warmstart", "BCF", "BCF2")
 rownames(Result) = c("RMSE tau", "RMSE E(Y)", "RMSE mu")
 Result
 
