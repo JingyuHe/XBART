@@ -237,9 +237,12 @@ void XBARTcpp::_fit(int n,int d,double *a,
   this->params.max_depth_num, y_mean, this->params.burnin, model->dim_residual));
   std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, n, Xorder_std, p_cat, d-p_cat, &initial_theta, this->params.M));
 
+  std::vector< std::vector<double> > phi_samples;
+  ini_matrix(phi_samples, n, this->params.N_sweeps * this->params.M);
+
   // fit
   mcmc_loop_multinomial(Xorder_std,this->params.verbose, this->trees, this->no_split_penality, 
-                        state, model, x_struct);
+                        state, model, x_struct, phi_samples);
   this->mtry_weight_current_tree = state->mtry_weight_current_tree;
 
   delete model;
