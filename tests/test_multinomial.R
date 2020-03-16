@@ -27,9 +27,9 @@ seed = 10
 #set.seed(seed)
 
 
-n = 5000
+n = 50000
 nt = 1000
-p = 8
+p = 400
 k = 3
 lam = matrix(0,n,k)
 X_train = matrix(runif(n*p,-1,1), nrow=n)
@@ -76,7 +76,7 @@ X_test = X_train
 
 }
 num_trees = 10
-tm = proc.time()
+tm_XBART = proc.time()
 fit = XBART.multinomial(y=y_train, num_class=3, X=X_train, Xtest=X_test, 
             num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
             Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, 
@@ -86,8 +86,8 @@ fit = XBART.multinomial(y=y_train, num_class=3, X=X_train, Xtest=X_test,
 
 # number of sweeps * number of observations * number of classes
 #dim(fit$yhats_test)
-tm = proc.time()-tm
-print(tm)
+tm_XBART = proc.time()-tm_XBART
+print(tm_XBART)
 
 # take average of all sweeps, discard burn-in
 a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
@@ -105,17 +105,17 @@ pred = apply(a,1,which.max)-1
 
 
 
-# Compare with ranger
-data = data.frame( y = y_train, X = X_train)
-data.test = data.frame(X = X_test)
-tm = proc.time()
-fit3 = ranger(as.factor(y) ~ ., data = data,probability=TRUE, num.trees = 1000)
+# # Compare with ranger
+# data = data.frame( y = y_train, X = X_train)
+# data.test = data.frame(X = X_test)
+# tm = proc.time()
+# fit3 = ranger(as.factor(y) ~ ., data = data,probability=TRUE, num.trees = 1000)
 
 
 
-pred3 = predict(fit3, data.test)$predictions
-tm = proc.time()-tm
-print(tm)
+# pred3 = predict(fit3, data.test)$predictions
+# tm = proc.time()-tm
+# print(tm)
 
 
 
