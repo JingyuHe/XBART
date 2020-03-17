@@ -506,6 +506,8 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     
     ////////////////////////////////////////////////////////////////
     mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples, weight_samples);
+    // mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples);
+    // mcmc_loop_multinomial_sample_vars_per_tree(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples);
 
     // TODO: Implement predict OOS
 
