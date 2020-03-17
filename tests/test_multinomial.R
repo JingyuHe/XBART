@@ -78,7 +78,7 @@ X_test = X_train
 num_trees = 10
 tm = proc.time()
 fit = XBART.multinomial(y=y_train, num_class=3, X=X_train, Xtest=X_test, 
-            num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
+            num_trees=num_trees, num_sweeps=num_sweeps, weight = c(1:3), max_depth=250, 
             Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, 
             no_split_penality = 1, burnin = burnin, mtry = 3, p_categorical = 0L, 
             kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 

@@ -955,6 +955,422 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
     return;
 }
 
+void tree::grow_from_root_sample_per_tree(const std::vector<size_t> &subset_vars, std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree)
+{
+    // grow a tree, users can control number of split points
+    size_t N_Xorder = Xorder_std[0].size();
+    size_t p = Xorder_std.size();
+    size_t ind;
+    size_t split_var;
+    size_t split_point;
+
+    this->N = N_Xorder;
+
+    // tau is prior VARIANCE, do not take squares
+
+    if (update_theta)
+    {
+        model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
+    }
+
+    if (N_Xorder <= state->n_min)
+    {
+        return;
+    }
+
+    if (this->depth >= state->max_depth - 1)
+    {
+        return;
+    }
+
+    bool no_split = false;
+
+    BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this, update_split_prob);
+
+    // cout << suff_stat << endl;
+
+    this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
+
+    if (no_split == true)
+    {
+        if (!update_split_prob)
+        {
+            for (size_t i = 0; i < N_Xorder; i++)
+            {
+                x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
+            }
+        }
+
+        if (update_theta)
+        {
+            model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
+        }
+
+        this->l = 0;
+        this->r = 0;
+
+        // update leaf prob, for MH update useage
+        // this->loglike_node = model->likelihood_no_split(this->suff_stat, state);
+
+        return;
+    }
+
+    if (grow_new_tree)
+    {
+        // If GROW FROM ROOT MODE
+        this->v = split_var;
+        this->c = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
+    }
+
+    // Update Cutpoint to be a true seperating point
+    // Increase split_point (index) until it is no longer equal to cutpoint value
+    while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
+    {
+        split_point = split_point + 1;
+    }
+
+    // If our current split is same as parent, exit
+    if ((this->p) && (this->v == (this->p)->v) && (this->c == (this->p)->c))
+    {
+        return;
+    }
+
+    if (grow_new_tree)
+    {
+        // If do not update split prob ONLY
+        // grow from root, initialize new nodes
+
+        state->split_count_current_tree[split_var] += 1;
+
+        tree::tree_p lchild = new tree(model->getNumClasses(), this, model->dim_suffstat);
+        tree::tree_p rchild = new tree(model->getNumClasses(), this, model->dim_suffstat);
+
+        this->l = lchild;
+        this->r = rchild;
+
+        lchild->depth = this->depth + 1;
+        rchild->depth = this->depth + 1;
+
+        lchild->ID = 2 * (this->ID);
+        rchild->ID = lchild->ID + 1;
+    }
+    else
+    {
+        // For MH update usage, update probability of cutpoints given new data
+        // Do not need to initialize new nodes
+    }
+
+    this->l->ini_suff_stat();
+    this->r->ini_suff_stat();
+
+    matrix<size_t> Xorder_left_std;
+    matrix<size_t> Xorder_right_std;
+    // ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
+    // ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
+
+    // warning, for minimal modification, Xorder_left_std and Xorder_right_std still have p variables
+    // but for variables not selected, set corresponding vector length 0
+    Xorder_left_std.resize(p);
+    Xorder_right_std.resize(p);
+
+    for (auto &&i : subset_vars)
+    {
+        Xorder_left_std[i].resize(split_point + 1);
+        Xorder_right_std[i].resize(N_Xorder - split_point - 1);
+    }
+
+    std::vector<size_t> X_num_unique_left(X_num_unique.size());
+    std::vector<size_t> X_num_unique_right(X_num_unique.size());
+
+    std::vector<size_t> X_counts_left(X_counts.size());
+    std::vector<size_t> X_counts_right(X_counts.size());
+
+    if (state->p_categorical > 0)
+    {
+        split_xorder_std_categorical_sample_per_tree(subset_vars, Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, model, x_struct, state, this);
+    }
+
+    if (state->p_continuous > 0)
+    {
+        split_xorder_std_continuous_sample_per_tree(subset_vars, Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
+    }
+
+    this->l->grow_from_root_sample_per_tree(subset_vars, state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree);
+
+    this->r->grow_from_root_sample_per_tree(subset_vars, state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree);
+
+    return;
+}
+
+void split_xorder_std_continuous_sample_per_tree(const std::vector<size_t> &subset_vars, matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, Model *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<State> &state, tree *current_node)
+{
+
+    // when find the split point, split Xorder matrix to two sub matrices for both subnodes
+
+    // preserve order of other variables
+    size_t N_Xorder = Xorder_std[0].size();
+    size_t left_ix = 0;
+    size_t right_ix = 0;
+    size_t N_Xorder_left = Xorder_left_std[0].size();
+    size_t N_Xorder_right = Xorder_right_std[0].size();
+
+    // if the left side is smaller, we only compute sum of it
+    bool compute_left_side = N_Xorder_left < N_Xorder_right;
+
+    current_node->l->ini_suff_stat();
+    current_node->r->ini_suff_stat();
+
+    double cutvalue = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
+
+    const double *temp_pointer = state->X_std + state->n_y * split_var;
+
+    for (size_t j = 0; j < N_Xorder; j++)
+    {
+        if (compute_left_side)
+        {
+            if (*(temp_pointer + Xorder_std[split_var][j]) <= cutvalue)
+            {
+                model->updateNodeSuffStat(current_node->l->suff_stat, state->residual_std, Xorder_std, split_var, j);
+            }
+        }
+        else
+        {
+            if (*(temp_pointer + Xorder_std[split_var][j]) > cutvalue)
+            {
+                model->updateNodeSuffStat(current_node->r->suff_stat, state->residual_std, Xorder_std, split_var, j);
+            }
+        }
+    }
+
+    const double *split_var_x_pointer = state->X_std + state->n_y * split_var;
+
+    // for (size_t i = 0; i < state->p_continuous; i++) // loop over variables
+    for (auto &&i : subset_vars)
+    {
+        if (i < state->p_continuous)
+        {
+            // lambda callback for multithreading
+            auto split_i = [&, i]() {
+                size_t left_ix = 0;
+                size_t right_ix = 0;
+
+                std::vector<size_t> &xo = Xorder_std[i];
+                std::vector<size_t> &xo_left = Xorder_left_std[i];
+                std::vector<size_t> &xo_right = Xorder_right_std[i];
+
+                for (size_t j = 0; j < N_Xorder; j++)
+                {
+                    if (*(split_var_x_pointer + xo[j]) <= cutvalue)
+                    {
+                        xo_left[left_ix] = xo[j];
+                        left_ix = left_ix + 1;
+                    }
+                    else
+                    {
+                        xo_right[right_ix] = xo[j];
+                        right_ix = right_ix + 1;
+                    }
+                }
+            };
+            if (thread_pool.is_active())
+                thread_pool.add_task(split_i);
+            else
+                split_i();
+        }
+    }
+    if (thread_pool.is_active())
+        thread_pool.wait();
+
+    model->calculateOtherSideSuffStat(current_node->suff_stat, current_node->l->suff_stat, current_node->r->suff_stat, N_Xorder, N_Xorder_left, N_Xorder_right, compute_left_side);
+
+    return;
+}
+
+void split_xorder_std_categorical_sample_per_tree(const std::vector<size_t> &subset_vars, matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<State> &state, tree *current_node)
+{
+
+    // when find the split point, split Xorder matrix to two sub matrices for both subnodes
+
+    // preserve order of other variables
+    size_t N_Xorder = Xorder_std[0].size();
+    size_t left_ix = 0;
+    size_t right_ix = 0;
+    size_t N_Xorder_left = Xorder_left_std[0].size();
+    size_t N_Xorder_right = Xorder_right_std[0].size();
+
+    size_t X_counts_index = 0;
+
+    // if the left side is smaller, we only compute sum of it
+    bool compute_left_side = N_Xorder_left < N_Xorder_right;
+
+    current_node->l->ini_suff_stat();
+    current_node->r->ini_suff_stat();
+
+    size_t start;
+    size_t end;
+
+    double cutvalue = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
+
+    // for (size_t i = state->p_continuous; i < state->p; i++)
+    for (auto &&i : subset_vars)
+    {
+        if (i >= state->p_continuous)
+        {
+
+            // loop over variables
+            left_ix = 0;
+            right_ix = 0;
+            const double *temp_pointer = state->X_std + state->n_y * split_var;
+
+            // index range of X_counts, X_values that are corresponding to current variable
+            // start <= i <= end;
+            start = x_struct->variable_ind[i - state->p_continuous];
+            // COUT << "start " << start << endl;
+            end = x_struct->variable_ind[i + 1 - state->p_continuous];
+
+            if (i == split_var)
+            {
+                // split the split_variable, only need to find row of cutvalue
+
+                // I think this part can be optimizied, we know location of cutvalue (split_value variable)
+
+                // COUT << "compute left side " << compute_left_side << endl;
+
+                ///////////////////////////////////////////////////////////
+                //
+                // We should be able to run this part in parallel
+                //
+                //  just like split_xorder_std_continuous
+                //
+                ///////////////////////////////////////////////////////////
+
+                if (compute_left_side)
+                {
+                    for (size_t j = 0; j < N_Xorder; j++)
+                    {
+
+                        if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
+                        {
+                            model->updateNodeSuffStat(current_node->l->suff_stat, state->residual_std, Xorder_std, split_var, j);
+
+                            Xorder_left_std[i][left_ix] = Xorder_std[i][j];
+
+                            left_ix = left_ix + 1;
+                        }
+                        else
+                        {
+                            // go to right side
+                            Xorder_right_std[i][right_ix] = Xorder_std[i][j];
+
+                            right_ix = right_ix + 1;
+                        }
+                    }
+                }
+                else
+                {
+                    for (size_t j = 0; j < N_Xorder; j++)
+                    {
+                        if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
+                        {
+
+                            Xorder_left_std[i][left_ix] = Xorder_std[i][j];
+                            left_ix = left_ix + 1;
+                        }
+                        else
+                        {
+                            model->updateNodeSuffStat(current_node->r->suff_stat, state->residual_std, Xorder_std, split_var, j);
+
+                            Xorder_right_std[i][right_ix] = Xorder_std[i][j];
+
+                            right_ix = right_ix + 1;
+                        }
+                    }
+                }
+
+                // for the cut variable, it's easy to counts X_counts_left and X_counts_right, simply cut X_counts to two pieces.
+
+                for (size_t k = start; k < end; k++)
+                {
+                    // loop from start to end!
+
+                    if (x_struct->X_values[k] <= cutvalue)
+                    {
+                        // smaller than cutvalue, go left
+                        X_counts_left[k] = X_counts[k];
+                    }
+                    else
+                    {
+                        // otherwise go right
+                        X_counts_right[k] = X_counts[k];
+                    }
+                }
+            }
+            else
+            {
+
+                X_counts_index = start;
+
+                // split other variables, need to compare each row
+                for (size_t j = 0; j < N_Xorder; j++)
+                {
+
+                    while (*(state->X_std + state->n_y * i + Xorder_std[i][j]) != x_struct->X_values[X_counts_index])
+                    {
+                        //     // for the current observation, find location of corresponding unique values
+                        X_counts_index++;
+                    }
+
+                    if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
+                    {
+                        // go to left side
+                        Xorder_left_std[i][left_ix] = Xorder_std[i][j];
+                        left_ix = left_ix + 1;
+
+                        X_counts_left[X_counts_index]++;
+                    }
+                    else
+                    {
+                        // go to right side
+
+                        Xorder_right_std[i][right_ix] = Xorder_std[i][j];
+                        right_ix = right_ix + 1;
+
+                        X_counts_right[X_counts_index]++;
+                    }
+                }
+            }
+        }
+    }
+
+    model->calculateOtherSideSuffStat(current_node->suff_stat, current_node->l->suff_stat, current_node->r->suff_stat, N_Xorder, N_Xorder_left, N_Xorder_right, compute_left_side);
+
+    // update X_num_unique
+
+    std::fill(X_num_unique_left.begin(), X_num_unique_left.end(), 0.0);
+    std::fill(X_num_unique_right.begin(), X_num_unique_right.end(), 0.0);
+
+    for (size_t i = state->p_continuous; i < state->p; i++)
+    {
+        start = x_struct->variable_ind[i - state->p_continuous];
+        end = x_struct->variable_ind[i + 1 - state->p_continuous];
+
+        // COUT << "start " << start << " end " << end << " size " << X_counts_left.size() << endl;
+        for (size_t j = start; j < end; j++)
+        {
+            if (X_counts_left[j] > 0)
+            {
+                X_num_unique_left[i - state->p_continuous] = X_num_unique_left[i - state->p_continuous] + 1;
+            }
+            if (X_counts_right[j] > 0)
+            {
+                X_num_unique_right[i - state->p_continuous] = X_num_unique_right[i - state->p_continuous] + 1;
+            }
+        }
+    }
+
+    return;
+}
+
 void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &split_var, size_t &split_point, const std::vector<size_t> &subset_vars, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<State> &state, tree *tree_pointer, bool update_split_prob)
 {
 
@@ -1376,8 +1792,8 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
 {
 
     loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + log(model->getNoSplitPenality());
-  
-//cout << loglike << endl;
+
+    //cout << loglike << endl;
     // then adjust according to number of variables and split points
 
     ////////////////////////////////////////////////////////////////
@@ -1548,7 +1964,7 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
     // output should have dimension (dim_theta, num_trees)
 
     tree::tree_p bn; // pointer to bottom node
-    
+
     for (size_t i = 0; i < tree.size(); i++)
     {
         // loop over trees
@@ -1603,14 +2019,13 @@ void getThetaForObs_Outsample_ave(matrix<double> &output, std::vector<tree> &tre
         // bn is the bottom node
 
         output[i] = output[i] + bn->theta_vector;
-        count ++ ;
+        count++;
 
         // take average of the path
         for (size_t j = 0; j < output[i].size(); j++)
         {
             output[i][j] = output[i][j] / (double)count;
         }
-
     }
 
     return;
