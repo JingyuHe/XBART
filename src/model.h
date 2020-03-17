@@ -472,15 +472,13 @@ public:
  //   size_t dim_suffstat = 3;
 
     // prior on leaf parameter
-    double tau_a, tau_b, weight; //leaf parameter is ~ G(tau_a, tau_b). tau_a = 1/tau + 1/2, tau_b = 1/tau -> f(x)\sim N(0,tau) approx
+    double tau_a, tau_b; //leaf parameter is ~ G(tau_a, tau_b). tau_a = 1/tau + 1/2, tau_b = 1/tau -> f(x)\sim N(0,tau) approx
 
     // Should these pointers live in model subclass or state subclass?
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
     std::vector<double> *phi; // latent variables for mnl
 
-    std::vector<double> weight_std;
-
-    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, std::vector<double> weight_std) : Model(num_classes, 2*num_classes)
+    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi) : Model(num_classes, 2*num_classes)
     {
       this->y_size_t = y_size_t;
       this->phi = phi;
@@ -490,8 +488,6 @@ public:
         this->beta = beta;
         //what should this be?
         this->dim_residual = num_classes;
-        this->weight = weight_std[0];
-        this->weight_std = weight_std;
     }
 
     LogitModel() : Model(2, 4) {}
