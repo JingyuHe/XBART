@@ -14,75 +14,67 @@ plotROC <- function(pihat,ytrue,add=FALSE,col = 'steelblue'){
   #print(mean(tpr))
 }
 
-
-
 library(XBART)
 library(xgboost)
 library(ranger)
 
-
 seed = 10
+set.seed(seed)
 
 
-#set.seed(seed)
-
-
-n = 10000
+n = 5000
 nt = 1000
 p = 20
-k = 3
+k = 6
 lam = matrix(0,n,k)
+lamt = matrix(0,nt,k)
+
 X_train = matrix(runif(n*p,-1,1), nrow=n)
-#logodds = pmax(5*X_train-2.5)
-lam[,1] = 2*abs(2*X_train[,1] - X_train[,2])
-lam[,2] = 1
-lam[,3] = 3*X_train[,3]^2
-pr = exp(lam)
-pr = t(scale(t(pr),center=FALSE, scale = rowSums(pr)))
-# logodds = 2*X_train[,1]*X_train[,2]
-#pr = plogis(logodds)
-#y_train = rbinom(n, 1, pr)
-y_train = sapply(1:n,function(j) sample(0:(k-1),1,prob=pr[j,]))
-
-lam = matrix(0,nt,k)
-
 X_test = matrix(runif(nt*p,-1,1), nrow=nt)
 
-#logodds = pmax(5*X_test-2.5)
-#logodds = 3*X_test[,3]*(X_test[,1] > X_test[,2]) - 3*(1-X_test[,3])*(X_test[,1] < X_test[,2])
 
-# logodds = 2*X_test[,1]*X_test[,2]
-#pr = plogis(logodds)
-#y_test = rbinom(nt, 1, pr)
-lam[,1] = 2*abs(2*X_test[,1] - X_test[,2])
+lam[,1] = abs(2*X_train[,1] - X_train[,2])
 lam[,2] = 1
-lam[,3] = 3*X_test[,3]^2
-pr = exp(lam)
+lam[,3] = 3*X_train[,3]^2
+lam[,4] = 5*(X_train[, 4] * X_train[,5])
+lam[,5] = 2*(X_train[,5] + 2*X_train[,6])
+lam[,6] = 2*(X_train[,1] + X_train[,3] - X_train[,5])
+lamt[,1] = abs(2*X_test[,1] - X_test[,2])
+lamt[,2] = 1
+lamt[,3] = 3*X_test[,3]^2
+lamt[,4] = 5*(X_test[,4]*X_test[,5])
+lamt[,5] = 2*(X_test[,5] + 2*X_test[,6])
+lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
+pr = exp(10*lam)
 pr = t(scale(t(pr),center=FALSE, scale = rowSums(pr)))
-# logodds = 2*X_train[,1]*X_train[,2]
-#pr = plogis(logodds)
-#y_train = rbinom(n, 1, pr)
+y_train = sapply(1:n,function(j) sample(0:(k-1),1,prob=pr[j,]))
+
+pr = exp(10*lamt)
+pr = t(scale(t(pr),center=FALSE, scale = rowSums(pr)))
 y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 
-num_sweeps = 30
+
+
+num_sweeps = 50
 burnin = 15
 
-
 if(0){
-# insample error 
-y_test = y_train
-X_test = X_train
+  # insample error 
+  y_test = y_train
+  X_test = X_train
 }else{
-
+  
 }
-num_trees = 10
+num_trees = 20
+# delta = seq(0.1, 2, 0.05)
+# concn = 1
 tm = proc.time()
-fit = XBART.multinomial(y=matrix(y_train), num_class=3, X=X_train, Xtest=X_test, 
-            num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
-            Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, 
-            no_split_penality = 1, burnin = burnin, mtry = 3, p_categorical = 0L, 
-            kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 
-            random_seed = NULL, sample_weights_flag = TRUE) 
+fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test, 
+                        num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
+                        Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, 
+                        no_split_penality = 1, weight = c(1:10),burnin = burnin, mtry = 3, p_categorical = 0L, 
+                        kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 
+                        random_seed = NULL, sample_weights_flag = TRUE) 
 
 # number of sweeps * number of observations * number of classes
 #dim(fit$yhats_test)
@@ -92,81 +84,60 @@ cat(paste("\n", "xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
 pred = apply(a,1,which.max)-1
 
-# final predcition
-#pred = as.numeric(a[,1] < a[,2])
-
-
-# Compare with BART probit
-#fit2 = pbart(X_train, y_train)
-
-#pred2 = predict(fit2, X_test)
-#pred2 = as.numeric(pred2$prob.test.mean > 0.5)
-
-
 
 # Compare with ranger
-data = data.frame( y = y_train, X = X_train)
-data.test = data.frame(X = X_test)
-tm = proc.time()
-fit3 = ranger(as.factor(y) ~ ., data = data,probability=TRUE, num.trees = 1000)
+# data = data.frame( y = y_train, X = X_train)
+# data.test = data.frame(X = X_test)
+# tm = proc.time()
+# fit3 = ranger(as.factor(y) ~ ., data = data,probability=TRUE, num.trees = 1000)
+# 
+# 
+# 
+# pred3 = predict(fit3, data.test)$predictions
+# tm = proc.time()-tm
+# cat(paste("ranger runtime: ", round(tm["elapsed"],3)," seconds","\n"))
 
 
+tm2 = proc.time()
+fit.xgb <- xgboost(data = X_train, label=y_train,
+                   num_class=k,
+                   verbose = 0,
+                   max_depth = 4,
+                   subsample = 0.80,
+                   nrounds=500,
+                   early_stopping_rounds = 2,
+                   eta = 0.1,
+                   params=list(objective="multi:softprob"))
 
-pred3 = predict(fit3, data.test)$predictions
-tm = proc.time()-tm
-cat(paste("ranger runtime: ", round(tm["elapsed"],3)," seconds","\n"))
-
-
-tm = proc.time()
-fit.xgb <- xgboost(data = X_train,label=y_train,
-                          num_class=3,
-                          verbose = 0,
-                          max_depth = 4,
-                          subsample = 0.80,
-                          nrounds=500,
-                          early_stopping_rounds = 2,
-                          eta = 0.1,
-                          params=list(objective="multi:softprob"))
-
-tm = proc.time()-tm
-cat(paste("xgboost runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
+tm2 = proc.time()-tm2
+cat(paste("xgboost runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 phat.xgb <- predict(fit.xgb, X_test)
 phat.xgb <- matrix(phat.xgb, ncol=k, byrow=TRUE)
 
 yhat.xgb <- max.col(phat.xgb) - 1
 
 
-
-#plotROC(pred3$predictions,y_test)
-#plotROC(a[,2],y_test,add=TRUE,col='orange')
-
-#pred3 = as.numeric(pred3$predictions > 0.5)
-
-
-
-# OUT SAMPLE error
-#print(mean(pred == y_test))
-#sum(pred2 == y_test)
-#print(mean(pred3 == y_test))
-
 cat(paste("xbart rmse on probabilities: ", round(sqrt(mean((a-pr)^2)),3)),"\n")
-cat(paste("ranger rmse on probabilities: ", round(sqrt(mean((pred3-pr)^2)),3)),"\n")
+# cat(paste("ranger rmse on probabilities: ", round(sqrt(mean((pred3-pr)^2)),3)),"\n")
 cat(paste("xgboost rmse on probabilities: ", round(sqrt(mean((phat.xgb-pr)^2)),3)),"\n")
 
-#par(mfrow=c(1,3))
-#plot(pred3[,1],pr[,1],pch=20,cex=0.5)
-#plot(pred3[,2],pr[,2],pch=20,cex=0.5)
-#plot(pred3[,3],pr[,3],pch=20,cex=0.5)
-
-par(mfrow=c(1,3))
-plot(a[,1],pr[,1],pch=20,cex=0.75)
-plot(a[,2],pr[,2],pch=20,cex=0.75)
-plot(a[,3],pr[,3],pch=20,cex=0.75)
-
-
+# par(mfrow=c(1,3))
+# plot(a[,1],pr[,1],pch=20,cex=0.75)
+# plot(a[,2],pr[,2],pch=20,cex=0.75)
+# plot(a[,3],pr[,3],pch=20,cex=0.75)
 
 yhat = apply(a,1,which.max)-1
-yhat.rf = apply(pred3,1,which.max)-1
 cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
-cat(paste("ranger classification accuracy: ", round(mean(y_test == yhat.rf),3)),"\n")
 cat(paste("xgboost classification accuracy: ", round(mean(yhat.xgb == y_test),3)),"\n")
+
+spr <- split(a, row(a))
+logloss <- sum(mapply(function(x,y) -log(x[y]), spr, y_test+1, SIMPLIFY =TRUE))
+spr <- split(phat.xgb, row(phat.xgb))
+logloss.xgb <- sum(mapply(function(x,y) -log(x[y]), spr, y_test+1, SIMPLIFY =TRUE))
+
+cat(paste("xbart logloss : ",round(logloss,3)),"\n")
+cat(paste("xgboost logloss : ", round(logloss.xgb,3)),"\n")
+
+cat(paste("\n", "xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
+
+table(fit$weight)
