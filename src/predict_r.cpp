@@ -56,7 +56,7 @@ Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std:
 
 
 // [[Rcpp::export]]
-Rcpp::List xbart_multinomial_predict(arma::mat X, double y_mean, size_t num_class, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)
+Rcpp::List xbart_multinomial_predict(arma::mat X, double y_mean, size_t num_class, Rcpp::XPtr<std::vector<std::vector<std::vector<tree>>>> tree_pnt)
 {
 
     // Size of data
@@ -75,7 +75,7 @@ Rcpp::List xbart_multinomial_predict(arma::mat X, double y_mean, size_t num_clas
     double *Xpointer = &X_std[0];
 
     // Trees
-    std::vector<std::vector<tree>> *trees = tree_pnt;
+    std::vector<std::vector<std::vector<tree>>> *trees = tree_pnt;
 
     // Result Container
     matrix<double> yhats_test_xinfo;
@@ -94,7 +94,7 @@ Rcpp::List xbart_multinomial_predict(arma::mat X, double y_mean, size_t num_clas
 
     Rcpp::NumericVector output = Rcpp::wrap(output_vec);
     output.attr("dim") = Rcpp::Dimension(N_sweeps, N, num_class);
-    
+
     return Rcpp::List::create(Rcpp::Named("yhats") = output);
 }
 

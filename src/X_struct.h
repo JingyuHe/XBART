@@ -3,6 +3,8 @@
 #include "common.h"
 #include "utility.h"
 
+using namespace std;
+
 struct X_struct
 {
 public:
@@ -11,21 +13,27 @@ public:
     // copy of data_pointers object, for MH update
     matrix<std::vector<double> *> data_pointers_copy;
 
+    // data pointers for multinomial separate trees case
+    std::vector< std::vector <std::vector< std::vector<double>* > > > data_pointers_multinomial;
 
     std::vector<double> X_values;
     std::vector<size_t> X_counts;
     std::vector<size_t> variable_ind;
     std::vector<size_t> X_num_unique;
-    const double *X_std;    // pointer to original data
+    const double *X_std;              // pointer to original data
     const std::vector<double> *y_std; // pointer to y data
-    size_t n_y; // number of total data points in root node
+    size_t n_y;                       // number of total data points in root node
 
-    X_struct(const double *X_std, const std::vector<double> *y_std, size_t n_y, std::vector< std::vector<size_t> > &Xorder_std, size_t p_categorical, size_t p_continuous, std::vector<double> *initial_theta, size_t num_trees){
+    X_struct(const double *X_std, const std::vector<double> *y_std, size_t n_y, std::vector<std::vector<size_t>> &Xorder_std, size_t p_categorical, size_t p_continuous, std::vector<double> *initial_theta, size_t num_trees)
+    {
 
         this->variable_ind = std::vector<size_t>(p_categorical + 1);
+
         this->X_num_unique = std::vector<size_t>(p_categorical);
 
         init_tree_pointers(initial_theta, n_y, num_trees);
+
+        init_tree_pointers_multinomial(initial_theta, n_y, num_trees);
 
         unique_value_count2(X_std, Xorder_std, X_values, X_counts, variable_ind, n_y, X_num_unique, p_categorical, p_continuous);
 
@@ -64,6 +72,26 @@ public:
                 pointer_vec[j] = initial_theta;
             }
         }
+    }
+
+    void init_tree_pointers_multinomial(std::vector<double> *initial_theta, size_t N, size_t num_trees)
+    {
+        size_t num_class = (* initial_theta).size();
+        data_pointers_multinomial.resize(num_class);
+
+        for (size_t i = 0; i < num_class; i++)
+        {
+            data_pointers_multinomial[i].resize(num_trees);
+            for (size_t j = 0; j < num_trees; j++)
+            {
+                data_pointers_multinomial[i][j].resize(N);
+                std::fill(data_pointers_multinomial[i][j].begin(), data_pointers_multinomial[i][j].end(), initial_theta);
+            }
+        }
+
+        cout << "size of data pinters " << data_pointers_multinomial.size() << "  " << data_pointers_multinomial[1].size() << "  " << data_pointers_multinomial[1][1].size() << endl;
+
+        return;
     }
 };
 

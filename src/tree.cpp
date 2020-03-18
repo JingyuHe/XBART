@@ -541,7 +541,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
     if (update_theta)
     {
-        model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
+        model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf, tree_ind);
     }
 
     if (N_Xorder <= state->n_min)
@@ -607,7 +607,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
         if (update_theta)
         {
-            model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
+            model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf, tree_ind);
         }
 
         this->l = 0;
@@ -970,7 +970,7 @@ void tree::grow_from_root_sample_per_tree(const std::vector<size_t> &subset_vars
 
     if (update_theta)
     {
-        model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
+        model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf, tree_ind);
     }
 
     if (N_Xorder <= state->n_min)
@@ -997,13 +997,13 @@ void tree::grow_from_root_sample_per_tree(const std::vector<size_t> &subset_vars
         {
             for (size_t i = 0; i < N_Xorder; i++)
             {
-                x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
+                x_struct->data_pointers_multinomial[model->get_class_operating()][tree_ind][Xorder_std[0][i]] = &this->theta_vector;
             }
         }
 
         if (update_theta)
         {
-            model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
+            model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf, tree_ind);
         }
 
         this->l = 0;

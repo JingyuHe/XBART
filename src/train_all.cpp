@@ -77,15 +77,15 @@ void rcpp_to_std2(arma::mat y, arma::mat X, arma::mat Xtest, std::vector<double>
 void rcpp_to_std2(arma::mat X, arma::mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp::NumericMatrix &Xtest_std, matrix<size_t> &Xorder_std)
 {
   // The goal of this function is to convert RCPP object to std objects
-  
+
   // TODO: Refactor code so for loops are self contained functions
   // TODO: Why RCPP and not std?
   // TODO: inefficient Need Replacement?
-  
+
   size_t N = X.n_rows;
   size_t p = X.n_cols;
   size_t N_test = Xtest.n_rows;
-  
+
   // X_std
   for (size_t i = 0; i < N; i++)
   {
@@ -94,7 +94,7 @@ void rcpp_to_std2(arma::mat X, arma::mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp
       X_std(i, j) = X(i, j);
     }
   }
-  
+
   //X_std_test
   for (size_t i = 0; i < N_test; i++)
   {
@@ -103,7 +103,7 @@ void rcpp_to_std2(arma::mat X, arma::mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp
       Xtest_std(i, j) = Xtest(i, j);
     }
   }
-  
+
   // Create Xorder
   // Order
   arma::umat Xorder(X.n_rows, X.n_cols);
@@ -119,7 +119,7 @@ void rcpp_to_std2(arma::mat X, arma::mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp
       Xorder_std[j][i] = Xorder(i, j);
     }
   }
-  
+
   return;
 }
 
@@ -440,13 +440,15 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     ini_matrix(Xorder_std, N, p);
 
     std::vector<size_t> y_size_t(N);
-    for(size_t i=0; i<N; ++i) y_size_t[i] = y[i];
-    
-    
+    for(size_t i = 0; i < N; ++i)
+        y_size_t[i] = y[i];
+
+
     //TODO: check if I need to carry this
     std::vector<double> y_std(N);
     double y_mean = 0.0;
-    for(size_t i=0; i<N; ++i) y_std[i] = y[i];
+    for(size_t i = 0; i < N; ++i)
+        y_std[i] = y[i];
 
     Rcpp::NumericMatrix X_std(N, p);
     Rcpp::NumericMatrix Xtest_std(N_test, p);
@@ -467,21 +469,25 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
 
     // // Create trees
-    vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
-    for (size_t i = 0; i < num_sweeps; i++)
+    vector<vector<vector<tree>>> *trees2 = new vector<vector<vector<tree>>>(num_class);
+    for (size_t i = 0; i < num_class; i++)
     {
-        (*trees2)[i] = vector<tree>(num_trees);
+        (*trees2)[i] = vector<vector<tree>>(num_sweeps);
+        for (size_t j = 0; j < num_sweeps; j++)
+        {
+            (*trees2)[i][j] = vector<tree>(num_trees);
+        }
     }
 
     // define model
-    double tau_a = 1/tau + 0.5;
-    double tau_b = 1/tau;
+    double tau_a = 1.0 / tau + 0.5;
+    double tau_b = 1.0 / tau;
     std::vector<double> phi(N);
     for(size_t i=0; i<N; ++i) phi[i] = 1;
 
     std::vector<double> weight_std(weight.size());
     for(size_t i=0; i<weight.size(); ++i) weight_std[i] = weight[i];
-    
+
     LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight_std);
     model->setNoSplitPenality(no_split_penality);
 
@@ -494,7 +500,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
 
     std::vector<double> initial_theta(num_class, 1);
     std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual));
-    
+
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
@@ -503,7 +509,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
 
     std::vector< std::vector<double> > weight_samples;
     ini_matrix(weight_samples, num_trees, num_sweeps);
-    
+
     ////////////////////////////////////////////////////////////////
     // mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples, weight_samples);
 
@@ -535,7 +541,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     // Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericVector split_count_sum(p);                // split counts
-    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
+    Rcpp::XPtr< std::vector<std::vector<std::vector<tree>>> > tree_pnt(trees2, true);
     Rcpp::NumericMatrix phi_sample_rcpp(N, num_sweeps * num_trees);
     Rcpp::NumericMatrix weight_sample_rcpp(num_trees, num_sweeps);
 

@@ -35,6 +35,10 @@ void ini_xinfo(matrix<double> &X, size_t N, size_t p, double var);
 // // initialize STD integer matrix
 void ini_xinfo_sizet(matrix<size_t> &X, size_t N, size_t p);
 
+void reset_xinfo(matrix<double> &X);
+
+void reset_xinfo_sizet(matrix<size_t> &X);
+
 void row_sum(matrix<double> &X, std::vector<double> &output);
 
 void col_sum(matrix<double> &X, std::vector<double> &output);

@@ -164,7 +164,7 @@ void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sig
 }
 
 void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
-                           vector<vector<tree>> &trees, double no_split_penality,
+                           vector<vector<vector<tree>>> &trees, double no_split_penality,
                            std::unique_ptr<State> &state, LogitModel *model,
                            std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &phi_samples, std::vector<std::vector<double>> &weight_samples)
 {
@@ -211,13 +211,23 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
                 state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
             }
 
-            model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+            // model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+            //
+            // trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
+            //
+            // trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
 
-            //cout << trees[sweeps][tree_ind].suff_stat << endl;
+            for (size_t class_ind = 0; class_ind < model->dim_residual; class_ind++)
+            {
 
-            trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
+                model->set_class_operating(class_ind);
 
-            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+                model->initialize_root_suffstat(state, trees[class_ind][sweeps][tree_ind].suff_stat);
+
+                trees[class_ind][sweeps][tree_ind].theta_vector.resize(model->dim_residual);
+
+                trees[class_ind][sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+            }
 
             state->update_split_counts(tree_ind);
 
@@ -238,7 +248,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
 }
 
 void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose,
-                                           vector<vector<tree>> &trees, double no_split_penality,
+                                           vector<vector<vector<tree>>> &trees, double no_split_penality,
                                            std::unique_ptr<State> &state, LogitModel *model,
                                            std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &phi_samples, std::vector<std::vector<double>> &weight_samples)
 {
@@ -290,44 +300,48 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
                 state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
             }
 
-            model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
-
-            //cout << trees[sweeps][tree_ind].suff_stat << endl;
-
-            trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
-
             // draw a subset of variables for the next tree
             // subset_vars is a vector containing selected variable index, length mtry (indexing starts from 0)
 
-            if (state->use_all)
+            for (size_t class_ind = 0; class_ind < model->dim_residual; class_ind++)
             {
-                std::iota(subset_vars.begin(), subset_vars.end(), 0);
-            }
-            else
-            {
-                if (state->sample_weights_flag)
-                {
-                    // Sample Weights Dirchelet
-                    for (size_t i = 0; i < p; i++)
-                    {
-                        std::gamma_distribution<double> temp_dist(state->mtry_weight_current_tree[i], 1.0);
-                        weight_samp[i] = temp_dist(state->gen);
-                    }
-                    weight_sum = accumulate(weight_samp.begin(), weight_samp.end(), 0.0);
-                    for (size_t i = 0; i < p; i++)
-                    {
-                        weight_samp[i] = weight_samp[i] / weight_sum;
-                    }
 
-                    subset_vars = sample_int_ccrank(p, state->mtry, weight_samp, state->gen);
+                model->set_class_operating(class_ind);
+
+                model->initialize_root_suffstat(state, trees[class_ind][sweeps][tree_ind].suff_stat);
+
+                trees[class_ind][sweeps][tree_ind].theta_vector.resize(model->dim_residual);
+
+                if (state->use_all)
+                {
+                    std::iota(subset_vars.begin(), subset_vars.end(), 0);
                 }
                 else
                 {
-                    subset_vars = sample_int_ccrank(p, state->mtry, state->mtry_weight_current_tree, state->gen);
-                }
-            }
+                    if (state->sample_weights_flag)
+                    {
+                        // Sample Weights Dirchelet
+                        for (size_t i = 0; i < p; i++)
+                        {
+                            std::gamma_distribution<double> temp_dist(state->mtry_weight_current_tree[i], 1.0);
+                            weight_samp[i] = temp_dist(state->gen);
+                        }
+                        weight_sum = accumulate(weight_samp.begin(), weight_samp.end(), 0.0);
+                        for (size_t i = 0; i < p; i++)
+                        {
+                            weight_samp[i] = weight_samp[i] / weight_sum;
+                        }
 
-            trees[sweeps][tree_ind].grow_from_root_sample_per_tree(subset_vars, state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+                        subset_vars = sample_int_ccrank(p, state->mtry, weight_samp, state->gen);
+                    }
+                    else
+                    {
+                        subset_vars = sample_int_ccrank(p, state->mtry, state->mtry_weight_current_tree, state->gen);
+                    }
+                }
+
+                trees[class_ind][sweeps][tree_ind].grow_from_root_sample_per_tree(subset_vars, state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+            }
 
             state->update_split_counts(tree_ind);
 

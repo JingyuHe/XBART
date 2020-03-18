@@ -23,6 +23,8 @@ public:
 
     size_t dim_residual;
 
+    size_t class_operating;
+
     /////////////////////////////////////
     //
     //  suff_stat_model and suff_stat_total
@@ -51,7 +53,15 @@ public:
     // Abstract functions
     virtual void incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats) { return; };
 
-    virtual void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf) { return; };
+    virtual void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf, const size_t &tree_ind) { return; };
+
+    virtual size_t get_class_operating() { return class_operating; };
+
+    virtual void set_class_operating(size_t i)
+    {
+        class_operating = i;
+        return;
+    };
 
     virtual void update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct) { return; };
 
@@ -106,6 +116,7 @@ public:
     double s;
     // prior on leaf parameter
     double tau;
+    size_t class_operating;
 
     NormalModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 3)
     {
@@ -115,6 +126,7 @@ public:
         this->alpha = alpha;
         this->beta = beta;
         this->dim_residual = 1;
+        this->class_operating = 0;
     }
 
     NormalModel() : Model(1, 3) {}
@@ -123,7 +135,7 @@ public:
 
     void incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats);
 
-    void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
+    void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf, const size_t &tree_ind);
 
     void update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct);
 
@@ -158,7 +170,8 @@ public:
     {
         this->z = std::vector<double>(y_std.size(), 0);
         this->z_prev = std::vector<double>(y_std.size(), 0);
-        for(size_t i = 0; i < y_std.size(); i ++ ){
+        for(size_t i = 0; i < y_std.size(); i ++ )
+        {
             this->z[i] = y_std[i];
         }
         return;
@@ -183,6 +196,7 @@ public:
     double s;
     // prior on leaf parameter
     double tau;
+    size_t class_operating;
 
     CLTClass(double kap, double s, double tau, double alpha, double beta) : Model(1, 4)
     {
@@ -217,7 +231,7 @@ public:
         return;
     }
     void incrementSuffStat() const { return; };
-    void samplePars(double y_mean, size_t N_Xorder, double sigma, std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, matrix<size_t> &Xorder, double &prob_leaf)
+    void samplePars(double y_mean, size_t N_Xorder, double sigma, std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, matrix<size_t> &Xorder, double &prob_leaf, const size_t &tree_ind)
     {
         // Update params
         updateFullSuffStat(y_std, Xorder[0]);
@@ -431,24 +445,26 @@ private:
 
         size_t c = suffstats.size() / 2;
 
-        //suffstats[0] .. suffstats[c-1]is count of y's in cat 0,...,c-1, i.e. r in proposal
-        //suffstats[c] .. suffstats[2c-1] is sum of phi_i*(partial fit j)'s ie s in proposal
+      //  suffstats[0] .. suffstats[c-1]is count of y's in cat 0,...,c-1, i.e. r in proposal
+      //  suffstats[c] .. suffstats[2c-1] is sum of phi_i*(partial fit j)'s ie s in proposal
       //  double nh = 0;
       //  for (size_t j = 0; j < c; j++)
       //  {
       //    nh += suffstats[j];
       //  }
-        
+
       double ret = 0;
-        
-        
-        for (size_t j = 0; j < c; j++)
-        {
+
+      size_t j = class_operating;
+
+
+        // for (size_t j = 0; j < c; j++)
+        // {
             // double r = suffstats[j];
             // double s = suffstats[c + j];
             // ret += -(tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]) ;
             ret += -(tau_a + suffstats[j] ) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]);// - lgamma(suffstats[j] +1);
-        }
+        // }
         return ret;
     }
 
@@ -480,27 +496,39 @@ public:
 
     std::vector<double> weight_std;
 
+    // which class is the code working on, for internal use only
+    // grow separate tree for different class for multinomial case
+    size_t class_operating;
+
     LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, std::vector<double> weight_std) : Model(num_classes, 2*num_classes)
     {
-      this->y_size_t = y_size_t;
-      this->phi = phi;
+        this->y_size_t = y_size_t;
+        this->phi = phi;
         this->tau_a = tau_a;
         this->tau_b = tau_b;
         this->alpha = alpha;
         this->beta = beta;
-        //what should this be?
         this->dim_residual = num_classes;
         this->weight = weight_std[0];
         this->weight_std = weight_std;
+        this->class_operating = 0;
     }
 
     LogitModel() : Model(2, 4) {}
 
     Model *clone() { return new LogitModel(*this); }
 
+    size_t get_class_operating() { return class_operating; };
+
+    void set_class_operating(size_t i)
+    {
+        class_operating = i;
+        return;
+    };
+
     void incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats);
 
-    void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
+    void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf, const size_t &tree_ind);
 
     void update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct);
 
@@ -518,7 +546,7 @@ public:
 
     void ini_residual_std(std::unique_ptr<State> &state);
 
-    void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec);
+    void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<vector<tree>>> &trees, std::vector<double> &output_vec);
 };
 
 
