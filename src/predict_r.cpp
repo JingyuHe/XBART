@@ -39,7 +39,7 @@ Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std:
 
     // Predict
     model->predict_std(Xpointer, N, p, M, N_sweeps,
-                yhats_test_xinfo, *trees);
+                       yhats_test_xinfo, *trees);
 
     // Convert back to Rcpp
     Rcpp::NumericMatrix yhats(N, N_sweeps);
@@ -53,7 +53,6 @@ Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std:
 
     return Rcpp::List::create(Rcpp::Named("yhats") = yhats);
 }
-
 
 // [[Rcpp::export]]
 Rcpp::List xbart_multinomial_predict(arma::mat X, double y_mean, size_t num_class, Rcpp::XPtr<std::vector<std::vector<std::vector<tree>>>> tree_pnt)
@@ -97,9 +96,6 @@ Rcpp::List xbart_multinomial_predict(arma::mat X, double y_mean, size_t num_clas
 
     return Rcpp::List::create(Rcpp::Named("yhats") = output);
 }
-
-
-
 
 // [[Rcpp::export]]
 Rcpp::StringVector r_to_json(double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)

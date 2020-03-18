@@ -219,7 +219,6 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
 
             for (size_t class_ind = 0; class_ind < model->dim_residual; class_ind++)
             {
-
                 model->set_class_operating(class_ind);
 
                 model->initialize_root_suffstat(state, trees[class_ind][sweeps][tree_ind].suff_stat);
@@ -263,7 +262,6 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
     std::vector<size_t> subset_vars(p);
     std::vector<double> weight_samp(p);
     double weight_sum;
-
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {

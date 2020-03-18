@@ -14,7 +14,7 @@ public:
     matrix<std::vector<double> *> data_pointers_copy;
 
     // data pointers for multinomial separate trees case
-    std::vector< std::vector <std::vector< std::vector<double>* > > > data_pointers_multinomial;
+    std::vector<std::vector<std::vector<std::vector<double> *>>> data_pointers_multinomial;
 
     std::vector<double> X_values;
     std::vector<size_t> X_counts;
@@ -42,8 +42,6 @@ public:
         this->n_y = n_y;
         this->data_pointers_copy = this->data_pointers;
     }
-
-
 
     void create_backup_data_pointers()
     {
@@ -76,7 +74,7 @@ public:
 
     void init_tree_pointers_multinomial(std::vector<double> *initial_theta, size_t N, size_t num_trees)
     {
-        size_t num_class = (* initial_theta).size();
+        size_t num_class = (*initial_theta).size();
         data_pointers_multinomial.resize(num_class);
 
         for (size_t i = 0; i < num_class; i++)

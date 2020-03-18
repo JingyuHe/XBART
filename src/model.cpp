@@ -240,12 +240,12 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
     size_t j = class_operating;
     // for (size_t j = 0; j < dim_theta; ++j)
     // {
-        // count number of observations, y_{ij}
-        // if ((*y_size_t)[index_next_obs] == j)
-            // suffstats[j] += 1;
+    // count number of observations, y_{ij}
+    // if ((*y_size_t)[index_next_obs] == j)
+    // suffstats[j] += 1;
 
-        // psi * f
-        suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
+    // psi * f
+    suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
     // }
 
     return;
@@ -264,17 +264,17 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 
     // for (size_t j = 0; j < dim_theta; j++)
     // {
-        // not necessary to assign to r and s again
-        // r = suff_stat[j];
-        // s = suff_stat[c + j];
+    // not necessary to assign to r and s again
+    // r = suff_stat[j];
+    // s = suff_stat[c + j];
 
-        // std::gamma_distribution<double> gammadist(tau_a + r, 1);
+    // std::gamma_distribution<double> gammadist(tau_a + r, 1);
 
-        // theta_vector[j] = gammadist(state->gen) / (tau_b + s);
+    // theta_vector[j] = gammadist(state->gen) / (tau_b + s);
 
-        std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1.0);
+    std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1.0);
 
-        theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
+    theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
     // }
 
     return;
@@ -295,7 +295,6 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     // std::vector<double> loglike_weight(weight_std.size(), 0.0);
 
     size_t y_i;
-
 
     std::gamma_distribution<double> gammadist(weight, 1.0);
 
@@ -328,13 +327,12 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         //     loglike_weight[k] += log(sum_fits_w[k]) + weight_std[k] * log(min_fits);
         // }
 
-
         y_i = (*state->y_std)[i];
         loglike_pi += log(state->residual_std[y_i][i]) + log((*(x_struct->data_pointers_multinomial[class_operating][tree_ind][i]))[y_i]) - log(sum_fits);
         // loglike_pi += log(fits[y_i]);
         //COUT << "got scale";
         //COUT << "draw phi ";
-        (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits);
+        (*phi)[i] = gammadist(state->gen) / (1.0 * sum_fits);
         // std::cout << "phi: "<<(*phi)[i] << std::endl;
         // std::cout << "sum fit "<<sum_fits<< std::endl;
         //COUT << "draw phi complete";
@@ -348,7 +346,10 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     {
         loglike_weight[i] = weight_std[i] * loglike_pi + lgamma(weight_std[i] * n + 1) - lgamma(n + 1) - lgamma((weight_std[i] - 1) * n + 1);
         // loglike_weight[i] = weight_std[i] * loglike_pi - loglike_weight[i];
-        if (loglike_weight[i] > max){max = loglike_weight[i];}
+        if (loglike_weight[i] > max)
+        {
+            max = loglike_weight[i];
+        }
     }
     for (size_t i = 0; i < weight_std.size(); i++)
     {
@@ -357,7 +358,6 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     // cout << "weight likelihood " << loglike_weight << endl;
     std::discrete_distribution<> d(loglike_weight.begin(), loglike_weight.end());
     weight = weight_std[d(state->gen)];
-
 
     return;
 }
@@ -578,7 +578,7 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
     tree::tree_p bn;
 
     for (size_t data_ind = 0; data_ind < N_test; data_ind++)
-    {   // for each data observation
+    { // for each data observation
 
         for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
         {
@@ -599,7 +599,6 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
             }
         }
     }
-
 
     // cout << "output " << output_vec << endl;
 

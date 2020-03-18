@@ -165,12 +165,11 @@ public:
     double a = 0;
     double b = 1;
 
-
     ProbitClass(double kap, double s, double tau, double alpha, double beta, std::vector<double> &y_std) : NormalModel(kap, s, tau, alpha, beta)
     {
         this->z = std::vector<double>(y_std.size(), 0);
         this->z_prev = std::vector<double>(y_std.size(), 0);
-        for(size_t i = 0; i < y_std.size(); i ++ )
+        for (size_t i = 0; i < y_std.size(); i++)
         {
             this->z[i] = y_std[i];
         }
@@ -433,7 +432,6 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////////////////
 
-
 class LogitModel : public Model
 {
 private:
@@ -445,25 +443,24 @@ private:
 
         size_t c = suffstats.size() / 2;
 
-      //  suffstats[0] .. suffstats[c-1]is count of y's in cat 0,...,c-1, i.e. r in proposal
-      //  suffstats[c] .. suffstats[2c-1] is sum of phi_i*(partial fit j)'s ie s in proposal
-      //  double nh = 0;
-      //  for (size_t j = 0; j < c; j++)
-      //  {
-      //    nh += suffstats[j];
-      //  }
+        //  suffstats[0] .. suffstats[c-1]is count of y's in cat 0,...,c-1, i.e. r in proposal
+        //  suffstats[c] .. suffstats[2c-1] is sum of phi_i*(partial fit j)'s ie s in proposal
+        //  double nh = 0;
+        //  for (size_t j = 0; j < c; j++)
+        //  {
+        //    nh += suffstats[j];
+        //  }
 
-      double ret = 0;
+        double ret = 0;
 
-      size_t j = class_operating;
-
+        size_t j = class_operating;
 
         // for (size_t j = 0; j < c; j++)
         // {
-            // double r = suffstats[j];
-            // double s = suffstats[c + j];
-            // ret += -(tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]) ;
-            ret += -(tau_a + suffstats[j] ) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]);// - lgamma(suffstats[j] +1);
+        // double r = suffstats[j];
+        // double s = suffstats[c + j];
+        // ret += -(tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]) ;
+        ret += -(tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]); // - lgamma(suffstats[j] +1);
         // }
         return ret;
     }
@@ -485,14 +482,14 @@ private:
     // }
 
 public:
- //   size_t dim_suffstat = 3;
+    //   size_t dim_suffstat = 3;
 
     // prior on leaf parameter
     double tau_a, tau_b, weight; //leaf parameter is ~ G(tau_a, tau_b). tau_a = 1/tau + 1/2, tau_b = 1/tau -> f(x)\sim N(0,tau) approx
 
     // Should these pointers live in model subclass or state subclass?
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
-    std::vector<double> *phi; // latent variables for mnl
+    std::vector<double> *phi;      // latent variables for mnl
 
     std::vector<double> weight_std;
 
@@ -500,7 +497,7 @@ public:
     // grow separate tree for different class for multinomial case
     size_t class_operating;
 
-    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, std::vector<double> weight_std) : Model(num_classes, 2*num_classes)
+    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, std::vector<double> weight_std) : Model(num_classes, 2 * num_classes)
     {
         this->y_size_t = y_size_t;
         this->phi = phi;
@@ -548,9 +545,5 @@ public:
 
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<vector<tree>>> &trees, std::vector<double> &output_vec);
 };
-
-
-
-
 
 #endif
