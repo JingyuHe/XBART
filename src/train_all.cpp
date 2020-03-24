@@ -474,8 +474,10 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     }
 
     // define model
-    double tau_a = 1/tau + 0.5;
-    double tau_b = 1/tau;
+    // double tau_a = 1/tau + 0.5;
+    // double tau_b = 1/tau;
+    double tau_a = 1;
+    double tau_b = 1;
     std::vector<double> phi(N);
     for(size_t i=0; i<N; ++i) phi[i] = 1;
 

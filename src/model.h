@@ -444,10 +444,8 @@ private:
         
         for (size_t j = 0; j < c; j++)
         {
-            // double r = suffstats[j];
-            // double s = suffstats[c + j];
-            // ret += -(tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]) ;
-            ret += -(tau_a + suffstats[j] ) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]);// - lgamma(suffstats[j] +1);
+            //!! devide s by min_sum_fits
+            ret += -(tau_a + suffstats[j] ) * log(tau_b + suffstats[c + j] / min_fits) + lgamma(tau_a + suffstats[j]);// - lgamma(suffstats[j] +1);
         }
         return ret;
     }
@@ -480,6 +478,8 @@ public:
 
     std::vector<double> weight_std;
 
+    double min_fits;
+
     LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, std::vector<double> weight_std) : Model(num_classes, 2*num_classes)
     {
       this->y_size_t = y_size_t;
@@ -492,6 +492,7 @@ public:
         this->dim_residual = num_classes;
         this->weight = weight_std[0];
         this->weight_std = weight_std;
+        this->min_fits = 1.0;
     }
 
     LogitModel() : Model(2, 4) {}

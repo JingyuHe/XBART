@@ -85,6 +85,7 @@ a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
 pred = apply(a,1,which.max)-1
 
 
+
 # Compare with ranger
 # data = data.frame( y = y_train, X = X_train)
 # data.test = data.frame(X = X_test)
@@ -141,3 +142,6 @@ cat(paste("xgboost logloss : ", round(logloss.xgb,3)),"\n")
 cat(paste("\n", "xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 
 table(fit$weight)
+
+summary(fit$phi[,20])
+summary(fit$phi[,1000])
