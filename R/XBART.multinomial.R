@@ -82,6 +82,6 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max
   check_scalar(s, "s")
 
   obj = XBART_multinomial_cpp(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, no_split_penality, weight, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag)
-  class(obj) = "XBART" # Change to XBARTProbit?
+  class(obj) = "XBARTmultinomial" # Change to XBARTProbit?
   return(obj)
 }
