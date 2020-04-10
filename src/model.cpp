@@ -497,7 +497,6 @@ void LogitModel::ini_residual_std(std::unique_ptr<State> &state)
     return;
 }
 
-// Not implemented yet, needs to return a nsweeps by n by num categories array with predicted category probabilities 9/10/2019
 void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec)
 {
 
@@ -569,6 +568,94 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
             for (size_t k = 0; k < dim_residual; k++)
             {
                 output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] = output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] / denom;
+            }
+        }
+    }
+    return;
+}
+
+// this function is for a standalone prediction function for classification case.
+// with extra input iteration, which specifies which iteration (sweep / forest) to use
+void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec, std::vector<size_t>& iteration)
+{
+
+    // output is a 3D array (armadillo cube), nsweeps by n by number of categories
+
+    size_t num_iterations = iteration.size();
+
+    tree::tree_p bn;
+
+    cout << "number of iterations " << num_iterations << " " << num_sweeps << endl;
+
+    size_t sweeps;
+
+    for (size_t iter = 0; iter < num_iterations; iter++)
+    {
+        sweeps = iteration[iter];
+
+        for (size_t data_ind = 0; data_ind < N_test; data_ind++)
+        {
+
+            for (size_t i = 0; i < trees[0].size(); i++)
+            {
+                // search leaf
+                bn = trees[sweeps][i].search_bottom_std(Xtestpointer, data_ind, p, N_test);
+
+                for (size_t k = 0; k < dim_residual; k++)
+                {
+                    // add all trees
+
+                    // product of trees, thus sum of logs
+
+                    output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] += log(bn->theta_vector[k]);
+                }
+            }
+        }
+    }
+    // normalizing probability
+
+    double denom = 0.0;
+    double max_log_prob = -INFINITY;
+
+    for (size_t iter = 0; iter < num_iterations; iter++)
+    {
+
+        sweeps = iteration[iter];
+
+        for (size_t data_ind = 0; data_ind < N_test; data_ind++)
+        {
+
+            max_log_prob = -INFINITY;
+            // take exp, subtract max to avoid overflow
+
+            // this line does not work for some reason, havd to write loops manually
+            // output.tube(sweeps, data_ind) = exp(output.tube(sweeps, data_ind) - output.tube(sweeps, data_ind).max());
+
+            // find max of probability for all classes
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                if(output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] > max_log_prob){
+                    max_log_prob = output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test];
+                }
+            }
+
+            // take exp after subtracting max to avoid overflow
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] = exp(output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] - max_log_prob);
+            }
+
+            // calculate normalizing constant
+            denom = 0.0;
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                denom += output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test];
+            }
+
+            // normalizing
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] = output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] / denom;
             }
         }
     }

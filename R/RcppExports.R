@@ -5,8 +5,8 @@ xbart_predict <- function(X, y_mean, tree_pnt) {
     .Call(`_XBART_xbart_predict`, X, y_mean, tree_pnt)
 }
 
-xbart_multinomial_predict <- function(X, y_mean, num_class, tree_pnt) {
-    .Call(`_XBART_xbart_multinomial_predict`, X, y_mean, num_class, tree_pnt)
+xbart_multinomial_predict <- function(X, y_mean, num_class, tree_pnt, iteration) {
+    .Call(`_XBART_xbart_multinomial_predict`, X, y_mean, num_class, tree_pnt, iteration)
 }
 
 r_to_json <- function(y_mean, tree_pnt) {
