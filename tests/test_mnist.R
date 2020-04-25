@@ -14,10 +14,35 @@ X_train = D
 X_test = Dtest
 p = ncol(X_train)
 
-for (i in 1:p){
-  X_train[, i] = X_train[, i] + 0.01*rnorm(length(y))
-  X_test[, i] = X_test[, i] + 0.01*rnorm(length(ytest))
+# for (i in 1:p){
+#   X_train[, i] = X_train[, i] + 0.01*rnorm(length(y))
+#   X_test[, i] = X_test[, i] + 0.01*rnorm(length(ytest))
+# }
+
+
+X.train = X_train
+X.test = X_test
+
+v = 0
+for (h in 1:p){
+  breaks =unique(as.numeric(quantile(c(X_train[,h],X_test[,h]),seq(0,1,length.out=4))))
+  #breaks = seq(min(c(X_train[,h],X_test[,h])),max(c(X_train[,h],X_test[,h])),length.out = 25)
+  breaks = c(-Inf,breaks,+Inf)
+  #print(breaks)
+  if (length(breaks)>3){
+    v = v + 1
+    X.train[,v] = cut(X_train[,h],breaks = breaks,include.lowest=TRUE,labels=FALSE)
+    X.test[,v] = cut(X_test[,h],breaks = breaks,include.lowest=TRUE,labels=FALSE)
+  }
 }
+
+#print(v)
+X_train = X.train[,1:v]
+X_test = X.test[,1:v]
+p = v
+
+X_train[,1] = X_train[,1] + 0.01*rnorm(length(y))
+
 
 # if (!exists("num_trees")){num_trees = 120}
 # if (!exists("num_sweeps")){num_sweeps = 40}
@@ -28,12 +53,12 @@ for (i in 1:p){
 # if (!exists("max_depth")){max_depth = 10}
 # if (!exists("mtry")){mtry = 10}
 # if (!exists("num_cutpoints")){num_cutpoints = 20}
-num_sweeps= 15
-num_trees = 10
-burnin = 2
+num_sweeps= 40
+num_trees = 100
+burnin = 15
 Nmin = 5
 max_depth = 25
-mtry = 50
+mtry = 10
 num_cutpoints=20
 
 tau = 100 / num_trees
@@ -44,14 +69,14 @@ t = proc.time()
 fit = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth, 
                         Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau=100/num_trees, 
-                        no_split_penality = 1, weight = c(1), burnin = burnin, mtry = mtry, p_categorical = 0L, 
+                        no_split_penality = 1, weight = seq(9, 10, 0.5), burnin = burnin, mtry = mtry, p_categorical = 0L, 
                         kap = 1, s = 1, verbose = TRUE, parallel = FALSE, set_random_seed = TRUE, 
-                        random_seed = NULL, sample_weights_flag = TRUE, separate_trees = TRUE, sample_var_per_tree = FALSE, 
-                        phi_threshold = 0.2) 
+                        random_seed = NULL, sample_weights_flag = TRUE,
+                        early_stopping = TRUE, stop_threshold = 10^-5) 
 t = proc.time() - t
 
 
-pred = apply(fit$yhats_test[(burnin+1):(num_sweeps-0),,], c(2,3), mean)
+pred = apply(fit$yhats_test[(burnin):(fit$num_sweeps-0),,], c(2,3), mean)
 yhat = max.col(pred)-1
 
 spr <- split(pred, row(pred))

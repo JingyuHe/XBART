@@ -74,14 +74,15 @@ fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test,
                         Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, 
                         no_split_penality = 1, weight = c(1),burnin = burnin, mtry = 3, p_categorical = 0L, 
                         kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 
-                        random_seed = NULL, sample_weights_flag = TRUE) 
+                        random_seed = NULL, sample_weights_flag = TRUE, early_stopping = TRUE, stop_threshold = 10^-4) 
 
 # number of sweeps * number of observations * number of classes
 #dim(fit$yhats_test)
 tm = proc.time()-tm
 cat(paste("\n", "xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 # take average of all sweeps, discard burn-in
-a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
+# a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
+a = apply(fit$yhats_test[burnin:fit$num_sweeps,,], c(2,3), median)
 pred = apply(a,1,which.max)-1
 
 
@@ -143,5 +144,5 @@ cat(paste("\n", "xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 
 table(fit$weight)
 
-summary(fit$phi[,20])
-summary(fit$phi[,1000])
+cat(paste("early_stopping round ", fit$num_sweeps, "\n"))
+

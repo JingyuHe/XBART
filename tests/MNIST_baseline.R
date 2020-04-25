@@ -10,19 +10,19 @@ ytest = Dtest[,1]
 Dtest = Dtest[,-1]
 #
 #
-k = 3
-X = matrix(NA,28*28,k*10)
-for (h in 0:9){
-  print(h)
-  S = svd(t(D[y==h,]))
-  X[,(h*k):(h*k+k-1)+1] = S$u[,1:k]
-}
-
-
-XXinv = solve(t(X)%*%X)
-P = XXinv%*%t(X)
-X_train = t(P%*%t(D))
-X_test = t(P%*%t(Dtest))
+# k = 3
+# X = matrix(NA,28*28,k*10)
+# for (h in 0:9){
+#   print(h)
+#   S = svd(t(D[y==h,]))
+#   X[,(h*k):(h*k+k-1)+1] = S$u[,1:k]
+# }
+# 
+# 
+# XXinv = solve(t(X)%*%X)
+# P = XXinv%*%t(X)
+# X_train = t(P%*%t(D))
+# X_test = t(P%*%t(Dtest))
 p = ncol(X_train)
 
 #load("mnist_data.rda")
@@ -30,14 +30,14 @@ p = ncol(X_train)
 # X_train = X_train + 0.0001*rnorm(ncol(X_train)*nrow(X_train))
 # X_test = X_test + 0.0001*rnorm(ncol(X_test)*nrow(X_test))
 
-# for (h in 1:p){
-# breaks =unique(as.numeric(quantile(c(X_train[,h],X_test[,h]),seq(0,1,length.out=20))))
-# breaks = seq(min(c(X_train[,h],X_test[,h])),max(c(X_train[,h],X_test[,h])),length.out = 25)
-# 
-# print(breaks)
-# X_train[,h] = cut(X_train[,h],breaks = breaks,include.lowest=TRUE,labels=FALSE)
-# X_test[,h] = cut(X_test[,h],breaks = breaks,include.lowest=TRUE,labels=FALSE)
-# }
+for (h in 1:p){
+breaks =unique(as.numeric(quantile(c(X_train[,h],X_test[,h]),seq(0,1,length.out=20))))
+breaks = seq(min(c(X_train[,h],X_test[,h])),max(c(X_train[,h],X_test[,h])),length.out = 25)
+
+print(breaks)
+X_train[,h] = cut(X_train[,h],breaks = breaks,include.lowest=TRUE,labels=FALSE)
+X_test[,h] = cut(X_test[,h],breaks = breaks,include.lowest=TRUE,labels=FALSE)
+}
 # X_train = X_train[1:1000,]
 # y = y[1:1000]
 
