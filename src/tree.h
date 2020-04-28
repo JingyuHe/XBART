@@ -149,6 +149,8 @@ public:
 
     void grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree);
 
+    void grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree, double entropy_threshold);
+
     tree_p bn(double *x, matrix<double> &xi); //find Bottom Node, original BART version
 
     tree_p bn_std(double *x); // find Bottom Node, std version, compare
@@ -188,6 +190,8 @@ public:
 
     friend void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<State> &state, tree *current_node);
 
+    friend void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state, tree *current_node);
+    
     // #ifndef NoRcpp
     // #endif
 private:
@@ -214,8 +218,10 @@ private:
 
     size_t num_cutpoint_candidates; // number of cutpoint candidates
 
+    double entropy; // entropy of current node for multinomial model
+
     //tree structure
-    tree_p p; //parent
+    tree_p p; //paren
 
     tree_p l; //left child
 

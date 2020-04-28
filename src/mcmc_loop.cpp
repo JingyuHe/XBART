@@ -168,7 +168,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
                            vector<vector<tree>> &trees, double no_split_penalty,
                            std::unique_ptr<State> &state, LogitModel *model,
                            std::unique_ptr<X_struct> &x_struct, std::vector< std::vector<double> > &phi_samples, 
-                           std::vector< std::vector<double> > &weight_samples)
+                           std::vector< std::vector<double> > &weight_samples, bool early_stopping, double entropy_threshold)
 {
     if (state->parallel)
         thread_pool.start();
@@ -219,8 +219,13 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
             
             trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
 
-            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-
+            if (early_stopping){
+                trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true, entropy_threshold);
+            }
+            else{
+                 trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+            }
+            
             state->update_split_counts(tree_ind);
 
             // update partial fits for the next tree
@@ -235,13 +240,13 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
             weight_samples[sweeps][tree_ind] = model->weight;
         }
 
-        if (sweeps <= state->burnin){
-            model->stop = false;
-        }
-        if (sweeps > state->burnin & model->stop){
-            state->num_sweeps = sweeps + 1;
-            break;
-        }
+        // if (sweeps <= state->burnin){
+        //     model->stop = false;
+        // }
+        // if (sweeps > state->burnin & model->stop){
+        //     state->num_sweeps = sweeps + 1;
+        //     break;
+        // }
     }
     thread_pool.stop();  
 }

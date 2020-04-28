@@ -301,8 +301,8 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 
     min_fits = INFINITY;
     std::vector<double> sum_fits_v (state->residual_std[0].size(), 0.0);
-    std::vector<double> entropy_vec(state->residual_std[0].size(), 0.0);
-    double sum_entropy = 0.0;
+    // std::vector<double> entropy_vec(state->residual_std[0].size(), 0.0);
+    // double sum_entropy = 0.0;
 
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
@@ -311,11 +311,11 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         for (size_t j = 0; j < dim_theta; ++j)
         {
             sum_fits += state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j];
-            // entropy =  - sum( log (f_j / sum(f_j))) = - sum(f_j) +  C*log(sum(f_j))
-            entropy_vec[i] += - log(state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j]);
+            // entropy =  - sum( log (f_j / sum(f_j))) = - sum(log(f_j)) +  C*log(sum(f_j))
+            // entropy_vec[i] += - log(state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j]);
         }
         // entropy
-        entropy_vec[i] += dim_theta * log(sum_fits);
+        // entropy_vec[i] += dim_theta * log(sum_fits);
 
         if (sum_fits < min_fits) {min_fits = sum_fits;}
         sum_fits_v[i] = sum_fits;
@@ -331,16 +331,16 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits_v[i]/min_fits); 
     }
 
-    // sum_entropy
-    vec_sum(entropy_vec, sum_entropy);
-    cout << "entorpy " << sum_entropy << endl;
+    // // sum_entropy
+    // vec_sum(entropy_vec, sum_entropy);
+    // cout << "entorpy " << sum_entropy << endl;
 
-    // if stop = false & entropy dereases less than threshold
-    if (early_stopping & (!stop) & sum_entropy > entropy & (sum_entropy - entropy) < stop_threshold*state->residual_std[0].size() ){
-        stop = true;
-        cout << "stop = true" << endl;
-    }
-    else {entropy = sum_entropy;}
+    // // if stop = false & entropy dereases less than threshold
+    // if (early_stopping & (!stop) & sum_entropy > entropy & (sum_entropy - entropy) < stop_threshold*state->residual_std[0].size() ){
+    //     stop = true;
+    //     cout << "stop = true" << endl;
+    // }
+    // else {entropy = sum_entropy;}
 
 
 

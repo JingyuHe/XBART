@@ -53,7 +53,7 @@ X_train[,1] = X_train[,1] + 0.01*rnorm(length(y))
 # if (!exists("max_depth")){max_depth = 10}
 # if (!exists("mtry")){mtry = 10}
 # if (!exists("num_cutpoints")){num_cutpoints = 20}
-num_sweeps= 40
+num_sweeps= 40 #40
 num_trees = 100
 burnin = 15
 Nmin = 5
@@ -76,7 +76,7 @@ fit = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test,
 t = proc.time() - t
 
 
-pred = apply(fit$yhats_test[(burnin):(fit$num_sweeps-0),,], c(2,3), mean)
+pred = apply(fit$yhats_test[(burnin):(num_sweeps-0),,], c(2,3), mean)
 yhat = max.col(pred)-1
 
 spr <- split(pred, row(pred))
