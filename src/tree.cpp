@@ -717,6 +717,10 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
     {
         model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
         calculate_entropy(Xorder_std, state, this); 
+        if (this->entropy < entropy_threshold * N_Xorder) {
+            num_stops += 1;
+            return;
+        }
     }
 
     if (N_Xorder <= state->n_min)
@@ -868,34 +872,11 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
 
-    // sample parameters for children nodes
+    this->l->grow_from_root_entropy(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
 
-    model->samplePars(state, this->l->suff_stat, this->l->theta_vector, this->l->prob_leaf);
-    model->samplePars(state, this->r->suff_stat, this->r->theta_vector, this->r->prob_leaf);
+    this->r->grow_from_root_entropy(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
 
-    // calculate entropy of children nodes
-    calculate_entropy(Xorder_left_std, state, this->l);
-    calculate_entropy(Xorder_right_std, state, this->r);
-
-    // remove children nodes if entropy doesn't improve
-    // cout << "entropy change "  << this->l->entropy + this->r->entropy - this->entropy << "   entropy threshold " << entropy_threshold * N_Xorder  <<  endl;
-
-    if (this->l->entropy + this->r->entropy - this->entropy < entropy_threshold * N_Xorder & this->l->entropy + this->r->entropy - this->entropy  > 0 ){
-        this->l = 0;
-        this->r = 0;
-        num_stops += 1;
-        // cout << "stop at depth " << getdepth() << endl;
-        return;
-    }
-    else
-    {
-
-        this->l->grow_from_root_entropy(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
-
-        this->r->grow_from_root_entropy(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
-
-        return;
-    }
+    return;
 
 }
 
@@ -907,20 +888,26 @@ void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state
     size_t next_obs;
     size_t dim_theta = state->residual_std.size();
     double sum_fits = 0;
+    double flogf = 0.0;
+    double f_j = 0.0;
 
     for (size_t i = 0; i < N_Xorder; i++)
     {
         sum_fits = 0;
+        flogf = 0.0;
         next_obs = Xorder_std[0][i];
         // std::fill(sum_fits_w.begin(), sum_fits_w.end(), 0.0);
         for (size_t j = 0; j < dim_theta; ++j)
         {
-            // entropy =  - sum( log (f_j / sum(f_j))) = - sum(log(f_j)) +  C*log(sum(f_j))
-            current_node->entropy += - log(state->residual_std[j][next_obs] * current_node->theta_vector[j]);
-            sum_fits += state->residual_std[j][next_obs] * current_node->theta_vector[j];
+            // entropy = - sum( p*log(p) );    p = f_j / sum_fits
+            //         = - sum( f_j * log(f_j / sum_fits ) ) / sum_fits
+            //         = (- sum( f_j * log(f_j) ) + C * log(sum_fits) ) / sum_fits
+            f_j = state->residual_std[j][next_obs] * current_node->theta_vector[j];
+            flogf += f_j * log(f_j);
+            sum_fits += f_j;
         }
         // entropy
-        current_node->entropy +=  dim_theta * log(sum_fits);
+        current_node->entropy +=  ( - flogf + dim_theta * log(sum_fits) ) / sum_fits;
     }
     return;
 }
