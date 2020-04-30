@@ -713,10 +713,11 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
 
 
     // do I still need this? need this for the root node
-    if (update_theta & this->depth == 0)
+    if (update_theta)
     {
         model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
         calculate_entropy(Xorder_std, state, this); 
+        // cout << "entropy = " << this->entropy << "    threhold = " << entropy_threshold * N_Xorder << endl;
         if (this->entropy < entropy_threshold * N_Xorder) {
             num_stops += 1;
             return;
@@ -890,6 +891,7 @@ void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state
     double sum_fits = 0;
     double flogf = 0.0;
     double f_j = 0.0;
+    
 
     for (size_t i = 0; i < N_Xorder; i++)
     {
@@ -901,14 +903,16 @@ void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state
         {
             // entropy = - sum( p*log(p) );    p = f_j / sum_fits
             //         = - sum( f_j * log(f_j / sum_fits ) ) / sum_fits
-            //         = (- sum( f_j * log(f_j) ) + C * log(sum_fits) ) / sum_fits
+            //         = (- sum( f_j * log(f_j) ) +  log(sum_fits) * sum_fits ) / sum_fits
+            //         = - sum( f_j * log(f_j) ) / sum_fits + log(sum_fits)
             f_j = state->residual_std[j][next_obs] * current_node->theta_vector[j];
             flogf += f_j * log(f_j);
             sum_fits += f_j;
         }
         // entropy
-        current_node->entropy +=  ( - flogf + dim_theta * log(sum_fits) ) / sum_fits;
+        current_node->entropy +=  - flogf / sum_fits + log(sum_fits);
     }
+
     return;
 }
 

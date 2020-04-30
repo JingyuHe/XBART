@@ -1,11 +1,11 @@
 library(XBART)
 library(xgboost)
 
-D <- read.csv('~/Dropbox/MNIST/mnist_train.csv',header=FALSE)
+D <- read.csv('~/mnist/mnist_train.csv',header=FALSE)
 y = D[,1]
 D = D[,-1]
 # 
-Dtest <- read.csv('~/Dropbox/MNIST/mnist_test.csv',header=FALSE)
+Dtest <- read.csv('~/mnist/mnist_test.csv',header=FALSE)
 ytest = Dtest[,1]
 Dtest = Dtest[,-1]
 pred = matrix(0,10000,10)
@@ -72,7 +72,7 @@ fit = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test,
                         no_split_penality = 1, weight = seq(9, 10, 0.5), burnin = burnin, mtry = mtry, p_categorical = 0L, 
                         kap = 1, s = 1, verbose = TRUE, parallel = FALSE, set_random_seed = TRUE, 
                         random_seed = NULL, sample_weights_flag = TRUE,
-                        early_stopping = TRUE, stop_threshold = 10^-5) 
+                        early_stopping = TRUE, stop_threshold = 0.2) 
 t = proc.time() - t
 
 
@@ -93,3 +93,5 @@ for(i in 0:9){
   cat("XBART error rate in ", i, ": ", round(mean(yhat[ytest==i]!=i), 4), 
       " misclassified as ", tail(names(sort(table(yhat[ytest==i]))), 2)[1], "\n " )
 }
+
+saveRDS(fit, '~/mnist_result/mnist_entropy_40_80_15_02.rds')
