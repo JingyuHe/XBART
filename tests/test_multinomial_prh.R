@@ -74,7 +74,7 @@ fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test,
                         Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, 
                         no_split_penality = 1, weight = seq(1, 10, 1),burnin = burnin, mtry = 3, p_categorical = 0L, 
                         kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 
-                        random_seed = NULL, sample_weights_flag = TRUE, early_stopping = TRUE, stop_threshold = 10^-4) 
+                        random_seed = NULL, sample_weights_flag = TRUE, early_stopping = TRUE, stop_threshold = 0.1) 
 
 # number of sweeps * number of observations * number of classes
 #dim(fit$yhats_test)
@@ -144,5 +144,6 @@ cat(paste("\n", "xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 
 table(fit$weight)
 
-cat(paste("early_stopping round ", fit$num_sweeps, "\n"))
+cat("early stops per tree: ", round(fit$num_stops/num_sweeps/num_trees, 3), "\n")
+
 

@@ -14,7 +14,7 @@ predict.XBARTmultinomial <- function(model, X, iteration = NULL) {
     }
 
     # check whether iteration is out of bound
-    test = (iteration >= 0L) * (iteration < model$model_list$num_sweeps)
+    test = (iteration >= 0L) * (iteration <= model$model_list$num_sweeps)
     if (sum(test) != length(iteration)) {
         stop("Index of iteration is out of bound.")
     }

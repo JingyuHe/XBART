@@ -508,7 +508,8 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     ini_matrix(weight_samples, num_trees, num_sweeps);
 
     ////////////////////////////////////////////////////////////////
-    mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples, weight_samples, early_stopping, stop_threshold);
+    size_t num_stops = 0; 
+    mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples, weight_samples, early_stopping, stop_threshold, num_stops);
     // replace num_sweeps with early_stopping sweep;
     // num_sweeps = state->num_sweeps;
 
@@ -599,6 +600,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         Rcpp::Named("weight") = weight_sample_rcpp,
         Rcpp::Named("importance") = split_count_sum,
         // Rcpp::Named("num_sweeps") = num_sweeps,
+        Rcpp::Named("num_stops") = num_stops,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
 }
 
