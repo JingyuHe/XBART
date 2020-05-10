@@ -1,11 +1,12 @@
 library(XBART)
 library(xgboost)
+path = '~/Dropbox/MNIST/'
 
-D <- read.csv('~/mnist/mnist_train.csv',header=FALSE)
+D <- read.csv(paste(path,'mnist_train.csv', sep=''),header=FALSE)
 y = D[,1]
 D = D[,-1]
 # 
-Dtest <- read.csv('~/mnist/mnist_test.csv',header=FALSE)
+Dtest <- read.csv(paste(path, 'mnist_test.csv', sep =''),header=FALSE)
 ytest = Dtest[,1]
 Dtest = Dtest[,-1]
 pred = matrix(0,10000,10)
@@ -41,7 +42,7 @@ X_train = X.train[,1:v]
 X_test = X.test[,1:v]
 p = v
 
-X_train[,1] = X_train[,1] + 0.01*rnorm(length(y))
+# X_train[,1] = X_train[,1] + 0.01*rnorm(length(y))
 
 
 # if (!exists("num_trees")){num_trees = 120}
@@ -53,9 +54,9 @@ X_train[,1] = X_train[,1] + 0.01*rnorm(length(y))
 # if (!exists("max_depth")){max_depth = 10}
 # if (!exists("mtry")){mtry = 10}
 # if (!exists("num_cutpoints")){num_cutpoints = 20}
-num_sweeps= 40 #40
-num_trees = 100
-burnin = 15
+num_sweeps= 20 #40
+num_trees = 30
+burnin = 5
 Nmin = 5
 max_depth = 25
 mtry = 10
@@ -69,16 +70,16 @@ t = proc.time()
 fit = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth, 
                         Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau=100/num_trees, 
-                        no_split_penality = 1, weight = seq(9, 10, 0.5), burnin = burnin, mtry = mtry, p_categorical = 0L, 
+                        no_split_penality = 1, weight = seq(9, 10, 0.5), burnin = burnin, mtry = mtry, p_categorical = p, 
                         kap = 1, s = 1, verbose = TRUE, parallel = FALSE, set_random_seed = TRUE, 
                         random_seed = NULL, sample_weights_flag = TRUE,
-                        early_stopping = TRUE, stop_threshold = 0.2) 
+                        early_stopping = TRUE, stop_threshold = 0.1) 
 t = proc.time() - t
 
 
 pred = apply(fit$yhats_test[(burnin):(num_sweeps-0),,], c(2,3), mean)
 yhat = max.col(pred)-1
-
+yyyyyt6hjjjjjjjjjjy
 spr <- split(pred, row(pred))
 logloss <- sum(unlist(mapply(function(x,y) -log(x[y]), spr, ytest, SIMPLIFY =TRUE)))
 
@@ -94,4 +95,4 @@ for(i in 0:9){
       " misclassified as ", tail(names(sort(table(yhat[ytest==i]))), 2)[1], "\n " )
 }
 
-saveRDS(fit, '~/mnist_result/mnist_entropy_40_80_15_02.rds')
+saveRDS(fit, paste(path, 'mnist_result/mnist_entropy_20_30_5_01.rds', sep = ''))
