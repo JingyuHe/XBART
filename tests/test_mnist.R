@@ -55,7 +55,7 @@ p = v
 # if (!exists("mtry")){mtry = 10}
 # if (!exists("num_cutpoints")){num_cutpoints = 20}
 num_sweeps= 20 #40
-num_trees = 30
+num_trees = 20
 burnin = 5
 Nmin = 5
 max_depth = 25
@@ -79,7 +79,7 @@ t = proc.time() - t
 
 pred = apply(fit$yhats_test[(burnin):(num_sweeps-0),,], c(2,3), mean)
 yhat = max.col(pred)-1
-yyyyyt6hjjjjjjjjjjy
+
 spr <- split(pred, row(pred))
 logloss <- sum(unlist(mapply(function(x,y) -log(x[y]), spr, ytest, SIMPLIFY =TRUE)))
 
@@ -95,4 +95,4 @@ for(i in 0:9){
       " misclassified as ", tail(names(sort(table(yhat[ytest==i]))), 2)[1], "\n " )
 }
 
-saveRDS(fit, paste(path, 'mnist_result/mnist_entropy_20_30_5_01.rds', sep = ''))
+saveRDS(fit, paste(path, 'mnist_result/mnist_entropy_20_20_5_01.rds', sep = ''))
