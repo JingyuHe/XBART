@@ -17,6 +17,14 @@ json_to_r <- function(json_string_r) {
     .Call(`_XBART_json_to_r`, json_string_r)
 }
 
+start_profiler <- function(str) {
+    .Call(`_XBART_start_profiler`, str)
+}
+
+stop_profiler <- function() {
+    .Call(`_XBART_stop_profiler`)
+}
+
 sample_int_crank <- function(n, size, prob) {
     .Call(`_XBART_sample_int_crank`, n, size, prob)
 }
@@ -41,7 +49,7 @@ XBART_CLT_cpp <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, 
     .Call(`_XBART_XBART_CLT_cpp`, y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag)
 }
 
-XBART_multinomial_cpp <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, weight, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights_flag = TRUE,  early_stopping = FALSE,  stop_threshold = 1.0) {
+XBART_multinomial_cpp <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, weight, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights_flag = TRUE, early_stopping = FALSE, stop_threshold = 10^-3) {
     .Call(`_XBART_XBART_multinomial_cpp`, y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, weight, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, early_stopping, stop_threshold)
 }
 

@@ -1265,7 +1265,10 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         else
         {
             // do not use all continuous variables
+            if (state->p_continuous > 0){
             std::fill(loglike.begin(), loglike.begin() + (N_Xorder - 1) * state->p_continuous - 1, 0.0);
+            }
+            
         }
 
         std::discrete_distribution<> d(loglike.begin(), loglike.end());

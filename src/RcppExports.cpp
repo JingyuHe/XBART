@@ -58,6 +58,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// start_profiler
+SEXP start_profiler(SEXP str);
+RcppExport SEXP _XBART_start_profiler(SEXP strSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type str(strSEXP);
+    rcpp_result_gen = Rcpp::wrap(start_profiler(str));
+    return rcpp_result_gen;
+END_RCPP
+}
+// stop_profiler
+SEXP stop_profiler();
+RcppExport SEXP _XBART_stop_profiler() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(stop_profiler());
+    return rcpp_result_gen;
+END_RCPP
+}
 // sample_int_crank
 IntegerVector sample_int_crank(int n, int size, NumericVector prob);
 RcppExport SEXP _XBART_sample_int_crank(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
@@ -175,7 +196,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // XBART_multinomial_cpp
-Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, Rcpp::DoubleVector weight, size_t burnin, size_t mtry, size_t p_categorical, double kap, double s, bool verbose, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights_flag, bool early_stopping, double stop_threshol);
+Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, Rcpp::DoubleVector weight, size_t burnin, size_t mtry, size_t p_categorical, double kap, double s, bool verbose, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights_flag, bool early_stopping, double stop_threshold);
 RcppExport SEXP _XBART_XBART_multinomial_cpp(SEXP ySEXP, SEXP num_classSEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP num_treesSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP no_split_penalitySEXP, SEXP weightSEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weights_flagSEXP, SEXP early_stoppingSEXP, SEXP stop_thresholdSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -193,7 +214,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
     Rcpp::traits::input_parameter< double >::type no_split_penality(no_split_penalitySEXP);
-    Rcpp::traits::input_parameter< Rcpp::DoubleVector>::type weight(weightSEXP);
+    Rcpp::traits::input_parameter< Rcpp::DoubleVector >::type weight(weightSEXP);
     Rcpp::traits::input_parameter< size_t >::type burnin(burninSEXP);
     Rcpp::traits::input_parameter< size_t >::type mtry(mtrySEXP);
     Rcpp::traits::input_parameter< size_t >::type p_categorical(p_categoricalSEXP);
@@ -280,6 +301,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART_xbart_multinomial_predict", (DL_FUNC) &_XBART_xbart_multinomial_predict, 5},
     {"_XBART_r_to_json", (DL_FUNC) &_XBART_r_to_json, 2},
     {"_XBART_json_to_r", (DL_FUNC) &_XBART_json_to_r, 1},
+    {"_XBART_start_profiler", (DL_FUNC) &_XBART_start_profiler, 1},
+    {"_XBART_stop_profiler", (DL_FUNC) &_XBART_stop_profiler, 0},
     {"_XBART_sample_int_crank", (DL_FUNC) &_XBART_sample_int_crank, 3},
     {"_XBART_sample_int_ccrank", (DL_FUNC) &_XBART_sample_int_ccrank, 3},
     {"_XBART_sample_int_expj", (DL_FUNC) &_XBART_sample_int_expj, 3},

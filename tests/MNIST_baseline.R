@@ -1,11 +1,12 @@
 library(XBART)
 library(xgboost)
 
-D <- read.csv('~/mnist/mnist_train.csv',header=FALSE)
+path =  '~/Dropbox/MNIST/'
+D <- read.csv(paste(path,'mnist_train.csv', sep=''),header=FALSE)
 y = D[,1]
 D = D[,-1]
 # 
-Dtest <- read.csv('~/mnist/mnist_test.csv',header=FALSE)
+Dtest <- read.csv(paste(path, 'mnist_test.csv', sep =''),header=FALSE)
 ytest = Dtest[,1]
 Dtest = Dtest[,-1]
 pred = matrix(0,10000,10)
@@ -41,7 +42,7 @@ X_train = X.train[,1:v]
 X_test = X.test[,1:v]
 p = v
 
-X_train[,1] = X_train[,1] + 0.01*rnorm(length(y))
+# X_train[,1] = X_train[,1] + 0.01*rnorm(length(y))
 
 X_train = as.matrix(X_train)
 X_test = as.matrix(X_test)
@@ -57,6 +58,7 @@ xgb.basic.mod1 <- xgboost(data = X_train,label=y,
                           eta = 0.9,
                           params=list(objective="multi:softprob"))
 
+t = proc.time() - t
 xgb.basic.pred <- predict(xgb.basic.mod1, X_test)
 xgb.basic.pred <- matrix(xgb.basic.pred, ncol=10, byrow=TRUE)
 pred.xgb <- max.col(xgb.basic.pred) - 1
