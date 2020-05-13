@@ -5,6 +5,7 @@
 #include <chrono>
 #include "mcmc_loop.h"
 #include "X_struct.h"
+#include "omp.h"
 
 using namespace std;
 using namespace chrono;
@@ -405,8 +406,12 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
 // [[Rcpp::export]]
 Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, Rcpp::DoubleVector weight, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, bool early_stopping = false, double stop_threshold = 10^-3)
 {
-
     auto start = system_clock::now();
+
+    if (parallel){
+        omp_set_num_threads(omp_get_max_threads());
+        cout << "sys max threads " << omp_get_max_threads() << endl;
+    }
 
     size_t N = X.n_rows;
 

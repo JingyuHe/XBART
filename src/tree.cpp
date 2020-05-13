@@ -1,6 +1,7 @@
 #include "tree.h"
 // #include <RcppArmadilloExtensions/sample.h>
 #include <chrono>
+#include "omp.h"
 
 using namespace std;
 using namespace chrono;
@@ -1268,7 +1269,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
             if (state->p_continuous > 0){
             std::fill(loglike.begin(), loglike.begin() + (N_Xorder - 1) * state->p_continuous - 1, 0.0);
             }
-            
+
         }
 
         std::discrete_distribution<> d(loglike.begin(), loglike.end());
@@ -1466,48 +1467,88 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
         // double Ntau = N_Xorder * model->tau;
 
-        std::mutex llmax_mutex;
+        // std::mutex llmax_mutex;
 
-        for (auto &&i : subset_vars)
-        {
-            if (i < state->p_continuous)
-            {
+        // for (auto &&i : subset_vars)
+        // {
+        //     if (i < state->p_continuous)
+        //     {
 
-                // Lambda callback to perform the calculation
-                auto calcllc_i = [i, &loglike, &loglike_max, &Xorder_std, &state, &candidate_index2, &model, &llmax_mutex, N_Xorder, &tree_pointer]() {
-                    std::vector<size_t> &xorder = Xorder_std[i];
-                    double llmax = -INFINITY;
+        //         // Lambda callback to perform the calculation
+        //         auto calcllc_i = [i, &loglike, &loglike_max, &Xorder_std, &state, &candidate_index2, &model, &llmax_mutex, N_Xorder, &tree_pointer]() {
+        //             std::vector<size_t> &xorder = Xorder_std[i];
+        //             double llmax = -INFINITY;
 
-                    std::vector<double> temp_suff_stat(model->dim_suffstat);
+        //             std::vector<double> temp_suff_stat(model->dim_suffstat);
 
-                    std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
+        //             std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
 
-                    for (size_t j = 0; j < state->n_cutpoints; j++)
+        //             for (size_t j = 0; j < state->n_cutpoints; j++)
+        //             {
+
+        //                 calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index2, j, true, model, state);
+
+        //                 loglike[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
+
+        //                 if (loglike[(state->n_cutpoints) * i + j] > llmax)
+        //                 {
+        //                     llmax = loglike[(state->n_cutpoints) * i + j];
+        //                 }
+        //             }
+        //             llmax_mutex.lock();
+        //             if (llmax > loglike_max)
+        //                 loglike_max = llmax;
+        //             llmax_mutex.unlock();
+        //         };
+
+        //         if (thread_pool.is_active())
+        //             thread_pool.add_task(calcllc_i);
+        //         else
+        //             calcllc_i();
+        //     }
+        // }
+        // if (thread_pool.is_active())
+        //     thread_pool.wait();
+
+        // omp_set_num_threads(omp_get_max_threads());
+        omp_lock_t lck;
+        omp_init_lock(&lck);
+
+        #pragma omp parallel for 
+        for (auto &&i: subset_vars){
+            int id = omp_get_thread_num();
+            cout << "thread " << id  << " working on var " << i << endl;
+
+            if (i < state->p_continuous){
+
+                std::vector<size_t> &xorder = Xorder_std[i];
+                double llmax = -INFINITY;
+
+                std::vector<double> temp_suff_stat(model->dim_suffstat);
+
+                std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
+
+                // this for loop can not be paralized bc suff_stat is added in sequence
+                for (size_t j = 0; j < state->n_cutpoints; j++)
+                {
+                    calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index2, j, true, model, state);
+
+                    loglike[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
+
+                    if (loglike[(state->n_cutpoints) * i + j] > llmax)
                     {
-
-                        calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index2, j, true, model, state);
-
-                        loglike[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
-
-                        if (loglike[(state->n_cutpoints) * i + j] > llmax)
-                        {
-                            llmax = loglike[(state->n_cutpoints) * i + j];
-                        }
+                        llmax = loglike[(state->n_cutpoints) * i + j];
                     }
-                    llmax_mutex.lock();
-                    if (llmax > loglike_max)
-                        loglike_max = llmax;
-                    llmax_mutex.unlock();
-                };
+                }
+                omp_set_lock(&lck);
+                if (llmax > loglike_max)
+                    loglike_max = llmax;
+                omp_unset_lock(&lck);
 
-                if (thread_pool.is_active())
-                    thread_pool.add_task(calcllc_i);
-                else
-                    calcllc_i();
             }
+
         }
-        if (thread_pool.is_active())
-            thread_pool.wait();
+        omp_destroy_lock(&lck);
     }
 }
 
