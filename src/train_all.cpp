@@ -411,8 +411,10 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     auto start = system_clock::now();
 
     if (parallel){
-        omp_set_num_threads(omp_get_max_threads());
         cout << "sys max threads " << omp_get_max_threads() << endl;
+    }
+    else{
+        omp_set_num_threads(1);
     }
 
     size_t N = X.n_rows;

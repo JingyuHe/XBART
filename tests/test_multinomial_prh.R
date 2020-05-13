@@ -14,6 +14,12 @@ plotROC <- function(pihat,ytrue,add=FALSE,col = 'steelblue'){
   #print(mean(tpr))
 }
 
+get_entropy <- function(nclass){
+  pi = c(0.99, rep(0.01/(nclass-1), nclass-1))
+  pi = pi/sum(pi)
+  return (sum(-pi*log(pi)))
+}
+
 library(XBART)
 library(xgboost)
 library(ranger)
@@ -24,13 +30,19 @@ set.seed(seed)
 
 n = 5000
 nt = 1000
-p = 20
+p = 6
+p_cat = 10
 k = 6
 lam = matrix(0,n,k)
 lamt = matrix(0,nt,k)
 
 X_train = matrix(runif(n*p,-1,1), nrow=n)
 X_test = matrix(runif(nt*p,-1,1), nrow=nt)
+
+X_train = cbind(X_train, matrix(rpois(n*p_cat, 1), nrow=n))
+X_test = cbind(X_test, matrix(rpois(nt*p_cat, 1), nrow=nt))
+
+p = p+p_cat
 
 
 lam[,1] = abs(2*X_train[,1] - X_train[,2])
@@ -71,9 +83,9 @@ tm = proc.time()
 fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
                         Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, 
-                        no_split_penality = 1, weight = seq(1, 10, 1),burnin = burnin, mtry = 3, p_categorical = 0, 
-                        kap = 1, s = 1, verbose = FALSE, parallel = TRUE, set_random_seed = FALSE, 
-                        random_seed = NULL, sample_weights_flag = TRUE, early_stopping = TRUE, stop_threshold = 1) 
+                        no_split_penality = 1, weight = seq(1, 10, 1),burnin = burnin, mtry = 3, p_categorical = p_cat, 
+                        kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 
+                        random_seed = NULL, sample_weights_flag = TRUE, early_stopping = TRUE, stop_threshold = 0.1) 
 
 # number of sweeps * number of observations * number of classes
 #dim(fit$yhats_test)
@@ -140,6 +152,7 @@ cat(paste("xbart logloss : ",round(logloss,3)),"\n")
 cat(paste("xgboost logloss : ", round(logloss.xgb,3)),"\n")
 
 cat(paste("\n", "xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
+cat(paste("xgboost runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 
 table(fit$weight)
 
