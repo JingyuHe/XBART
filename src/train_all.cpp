@@ -10,6 +10,8 @@
 using namespace std;
 using namespace chrono;
 
+// [[Rcpp::plugins(openmp)]]
+
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //
 //                                                                    //

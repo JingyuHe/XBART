@@ -1515,8 +1515,9 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         omp_init_lock(&lck);
 
         #pragma omp parallel for 
-        for (auto &&i: subset_vars){
+        for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
             int id = omp_get_thread_num();
+            size_t i = subset_vars[var_i];
             cout << "thread " << id  << " working on var " << i << endl;
 
             if (i < state->p_continuous){
