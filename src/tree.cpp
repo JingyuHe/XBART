@@ -1518,7 +1518,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
             int id = omp_get_thread_num();
             size_t i = subset_vars[var_i];
-            cout << "thread " << id  << " working on var " << i << endl;
+            // cout << "thread " << id  << " working on var " << i << endl;
 
             if (i < state->p_continuous){
 
