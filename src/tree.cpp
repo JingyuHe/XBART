@@ -1444,7 +1444,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                 for (size_t j = 0; j < N_Xorder - 1; j++)
                 {
-                    calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index, j, false, model, state);
+                    calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index, j, false, model, state->residual_std);
 
                     loglike[(N_Xorder - 1) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, false, false, state);
 
@@ -1464,19 +1464,21 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
         std::vector<size_t> candidate_index2(state->n_cutpoints + 1);
         seq_gen_std2(state->n_min, N - state->n_min, state->n_cutpoints, candidate_index2);
-
+        size_t p_continuous = state->p_continuous;
+        size_t n_cutpoints = state->n_cutpoints;
+        matrix<double> residual_std = state->residual_std;
 
         omp_set_num_threads(omp_get_max_threads());
         omp_lock_t lck;
         omp_init_lock(&lck);
 
-        #pragma omp parallel for 
+        #pragma omp parallel for firstprivate(Xorder_std, candidate_index2, model, p_continuous, n_cutpoints, residual_std)
         for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
             int id = omp_get_thread_num();
             size_t i = subset_vars[var_i];
             // cout << "thread " << id  << " working on var " << i << endl;
 
-            if (i < state->p_continuous){
+            if (i < p_continuous){
 
                 std::vector<size_t> &xorder = Xorder_std[i];
                 double llmax = -INFINITY;
@@ -1486,15 +1488,15 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                 std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
 
                 // this for loop can not be paralized bc suff_stat is added in sequence
-                for (size_t j = 0; j < state->n_cutpoints; j++)
+                for (size_t j = 0; j < n_cutpoints; j++)
                 {
-                    calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index2, j, true, model, state);
+                    calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index2, j, true, model, residual_std);
 
-                    loglike[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
+                    loglike[(n_cutpoints) * i + j] = model->likelihood_test(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false) + model->likelihood_test(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false);
 
-                    if (loglike[(state->n_cutpoints) * i + j] > llmax)
+                    if (loglike[(n_cutpoints) * i + j] > llmax)
                     {
-                        llmax = loglike[(state->n_cutpoints) * i + j];
+                        llmax = loglike[(n_cutpoints) * i + j];
                     }
                 }
                 omp_set_lock(&lck);
@@ -1690,7 +1692,7 @@ void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<s
     return;
 }
 
-void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint, Model *model, std::unique_ptr<State> &state)
+void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint, Model *model, matrix<double> &residual_std)
 {
     // calculate sufficient statistics for continuous variables
 
@@ -1700,19 +1702,19 @@ void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<si
         if (index == 0)
         {
             // initialize, only for the first cutpoint candidate, thus index == 0
-            model->incSuffStat(state->residual_std, xorder[0], temp_suff_stat);
+            model->incSuffStat(residual_std, xorder[0], temp_suff_stat);
         }
 
         // if use adaptive number of cutpoints, calculated based on vector candidate_index
         for (size_t q = candidate_index[index] + 1; q <= candidate_index[index + 1]; q++)
         {
-            model->incSuffStat(state->residual_std, xorder[q], temp_suff_stat);
+            model->incSuffStat(residual_std, xorder[q], temp_suff_stat);
         }
     }
     else
     {
         // use all data points as candidates
-        model->incSuffStat(state->residual_std, xorder[index], temp_suff_stat);
+        model->incSuffStat(residual_std, xorder[index], temp_suff_stat);
     }
     return;
 }

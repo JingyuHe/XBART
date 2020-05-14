@@ -503,6 +503,59 @@ double LogitModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<d
 }
 
 
+double LogitModel::likelihood_test(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split) const
+{
+    // likelihood equation,
+    // note the difference of left_side == true / false
+    // node_suff_stat is mean of y, sum of square of y, saved in tree class
+    // double y_sum = (double)suff_stat_all[2] * suff_stat_all[0];
+    // double y_sum = suff_stat_all[0];
+    // double suff_one_side;
+
+    /////////////////////////////////////////////////////////////////////////
+    //
+    //  I know combining likelihood and likelihood_no_split looks nicer
+    //  but this is a very fundamental function, executed many times
+    //  the extra if(no_split) statement and value assignment make the code about 5% slower!!
+    //
+    /////////////////////////////////////////////////////////////////////////
+
+    //could rewrite without all these local assigments if that helps...
+    std::vector<double> local_suff_stat = suff_stat_all; // no split
+
+    //COUT << "LIK" << endl;
+
+    //COUT << "all suff stat dim " << suff_stat_all.size();
+
+    if (!no_split)
+    {
+        if (left_side)
+        {
+            //COUT << "LEFTWARD HO" << endl;
+            //COUT << "local suff stat dim " << local_suff_stat.size() << endl;
+            //COUT << "temp suff stat dim " << temp_suff_stat.size() << endl;
+            local_suff_stat = temp_suff_stat;
+        }
+        else
+        {
+            //COUT << "RIGHT HO" << endl;
+            //COUT << "local suff stat dim " << local_suff_stat.size() << endl;
+            //COUT << "temp suff stat dim " << temp_suff_stat.size() << endl;
+            local_suff_stat = suff_stat_all - temp_suff_stat;
+
+            // ntau = (suff_stat_all[2] - N_left - 1) * tau;
+            // suff_one_side = y_sum - temp_suff_stat[0];
+        }
+    }
+
+    // return 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
+
+    //return - 0.5 * nb * log(2 * 3.141592653) -  0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
+
+    return (LogitLIL(local_suff_stat));
+}
+
+
 void LogitModel::ini_residual_std(std::unique_ptr<State> &state)
 {
     //double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
