@@ -30,8 +30,8 @@ set.seed(seed)
 
 n = 5000
 nt = 1000
-p = 6
-p_cat = 10
+p = 50
+p_cat = 0
 k = 6
 lam = matrix(0,n,k)
 lamt = matrix(0,nt,k)
@@ -84,7 +84,7 @@ fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test,
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
                         Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, 
                         no_split_penality = 1, weight = seq(1, 10, 1),burnin = burnin, mtry = 3, p_categorical = p_cat, 
-                        kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 
+                        kap = 1, s = 1, verbose = FALSE, parallel = TRUE, set_random_seed = FALSE, 
                         random_seed = NULL, sample_weights_flag = TRUE, early_stopping = TRUE, stop_threshold = 0.1) 
 
 # number of sweeps * number of observations * number of classes
