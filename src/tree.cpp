@@ -2,6 +2,7 @@
 // #include <RcppArmadilloExtensions/sample.h>
 #include <chrono>
 #include "omp.h"
+#include <ctime>
 
 using namespace std;
 using namespace chrono;
@@ -1468,15 +1469,21 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         size_t n_cutpoints = state->n_cutpoints;
         matrix<double> residual_std = state->residual_std;
 
-        omp_set_num_threads(omp_get_max_threads());
-        omp_lock_t lck;
-        omp_init_lock(&lck);
+        // omp_set_num_threads(omp_get_max_threads());
+        // cout << "sys threads " << omp_get_num_threads() << endl;
+        // omp_lock_t lck;
+        // omp_init_lock(&lck);
+        std::vector<double> thread_time(omp_get_max_threads(), 0.0);
+        auto tl =  clock();
 
         #pragma omp parallel for firstprivate(Xorder_std, candidate_index2, model, p_continuous, n_cutpoints, residual_std)
         for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
+            double t = omp_get_wtime();
+
             int id = omp_get_thread_num();
             size_t i = subset_vars[var_i];
             // cout << "thread " << id  << " working on var " << i << endl;
+            // printf("thread %d working on var %d, total threads %d \n", id, i, omp_get_num_threads());
 
             if (i < p_continuous){
 
@@ -1499,15 +1506,26 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                         llmax = loglike[(n_cutpoints) * i + j];
                     }
                 }
-                omp_set_lock(&lck);
+
+                #pragma omp flush (loglike_max)
                 if (llmax > loglike_max)
                     loglike_max = llmax;
-                omp_unset_lock(&lck);
+                    #pragma omp flush (loglike_max)
+                // omp_unset_lock(&lck);
 
             }
 
+            t = omp_get_wtime() - t;
+            thread_time[id] += t;
+
         }
-        omp_destroy_lock(&lck);
+
+        // for (size_t i = 0; i < thread_time.size(); i++){
+        //     cout << "thread " << i << " time " << thread_time[i] << endl;
+        // }
+        // cout << "total thread time " << accumulate(thread_time.begin(), thread_time.end(), 0.0) << endl;
+        // // omp_destroy_lock(&lck);
+        // cout << "linear time " <<  float(clock() - tl) << endl;
     }
 }
 
