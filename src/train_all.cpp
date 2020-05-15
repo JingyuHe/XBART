@@ -213,7 +213,7 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     // Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
-    Rcpp::NumericVector split_count_sum(p);                // split counts
+    Rcpp::NumericVector split_count_sum(p, 0);                // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
 
     // TODO: Make these functions
@@ -240,7 +240,7 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     }
     for (size_t i = 0; i < p; i++)
     {
-        split_count_sum(i) = (int)state->mtry_weight_current_tree[i];
+        split_count_sum(i) = (int)state->split_count_all[i];
     }
 
     auto end = system_clock::now();
@@ -382,7 +382,7 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
 
     for (size_t i = 0; i < p; i++)
     {
-        split_count_sum(i) = (int)state->mtry_weight_current_tree[i];
+        split_count_sum(i) = (int)state->split_count_all[i];
     }
 
     auto end = system_clock::now();
@@ -583,7 +583,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     }
     for (size_t i = 0; i < p; i++)
     {
-        split_count_sum(i) = (int)state->mtry_weight_current_tree[i];
+        split_count_sum(i) = (int)state->split_count_all[i];
     }
 
     auto end = system_clock::now();
@@ -730,7 +730,7 @@ Rcpp::List XBART_Probit_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t nu
     }
     for (size_t i = 0; i < p; i++)
     {
-        split_count_sum(i) = (int)state->mtry_weight_current_tree[i];
+        split_count_sum(i) = (int)state->split_count_all[i];
     }
 
     auto end = system_clock::now();
@@ -880,7 +880,7 @@ Rcpp::List XBART_MH_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
     }
     for (size_t i = 0; i < p; i++)
     {
-        split_count_sum(i) = (int)state->mtry_weight_current_tree[i];
+        split_count_sum(i) = (int)state->split_count_all[i];
     }
 
     auto end = system_clock::now();

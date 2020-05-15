@@ -156,6 +156,9 @@ cat(paste("xgboost runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 
 table(fit$weight)
 
+fit$importance
+
 cat("early stops per tree: ", round(fit$num_stops/num_sweeps/num_trees, 3), "\n")
+
 
 
