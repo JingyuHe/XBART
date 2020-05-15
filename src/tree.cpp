@@ -601,6 +601,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     {
         if (!update_split_prob)
         {
+            #pragma omp parallel for schedule(static, 128)
             for (size_t i = 0; i < N_Xorder; i++)
             {
                 x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
@@ -782,6 +783,7 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
         // cout << "no split at depth " << this->depth << endl;
         if (!update_split_prob)
         {
+            #pragma omp parallel for schedule(static, 128)
             for (size_t i = 0; i < N_Xorder; i++)
             {
                 x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
@@ -888,18 +890,20 @@ void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state
 {
 
     size_t N_Xorder = Xorder_std[0].size();
-    size_t next_obs;
+    // size_t next_obs;
     size_t dim_theta = state->residual_std.size();
-    double sum_fits = 0;
-    double flogf = 0.0;
+    // double sum_fits = 0;
+    // double flogf = 0.0;
     double f_j = 0.0;
     
+    double entropy = 0.0;
 
+    #pragma omp parallel for reduction(+: entropy) schedule(static, 128)
     for (size_t i = 0; i < N_Xorder; i++)
     {
-        sum_fits = 0;
-        flogf = 0.0;
-        next_obs = Xorder_std[0][i];
+        double sum_fits = 0;
+        double flogf = 0.0;
+        size_t next_obs = Xorder_std[0][i];
         // std::fill(sum_fits_w.begin(), sum_fits_w.end(), 0.0);
         for (size_t j = 0; j < dim_theta; ++j)
         {
@@ -912,8 +916,9 @@ void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state
             sum_fits += f_j;
         }
         // entropy
-        current_node->entropy +=  - flogf / sum_fits + log(sum_fits);
+        entropy +=  - flogf / sum_fits + log(sum_fits);
     }
+    current_node->entropy = entropy;
 
     return;
 }
@@ -1473,15 +1478,16 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         // cout << "sys threads " << omp_get_num_threads() << endl;
         // omp_lock_t lck;
         // omp_init_lock(&lck);
-        std::vector<double> thread_time(omp_get_max_threads(), 0.0);
-        auto tl =  clock();
+        // std::vector<double> thread_time(omp_get_max_threads(), 0.0);
+        // double tl =  clock();
 
-        #pragma omp parallel for firstprivate(Xorder_std, candidate_index2, model, p_continuous, n_cutpoints, residual_std)
+        #pragma omp parallel for default(none) shared(subset_vars, Xorder_std, candidate_index2, model, p_continuous, n_cutpoints, residual_std, loglike_max, loglike, tree_pointer)
         for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
             double t = omp_get_wtime();
 
             int id = omp_get_thread_num();
             size_t i = subset_vars[var_i];
+            // #pragma omp critical
             // cout << "thread " << id  << " working on var " << i << endl;
             // printf("thread %d working on var %d, total threads %d \n", id, i, omp_get_num_threads());
 
@@ -1489,6 +1495,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                 std::vector<size_t> &xorder = Xorder_std[i];
                 double llmax = -INFINITY;
+                double lltemp;
 
                 std::vector<double> temp_suff_stat(model->dim_suffstat);
 
@@ -1499,24 +1506,25 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                 {
                     calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index2, j, true, model, residual_std);
 
-                    loglike[(n_cutpoints) * i + j] = model->likelihood_test(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false) + model->likelihood_test(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false);
+                    lltemp = model->likelihood_test(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false) + model->likelihood_test(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false);
 
-                    if (loglike[(n_cutpoints) * i + j] > llmax)
+                    if (lltemp > llmax)
                     {
-                        llmax = loglike[(n_cutpoints) * i + j];
+                        llmax = lltemp;
                     }
+                    // #pragma omp critical
+                    loglike[(n_cutpoints) * i + j] = lltemp;
                 }
 
-                #pragma omp flush (loglike_max)
+                // #pragma omp critical
                 if (llmax > loglike_max)
                     loglike_max = llmax;
-                    #pragma omp flush (loglike_max)
                 // omp_unset_lock(&lck);
 
             }
 
-            t = omp_get_wtime() - t;
-            thread_time[id] += t;
+            // t = omp_get_wtime() - t;
+            // thread_time[id] += t;
 
         }
 
@@ -1542,7 +1550,8 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
     omp_lock_t lck;
     omp_init_lock(&lck);
 
-    #pragma omp parallel for 
+    // #pragma omp parallel for 
+    //schedule(dynamic, 1)
     for (size_t var = 0; var < subset_vars.size(); var ++)
     {   
         size_t i = subset_vars[var]; // get subset varaible

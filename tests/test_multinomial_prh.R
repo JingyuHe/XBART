@@ -28,10 +28,10 @@ seed = 10
 set.seed(seed)
 
 
-n = 50000
-nt = 10000
-p = 20
-p_cat = 10
+n = 10000
+nt = 5000
+p = 80
+p_cat = 0
 k = 6
 lam = matrix(0,n,k)
 lamt = matrix(0,nt,k)
@@ -67,7 +67,7 @@ y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 
 
 
-num_sweeps = 30
+num_sweeps = 20
 burnin = 10
 
 if(0){
@@ -77,25 +77,25 @@ if(0){
 }else{
   
 }
-num_trees = 20
+num_trees = 30
 
 tm = proc.time()
 fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
                         Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, 
-                        no_split_penality = 1, weight = seq(1, 10, 1),burnin = burnin, mtry = 3, p_categorical = p_cat, 
-                        kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE, 
+                        no_split_penality = 1, weight = seq(1, 10, 1),burnin = burnin, mtry = p, p_categorical = p_cat, 
+                        kap = 1, s = 1, verbose = FALSE, parallel = TRUE, set_random_seed = FALSE, 
                         random_seed = NULL, sample_weights_flag = TRUE, early_stopping = TRUE, stop_threshold = 0.1) 
 
-# number of sweeps * number of observations * number of classes
-#dim(fit$yhats_test)
+
 tm = proc.time()-tm
 cat(paste("\n", "xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 # take average of all sweeps, discard burn-in
 # a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
 a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
 pred = apply(a,1,which.max)-1
-
+yhat = apply(a,1,which.max)-1
+cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
 
 
 # Compare with ranger
