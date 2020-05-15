@@ -215,7 +215,6 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
 
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
-            //cout << trees[sweeps][tree_ind].suff_stat << endl;
             
             trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
             #pragma omp parallel default(none) shared(trees, sweeps, early_stopping, state, Xorder_std, x_struct, model, tree_ind, entropy_threshold, num_stops)

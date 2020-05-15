@@ -43,21 +43,11 @@ X_train = X.train[,1:v]
 X_test = X.test[,1:v]
 p = v
 
-# X_train[,1] = X_train[,1] + 0.01*rnorm(length(y))
 
 
-# if (!exists("num_trees")){num_trees = 120}
-# if (!exists("num_sweeps")){num_sweeps = 40}
-# if (!exists("burnin")){burnin = 15}
-# # if (!exists("delta")){delta = seq(0.1, 2, 0.05)}
-# # if (!exists("concn")){concn = 1}
-# if (!exists("Nmin")){Nmin = 1}
-# if (!exists("max_depth")){max_depth = 10}
-# if (!exists("mtry")){mtry = 10}
-# if (!exists("num_cutpoints")){num_cutpoints = 20}
 num_sweeps= 20 #40
 num_trees = 30
-burnin = 5
+burnin = 3
 Nmin = 5
 max_depth = 25
 mtry = 10
@@ -65,6 +55,25 @@ num_cutpoints=20
 
 tau = 100 / num_trees
 tau_later = 100 / num_trees
+
+drop_threshold = 2
+
+###################### test run to drop variables #################
+t = proc.time()
+fit_test = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test, 
+                        num_trees=num_trees, num_sweeps=5, max_depth=max_depth, 
+                        Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau=100/num_trees, 
+                        no_split_penality = 1, weight = seq(9, 10, 0.5), burnin = 4, mtry = mtry, p_categorical = p, 
+                        kap = 1, s = 1, verbose = TRUE, parallel = FALSE, set_random_seed = TRUE, 
+                        random_seed = NULL, sample_weights_flag = TRUE,
+                        early_stopping = TRUE, stop_threshold = 0.1) 
+t = proc.time() - t
+
+X_train = X_train[, -which(fit_test$importance < drop_threshold)]
+X_test = X_test[, -which(fit_test$importance < drop_threshold)]
+p = ncol(X_train)
+##################################################################3
+
 
 
 t = proc.time()
@@ -96,4 +105,4 @@ for(i in 0:9){
       " misclassified as ", tail(names(sort(table(yhat[ytest==i]))), 2)[1], "\n " )
 }
 
-saveRDS(fit, paste(path, 'mnist_result/mnist_entropy_20_30_5_01.rds', sep = ''))
+# saveRDS(fit, paste(path, 'mnist_result/mnist_entropy_20_30_5_01.rds', sep = ''))
