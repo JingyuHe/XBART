@@ -4,8 +4,8 @@
 void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct)
 {
 
-    if (state->parallel)
-        thread_pool.start();
+    // if (state->parallel)
+    //     thread_pool.start();
 
     // Residual for 0th tree
     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
@@ -58,7 +58,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
         }
     }
-    thread_pool.stop();
+    // thread_pool.stop();
 
     return;
 }
@@ -170,8 +170,8 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
                            std::unique_ptr<X_struct> &x_struct, std::vector< std::vector<double> > &phi_samples, 
                            std::vector< std::vector<double> > &weight_samples, bool early_stopping, double entropy_threshold, size_t &num_stops)
 {
-    if (state->parallel)
-        thread_pool.start();
+    // if (state->parallel)
+    //     thread_pool.start();
 
     // Residual for 0th tree
     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
@@ -218,21 +218,25 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
             //cout << trees[sweeps][tree_ind].suff_stat << endl;
             
             trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
-
-            if (early_stopping){
-                trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true, entropy_threshold, num_stops);
-            }
-            else{
-                 trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+            #pragma omp parallel default(none) shared(trees, sweeps, early_stopping, state, Xorder_std, x_struct, model, tree_ind, entropy_threshold, num_stops)
+            {       
+                #pragma omp single
+                {
+                if (early_stopping){
+                    trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true, entropy_threshold, num_stops);
+                }
+                else{
+                    trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+                }
+                }
             }
             
             state->update_split_counts(tree_ind);
-
             // update partial fits for the next tree
             model->update_state(state, tree_ind, x_struct);
-            
+
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
-            
+
             for(size_t kk = 0; kk < Xorder_std[0].size(); kk ++ ){
                 phi_samples[sweeps * state->num_trees + tree_ind][kk] = (*(model->phi))[kk];
             }     
@@ -248,15 +252,15 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
         //     break;
         // }
     }
-    thread_pool.stop();  
+    // thread_pool.stop();  
 }
 
 
 void mcmc_loop_probit(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, ProbitClass *model, std::unique_ptr<X_struct> &x_struct)
 {
 
-    if (state->parallel)
-        thread_pool.start();
+    // if (state->parallel)
+        // thread_pool.start();
 
     // Residual for 0th tree
     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
@@ -301,7 +305,7 @@ void mcmc_loop_probit(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
         }
     }
 
-    thread_pool.stop();
+    // thread_pool.stop();
 }
 
 // void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &accept_count, std::vector<double> &MH_vector, std::vector<double> &P_ratio, std::vector<double> &Q_ratio, std::vector<double> &prior_ratio)

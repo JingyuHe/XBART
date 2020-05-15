@@ -601,7 +601,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     {
         if (!update_split_prob)
         {
-            #pragma omp parallel for schedule(static, 128)
+            // #pragma omp parallel for schedule(static, 128)
             for (size_t i = 0; i < N_Xorder; i++)
             {
                 x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
@@ -714,7 +714,6 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
 
     // tau is prior VARIANCE, do not take squares
 
-
     // do I still need this? need this for the root node
     if (update_theta)
     {
@@ -722,6 +721,7 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
         calculate_entropy(Xorder_std, state, this); 
         // cout << "entropy = " << this->entropy << "    threhold = " << entropy_threshold * N_Xorder << endl;
         if (this->entropy < entropy_threshold * N_Xorder) {
+            #pragma omp critical 
             num_stops += 1;
             return;
         }
@@ -783,7 +783,7 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
         // cout << "no split at depth " << this->depth << endl;
         if (!update_split_prob)
         {
-            #pragma omp parallel for schedule(static, 128)
+            // #pragma omp parallel for schedule(static, 128)
             for (size_t i = 0; i < N_Xorder; i++)
             {
                 x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
@@ -828,7 +828,7 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
     {
         // If do not update split prob ONLY
         // grow from root, initialize new nodes
-
+        #pragma omp critical
         state->split_count_current_tree[split_var] += 1;
 
         tree::tree_p lchild = new tree(model->getNumClasses(), this, model->dim_suffstat);
@@ -867,6 +867,7 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
     std::vector<size_t> X_counts_left(X_counts.size());
     std::vector<size_t> X_counts_right(X_counts.size());
 
+
     if (state->p_categorical > 0)
     {
         split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, model, x_struct, state, this);
@@ -877,9 +878,24 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
 
-    this->l->grow_from_root_entropy(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
+    #pragma omp task untied shared(state, Xorder_std, x_struct, model, entropy_threshold, num_stops, tree_ind, sweeps)
+    {
+            // #pragma omp critical
+            // {
+            // cout << "grow left tree on thread " << omp_get_thread_num() << " depth " << this->l->depth << endl; 
+            // }
+            this->l->grow_from_root_entropy(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
+    }
+        #pragma omp task untied shared(state, Xorder_std, x_struct, model, entropy_threshold, num_stops)
+        {
+            // #pragma omp critical
+            // {
+            //     cout << "grow right tree on thread " << omp_get_thread_num()  << " depth " << this->r->depth << endl; 
+            // }
+            this->r->grow_from_root_entropy(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
+        }
 
-    this->r->grow_from_root_entropy(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
+    #pragma omp taskwait
 
     return;
 
@@ -898,7 +914,7 @@ void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state
     
     double entropy = 0.0;
 
-    #pragma omp parallel for reduction(+: entropy) schedule(static, 128)
+    // #pragma omp parallel for reduction(+: entropy) schedule(static, 128)
     for (size_t i = 0; i < N_Xorder; i++)
     {
         double sum_fits = 0;
@@ -968,7 +984,7 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
     for (size_t i = 0; i < state->p_continuous; i++) // loop over variables
     {
         // lambda callback for multithreading
-        auto split_i = [&, i]() {
+        // auto split_i = [&, i]() {
             size_t left_ix = 0;
             size_t right_ix = 0;
 
@@ -989,14 +1005,14 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
                     right_ix = right_ix + 1;
                 }
             }
-        };
-        if (thread_pool.is_active())
-            thread_pool.add_task(split_i);
-        else
-            split_i();
+        // }
+        // if (thread_pool.is_active())
+        //     thread_pool.add_task(split_i);
+        // else
+        //     split_i();
     }
-    if (thread_pool.is_active())
-        thread_pool.wait();
+    // if (thread_pool.is_active())
+    //     thread_pool.wait();
 
     model->calculateOtherSideSuffStat(current_node->suff_stat, current_node->l->suff_stat, current_node->r->suff_stat, N_Xorder, N_Xorder_left, N_Xorder_right, compute_left_side);
 
@@ -1481,7 +1497,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         // std::vector<double> thread_time(omp_get_max_threads(), 0.0);
         // double tl =  clock();
 
-        #pragma omp parallel for default(none) shared(subset_vars, Xorder_std, candidate_index2, model, p_continuous, n_cutpoints, residual_std, loglike_max, loglike, tree_pointer)
+        // #pragma omp parallel for default(none) shared(subset_vars, Xorder_std, candidate_index2, model, p_continuous, n_cutpoints, residual_std, loglike_max, loglike, tree_pointer)
         for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
             double t = omp_get_wtime();
 
