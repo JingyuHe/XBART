@@ -331,18 +331,6 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits_v[i]/min_fits); 
     }
 
-    // // sum_entropy
-    // vec_sum(entropy_vec, sum_entropy);
-    // cout << "entorpy " << sum_entropy << endl;
-
-    // // if stop = false & entropy dereases less than threshold
-    // if (early_stopping & (!stop) & sum_entropy > entropy & (sum_entropy - entropy) < stop_threshold*state->residual_std[0].size() ){
-    //     stop = true;
-    //     cout << "stop = true" << endl;
-    // }
-    // else {entropy = sum_entropy;}
-
-
 
     // Draw weight
     double max = -INFINITY;

@@ -1,3 +1,10 @@
+library(XBART)
+library(xgboost)
+# library(ranger)
+
+# start_profiler('test_multinomial_prh.log')
+# 
+
 plotROC <- function(pihat,ytrue,add=FALSE,col = 'steelblue'){
   
   thresh <- sort(pihat)
@@ -19,10 +26,6 @@ get_entropy <- function(nclass){
   pi = pi/sum(pi)
   return (sum(-pi*log(pi)))
 }
-
-library(XBART)
-library(xgboost)
-library(ranger)
 
 seed = 10
 set.seed(seed)
@@ -79,17 +82,18 @@ if(0){
 }
 num_trees = 30
 
+#########################  parallel ####################3
 tm = proc.time()
 fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
                         Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees, 
                         no_split_penality = 1, weight = seq(1, 10, 1),burnin = burnin, mtry = 3, p_categorical = p_cat, 
                         kap = 1, s = 1, verbose = FALSE, parallel = TRUE, set_random_seed = FALSE, 
-                        random_seed = NULL, sample_weights_flag = TRUE, early_stopping = TRUE, stop_threshold = 0.1) 
+                        random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.1) 
 
 
 tm = proc.time()-tm
-cat(paste("\n", "xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
+cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 # take average of all sweeps, discard burn-in
 # a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
 a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
@@ -98,67 +102,88 @@ yhat = apply(a,1,which.max)-1
 cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
 
 
-# Compare with ranger
-# data = data.frame( y = y_train, X = X_train)
-# data.test = data.frame(X = X_test)
-# tm = proc.time()
-# fit3 = ranger(as.factor(y) ~ ., data = data,probability=TRUE, num.trees = 1000)
+#######################################################
+
+
+##################### NOT parallel ######################
+
+tm = proc.time()
+fit_single = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test,
+                        num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250,
+                        Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau=50/num_trees,
+                        no_split_penality = 1, weight = seq(1, 10, 1),burnin = burnin, mtry = 3, p_categorical = p_cat,
+                        kap = 1, s = 1, verbose = FALSE, parallel = FALSE, set_random_seed = FALSE,
+                        random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.1)
+
+
+tm = proc.time()-tm
+cat(paste("\n", "non-parallel xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
+a_single = apply(fit_single$yhats_test[burnin:num_sweeps,,], c(2,3), median)
+pred_single = apply(a_single,1,which.max)-1
+yhat_single = apply(a,1,which.max)-1
+cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat_single),3)),"\n")
+
+#######################################################
+# 
+# # Compare with ranger
+# # data = data.frame( y = y_train, X = X_train)
+# # data.test = data.frame(X = X_test)
+# # tm = proc.time()
+# # fit3 = ranger(as.factor(y) ~ ., data = data,probability=TRUE, num.trees = 1000)
+# # 
+# # 
+# # 
+# # pred3 = predict(fit3, data.test)$predictions
+# # tm = proc.time()-tm
+# # cat(paste("ranger runtime: ", round(tm["elapsed"],3)," seconds","\n"))
+# 
+# # 
+# # tm2 = proc.time()
+# # fit.xgb <- xgboost(data = X_train, label=y_train,
+# #                    num_class=k,
+# #                    verbose = 0,
+# #                    max_depth = 4,
+# #                    subsample = 0.80,
+# #                    nrounds=500,
+# #                    early_stopping_rounds = 2,
+# #                    eta = 0.1,
+# #                    params=list(objective="multi:softprob"))
+# # 
+# # tm2 = proc.time()-tm2
+# # cat(paste("xgboost runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
+# # phat.xgb <- predict(fit.xgb, X_test)
+# # phat.xgb <- matrix(phat.xgb, ncol=k, byrow=TRUE)
+# # 
+# # yhat.xgb <- max.col(phat.xgb) - 1
 # 
 # 
+# cat(paste("xbart rmse on probabilities: ", round(sqrt(mean((a-pr)^2)),3)),"\n")
+# # cat(paste("ranger rmse on probabilities: ", round(sqrt(mean((pred3-pr)^2)),3)),"\n")
+# # cat(paste("xgboost rmse on probabilities: ", round(sqrt(mean((phat.xgb-pr)^2)),3)),"\n")
 # 
-# pred3 = predict(fit3, data.test)$predictions
-# tm = proc.time()-tm
-# cat(paste("ranger runtime: ", round(tm["elapsed"],3)," seconds","\n"))
-
-
-tm2 = proc.time()
-fit.xgb <- xgboost(data = X_train, label=y_train,
-                   num_class=k,
-                   verbose = 0,
-                   max_depth = 4,
-                   subsample = 0.80,
-                   nrounds=500,
-                   early_stopping_rounds = 2,
-                   eta = 0.1,
-                   params=list(objective="multi:softprob"))
-
-tm2 = proc.time()-tm2
-cat(paste("xgboost runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
-phat.xgb <- predict(fit.xgb, X_test)
-phat.xgb <- matrix(phat.xgb, ncol=k, byrow=TRUE)
-
-yhat.xgb <- max.col(phat.xgb) - 1
-
-
-cat(paste("xbart rmse on probabilities: ", round(sqrt(mean((a-pr)^2)),3)),"\n")
-# cat(paste("ranger rmse on probabilities: ", round(sqrt(mean((pred3-pr)^2)),3)),"\n")
-cat(paste("xgboost rmse on probabilities: ", round(sqrt(mean((phat.xgb-pr)^2)),3)),"\n")
-
-# par(mfrow=c(1,3))
-# plot(a[,1],pr[,1],pch=20,cex=0.75)
-# plot(a[,2],pr[,2],pch=20,cex=0.75)
-# plot(a[,3],pr[,3],pch=20,cex=0.75)
-
-yhat = apply(a,1,which.max)-1
-cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
-cat(paste("xgboost classification accuracy: ", round(mean(yhat.xgb == y_test),3)),"\n")
-
-spr <- split(a, row(a))
-logloss <- sum(mapply(function(x,y) -log(x[y]), spr, y_test+1, SIMPLIFY =TRUE))
-spr <- split(phat.xgb, row(phat.xgb))
-logloss.xgb <- sum(mapply(function(x,y) -log(x[y]), spr, y_test+1, SIMPLIFY =TRUE))
-
-cat(paste("xbart logloss : ",round(logloss,3)),"\n")
-cat(paste("xgboost logloss : ", round(logloss.xgb,3)),"\n")
-
-cat(paste("\n", "xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
-cat(paste("xgboost runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
-
-table(fit$weight)
-
-fit$importance
-
-cat("early stops per tree: ", round(fit$num_stops/num_sweeps/num_trees, 3), "\n")
-
-
+# # par(mfrow=c(1,3))
+# # plot(a[,1],pr[,1],pch=20,cex=0.75)
+# # plot(a[,2],pr[,2],pch=20,cex=0.75)
+# # plot(a[,3],pr[,3],pch=20,cex=0.75)
+# 
+# yhat = apply(a,1,which.max)-1
+# cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
+# # cat(paste("xgboost classification accuracy: ", round(mean(yhat.xgb == y_test),3)),"\n")
+# 
+# spr <- split(a, row(a))
+# logloss <- sum(mapply(function(x,y) -log(x[y]), spr, y_test+1, SIMPLIFY =TRUE))
+# # spr <- split(phat.xgb, row(phat.xgb))
+# # logloss.xgb <- sum(mapply(function(x,y) -log(x[y]), spr, y_test+1, SIMPLIFY =TRUE))
+# 
+# cat(paste("xbart logloss : ",round(logloss,3)),"\n")
+# # cat(paste("xgboost logloss : ", round(logloss.xgb,3)),"\n")
+# 
+# cat(paste("\n", "xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
+# # cat(paste("xgboost runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
+# 
+# table(fit$weight)
+# 
+# cat("early stops per tree: ", round(fit$num_stops/num_sweeps/num_trees, 3), "\n")
+# 
+# stop_profiler()
 

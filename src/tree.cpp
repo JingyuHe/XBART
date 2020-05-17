@@ -1487,21 +1487,10 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         std::vector<size_t> candidate_index2(state->n_cutpoints + 1);
         seq_gen_std2(state->n_min, N - state->n_min, state->n_cutpoints, candidate_index2);
         size_t p_continuous = state->p_continuous;
-        size_t n_cutpoints = state->n_cutpoints;
-        matrix<double> residual_std = state->residual_std;
 
-        // omp_set_num_threads(omp_get_max_threads());
-        // cout << "sys threads " << omp_get_num_threads() << endl;
-        // omp_lock_t lck;
-        // omp_init_lock(&lck);
-        // std::vector<double> thread_time(omp_get_max_threads(), 0.0);
-        // double tl =  clock();
-
-        // #pragma omp parallel for default(none) shared(subset_vars, Xorder_std, candidate_index2, model, p_continuous, n_cutpoints, residual_std, loglike_max, loglike, tree_pointer)
+        // #pragma omp parallel for schedule(dynamic, 1) default(none) shared(state, p_continuous, subset_vars, Xorder_std, model, candidate_index2, tree_pointer, loglike, loglike_max)
         for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
-            double t = omp_get_wtime();
 
-            int id = omp_get_thread_num();
             size_t i = subset_vars[var_i];
             // #pragma omp critical
             // cout << "thread " << id  << " working on var " << i << endl;
@@ -1517,39 +1506,25 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                 std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
 
-                // this for loop can not be paralized bc suff_stat is added in sequence
-                for (size_t j = 0; j < n_cutpoints; j++)
+                for (size_t j = 0; j < state->n_cutpoints; j++)
                 {
-                    calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index2, j, true, model, residual_std);
-
-                    lltemp = model->likelihood_test(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false) + model->likelihood_test(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false);
-
-                    if (lltemp > llmax)
-                    {
-                        llmax = lltemp;
-                    }
-                    // #pragma omp critical
-                    loglike[(n_cutpoints) * i + j] = lltemp;
+                    calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index2, j, true, model, state->residual_std);
+                    // move likelihood calculation to a new thread
+                        #pragma omp task firstprivate(temp_suff_stat, i, j) shared(state, tree_pointer, candidate_index2, model, loglike)
+                        {
+                            lltemp = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
+                            loglike[(state->n_cutpoints) * i + j] = lltemp;
+                            #pragma omp critical 
+                            {
+                            if (loglike[(state->n_cutpoints) * i + j] > loglike_max)
+                            loglike_max = loglike[(state->n_cutpoints) * i + j];
+                            }
+                        }
                 }
-
-                // #pragma omp critical
-                if (llmax > loglike_max)
-                    loglike_max = llmax;
-                // omp_unset_lock(&lck);
-
             }
-
-            // t = omp_get_wtime() - t;
-            // thread_time[id] += t;
-
         }
+        #pragma omp taskwait
 
-        // for (size_t i = 0; i < thread_time.size(); i++){
-        //     cout << "thread " << i << " time " << thread_time[i] << endl;
-        // }
-        // cout << "total thread time " << accumulate(thread_time.begin(), thread_time.end(), 0.0) << endl;
-        // // omp_destroy_lock(&lck);
-        // cout << "linear time " <<  float(clock() - tl) << endl;
     }
 }
 

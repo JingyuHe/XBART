@@ -56,23 +56,24 @@ num_cutpoints=20
 tau = 100 / num_trees
 tau_later = 100 / num_trees
 
-drop_threshold = 2
+drop_threshold = 10
 
 ###################### test run to drop variables #################
 t = proc.time()
 fit_test = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test, 
-                        num_trees=num_trees, num_sweeps=5, max_depth=max_depth, 
+                        num_trees=num_trees, num_sweeps=2, max_depth=max_depth, 
                         Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau=100/num_trees, 
-                        no_split_penality = 1, weight = seq(9, 10, 0.5), burnin = 4, mtry = mtry, p_categorical = p, 
+                        no_split_penality = 1, weight = seq(9, 10, 0.5), burnin = 1, mtry = mtry, p_categorical = p, 
                         kap = 1, s = 1, verbose = TRUE, parallel = FALSE, set_random_seed = TRUE, 
-                        random_seed = NULL, sample_weights_flag = TRUE,
-                        early_stopping = TRUE, stop_threshold = 0.1) 
+                        random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.1) 
 t = proc.time() - t
+cat("test fit running time ", t[3], " seconds \n")
 
 X_train = X_train[, -which(fit_test$importance < drop_threshold)]
 X_test = X_test[, -which(fit_test$importance < drop_threshold)]
 p = ncol(X_train)
-##################################################################3
+cat('dropped variables ', which(fit_test$importance < drop_threshold) )
+##################################################################
 
 
 
@@ -82,8 +83,7 @@ fit = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test,
                         Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau=100/num_trees, 
                         no_split_penality = 1, weight = seq(9, 10, 0.5), burnin = burnin, mtry = mtry, p_categorical = p, 
                         kap = 1, s = 1, verbose = TRUE, parallel = FALSE, set_random_seed = TRUE, 
-                        random_seed = NULL, sample_weights_flag = TRUE,
-                        early_stopping = TRUE, stop_threshold = 0.1) 
+                        random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.1) 
 t = proc.time() - t
 
 
@@ -105,4 +105,4 @@ for(i in 0:9){
       " misclassified as ", tail(names(sort(table(yhat[ytest==i]))), 2)[1], "\n " )
 }
 
-# saveRDS(fit, paste(path, 'mnist_result/mnist_entropy_20_30_5_01.rds', sep = ''))
+saveRDS(fit, paste(path, 'mnist_result/mnist_entropy_4_3_20_2.rds', sep = ''))

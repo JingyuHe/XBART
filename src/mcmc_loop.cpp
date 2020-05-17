@@ -1,4 +1,5 @@
 #include "mcmc_loop.h"
+#include "omp.h"
 
 
 void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct)
@@ -168,7 +169,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
                            vector<vector<tree>> &trees, double no_split_penalty,
                            std::unique_ptr<State> &state, LogitModel *model,
                            std::unique_ptr<X_struct> &x_struct, std::vector< std::vector<double> > &phi_samples, 
-                           std::vector< std::vector<double> > &weight_samples, bool early_stopping, double entropy_threshold, size_t &num_stops)
+                           std::vector< std::vector<double> > &weight_samples, double entropy_threshold, size_t &num_stops)
 {
     // if (state->parallel)
     //     thread_pool.start();
@@ -217,16 +218,16 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
 
             
             trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
-            #pragma omp parallel default(none) shared(trees, sweeps, early_stopping, state, Xorder_std, x_struct, model, tree_ind, entropy_threshold, num_stops)
+
+            omp_set_nested(1);
+            #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind, entropy_threshold, num_stops)
             {       
-                #pragma omp single
+                #pragma omp sections
                 {
-                if (early_stopping){
-                    trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true, entropy_threshold, num_stops);
-                }
-                else{
-                    trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-                }
+                    #pragma omp section
+                    {
+                        trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true, entropy_threshold, num_stops);
+                    }
                 }
             }
             

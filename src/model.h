@@ -480,14 +480,10 @@ public:
 
     std::vector<double> weight_std;
 
-    // bool early_stopping;
-    // bool stop;
-    // double stop_threshold;
-    // double entropy;
 
     double min_fits;
 
-    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, std::vector<double> weight_std) : Model(num_classes, 2*num_classes)//, bool early_stopping, double stop_threshold) : Model(num_classes, 2*num_classes)
+    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, std::vector<double> weight_std) : Model(num_classes, 2*num_classes)
     {
       this->y_size_t = y_size_t;
       this->phi = phi;
@@ -500,10 +496,7 @@ public:
         this->weight = weight_std[0];
         this->weight_std = weight_std;
         this->min_fits = 1.0;
-        // this->entropy = 0.0;
-        // this->early_stopping = early_stopping;
-        // this->stop_threshold = stop_threshold;
-        // this->stop = false;
+
     }
 
     LogitModel() : Model(2, 4) {}
