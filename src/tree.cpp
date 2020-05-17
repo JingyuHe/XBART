@@ -1446,7 +1446,8 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         // to have a generalized function, have to pass an empty candidate_index object for this case
         // is there any smarter way to do it?
         std::vector<size_t> candidate_index(1);
-
+        
+        // set up parallel during burnin
         for (auto &&i : subset_vars)
         {
             if (i < state->p_continuous)
@@ -1482,6 +1483,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         seq_gen_std2(state->n_min, N - state->n_min, state->n_cutpoints, candidate_index2);
         size_t p_continuous = state->p_continuous;
 
+        // set up parallel during burnin?
         // #pragma omp parallel for schedule(dynamic, 1) default(none) shared(state, p_continuous, subset_vars, Xorder_std, model, candidate_index2, tree_pointer, loglike, loglike_max)
         for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
 
@@ -1573,12 +1575,13 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                     n1 = n1 + X_counts[j];
                    
 
-                    #pragma omp task firstprivate(temp_suff_stat, j, n1) shared(loglike_start, state, tree_pointer, model, loglike, loglike_max)
+                    #pragma omp task firstprivate(temp_suff_stat, j, n1) shared(var_effective_cutpoints, loglike_start, state, tree_pointer, model, loglike, loglike_max)
                     {                                       
                     loglike[loglike_start + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, false, false, state);
 
                     // count total number of cutpoint candidates
                     var_effective_cutpoints++;
+                    #pragma omp flush(var_effective_cutpoints);
 
                     loglike_max = loglike_max > loglike[loglike_start + j] ? loglike_max : loglike[loglike_start + j]; 
                     }
