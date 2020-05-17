@@ -34,7 +34,7 @@ set.seed(seed)
 n = 10000
 nt = 5000
 p = 20
-p_cat = 0
+p_cat = 10
 k = 6
 lam = matrix(0,n,k)
 lamt = matrix(0,nt,k)
