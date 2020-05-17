@@ -1460,11 +1460,11 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                 {
                     calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index, j, false, model, state->residual_std);
                     
-                    #pragma omp task firstprivate(temp_suff_stat, i, j) shared(state, tree_pointer, candidate_index, model, loglike, loglike_max)
+                    #pragma omp task firstprivate(temp_suff_stat, i, j) shared(state, tree_pointer, candidate_index, model, loglike, loglike_max, N_Xorder)
                     {
                     loglike[(N_Xorder - 1) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, false, false, state);
 
-                    loglike_max = loglike_max > loglike[(state->n_cutpoints) * i + j]  ? loglike_max : loglike[(state->n_cutpoints) * i + j]; 
+                    loglike_max = loglike_max > loglike[(N_Xorder - 1) * i + j]  ? loglike_max : loglike[(N_Xorder - 1) * i + j]; 
 
                     }
                 }
