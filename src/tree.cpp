@@ -880,20 +880,12 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
 
     #pragma omp task untied shared(state, Xorder_std, x_struct, model, entropy_threshold, num_stops, tree_ind, sweeps)
     {
-            // #pragma omp critical
-            // {
-            // cout << "grow left tree on thread " << omp_get_thread_num() << " depth " << this->l->depth << endl; 
-            // }
             this->l->grow_from_root_entropy(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
     }
-        #pragma omp task untied shared(state, Xorder_std, x_struct, model, entropy_threshold, num_stops)
-        {
-            // #pragma omp critical
-            // {
-            //     cout << "grow right tree on thread " << omp_get_thread_num()  << " depth " << this->r->depth << endl; 
-            // }
-            this->r->grow_from_root_entropy(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
-        }
+    #pragma omp task untied shared(state, Xorder_std, x_struct, model, entropy_threshold, num_stops)
+    {
+        this->r->grow_from_root_entropy(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
+    }
 
     #pragma omp taskwait
 
@@ -1527,19 +1519,21 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
     // #pragma omp parallel for 
     //schedule(dynamic, 1)
-    #pragma omp parallel for if(state->use_all & state->p_categorical * state->nthread > 140) schedule(dynamic, 1) default(none) shared(loglike_start, x_struct, X_counts,X_num_unique,  state, subset_vars, Xorder_std, model, tree_pointer, loglike, loglike_max)
+    // #pragma omp parallel for if(state->use_all & state->p_categorical * state->nthread > 140) schedule(dynamic, 1) default(none) shared(loglike_start, x_struct, X_counts,X_num_unique,  state, subset_vars, Xorder_std, model, tree_pointer, loglike, loglike_max)
     for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
 
         size_t i = subset_vars[var_i]; // get subset varaible
-        size_t start, end, end2, n1, n2, temp;
+        
         // size_t var_effective_cutpoints = 0;
 
-        std::vector<double> temp_suff_stat(model->dim_suffstat);
-
-        // COUT << "variable " << i << endl;
         if ((i >= state->p_continuous) && (X_num_unique[i - state->p_continuous] > 1))
         {
-            // more than one unique values
+            #pragma omp task firstprivate(i) shared(x_struct, state, model, X_counts, Xorder_std, loglike_start, loglike, loglike_max, tree_pointer)
+            {
+            std::vector<double> temp_suff_stat(model->dim_suffstat);
+            std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
+            size_t start, end, end2, n1, n2, temp;
+
             start = x_struct->variable_ind[i - state->p_continuous];
             end = x_struct->variable_ind[i + 1 - state->p_continuous] - 1; // minus one for indexing starting at 0
             end2 = end;
@@ -1552,9 +1546,6 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
             }
             // move backward again, do not consider the last unique value as cutpoint
             end2 = end2 - 1;
-
-            //model -> suff_stat_fill(0.0); // initialize sufficient statistics
-            std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
 
             n1 = 0;
 
@@ -1573,8 +1564,8 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                     n1 = n1 + X_counts[j];
                    
 
-                    #pragma omp task firstprivate(temp_suff_stat, j, n1) shared(loglike_start, state, tree_pointer, model, loglike, loglike_max)  
-                    {                                       
+                    // #pragma omp task firstprivate(temp_suff_stat, j, n1) shared(loglike_start, state, tree_pointer, model, loglike, loglike_max)  
+                    // {                                       
                     loglike[loglike_start + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, false, false, state);
 
                     // count total number of cutpoint candidates
@@ -1582,10 +1573,11 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                     // #pragma omp flush(var_effective_cutpoints);
 
                     loglike_max = loglike_max > loglike[loglike_start + j] ? loglike_max : loglike[loglike_start + j]; 
-                    }
+                    // }
 
                 }
                 
+            }
             }
 
         }

@@ -61,11 +61,13 @@ void rcpp_to_std2(arma::mat y, arma::mat X, arma::mat Xtest, std::vector<double>
     // Create Xorder
     // Order
     arma::umat Xorder(X.n_rows, X.n_cols);
+    // #pragma omp parallel for schedule(dynamic, 1) shared(X, Xorder)
     for (size_t i = 0; i < X.n_cols; i++)
     {
         Xorder.col(i) = arma::sort_index(X.col(i));
     }
     // Create
+    // #pragma omp parallel for collapse(2)
     for (size_t i = 0; i < N; i++)
     {
         for (size_t j = 0; j < p; j++)
