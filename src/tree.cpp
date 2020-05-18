@@ -974,7 +974,7 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
 
     const double *split_var_x_pointer = state->X_std + state->n_y * split_var;
 
-    #pragma omp parallel for schedule(dynamic, 1) defualt(none) shared(state, Xorder_std, Xorder_left_std, Xorder_right_std, N_Xorder, split_var_x_pointer, cutvalue)
+    #pragma omp parallel for schedule(dynamic, 1) default(none) shared(state, Xorder_std, Xorder_left_std, Xorder_right_std, N_Xorder, split_var_x_pointer, cutvalue)
     for (size_t i = 0; i < state->p_continuous; i++) // loop over variables
     {
         // lambda callback for multithreading
@@ -1030,7 +1030,7 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
     std::fill(X_num_unique_left.begin(), X_num_unique_left.end(), 0.0);
     std::fill(X_num_unique_right.begin(), X_num_unique_right.end(), 0.0);
 
-    #pragma omp parallel for schedule(dynamic, 1) defualt(none) shared(state, temp_pointer, Xorder_std, Xorder_left_std, Xorder_right_std, N_Xorder,\
+    #pragma omp parallel for schedule(dynamic, 1) default(none) shared(state, temp_pointer, Xorder_std, Xorder_left_std, Xorder_right_std, N_Xorder,\
                                                                         N_Xorder_left, N_Xorder_right, cutvalue, x_struct, compute_left_side, model, split_var,\
                                                                         X_num_unique_left, X_num_unique_right, current_node)
     for (size_t i = state->p_continuous; i < state->p; i++)
