@@ -1032,7 +1032,7 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
 
     #pragma omp parallel for schedule(dynamic, 1) default(none) shared(state, temp_pointer, Xorder_std, Xorder_left_std, Xorder_right_std, N_Xorder,\
                                                                         N_Xorder_left, N_Xorder_right, cutvalue, x_struct, compute_left_side, model, split_var,\
-                                                                        X_num_unique_left, X_num_unique_right, current_node)
+                                                                        X_num_unique_left, X_num_unique_right, current_node, X_counts, X_counts_left, X_counts_right)
     for (size_t i = state->p_continuous; i < state->p; i++)
     {
         // loop over variables

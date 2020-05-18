@@ -50,7 +50,7 @@ num_trees = 30
 burnin = 5
 Nmin = 5
 max_depth = 25
-mtry = 20
+mtry = 100
 num_cutpoints=20
 
 tau = 100 / num_trees
