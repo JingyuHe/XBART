@@ -1444,8 +1444,9 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         // is there any smarter way to do it?
         std::vector<size_t> candidate_index(1);
         
-        // set up parallel during burnin
-        #pragma omp parallel for if(state->use_all) schedule(dynamic, 1) default(none) shared(N_Xorder, state, subset_vars, Xorder_std, model, candidate_index, tree_pointer, loglike, loglike_max)
+        // set up parallel during burnin 
+        //  state->p_continuous * state->nthread > 100 // this is approximately the cost to set up parallel for
+        #pragma omp parallel for if(state->use_all & state->p_continuous * state->nthread > 120) schedule(dynamic, 1) default(none) shared(N_Xorder, state, subset_vars, Xorder_std, model, candidate_index, tree_pointer, loglike, loglike_max)
         for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
 
             size_t i = subset_vars[var_i];
@@ -1485,7 +1486,8 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         // size_t p_continuous = state->p_continuous;
 
         // set up parallel during burnin?
-        #pragma omp parallel for if(state->use_all) schedule(dynamic, 1) default(none) shared(state, subset_vars, Xorder_std, model, candidate_index2, tree_pointer, loglike, loglike_max)
+        // state->p_continuous * state->nthread > 100 // this is approximately the cost to set up parallel for
+        #pragma omp parallel for if(state->use_all & state->p_continuous * state->nthread > 120 ) schedule(dynamic, 1) default(none) shared(state, subset_vars, Xorder_std, model, candidate_index2, tree_pointer, loglike, loglike_max)
         for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
 
             size_t i = subset_vars[var_i];
@@ -1525,7 +1527,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
     // #pragma omp parallel for 
     //schedule(dynamic, 1)
-    #pragma omp parallel for if(state->use_all) schedule(dynamic, 1) default(none) shared(x_struct, X_counts,X_num_unique,  state, subset_vars, Xorder_std, model, tree_pointer, loglike, loglike_max)
+    #pragma omp parallel for if(state->use_all & state->p_categorical * state->nthread > 140) schedule(dynamic, 1) default(none) shared(loglike_start, x_struct, X_counts,X_num_unique,  state, subset_vars, Xorder_std, model, tree_pointer, loglike, loglike_max)
     for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
 
         size_t i = subset_vars[var_i]; // get subset varaible
