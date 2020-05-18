@@ -107,4 +107,4 @@ cat(paste("xbart logloss : ",round(logloss,3)),"\n")
 #       " misclassified as ", tail(names(sort(table(yhat[ytest==i]))), 2)[1], "\n " )
 # }
 # 
-# saveRDS(fit, paste(path, 'mnist_result/mnist_entropy_4_3_20_2.rds', sep = ''))
+saveRDS(fit, paste(path, 'mnist_result/mnist_categorical.rds', sep = ''))

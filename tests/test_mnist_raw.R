@@ -55,7 +55,7 @@ t = proc.time()
 fit_test = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test, 
                              num_trees=num_trees, num_sweeps=2, max_depth=max_depth, 
                              Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau=100/num_trees, 
-                             no_split_penality = 1, weight = seq(9, 10, 0.5), burnin = 1, mtry = mtry, p_categorical = p, 
+                             no_split_penality = 1, weight = seq(9, 10, 0.5), burnin = 1, mtry = mtry, p_categorical = 0, 
                              kap = 1, s = 1, verbose = TRUE, parallel = TRUE, set_random_seed = TRUE, 
                              random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.1) 
 t = proc.time() - t
@@ -75,7 +75,7 @@ t = proc.time()
 fit = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth, 
                         Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau=100/num_trees, 
-                        no_split_penality = 1, weight = seq(9, 10, 0.5), burnin = burnin, mtry = mtry, p_categorical = p, 
+                        no_split_penality = 1, weight = seq(9, 10, 0.5), burnin = burnin, mtry = mtry, p_categorical = 0, 
                         kap = 1, s = 1, verbose = TRUE, parallel = TRUE, set_random_seed = TRUE, 
                         random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.1) 
 t = proc.time() - t
@@ -101,4 +101,4 @@ cat(paste("xbart logloss : ",round(logloss,3)),"\n")
 #       " misclassified as ", tail(names(sort(table(yhat[ytest==i]))), 2)[1], "\n " )
 # }
 # 
-# saveRDS(fit, paste(path, 'mnist_result/mnist_entropy_4_3_20_2.rds', sep = ''))
+saveRDS(fit, paste(path, 'mnist_result/mnist_raw.rds', sep = ''))
