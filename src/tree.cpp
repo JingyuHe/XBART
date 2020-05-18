@@ -1431,9 +1431,6 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
     size_t N = N_Xorder;
 
-    std::vector<double> temp_suff_stat(model->dim_suffstat);
-    std::vector<double> temp_suff_stat2(model->dim_suffstat);
-
     if (N_Xorder <= state->n_cutpoints + 1 + 2 * state->n_min)
     {
         // if we only have a few data observations in current node
@@ -1448,13 +1445,17 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         std::vector<size_t> candidate_index(1);
         
         // set up parallel during burnin
-        for (auto &&i : subset_vars)
-        {
+        #pragma omp parallel for if(state->use_all) schedule(dynamic, 1) default(none) shared(N_Xorder, state, subset_vars, Xorder_std, model, candidate_index, tree_pointer, loglike, loglike_max)
+        for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
+
+            size_t i = subset_vars[var_i];
+
             if (i < state->p_continuous)
             {
                 std::vector<size_t> &xorder = Xorder_std[i];
 
                 // initialize sufficient statistics
+                std::vector<double> temp_suff_stat(model->dim_suffstat);
                 std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
 
                 for (size_t j = 0; j < N_Xorder - 1; j++)
@@ -1481,23 +1482,19 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
         std::vector<size_t> candidate_index2(state->n_cutpoints + 1);
         seq_gen_std2(state->n_min, N - state->n_min, state->n_cutpoints, candidate_index2);
-        size_t p_continuous = state->p_continuous;
+        // size_t p_continuous = state->p_continuous;
 
         // set up parallel during burnin?
-        // #pragma omp parallel for schedule(dynamic, 1) default(none) shared(state, p_continuous, subset_vars, Xorder_std, model, candidate_index2, tree_pointer, loglike, loglike_max)
+        #pragma omp parallel for if(state->use_all) schedule(dynamic, 1) default(none) shared(state, subset_vars, Xorder_std, model, candidate_index2, tree_pointer, loglike, loglike_max)
         for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
 
             size_t i = subset_vars[var_i];
-            // #pragma omp critical
-            // cout << "thread " << id  << " working on var " << i << endl;
-            // printf("thread %d working on var %d, total threads %d \n", id, i, omp_get_num_threads());
 
-            if (i < p_continuous){
+            if (i < state->p_continuous){
 
                 std::vector<size_t> &xorder = Xorder_std[i];
 
                 std::vector<double> temp_suff_stat(model->dim_suffstat);
-
                 std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
 
                 for (size_t j = 0; j < state->n_cutpoints; j++)
@@ -1528,13 +1525,12 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
     // #pragma omp parallel for 
     //schedule(dynamic, 1)
-    for (size_t var = 0; var < subset_vars.size(); var ++)
-    {   
-        size_t i = subset_vars[var]; // get subset varaible
+    #pragma omp parallel for if(state->use_all) schedule(dynamic, 1) default(none) shared(x_struct, X_counts,X_num_unique,  state, subset_vars, Xorder_std, model, tree_pointer, loglike, loglike_max)
+    for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
+
+        size_t i = subset_vars[var_i]; // get subset varaible
         size_t start, end, end2, n1, n2, temp;
         // size_t var_effective_cutpoints = 0;
-
-        // cout << "thread " << omp_get_thread_num()  << " working on var " << i << "  total threads " << omp_get_num_threads() << endl;
 
         std::vector<double> temp_suff_stat(model->dim_suffstat);
 
