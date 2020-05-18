@@ -971,8 +971,10 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
         }
     }
 
+
     const double *split_var_x_pointer = state->X_std + state->n_y * split_var;
 
+    #pragma omp parallel for schedule(dynamic, 1) defulat(none) shared(state, Xorder_std, Xorder_left_std, Xorder_right_std, N_Xorder, split_var_x_pointer, cutvalue)
     for (size_t i = 0; i < state->p_continuous; i++) // loop over variables
     {
         // lambda callback for multithreading
@@ -997,14 +999,9 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
                     right_ix = right_ix + 1;
                 }
             }
-        // }
-        // if (thread_pool.is_active())
-        //     thread_pool.add_task(split_i);
-        // else
-        //     split_i();
+
     }
-    // if (thread_pool.is_active())
-    //     thread_pool.wait();
+
 
     model->calculateOtherSideSuffStat(current_node->suff_stat, current_node->l->suff_stat, current_node->r->suff_stat, N_Xorder, N_Xorder_left, N_Xorder_right, compute_left_side);
 
@@ -1018,12 +1015,9 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
 
     // preserve order of other variables
     size_t N_Xorder = Xorder_std[0].size();
-    size_t left_ix = 0;
-    size_t right_ix = 0;
     size_t N_Xorder_left = Xorder_left_std[0].size();
     size_t N_Xorder_right = Xorder_right_std[0].size();
-
-    size_t X_counts_index = 0;
+    const double *temp_pointer = state->X_std + state->n_y * split_var;
 
     // if the left side is smaller, we only compute sum of it
     bool compute_left_side = N_Xorder_left < N_Xorder_right;
@@ -1031,58 +1025,41 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
     current_node->l->ini_suff_stat();
     current_node->r->ini_suff_stat();
 
-    size_t start;
-    size_t end;
-
     double cutvalue = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
 
+    std::fill(X_num_unique_left.begin(), X_num_unique_left.end(), 0.0);
+    std::fill(X_num_unique_right.begin(), X_num_unique_right.end(), 0.0);
+
+    #pragma omp parallel for schedule(dynamic, 1) defulat(none) shared(state, temp_pointer, Xorder_std, Xorder_left_std, Xorder_right_std, N_Xorder,\
+                                                                        N_Xorder_left, N_Xorder_right, cutvalue, x_struct, compute_left_side, model, split_var,\
+                                                                        X_num_unique_left, X_num_unique_right, current_node)
     for (size_t i = state->p_continuous; i < state->p; i++)
     {
         // loop over variables
-        left_ix = 0;
-        right_ix = 0;
-        const double *temp_pointer = state->X_std + state->n_y * split_var;
+        size_t left_ix = 0;
+        size_t right_ix = 0;
 
         // index range of X_counts, X_values that are corresponding to current variable
         // start <= i <= end;
-        start = x_struct->variable_ind[i - state->p_continuous];
-        // COUT << "start " << start << endl;
-        end = x_struct->variable_ind[i + 1 - state->p_continuous];
+        size_t start = x_struct->variable_ind[i - state->p_continuous];
+        size_t end = x_struct->variable_ind[i + 1 - state->p_continuous];
 
         if (i == split_var)
         {
-            // split the split_variable, only need to find row of cutvalue
-
-            // I think this part can be optimizied, we know location of cutvalue (split_value variable)
-
-            // COUT << "compute left side " << compute_left_side << endl;
-
-            ///////////////////////////////////////////////////////////
-            //
-            // We should be able to run this part in parallel
-            //
-            //  just like split_xorder_std_continuous
-            //
-            ///////////////////////////////////////////////////////////
-
             if (compute_left_side)
             {
                 for (size_t j = 0; j < N_Xorder; j++)
                 {
-
                     if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
                     {
                         model->updateNodeSuffStat(current_node->l->suff_stat, state->residual_std, Xorder_std, split_var, j);
-
                         Xorder_left_std[i][left_ix] = Xorder_std[i][j];
-
                         left_ix = left_ix + 1;
                     }
                     else
                     {
                         // go to right side
                         Xorder_right_std[i][right_ix] = Xorder_std[i][j];
-
                         right_ix = right_ix + 1;
                     }
                 }
@@ -1093,16 +1070,13 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
                 {
                     if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
                     {
-
                         Xorder_left_std[i][left_ix] = Xorder_std[i][j];
                         left_ix = left_ix + 1;
                     }
                     else
                     {
                         model->updateNodeSuffStat(current_node->r->suff_stat, state->residual_std, Xorder_std, split_var, j);
-
                         Xorder_right_std[i][right_ix] = Xorder_std[i][j];
-
                         right_ix = right_ix + 1;
                     }
                 }
@@ -1128,13 +1102,10 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
         }
         else
         {
-
-            X_counts_index = start;
-
+            size_t X_counts_index = start;
             // split other variables, need to compare each row
             for (size_t j = 0; j < N_Xorder; j++)
             {
-
                 while (*(state->X_std + state->n_y * i + Xorder_std[i][j]) != x_struct->X_values[X_counts_index])
                 {
                     //     // for the current observation, find location of corresponding unique values
@@ -1146,35 +1117,18 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
                     // go to left side
                     Xorder_left_std[i][left_ix] = Xorder_std[i][j];
                     left_ix = left_ix + 1;
-
                     X_counts_left[X_counts_index]++;
                 }
                 else
                 {
                     // go to right side
-
                     Xorder_right_std[i][right_ix] = Xorder_std[i][j];
                     right_ix = right_ix + 1;
-
                     X_counts_right[X_counts_index]++;
                 }
             }
         }
-    }
 
-    model->calculateOtherSideSuffStat(current_node->suff_stat, current_node->l->suff_stat, current_node->r->suff_stat, N_Xorder, N_Xorder_left, N_Xorder_right, compute_left_side);
-
-    // update X_num_unique
-
-    std::fill(X_num_unique_left.begin(), X_num_unique_left.end(), 0.0);
-    std::fill(X_num_unique_right.begin(), X_num_unique_right.end(), 0.0);
-
-    for (size_t i = state->p_continuous; i < state->p; i++)
-    {
-        start = x_struct->variable_ind[i - state->p_continuous];
-        end = x_struct->variable_ind[i + 1 - state->p_continuous];
-
-        // COUT << "start " << start << " end " << end << " size " << X_counts_left.size() << endl;
         for (size_t j = start; j < end; j++)
         {
             if (X_counts_left[j] > 0)
@@ -1186,7 +1140,34 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
                 X_num_unique_right[i - state->p_continuous] = X_num_unique_right[i - state->p_continuous] + 1;
             }
         }
+
     }
+
+    model->calculateOtherSideSuffStat(current_node->suff_stat, current_node->l->suff_stat, current_node->r->suff_stat, N_Xorder, N_Xorder_left, N_Xorder_right, compute_left_side);
+
+    // update X_num_unique
+
+    // std::fill(X_num_unique_left.begin(), X_num_unique_left.end(), 0.0);
+    // std::fill(X_num_unique_right.begin(), X_num_unique_right.end(), 0.0);
+
+    // for (size_t i = state->p_continuous; i < state->p; i++)
+    // {
+    //     start = x_struct->variable_ind[i - state->p_continuous];
+    //     end = x_struct->variable_ind[i + 1 - state->p_continuous];
+
+    //     // COUT << "start " << start << " end " << end << " size " << X_counts_left.size() << endl;
+    //     for (size_t j = start; j < end; j++)
+    //     {
+    //         if (X_counts_left[j] > 0)
+    //         {
+    //             X_num_unique_left[i - state->p_continuous] = X_num_unique_left[i - state->p_continuous] + 1;
+    //         }
+    //         if (X_counts_right[j] > 0)
+    //         {
+    //             X_num_unique_right[i - state->p_continuous] = X_num_unique_right[i - state->p_continuous] + 1;
+    //         }
+    //     }
+    // }
 
     return;
 }
