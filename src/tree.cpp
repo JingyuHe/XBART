@@ -1532,7 +1532,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
     {   
         size_t i = subset_vars[var]; // get subset varaible
         size_t start, end, end2, n1, n2, temp;
-        size_t var_effective_cutpoints = 0;
+        // size_t var_effective_cutpoints = 0;
 
         // cout << "thread " << omp_get_thread_num()  << " working on var " << i << "  total threads " << omp_get_num_threads() << endl;
 
@@ -1575,13 +1575,13 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                     n1 = n1 + X_counts[j];
                    
 
-                    #pragma omp task firstprivate(temp_suff_stat, j, n1) shared(var_effective_cutpoints, loglike_start, state, tree_pointer, model, loglike, loglike_max)
+                    #pragma omp task firstprivate(temp_suff_stat, j, n1) shared(loglike_start, state, tree_pointer, model, loglike, loglike_max)  
                     {                                       
                     loglike[loglike_start + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, false, false, state);
 
                     // count total number of cutpoint candidates
-                    var_effective_cutpoints++;
-                    #pragma omp flush(var_effective_cutpoints);
+                    // var_effective_cutpoints++; // need to be added in task shared
+                    // #pragma omp flush(var_effective_cutpoints);
 
                     loglike_max = loglike_max > loglike[loglike_start + j] ? loglike_max : loglike[loglike_start + j]; 
                     }

@@ -33,8 +33,8 @@ set.seed(seed)
 
 n = 10000
 nt = 5000
-p = 20
-p_cat = 10
+p = 6
+p_cat = 40
 k = 6
 lam = matrix(0,n,k)
 lamt = matrix(0,nt,k)
@@ -42,8 +42,8 @@ lamt = matrix(0,nt,k)
 X_train = matrix(runif(n*p,-1,1), nrow=n)
 X_test = matrix(runif(nt*p,-1,1), nrow=nt)
 
-X_train = cbind(X_train, matrix(rpois(n*p_cat, 1), nrow=n))
-X_test = cbind(X_test, matrix(rpois(nt*p_cat, 1), nrow=nt))
+X_train = cbind(X_train, matrix(rpois(n*p_cat, 50), nrow=n))
+X_test = cbind(X_test, matrix(rpois(nt*p_cat, 50), nrow=nt))
 
 p = p+p_cat
 

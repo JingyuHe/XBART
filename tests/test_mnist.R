@@ -45,9 +45,9 @@ p = v
 
 
 
-num_sweeps= 20 #40
+num_sweeps= 5 #40
 num_trees = 30
-burnin = 3
+burnin = 0
 Nmin = 5
 max_depth = 25
 mtry = 10
@@ -76,7 +76,7 @@ cat('dropped variables ', which(fit_test$importance < drop_threshold) )
 ##################################################################
 
 
-
+###################### parallel #################
 t = proc.time()
 fit = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth, 
@@ -98,11 +98,37 @@ cat("running time ", t[3], " seconds \n")
 cat("XBART error rate ", mean(yhat != ytest), "\n")
 
 cat(paste("xbart logloss : ",round(logloss,3)),"\n")
+##################################################################
 
 
-for(i in 0:9){
-  cat("XBART error rate in ", i, ": ", round(mean(yhat[ytest==i]!=i), 4), 
-      " misclassified as ", tail(names(sort(table(yhat[ytest==i]))), 2)[1], "\n " )
-}
+###################### test non parallel #################
+t = proc.time()
+fit = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test, 
+                        num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth, 
+                        Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau=100/num_trees, 
+                        no_split_penality = 1, weight = seq(9, 10, 0.5), burnin = burnin, mtry = mtry, p_categorical = p, 
+                        kap = 1, s = 1, verbose = TRUE, parallel = FALSE, set_random_seed = TRUE, 
+                        random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.1) 
+t = proc.time() - t
 
-saveRDS(fit, paste(path, 'mnist_result/mnist_entropy_4_3_20_2.rds', sep = ''))
+
+pred = apply(fit$yhats_test[(burnin):(num_sweeps-0),,], c(2,3), mean)
+yhat = max.col(pred)-1
+
+spr <- split(pred, row(pred))
+logloss <- sum(unlist(mapply(function(x,y) -log(x[y]), spr, ytest, SIMPLIFY =TRUE)))
+
+cat("running time ", t[3], " seconds \n")
+
+cat("XBART error rate ", mean(yhat != ytest), "\n")
+
+cat(paste("xbart logloss : ",round(logloss,3)),"\n")
+##################################################################
+
+
+# for(i in 0:9){
+#   cat("XBART error rate in ", i, ": ", round(mean(yhat[ytest==i]!=i), 4), 
+#       " misclassified as ", tail(names(sort(table(yhat[ytest==i]))), 2)[1], "\n " )
+# }
+# 
+# saveRDS(fit, paste(path, 'mnist_result/mnist_entropy_4_3_20_2.rds', sep = ''))
