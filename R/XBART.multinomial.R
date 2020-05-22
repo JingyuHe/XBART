@@ -1,4 +1,4 @@
-XBART.multinomial <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth = 250, Nmin = 1, num_cutpoints = 100, alpha = 0.95, beta = 1.25, tau = NULL, no_split_penality = NULL, weight = NULL, burnin = 1L, mtry = NULL, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.0, nthread = 0, ...) {
+XBART.multinomial <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth = 250, Nmin = 1, num_cutpoints = 100, alpha = 0.95, beta = 1.25, tau_a = NULL, tau_b = NULL, no_split_penality = NULL, weight = NULL, burnin = 1L, mtry = NULL, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.0, nthread = 0, ...) {
 
     if (class(X) != "matrix") {
         cat("Input X is not a matrix, try to convert type.\n")
@@ -39,10 +39,10 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max
         no_split_penality = log(num_cutpoints)
     }
 
-    if (is.null(tau)) {
-        tau = 1 / num_trees
-        cat("tau = 1/num_trees, default value. \n")
-    }
+    # if (is.null(tau)) {
+    #     tau = 1 / num_trees
+    #     cat("tau = 1/num_trees, default value. \n")
+    # }
 
     if (is.null(mtry)) {
         mtry = dim(X)[2]
@@ -78,14 +78,14 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max
     check_positive_integer(num_trees, "num_trees")
     check_positive_integer(num_cutpoints, "num_cutpoints")
 
-    check_scalar(tau, "tau")
+    # check_scalar(tau, "tau")
     check_scalar(no_split_penality, "no_split_penality")
     check_scalar(alpha, "alpha")
     check_scalar(beta, "beta")
     check_scalar(kap, "kap")
     check_scalar(s, "s")
 
-    obj = XBART_multinomial_cpp(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau, no_split_penality, weight, burnin, mtry, p_categorical, kap, s, verbose, set_random_seed, random_seed, sample_weights_flag, stop_threshold, nthread)
+    obj = XBART_multinomial_cpp(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penality, weight, burnin, mtry, p_categorical, kap, s, verbose, set_random_seed, random_seed, sample_weights_flag, stop_threshold, nthread)
     class(obj) = "XBARTmultinomial" # Change to XBARTProbit?
     return(obj)
 }
