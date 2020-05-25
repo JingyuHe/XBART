@@ -299,7 +299,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 
     std::gamma_distribution<double> gammadist(weight, 1.0);
 
-    min_fits = INFINITY;
+    // min_fits = INFINITY;
     std::vector<double> sum_fits_v (state->residual_std[0].size(), 0.0);
     // std::vector<double> entropy_vec(state->residual_std[0].size(), 0.0);
     // double sum_entropy = 0.0;
@@ -317,7 +317,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         // entropy
         // entropy_vec[i] += dim_theta * log(sum_fits);
 
-        if (sum_fits < min_fits) {min_fits = sum_fits;}
+        // if (sum_fits < min_fits) {min_fits = sum_fits;}
         sum_fits_v[i] = sum_fits;
 
         y_i = (*state->y_std)[i];

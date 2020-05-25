@@ -80,16 +80,16 @@ if(0){
 }else{
   
 }
-num_trees = 30
+num_trees = 10
 
 #########################  parallel ####################3
 tm = proc.time()
 fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
-                        Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau_a = 1, tau_b = 0.5,
+                        Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau_a = 2.5, tau_b = 0.5,
                         no_split_penality = 1, weight = c(1),burnin = burnin, mtry = 3, p_categorical = p_cat, 
                         kap = 1, s = 1, verbose = FALSE, set_random_seed = FALSE, random_seed = NULL,
-                        sample_weights_flag = TRUE, stop_threshold = 0, nthread = 0) 
+                        sample_weights_flag = TRUE, stop_threshold = 0.09, nthread = 0) 
 
 
 tm = proc.time()-tm
@@ -164,6 +164,8 @@ cat(paste("xgboost runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 table(fit$weight)
 
 cat("early stops per tree: ", round(fit$num_stops/num_sweeps/num_trees, 3), "\n")
+
+fit$importance
 # 
 # stop_profiler()
 
