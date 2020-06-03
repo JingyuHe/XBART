@@ -1,7 +1,7 @@
 library(XBART)
 library(xgboost)
-# path = '~/Dropbox/MNIST/'
-path = '~/mnist/'
+path = '~/Dropbox/MNIST/'
+# path = '~/mnist/'
 
 D <- read.csv(paste(path,'mnist_train.csv', sep=''),header=FALSE)
 y = D[,1]
@@ -45,45 +45,49 @@ p = v
 
 
 
-num_sweeps= 20 #40
-num_trees = 30
-burnin = 5
+num_sweeps= 20 #30
+num_trees = 20
+burnin = 5 #10
 Nmin = 5
-max_depth = 25
+max_depth = 250
 mtry = 100
 num_cutpoints=20
 
-tau = 100 / num_trees
-tau_later = 100 / num_trees
+drop_threshold = 1
 
-drop_threshold = 10
+ws = seq(1, 15, 0.5)
+# ws = c(1)
 
-###################### test run to drop variables #################
+
+##################### test run to drop variables #################
 t = proc.time()
 fit_test = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test, 
-                        num_trees=num_trees, num_sweeps=2, max_depth=max_depth, 
-                        Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau_a = 1, tau_b = 0.5, 
-                        no_split_penality = 1, weight = c(1), burnin = 1, mtry = mtry, p_categorical = p, 
+                        num_trees=num_trees, num_sweeps=3, max_depth=max_depth, 
+                        Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau_a = 2, tau_b = 2,
+                        no_split_penality = 1, weight = c(1), #seq(1, 10, 0.5), 
+                        burnin = 1, mtry = mtry, p_categorical = p, 
                         kap = 1, s = 1, verbose = TRUE, parallel = TRUE, set_random_seed = TRUE, 
-                        random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.1) 
+                        random_seed = NULL, sample_weights_flag = TRUE, sample_per_tree = TRUE, stop_threshold = 0.1) 
 t = proc.time() - t
 cat("test fit running time ", t[3], " seconds \n")
+
+fit_test$importance
 
 X_train = X_train[, -which(fit_test$importance < drop_threshold)]
 X_test = X_test[, -which(fit_test$importance < drop_threshold)]
 p = ncol(X_train)
 cat('dropped variables ', which(fit_test$importance < drop_threshold) )
-##################################################################
+#################################################################
 
 
 ###################### parallel #################
 t = proc.time()
 fit = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth, 
-                        Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau_a = 1, tau_b = 0.5, 
-                        no_split_penality = 1, weight = c(1), burnin = burnin, mtry = mtry, p_categorical = p, 
+                        Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau_a = 2, tau_b = 2, 
+                        no_split_penality = 1, weight = ws, burnin = burnin, mtry = mtry, p_categorical = p, 
                         kap = 1, s = 1, verbose = TRUE, parallel = TRUE, set_random_seed = TRUE, 
-                        random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.1) 
+                        random_seed = NULL, sample_weights_flag = TRUE, sample_per_tree = TRUE, stop_threshold = 0.1, nthread = 0) 
 t = proc.time() - t
 
 
@@ -107,4 +111,4 @@ cat(paste("xbart logloss : ",round(logloss,3)),"\n")
 #       " misclassified as ", tail(names(sort(table(yhat[ytest==i]))), 2)[1], "\n " )
 # }
 # 
-saveRDS(fit, paste(path, 'mnist_result/mnist_categorical.rds', sep = ''))
+saveRDS(fit, paste(path, 'mnist_result/mnist_int_from_0.rds', sep = ''))

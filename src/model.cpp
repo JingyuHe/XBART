@@ -336,12 +336,21 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     double max = -INFINITY;
     size_t n = state->residual_std[0].size();
     std::vector<double> loglike_weight(weight_std.size(), 0.0);
-    for (size_t i = 0; i < weight_std.size(); i++)
+    for (size_t j = 0; j < weight_std.size(); j++)
     {
-        loglike_weight[i] = weight_std[i] * loglike_pi + lgamma(weight_std[i] * n + 1) - lgamma(n + 1) - lgamma((weight_std[i] - 1) * n + 1);
-        // loglike_weight[i] = weight_std[i] * loglike_pi - loglike_weight[i];
-        if (loglike_weight[i] > max){max = loglike_weight[i];}
+        for (size_t i = 0; i < state->residual_std[0].size(); i++)
+        {
+            sum_fits = 0;
+            for (size_t j = 0; j < dim_theta; ++j)
+            {
+                sum_fits += pow(state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j], weight_std[j]);
+            }
+            y_i = (*state->y_std)[i];
+            loglike_weight[j] += weight_std[j] * (log(state->residual_std[y_i][i]) + log((*(x_struct->data_pointers[tree_ind][i]))[y_i]) ) - log(sum_fits);
+        }
+        if (loglike_weight[j] > max){max = loglike_weight[j];}
     }
+
     for (size_t i = 0; i < weight_std.size(); i++)
     {
         loglike_weight[i] = exp(loglike_weight[i] - max);
