@@ -198,6 +198,8 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
     std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual));
 
+    // state->set_Xcut(Xcutmat);
+
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
@@ -255,12 +257,39 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     state.reset();
     x_struct.reset();
 
+    // print out tree structure, for usage of BART package
+
+    std::stringstream treess;
+
+    Rcpp::StringVector output_tree(num_sweeps);
+
+    for(size_t i = 0; i < num_sweeps; i ++ ){
+        treess.precision(10);
+
+        treess.str(std::string());
+        treess << num_trees << " " << p << endl;
+
+        for (size_t t = 0; t < num_trees; t++)
+        {
+            treess << (*trees2)[i][t];
+        }
+
+        for (size_t t = 0; t < num_trees; t++)
+        {
+            cout << (*trees2)[i][t].treesize() << endl;
+        }
+
+        output_tree(i) = treess.str();
+    }
+
     return Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("yhats_test") = yhats_test,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
-        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p));
+        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p),
+        Rcpp::Named("treedraws") = output_tree
+        );
 }
 
 // [[Rcpp::plugins(cpp11)]]

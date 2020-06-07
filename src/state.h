@@ -47,6 +47,8 @@ public:
     bool sample_weights_flag;
     double ini_var_yhat;
 
+    matrix<size_t> Xorder_std;
+
     // residual standard deviation
     double sigma;
     double sigma2; // sigma squared
@@ -57,7 +59,7 @@ public:
         this->sigma2 = pow(sigma, 2);
         return;
     }
-    
+
     State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual)
     {
 
@@ -105,9 +107,11 @@ public:
         this->max_depth = max_depth;
         this->burnin = burnin;
         this->ini_var_yhat = ini_var_yhat;
+        this->Xorder_std = Xorder_std;
 
         return;
     }
+
 
     void update_split_counts(size_t tree_ind)
     {
@@ -127,6 +131,8 @@ public:
         this->sigma = sigma;
         this->sigma2 = pow(sigma, 2);
     }
+
+
 };
 
 #endif
