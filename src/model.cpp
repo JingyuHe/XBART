@@ -1,5 +1,6 @@
 #include "tree.h"
 #include "model.h"
+#include <cfenv>
 
 //////////////////////////////////////////////////////////////////////////////////////
 //
@@ -234,7 +235,7 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
 
     // sufficient statistics have 2 * num_classes
 
-    suffstats[(*y_size_t)[index_next_obs]] += 1;
+    suffstats[(*y_size_t)[index_next_obs]] += weight;
 
 
     for (size_t j = 0; j < dim_theta; ++j)
@@ -271,54 +272,76 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 
         std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1.0);
 
-        theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
+        // !! devide s by min_sum_fits
+        theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]/min_fits);
     }
+    // cout << "theta_vector" << theta_vector << endl;
 
     return;
 }
 
 void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
-    // Draw Sigma
-    // state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
+    std::feclearexcept(FE_OVERFLOW);
+    std::feclearexcept(FE_UNDERFLOW);
 
-    // residual_std is only 1 dimensional for regression model
-
-    /*
-    std::vector<double> full_residual(state->n_y);
- 
-    for (size_t i = 0; i < state->residual_std[0].size(); i++)
-    {
-        full_residual[i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
-    }
-
-    std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(full_residual) + s));
-    state->update_sigma(1.0 / sqrt(gamma_samp(state->gen)));
-*/
-    // compute \sum _j f_j(x_i) by reintroducing tree nuber tree_ind's multiplicitive fit contrib and summing
-    //std::vector<double> sum_fits(state->n_y);
-
-    // size of state->residual_std is num_classes * num_train
+    // Draw phi
 
     double sum_fits = 0;
+    double loglike_pi = 0;
+    // double min_fits = INFINITY;
+    // std::vector<double> fits(dim_theta, 0.0);
+    // std::vector<double> sum_fits_w(weight_std.size(), 0.0);
+    // std::vector<double> loglike_weight(weight_std.size(), 0.0);
 
-    std::gamma_distribution<double> gammadist(1.0, 1.0);
+    size_t y_i;
+    
+
+    std::gamma_distribution<double> gammadist(weight, 1.0);
+
+    min_fits = INFINITY;
+    std::vector<double> sum_fits_v (state->residual_std[0].size(), 0.0);
 
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
         sum_fits = 0;
+        // std::fill(sum_fits_w.begin(), sum_fits_w.end(), 0.0);
         for (size_t j = 0; j < dim_theta; ++j)
         {
             sum_fits += state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j];
         }
+        if (sum_fits < min_fits) {min_fits = sum_fits;}
+        sum_fits_v[i] = sum_fits;
 
-        //COUT << "got scale";
-        //COUT << "draw phi ";
-        (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits);
-        // std::cout << "phi: "<<(*phi)[i] << std::endl;
-        // std::cout << "sum fit "<<sum_fits<< std::endl;
-        //COUT << "draw phi complete";
+        y_i = (*state->y_std)[i];
+        loglike_pi += log(state->residual_std[y_i][i]) + log((*(x_struct->data_pointers[tree_ind][i]))[y_i]) - log(sum_fits);
+
+        // !! devide sum_fits by min_sum_fits
+        // (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits/min_fits); 
     }
+
+    for (size_t i = 0; i < state->residual_std[0].size(); i++){
+        (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits_v[i]/min_fits); 
+    }
+
+    // Draw weight
+    double max = -INFINITY;
+    size_t n = state->residual_std[0].size();
+    std::vector<double> loglike_weight(weight_std.size(), 0.0);
+    for (size_t i = 0; i < weight_std.size(); i++)
+    {
+        loglike_weight[i] = weight_std[i] * loglike_pi + lgamma(weight_std[i] * n + 1) - lgamma(n + 1) - lgamma((weight_std[i] - 1) * n + 1);
+        // loglike_weight[i] = weight_std[i] * loglike_pi - loglike_weight[i];
+        if (loglike_weight[i] > max){max = loglike_weight[i];}
+    }
+    for (size_t i = 0; i < weight_std.size(); i++)
+    {
+        loglike_weight[i] = exp(loglike_weight[i] - max);
+    }
+    // cout << "weight likelihood " << loglike_weight << endl;
+    std::discrete_distribution<> d(loglike_weight.begin(), loglike_weight.end());
+    weight = weight_std[d(state->gen)];
+
 
     return;
 }
@@ -459,63 +482,6 @@ double LogitModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<d
     return (LogitLIL(local_suff_stat));
 }
 
-/*
-    size_t nb;
-    double nbtau;
-    double y_sum;
-    double y_squared_sum;
-
-    if (no_split)
-    {
-        // ntau = suff_stat_all[2] * tau;
-        // suff_one_side = y_sum;
-
-        nb = suff_stat_all[2];
-        nbtau = nb * tau;
-        y_sum = suff_stat_all[0];
-        y_squared_sum = suff_stat_all[1];
-    }
-    else
-    {
-        if (left_side)
-        {
-            nb = N_left + 1;
-            nbtau = nb * tau;
-            // ntau = (N_left + 1) * tau;
-            y_sum = temp_suff_stat[0];
-            y_squared_sum = temp_suff_stat[1];
-            // suff_one_side = temp_suff_stat[0];
-        }
-        else
-        {
-            nb = suff_stat_all[2] - N_left - 1;
-            nbtau = nb * tau;
-            y_sum = suff_stat_all[0] - temp_suff_stat[0];
-            y_squared_sum = suff_stat_all[1] - temp_suff_stat[1];
-
-            // ntau = (suff_stat_all[2] - N_left - 1) * tau;
-            // suff_one_side = y_sum - temp_suff_stat[0];
-        }
-    }
-
-    // return 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
-
-    return - 0.5 * nb * log(2 * 3.141592653) -  0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
-
-*/
-
-// double NormalModel::likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const
-// {
-//     // the likelihood of no-split option is a bit different from others
-//     // because the sufficient statistics is y_sum here
-//     // write a separate function, more flexibility
-//     double ntau = suff_stat[2] * tau;
-//     // double sigma2 = pow(state->sigma, 2);
-//     double sigma2 = state->sigma2;
-//     double value = suff_stat[2] * suff_stat[0]; // sum of y
-
-//     return 0.5 * log(sigma2) - 0.5 * log(ntau + sigma2) + 0.5 * tau * pow(value, 2) / (sigma2 * (ntau + sigma2));
-// }
 
 void LogitModel::ini_residual_std(std::unique_ptr<State> &state)
 {
@@ -531,7 +497,6 @@ void LogitModel::ini_residual_std(std::unique_ptr<State> &state)
     return;
 }
 
-// Not implemented yet, needs to return a nsweeps by n by num categories array with predicted category probabilities 9/10/2019
 void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec)
 {
 
@@ -603,6 +568,94 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
             for (size_t k = 0; k < dim_residual; k++)
             {
                 output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] = output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] / denom;
+            }
+        }
+    }
+    return;
+}
+
+// this function is for a standalone prediction function for classification case.
+// with extra input iteration, which specifies which iteration (sweep / forest) to use
+void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec, std::vector<size_t>& iteration)
+{
+
+    // output is a 3D array (armadillo cube), nsweeps by n by number of categories
+
+    size_t num_iterations = iteration.size();
+
+    tree::tree_p bn;
+
+    cout << "number of iterations " << num_iterations << " " << num_sweeps << endl;
+
+    size_t sweeps;
+
+    for (size_t iter = 0; iter < num_iterations; iter++)
+    {
+        sweeps = iteration[iter];
+
+        for (size_t data_ind = 0; data_ind < N_test; data_ind++)
+        {
+
+            for (size_t i = 0; i < trees[0].size(); i++)
+            {
+                // search leaf
+                bn = trees[sweeps][i].search_bottom_std(Xtestpointer, data_ind, p, N_test);
+
+                for (size_t k = 0; k < dim_residual; k++)
+                {
+                    // add all trees
+
+                    // product of trees, thus sum of logs
+
+                    output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] += log(bn->theta_vector[k]);
+                }
+            }
+        }
+    }
+    // normalizing probability
+
+    double denom = 0.0;
+    double max_log_prob = -INFINITY;
+
+    for (size_t iter = 0; iter < num_iterations; iter++)
+    {
+
+        sweeps = iteration[iter];
+
+        for (size_t data_ind = 0; data_ind < N_test; data_ind++)
+        {
+
+            max_log_prob = -INFINITY;
+            // take exp, subtract max to avoid overflow
+
+            // this line does not work for some reason, havd to write loops manually
+            // output.tube(sweeps, data_ind) = exp(output.tube(sweeps, data_ind) - output.tube(sweeps, data_ind).max());
+
+            // find max of probability for all classes
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                if(output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] > max_log_prob){
+                    max_log_prob = output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test];
+                }
+            }
+
+            // take exp after subtracting max to avoid overflow
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] = exp(output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] - max_log_prob);
+            }
+
+            // calculate normalizing constant
+            denom = 0.0;
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                denom += output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test];
+            }
+
+            // normalizing
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] = output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] / denom;
             }
         }
     }
