@@ -117,10 +117,6 @@ public:
     {
         mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
         split_count_all_tree[tree_ind] = split_count_current_tree;
-        for(size_t i = 0; i < split_count_all.size(); i++)
-        {
-            split_count_all[i] += split_count_current_tree[i];
-        }
         return;
     }
 };

@@ -200,7 +200,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
             //Rcpp::Rcout << "Updating state";
 
 
-            if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
+            if (state->use_all && (sweeps >= state->burnin) && (state->mtry != state->p))
             {
                 state->use_all = false;
             }
@@ -232,6 +232,13 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
             }
             
             state->update_split_counts(tree_ind);
+            if (sweeps >= state->burnin)
+            {
+                for(size_t i = 0; i < state->split_count_all.size(); i++)
+                {
+                    state->split_count_all[i] += state->split_count_current_tree[i];
+                }
+            }
             // update partial fits for the next tree
             model->update_state(state, tree_ind, x_struct);
 
