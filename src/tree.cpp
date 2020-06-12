@@ -712,6 +712,8 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
 
     this->N = N_Xorder;
 
+    bool no_split = false;
+
     // tau is prior VARIANCE, do not take squares
 
     // do I still need this? need this for the root node
@@ -723,21 +725,24 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
         if (this->entropy < entropy_threshold * N_Xorder) {
             #pragma omp critical 
             num_stops += 1;
-            return;
+            no_split = true;
+            // return;
         }
     }
 
     if (N_Xorder <= state->n_min)
     {
-        return;
+        no_split = true;
+        // return;
     }
 
     if (this->depth >= state->max_depth - 1)
     {
-        return;
+        no_split = true;
+        // return;
     }
 
-    bool no_split = false;
+    
 
     std::vector<size_t> subset_vars(p);
 
@@ -772,8 +777,10 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
         }
     }
 
+    if (!no_split)
+    {
     BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this, update_split_prob);
-
+    }
     // cout << suff_stat << endl;
 
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
