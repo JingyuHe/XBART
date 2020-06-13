@@ -328,7 +328,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     }
 
     for (size_t i = 0; i < state->residual_std[0].size(); i++){
-        (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits_v[i]/min_fits); 
+        (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits_v[i]); 
     }
 
 
@@ -336,20 +336,52 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     double max = -INFINITY;
     size_t n = state->residual_std[0].size();
     std::vector<double> loglike_weight(weight_std.size(), 0.0);
+
+    double sum_logp = 0.0;
+    double sum_label_logp = 0.0;
+    double sum_f = 0.0;
+    std::vector<double> f(dim_theta, 0.0);
+    std::vector<double> log_f(dim_theta, 0.0);
+    for (size_t i = 0; i < n; i++)
+    {
+        for(size_t j = 0; j < dim_theta; j++)
+        {
+            f[j] = state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j];
+        }
+        sum_f = std::accumulate(f.begin(), f.end(), 0.0);
+        for(size_t j = 0; j < dim_theta; j++)
+        {
+            sum_logp += log(f[j]) - log(sum_f); // log(p) = log(f/sum_f)
+        }
+        // true label
+        y_i = (*state->y_std)[i];
+        sum_label_logp += log(f[y_i]) - log(sum_f);
+        
+    }
+
+    double w;
     for (size_t j = 0; j < weight_std.size(); j++)
     {
-        for (size_t i = 0; i < state->residual_std[0].size(); i++)
-        {
-            sum_fits = 0;
-            for (size_t j = 0; j < dim_theta; ++j)
-            {
-                sum_fits += pow(state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j], weight_std[j]);
-            }
-            y_i = (*state->y_std)[i];
-            loglike_weight[j] += weight_std[j] * (log(state->residual_std[y_i][i]) + log((*(x_struct->data_pointers[tree_ind][i]))[y_i]) ) - log(sum_fits);
-        }
+        w = weight_std[j];
+        loglike_weight[j] = (w - 1) * sum_label_logp + sum_logp + n * (lgamma(w + dim_residual) - lgamma(w + 1));
         if (loglike_weight[j] > max){max = loglike_weight[j];}
     }
+
+    // for (size_t j = 0; j < weight_std.size(); j++)
+    // {
+    //     for (size_t i = 0; i < state->residual_std[0].size(); i++)
+    //     {
+    //         // sum_fits = 0;
+    //         // for (size_t j = 0; j < dim_theta; ++j)
+    //         // {
+    //         //     sum_fits += pow(state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j], weight_std[j]);
+    //         // }
+    //         y_i = (*state->y_std)[i];
+    //         loglike_weight[j] += (weight_std[j] - 1) * (log(state->residual_std[y_i][i]) + log((*(x_struct->data_pointers[tree_ind][i]))[y_i]) ) + log(sum_fits);
+    //     }
+    //     loglike_weight[j] += n * ( lgamma(weight_std[j] + dim_residual) - lgamma(weight_std[j] + 1));
+    //     if (loglike_weight[j] > max){max = loglike_weight[j];}
+    // }
 
     for (size_t i = 0; i < weight_std.size(); i++)
     {
