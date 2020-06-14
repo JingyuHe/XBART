@@ -135,6 +135,17 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
 
     auto start = system_clock::now();
 
+    if (parallel){ // parallelization; 
+        double nthread = omp_get_max_threads();
+        omp_set_num_threads(nthread);
+        cout << "parallel threads " << nthread << endl;
+    }
+    else
+    {
+        omp_set_num_threads(1);
+        cout << "parallel disabled " << endl;
+    }
+
     size_t N = X.n_rows;
 
     // number of total variables
@@ -274,6 +285,17 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
 {
 
     auto start = system_clock::now();
+
+    if (parallel){ // parallelization; 
+        double nthread = omp_get_max_threads();
+        omp_set_num_threads(nthread);
+        cout << "parallel threads " << nthread << endl;
+    }
+    else
+    {
+        omp_set_num_threads(1);
+        cout << "parallel disabled " << endl;
+    }
 
     size_t N = X.n_rows;
 
@@ -628,6 +650,17 @@ Rcpp::List XBART_Probit_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t nu
 
     auto start = system_clock::now();
 
+    if (parallel){ // parallelization; 
+        double nthread = omp_get_max_threads();
+        omp_set_num_threads(nthread);
+        cout << "parallel threads " << nthread << endl;
+    }
+    else
+    {
+        omp_set_num_threads(1);
+        cout << "parallel disabled " << endl;
+    }
+
     size_t N = X.n_rows;
     // number of total variables
     size_t p = X.n_cols;
@@ -774,6 +807,17 @@ Rcpp::List XBART_MH_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
 {
 
     auto start = system_clock::now();
+
+    if (parallel){ // parallelization; 
+        double nthread = omp_get_max_threads();
+        omp_set_num_threads(nthread);
+        cout << "parallel threads " << nthread << endl;
+    }
+    else
+    {
+        omp_set_num_threads(1);
+        cout << "parallel disabled " << endl;
+    }
 
     size_t N = X.n_rows;
 

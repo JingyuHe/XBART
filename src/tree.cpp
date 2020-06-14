@@ -539,6 +539,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
     this->N = N_Xorder;
 
+    bool no_split = false;
     // tau is prior VARIANCE, do not take squares
 
     if (update_theta)
@@ -548,15 +549,17 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
     if (N_Xorder <= state->n_min)
     {
-        return;
+        no_split = true;
+        // return;
     }
 
     if (this->depth >= state->max_depth - 1)
     {
-        return;
+        no_split = true;
+        // return;
     }
 
-    bool no_split = false;
+    // bool no_split = false;
 
     std::vector<size_t> subset_vars(p);
 
@@ -590,9 +593,10 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
             subset_vars = sample_int_ccrank(p, state->mtry, state->mtry_weight_current_tree, state->gen);
         }
     }
-
+    if (!no_split)
+    {
     BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this, update_split_prob);
-
+    }
     // cout << suff_stat << endl;
 
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
@@ -646,7 +650,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     {
         // If do not update split prob ONLY
         // grow from root, initialize new nodes
-
+        #pragma omp critical
         state->split_count_current_tree[split_var] += 1;
 
         tree::tree_p lchild = new tree(model->getNumClasses(), this, model->dim_suffstat);
@@ -690,10 +694,16 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     {
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
-
+    #pragma omp task untied shared(state, x_struct, model, tree_ind, sweeps)
+    {
     this->l->grow_from_root(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree);
-
+    }
+    #pragma omp task untied shared(state, x_struct, model, tree_ind, sweeps)
+    {
     this->r->grow_from_root(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree);
+    }
+
+    #pragma omp taskwait
 
     return;
 }
@@ -1426,10 +1436,11 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         
         // set up parallel during burnin 
         //  state->p_continuous * state->nthread > 100 // this is approximately the cost to set up parallel for
-        #pragma omp parallel for if(state->use_all & state->p_continuous * state->nthread > 120) schedule(dynamic, 1) default(none) shared(N_Xorder, state, subset_vars, Xorder_std, model, candidate_index, tree_pointer, loglike, loglike_max)
-        for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
-
-            size_t i = subset_vars[var_i];
+        // #pragma omp parallel for if(state->use_all & state->p_continuous * state->nthread > 120) schedule(dynamic, 1) default(none) shared(N_Xorder, state, subset_vars, Xorder_std, model, candidate_index, tree_pointer, loglike, loglike_max)
+        for (auto i: subset_vars){
+            #pragma omp task firstprivate(i) shared(N_Xorder, Xorder_std, subset_vars, state, tree_pointer, candidate_index, model, loglike, loglike_max)
+            {
+            // size_t i = subset_vars[var_i];
 
             if (i < state->p_continuous)
             {
@@ -1442,15 +1453,12 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                 for (size_t j = 0; j < N_Xorder - 1; j++)
                 {
                     calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index, j, false, model, state->residual_std);
-                    
-                    #pragma omp task firstprivate(temp_suff_stat, i, j) shared(state, tree_pointer, candidate_index, model, loglike, loglike_max, N_Xorder)
-                    {
+
                     loglike[(N_Xorder - 1) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, false, false, state);
 
                     loglike_max = loglike_max > loglike[(N_Xorder - 1) * i + j]  ? loglike_max : loglike[(N_Xorder - 1) * i + j]; 
-
-                    }
                 }
+            }
             }
         }
         #pragma omp taskwait
@@ -1467,11 +1475,9 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
         // set up parallel during burnin?
         // state->p_continuous * state->nthread > 100 // this is approximately the cost to set up parallel for
-        #pragma omp parallel for if(state->use_all & state->p_continuous * state->nthread > 120 ) schedule(dynamic, 1) default(none) shared(state, subset_vars, Xorder_std, model, candidate_index2, tree_pointer, loglike, loglike_max)
-        for (size_t var_i = 0; var_i < subset_vars.size(); var_i++){
-
-            size_t i = subset_vars[var_i];
-
+        for (auto i : subset_vars){
+            #pragma omp task firstprivate(i) shared(Xorder_std, subset_vars, state, tree_pointer, candidate_index2, model, loglike, loglike_max)
+            {
             if (i < state->p_continuous){
 
                 std::vector<size_t> &xorder = Xorder_std[i];
@@ -1483,12 +1489,10 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                 {
                     calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index2, j, true, model, state->residual_std);
                     // move likelihood calculation to a new thread
-                        #pragma omp task firstprivate(temp_suff_stat, i, j) shared(state, tree_pointer, candidate_index2, model, loglike, loglike_max)
-                        {
                             loglike[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
                             loglike_max = loglike_max > loglike[(state->n_cutpoints) * i + j]  ? loglike_max : loglike[(state->n_cutpoints) * i + j]; 
-                        }
                 }
+            }
             }
         }
         #pragma omp taskwait
