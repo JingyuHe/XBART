@@ -273,7 +273,7 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
         std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1.0);
 
         // !! devide s by min_sum_fits
-        theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]/min_fits);
+        theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
     }
     // cout << "theta_vector" << theta_vector << endl;
 
