@@ -359,8 +359,8 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 
     // update weight  random walk 
     size_t steps;
-    if (state->use_all){steps = 1;}
-    else {steps = 500;}
+    if (!state->use_all){steps = 1;}
+    else {steps = 100;}
     for (size_t j = 0; j < steps; j++)
     {
     std::normal_distribution<double> norm(0.0, 1.0);
