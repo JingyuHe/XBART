@@ -240,11 +240,7 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
 
     for (size_t j = 0; j < dim_theta; ++j)
     {
-        // count number of observations, y_{ij}
-        // if ((*y_size_t)[index_next_obs] == j)
-            // suffstats[j] += 1;
-
-        // psi * f
+        // suffstats[j] += 1; // pseudo observation
         suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
     }
 
@@ -296,8 +292,8 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 
     size_t y_i;
     
-
     std::gamma_distribution<double> gammadist(weight, 1.0);
+    // std::gamma_distribution<double> gammadist(weight + dim_residual - 1, 1.0);
 
     // min_fits = INFINITY;
     std::vector<double> sum_fits_v (state->residual_std[0].size(), 0.0);
@@ -311,31 +307,24 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         for (size_t j = 0; j < dim_theta; ++j)
         {
             sum_fits += state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j];
-            // entropy =  - sum( log (f_j / sum(f_j))) = - sum(log(f_j)) +  C*log(sum(f_j))
-            // entropy_vec[i] += - log(state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j]);
         }
-        // entropy
-        // entropy_vec[i] += dim_theta * log(sum_fits);
-
-        // if (sum_fits < min_fits) {min_fits = sum_fits;}
-        sum_fits_v[i] = sum_fits;
 
         y_i = (*state->y_std)[i];
         loglike_pi += log(state->residual_std[y_i][i]) + log((*(x_struct->data_pointers[tree_ind][i]))[y_i]) - log(sum_fits);
 
-        // !! devide sum_fits by min_sum_fits
-        // (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits/min_fits); 
+        // draw phi
+        (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits); 
     }
 
-    for (size_t i = 0; i < state->residual_std[0].size(); i++){
-        (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits_v[i]); 
-    }
+    // for (size_t i = 0; i < state->residual_std[0].size(); i++){
+    //     (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits_v[i]); 
+    // }
 
 
     // Draw weight
     double max = -INFINITY;
-    size_t n = state->residual_std[0].size();
-    std::vector<double> loglike_weight(weight_std.size(), 0.0);
+    size_t n = state->n_y;
+
 
     double sum_logp = 0.0;
     double sum_label_logp = 0.0;
@@ -359,37 +348,48 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         
     }
 
-    double w;
-    for (size_t j = 0; j < weight_std.size(); j++)
-    {
-        w = weight_std[j];
-        loglike_weight[j] = (w - 1) * sum_label_logp + sum_logp + n * (lgamma(w + dim_residual) - lgamma(w + 1));
-        if (loglike_weight[j] > max){max = loglike_weight[j];}
-    }
-
+    // double w;
+    // std::vector<double> loglike_weight(weight_std.size(), 0.0);
     // for (size_t j = 0; j < weight_std.size(); j++)
     // {
-    //     for (size_t i = 0; i < state->residual_std[0].size(); i++)
-    //     {
-    //         // sum_fits = 0;
-    //         // for (size_t j = 0; j < dim_theta; ++j)
-    //         // {
-    //         //     sum_fits += pow(state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j], weight_std[j]);
-    //         // }
-    //         y_i = (*state->y_std)[i];
-    //         loglike_weight[j] += (weight_std[j] - 1) * (log(state->residual_std[y_i][i]) + log((*(x_struct->data_pointers[tree_ind][i]))[y_i]) ) + log(sum_fits);
-    //     }
-    //     loglike_weight[j] += n * ( lgamma(weight_std[j] + dim_residual) - lgamma(weight_std[j] + 1));
+    //     w = weight_std[j];
+    //     loglike_weight[j] = (w - 1) * sum_label_logp + sum_logp + n * (lgamma(w + dim_residual) - lgamma(w + 1));
     //     if (loglike_weight[j] > max){max = loglike_weight[j];}
     // }
 
-    for (size_t i = 0; i < weight_std.size(); i++)
+    // update weight  random walk 
+    size_t steps;
+    if (state->use_all){steps = 1;}
+    else {steps = 500;}
+    for (size_t j = 0; j < steps; j++)
     {
-        loglike_weight[i] = exp(loglike_weight[i] - max);
+    std::normal_distribution<double> norm(0.0, 1.0);
+    std::uniform_real_distribution<double> unif(0.0, 1.0);
+    double w_cand = exp(log(weight) + 0.01 * norm(state->gen));
+    double u = unif(state->gen);
+    double loglike_weight = (weight - 1) * sum_label_logp + sum_logp + n * (lgamma(weight + dim_residual) - lgamma(weight + 1));
+    double loglike_cand =  (w_cand - 1) * sum_label_logp + sum_logp + n * (lgamma(w_cand + dim_residual) - lgamma(w_cand + 1));
+    double alpha = exp(loglike_cand - loglike_weight) * w_cand / weight;
+
+    // cout << "sum_log_label_p = " << sum_label_logp << "; sum_logp = " << sum_logp << endl;
+    // cout << "weight = " << weight << "; loglike_weight = " << loglike_weight << "; w_cand  = " << w_cand << "; loglike_cand = " << loglike_cand << endl;
+    if (u < alpha){
+        // cout << "Accept, alpha = " << alpha << "; loglike = " <<  exp(loglike_cand - loglike_weight) << "; w/w = " << w_cand / weight << endl;
+        weight = w_cand;
     }
-    // cout << "weight likelihood " << loglike_weight << endl;
-    std::discrete_distribution<> d(loglike_weight.begin(), loglike_weight.end());
-    weight = weight_std[d(state->gen)];
+    // else{
+    //     cout << "Reject, alpha = " << alpha << "; loglike = " <<  exp(loglike_cand - loglike_weight) << "; w/w = " << w_cand / weight << endl;
+    // }
+    }
+
+
+    // for (size_t i = 0; i < weight_std.size(); i++)
+    // {
+    //     loglike_weight[i] = exp(loglike_weight[i] - max);
+    // }
+    // // cout << "weight likelihood " << loglike_weight << endl;
+    // std::discrete_distribution<> d(loglike_weight.begin(), loglike_weight.end());
+    // weight = weight_std[d(state->gen)];
 
 
     return;

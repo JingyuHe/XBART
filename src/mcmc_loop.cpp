@@ -208,7 +208,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
             //Rcpp::Rcout << "Updating state";
 
 
-            if (state->use_all && (sweeps >= state->burnin) && (state->mtry != state->p))
+            if (state->use_all && (sweeps >= state->burnin)) // && (state->mtry != state->p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
             {
                 state->use_all = false;
             }
