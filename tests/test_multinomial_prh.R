@@ -27,25 +27,33 @@ get_entropy <- function(nclass){
   return (sum(-pi*log(pi)))
 }
 
-seed = 10
-set.seed(seed)
+#seed = 10
+#set.seed(seed)
 
 
 n = 10000
 nt = 5000
 p = 20
-p_cat = 0
+p_cat = 20
+mtry = 10
 k = 6
 lam = matrix(0,n,k)
 lamt = matrix(0,nt,k)
 
-X_train = matrix(runif(n*p,-1,1), nrow=n)
-X_test = matrix(runif(nt*p,-1,1), nrow=nt)
+
+K = matrix(rnorm(3*p),p,3)
+X_train = t(K%*%matrix(rnorm(3*n),3,n))
+X_test = t(K%*%matrix(rnorm(3*nt),3,nt))
+
+X_train = pnorm(X_train)
+X_test = pnorm(X_test)
+
+#X_train = matrix(runif(n*p,-1,1), nrow=n)
+#X_test = matrix(runif(nt*p,-1,1), nrow=nt)
 
 X_train = cbind(X_train, matrix(rpois(n*p_cat, 20), nrow=n))
 X_test = cbind(X_test, matrix(rpois(nt*p_cat, 20), nrow=nt))
 
-p = p+p_cat
 
 
 lam[,1] = abs(2*X_train[,1] - X_train[,2])
@@ -60,18 +68,22 @@ lamt[,3] = 3*X_test[,3]^2
 lamt[,4] = 5*(X_test[,4]*X_test[,5])
 lamt[,5] = 2*(X_test[,5] + 2*X_test[,6])
 lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
-pr = exp(10*lam)
+
+
+# vary s to make the problem harder s < 1 or easier s > 2
+s = 1
+pr = exp(s*lam)
 pr = t(scale(t(pr),center=FALSE, scale = rowSums(pr)))
 y_train = sapply(1:n,function(j) sample(0:(k-1),1,prob=pr[j,]))
 
-pr = exp(10*lamt)
+pr = exp(s*lamt)
 pr = t(scale(t(pr),center=FALSE, scale = rowSums(pr)))
 y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 
 
 
 num_sweeps = 20
-burnin = 5
+burnin = 3
 
 if(0){
   # insample error 
@@ -80,23 +92,25 @@ if(0){
 }else{
   
 }
-num_trees = 10
-
+num_trees = k
+max_depth = 50
+Nmin = 2*k
+ws = c(1,5,10,200,500,1000,5000)
 #########################  parallel ####################3
 tm = proc.time()
 fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test, 
-                        num_trees=num_trees, num_sweeps=num_sweeps, max_depth=250, 
-                        Nmin=10, num_cutpoints=100, alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1,
-                        no_split_penality = 1, weight = c(seq(1, 10, 2), seq(60, 80, 2)), burnin = burnin, mtry = 6, p_categorical = p_cat, 
-                        kap = 1, s = 1, verbose = TRUE, set_random_seed = FALSE, random_seed = NULL,
-                        sample_weights_flag = TRUE, stop_threshold = 0.09, nthread = 0) 
+                        num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth, 
+                        Nmin=Nmin, num_cutpoints=20, alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1, 
+                        no_split_penality = 0.5, weight = ws, burnin = burnin, mtry = mtry, p_categorical = p_cat, 
+                        kap = 1, s = 1, verbose = TRUE, set_random_seed = TRUE, 
+                        random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.09, nthread = 0) 
 
 
 tm = proc.time()-tm
 cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 # take average of all sweeps, discard burn-in
 # a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
-a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
+a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), mean)
 pred = apply(a,1,which.max)-1
 yhat = apply(a,1,which.max)-1
 cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
