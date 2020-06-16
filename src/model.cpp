@@ -340,7 +340,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         sum_f = std::accumulate(f.begin(), f.end(), 0.0);
         for(size_t j = 0; j < dim_theta; j++)
         {
-            sum_logp += log(f[j]) - log(sum_f); // log(p) = log(f/sum_f)
+            sum_logp += class_count[j] * (log(f[j]) - log(sum_f)); // log(p) = log(f/sum_f)
         }
         // true label
         y_i = (*state->y_std)[i];
@@ -365,10 +365,20 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     {
     std::normal_distribution<double> norm(0.0, 1.0);
     std::uniform_real_distribution<double> unif(0.0, 1.0);
-    double w_cand = exp(log(weight) + 0.01 * norm(state->gen));
+    double w_cand = exp(log(weight) + 0.01 * norm(state->gen)) + 1;
     double u = unif(state->gen);
-    double loglike_weight = (weight - 1) * sum_label_logp + sum_logp + n * (lgamma(weight + dim_residual) - lgamma(weight + 1));
-    double loglike_cand =  (w_cand - 1) * sum_label_logp + sum_logp + n * (lgamma(w_cand + dim_residual) - lgamma(w_cand + 1));
+
+    // double loglike_weight = (weight - 1) * sum_label_logp + sum_logp + n * (lgamma(weight + dim_residual) - lgamma(weight + 1));
+    // double loglike_cand =  (w_cand - 1) * sum_label_logp + sum_logp + n * (lgamma(w_cand + dim_residual) - lgamma(w_cand + 1));
+
+    // calculate log-Gamma term for pseudo samples
+    double pseudo_norm = 0.0;
+    for (size_t k = 0; k < class_count.size(); k++)
+    {
+        pseudo_norm += lgamma(class_count[k] + 1);
+    }
+    double loglike_weight = (weight) * sum_label_logp + sum_logp + n * (lgamma(weight + dim_residual) - lgamma(weight + 1) - pseudo_norm);
+    double loglike_cand =  (w_cand) * sum_label_logp + sum_logp + n * (lgamma(w_cand + dim_residual) - lgamma(w_cand + 1)) - pseudo_norm;
     double alpha = exp(loglike_cand - loglike_weight) * w_cand / weight;
 
     // cout << "sum_log_label_p = " << sum_label_logp << "; sum_logp = " << sum_logp << endl;

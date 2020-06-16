@@ -452,6 +452,26 @@ private:
         return ret;
     }
 
+    void ini_class_count(std::vector<double> & class_count, const double num_classes)
+    {
+        class_count.resize(num_classes);
+        std::fill(class_count.begin(), class_count.end(), 0.0);
+        for(size_t i = 0; i < (*y_size_t).size(); i++)
+        {
+            class_count[(*y_size_t)[i]] += 1.0;
+        }
+        for (size_t i = 0; i < num_classes; i++)
+        {
+            class_count[i] = class_count[i] / (*y_size_t).size() * num_classes;
+        }
+        double pseudo_norm = 0.0;
+        for (size_t k = 0; k < class_count.size(); k++)
+        {
+            pseudo_norm += lgamma(class_count[k] + 1);
+        }
+    }
+
+
     // void LogitSamplePars(vector<double> &suffstats, double &tau_a, double &tau_b, std::mt19937 &generator, std::vector<double> &theta_vector)
     // {
     //     //redefine these to use prior pars from Model class
@@ -479,11 +499,12 @@ public:
     std::vector<double> *phi; // latent variables for mnl
 
     std::vector<double> weight_std;
+    std::vector<double> class_count;
 
     LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, std::vector<double> weight_std) : Model(num_classes, 2*num_classes)
     {
-      this->y_size_t = y_size_t;
-      this->phi = phi;
+        this->y_size_t = y_size_t;
+        this->phi = phi;
         this->tau_a = tau_a;
         this->tau_b = tau_b;
         this->alpha = alpha;
@@ -492,7 +513,7 @@ public:
         this->dim_residual = num_classes;
         this->weight = weight_std[0];
         this->weight_std = weight_std;
-
+        ini_class_count(this->class_count, num_classes);
     }
 
     LogitModel() : Model(2, 4) {}

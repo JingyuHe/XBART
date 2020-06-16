@@ -31,8 +31,8 @@ get_entropy <- function(nclass){
 #set.seed(seed)
 
 
-n = 10000
-nt = 5000
+n = 200
+nt = 50
 p = 20
 p_cat = 20
 mtry = 10
@@ -93,7 +93,7 @@ if(0){
   
 }
 num_trees = k
-max_depth = 50
+max_depth = 20
 Nmin = 2*k
 # ws = c(1,5,10,200,500,1000,5000)
 ws = c(2)
@@ -104,7 +104,7 @@ fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test,
                         Nmin=Nmin, num_cutpoints=20, alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1, 
                         no_split_penality = 1, weight = ws, burnin = burnin, mtry = mtry, p_categorical = p_cat, 
                         kap = 1, s = 1, verbose = TRUE, set_random_seed = TRUE, 
-                        random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.01, nthread = 0) 
+                        random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0, nthread = 0) 
 
 
 tm = proc.time()-tm
@@ -181,7 +181,7 @@ cat("weight ", round(as.vector(fit$weight)), "\n")
 
 cat("early stops per tree: ", round(fit$num_stops/num_sweeps/num_trees, 3), "\n")
 
-fit$importance
+cat("importance ", fit$importance, "\n")
 
 # stop_profiler()
 

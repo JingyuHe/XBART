@@ -895,11 +895,11 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
 
-    #pragma omp task shared(state, Xorder_std, x_struct, model, entropy_threshold, num_stops, tree_ind, sweeps)
+    #pragma omp task shared(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops)
     {
             this->l->grow_from_root_entropy(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
     }
-    #pragma omp task shared(state, Xorder_std, x_struct, model, entropy_threshold, num_stops)
+    #pragma omp task shared(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops)
     {
         this->r->grow_from_root_entropy(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
     }
