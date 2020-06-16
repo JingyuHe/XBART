@@ -58,27 +58,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// start_profiler
-SEXP start_profiler(SEXP str);
-RcppExport SEXP _XBART_start_profiler(SEXP strSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type str(strSEXP);
-    rcpp_result_gen = Rcpp::wrap(start_profiler(str));
-    return rcpp_result_gen;
-END_RCPP
-}
-// stop_profiler
-SEXP stop_profiler();
-RcppExport SEXP _XBART_stop_profiler() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(stop_profiler());
-    return rcpp_result_gen;
-END_RCPP
-}
 // sample_int_crank
 IntegerVector sample_int_crank(int n, int size, NumericVector prob);
 RcppExport SEXP _XBART_sample_int_crank(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
@@ -301,8 +280,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART_xbart_multinomial_predict", (DL_FUNC) &_XBART_xbart_multinomial_predict, 5},
     {"_XBART_r_to_json", (DL_FUNC) &_XBART_r_to_json, 2},
     {"_XBART_json_to_r", (DL_FUNC) &_XBART_json_to_r, 1},
-    {"_XBART_start_profiler", (DL_FUNC) &_XBART_start_profiler, 1},
-    {"_XBART_stop_profiler", (DL_FUNC) &_XBART_stop_profiler, 0},
     {"_XBART_sample_int_crank", (DL_FUNC) &_XBART_sample_int_crank, 3},
     {"_XBART_sample_int_ccrank", (DL_FUNC) &_XBART_sample_int_ccrank, 3},
     {"_XBART_sample_int_expj", (DL_FUNC) &_XBART_sample_int_expj, 3},

@@ -17,14 +17,6 @@ json_to_r <- function(json_string_r) {
     .Call(`_XBART_json_to_r`, json_string_r)
 }
 
-start_profiler <- function(str) {
-    .Call(`_XBART_start_profiler`, str)
-}
-
-stop_profiler <- function() {
-    .Call(`_XBART_stop_profiler`)
-}
-
 sample_int_crank <- function(n, size, prob) {
     .Call(`_XBART_sample_int_crank`, n, size, prob)
 }
