@@ -756,7 +756,7 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
 
     std::vector<size_t> subset_vars(p);
 
-    if (state->use_all)
+    if (state->use_all | state->mtry == state->p)
     {
         std::iota(subset_vars.begin(), subset_vars.end(), 0);
     }

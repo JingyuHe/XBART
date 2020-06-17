@@ -452,7 +452,7 @@ private:
         return ret;
     }
 
-    void ini_class_count(std::vector<double> & class_count, const double num_classes)
+    void ini_class_count(std::vector<double> & class_count, double &pseudo_norm, const double num_classes)
     {
         class_count.resize(num_classes);
         std::fill(class_count.begin(), class_count.end(), 0.0);
@@ -464,7 +464,7 @@ private:
         {
             class_count[i] = class_count[i] / (*y_size_t).size() * num_classes;
         }
-        double pseudo_norm = 0.0;
+        pseudo_norm = 0.0;
         for (size_t k = 0; k < class_count.size(); k++)
         {
             pseudo_norm += lgamma(class_count[k] + 1);
@@ -500,6 +500,7 @@ public:
 
     std::vector<double> weight_std;
     std::vector<double> class_count;
+    double pseudo_norm;
 
     LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, std::vector<double> weight_std) : Model(num_classes, 2*num_classes)
     {
@@ -513,7 +514,7 @@ public:
         this->dim_residual = num_classes;
         this->weight = weight_std[0];
         this->weight_std = weight_std;
-        ini_class_count(this->class_count, num_classes);
+        ini_class_count(this->class_count, pseudo_norm, num_classes);
     }
 
     LogitModel() : Model(2, 4) {}

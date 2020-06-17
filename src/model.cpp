@@ -372,11 +372,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     // double loglike_cand =  (w_cand - 1) * sum_label_logp + sum_logp + n * (lgamma(w_cand + dim_residual) - lgamma(w_cand + 1));
 
     // calculate log-Gamma term for pseudo samples
-    double pseudo_norm = 0.0;
-    for (size_t k = 0; k < class_count.size(); k++)
-    {
-        pseudo_norm += lgamma(class_count[k] + 1);
-    }
+
     double loglike_weight = (weight) * sum_label_logp + sum_logp + n * (lgamma(weight + dim_residual) - lgamma(weight + 1) - pseudo_norm);
     double loglike_cand =  (w_cand) * sum_label_logp + sum_logp + n * (lgamma(w_cand + dim_residual) - lgamma(w_cand + 1)) - pseudo_norm;
     double alpha = exp(loglike_cand - loglike_weight) * w_cand / weight;
