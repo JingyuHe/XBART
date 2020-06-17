@@ -30,11 +30,13 @@ get_entropy <- function(nclass){
 #seed = 10
 #set.seed(seed)
 
-
-n = 200
-nt = 50
-p = 20
-p_cat = 20
+# 
+# n = 200
+# nt = 50
+n = 10000
+nt = 5000
+p = 8
+p_cat = 0
 mtry = 10
 k = 6
 lam = matrix(0,n,k)
@@ -71,7 +73,7 @@ lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
 
 
 # vary s to make the problem harder s < 1 or easier s > 2
-s = 1
+s = 5
 pr = exp(s*lam)
 pr = t(scale(t(pr),center=FALSE, scale = rowSums(pr)))
 y_train = sapply(1:n,function(j) sample(0:(k-1),1,prob=pr[j,]))

@@ -365,7 +365,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     {
     std::normal_distribution<double> norm(0.0, 1.0);
     std::uniform_real_distribution<double> unif(0.0, 1.0);
-    double w_cand = exp(log(weight) + 0.01 * norm(state->gen)) + 1;
+    double w_cand = exp(log(weight - 1) + 0.01 * norm(state->gen)) + 1;
     double u = unif(state->gen);
 
     // double loglike_weight = (weight - 1) * sum_label_logp + sum_logp + n * (lgamma(weight + dim_residual) - lgamma(weight + 1));
