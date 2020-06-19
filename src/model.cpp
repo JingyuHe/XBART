@@ -377,7 +377,15 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     double loglike_weight = (weight) * sum_label_logp + sum_logp + n * (lgamma(weight + pseudo_weight + 1) - lgamma(weight + 1) - pseudo_norm);
     double loglike_cand =  (w_cand) * sum_label_logp + sum_logp + n * (lgamma(w_cand + pseudo_weight + 1) - lgamma(w_cand + 1) - pseudo_norm);
     // double alpha = exp(loglike_cand - loglike_weight) * w_cand / weight;
-    double alpha = exp(10 * (weight - w_cand) )* exp(loglike_cand - loglike_weight) * w_cand / weight; // add weight prior: exp(1)
+    double alpha = exp( (weight - w_cand) / 10 )* exp(loglike_cand - loglike_weight) * w_cand / weight; // add weight prior: exp(1)
+
+    // half cauchy prior
+    // double x0 = 0;
+    // double gamma = 1;
+    // double pi = 3.14159265358979323846;
+    // double weight_prior = log (2) - log(pi * gamma * (1 + pow( (weight - x0)/gamma, 2)));
+    // double wcand_prior = log (2) - log(pi * gamma * (1 + pow( (w_cand - x0)/gamma, 2)));
+    // double alpha = exp(wcand_prior - weight_prior) * exp(loglike_cand - loglike_weight) * w_cand / weight;
 
     // cout << "sum_label_logp = " << sum_label_logp << "; sum_logp = " << sum_logp << "; pseudo weight " << pseudo_weight  << endl;
     // cout << "exp(loglike_cand - loglike_weight) = " << exp(loglike_cand - loglike_weight) << "; w_cand = " << w_cand << "; weight = " << weight << endl;
