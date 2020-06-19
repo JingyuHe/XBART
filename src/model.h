@@ -455,14 +455,14 @@ private:
     void ini_class_count(std::vector<double> & class_count, double &pseudo_norm, const double num_classes)
     {
         class_count.resize(num_classes);
-        std::fill(class_count.begin(), class_count.end(), 0.0);
+        std::fill(class_count.begin(), class_count.end(), 10.0);
         for(size_t i = 0; i < (*y_size_t).size(); i++)
         {
             class_count[(*y_size_t)[i]] += 1.0;
         }
         for (size_t i = 0; i < num_classes; i++)
         {
-            class_count[i] = class_count[i] / (*y_size_t).size() * pseudo_weight;
+            class_count[i] = class_count[i] / ((*y_size_t).size()  + 10 * num_classes)* pseudo_weight;
         }
         pseudo_norm = 0.0;
         for (size_t k = 0; k < class_count.size(); k++)
