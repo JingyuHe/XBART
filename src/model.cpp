@@ -315,7 +315,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         std::normal_distribution<double> norm(0.0, 1.0);
         std::uniform_real_distribution<double> unif(0.0, 1.0);
         double w_cand = exp(log(weight - 1) + 0.01 * norm(state->gen)) + 1;
-        double u = unif(state->gen);
+        double u = log(unif(state->gen));
 
         // double loglike_weight = (weight - 1) * sum_label_logp + sum_logp + n * (lgamma(weight + dim_residual) - lgamma(weight + 1));
         // double loglike_cand =  (w_cand - 1) * sum_label_logp + sum_logp + n * (lgamma(w_cand + dim_residual) - lgamma(w_cand + 1));
@@ -326,7 +326,8 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         double loglike_weight = (weight) * sum_label_logp + sum_logp + n * (lgamma(weight + pseudo_weight + 1) - lgamma(weight + 1) - pseudo_norm);
         double loglike_cand =  (w_cand) * sum_label_logp + sum_logp + n * (lgamma(w_cand + pseudo_weight + 1) - lgamma(w_cand + 1) - pseudo_norm);
         // double alpha = exp(loglike_cand - loglike_weight) * w_cand / weight;
-        double alpha = exp( (weight - w_cand) / 10 )* exp(loglike_cand - loglike_weight) * w_cand / weight; // add weight prior: exp(1)
+        // double alpha = exp( (weight - w_cand) / 10 )* exp(loglike_cand - loglike_weight) * w_cand / weight; // add weight prior: exp(1)
+        double alpha = (weight - w_cand) / 10 + loglike_cand - loglike_weight + log(w_cand) - log(weight);
 
         // half cauchy prior
         // double x0 = 0;
@@ -346,7 +347,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 
     // Draw phi
     // std::gamma_distribution<double> gammadist(weight, 1.0);
-    std::gamma_distribution<double> gammadist(weight + pseudo_weight, 1.0);
+    std::gamma_distribution<double> gammadist(weight + pseudo_weight - 1, 1.0);
     // std::vector<double> sum_fits_v (state->residual_std[0].size(), 0.0);
 
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
