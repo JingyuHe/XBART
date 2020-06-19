@@ -45,12 +45,12 @@ p = v
 
 
 
-num_sweeps= 20 #30
+num_sweeps= 40 #30
 num_trees = 20
 burnin = 5 #10
-Nmin = 5
-max_depth = 50
-mtry = 100
+Nmin = 10
+max_depth = 20
+mtry = round(p/2)
 num_cutpoints=20
 
 drop_threshold = 1

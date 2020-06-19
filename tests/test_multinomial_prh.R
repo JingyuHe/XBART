@@ -73,7 +73,7 @@ lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
 
 
 # vary s to make the problem harder s < 1 or easier s > 2
-s = 2
+s = 5
 pr = exp(s*lam)
 pr = t(scale(t(pr),center=FALSE, scale = rowSums(pr)))
 y_train = sapply(1:n,function(j) sample(0:(k-1),1,prob=pr[j,]))
@@ -84,39 +84,33 @@ y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 
 
 
-num_sweeps = 20
+num_sweeps = 40
 burnin = 5
-
-if(0){
-  # insample error 
-  y_test = y_train
-  X_test = X_train
-}else{
-  
-}
-num_trees = k
+num_trees =20
 max_depth = 20
-Nmin = 2*k
+Nmin = k
 # ws = c(1,5,10,200,500,1000,5000)
 ws = c(2)
 #########################  parallel ####################3
 tm = proc.time()
 fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth, 
-                        Nmin=Nmin, num_cutpoints=20, alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1, 
-                        no_split_penality = 1, weight = ws, burnin = burnin, mtry = mtry, p_categorical = p_cat, 
+                        Nmin=Nmin, num_cutpoints=round(n/20), alpha=0.95, beta=1.25, tau_a = 1.5, tau_b = 1, 
+                        no_split_penality = 0.25, weight = ws, burnin = burnin, mtry = mtry, p_categorical = p_cat, 
                         kap = 1, s = 1, verbose = FALSE, set_random_seed = TRUE, 
-                        random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0, nthread = 0) 
+                        random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.005, nthread = 0) 
 
 
 tm = proc.time()-tm
 cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 # take average of all sweeps, discard burn-in
 # a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
-a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), mean)
+a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
 pred = apply(a,1,which.max)-1
 yhat = apply(a,1,which.max)-1
 cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
+plot(as.vector(fit$weight))
+median(as.vector(fit$weight))
 # cat("weight ", round(as.vector(fit$weight)), "\n")
 
 #######################################################
@@ -178,9 +172,6 @@ cat(paste("xgboost logloss : ", round(logloss.xgb,3)),"\n")
 cat(paste("\n", "xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 cat(paste("xgboost runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 
-cat("weight ", round(as.vector(fit$weight)), "\n")
-# table(round(as.vector(fit$weight)))
-
 cat("early stops per tree: ", round(fit$num_stops/num_sweeps/num_trees, 3), "\n")
 
 cat("importance ", fit$importance, "\n")
@@ -188,4 +179,5 @@ cat("importance ", fit$importance, "\n")
 # stop_profiler()
 
 plot(as.vector(fit$weight))
+cat("median weight ", median(as.vector(fit$weight)), "\n")
 

@@ -235,12 +235,12 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
 
     // sufficient statistics have 2 * num_classes
 
-    suffstats[(*y_size_t)[index_next_obs]] += weight;
+    suffstats[(*y_size_t)[index_next_obs]] += weight - 1;
 
 
     for (size_t j = 0; j < dim_theta; ++j)
     {
-        // suffstats[j] += 1; // pseudo observation
+        suffstats[j] += 1; // pseudo observation
         suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
     }
 
@@ -292,8 +292,8 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 
     size_t y_i;
     
-    std::gamma_distribution<double> gammadist(weight, 1.0);
-    // std::gamma_distribution<double> gammadist(weight + dim_residual - 1, 1.0);
+    // std::gamma_distribution<double> gammadist(weight, 1.0);
+    std::gamma_distribution<double> gammadist(weight + dim_residual - 1, 1.0);
 
     // min_fits = INFINITY;
     std::vector<double> sum_fits_v (state->residual_std[0].size(), 0.0);
@@ -360,7 +360,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     // update weight  random walk 
     size_t steps;
     if (!state->use_all){steps = 1;}
-    else {steps = 100;}
+    else {steps = 10;}
     for (size_t j = 0; j < steps; j++)
     {
     std::normal_distribution<double> norm(0.0, 1.0);
