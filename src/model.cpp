@@ -235,12 +235,12 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
 
     // sufficient statistics have 2 * num_classes
 
-    suffstats[(*y_size_t)[index_next_obs]] += weight - 1;
+    suffstats[(*y_size_t)[index_next_obs]] += weight;
 
 
     for (size_t j = 0; j < dim_theta; ++j)
     {
-        suffstats[j] += 1; // pseudo observation
+        suffstats[j] += class_count[j]; // pseudo observation
         suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
     }
 
@@ -293,7 +293,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     size_t y_i;
     
     // std::gamma_distribution<double> gammadist(weight, 1.0);
-    std::gamma_distribution<double> gammadist(weight + dim_residual - 1, 1.0);
+    std::gamma_distribution<double> gammadist(weight + pseudo_weight, 1.0);
 
     // min_fits = INFINITY;
     std::vector<double> sum_fits_v (state->residual_std[0].size(), 0.0);
@@ -372,14 +372,16 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     // double loglike_cand =  (w_cand - 1) * sum_label_logp + sum_logp + n * (lgamma(w_cand + dim_residual) - lgamma(w_cand + 1));
 
     // calculate log-Gamma term for pseudo samples
+    // cout << "pseudo weight " << pseudo_weight << endl;
 
-    double loglike_weight = (weight) * sum_label_logp + sum_logp + n * (lgamma(weight + dim_residual) - lgamma(weight + 1) - pseudo_norm);
-    double loglike_cand =  (w_cand) * sum_label_logp + sum_logp + n * (lgamma(w_cand + dim_residual) - lgamma(w_cand + 1)) - pseudo_norm;
+    double loglike_weight = (weight) * sum_label_logp + sum_logp + n * (lgamma(weight + pseudo_weight + 1) - lgamma(weight + 1) - pseudo_norm);
+    double loglike_cand =  (w_cand) * sum_label_logp + sum_logp + n * (lgamma(w_cand + pseudo_weight + 1) - lgamma(w_cand + 1) - pseudo_norm);
     // double alpha = exp(loglike_cand - loglike_weight) * w_cand / weight;
-    double alpha = exp(weight - w_cand) * exp(loglike_cand - loglike_weight) * w_cand / weight; // add weight prior: exp(1)
+    double alpha = exp(10 * (weight - w_cand) )* exp(loglike_cand - loglike_weight) * w_cand / weight; // add weight prior: exp(1)
 
-    // cout << "sum_log_label_p = " << sum_label_logp << "; sum_logp = " << sum_logp << endl;
-    // cout << "weight = " << weight << "; loglike_weight = " << loglike_weight << "; w_cand  = " << w_cand << "; loglike_cand = " << loglike_cand << endl;
+    // cout << "sum_label_logp = " << sum_label_logp << "; sum_logp = " << sum_logp << "; pseudo weight " << pseudo_weight  << endl;
+    // cout << "exp(loglike_cand - loglike_weight) = " << exp(loglike_cand - loglike_weight) << "; w_cand = " << w_cand << "; weight = " << weight << endl;
+
     if (u < alpha){
         // cout << "Accept, alpha = " << alpha << "; loglike = " <<  exp(loglike_cand - loglike_weight) << "; w/w = " << w_cand / weight << endl;
         weight = w_cand;
