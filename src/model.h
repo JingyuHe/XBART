@@ -464,11 +464,13 @@ private:
         {
             class_count[i] = class_count[i] / ((*y_size_t).size()  + 10 * num_classes)* pseudo_weight;
         }
-        pseudo_norm = 0.0;
-        for (size_t k = 0; k < class_count.size(); k++)
-        {
-            pseudo_norm += lgamma(class_count[k] + 1);
-        }
+        // pseudo_norm = 0.0;
+        // for (size_t k = 0; k < class_count.size(); k++)
+        // {
+        //     pseudo_norm += lgamma(class_count[k] + 1);
+        // }
+        // cout << "class_count = " << class_count << endl;
+
     }
 
 

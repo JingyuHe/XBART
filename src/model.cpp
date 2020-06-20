@@ -284,9 +284,12 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     // Draw weight
     double max = -INFINITY;
     size_t n = state->n_y;
+    size_t y_i;
 
     double sum_logp = 0.0;
     double sum_label_logp = 0.0;
+    double weight_norm = 0.0;
+    double cand_norm = 0.0;
     std::vector<double> f(dim_theta, 0.0);
     std::vector<double> log_f(dim_theta, 0.0);
     std::vector<double> sum_fits(n, 0.0);
@@ -302,9 +305,11 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
             sum_logp += class_count[j] * (log(f[j]) - log(sum_fits[i])); // log(p) = log(f/sum_f)
         }
         // true label
-        sum_label_logp += log(f[(*state->y_std)[i]]) - log(sum_fits[i]);
-        
+        y_i = (*state->y_std)[i];
+        sum_label_logp += log(f[y_i]) - log(sum_fits[i]);
+        // weight_norm +=  - lgamma(weight + class_count[y_i] + 1) ;
     }
+    // weight_norm += n * lgamma(weight + pseudo_weight + 1);
 
     // update weight  random walk 
     size_t steps;
@@ -317,17 +322,27 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         double w_cand = exp(log(weight - 1) + 0.01 * norm(state->gen)) + 1;
         double u = log(unif(state->gen));
 
+        // cand_norm = n * lgamma(w_cand + pseudo_weight + 1);
+        // for(size_t i = 0; i < n; i++)
+        // {
+        //     cand_norm += - lgamma(w_cand + class_count[(*state->y_std)[i]] + 1);
+        // }
+
         // double loglike_weight = (weight - 1) * sum_label_logp + sum_logp + n * (lgamma(weight + dim_residual) - lgamma(weight + 1));
         // double loglike_cand =  (w_cand - 1) * sum_label_logp + sum_logp + n * (lgamma(w_cand + dim_residual) - lgamma(w_cand + 1));
 
         // calculate log-Gamma term for pseudo samples
         // cout << "pseudo weight " << pseudo_weight << endl;
-
-        double loglike_weight = (weight) * sum_label_logp + sum_logp + n * (lgamma(weight + pseudo_weight + 1) - lgamma(weight + 1) - pseudo_norm);
-        double loglike_cand =  (w_cand) * sum_label_logp + sum_logp + n * (lgamma(w_cand + pseudo_weight + 1) - lgamma(w_cand + 1) - pseudo_norm);
+    
+        // if (isinf(-sum_label_logp )){cout << "warning: sum_label_logp goes to infinite" << endl;}
+        // double loglike_cand =  (w_cand) * sum_label_logp + sum_logp + n * (lgamma(w_cand + pseudo_weight + 1) - lgamma(w_cand + 1) - pseudo_norm);
+        // double loglike_weight = (weight) * sum_label_logp + sum_logp + n * (lgamma(weight + pseudo_weight + 1) - lgamma(weight + 1) - pseudo_norm);     
+        double loglike_diff = (w_cand - weight) * sum_label_logp + n * (lgamma(w_cand + pseudo_weight + 1) - lgamma(w_cand + 1) -  (lgamma(weight + pseudo_weight + 1) - lgamma(weight + 1)));
+        // double loglike_diff = (w_cand - weight) * sum_label_logp + cand_norm - weight_norm;
         // double alpha = exp(loglike_cand - loglike_weight) * w_cand / weight;
         // double alpha = exp( (weight - w_cand) / 10 )* exp(loglike_cand - loglike_weight) * w_cand / weight; // add weight prior: exp(1)
-        double alpha = (weight - w_cand) / 10 + loglike_cand - loglike_weight + log(w_cand) - log(weight);
+        double alpha = (weight - w_cand) / 10 + loglike_diff + log(w_cand) - log(weight);
+        // cout << "sum_label_logp = " << sum_label_logp << "; loglike_diff = " << loglike_diff << "; alpha = " << alpha << "; weight = " << weight << "; w_cand = " << w_cand << endl;
 
         // half cauchy prior
         // double x0 = 0;
