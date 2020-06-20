@@ -310,7 +310,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         std::normal_distribution<double> norm(0.0, 1.0);
         std::uniform_real_distribution<double> unif(0.0, 1.0);
 
-        double w_cand = weight + 0.1 * norm(state->gen);
+        double w_cand = weight + 0.01 * norm(state->gen);
         // double cand = unwrap_weight + 0.1 * norm(state->gen);
         // double wrap_cand = cand - floor(cand);
         // double wrap_weight = unwrap_weight - floor(unwrap_weight);
