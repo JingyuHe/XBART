@@ -235,12 +235,12 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
 
     // sufficient statistics have 2 * num_classes
 
-    suffstats[(*y_size_t)[index_next_obs]] += weight;
+    suffstats[(*y_size_t)[index_next_obs]] += pop * wrap(weight);
 
 
     for (size_t j = 0; j < dim_theta; ++j)
     {
-        suffstats[j] += class_count[j]; // pseudo observation
+        // suffstats[j] += class_count[j]; // pseudo observation
         suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
     }
 
@@ -283,7 +283,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     size_t n = state->n_y;
     size_t y_i;
 
-    double sum_logp = 0.0;
+    // double sum_logp = 0.0;
     double sum_label_logp = 0.0;
     double weight_norm = 0.0;
     double cand_norm = 0.0;
@@ -297,16 +297,9 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
             f[j] = state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j];
         }
         sum_fits[i] = std::accumulate(f.begin(), f.end(), 0.0);
-        for(size_t j = 0; j < dim_theta; j++)
-        {
-            sum_logp += class_count[j] * (log(f[j]) - log(sum_fits[i])); // log(p) = log(f/sum_f)
-        }
-        // true label
         y_i = (*state->y_std)[i];
         sum_label_logp += log(f[y_i]) - log(sum_fits[i]);
-        // weight_norm +=  - lgamma(weight + class_count[y_i] + 1) ;
     }
-    // weight_norm += n * lgamma(weight + pseudo_weight + 1); // calculate lgamma constant based on marginal counts
 
     // update weight  random walk 
     size_t steps;
@@ -316,22 +309,19 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     {
         std::normal_distribution<double> norm(0.0, 1.0);
         std::uniform_real_distribution<double> unif(0.0, 1.0);
-        double w_cand = exp(log(weight - 1) + 0.01 * norm(state->gen)) + 1;
-        double u = log(unif(state->gen));
 
-        // // calculate lgamma constant based on marginal counts
-        // cand_norm = n * lgamma(w_cand + pseudo_weight + 1);
-        // for(size_t i = 0; i < n; i++)
-        // {
-        //     cand_norm += -lgamma(w_cand + class_count[y_i] + 1);
-        // }
+        double w_cand = weight + 0.1 * norm(state->gen);
+        // double cand = unwrap_weight + 0.1 * norm(state->gen);
+        // double wrap_cand = cand - floor(cand);
+        // double wrap_weight = unwrap_weight - floor(unwrap_weight);
 
-        double loglike_cand = lgamma(pop * n) - lgamma(w_cand * n) - lgamma(pop*n - w_cand * n) +  (w_cand) * sum_label_logp  + (pop - w_cand) * pseudo_norm;
-        double loglike_weight = lgamma(pop * n) - lgamma(weight * n) - lgamma(pop*n - weight * n) +  (weight) * sum_label_logp + + (pop - weight) * pseudo_norm; 
-        double loglike_diff = loglike_cand - loglike_weight;
-        // double loglike_diff = (w_cand - weight) * sum_label_logp + n * (lgamma(w_cand + pseudo_weight + 1) - lgamma(w_cand + 1) -  (lgamma(weight + pseudo_weight + 1) - lgamma(weight + 1)));
-        // double loglike_diff = (w_cand - weight) * sum_label_logp + cand_norm - weight_norm;
-        double alpha = (weight - w_cand) / 10 + loglike_diff + log(w_cand) - log(weight);
+        // double loglike_cand = lgamma(pop * n) - lgamma(w_cand * n) - lgamma(pop*n - w_cand * n) +  (w_cand) * sum_label_logp  + (pop - w_cand) * pseudo_norm;
+        // double loglike_weight = lgamma(pop * n) - lgamma(weight * n) - lgamma(pop*n - weight * n) +  (weight) * sum_label_logp + + (pop - weight) * pseudo_norm; 
+        // double loglike_cand = lgamma(pop * wrap_cand * n + (1 - wrap_cand) * n) - lgamma(pop * wrap_cand * n) - lgamma( (1 - wrap_cand) * n) + pop * wrap_cand * sum_label_logp + (1 - wrap_cand) * pseudo_norm;
+        // double loglike_weight = lgamma(pop * wrap_weight * n + (1 - wrap_weight) * n) - lgamma(pop * wrap_weight * n) - lgamma( (1 - wrap_weight) * n) + pop * wrap_weight * sum_label_logp + (1 - wrap_weight) * pseudo_norm;
+        double loglike_cand = lgamma(pop * wrap(w_cand) * n + (1- wrap(w_cand)) * n) - lgamma(pop * wrap(w_cand) * n) - lgamma( (1 - wrap(w_cand)) * n ) + pop * wrap(w_cand) * sum_label_logp + (1 - wrap(w_cand)) * pseudo_norm;
+        double loglike_weight = lgamma(pop * wrap(weight) * n + (1- wrap(weight)) * n) - lgamma(pop * wrap(weight) * n) - lgamma( (1 - wrap(weight)) * n ) + pop * wrap(weight) * sum_label_logp + (1 - wrap(weight)) * pseudo_norm;
+        double alpha = loglike_cand - loglike_weight;
         // cout << "sum_label_logp = " << sum_label_logp << "; loglike_diff = " << loglike_diff << "; alpha = " << alpha << "; weight = " << weight << "; w_cand = " << w_cand << endl;
 
         // half cauchy prior
@@ -342,6 +332,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         // double wcand_prior = log (2) - log(pi * gamma * (1 + pow( (w_cand - x0)/gamma, 2)));
         // double alpha = exp(wcand_prior - weight_prior) * exp(loglike_cand - loglike_weight) * w_cand / weight;
 
+        double u = log(unif(state->gen));
         if (u < alpha){
             weight = w_cand;
         }
@@ -349,7 +340,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 
     // Draw phi
     // std::gamma_distribution<double> gammadist(weight, 1.0);
-    std::gamma_distribution<double> gammadist(weight + pseudo_weight - 1, 1.0);
+    std::gamma_distribution<double> gammadist(pop * wrap(weight), 1.0);
     // std::vector<double> sum_fits_v (state->residual_std[0].size(), 0.0);
 
     for (size_t i = 0; i < state->residual_std[0].size(); i++)

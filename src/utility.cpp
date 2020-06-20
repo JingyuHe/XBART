@@ -244,3 +244,8 @@ size_t count_non_zero(std::vector<double> &vec)
     }
     return output;
 }
+
+double wrap(double x)
+{
+    return (x - std::floor(x));
+}

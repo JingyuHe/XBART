@@ -144,4 +144,6 @@ bool is_non_zero(size_t x);
 
 size_t count_non_zero(std::vector<double> &vec);
 
+double wrap(double x);
+
 #endif

@@ -470,7 +470,7 @@ private:
             // pseudo_norm += lgamma(class_count[k] + 1);
             pseudo_norm = class_count[k] * (*y_size_t).size() * log(class_count[k]);
         }
-        cout << "class_count = " << class_count << endl;
+        // cout << "class_count = " << class_count << endl;
 
     }
 
@@ -506,6 +506,7 @@ public:
     double pseudo_norm;
     double pseudo_weight;
     double pop;
+    // double unwrap_weight;
 
     LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, std::vector<double> weight_std) : Model(num_classes, 2*num_classes)
     {
@@ -517,11 +518,17 @@ public:
         this->beta = beta;
         //what should this be?
         this->dim_residual = num_classes;
+
+        this->pop = 20;
+        // this->unwrap_weight = weight_std[0];
+        // this->weight = this->pop * (this->unwrap_weight - std::floor(unwrap_weight));
         this->weight = weight_std[0];
+
         this->weight_std = weight_std;
         this->pseudo_weight = 1;
         ini_class_count(this->class_count, pseudo_norm, num_classes);
-        this->pop = 100;
+ 
+        
     }
 
     LogitModel() : Model(2, 4) {}
