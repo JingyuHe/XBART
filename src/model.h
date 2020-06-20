@@ -462,7 +462,7 @@ private:
         }
         for (size_t i = 0; i < num_classes; i++)
         {
-            class_count[i] = class_count[i] / ((*y_size_t).size()  )* pseudo_weight;
+            class_count[i] = class_count[i] / (*y_size_t).size();
         }
         pseudo_norm = 0.0;
         for (size_t k = 0; k < class_count.size(); k++)
@@ -495,20 +495,15 @@ public:
  //   size_t dim_suffstat = 3;
 
     // prior on leaf parameter
-    double tau_a, tau_b, weight; //leaf parameter is ~ G(tau_a, tau_b). tau_a = 1/tau + 1/2, tau_b = 1/tau -> f(x)\sim N(0,tau) approx
+    double tau_a, tau_b, weight, pop, pseudo_norm; //leaf parameter is ~ G(tau_a, tau_b). tau_a = 1/tau + 1/2, tau_b = 1/tau -> f(x)\sim N(0,tau) approx
 
     // Should these pointers live in model subclass or state subclass?
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
     std::vector<double> *phi; // latent variables for mnl
 
-    std::vector<double> weight_std;
     std::vector<double> class_count;
-    double pseudo_norm;
-    double pseudo_weight;
-    double pop;
-    // double unwrap_weight;
 
-    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, std::vector<double> weight_std) : Model(num_classes, 2*num_classes)
+    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, double pop) : Model(num_classes, 2*num_classes)
     {
         this->y_size_t = y_size_t;
         this->phi = phi;
@@ -519,13 +514,8 @@ public:
         //what should this be?
         this->dim_residual = num_classes;
 
-        this->pop = 20;
-        // this->unwrap_weight = weight_std[0];
-        // this->weight = this->pop * (this->unwrap_weight - std::floor(unwrap_weight));
-        this->weight = weight_std[0];
-
-        this->weight_std = weight_std;
-        this->pseudo_weight = 1;
+        this->pop = pop;
+        this->weight = weight;
         ini_class_count(this->class_count, pseudo_norm, num_classes);
  
         
