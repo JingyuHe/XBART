@@ -278,9 +278,6 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 
 void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
-    std::feclearexcept(FE_OVERFLOW);
-    std::feclearexcept(FE_UNDERFLOW);
-
     // Draw weight
     double max = -INFINITY;
     size_t n = state->n_y;
@@ -309,7 +306,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         sum_label_logp += log(f[y_i]) - log(sum_fits[i]);
         // weight_norm +=  - lgamma(weight + class_count[y_i] + 1) ;
     }
-    // weight_norm += n * lgamma(weight + pseudo_weight + 1);
+    // weight_norm += n * lgamma(weight + pseudo_weight + 1); // calculate lgamma constant based on marginal counts
 
     // update weight  random walk 
     size_t steps;
@@ -322,25 +319,18 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         double w_cand = exp(log(weight - 1) + 0.01 * norm(state->gen)) + 1;
         double u = log(unif(state->gen));
 
+        // // calculate lgamma constant based on marginal counts
         // cand_norm = n * lgamma(w_cand + pseudo_weight + 1);
         // for(size_t i = 0; i < n; i++)
         // {
-        //     cand_norm += - lgamma(w_cand + class_count[(*state->y_std)[i]] + 1);
+        //     cand_norm += -lgamma(w_cand + class_count[y_i] + 1);
         // }
 
-        // double loglike_weight = (weight - 1) * sum_label_logp + sum_logp + n * (lgamma(weight + dim_residual) - lgamma(weight + 1));
-        // double loglike_cand =  (w_cand - 1) * sum_label_logp + sum_logp + n * (lgamma(w_cand + dim_residual) - lgamma(w_cand + 1));
-
-        // calculate log-Gamma term for pseudo samples
-        // cout << "pseudo weight " << pseudo_weight << endl;
-    
-        // if (isinf(-sum_label_logp )){cout << "warning: sum_label_logp goes to infinite" << endl;}
-        // double loglike_cand =  (w_cand) * sum_label_logp + sum_logp + n * (lgamma(w_cand + pseudo_weight + 1) - lgamma(w_cand + 1) - pseudo_norm);
-        // double loglike_weight = (weight) * sum_label_logp + sum_logp + n * (lgamma(weight + pseudo_weight + 1) - lgamma(weight + 1) - pseudo_norm);     
-        double loglike_diff = (w_cand - weight) * sum_label_logp + n * (lgamma(w_cand + pseudo_weight + 1) - lgamma(w_cand + 1) -  (lgamma(weight + pseudo_weight + 1) - lgamma(weight + 1)));
+        double loglike_cand = lgamma(pop * n) - lgamma(w_cand * n) - lgamma(pop*n - w_cand * n) +  (w_cand) * sum_label_logp  + (pop - w_cand) * pseudo_norm;
+        double loglike_weight = lgamma(pop * n) - lgamma(weight * n) - lgamma(pop*n - weight * n) +  (weight) * sum_label_logp + + (pop - weight) * pseudo_norm; 
+        double loglike_diff = loglike_cand - loglike_weight;
+        // double loglike_diff = (w_cand - weight) * sum_label_logp + n * (lgamma(w_cand + pseudo_weight + 1) - lgamma(w_cand + 1) -  (lgamma(weight + pseudo_weight + 1) - lgamma(weight + 1)));
         // double loglike_diff = (w_cand - weight) * sum_label_logp + cand_norm - weight_norm;
-        // double alpha = exp(loglike_cand - loglike_weight) * w_cand / weight;
-        // double alpha = exp( (weight - w_cand) / 10 )* exp(loglike_cand - loglike_weight) * w_cand / weight; // add weight prior: exp(1)
         double alpha = (weight - w_cand) / 10 + loglike_diff + log(w_cand) - log(weight);
         // cout << "sum_label_logp = " << sum_label_logp << "; loglike_diff = " << loglike_diff << "; alpha = " << alpha << "; weight = " << weight << "; w_cand = " << w_cand << endl;
 
@@ -351,9 +341,6 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         // double weight_prior = log (2) - log(pi * gamma * (1 + pow( (weight - x0)/gamma, 2)));
         // double wcand_prior = log (2) - log(pi * gamma * (1 + pow( (w_cand - x0)/gamma, 2)));
         // double alpha = exp(wcand_prior - weight_prior) * exp(loglike_cand - loglike_weight) * w_cand / weight;
-
-        // cout << "sum_label_logp = " << sum_label_logp << "; sum_logp = " << sum_logp << "; pseudo weight " << pseudo_weight  << endl;
-        // cout << "exp(loglike_cand - loglike_weight) = " << exp(loglike_cand - loglike_weight) << "; w_cand = " << w_cand << "; weight = " << weight << endl;
 
         if (u < alpha){
             weight = w_cand;

@@ -455,21 +455,22 @@ private:
     void ini_class_count(std::vector<double> & class_count, double &pseudo_norm, const double num_classes)
     {
         class_count.resize(num_classes);
-        std::fill(class_count.begin(), class_count.end(), 10.0);
+        std::fill(class_count.begin(), class_count.end(), 0.0);
         for(size_t i = 0; i < (*y_size_t).size(); i++)
         {
             class_count[(*y_size_t)[i]] += 1.0;
         }
         for (size_t i = 0; i < num_classes; i++)
         {
-            class_count[i] = class_count[i] / ((*y_size_t).size()  + 10 * num_classes)* pseudo_weight;
+            class_count[i] = class_count[i] / ((*y_size_t).size()  )* pseudo_weight;
         }
-        // pseudo_norm = 0.0;
-        // for (size_t k = 0; k < class_count.size(); k++)
-        // {
-        //     pseudo_norm += lgamma(class_count[k] + 1);
-        // }
-        // cout << "class_count = " << class_count << endl;
+        pseudo_norm = 0.0;
+        for (size_t k = 0; k < class_count.size(); k++)
+        {
+            // pseudo_norm += lgamma(class_count[k] + 1);
+            pseudo_norm = class_count[k] * (*y_size_t).size() * log(class_count[k]);
+        }
+        cout << "class_count = " << class_count << endl;
 
     }
 
@@ -504,6 +505,7 @@ public:
     std::vector<double> class_count;
     double pseudo_norm;
     double pseudo_weight;
+    double pop;
 
     LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, std::vector<double> weight_std) : Model(num_classes, 2*num_classes)
     {
@@ -519,6 +521,7 @@ public:
         this->weight_std = weight_std;
         this->pseudo_weight = 1;
         ini_class_count(this->class_count, pseudo_norm, num_classes);
+        this->pop = 100;
     }
 
     LogitModel() : Model(2, 4) {}
