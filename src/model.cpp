@@ -235,7 +235,7 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
 
     // sufficient statistics have 2 * num_classes
 
-    suffstats[(*y_size_t)[index_next_obs]] += pop * wrap(weight);
+    suffstats[(*y_size_t)[index_next_obs]] += 1 + pop * wrap(weight);
 
 
     for (size_t j = 0; j < dim_theta; ++j)
@@ -311,27 +311,21 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         std::uniform_real_distribution<double> unif(0.0, 1.0);
 
         double w_cand = weight + 0.01 * norm(state->gen);
-        // double cand = unwrap_weight + 0.1 * norm(state->gen);
-        // double wrap_cand = cand - floor(cand);
-        // double wrap_weight = unwrap_weight - floor(unwrap_weight);
 
-        // double loglike_cand = lgamma(pop * n) - lgamma(w_cand * n) - lgamma(pop*n - w_cand * n) +  (w_cand) * sum_label_logp  + (pop - w_cand) * pseudo_norm;
-        // double loglike_weight = lgamma(pop * n) - lgamma(weight * n) - lgamma(pop*n - weight * n) +  (weight) * sum_label_logp + + (pop - weight) * pseudo_norm; 
-        // double loglike_cand = lgamma(pop * wrap_cand * n + (1 - wrap_cand) * n) - lgamma(pop * wrap_cand * n) - lgamma( (1 - wrap_cand) * n) + pop * wrap_cand * sum_label_logp + (1 - wrap_cand) * pseudo_norm;
-        // double loglike_weight = lgamma(pop * wrap_weight * n + (1 - wrap_weight) * n) - lgamma(pop * wrap_weight * n) - lgamma( (1 - wrap_weight) * n) + pop * wrap_weight * sum_label_logp + (1 - wrap_weight) * pseudo_norm;
-        double loglike_cand = lgamma(pop * wrap(w_cand) * n + (1- wrap(w_cand)) * n) - lgamma(pop * wrap(w_cand) * n) - lgamma( (1 - wrap(w_cand)) * n ) + pop * wrap(w_cand) * sum_label_logp + (1 - wrap(w_cand)) * pseudo_norm;
-        double loglike_weight = lgamma(pop * wrap(weight) * n + (1- wrap(weight)) * n) - lgamma(pop * wrap(weight) * n) - lgamma( (1 - wrap(weight)) * n ) + pop * wrap(weight) * sum_label_logp + (1 - wrap(weight)) * pseudo_norm;
+        // flexible limit
+        // double loglike_cand = lgamma(pop * wrap(w_cand) * n + (1- wrap(w_cand)) * n) - lgamma(pop * wrap(w_cand) * n) - lgamma( (1 - wrap(w_cand)) * n ) + pop * wrap(w_cand) * sum_label_logp + (1 - wrap(w_cand)) * pseudo_norm;
+        // double loglike_weight = lgamma(pop * wrap(weight) * n + (1- wrap(weight)) * n) - lgamma(pop * wrap(weight) * n) - lgamma( (1 - wrap(weight)) * n ) + pop * wrap(weight) * sum_label_logp + (1 - wrap(weight)) * pseudo_norm;
+        
+        // fixed limit
+        double loglike_cand = lgamma( pop * n) - lgamma( pop * wrap(w_cand) * n) - lgamma(pop * (1 - wrap(w_cand)) * n) + ( 1 + pop * wrap(w_cand) ) * sum_label_logp + pop * (1 - wrap(w_cand)) * pseudo_norm;
+        double loglike_weight = lgamma( pop * n) - lgamma( pop * wrap(weight) * n) - lgamma(pop * (1 - wrap(weight)) * n) + (1 + pop * wrap(weight) ) * sum_label_logp + pop * (1 - wrap(weight)) * pseudo_norm;
+        
+        // fixed limit with an extra n and correct normalization
+        // double loglike_cand = lgamma( ( 1 + pop) * n) - lgamma( ( 1 + pop * wrap(w_cand) ) * n) - lgamma(pop * (1 - wrap(w_cand)) * n) + ( 1 + pop * wrap(w_cand) ) * sum_label_logp + pop * (1 - wrap(w_cand)) * pseudo_norm;
+        // double loglike_weight = lgamma( ( 1 + pop) * n) - lgamma( ( 1 + pop * wrap(weight) ) * n) - lgamma(pop * (1 - wrap(weight)) * n) + (1 + pop * wrap(weight) ) * sum_label_logp + pop * (1 - wrap(weight)) * pseudo_norm;
+        
+
         double alpha = loglike_cand - loglike_weight;
-        // cout << "sum_label_logp = " << sum_label_logp << "; loglike_diff = " << loglike_diff << "; alpha = " << alpha << "; weight = " << weight << "; w_cand = " << w_cand << endl;
-
-        // half cauchy prior
-        // double x0 = 0;
-        // double gamma = 1;
-        // double pi = 3.14159265358979323846;
-        // double weight_prior = log (2) - log(pi * gamma * (1 + pow( (weight - x0)/gamma, 2)));
-        // double wcand_prior = log (2) - log(pi * gamma * (1 + pow( (w_cand - x0)/gamma, 2)));
-        // double alpha = exp(wcand_prior - weight_prior) * exp(loglike_cand - loglike_weight) * w_cand / weight;
-
         double u = log(unif(state->gen));
         if (u < alpha){
             weight = w_cand;
