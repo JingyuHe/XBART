@@ -342,6 +342,26 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits[i]); 
     }
 
+    // get lambdas
+    // dimension of state->lambdas (num_trees, num_bottoms, num_class)
+    size_t count_lambdas = 0;
+    std::vector<double> mean_lambda(dim_residual, 0.0);
+    for(size_t i = 0; i < state->num_trees; i++)
+    {
+        for(size_t j = 0; j < state->lambdas[i].size(); j++)
+        {
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                mean_lambda[k] += state->lambdas[i][j][k];
+            }
+            count_lambdas += 1;
+        }
+    }
+    for (size_t k = 0; k < dim_residual; k++ )
+    {
+        mean_lambda[k] = mean_lambda[k] / (double) count_lambdas;
+    }
+    // cout << "mean_lambdas " << mean_lambda << endl;
 
     return;
 }

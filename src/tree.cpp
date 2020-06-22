@@ -805,6 +805,8 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
             {
                 x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
             }
+            // update lambdas in state
+            state->lambdas[tree_ind].push_back(this->theta_vector);
         }
 
         // if (update_theta)

@@ -54,6 +54,19 @@ public:
     // paralization
     size_t nthread;
 
+    // lambdas
+    std::vector<std::vector<std::vector<double>>> lambdas;
+
+    void ini_lambda(std::vector<std::vector<std::vector<double>>>  &lambdas, size_t num_trees, size_t dim_residual)
+    {
+        lambdas.resize(num_trees);
+        for (size_t i = 0; i < num_trees; i++){
+            lambdas[i].resize(1);
+            lambdas[i][0].resize(dim_residual);
+            std::fill(lambdas[i][0].begin(), lambdas[i][0].end(), 1.0);
+        }
+    }
+
     void update_sigma(double sigma)
     {
         this->sigma = sigma;
@@ -109,6 +122,7 @@ public:
         this->burnin = burnin;
         this->ini_var_yhat = ini_var_yhat;
         this->nthread = nthread;
+        ini_lambda(this->lambdas, num_trees, dim_residual);
 
         return;
     }
