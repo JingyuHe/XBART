@@ -577,6 +577,42 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     Rcpp::NumericMatrix phi_sample_rcpp(N, num_sweeps * num_trees);
     Rcpp::NumericMatrix weight_sample_rcpp(num_trees, num_sweeps);
 
+    // Output lambdas
+    size_t nbot = 0;
+    for (size_t i = 0; i < num_sweeps; i++)
+    {
+        for (size_t j = 0; j < num_trees; j++)
+        {
+            nbot += (*trees2)[i][j].nbots();
+        }
+    }
+    cout << "total number of bots " << nbot << endl;
+    
+    Rcpp::NumericMatrix lambdas(nbot, num_class + 2);
+    std::vector<double> theta_vector;
+    std::vector<tree::tree_p> bv;
+    nbot = 0;
+    for (size_t i = 0; i < num_sweeps; i++)
+    {
+        for (size_t j = 0; j < num_trees; j++)
+        {
+            bv.clear();
+            (*trees2)[i][j].getbots(bv);
+            for (size_t b = 0; b < bv.size(); b++)
+            {
+                lambdas(nbot, 0) = i;
+                lambdas(nbot, 1) = j;
+                theta_vector = bv[b]->gettheta_vector();
+                for (size_t k = 2; k < num_class + 2; k++)
+                {
+                    lambdas(nbot, k) = theta_vector[k];
+                }
+                nbot += 1;
+            }
+        }
+    }
+    
+
     // TODO: Make these functions
     // for (size_t i = 0; i < N; i++)
     // {
@@ -636,6 +672,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         Rcpp::Named("importance") = split_count_sum,
         // Rcpp::Named("num_sweeps") = num_sweeps,
         Rcpp::Named("num_stops") = num_stops,
+        Rcpp::Named("lambdas") = lambdas,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
 }
 
