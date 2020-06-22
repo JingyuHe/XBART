@@ -235,8 +235,8 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
 
     // sufficient statistics have 2 * num_classes
 
-    suffstats[(*y_size_t)[index_next_obs]] += 1 + pop * wrap(weight);
-
+    // suffstats[(*y_size_t)[index_next_obs]] += 1 + pop * wrap(weight);
+    suffstats[(*y_size_t)[index_next_obs]] += pop * wrap(weight);
 
     for (size_t j = 0; j < dim_theta; ++j)
     {
@@ -313,12 +313,12 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         double w_cand = weight + 0.01 * norm(state->gen);
 
         // flexible limit
-        // double loglike_cand = lgamma(pop * wrap(w_cand) * n + (1- wrap(w_cand)) * n) - lgamma(pop * wrap(w_cand) * n) - lgamma( (1 - wrap(w_cand)) * n ) + pop * wrap(w_cand) * sum_label_logp + (1 - wrap(w_cand)) * pseudo_norm;
-        // double loglike_weight = lgamma(pop * wrap(weight) * n + (1- wrap(weight)) * n) - lgamma(pop * wrap(weight) * n) - lgamma( (1 - wrap(weight)) * n ) + pop * wrap(weight) * sum_label_logp + (1 - wrap(weight)) * pseudo_norm;
+        double loglike_cand = lgamma(pop * wrap(w_cand) * n + (1- wrap(w_cand)) * n) - lgamma(pop * wrap(w_cand) * n) - lgamma( (1 - wrap(w_cand)) * n ) + pop * wrap(w_cand) * sum_label_logp + (1 - wrap(w_cand)) * pseudo_norm;
+        double loglike_weight = lgamma(pop * wrap(weight) * n + (1- wrap(weight)) * n) - lgamma(pop * wrap(weight) * n) - lgamma( (1 - wrap(weight)) * n ) + pop * wrap(weight) * sum_label_logp + (1 - wrap(weight)) * pseudo_norm;
         
         // fixed limit
-        double loglike_cand = lgamma( pop * n) - lgamma( pop * wrap(w_cand) * n) - lgamma(pop * (1 - wrap(w_cand)) * n) + ( 1 + pop * wrap(w_cand) ) * sum_label_logp + pop * (1 - wrap(w_cand)) * pseudo_norm;
-        double loglike_weight = lgamma( pop * n) - lgamma( pop * wrap(weight) * n) - lgamma(pop * (1 - wrap(weight)) * n) + (1 + pop * wrap(weight) ) * sum_label_logp + pop * (1 - wrap(weight)) * pseudo_norm;
+        // double loglike_cand = lgamma( pop * n) - lgamma( pop * wrap(w_cand) * n) - lgamma(pop * (1 - wrap(w_cand)) * n) + ( 1 + pop * wrap(w_cand) ) * sum_label_logp + pop * (1 - wrap(w_cand)) * pseudo_norm;
+        // double loglike_weight = lgamma( pop * n) - lgamma( pop * wrap(weight) * n) - lgamma(pop * (1 - wrap(weight)) * n) + (1 + pop * wrap(weight) ) * sum_label_logp + pop * (1 - wrap(weight)) * pseudo_norm;
         
         // fixed limit with an extra n and correct normalization
         // double loglike_cand = lgamma( ( 1 + pop) * n) - lgamma( ( 1 + pop * wrap(w_cand) ) * n) - lgamma(pop * (1 - wrap(w_cand)) * n) + ( 1 + pop * wrap(w_cand) ) * sum_label_logp + pop * (1 - wrap(w_cand)) * pseudo_norm;
