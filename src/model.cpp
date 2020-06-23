@@ -373,7 +373,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     tau_a = 0;
     while (tau_a <= 0)
     {
-        tau_a = norm(state->gen);
+        tau_a = norm(state->gen) * tau_b;
     }
 
 
