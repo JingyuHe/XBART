@@ -297,40 +297,40 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
             f[j] = state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j];
         }
         sum_fits[i] = std::accumulate(f.begin(), f.end(), 0.0);
-        y_i = (*state->y_std)[i];
-        sum_label_logp += log(f[y_i]) - log(sum_fits[i]);
+        // y_i = (*state->y_std)[i];
+        // sum_label_logp += log(f[y_i]) - log(sum_fits[i]);
     }
 
     // update weight  random walk 
-    size_t steps;
-    if (!state->use_all){steps = 1;}
-    else {steps = 10;}
-    for (size_t j = 0; j < steps; j++)
-    {
-        std::normal_distribution<double> norm(0.0, 1.0);
-        std::uniform_real_distribution<double> unif(0.0, 1.0);
+    // size_t steps;
+    // if (!state->use_all){steps = 1;}
+    // else {steps = 10;}
+    // for (size_t j = 0; j < 0; j++)
+    // {
+    //     std::normal_distribution<double> norm(0.0, 1.0);
+    //     std::uniform_real_distribution<double> unif(0.0, 1.0);
 
-        double w_cand = weight + 0.01 * norm(state->gen);
+    //     double w_cand = weight + 0.01 * norm(state->gen);
 
-        // flexible limit
-        double loglike_cand = lgamma(pop * wrap(w_cand) * n + (1- wrap(w_cand)) * n) - lgamma(pop * wrap(w_cand) * n) - lgamma( (1 - wrap(w_cand)) * n ) + pop * wrap(w_cand) * sum_label_logp + (1 - wrap(w_cand)) * pseudo_norm;
-        double loglike_weight = lgamma(pop * wrap(weight) * n + (1- wrap(weight)) * n) - lgamma(pop * wrap(weight) * n) - lgamma( (1 - wrap(weight)) * n ) + pop * wrap(weight) * sum_label_logp + (1 - wrap(weight)) * pseudo_norm;
+    //     // flexible limit
+    //     double loglike_cand = lgamma(pop * wrap(w_cand) * n + (1- wrap(w_cand)) * n) - lgamma(pop * wrap(w_cand) * n) - lgamma( (1 - wrap(w_cand)) * n ) + pop * wrap(w_cand) * sum_label_logp + (1 - wrap(w_cand)) * pseudo_norm;
+    //     double loglike_weight = lgamma(pop * wrap(weight) * n + (1- wrap(weight)) * n) - lgamma(pop * wrap(weight) * n) - lgamma( (1 - wrap(weight)) * n ) + pop * wrap(weight) * sum_label_logp + (1 - wrap(weight)) * pseudo_norm;
         
-        // fixed limit
-        // double loglike_cand = lgamma( pop * n) - lgamma( pop * wrap(w_cand) * n) - lgamma(pop * (1 - wrap(w_cand)) * n) + ( 1 + pop * wrap(w_cand) ) * sum_label_logp + pop * (1 - wrap(w_cand)) * pseudo_norm;
-        // double loglike_weight = lgamma( pop * n) - lgamma( pop * wrap(weight) * n) - lgamma(pop * (1 - wrap(weight)) * n) + (1 + pop * wrap(weight) ) * sum_label_logp + pop * (1 - wrap(weight)) * pseudo_norm;
+    //     // fixed limit
+    //     // double loglike_cand = lgamma( pop * n) - lgamma( pop * wrap(w_cand) * n) - lgamma(pop * (1 - wrap(w_cand)) * n) + ( 1 + pop * wrap(w_cand) ) * sum_label_logp + pop * (1 - wrap(w_cand)) * pseudo_norm;
+    //     // double loglike_weight = lgamma( pop * n) - lgamma( pop * wrap(weight) * n) - lgamma(pop * (1 - wrap(weight)) * n) + (1 + pop * wrap(weight) ) * sum_label_logp + pop * (1 - wrap(weight)) * pseudo_norm;
         
-        // fixed limit with an extra n and correct normalization
-        // double loglike_cand = lgamma( ( 1 + pop) * n) - lgamma( ( 1 + pop * wrap(w_cand) ) * n) - lgamma(pop * (1 - wrap(w_cand)) * n) + ( 1 + pop * wrap(w_cand) ) * sum_label_logp + pop * (1 - wrap(w_cand)) * pseudo_norm;
-        // double loglike_weight = lgamma( ( 1 + pop) * n) - lgamma( ( 1 + pop * wrap(weight) ) * n) - lgamma(pop * (1 - wrap(weight)) * n) + (1 + pop * wrap(weight) ) * sum_label_logp + pop * (1 - wrap(weight)) * pseudo_norm;
+    //     // fixed limit with an extra n and correct normalization
+    //     // double loglike_cand = lgamma( ( 1 + pop) * n) - lgamma( ( 1 + pop * wrap(w_cand) ) * n) - lgamma(pop * (1 - wrap(w_cand)) * n) + ( 1 + pop * wrap(w_cand) ) * sum_label_logp + pop * (1 - wrap(w_cand)) * pseudo_norm;
+    //     // double loglike_weight = lgamma( ( 1 + pop) * n) - lgamma( ( 1 + pop * wrap(weight) ) * n) - lgamma(pop * (1 - wrap(weight)) * n) + (1 + pop * wrap(weight) ) * sum_label_logp + pop * (1 - wrap(weight)) * pseudo_norm;
         
 
-        double alpha = loglike_cand - loglike_weight;
-        double u = log(unif(state->gen));
-        if (u < alpha){
-            weight = w_cand;
-        }
-    }
+    //     double alpha = loglike_cand - loglike_weight;
+    //     double u = log(unif(state->gen));
+    //     if (u < alpha){
+    //         weight = w_cand;
+    //     }
+    // }
 
     // Draw phi
     // std::gamma_distribution<double> gammadist(weight, 1.0);
@@ -342,26 +342,40 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits[i]); 
     }
 
-    // get lambdas
-    // dimension of state->lambdas (num_trees, num_bottoms, num_class)
-    size_t count_lambdas = 0;
-    std::vector<double> mean_lambda(dim_residual, 0.0);
+    // Sample tau_a
+    size_t count_lambda = 0;
+    double mean_lambda = 0;
+    double var_lambda = 0;
     for(size_t i = 0; i < state->num_trees; i++)
     {
         for(size_t j = 0; j < state->lambdas[i].size(); j++)
         {
-            for (size_t k = 0; k < dim_residual; k++)
-            {
-                mean_lambda[k] += state->lambdas[i][j][k];
-            }
-            count_lambdas += 1;
+            mean_lambda += std::accumulate(state->lambdas[i][j].begin(), state->lambdas[i][j].end(), 0.0);
+            count_lambda += dim_residual;
         }
     }
-    for (size_t k = 0; k < dim_residual; k++ )
+    mean_lambda = mean_lambda / count_lambda;
+
+    for(size_t i = 0; i < state->num_trees; i++)
     {
-        mean_lambda[k] = mean_lambda[k] / (double) count_lambdas;
+        for(size_t j = 0; j < state->lambdas[i].size(); j++)
+        {
+            for(size_t k = 0; k < dim_residual; k++)
+            {
+            var_lambda += pow(state->lambdas[i][j][k] - mean_lambda, 2);
+            }
+        }
+    }    
+    var_lambda = var_lambda / count_lambda;
+    // cout << "mean = " << mean_lambda << "; var = " << var_lambda << endl;
+
+    std::normal_distribution<> norm(mean_lambda, var_lambda / count_lambda);
+    tau_a = 0;
+    while (tau_a <= 0)
+    {
+        tau_a = norm(state->gen);
     }
-    // cout << "mean_lambdas " << mean_lambda << endl;
+
 
     return;
 }

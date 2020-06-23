@@ -177,7 +177,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
                            vector<vector<tree>> &trees, double no_split_penalty,
                            std::unique_ptr<State> &state, LogitModel *model,
                            std::unique_ptr<X_struct> &x_struct, std::vector< std::vector<double> > &phi_samples, 
-                           std::vector< std::vector<double> > &weight_samples, double entropy_threshold, size_t &num_stops)
+                           std::vector< std::vector<double> > &tau_samples, double entropy_threshold, size_t &num_stops)
 {
     // if (state->parallel)
     //     thread_pool.start();
@@ -257,7 +257,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
                 phi_samples[sweeps * state->num_trees + tree_ind][kk] = (*(model->phi))[kk];
             }     
             
-            weight_samples[sweeps][tree_ind] = model->weight;
+            tau_samples[sweeps][tree_ind] = model->tau_a;
         }
 
         // if (sweeps <= state->burnin){

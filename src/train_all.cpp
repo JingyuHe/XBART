@@ -538,13 +538,13 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     std::vector<std::vector<double>> phi_samples;
     ini_matrix(phi_samples, N, num_sweeps * num_trees);
 
-    std::vector<std::vector<double>> weight_samples;
-    ini_matrix(weight_samples, num_trees, num_sweeps);
+    std::vector<std::vector<double>> tau_sample;
+    ini_matrix(tau_sample, num_trees, num_sweeps);
 
     ////////////////////////////////////////////////////////////////
     size_t num_stops = 0; 
 
-    mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples, weight_samples, stop_threshold, num_stops);
+    mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples, tau_sample, stop_threshold, num_stops);
     // replace num_sweeps with  sweep;
     // num_sweeps = state->num_sweeps;
 
@@ -575,7 +575,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     Rcpp::NumericVector split_count_sum(p); // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
     Rcpp::NumericMatrix phi_sample_rcpp(N, num_sweeps * num_trees);
-    Rcpp::NumericMatrix weight_sample_rcpp(num_trees, num_sweeps);
+    Rcpp::NumericMatrix tau_sample_rcpp(num_trees, num_sweeps);
 
     // // Output lambdas
     // size_t nbot = 0;
@@ -633,7 +633,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     {
         for (size_t j = 0; j < num_sweeps; j++)
         {
-            weight_sample_rcpp(i, j) = weight_samples[j][i];
+            tau_sample_rcpp(i, j) = tau_sample[j][i];
         }
     }
     for (size_t i = 0; i < N_test; i++)
@@ -668,11 +668,9 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         Rcpp::Named("num_class") = num_class,
         Rcpp::Named("yhats_test") = output,
         Rcpp::Named("phi") = phi_sample_rcpp,
-        Rcpp::Named("weight") = weight_sample_rcpp,
+        Rcpp::Named("tau_a") = tau_sample_rcpp,
         Rcpp::Named("importance") = split_count_sum,
-        // Rcpp::Named("num_sweeps") = num_sweeps,
         Rcpp::Named("num_stops") = num_stops,
-        // Rcpp::Named("lambdas") = lambdas,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
 }
 

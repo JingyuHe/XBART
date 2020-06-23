@@ -31,10 +31,10 @@ get_entropy <- function(nclass){
 #set.seed(seed)
 
 # 
-# n = 200
-# nt = 50
-n = 10000
-nt = 5000
+n = 200
+nt = 50
+# n = 10000
+# nt = 5000
 p = 20
 p_cat = 20
 k = 6
@@ -83,7 +83,7 @@ y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 
 
 
-num_sweeps = ceiling(200/log(n))
+num_sweeps = ceiling(200/log(n)) 
 burnin = 5
 num_trees = 10
 max_depth = 20
@@ -93,10 +93,10 @@ mtry = round((p + p_cat)/2)
 tm = proc.time()
 fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth, 
-                        Nmin=Nmin, num_cutpoints=round(n/20), alpha=0.95, beta=1.25, tau_a = 0.75, tau_b = 1, 
+                        Nmin=Nmin, num_cutpoints=round(n/20), alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1, 
                         no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = p_cat, 
                         kap = 1, s = 1, verbose = FALSE, set_random_seed = TRUE, 
-                        random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.005, nthread = 0, weight = 0.5, pop = 20) 
+                        random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.005, nthread = 0, weight = 0.5, pop = 2) 
 
 
 tm = proc.time()-tm
@@ -107,26 +107,10 @@ a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
 pred = apply(a,1,which.max)-1
 yhat = apply(a,1,which.max)-1
 cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
-plot(as.vector(fit$weight))
-median(as.vector(fit$weight))
-# cat("weight ", round(as.vector(fit$weight)), "\n")
-
-#######################################################
+plot(as.vector(fit$tau_a))
+median(as.vector(fit$tau_a))
 
 
-# # Compare with ranger
-# # data = data.frame( y = y_train, X = X_train)
-# # data.test = data.frame(X = X_test)
-# # tm = proc.time()
-# # fit3 = ranger(as.factor(y) ~ ., data = data,probability=TRUE, num.trees = 1000)
-# # 
-# # 
-# # 
-# # pred3 = predict(fit3, data.test)$predictions
-# # tm = proc.time()-tm
-# # cat(paste("ranger runtime: ", round(tm["elapsed"],3)," seconds","\n"))
-# 
-# # 
 tm2 = proc.time()
 fit.xgb <- xgboost(data = X_train, label=y_train,
                    num_class=k,
@@ -176,6 +160,6 @@ cat("importance ", fit$importance, "\n")
 
 # stop_profiler()
 
-plot(as.vector(fit$weight))
-cat("median weight ", median(as.vector(fit$weight)), "\n")
+plot(as.vector(fit$tau_a))
+summary(as.vector(fit$tau_a))
 
