@@ -605,7 +605,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     // Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericVector split_count_sum(p); // split counts
-    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
+    // Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
     Rcpp::NumericMatrix phi_sample_rcpp(N, num_sweeps * num_trees);
     Rcpp::NumericMatrix tau_sample_rcpp(num_trees, num_sweeps);
     

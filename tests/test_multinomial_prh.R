@@ -72,7 +72,7 @@ lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
 
 
 # vary s to make the problem harder s < 1 or easier s > 2
-s = 1
+s = 15
 pr = exp(s*lam)
 pr = t(scale(t(pr),center=FALSE, scale = rowSums(pr)))
 y_train = sapply(1:n,function(j) sample(0:(k-1),1,prob=pr[j,]))
@@ -83,7 +83,7 @@ y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 
 
 
-num_sweeps = ceiling(200/log(n)) +200
+num_sweeps = ceiling(200/log(n)) 
 burnin = 5
 num_trees = 10
 max_depth = 20
@@ -95,7 +95,7 @@ fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test,
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth, 
                         Nmin=Nmin, num_cutpoints=round(n/20), alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1, 
                         no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = p_cat, 
-                        kap = 1, s = 1, verbose = TRUE, set_random_seed = TRUE, 
+                        kap = 1, s = 1, verbose = FALSE, set_random_seed = TRUE, 
                         random_seed = NULL, sample_weights_flag = TRUE, separate_tree = TRUE, stop_threshold = 0.005, nthread = 0, weight = 0.5, pop = 2) 
 
 
