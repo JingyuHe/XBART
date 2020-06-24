@@ -588,6 +588,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         delete model;
 
     }
+    cout << "end training " << endl;
 
     // mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples, tau_sample, stop_threshold, num_stops);
 
@@ -656,10 +657,12 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
     // clean memory
+    cout << "clear memory " << endl;
     // delete model;
     state.reset();
     x_struct.reset();
 
+    cout << "creat output list " << endl;
     Rcpp::List ret =  Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("num_class") = num_class,
@@ -671,6 +674,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         // Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
 
+    cout << "export tree pointer " << endl;
     if (!separate_tree)
     {
         Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
