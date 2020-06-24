@@ -533,6 +533,9 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     std::vector<std::vector<double>> tau_sample;
     ini_matrix(tau_sample, num_trees, num_sweeps);
 
+    std::vector<std::vector<double>> weight_sample;
+    ini_matrix(weight_sample, num_trees, num_sweeps);
+
     ////////////////////////////////////////////////////////////////
     size_t num_stops = 0; 
 
@@ -568,7 +571,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, pop);
         model->setNoSplitPenality(no_split_penality);
 
-        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples, tau_sample, stop_threshold, num_stops);
+        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples, tau_sample, weight_sample, stop_threshold, num_stops);
 
         model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
 
@@ -581,7 +584,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
 
         model->setNoSplitPenality(no_split_penality);
         
-        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penality, state, model, x_struct, phi_samples, tau_sample, stop_threshold, num_stops);
+        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penality, state, model, x_struct, phi_samples, tau_sample, weight_sample, stop_threshold, num_stops);
 
         model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees3, output_vec);
 
@@ -609,6 +612,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     // Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
     Rcpp::NumericMatrix phi_sample_rcpp(N, num_sweeps * num_trees);
     Rcpp::NumericMatrix tau_sample_rcpp(num_trees, num_sweeps);
+    Rcpp::NumericMatrix weight_sample_rcpp(num_trees, num_sweeps);
     
 
     // TODO: Make these functions
@@ -632,6 +636,13 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         for (size_t j = 0; j < num_sweeps; j++)
         {
             tau_sample_rcpp(i, j) = tau_sample[j][i];
+        }
+    }
+    for (size_t i = 0; i < num_trees; i++)
+    {
+        for (size_t j = 0; j < num_sweeps; j++)
+        {
+            weight_sample_rcpp(i, j) = weight_sample[j][i];
         }
     }
     for (size_t i = 0; i < N_test; i++)
@@ -669,6 +680,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         Rcpp::Named("yhats_test") = output,
         Rcpp::Named("phi") = phi_sample_rcpp,
         Rcpp::Named("tau_a") = tau_sample_rcpp,
+        Rcpp::Named("weight") = weight_sample_rcpp,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("num_stops") = num_stops,
         // Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));

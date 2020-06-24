@@ -177,7 +177,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
                            vector<vector<tree>> &trees, double no_split_penalty,
                            std::unique_ptr<State> &state, LogitModel *model,
                            std::unique_ptr<X_struct> &x_struct, std::vector< std::vector<double> > &phi_samples, 
-                           std::vector< std::vector<double> > &tau_samples, double entropy_threshold, size_t &num_stops)
+                           std::vector< std::vector<double> > &tau_samples, std::vector< std::vector<double> > &weight_samples, double entropy_threshold, size_t &num_stops)
 {
     // if (state->parallel)
     //     thread_pool.start();
@@ -258,6 +258,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
             }     
             
             tau_samples[sweeps][tree_ind] = model->tau_a;
+            weight_samples[sweeps][tree_ind] = wrap(model->weight) * model->pop;
         }
 
         // if (sweeps <= state->burnin){
@@ -272,7 +273,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
 }
 
 void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModelSeparateTrees *model,
-                                           std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &phi_samples, std::vector<std::vector<double>> &tau_samples, double entropy_threshold, size_t &num_stops)
+                                           std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &phi_samples, std::vector<std::vector<double>> &tau_samples, std::vector<std::vector<double>> &weight_samples, double entropy_threshold, size_t &num_stops)
 {
     // Residual for 0th tree
     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
@@ -362,6 +363,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
             }
 
             tau_samples[sweeps][tree_ind] = model->tau_a;
+            weight_samples[sweeps][tree_ind] = wrap(model->weight) * model->pop;
         }
     }
 

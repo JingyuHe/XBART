@@ -337,11 +337,13 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     std::gamma_distribution<double> gammadist(pop * wrap(weight), 1.0);
     // std::vector<double> sum_fits_v (state->residual_std[0].size(), 0.0);
 
-    for (size_t i = 0; i < state->residual_std[0].size(); i++)
-    {
-        (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits[i]); 
-    }
-
+    // for (size_t i = 0; i < state->residual_std[0].size(); i++)
+    // {
+    //     (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits[i]); 
+    // }
+    
+    if (!state->use_all){
+   
     // Sample tau_a
     size_t count_lambda = 0;
     double mean_lambda = 0;
@@ -369,12 +371,23 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     var_lambda = var_lambda / count_lambda;
     // cout << "mean = " << mean_lambda << "; var = " << var_lambda << endl;
 
-    std::normal_distribution<> norm(mean_lambda, var_lambda / count_lambda);
+  
+    std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda / count_lambda));
     tau_a = 0;
     while (tau_a <= 0)
     {
-        tau_a = norm(state->gen) * tau_b;
+        tau_a = norm(state->gen)*tau_b;
     }
+
+    std::gamma_distribution<double> gammadist(1.0+n, 1.0);
+	pop = 0;
+    while (pop <= 0)
+    {
+        pop = gammadist(state->gen)/((1.0 + 1.0)*(mean_lambda * count_lambda)*wrap(weight));
+    }
+
+}
+
 
 
     return;
@@ -802,12 +815,16 @@ void LogitModelSeparateTrees::update_state(std::unique_ptr<State> &state, size_t
     // Draw phi
     std::gamma_distribution<double> gammadist(pop * wrap(weight), 1.0);
 
-    for (size_t i = 0; i < state->residual_std[0].size(); i++)
-    {
-        (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits[i]); 
-    }
+    // for (size_t i = 0; i < state->residual_std[0].size(); i++)
+    // {
+    //     (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits[i]); 
+    // }
 
     // Sample tau_a
+
+    if (!state->use_all){
+
+
     size_t count_lambda = 0;
     double mean_lambda = 0;
     double var_lambda = 0;
@@ -834,17 +851,24 @@ void LogitModelSeparateTrees::update_state(std::unique_ptr<State> &state, size_t
     var_lambda = var_lambda / count_lambda;
     // cout << "mean = " << mean_lambda << "; var = " << var_lambda << endl;
 
-    std::normal_distribution<> norm(mean_lambda, var_lambda / count_lambda);
+    std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda / count_lambda));
     tau_a = 0;
     while (tau_a <= 0)
     {
         tau_a = norm(state->gen) * tau_b;
     }
-    if (tau_a < 1e-5)
+    
+    std::gamma_distribution<double> gammadist(1.0+n, 1.0);
+	pop = 0;
+    while (pop <= 0)
     {
-        cout << "warning: tau_a = " << tau_a << endl;
+        pop = gammadist(state->gen)/((1.0 + 1.0)*(mean_lambda * count_lambda)*wrap(weight));
     }
+
+    }
+
     return;
+
 }
 
 void LogitModelSeparateTrees::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
