@@ -56,14 +56,30 @@ public:
 
     // lambdas
     std::vector<std::vector<std::vector<double>>> lambdas;
+    std::vector<std::vector<std::vector<double>>> lambdas_separate;
 
     void ini_lambda(std::vector<std::vector<std::vector<double>>>  &lambdas, size_t num_trees, size_t dim_residual)
     {
+        // each tree has different number of theta vectors, each is of the size dim_residual (num classes)
         lambdas.resize(num_trees);
         for (size_t i = 0; i < num_trees; i++){
             lambdas[i].resize(1);
             lambdas[i][0].resize(dim_residual);
             std::fill(lambdas[i][0].begin(), lambdas[i][0].end(), 1.0);
+        }
+    }
+
+    void ini_lambda_separate(std::vector<std::vector<std::vector<double>>>  &lambdas, size_t num_trees, size_t dim_residual)
+    {
+        // each tree have (num classes) of lambda vectors
+        lambdas.resize(num_trees);
+        for (size_t i = 0; i < num_trees; i++){
+            lambdas[i].resize(dim_residual);
+            for (size_t j = 0; j < dim_residual; j++)
+            {
+                lambdas[i][j].resize(1);
+                lambdas[i][j][0] = 1.0;
+            }
         }
     }
 
@@ -123,6 +139,7 @@ public:
         this->ini_var_yhat = ini_var_yhat;
         this->nthread = nthread;
         ini_lambda(this->lambdas, num_trees, dim_residual);
+        ini_lambda_separate(this->lambdas_separate, num_trees, dim_residual);
 
         return;
     }

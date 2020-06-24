@@ -10,6 +10,7 @@ public:
     matrix<std::vector<double> *> data_pointers;
     // copy of data_pointers object, for MH update
     matrix<std::vector<double> *> data_pointers_copy;
+    std::vector<std::vector<std::vector<std::vector<double> *>>> data_pointers_multinomial;
 
 
     std::vector<double> X_values;
@@ -27,6 +28,8 @@ public:
 
         init_tree_pointers(initial_theta, n_y, num_trees);
 
+        init_tree_pointers_multinomial(initial_theta, n_y, num_trees);
+        
         unique_value_count2(X_std, Xorder_std, X_values, X_counts, variable_ind, n_y, X_num_unique, p_categorical, p_continuous);
 
         this->X_std = X_std;
@@ -64,6 +67,24 @@ public:
                 pointer_vec[j] = initial_theta;
             }
         }
+    }
+
+    void init_tree_pointers_multinomial(std::vector<double> *initial_theta, size_t N, size_t num_trees)
+    {
+        size_t num_class = (*initial_theta).size();
+        data_pointers_multinomial.resize(num_class);
+
+        for (size_t i = 0; i < num_class; i++)
+        {
+            data_pointers_multinomial[i].resize(num_trees);
+            for (size_t j = 0; j < num_trees; j++)
+            {
+                data_pointers_multinomial[i][j].resize(N);
+                std::fill(data_pointers_multinomial[i][j].begin(), data_pointers_multinomial[i][j].end(), initial_theta);
+            }
+        }
+        
+        return;
     }
 };
 

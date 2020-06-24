@@ -925,6 +925,199 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
 
 }
 
+void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree, double entropy_threshold, size_t &num_stops)
+{
+    // grow a tree, users can control number of split points
+    size_t N_Xorder = Xorder_std[0].size();
+    size_t p = Xorder_std.size();
+    size_t ind;
+    size_t split_var;
+    size_t split_point;
+
+    this->N = N_Xorder;
+
+    // tau is prior VARIANCE, do not take squares
+
+   bool no_split = false;
+
+    // tau is prior VARIANCE, do not take squares
+
+    // do I still need this? need this for the root node
+    if (update_theta)
+    {
+        model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
+        calculate_entropy(Xorder_std, state, this); 
+        // cout << "entropy = " << this->entropy << "    threhold = " << entropy_threshold * N_Xorder << endl;
+        if (this->entropy < entropy_threshold * N_Xorder) {
+            #pragma omp critical 
+            num_stops += 1;
+            no_split = true;
+            // return;
+        }
+    }
+
+    if (N_Xorder <= state->n_min)
+    {
+        no_split = true;
+        // return;
+    }
+
+    if (this->depth >= state->max_depth - 1)
+    {
+        no_split = true;
+        // return;
+    }
+
+    std::vector<size_t> subset_vars(p);
+
+    if (state->use_all)
+    {
+        std::iota(subset_vars.begin(), subset_vars.end(), 0);
+    }
+    else
+    {
+        if (state->sample_weights_flag)
+        {
+            std::vector<double> weight_samp(p);
+            double weight_sum;
+
+            // Sample Weights Dirchelet
+            for (size_t i = 0; i < p; i++)
+            {
+                std::gamma_distribution<double> temp_dist(state->mtry_weight_current_tree[i], 1.0);
+                weight_samp[i] = temp_dist(state->gen);
+            }
+            weight_sum = accumulate(weight_samp.begin(), weight_samp.end(), 0.0);
+            for (size_t i = 0; i < p; i++)
+            {
+                weight_samp[i] = weight_samp[i] / weight_sum;
+            }
+
+            subset_vars = sample_int_ccrank(p, state->mtry, weight_samp, state->gen);
+        }
+        else
+        {
+            subset_vars = sample_int_ccrank(p, state->mtry, state->mtry_weight_current_tree, state->gen);
+        }
+    }
+
+    if (!no_split)
+    {
+    BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this, update_split_prob);
+    }
+
+    this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
+
+    if (no_split == true)
+    {
+        if (!update_split_prob)
+        {
+            size_t j = model->get_class_operating();
+            for (size_t i = 0; i < N_Xorder; i++)
+            {
+                x_struct->data_pointers_multinomial[j][tree_ind][Xorder_std[0][i]] = &this->theta_vector;
+            }
+            #pragma omp critical
+            state->lambdas_separate[tree_ind][j].push_back(this->theta_vector[j]);
+        }
+
+        this->l = 0;
+        this->r = 0;
+
+        return;
+    }
+
+    if (grow_new_tree)
+    {
+        // If GROW FROM ROOT MODE
+        this->v = split_var;
+        this->c = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
+    }
+
+    // Update Cutpoint to be a true seperating point
+    // Increase split_point (index) until it is no longer equal to cutpoint value
+    while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
+    {
+        split_point = split_point + 1;
+    }
+
+    // If our current split is same as parent, exit
+    if ((this->p) && (this->v == (this->p)->v) && (this->c == (this->p)->c))
+    {
+        if (!update_split_prob)
+        {
+            size_t j = model->get_class_operating();
+            for (size_t i = 0; i < N_Xorder; i++)
+            {
+                x_struct->data_pointers_multinomial[j][tree_ind][Xorder_std[0][i]] = &this->theta_vector;
+            }
+            #pragma omp critical
+            state->lambdas_separate[tree_ind][j].push_back(this->theta_vector[j]);
+        }
+        return;
+    }
+
+    if (grow_new_tree)
+    {
+        // If do not update split prob ONLY
+        // grow from root, initialize new nodes
+        #pragma omp critical
+        state->split_count_current_tree[split_var] += 1;
+
+        tree::tree_p lchild = new tree(model->getNumClasses(), this, model->dim_suffstat);
+        tree::tree_p rchild = new tree(model->getNumClasses(), this, model->dim_suffstat);
+
+        this->l = lchild;
+        this->r = rchild;
+
+        lchild->depth = this->depth + 1;
+        rchild->depth = this->depth + 1;
+
+        lchild->ID = 2 * (this->ID);
+        rchild->ID = lchild->ID + 1;
+    }
+    else
+    {
+        // For MH update usage, update probability of cutpoints given new data
+        // Do not need to initialize new nodes
+    }
+
+    this->l->ini_suff_stat();
+    this->r->ini_suff_stat();
+
+    matrix<size_t> Xorder_left_std;
+    matrix<size_t> Xorder_right_std;
+    ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
+    ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
+
+    std::vector<size_t> X_num_unique_left(X_num_unique.size());
+    std::vector<size_t> X_num_unique_right(X_num_unique.size());
+
+    std::vector<size_t> X_counts_left(X_counts.size());
+    std::vector<size_t> X_counts_right(X_counts.size());
+    if (state->p_categorical > 0)
+    {
+        split_xorder_std_categorical(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, X_counts_left, X_counts_right, X_num_unique_left, X_num_unique_right, X_counts, model, x_struct, state, this);
+    }
+
+    if (state->p_continuous > 0)
+    {
+        split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
+    }
+    #pragma omp task untied shared(state, Xorder_std, x_struct, model, entropy_threshold, num_stops, tree_ind, sweeps)
+    {
+    this->l->grow_from_root_separate_tree(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
+    }
+    #pragma omp task untied shared(state, Xorder_std, x_struct, model, entropy_threshold, num_stops, tree_ind, sweeps)
+    {
+    this->r->grow_from_root_separate_tree(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
+    }
+    
+    #pragma omp taskwait
+
+    return;
+}
+
 
 void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state, tree *current_node)
 {
