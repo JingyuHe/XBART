@@ -83,9 +83,10 @@ y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 
 
 
-num_sweeps = ceiling(200/log(n)) 
+# num_sweeps = ceiling(200/log(n)) 
+num_sweeps = 40
 burnin = 5
-num_trees = 10
+num_trees = 30
 max_depth = 20
 Nmin = k
 mtry = round((p + p_cat)/2)
@@ -160,6 +161,8 @@ cat("importance ", fit$importance, "\n")
 
 # stop_profiler()
 
+par(mfrow = c(1, 2))
 plot(as.vector(fit$tau_a))
+plot(as.vector(fit$weight))
 summary(as.vector(fit$tau_a))
 

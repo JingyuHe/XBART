@@ -241,7 +241,9 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
     for (size_t j = 0; j < dim_theta; ++j)
     {
         // suffstats[j] += class_count[j]; // pseudo observation
-        suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
+        // suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
+
+        suffstats[dim_theta + j] += (*phi)[index_next_obs] * exp(residual_std[j][index_next_obs]);
     }
 
     return;
@@ -294,7 +296,10 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     {
         for(size_t j = 0; j < dim_theta; j++)
         {
-            f[j] = state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j];
+            // f[j] = state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j];
+            
+            // log scale residual
+            f[j] = exp(state->residual_std[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j];
         }
         sum_fits[i] = std::accumulate(f.begin(), f.end(), 0.0);
         // y_i = (*state->y_std)[i];
@@ -470,7 +475,8 @@ void LogitModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual
     {
         for (size_t j = 0; j < dim_theta; ++j)
         {
-            residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j] / (*(x_struct->data_pointers[next_index][i]))[j];
+            // residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j] / (*(x_struct->data_pointers[next_index][i]))[j];
+            residual_std[j][i] = residual_std[j][i] + log((*(x_struct->data_pointers[tree_ind][i]))[j]) - log( (*(x_struct->data_pointers[next_index][i]))[j] );
         }
     }
 
@@ -529,69 +535,16 @@ double LogitModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<d
     return (LogitLIL(local_suff_stat));
 }
 
-
-double LogitModel::likelihood_test(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split) const
-{
-    // likelihood equation,
-    // note the difference of left_side == true / false
-    // node_suff_stat is mean of y, sum of square of y, saved in tree class
-    // double y_sum = (double)suff_stat_all[2] * suff_stat_all[0];
-    // double y_sum = suff_stat_all[0];
-    // double suff_one_side;
-
-    /////////////////////////////////////////////////////////////////////////
-    //
-    //  I know combining likelihood and likelihood_no_split looks nicer
-    //  but this is a very fundamental function, executed many times
-    //  the extra if(no_split) statement and value assignment make the code about 5% slower!!
-    //
-    /////////////////////////////////////////////////////////////////////////
-
-    //could rewrite without all these local assigments if that helps...
-    std::vector<double> local_suff_stat = suff_stat_all; // no split
-
-    //COUT << "LIK" << endl;
-
-    //COUT << "all suff stat dim " << suff_stat_all.size();
-
-    if (!no_split)
-    {
-        if (left_side)
-        {
-            //COUT << "LEFTWARD HO" << endl;
-            //COUT << "local suff stat dim " << local_suff_stat.size() << endl;
-            //COUT << "temp suff stat dim " << temp_suff_stat.size() << endl;
-            local_suff_stat = temp_suff_stat;
-        }
-        else
-        {
-            //COUT << "RIGHT HO" << endl;
-            //COUT << "local suff stat dim " << local_suff_stat.size() << endl;
-            //COUT << "temp suff stat dim " << temp_suff_stat.size() << endl;
-            local_suff_stat = suff_stat_all - temp_suff_stat;
-
-            // ntau = (suff_stat_all[2] - N_left - 1) * tau;
-            // suff_one_side = y_sum - temp_suff_stat[0];
-        }
-    }
-
-    // return 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
-
-    //return - 0.5 * nb * log(2 * 3.141592653) -  0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
-
-    return (LogitLIL(local_suff_stat));
-}
-
-
 void LogitModel::ini_residual_std(std::unique_ptr<State> &state)
 {
     //double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
         // init leaf pars are all 1, partial fits are all 1
+        // save fits in log scale -> 0.0
         for (size_t j = 0; j < dim_theta; ++j)
         {
-            state->residual_std[j][i] = 1.0; // (*state->y_std)[i] - value;
+            state->residual_std[j][i] =  0.0; //  1.0; // (*state->y_std)[i] - value;
         }
     }
     return;
@@ -778,7 +731,7 @@ void LogitModelSeparateTrees::incSuffStat(matrix<double> &residual_std, size_t i
     suffstats[(*y_size_t)[index_next_obs]] += pop * wrap(weight);
 
     size_t j = class_operating;
-    suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
+    suffstats[dim_theta + j] += (*phi)[index_next_obs] * exp (residual_std[j][index_next_obs]);
 
     return;
 }
@@ -807,7 +760,8 @@ void LogitModelSeparateTrees::update_state(std::unique_ptr<State> &state, size_t
     {
         for(size_t j = 0; j < dim_theta; j++)
         {
-            f[j] = state->residual_std[j][i] * (*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j];
+            // f[j] = state->residual_std[j][i] * (*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j];
+            f[j] = exp(state->residual_std[j][i]) * (*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j];
         }
         sum_fits[i] = std::accumulate(f.begin(), f.end(), 0.0);
     }
@@ -903,7 +857,8 @@ void LogitModelSeparateTrees::state_sweep(size_t tree_ind, size_t M, matrix<doub
     {
         for (size_t j = 0; j < dim_theta; ++j)
         {
-            residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j] / (*(x_struct->data_pointers_multinomial[j][next_index][i]))[j];
+            // residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j] / (*(x_struct->data_pointers_multinomial[j][next_index][i]))[j];
+            residual_std[j][i] = residual_std[j][i] + log((*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j] / (*(x_struct->data_pointers_multinomial[j][next_index][i]))[j]);
         }
     }
 

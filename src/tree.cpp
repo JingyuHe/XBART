@@ -1140,11 +1140,10 @@ void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state
         // std::fill(sum_fits_w.begin(), sum_fits_w.end(), 0.0);
         for (size_t j = 0; j < dim_theta; ++j)
         {
-            // entropy = - sum( p*log(p) );    p = f_j / sum_fits
-            //         = - sum( f_j * log(f_j / sum_fits ) ) / sum_fits
-            //         = (- sum( f_j * log(f_j) ) +  log(sum_fits) * sum_fits ) / sum_fits
-            //         = - sum( f_j * log(f_j) ) / sum_fits + log(sum_fits)
-            f_j = state->residual_std[j][next_obs] * current_node->theta_vector[j];
+            // f_j = state->residual_std[j][next_obs] * current_node->theta_vector[j];
+
+            // log scale residual
+            f_j = exp(state->residual_std[j][next_obs]) * current_node->theta_vector[j];
             flogf += f_j * log(f_j);
             sum_fits += f_j;
         }
