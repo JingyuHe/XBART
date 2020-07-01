@@ -258,7 +258,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
             }     
             
             tau_samples[sweeps][tree_ind] = model->tau_a;
-            weight_samples[sweeps][tree_ind] = wrap(model->weight) * model->pop;
+            weight_samples[sweeps][tree_ind] = model->weight;
         }
 
         // if (sweeps <= state->burnin){
@@ -363,7 +363,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
             }
 
             tau_samples[sweeps][tree_ind] = model->tau_a;
-            weight_samples[sweeps][tree_ind] = wrap(model->weight) * model->pop;
+            weight_samples[sweeps][tree_ind] = wrap(model->weight);
         }
     }
 

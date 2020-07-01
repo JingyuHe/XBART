@@ -235,9 +235,6 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
 
     // sufficient statistics have 2 * num_classes
 
-    // suffstats[(*y_size_t)[index_next_obs]] += 1 + pop * wrap(weight);
-    // suffstats[(*y_size_t)[index_next_obs]] += pop * wrap(weight);
-
     for (size_t j = 0; j < dim_theta; ++j)
     {
         // suffstats[j] += class_count[j]; // pseudo observation
@@ -246,7 +243,8 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
         // suffstats[dim_theta + j] += (*phi)[index_next_obs] * exp(residual_std[j][index_next_obs]);
 
         suffstats[j] += gamma[index_next_obs][j];
-        suffstats[dim_theta + j] += exp(residual_std[j][index_next_obs]);
+        suffstats[dim_residual + j] += exp(residual_std[j][index_next_obs]);
+        suffstats[dim_residual * 2 + j] += lgamma( gamma[index_next_obs][j] + 1 ); // multinomial normalization term
     }
 
     return;
@@ -646,7 +644,7 @@ void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_tes
 //incSuffStat should take a state as its first argument
 void LogitModelSeparateTrees::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
 {
-    suffstats[(*y_size_t)[index_next_obs]] += pop * wrap(weight);
+    suffstats[(*y_size_t)[index_next_obs]] += wrap(weight);
 
     size_t j = class_operating;
     suffstats[dim_theta + j] += (*phi)[index_next_obs] * exp (residual_std[j][index_next_obs]);
@@ -685,7 +683,7 @@ void LogitModelSeparateTrees::update_state(std::unique_ptr<State> &state, size_t
     }
 
     // Draw phi
-    std::gamma_distribution<double> gammadist(pop * wrap(weight), 1.0);
+    std::gamma_distribution<double> gammadist(wrap(weight), 1.0);
 
     // for (size_t i = 0; i < state->residual_std[0].size(); i++)
     // {
@@ -731,11 +729,11 @@ void LogitModelSeparateTrees::update_state(std::unique_ptr<State> &state, size_t
     }
     
     std::gamma_distribution<double> gammadist(1.0+n, 1.0);
-	pop = 0;
-    while (pop <= 0)
-    {
-        pop = gammadist(state->gen)/((1.0 + 1.0)*(mean_lambda * count_lambda)*wrap(weight));
-    }
+	// pop = 0;
+    // while (pop <= 0)
+    // {
+    //     pop = gammadist(state->gen)/((1.0 + 1.0)*(mean_lambda * count_lambda)*wrap(weight));
+    // }
 
     }
 

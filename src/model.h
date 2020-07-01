@@ -438,19 +438,20 @@ private:
     double LogitLIL(const vector<double> &suffstats) const
     {
 
-        size_t c = suffstats.size() / 2;
+        size_t c = dim_residual;
 
         //suffstats[0] .. suffstats[c-1]is count of y's in cat 0,...,c-1, i.e. r in proposal
         //suffstats[c] .. suffstats[2c-1] is sum of phi_i*(partial fit j)'s ie s in proposal
         
-      double ret = 0;
+        double ret = 0;
         
         for (size_t j = 0; j < c; j++)
         {
             ret += -(tau_a + suffstats[j] ) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]);// - lgamma(suffstats[j] +1);
-            // ret += -lgamma(suffstats[j]);
         }
-        // ret += lgamma( std::accumulate(suffstats.begin(), suffstats.begin() + c, 0.0) ); // multinomial normalization 
+        // multinomial normalization 
+        ret += lgamma(weight + 1) * std::accumulate(suffstats.begin(), suffstats.begin() + c, 0.0) / weight; // lgamma(w+1) * (n * w) / w;
+        ret += - std::accumulate(suffstats.begin() + 2 * c, suffstats.end(), 0.0); // sum of lgamma(y_ij)
 
         return ret;
     }
@@ -484,7 +485,7 @@ private:
         for (size_t i = 0; i < N; i++)
         {
             std::fill(gamma[i].begin(), gamma[i].end(), 0.0);
-            gamma[i][(*y_size_t)[i]] = 1.0;
+            gamma[i][(*y_size_t)[i]] = weight; // 1.0;
         }
     }
 
@@ -492,7 +493,7 @@ public:
  //   size_t dim_suffstat = 3;
 
     // prior on leaf parameter
-    double tau_a, tau_b, weight, pop, pseudo_norm; //leaf parameter is ~ G(tau_a, tau_b). tau_a = 1/tau + 1/2, tau_b = 1/tau -> f(x)\sim N(0,tau) approx
+    double tau_a, tau_b, weight, pseudo_norm; //leaf parameter is ~ G(tau_a, tau_b). tau_a = 1/tau + 1/2, tau_b = 1/tau -> f(x)\sim N(0,tau) approx
 
     // Should these pointers live in model subclass or state subclass?
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
@@ -502,7 +503,7 @@ public:
 
     std::vector<double> class_count;
 
-    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, double pop) : Model(num_classes, 2*num_classes)
+    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight) : Model(num_classes, 3*num_classes)
     {
         this->y_size_t = y_size_t;
         this->phi = phi;
@@ -513,15 +514,14 @@ public:
         //what should this be?
         this->dim_residual = num_classes;
 
-        this->pop = pop;
         this->weight = weight;
-        ini_class_count(this->class_count, pseudo_norm, num_classes);
+        // ini_class_count(this->class_count, pseudo_norm, num_classes);
 
         ini_gamma(this->gamma, num_classes);
         ini_matrix(this->errorP, num_classes, num_classes);
     }
 
-    LogitModel() : Model(2, 4) {}
+    LogitModel() : Model(2, 6) {}
 
     Model *clone() { return new LogitModel(*this); }
 
@@ -586,7 +586,7 @@ private:
 public:
 
 
-    LogitModelSeparateTrees(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, double pop) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, pop) {}
+    LogitModelSeparateTrees(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight) {}
 
     // LogitModelSeparateTrees() : LogitModel() {}
 
