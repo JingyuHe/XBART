@@ -236,14 +236,17 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
     // sufficient statistics have 2 * num_classes
 
     // suffstats[(*y_size_t)[index_next_obs]] += 1 + pop * wrap(weight);
-    suffstats[(*y_size_t)[index_next_obs]] += pop * wrap(weight);
+    // suffstats[(*y_size_t)[index_next_obs]] += pop * wrap(weight);
 
     for (size_t j = 0; j < dim_theta; ++j)
     {
         // suffstats[j] += class_count[j]; // pseudo observation
         // suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
 
-        suffstats[dim_theta + j] += (*phi)[index_next_obs] * exp(residual_std[j][index_next_obs]);
+        // suffstats[dim_theta + j] += (*phi)[index_next_obs] * exp(residual_std[j][index_next_obs]);
+
+        suffstats[j] += gamma[index_next_obs][j];
+        suffstats[dim_theta + j] += exp(residual_std[j][index_next_obs]);
     }
 
     return;
@@ -251,148 +254,63 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
 
 void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
 {
-
-    //redefine these to use prior pars from Model class
-    // int c = dim_theta; //suffstats.size() / 2;
-
-    // double r;
-    // double s;
-
     for (size_t j = 0; j < dim_theta; j++)
     {
-        // not necessary to assign to r and s again
-        // r = suff_stat[j];
-        // s = suff_stat[c + j];
-
-        // std::gamma_distribution<double> gammadist(tau_a + r, 1);
-
-        // theta_vector[j] = gammadist(state->gen) / (tau_b + s);
-
         std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1.0);
-
-        // !! devide s by min_sum_fits
         theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
     }
-    // cout << "theta_vector" << theta_vector << endl;
 
     return;
 }
 
 void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
-    // Draw weight
-    double max = -INFINITY;
-    size_t n = state->n_y;
-    size_t y_i;
-
-    // double sum_logp = 0.0;
-    double sum_label_logp = 0.0;
-    double weight_norm = 0.0;
-    double cand_norm = 0.0;
-    std::vector<double> f(dim_theta, 0.0);
-    std::vector<double> log_f(dim_theta, 0.0);
-    std::vector<double> sum_fits(n, 0.0);
-    for (size_t i = 0; i < n; i++)
-    {
-        for(size_t j = 0; j < dim_theta; j++)
-        {
-            // f[j] = state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j];
-            
-            // log scale residual
-            f[j] = exp(state->residual_std[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j];
-        }
-        sum_fits[i] = std::accumulate(f.begin(), f.end(), 0.0);
-        // y_i = (*state->y_std)[i];
-        // sum_label_logp += log(f[y_i]) - log(sum_fits[i]);
-    }
-
-    // update weight  random walk 
-    // size_t steps;
-    // if (!state->use_all){steps = 1;}
-    // else {steps = 10;}
-    // for (size_t j = 0; j < 0; j++)
-    // {
-    //     std::normal_distribution<double> norm(0.0, 1.0);
-    //     std::uniform_real_distribution<double> unif(0.0, 1.0);
-
-    //     double w_cand = weight + 0.01 * norm(state->gen);
-
-    //     // flexible limit
-    //     double loglike_cand = lgamma(pop * wrap(w_cand) * n + (1- wrap(w_cand)) * n) - lgamma(pop * wrap(w_cand) * n) - lgamma( (1 - wrap(w_cand)) * n ) + pop * wrap(w_cand) * sum_label_logp + (1 - wrap(w_cand)) * pseudo_norm;
-    //     double loglike_weight = lgamma(pop * wrap(weight) * n + (1- wrap(weight)) * n) - lgamma(pop * wrap(weight) * n) - lgamma( (1 - wrap(weight)) * n ) + pop * wrap(weight) * sum_label_logp + (1 - wrap(weight)) * pseudo_norm;
-        
-    //     // fixed limit
-    //     // double loglike_cand = lgamma( pop * n) - lgamma( pop * wrap(w_cand) * n) - lgamma(pop * (1 - wrap(w_cand)) * n) + ( 1 + pop * wrap(w_cand) ) * sum_label_logp + pop * (1 - wrap(w_cand)) * pseudo_norm;
-    //     // double loglike_weight = lgamma( pop * n) - lgamma( pop * wrap(weight) * n) - lgamma(pop * (1 - wrap(weight)) * n) + (1 + pop * wrap(weight) ) * sum_label_logp + pop * (1 - wrap(weight)) * pseudo_norm;
-        
-    //     // fixed limit with an extra n and correct normalization
-    //     // double loglike_cand = lgamma( ( 1 + pop) * n) - lgamma( ( 1 + pop * wrap(w_cand) ) * n) - lgamma(pop * (1 - wrap(w_cand)) * n) + ( 1 + pop * wrap(w_cand) ) * sum_label_logp + pop * (1 - wrap(w_cand)) * pseudo_norm;
-    //     // double loglike_weight = lgamma( ( 1 + pop) * n) - lgamma( ( 1 + pop * wrap(weight) ) * n) - lgamma(pop * (1 - wrap(weight)) * n) + (1 + pop * wrap(weight) ) * sum_label_logp + pop * (1 - wrap(weight)) * pseudo_norm;
-        
-
-    //     double alpha = loglike_cand - loglike_weight;
-    //     double u = log(unif(state->gen));
-    //     if (u < alpha){
-    //         weight = w_cand;
-    //     }
-    // }
-
-    // Draw phi
-    // std::gamma_distribution<double> gammadist(weight, 1.0);
-    std::gamma_distribution<double> gammadist(pop * wrap(weight), 1.0);
-    // std::vector<double> sum_fits_v (state->residual_std[0].size(), 0.0);
-
-    // for (size_t i = 0; i < state->residual_std[0].size(); i++)
-    // {
-    //     (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits[i]); 
-    // }
     
-    if (!state->use_all){
-   
-    // Sample tau_a
-    size_t count_lambda = 0;
-    double mean_lambda = 0;
-    double var_lambda = 0;
-    for(size_t i = 0; i < state->num_trees; i++)
-    {
-        for(size_t j = 0; j < state->lambdas[i].size(); j++)
-        {
-            mean_lambda += std::accumulate(state->lambdas[i][j].begin(), state->lambdas[i][j].end(), 0.0);
-            count_lambda += dim_residual;
-        }
-    }
-    mean_lambda = mean_lambda / count_lambda;
+   // Estimate error matrix P
 
-    for(size_t i = 0; i < state->num_trees; i++)
-    {
-        for(size_t j = 0; j < state->lambdas[i].size(); j++)
-        {
-            for(size_t k = 0; k < dim_residual; k++)
-            {
-            var_lambda += pow(state->lambdas[i][j][k] - mean_lambda, 2);
-            }
-        }
-    }    
-    var_lambda = var_lambda / count_lambda;
-    // cout << "mean = " << mean_lambda << "; var = " << var_lambda << endl;
+   // create a matrix to count each predicted category
+   matrix<double> predict;
+   ini_matrix(predict, dim_residual, dim_residual);
+   for (size_t i = 0; i < dim_residual; i++)
+   {
+       std::fill(predict[i].begin(), predict[i].end(), 1); // start with 1: prevent dirichlet sampling from broken.
+   }
 
-  
-    std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda / count_lambda));
-    tau_a = 0;
-    while (tau_a <= 0)
-    {
-        tau_a = norm(state->gen)*tau_b;
-    }
+   // get prediction for all observations
+   size_t predict_class;
+   double f_max;
+   for (size_t i = 0; i < state->n_y; i++)
+   {
+       f_max = -INFINITY;
+       // get prediction
+       for (size_t j = 0; j < dim_residual; j++)
+       {
+           if (f_max < state->residual_std[j][i] + log(( *(x_struct->data_pointers[tree_ind][i]))[j] ) )
+           {
+               f_max = state->residual_std[j][i] + log(( *(x_struct->data_pointers[tree_ind][i]))[j] ) ;
+               predict_class = j;
+           }
+       }
+        // count true label in predicted class
+       predict[predict_class][(*y_size_t)[i]] += 1;
+   }
 
-    std::gamma_distribution<double> gammadist(1.0+n, 1.0);
-	pop = 0;
-    while (pop <= 0)
-    {
-        pop = gammadist(state->gen)/((1.0 + 1.0)*(mean_lambda * count_lambda)*wrap(weight));
-    }
+    // // Print predict label matrix
+    // cout << "predict labels"  << endl;
+    // for (size_t i = 0; i < dim_residual; i++)
+    // {
+    //    cout << predict[i] << endl;
+    // }
 
-}
+//    // estimate matrix P based on predict counts
+//    cout << "estaimted error matrix P " << endl;
+   for (size_t i = 0; i < dim_residual; i++)
+   {
+       dirichlet_distribution(errorP[i], predict[i], state->gen);
+    //    cout << errorP[i] << endl;
+   }
 
+   // update gamma 
 
 
     return;

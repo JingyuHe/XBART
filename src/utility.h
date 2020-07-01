@@ -146,4 +146,8 @@ size_t count_non_zero(std::vector<double> &vec);
 
 double wrap(double x);
 
+void multinomial_distribution(const size_t size, std::vector<double> &prob, std::vector<double> &draws, std::mt19937 &gen);
+
+void dirichlet_distribution(std::vector<double> &prob, std::vector<double> &alpha, std::mt19937 &gen);
+
 #endif

@@ -434,8 +434,6 @@ public:
 class LogitModel : public Model
 {
 private:
-    //size_t dim_suffstat = 0; // = 2*dim_theta;
-    //std::vector<double> suff_stat_total;
 
     double LogitLIL(const vector<double> &suffstats) const
     {
@@ -444,20 +442,16 @@ private:
 
         //suffstats[0] .. suffstats[c-1]is count of y's in cat 0,...,c-1, i.e. r in proposal
         //suffstats[c] .. suffstats[2c-1] is sum of phi_i*(partial fit j)'s ie s in proposal
-      //  double nh = 0;
-      //  for (size_t j = 0; j < c; j++)
-      //  {
-      //    nh += suffstats[j];
-      //  }
         
       double ret = 0;
         
-        
         for (size_t j = 0; j < c; j++)
         {
-            //!! devide s by min_sum_fits
             ret += -(tau_a + suffstats[j] ) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]);// - lgamma(suffstats[j] +1);
+            // ret += -lgamma(suffstats[j]);
         }
+        // ret += lgamma( std::accumulate(suffstats.begin(), suffstats.begin() + c, 0.0) ); // multinomial normalization 
+
         return ret;
     }
 
@@ -483,22 +477,16 @@ private:
 
     }
 
-
-    // void LogitSamplePars(vector<double> &suffstats, double &tau_a, double &tau_b, std::mt19937 &generator, std::vector<double> &theta_vector)
-    // {
-    //     //redefine these to use prior pars from Model class
-    //     int c = suffstats.size() / 2;
-
-    //     for (int j = 0; j < c; j++)
-    //     {
-    //         double r = suffstats[j];
-    //         double s = suffstats[c + j];
-
-    //         std::gamma_distribution<double> gammadist(tau_a + r, 1);
-
-    //         theta_vector[j] = gammadist(generator) / (tau_b + s);
-    //     }
-    // }
+    void ini_gamma(matrix<double> &gamma, const double num_classes)
+    {
+        size_t N = (*y_size_t).size();
+        ini_matrix(gamma, num_classes, N);
+        for (size_t i = 0; i < N; i++)
+        {
+            std::fill(gamma[i].begin(), gamma[i].end(), 0.0);
+            gamma[i][(*y_size_t)[i]] = 1.0;
+        }
+    }
 
 public:
  //   size_t dim_suffstat = 3;
@@ -509,6 +497,8 @@ public:
     // Should these pointers live in model subclass or state subclass?
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
     std::vector<double> *phi; // latent variables for mnl
+    matrix<double> gamma;
+    matrix<double> errorP;
 
     std::vector<double> class_count;
 
@@ -526,8 +516,9 @@ public:
         this->pop = pop;
         this->weight = weight;
         ini_class_count(this->class_count, pseudo_norm, num_classes);
- 
-        
+
+        ini_gamma(this->gamma, num_classes);
+        ini_matrix(this->errorP, num_classes, num_classes);
     }
 
     LogitModel() : Model(2, 4) {}

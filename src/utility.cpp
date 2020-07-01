@@ -249,3 +249,36 @@ double wrap(double x)
 {
     return (x - std::floor(x));
 }
+
+void multinomial_distribution(const size_t size, std::vector<double> &prob, std::vector<size_t> &draws, std::mt19937 &gen)
+{
+    std::discrete_distribution<size_t> d(prob.begin(), prob.end());
+    draws.resize(prob.size());
+    std::fill(draws.begin(), draws.end(), 0);
+
+    for (size_t i = 0; i < size; i++)
+    {
+        draws[d(gen)] += 1;
+    }
+    return;
+}
+
+void dirichlet_distribution(std::vector<double> &prob, std::vector<double> &alpha, std::mt19937 &gen)
+{
+    size_t p = alpha.size();
+    prob.resize(p);
+
+    for (size_t i = 0; i < p; i++)
+    {
+        std::gamma_distribution<double> temp_dist(alpha[i], 1.0);
+        prob[i] = temp_dist(gen);
+    }
+    // normalize
+    double weight_sum = accumulate(prob.begin(), prob.end(), 0.0);
+    for (size_t i = 0; i < p; i++)
+    {
+        prob[i] = prob[i] / weight_sum;
+    }
+    return;
+}
+

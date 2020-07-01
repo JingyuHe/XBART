@@ -765,19 +765,20 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
         if (state->sample_weights_flag)
         {
             std::vector<double> weight_samp(p);
-            double weight_sum;
+            dirichlet_distribution(weight_samp, state->mtry_weight_current_tree, state->gen);
+            // double weight_sum;
 
-            // Sample Weights Dirchelet
-            for (size_t i = 0; i < p; i++)
-            {
-                std::gamma_distribution<double> temp_dist(state->mtry_weight_current_tree[i], 1.0);
-                weight_samp[i] = temp_dist(state->gen);
-            }
-            weight_sum = accumulate(weight_samp.begin(), weight_samp.end(), 0.0);
-            for (size_t i = 0; i < p; i++)
-            {
-                weight_samp[i] = weight_samp[i] / weight_sum;
-            }
+            // // Sample Weights Dirichlet
+            // for (size_t i = 0; i < p; i++)
+            // {
+            //     std::gamma_distribution<double> temp_dist(state->mtry_weight_current_tree[i], 1.0);
+            //     weight_samp[i] = temp_dist(state->gen);
+            // }
+            // weight_sum = accumulate(weight_samp.begin(), weight_samp.end(), 0.0);
+            // for (size_t i = 0; i < p; i++)
+            // {
+            //     weight_samp[i] = weight_samp[i] / weight_sum;
+            // }
 
             subset_vars = sample_int_ccrank(p, state->mtry, weight_samp, state->gen);
         }

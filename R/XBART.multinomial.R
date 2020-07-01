@@ -15,6 +15,19 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max
         y = as.matrix(y)
     }
 
+    #TODO: Transform y back to original label after training?
+    # if (class(as.vector(y)) != "numeric"){
+    #     cat("Transform y to numeric label.\n")
+    #     y = as.numeric( as.factor(y)) - 1
+    #     y = as.matrix(y)
+    # }else if(any (sort(unique(y)) != 0:(num_class -1)))
+    # {
+    #     cat("Transform y to numeric label start with 0.\n")
+    #     y = as.numeric( as.factor(y)) - 1
+    #     y = as.matrix(y)
+    # }
+
+
     if (dim(X)[1] != length(y)) {
         stop("Length of X must match length of y")
     }
