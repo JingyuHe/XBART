@@ -331,7 +331,7 @@ void LogitModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::ve
 
     // remove resizing it does not work, strange
 
-    suff_stat.resize(2 * dim_theta);
+    suff_stat.resize(3 * dim_theta);
     std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
     for (size_t i = 0; i < state->n_y; i++)
     {
@@ -443,11 +443,7 @@ double LogitModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<d
             // suff_one_side = y_sum - temp_suff_stat[0];
         }
     }
-
-    // return 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
-
-    //return - 0.5 * nb * log(2 * 3.141592653) -  0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
-
+    
     return (LogitLIL(local_suff_stat));
 }
 
