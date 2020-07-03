@@ -335,6 +335,42 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         multinomial_distribution((size_t) weight, gamma_prob, gamma[i], state->gen);
         // cout << "label = " << (*y_size_t)[i] << "; gamma_prob =  = " << gamma_prob << endl;
    }
+
+   // Sample tau_a
+    size_t count_lambda = 0;
+    double mean_lambda = 0;
+    double var_lambda = 0;
+    for(size_t i = 0; i < state->num_trees; i++)
+    {
+        for(size_t j = 0; j < state->lambdas[i].size(); j++)
+        {
+            mean_lambda += std::accumulate(state->lambdas[i][j].begin(), state->lambdas[i][j].end(), 0.0);
+            count_lambda += dim_residual;
+        }
+    }
+    mean_lambda = mean_lambda / count_lambda;
+
+    for(size_t i = 0; i < state->num_trees; i++)
+    {
+        for(size_t j = 0; j < state->lambdas[i].size(); j++)
+        {
+            for(size_t k = 0; k < dim_residual; k++)
+            {
+            var_lambda += pow(state->lambdas[i][j][k] - mean_lambda, 2);
+            }
+        }
+    }    
+    var_lambda = var_lambda / count_lambda;
+    // cout << "mean = " << mean_lambda << "; var = " << var_lambda << endl;
+
+    std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda / count_lambda));
+    tau_a = 0;
+    while (tau_a <= 0)
+    {
+        tau_a = norm(state->gen) * tau_b;
+    }
+
+
     return;
 }
 
