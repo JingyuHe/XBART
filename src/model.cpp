@@ -308,9 +308,33 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     //    cout << errorP[i] << endl;
    }
 
-   // update gamma 
+   // update gamma  
+   std::vector<double> gamma_prob(dim_residual, 0.0);
+   std::vector<double> f_j(dim_residual, 0.0);
+   double f_sum;
 
-
+    for (size_t i = 0; i < state->n_y; i++)
+   {
+       std::fill(gamma_prob.begin(), gamma_prob.end(), 0.0);
+       // get prediction
+       for (size_t j = 0; j < dim_residual; j++)
+       {
+           f_j[j] = exp(state->residual_std[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j];
+       }
+       f_sum = accumulate(f_j.begin(), f_j.end(), 0.0);
+       for (size_t j = 0; j < dim_residual; j++)
+       {
+           f_j[j] = f_j[j] / f_sum;
+           gamma_prob[j] = errorP[j][(*y_size_t)[i]] * f_j[j];
+        //    for (size_t k = 0; k < dim_residual; k++)
+        //    {
+        //        gamma_prob[k] += f_j[j] * errorP[j][k];
+        //    }
+       }
+        // draw gamma for i_th obs
+        multinomial_distribution((size_t) weight, gamma_prob, gamma[i], state->gen);
+        // cout << "label = " << (*y_size_t)[i] << "; gamma_prob =  = " << gamma_prob << endl;
+   }
     return;
 }
 
@@ -443,7 +467,7 @@ double LogitModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<d
             // suff_one_side = y_sum - temp_suff_stat[0];
         }
     }
-    
+
     return (LogitLIL(local_suff_stat));
 }
 

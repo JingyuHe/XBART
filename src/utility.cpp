@@ -250,9 +250,9 @@ double wrap(double x)
     return (x - std::floor(x));
 }
 
-void multinomial_distribution(const size_t size, std::vector<double> &prob, std::vector<size_t> &draws, std::mt19937 &gen)
+void multinomial_distribution(const size_t size, std::vector<double> &prob, std::vector<double> &draws, std::mt19937 &gen)
 {
-    std::discrete_distribution<size_t> d(prob.begin(), prob.end());
+    std::discrete_distribution<> d(prob.begin(), prob.end());
     draws.resize(prob.size());
     std::fill(draws.begin(), draws.end(), 0);
 
