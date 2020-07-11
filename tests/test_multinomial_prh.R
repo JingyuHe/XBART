@@ -31,10 +31,10 @@ get_entropy <- function(nclass){
 #set.seed(seed)
 
 # 
-n = 200
-nt = 50
-# n = 10000
-# nt = 5000
+# n = 200
+# nt = 50
+n = 10000
+nt = 5000
 p = 20
 p_cat = 20
 k = 6
@@ -145,15 +145,6 @@ cat(paste("xbart rmse on probabilities: ", round(sqrt(mean((a-pr)^2)),3)),"\n")
 # cat(paste("ranger rmse on probabilities: ", round(sqrt(mean((pred3-pr)^2)),3)),"\n")
 cat(paste("xgboost rmse on probabilities: ", round(sqrt(mean((phat.xgb-pr)^2)),3)),"\n")
 
-# par(mfrow=c(1,3))
-# plot(a[,1],pr[,1],pch=20,cex=0.75)
-# plot(a[,2],pr[,2],pch=20,cex=0.75)
-# plot(a[,3],pr[,3],pch=20,cex=0.75)
-
-yhat = apply(a,1,which.max)-1
-cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
-cat(paste("xgboost classification accuracy: ", round(mean(yhat.xgb == y_test),3)),"\n")
-
 spr <- split(a, row(a))
 logloss <- sum(mapply(function(x,y) -log(x[y]), spr, y_test+1, SIMPLIFY =TRUE))
 spr <- split(phat.xgb, row(phat.xgb))
@@ -165,8 +156,15 @@ cat(paste("xgboost logloss : ", round(logloss.xgb,3)),"\n")
 cat(paste("\n", "xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 cat(paste("xgboost runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 
+yhat = apply(a,1,which.max)-1
+cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
+cat(paste("xgboost classification accuracy: ", round(mean(yhat.xgb == y_test),3)),"\n")
+
+
 cat("importance ", fit$importance, "\n")
 
+par(mfrow = c(1, 2))
 plot(as.vector(fit$weight))
+plot(as.vector(fit$tau_a))
 summary(as.vector(fit$weight))
 # stop_profiler()

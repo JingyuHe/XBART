@@ -320,10 +320,10 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     {
         entropy += -errorP[i][i] * log(errorP[i][i]) * class_ratio[i];
     }
-    std::exponential_distribution<> d(2 * entropy + 0.1);
-    weight = d(state->gen);
-    // std::gamma_distribution<> d(1, 1);
-    // weight = d(state->gen) / (2 * entropy + 0.1);
+    // std::exponential_distribution<> d(2 * entropy + 0.1);
+    // weight = d(state->gen);
+    std::gamma_distribution<> d(state->n_y, 1);
+    weight = d(state->gen) / (state->n_y * (2 * entropy + 0.1));
     
     // update gamma with weight
    for (size_t i = 0; i < state->n_y; i++)
@@ -361,38 +361,38 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 //    }
 
    // Sample tau_a
-    // size_t count_lambda = 0;
-    // double mean_lambda = 0;
-    // double var_lambda = 0;
-    // for(size_t i = 0; i < state->num_trees; i++)
-    // {
-    //     for(size_t j = 0; j < state->lambdas[i].size(); j++)
-    //     {
-    //         mean_lambda += std::accumulate(state->lambdas[i][j].begin(), state->lambdas[i][j].end(), 0.0);
-    //         count_lambda += dim_residual;
-    //     }
-    // }
-    // mean_lambda = mean_lambda / count_lambda;
+    size_t count_lambda = 0;
+    double mean_lambda = 0;
+    double var_lambda = 0;
+    for(size_t i = 0; i < state->num_trees; i++)
+    {
+        for(size_t j = 0; j < state->lambdas[i].size(); j++)
+        {
+            mean_lambda += std::accumulate(state->lambdas[i][j].begin(), state->lambdas[i][j].end(), 0.0);
+            count_lambda += dim_residual;
+        }
+    }
+    mean_lambda = mean_lambda / count_lambda;
 
-    // for(size_t i = 0; i < state->num_trees; i++)
-    // {
-    //     for(size_t j = 0; j < state->lambdas[i].size(); j++)
-    //     {
-    //         for(size_t k = 0; k < dim_residual; k++)
-    //         {
-    //         var_lambda += pow(state->lambdas[i][j][k] - mean_lambda, 2);
-    //         }
-    //     }
-    // }    
-    // var_lambda = var_lambda / count_lambda;
-    // // cout << "mean = " << mean_lambda << "; var = " << var_lambda << endl;
+    for(size_t i = 0; i < state->num_trees; i++)
+    {
+        for(size_t j = 0; j < state->lambdas[i].size(); j++)
+        {
+            for(size_t k = 0; k < dim_residual; k++)
+            {
+            var_lambda += pow(state->lambdas[i][j][k] - mean_lambda, 2);
+            }
+        }
+    }    
+    var_lambda = var_lambda / count_lambda;
+    // cout << "mean = " << mean_lambda << "; var = " << var_lambda << endl;
 
-    // std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda / count_lambda));
-    // tau_a = 0;
-    // while (tau_a <= 0)
-    // {
-    //     tau_a = norm(state->gen) * tau_b;
-    // }
+    std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda / count_lambda));
+    tau_a = 0;
+    while (tau_a <= 0)
+    {
+        tau_a = norm(state->gen) * tau_b;
+    }
 
 
     return;
