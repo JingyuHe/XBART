@@ -450,29 +450,29 @@ private:
             ret += -(tau_a + suffstats[j] ) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]);// - lgamma(suffstats[j] +1);
         }
         // multinomial normalization 
-        ret += lgamma(weight + 1) * std::accumulate(suffstats.begin(), suffstats.begin() + c, 0.0) / weight; // lgamma(w+1) * (n * w) / w;
+        // ret += lgamma(weight + 1) * std::accumulate(suffstats.begin(), suffstats.begin() + c, 0.0) / weight; // lgamma(w+1) * (n * w) / w;
         ret += - std::accumulate(suffstats.begin() + 2 * c, suffstats.end(), 0.0); // sum of lgamma(y_ij)
         return ret;
     }
 
-    void ini_class_count(std::vector<double> & class_count, double &pseudo_norm, const double num_classes)
+    void ini_class_count(std::vector<double> & class_ratio, double &pseudo_norm, const double num_classes)
     {
-        class_count.resize(num_classes);
-        std::fill(class_count.begin(), class_count.end(), 0.0);
+        class_ratio.resize(num_classes);
+        std::fill(class_ratio.begin(), class_ratio.end(), 0.0);
         for(size_t i = 0; i < (*y_size_t).size(); i++)
         {
-            class_count[(*y_size_t)[i]] += 1.0;
+            class_ratio[(*y_size_t)[i]] += 1.0;
         }
         for (size_t i = 0; i < num_classes; i++)
         {
-            class_count[i] = class_count[i] / (*y_size_t).size();
+            class_ratio[i] = class_ratio[i] / (*y_size_t).size();
         }
-        pseudo_norm = 0.0;
-        for (size_t k = 0; k < class_count.size(); k++)
-        {
-            // pseudo_norm += lgamma(class_count[k] + 1);
-            pseudo_norm = class_count[k] * (*y_size_t).size() * log(class_count[k]);
-        }
+        // pseudo_norm = 0.0;
+        // for (size_t k = 0; k < class_count.size(); k++)
+        // {
+        //     // pseudo_norm += lgamma(class_count[k] + 1);
+        //     pseudo_norm = class_count[k] * (*y_size_t).size() * log(class_count[k]);
+        // }
         // cout << "class_count = " << class_count << endl;
 
     }
@@ -500,7 +500,7 @@ public:
     matrix<double> gamma;
     matrix<double> errorP;
 
-    std::vector<double> class_count;
+    std::vector<double> class_ratio;
 
     LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight) : Model(num_classes, 3*num_classes)
     {
@@ -514,7 +514,7 @@ public:
         this->dim_residual = num_classes;
 
         this->weight = weight;
-        // ini_class_count(this->class_count, pseudo_norm, num_classes);
+        ini_class_count(this->class_ratio, pseudo_norm, num_classes);
 
         ini_gamma(this->gamma, num_classes);
         ini_matrix(this->errorP, num_classes, num_classes);

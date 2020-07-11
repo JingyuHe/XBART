@@ -31,10 +31,10 @@ get_entropy <- function(nclass){
 #set.seed(seed)
 
 # 
-# n = 200
-# nt = 50
-n = 10000
-nt = 5000
+n = 200
+nt = 50
+# n = 10000
+# nt = 5000
 p = 20
 p_cat = 20
 k = 6
@@ -56,7 +56,6 @@ X_train = cbind(X_train, matrix(rpois(n*p_cat, 20), nrow=n))
 X_test = cbind(X_test, matrix(rpois(nt*p_cat, 20), nrow=nt))
 
 
-
 lam[,1] = abs(2*X_train[,1] - X_train[,2])
 lam[,2] = 1
 lam[,3] = 3*X_train[,3]^2
@@ -69,6 +68,19 @@ lamt[,3] = 3*X_test[,3]^2
 lamt[,4] = 5*(X_test[,4]*X_test[,5])
 lamt[,5] = 2*(X_test[,5] + 2*X_test[,6])
 lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
+
+# lam[,1] = 3*abs(2*X_train[,1] - X_train[,2])
+# lam[,2] = 2
+# lam[,3] = 3*X_train[,3]^2
+# lam[,4] = 5*(X_train[, 4] * X_train[,5])
+# lam[,5] = (X_train[,5] + 2*X_train[,6])
+# lam[,6] = 2*(X_train[,1] + X_train[,3] - X_train[,5])
+# lamt[,1] = 3*abs(2*X_test[,1] - X_test[,2])
+# lamt[,2] = 2
+# lamt[,3] = 3*X_test[,3]^2
+# lamt[,4] = 5*(X_test[,4]*X_test[,5])
+# lamt[,5] = (X_test[,5] + 2*X_test[,6])
+# lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
 
 
 # vary s to make the problem harder s < 1 or easier s > 2
@@ -108,8 +120,6 @@ a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
 pred = apply(a,1,which.max)-1
 yhat = apply(a,1,which.max)-1
 cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
-plot(as.vector(fit$tau_a))
-median(as.vector(fit$tau_a))
 
 
 tm2 = proc.time()
@@ -157,6 +167,6 @@ cat(paste("xgboost runtime: ", round(tm2["elapsed"],3)," seconds"),"\n")
 
 cat("importance ", fit$importance, "\n")
 
-plot(as.vector(fit$tau_a))
-summary(as.vector(fit$tau_a))
+plot(as.vector(fit$weight))
+summary(as.vector(fit$weight))
 # stop_profiler()
