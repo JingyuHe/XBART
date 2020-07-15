@@ -84,7 +84,7 @@ lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
 
 
 # vary s to make the problem harder s < 1 or easier s > 2
-s = 1
+s = 15
 pr = exp(s*lam)
 pr = t(scale(t(pr),center=FALSE, scale = rowSums(pr)))
 y_train = sapply(1:n,function(j) sample(0:(k-1),1,prob=pr[j,]))
@@ -163,8 +163,8 @@ cat(paste("xgboost classification accuracy: ", round(mean(yhat.xgb == y_test),3)
 
 cat("importance ", fit$importance, "\n")
 
-par(mfrow = c(1, 2))
+# par(mfrow = c(1, 2))
 plot(as.vector(fit$weight))
-plot(as.vector(fit$tau_a))
+# plot(as.vector(fit$tau_a))
 summary(as.vector(fit$weight))
 # stop_profiler()

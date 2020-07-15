@@ -228,23 +228,13 @@ void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t 
 //incSuffStat should take a state as its first argument
 void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
 {
-    // I have to pass matrix<double> &residual_std, size_t index_next_obs
-    // which allows more flexibility for multidimensional residual_std
-
-    // suffstats[0] += residual_std[0][index_next_obs];
-
-    // sufficient statistics have 2 * num_classes
+    suffstats[(*y_size_t)[index_next_obs]] += weight;
 
     for (size_t j = 0; j < dim_theta; ++j)
     {
-        // suffstats[j] += class_count[j]; // pseudo observation
-        // suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
-
-        // suffstats[dim_theta + j] += (*phi)[index_next_obs] * exp(residual_std[j][index_next_obs]);
-
-        suffstats[j] += gamma[index_next_obs][j];
-        suffstats[dim_residual + j] += exp(residual_std[j][index_next_obs]);
-        suffstats[dim_residual * 2 + j] += lgamma( gamma[index_next_obs][j] + 1 ); // multinomial normalization term
+        // suffstats[j] += gamma[index_next_obs][j];
+        suffstats[dim_residual + j] += weight * exp(residual_std[j][index_next_obs]);
+        // suffstats[dim_residual * 2 + j] += lgamma( gamma[index_next_obs][j] + 1 ); // multinomial normalization term
     }
 
     return;
@@ -293,13 +283,12 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
        predict[predict_class][(*y_size_t)[i]] += 1;
    }
 
-//    // estimate matrix P based on predict counts
-//    cout << "estaimted error matrix P " << endl;
-// Sample error rate
+    //    // estimate matrix P based on predict counts
+    //    cout << "estaimted error matrix P " << endl;
+    // Sample error rate
    for (size_t i = 0; i < dim_residual; i++)
    {
-       dirichlet_distribution(errorP[i], predict[i], state->gen);
-    //    
+       dirichlet_distribution(errorP[i], predict[i], state->gen); 
    }
 
     // calculate error rate:
@@ -325,42 +314,44 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     std::gamma_distribution<> d(state->n_y, 1);
     weight = d(state->gen) / (state->n_y * (2 * entropy + 0.1));
     
-    // update gamma with weight
-   for (size_t i = 0; i < state->n_y; i++)
-    {
-        std::fill(gamma[i].begin(), gamma[i].end(), 0.0);
-        gamma[i][(*y_size_t)[i]] = weight; // 1.0;
-    }
+    //     // update gamma with weight
+    //    for (size_t i = 0; i < state->n_y; i++)
+    //     {
+    //         std::fill(gamma[i].begin(), gamma[i].end(), 0.0);
+    //         gamma[i][(*y_size_t)[i]] = weight; // 1.0;
+    //     }
 
-   // update gamma  
-//    std::vector<double> gamma_prob(dim_residual, 0.0);
-//    std::vector<double> f_j(dim_residual, 0.0);
-//    double f_sum;
+    // update gamma  
+    //    std::vector<double> gamma_prob(dim_residual, 0.0);
+    //    std::vector<double> f_j(dim_residual, 0.0);
+    //    double f_sum;
 
-//     for (size_t i = 0; i < state->n_y; i++)
-//    {
-//        std::fill(gamma_prob.begin(), gamma_prob.end(), 0.0);
-//        // get prediction
-//        for (size_t j = 0; j < dim_residual; j++)
-//        {
-//            f_j[j] = exp(state->residual_std[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j];
-//        }
-//        f_sum = accumulate(f_j.begin(), f_j.end(), 0.0);
-//        for (size_t j = 0; j < dim_residual; j++)
-//        {
-//            f_j[j] = f_j[j] / f_sum;
-//            gamma_prob[j] = errorP[j][(*y_size_t)[i]] * f_j[j];
-//         //    for (size_t k = 0; k < dim_residual; k++)
-//         //    {
-//         //        gamma_prob[k] += f_j[j] * errorP[j][k];
-//         //    }
-//        }
-//         // draw gamma for i_th obs
-//         multinomial_distribution((size_t) weight, gamma_prob, gamma[i], state->gen);
-//         // cout << "label = " << (*y_size_t)[i] << "; gamma_prob =  = " << gamma_prob << endl;
-//    }
+    //     for (size_t i = 0; i < state->n_y; i++)
+    //    {
+    //        std::fill(gamma_prob.begin(), gamma_prob.end(), 0.0);
+    //        // get prediction
+    //        for (size_t j = 0; j < dim_residual; j++)
+    //        {
+    //            f_j[j] = exp(state->residual_std[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j];
+    //        }
+    //        f_sum = accumulate(f_j.begin(), f_j.end(), 0.0);
+    //        for (size_t j = 0; j < dim_residual; j++)
+    //        {
+    //            f_j[j] = f_j[j] / f_sum;
+    //            gamma_prob[j] = errorP[j][(*y_size_t)[i]] * f_j[j];
+    //         //    for (size_t k = 0; k < dim_residual; k++)
+    //         //    {
+    //         //        gamma_prob[k] += f_j[j] * errorP[j][k];
+    //         //    }
+    //        }
+    //         // draw gamma for i_th obs
+    //         multinomial_distribution((size_t) weight, gamma_prob, gamma[i], state->gen);
+    //         // cout << "label = " << (*y_size_t)[i] << "; gamma_prob =  = " << gamma_prob << endl;
+    //    }
 
    // Sample tau_a
+   if (update_tau)
+   {
     size_t count_lambda = 0;
     double mean_lambda = 0;
     double var_lambda = 0;
@@ -393,7 +384,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     {
         tau_a = norm(state->gen) * tau_b;
     }
-
+   }
 
     return;
 }
@@ -415,7 +406,7 @@ void LogitModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::ve
 
     // remove resizing it does not work, strange
 
-    suff_stat.resize(3 * dim_theta);
+    suff_stat.resize(2 * dim_theta);
     std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
     for (size_t i = 0; i < state->n_y; i++)
     {

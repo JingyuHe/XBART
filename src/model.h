@@ -489,7 +489,6 @@ private:
     }
 
 public:
- //   size_t dim_suffstat = 3;
 
     // prior on leaf parameter
     double tau_a, tau_b, weight, pseudo_norm; //leaf parameter is ~ G(tau_a, tau_b). tau_a = 1/tau + 1/2, tau_b = 1/tau -> f(x)\sim N(0,tau) approx
@@ -497,12 +496,13 @@ public:
     // Should these pointers live in model subclass or state subclass?
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
     std::vector<double> *phi; // latent variables for mnl
-    matrix<double> gamma;
+    // matrix<double> gamma;
     matrix<double> errorP;
 
     std::vector<double> class_ratio;
+    bool update_tau;
 
-    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight) : Model(num_classes, 3*num_classes)
+    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_tau) : Model(num_classes, 2*num_classes)
     {
         this->y_size_t = y_size_t;
         this->phi = phi;
@@ -516,11 +516,13 @@ public:
         this->weight = weight;
         ini_class_count(this->class_ratio, pseudo_norm, num_classes);
 
-        ini_gamma(this->gamma, num_classes);
+        // ini_gamma(this->gamma, num_classes);
         ini_matrix(this->errorP, num_classes, num_classes);
+
+        this->update_tau = update_tau;
     }
 
-    LogitModel() : Model(2, 6) {}
+    LogitModel() : Model(2, 4) {}
 
     Model *clone() { return new LogitModel(*this); }
 
@@ -585,7 +587,7 @@ private:
 public:
 
 
-    LogitModelSeparateTrees(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight) {}
+    LogitModelSeparateTrees(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_tau) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, update_tau) {}
 
     // LogitModelSeparateTrees() : LogitModel() {}
 

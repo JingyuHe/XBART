@@ -41,8 +41,8 @@ XBART_CLT_cpp <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, 
     .Call(`_XBART_XBART_CLT_cpp`, y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag)
 }
 
-XBART_multinomial_cpp <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penality, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, set_random_seed = FALSE, random_seed = 0L, sample_weights_flag = TRUE, separate_tree = FALSE, stop_threshold = 0, nthread = 0L, weight = 1) {
-    .Call(`_XBART_XBART_multinomial_cpp`, y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, set_random_seed, random_seed, sample_weights_flag, separate_tree, stop_threshold, nthread, weight)
+XBART_multinomial_cpp <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penality, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, set_random_seed = FALSE, random_seed = 0L, sample_weights_flag = TRUE, separate_tree = FALSE, stop_threshold = 0, nthread = 0L, weight = 1, update_tau = FALSE) {
+    .Call(`_XBART_XBART_multinomial_cpp`, y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, set_random_seed, random_seed, sample_weights_flag, separate_tree, stop_threshold, nthread, weight, update_tau)
 }
 
 XBART_Probit_cpp <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights_flag = TRUE) {
