@@ -52,8 +52,11 @@ X_test = pnorm(X_test)
 #X_train = matrix(runif(n*p,-1,1), nrow=n)
 #X_test = matrix(runif(nt*p,-1,1), nrow=nt)
 
-X_train = cbind(X_train, matrix(rpois(n*p_cat, 20), nrow=n))
-X_test = cbind(X_test, matrix(rpois(nt*p_cat, 20), nrow=nt))
+X_train = cbind(X_train, matrix(rbinom(n*p_cat, 1, 0.5), nrow = n))
+X_test = cbind(X_test, matrix(rbinom(nt*p_cat, 1, 0.5), nrow = nt))
+
+# X_train = cbind(X_train, matrix(rpois(n*p_cat, 20), nrow=n))
+# X_test = cbind(X_test, matrix(rpois(nt*p_cat, 20), nrow=nt))
 
 
 lam[,1] = abs(2*X_train[,1] - X_train[,2])
@@ -96,9 +99,9 @@ y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 
 
 # num_sweeps = ceiling(200/log(n)) 
-num_sweeps = 20
+num_sweeps = 30
 burnin = 5
-num_trees = 10
+num_trees = 20
 max_depth = 20
 Nmin = k
 mtry = round((p + p_cat)/2)

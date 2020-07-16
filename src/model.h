@@ -501,8 +501,9 @@ public:
 
     std::vector<double> class_ratio;
     bool update_tau;
+    double hmult, heps;
 
-    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_tau) : Model(num_classes, 2*num_classes)
+    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_tau, double hmult, double heps) : Model(num_classes, 2*num_classes)
     {
         this->y_size_t = y_size_t;
         this->phi = phi;
@@ -520,6 +521,8 @@ public:
         ini_matrix(this->errorP, num_classes, num_classes);
 
         this->update_tau = update_tau;
+        this->hmult = hmult;
+        this->heps = heps;
     }
 
     LogitModel() : Model(2, 4) {}
@@ -587,7 +590,7 @@ private:
 public:
 
 
-    LogitModelSeparateTrees(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_tau) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, update_tau) {}
+    LogitModelSeparateTrees(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_tau, double hmult, double heps) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, update_tau, hmult, heps) {}
 
     // LogitModelSeparateTrees() : LogitModel() {}
 

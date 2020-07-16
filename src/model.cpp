@@ -312,7 +312,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     // std::exponential_distribution<> d(2 * entropy + 0.1);
     // weight = d(state->gen);
     std::gamma_distribution<> d(state->n_y, 1);
-    weight = d(state->gen) / (state->n_y * (2 * entropy + 0.1));
+    weight = d(state->gen) / (state->n_y * (hmult * entropy + heps));
     
     //     // update gamma with weight
     //    for (size_t i = 0; i < state->n_y; i++)
