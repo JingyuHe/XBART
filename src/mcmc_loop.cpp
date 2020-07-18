@@ -173,10 +173,8 @@ void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sig
     // delete model;
 }
 
-void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
-                           vector<vector<tree>> &trees, double no_split_penalty,
-                           std::unique_ptr<State> &state, LogitModel *model,
-                           std::unique_ptr<X_struct> &x_struct, std::vector< std::vector<double> > &phi_samples, 
+void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty,
+                           std::unique_ptr<State> &state, LogitModel *model, std::unique_ptr<X_struct> &x_struct,
                            std::vector< std::vector<double> > &tau_samples, std::vector< std::vector<double> > &weight_samples, double entropy_threshold, size_t &num_stops)
 {
     // if (state->parallel)
@@ -252,10 +250,6 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
             model->update_state(state, tree_ind, x_struct);
 
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
-
-            for(size_t kk = 0; kk < Xorder_std[0].size(); kk ++ ){
-                phi_samples[sweeps * state->num_trees + tree_ind][kk] = (*(model->phi))[kk];
-            }     
             
             tau_samples[sweeps][tree_ind] = model->tau_a;
             weight_samples[sweeps][tree_ind] = model->weight;
@@ -273,7 +267,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose,
 }
 
 void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModelSeparateTrees *model,
-                                           std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &phi_samples, std::vector<std::vector<double>> &tau_samples, std::vector<std::vector<double>> &weight_samples, double entropy_threshold, size_t &num_stops)
+                                           std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &tau_samples, std::vector<std::vector<double>> &weight_samples, double entropy_threshold, size_t &num_stops)
 {
     // Residual for 0th tree
     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
@@ -356,11 +350,6 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
             model->update_state(state, tree_ind, x_struct);
 
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
-
-            for (size_t kk = 0; kk < Xorder_std[0].size(); kk++)
-            {
-                phi_samples[sweeps * state->num_trees + tree_ind][kk] = (*(model->phi))[kk];
-            }
 
             tau_samples[sweeps][tree_ind] = model->tau_a;
             weight_samples[sweeps][tree_ind] = wrap(model->weight);

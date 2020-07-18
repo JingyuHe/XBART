@@ -730,13 +730,20 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
     if (update_theta)
     {
         model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
-        calculate_entropy(Xorder_std, state, this); 
-        // cout << "entropy = " << this->entropy << "    threhold = " << entropy_threshold * N_Xorder << endl;
-        if (this->entropy < entropy_threshold * N_Xorder) {
-            #pragma omp critical 
-            num_stops += 1;
-            no_split = true;
-            // return;
+        state->update_entropy(Xorder_std, this->theta_vector);
+        if (entropy_threshold > 0){
+            double entropy = 0.0;
+            for (size_t i = 0; i < N_Xorder; i++)
+            {
+                entropy += state->entropy[Xorder_std[0][i]];
+            }
+            cout << "entropy = " << entropy / N_Xorder << endl;
+            if (entropy < entropy_threshold * N_Xorder) 
+            {
+                #pragma omp critical 
+                num_stops += 1;
+                no_split = true;
+            }
         }
     }
 
@@ -934,26 +941,31 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
     if (update_theta)
     {
         model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
-        calculate_entropy(Xorder_std, state, this); 
-        // cout << "entropy = " << this->entropy << "    threhold = " << entropy_threshold * N_Xorder << endl;
-        if (this->entropy < entropy_threshold * N_Xorder) {
-            #pragma omp critical 
-            num_stops += 1;
-            no_split = true;
-            // return;
+        state->update_entropy(Xorder_std, this->theta_vector);
+        if (entropy_threshold > 0){
+            double entropy = 0.0;
+            for (size_t i = 0; i < N_Xorder; i++)
+            {
+                entropy += state->entropy[Xorder_std[0][i]];
+            }
+            cout << "entropy = " << entropy / N_Xorder << endl;
+            if (entropy < entropy_threshold * N_Xorder) 
+            {
+                #pragma omp critical 
+                num_stops += 1;
+                no_split = true;
+            }
         }
     }
 
     if (N_Xorder <= state->n_min)
     {
         no_split = true;
-        // return;
     }
 
     if (this->depth >= state->max_depth - 1)
     {
         no_split = true;
-        // return;
     }
 
     std::vector<size_t> subset_vars(p);
@@ -1102,43 +1114,6 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
     }
     
     #pragma omp taskwait
-
-    return;
-}
-
-
-void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state, tree *current_node)
-{
-
-    size_t N_Xorder = Xorder_std[0].size();
-    // size_t next_obs;
-    size_t dim_theta = state->residual_std.size();
-    // double sum_fits = 0;
-    // double flogf = 0.0;
-    double f_j = 0.0;
-    
-    double entropy = 0.0;
-
-    // #pragma omp parallel for reduction(+: entropy) schedule(static, 128)
-    for (size_t i = 0; i < N_Xorder; i++)
-    {
-        double sum_fits = 0;
-        double flogf = 0.0;
-        size_t next_obs = Xorder_std[0][i];
-        // std::fill(sum_fits_w.begin(), sum_fits_w.end(), 0.0);
-        for (size_t j = 0; j < dim_theta; ++j)
-        {
-            // f_j = state->residual_std[j][next_obs] * current_node->theta_vector[j];
-
-            // log scale residual
-            f_j = exp(state->residual_std[j][next_obs]) * current_node->theta_vector[j];
-            flogf += f_j * log(f_j);
-            sum_fits += f_j;
-        }
-        // entropy
-        entropy +=  - flogf / sum_fits + log(sum_fits);
-    }
-    current_node->entropy = entropy;
 
     return;
 }

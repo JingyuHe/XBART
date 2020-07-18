@@ -54,34 +54,35 @@ public:
     // paralization
     size_t nthread;
 
+    // Logit Model
     // lambdas
     std::vector<std::vector<std::vector<double>>> lambdas;
     std::vector<std::vector<std::vector<double>>> lambdas_separate;
+    //entropy
+    std::vector<double> entropy;
 
-    void ini_lambda(std::vector<std::vector<std::vector<double>>>  &lambdas, size_t num_trees, size_t dim_residual)
+    // void update_entropy(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<double> theta_vector)
+    void update_entropy(matrix<size_t> &Xorder_std, std::vector<double> theta_vector)
     {
-        // each tree has different number of theta vectors, each is of the size dim_residual (num classes)
-        lambdas.resize(num_trees);
-        for (size_t i = 0; i < num_trees; i++){
-            lambdas[i].resize(1);
-            lambdas[i][0].resize(dim_residual);
-            std::fill(lambdas[i][0].begin(), lambdas[i][0].end(), 1.0);
-        }
-    }
+        size_t N_Xorder = Xorder_std[0].size();
+        size_t next_obs, y_i;
+        double f_j, sum_fits;
 
-    void ini_lambda_separate(std::vector<std::vector<std::vector<double>>>  &lambdas, size_t num_trees, size_t dim_residual)
-    {
-        // each tree have (num classes) of lambda vectors
-        lambdas.resize(num_trees);
-        for (size_t i = 0; i < num_trees; i++){
-            lambdas[i].resize(dim_residual);
-            for (size_t j = 0; j < dim_residual; j++)
+        for (size_t i = 0; i < N_Xorder; i++)
+        {
+            sum_fits = 0;
+            next_obs = Xorder_std[0][i];
+            y_i = (size_t) (*y_std)[next_obs];
+            for (size_t j = 0; j < dim_residual; ++j)
             {
-                lambdas[i][j].resize(1);
-                lambdas[i][j][0] = 1.0;
+                sum_fits += exp(residual_std[j][next_obs]) * theta_vector[j]; // f_j(x_i) = \prod lambdas
             }
+
+            f_j = exp(residual_std[y_i][next_obs]) * theta_vector[y_i];
+            entropy[next_obs] = f_j / sum_fits * log(f_j / sum_fits); // entropy = p_j * log(p_j) 
         }
     }
+
 
     void update_sigma(double sigma)
     {
@@ -138,9 +139,6 @@ public:
         this->burnin = burnin;
         this->ini_var_yhat = ini_var_yhat;
         this->nthread = nthread;
-        ini_lambda(this->lambdas, num_trees, dim_residual);
-        ini_lambda_separate(this->lambdas_separate, num_trees, dim_residual);
-
         return;
     }
 
@@ -161,6 +159,43 @@ public:
     {
         this->sigma = sigma;
         this->sigma2 = pow(sigma, 2);
+    }
+};
+
+class LogitState : public State
+{
+    
+    void ini_lambda(std::vector<std::vector<std::vector<double>>>  &lambdas, size_t num_trees, size_t dim_residual)
+    {
+        // each tree has different number of theta vectors, each is of the size dim_residual (num classes)
+        lambdas.resize(num_trees);
+        for (size_t i = 0; i < num_trees; i++){
+            lambdas[i].resize(1);
+            lambdas[i][0].resize(dim_residual);
+            std::fill(lambdas[i][0].begin(), lambdas[i][0].end(), 1.0);
+        }
+    }
+
+    void ini_lambda_separate(std::vector<std::vector<std::vector<double>>>  &lambdas, size_t num_trees, size_t dim_residual)
+    {
+        // each tree have (num classes) of lambda vectors
+        lambdas.resize(num_trees);
+        for (size_t i = 0; i < num_trees; i++){
+            lambdas[i].resize(dim_residual);
+            for (size_t j = 0; j < dim_residual; j++)
+            {
+                lambdas[i][j].resize(1);
+                lambdas[i][j][0] = 1.0;
+            }
+        }
+    }
+public:
+ 
+
+    LogitState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, mtry, X_std, num_sweeps, sample_weights_flag, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
+    {
+        ini_lambda(this->lambdas, num_trees, dim_residual);
+        ini_lambda_separate(this->lambdas_separate, num_trees, dim_residual);
     }
 };
 

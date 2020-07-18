@@ -232,9 +232,7 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
 
     for (size_t j = 0; j < dim_theta; ++j)
     {
-        // suffstats[j] += gamma[index_next_obs][j];
         suffstats[dim_residual + j] += weight * exp(residual_std[j][index_next_obs]);
-        // suffstats[dim_residual * 2 + j] += lgamma( gamma[index_next_obs][j] + 1 ); // multinomial normalization term
     }
 
     return;
@@ -253,138 +251,50 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 
 void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
-    
-   // Estimate error matrix P
 
-   // create a matrix to count each predicted category
-   matrix<double> predict;
-   ini_matrix(predict, dim_residual, dim_residual);
-   for (size_t i = 0; i < dim_residual; i++)
-   {
-       std::fill(predict[i].begin(), predict[i].end(), 1); // start with 1: prevent dirichlet sampling from broken.
-   }
-
-   // get prediction for all observations
-   size_t predict_class;
-   double f_max;
-   for (size_t i = 0; i < state->n_y; i++)
-   {
-       f_max = -INFINITY;
-       // get prediction
-       for (size_t j = 0; j < dim_residual; j++)
-       {
-           if (f_max < state->residual_std[j][i] + log(( *(x_struct->data_pointers[tree_ind][i]))[j] ) )
-           {
-               f_max = state->residual_std[j][i] + log(( *(x_struct->data_pointers[tree_ind][i]))[j] ) ;
-               predict_class = j;
-           }
-       }
-        // count true label in predicted class
-       predict[predict_class][(*y_size_t)[i]] += 1;
-   }
-
-    //    // estimate matrix P based on predict counts
-    //    cout << "estaimted error matrix P " << endl;
-    // Sample error rate
-   for (size_t i = 0; i < dim_residual; i++)
-   {
-       dirichlet_distribution(errorP[i], predict[i], state->gen); 
-   }
-
-    // calculate error rate:
-    // double pred_sum;
-    // for (size_t i = 0; i < dim_residual; i++)
-    // {
-    //     pred_sum = accumulate(predict[i].begin(), predict[i].end(), 0.0);
-    //     for (size_t j = 0; j < dim_residual; j++)
-    //     {
-    //         errorP[i][j] = predict[i][j] / pred_sum;
-    //     }
-    //     // cout << errorP[i] << endl;
-    // }
-
-   // sample weight based on P
-    double entropy = 0;
-    for (size_t i = 0; i < dim_residual; i++)
-    {
-        entropy += -errorP[i][i] * log(errorP[i][i]) * class_ratio[i];
-    }
-    // std::exponential_distribution<> d(2 * entropy + 0.1);
-    // weight = d(state->gen);
+   // sample weight based on entropy
+    double entropy = accumulate(state->entropy.begin(), state->entropy.end(), 0.0);
+    cout << "total_entropy = " << entropy << "; mean weight = " << state->n_y / (state->n_y * (hmult * entropy + heps)) << endl;
     std::gamma_distribution<> d(state->n_y, 1);
     weight = d(state->gen) / (state->n_y * (hmult * entropy + heps));
-    
-    //     // update gamma with weight
-    //    for (size_t i = 0; i < state->n_y; i++)
-    //     {
-    //         std::fill(gamma[i].begin(), gamma[i].end(), 0.0);
-    //         gamma[i][(*y_size_t)[i]] = weight; // 1.0;
-    //     }
 
-    // update gamma  
-    //    std::vector<double> gamma_prob(dim_residual, 0.0);
-    //    std::vector<double> f_j(dim_residual, 0.0);
-    //    double f_sum;
-
-    //     for (size_t i = 0; i < state->n_y; i++)
-    //    {
-    //        std::fill(gamma_prob.begin(), gamma_prob.end(), 0.0);
-    //        // get prediction
-    //        for (size_t j = 0; j < dim_residual; j++)
-    //        {
-    //            f_j[j] = exp(state->residual_std[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j];
-    //        }
-    //        f_sum = accumulate(f_j.begin(), f_j.end(), 0.0);
-    //        for (size_t j = 0; j < dim_residual; j++)
-    //        {
-    //            f_j[j] = f_j[j] / f_sum;
-    //            gamma_prob[j] = errorP[j][(*y_size_t)[i]] * f_j[j];
-    //         //    for (size_t k = 0; k < dim_residual; k++)
-    //         //    {
-    //         //        gamma_prob[k] += f_j[j] * errorP[j][k];
-    //         //    }
-    //        }
-    //         // draw gamma for i_th obs
-    //         multinomial_distribution((size_t) weight, gamma_prob, gamma[i], state->gen);
-    //         // cout << "label = " << (*y_size_t)[i] << "; gamma_prob =  = " << gamma_prob << endl;
-    //    }
 
    // Sample tau_a
    if (update_tau)
    {
-    size_t count_lambda = 0;
-    double mean_lambda = 0;
-    double var_lambda = 0;
-    for(size_t i = 0; i < state->num_trees; i++)
-    {
-        for(size_t j = 0; j < state->lambdas[i].size(); j++)
+        size_t count_lambda = 0;
+        double mean_lambda = 0;
+        double var_lambda = 0;
+        for(size_t i = 0; i < state->num_trees; i++)
         {
-            mean_lambda += std::accumulate(state->lambdas[i][j].begin(), state->lambdas[i][j].end(), 0.0);
-            count_lambda += dim_residual;
-        }
-    }
-    mean_lambda = mean_lambda / count_lambda;
-
-    for(size_t i = 0; i < state->num_trees; i++)
-    {
-        for(size_t j = 0; j < state->lambdas[i].size(); j++)
-        {
-            for(size_t k = 0; k < dim_residual; k++)
+            for(size_t j = 0; j < state->lambdas[i].size(); j++)
             {
-            var_lambda += pow(state->lambdas[i][j][k] - mean_lambda, 2);
+                mean_lambda += std::accumulate(state->lambdas[i][j].begin(), state->lambdas[i][j].end(), 0.0);
+                count_lambda += dim_residual;
             }
         }
-    }    
-    var_lambda = var_lambda / count_lambda;
-    // cout << "mean = " << mean_lambda << "; var = " << var_lambda << endl;
+        mean_lambda = mean_lambda / count_lambda;
 
-    std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda / count_lambda));
-    tau_a = 0;
-    while (tau_a <= 0)
-    {
-        tau_a = norm(state->gen) * tau_b;
+        for(size_t i = 0; i < state->num_trees; i++)
+        {
+            for(size_t j = 0; j < state->lambdas[i].size(); j++)
+            {
+                for(size_t k = 0; k < dim_residual; k++)
+                {
+                var_lambda += pow(state->lambdas[i][j][k] - mean_lambda, 2);
+                }
+            }
+        }    
+        var_lambda = var_lambda / count_lambda;
+        // cout << "mean = " << mean_lambda << "; var = " << var_lambda << endl;
+
+        std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda / count_lambda));
+        tau_a = 0;
+        while (tau_a <= 0)
+        {
+            tau_a = norm(state->gen) * tau_b;
+        }
     }
-   }
 
     return;
 }
@@ -531,7 +441,8 @@ void LogitModel::ini_residual_std(std::unique_ptr<State> &state)
         // save fits in log scale -> 0.0
         for (size_t j = 0; j < dim_theta; ++j)
         {
-            state->residual_std[j][i] =  0.0; //  1.0; // (*state->y_std)[i] - value;
+            state->residual_std[j][i] =  0.0; // save resdiual_std as log(lamdas), start at 0.0.
+            // originally residual_std initialized at 1.0; // (*state->y_std)[i] - value;
         }
     }
     return;
@@ -715,10 +626,10 @@ void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_tes
 //incSuffStat should take a state as its first argument
 void LogitModelSeparateTrees::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
 {
-    suffstats[(*y_size_t)[index_next_obs]] += wrap(weight);
+    suffstats[(*y_size_t)[index_next_obs]] += weight;
 
     size_t j = class_operating;
-    suffstats[dim_theta + j] += (*phi)[index_next_obs] * exp (residual_std[j][index_next_obs]);
+    suffstats[dim_theta + j] += weight * exp (residual_std[j][index_next_obs]);
 
     return;
 }
@@ -753,13 +664,6 @@ void LogitModelSeparateTrees::update_state(std::unique_ptr<State> &state, size_t
         sum_fits[i] = std::accumulate(f.begin(), f.end(), 0.0);
     }
 
-    // Draw phi
-    std::gamma_distribution<double> gammadist(wrap(weight), 1.0);
-
-    // for (size_t i = 0; i < state->residual_std[0].size(); i++)
-    // {
-    //     (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits[i]); 
-    // }
 
     // Sample tau_a
 

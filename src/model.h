@@ -449,64 +449,26 @@ private:
         {
             ret += -(tau_a + suffstats[j] ) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]);// - lgamma(suffstats[j] +1);
         }
-        // multinomial normalization 
-        // ret += lgamma(weight + 1) * std::accumulate(suffstats.begin(), suffstats.begin() + c, 0.0) / weight; // lgamma(w+1) * (n * w) / w;
-        ret += - std::accumulate(suffstats.begin() + 2 * c, suffstats.end(), 0.0); // sum of lgamma(y_ij)
         return ret;
     }
 
-    void ini_class_count(std::vector<double> & class_ratio, double &pseudo_norm, const double num_classes)
-    {
-        class_ratio.resize(num_classes);
-        std::fill(class_ratio.begin(), class_ratio.end(), 0.0);
-        for(size_t i = 0; i < (*y_size_t).size(); i++)
-        {
-            class_ratio[(*y_size_t)[i]] += 1.0;
-        }
-        for (size_t i = 0; i < num_classes; i++)
-        {
-            class_ratio[i] = class_ratio[i] / (*y_size_t).size();
-        }
-        // pseudo_norm = 0.0;
-        // for (size_t k = 0; k < class_count.size(); k++)
-        // {
-        //     // pseudo_norm += lgamma(class_count[k] + 1);
-        //     pseudo_norm = class_count[k] * (*y_size_t).size() * log(class_count[k]);
-        // }
-        // cout << "class_count = " << class_count << endl;
-
-    }
-
-    void ini_gamma(matrix<double> &gamma, const double num_classes)
-    {
-        size_t N = (*y_size_t).size();
-        ini_matrix(gamma, num_classes, N);
-        for (size_t i = 0; i < N; i++)
-        {
-            std::fill(gamma[i].begin(), gamma[i].end(), 0.0);
-            gamma[i][(*y_size_t)[i]] = weight; // 1.0;
-        }
-    }
 
 public:
 
     // prior on leaf parameter
-    double tau_a, tau_b, weight, pseudo_norm; //leaf parameter is ~ G(tau_a, tau_b). tau_a = 1/tau + 1/2, tau_b = 1/tau -> f(x)\sim N(0,tau) approx
+    double tau_a, tau_b; //leaf parameter is ~ G(tau_a, tau_b). tau_a = 1/tau + 1/2, tau_b = 1/tau -> f(x)\sim N(0,tau) approx
 
     // Should these pointers live in model subclass or state subclass?
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
-    std::vector<double> *phi; // latent variables for mnl
-    // matrix<double> gamma;
-    matrix<double> errorP;
+    std::vector<double> entropy; // a vector recording entropy of each observation.
 
-    std::vector<double> class_ratio;
-    bool update_tau;
-    double hmult, heps;
+    bool update_tau; // option to update tau_a
+    double weight; // pseudo replicates of observations
+    double hmult, heps; // weight ~ Gamma(n, hmult * entropy + heps);
 
-    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_tau, double hmult, double heps) : Model(num_classes, 2*num_classes)
+    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, double weight, bool update_tau, double hmult, double heps) : Model(num_classes, 2*num_classes)
     {
         this->y_size_t = y_size_t;
-        this->phi = phi;
         this->tau_a = tau_a;
         this->tau_b = tau_b;
         this->alpha = alpha;
@@ -514,15 +476,13 @@ public:
         //what should this be?
         this->dim_residual = num_classes;
 
-        this->weight = weight;
-        ini_class_count(this->class_ratio, pseudo_norm, num_classes);
-
-        // ini_gamma(this->gamma, num_classes);
-        ini_matrix(this->errorP, num_classes, num_classes);
-
         this->update_tau = update_tau;
+        this->weight = weight;
         this->hmult = hmult;
         this->heps = heps;
+
+        // initialize entropy vector
+        this->entropy.resize((*y_size_t).size());
     }
 
     LogitModel() : Model(2, 4) {}
@@ -590,7 +550,7 @@ private:
 public:
 
 
-    LogitModelSeparateTrees(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_tau, double hmult, double heps) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, update_tau, hmult, heps) {}
+    LogitModelSeparateTrees(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, double weight, bool update_tau, double hmult, double heps) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, weight, update_tau, hmult, heps) {}
 
     // LogitModelSeparateTrees() : LogitModel() {}
 
