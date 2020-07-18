@@ -530,6 +530,9 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     std::vector<std::vector<double>> weight_sample;
     ini_matrix(weight_sample, num_trees, num_sweeps);
 
+    std::vector<std::vector<double>> entropy;
+    ini_matrix(entropy, num_trees, num_sweeps);
+
     ////////////////////////////////////////////////////////////////
     size_t num_stops = 0; 
 
@@ -565,7 +568,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, weight, update_tau, hmult, heps);
         model->setNoSplitPenality(no_split_penality);
 
-        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, tau_sample, weight_sample, stop_threshold, num_stops);
+        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, tau_sample, weight_sample, entropy, stop_threshold, num_stops);
 
         model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
 
@@ -605,6 +608,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     // Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
     Rcpp::NumericMatrix tau_sample_rcpp(num_trees, num_sweeps);
     Rcpp::NumericMatrix weight_sample_rcpp(num_trees, num_sweeps);
+    Rcpp::NumericMatrix entropy_rcpp(num_trees, num_sweeps);
     
 
     // TODO: Make these functions
@@ -628,6 +632,13 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         for (size_t j = 0; j < num_sweeps; j++)
         {
             weight_sample_rcpp(i, j) = weight_sample[j][i];
+        }
+    }
+    for (size_t i = 0; i < num_trees; i++)
+    {
+        for (size_t j = 0; j < num_sweeps; j++)
+        {
+            entropy_rcpp(i, j) = entropy[j][i];
         }
     }
     for (size_t i = 0; i < N_test; i++)
@@ -664,6 +675,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         Rcpp::Named("yhats_test") = output,
         Rcpp::Named("tau_a") = tau_sample_rcpp,
         Rcpp::Named("weight") = weight_sample_rcpp,
+        Rcpp::Named("entropy") = entropy,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("num_stops") = num_stops,
         // Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));

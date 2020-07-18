@@ -65,6 +65,7 @@ public:
     void update_entropy(matrix<size_t> &Xorder_std, std::vector<double> theta_vector)
     {
         size_t N_Xorder = Xorder_std[0].size();
+        size_t dim_residual = residual_std.size();
         size_t next_obs, y_i;
         double f_j, sum_fits;
 
@@ -79,7 +80,7 @@ public:
             }
 
             f_j = exp(residual_std[y_i][next_obs]) * theta_vector[y_i];
-            entropy[next_obs] = f_j / sum_fits * log(f_j / sum_fits); // entropy = p_j * log(p_j) 
+            entropy[next_obs] = - f_j / sum_fits * log(f_j / sum_fits); // entropy = p_j * log(p_j) 
         }
     }
 
@@ -196,6 +197,8 @@ public:
     {
         ini_lambda(this->lambdas, num_trees, dim_residual);
         ini_lambda_separate(this->lambdas_separate, num_trees, dim_residual);
+        this->entropy.resize(N);
+        std::fill(this->entropy.begin(), this->entropy.end(), -log(1 / dim_residual) / dim_residual); // initialize with p = 1/C
     }
 };
 

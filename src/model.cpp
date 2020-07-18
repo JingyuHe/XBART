@@ -254,9 +254,9 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 
    // sample weight based on entropy
     double entropy = accumulate(state->entropy.begin(), state->entropy.end(), 0.0);
-    cout << "total_entropy = " << entropy << "; mean weight = " << state->n_y / (state->n_y * (hmult * entropy + heps)) << endl;
+    // cout << "total_entropy = " << entropy << "; mean weight = " << state->n_y /  (hmult * entropy + heps) << endl;
     std::gamma_distribution<> d(state->n_y, 1);
-    weight = d(state->gen) / (state->n_y * (hmult * entropy + heps));
+    weight = d(state->gen) / (hmult * entropy + heps);
 
 
    // Sample tau_a

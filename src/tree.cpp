@@ -737,7 +737,6 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
             {
                 entropy += state->entropy[Xorder_std[0][i]];
             }
-            cout << "entropy = " << entropy / N_Xorder << endl;
             if (entropy < entropy_threshold * N_Xorder) 
             {
                 #pragma omp critical 
@@ -758,8 +757,6 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
         no_split = true;
         // return;
     }
-
-    
 
     std::vector<size_t> subset_vars(p);
 
