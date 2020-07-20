@@ -675,7 +675,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         Rcpp::Named("yhats_test") = output,
         Rcpp::Named("tau_a") = tau_sample_rcpp,
         Rcpp::Named("weight") = weight_sample_rcpp,
-        Rcpp::Named("entropy") = entropy,
+        Rcpp::Named("entropy") = entropy_rcpp,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("num_stops") = num_stops,
         // Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
