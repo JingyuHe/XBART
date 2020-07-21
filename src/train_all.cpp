@@ -470,7 +470,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     if (nthread > 4 & X.n_rows * mtry < 1e5)
     {
             COUT << "restrict nthread to 4 for small dataset" << endl;
-            omp_set_num_threads(nthread);
+            omp_set_num_threads(4);
     }
     else
     {
