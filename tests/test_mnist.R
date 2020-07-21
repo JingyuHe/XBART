@@ -45,7 +45,7 @@ p = v
 
 
 
-num_sweeps= 30
+num_sweeps= 20
 num_trees = 20
 burnin = 5 #10
 Nmin = 10
@@ -87,7 +87,7 @@ fit = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test,
                         no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = p, 
                         kap = 1, s = 1, verbose = TRUE, parallel = TRUE, set_random_seed = TRUE, 
                         random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0, nthread = 0, weight = 1,
-                        hmult = 1, heps = 0.05) 
+                        hmult = 1, heps = 0.1) 
 t = proc.time() - t
 
 
@@ -111,4 +111,4 @@ cat(paste("xbart logloss : ",round(logloss,3)),"\n")
 #       " misclassified as ", tail(names(sort(table(yhat[ytest==i]))), 2)[1], "\n " )
 # }
 # 
-saveRDS(fit, paste(path, 'mnist_result/logloss_072002.rds', sep = ''))
+saveRDS(fit, paste(path, 'mnist_result/logloss_072101.rds', sep = ''))

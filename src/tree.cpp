@@ -730,7 +730,6 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
     if (update_theta)
     {
         model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
-        state->update_logloss(Xorder_std, this->theta_vector);
         if (entropy_threshold > 0){
             state->update_entropy(Xorder_std, this->theta_vector);
             double entropy = 0.0;
@@ -798,6 +797,7 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
             {
                 x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
             }
+            state->update_logloss(Xorder_std, this->theta_vector);
             // update lambdas in state
             #pragma omp critical
             state->lambdas[tree_ind].push_back(this->theta_vector);
