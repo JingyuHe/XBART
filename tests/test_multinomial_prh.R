@@ -87,7 +87,7 @@ lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
 
 
 # vary s to make the problem harder s < 1 or easier s > 2
-s = 1
+s = 15
 pr = exp(s*lam)
 pr = t(scale(t(pr),center=FALSE, scale = rowSums(pr)))
 y_train = sapply(1:n,function(j) sample(0:(k-1),1,prob=pr[j,]))
@@ -113,7 +113,7 @@ fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test,
                         no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = p_cat, 
                         kap = 1, s = 1, verbose = FALSE, set_random_seed = TRUE, 
                         random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, stop_threshold = 0.005, nthread = 0, 
-                        weight = 1, hmult = 15, heps = 0) 
+                        weight = 1, hmult = 1, heps = 0.05) 
 
 
 tm = proc.time()-tm

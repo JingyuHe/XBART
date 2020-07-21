@@ -86,7 +86,8 @@ fit = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test,
                         Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1, 
                         no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = p, 
                         kap = 1, s = 1, verbose = TRUE, parallel = TRUE, set_random_seed = TRUE, 
-                        random_seed = NULL, sample_weights_flag = TRUE, sample_per_tree = TRUE, stop_threshold = 0, nthread = 0, weight = 1) 
+                        random_seed = NULL, sample_weights_flag = TRUE, sample_per_tree = TRUE, stop_threshold = 0, nthread = 0, weight = 1,
+                        hmult = 1, heps = 0) 
 t = proc.time() - t
 
 
@@ -110,4 +111,4 @@ cat(paste("xbart logloss : ",round(logloss,3)),"\n")
 #       " misclassified as ", tail(names(sort(table(yhat[ytest==i]))), 2)[1], "\n " )
 # }
 # 
-saveRDS(fit, paste(path, 'mnist_result/label_error_071501.rds', sep = ''))
+saveRDS(fit, paste(path, 'mnist_result/logloss_072002.rds', sep = ''))

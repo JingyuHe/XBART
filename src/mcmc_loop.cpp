@@ -253,7 +253,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             
             tau_samples[sweeps][tree_ind] = model->tau_a;
             weight_samples[sweeps][tree_ind] = model->weight;
-            entropy[sweeps][tree_ind] = accumulate(state->entropy.begin(), state->entropy.end(), 0.0);
+            entropy[sweeps][tree_ind] = accumulate(state->logloss.begin(), state->logloss.end(), 0.0);
         }
 
         // if (sweeps <= state->burnin){

@@ -60,6 +60,7 @@ public:
     std::vector<std::vector<std::vector<double>>> lambdas_separate;
     //entropy
     std::vector<double> entropy;
+    std::vector<double> logloss;
 
     // void update_entropy(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<double> theta_vector)
     void update_entropy(matrix<size_t> &Xorder_std, std::vector<double> theta_vector)
@@ -80,10 +81,30 @@ public:
             }
 
             f_j = exp(residual_std[y_i][next_obs]) * theta_vector[y_i];
-            entropy[next_obs] = - f_j / sum_fits * log(f_j / sum_fits); // entropy = p_j * log(p_j) 
+            entropy[next_obs] = - f_j / sum_fits * log(f_j / sum_fits); // entropy = - p_j * log(p_j) 
         }
     }
 
+    void update_logloss(matrix<size_t> &Xorder_std, std::vector<double> theta_vector)
+    {
+        size_t N_Xorder = Xorder_std[0].size();
+        size_t dim_residual = residual_std.size();
+        size_t next_obs, y_i;
+        double sum_fits;
+
+        for (size_t i = 0; i < N_Xorder; i++)
+        {
+            sum_fits = 0;
+            next_obs = Xorder_std[0][i];
+            y_i = (size_t) (*y_std)[next_obs];
+            for (size_t j = 0; j < dim_residual; ++j)
+            {
+                sum_fits += exp(residual_std[j][next_obs]) * theta_vector[j]; // f_j(x_i) = \prod lambdas
+            }
+
+            logloss[next_obs] = - log( exp(residual_std[y_i][next_obs]) * theta_vector[y_i] / sum_fits); // logloss =  - log(p_j) 
+        }
+    }
 
     void update_sigma(double sigma)
     {
@@ -199,6 +220,8 @@ public:
         ini_lambda_separate(this->lambdas_separate, num_trees, dim_residual);
         this->entropy.resize(N);
         std::fill(this->entropy.begin(), this->entropy.end(), -log(1 / dim_residual) / dim_residual); // initialize with p = 1/C
+        this->logloss.resize(N);
+        std::fill(this->logloss.begin(), this->logloss.end(), -log(1 / dim_residual)); // initialize with p = 1/C
     }
 };
 

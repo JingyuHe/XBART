@@ -252,12 +252,16 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
 
-   // sample weight based on entropy
-    double entropy = accumulate(state->entropy.begin(), state->entropy.end(), 0.0);
-    // cout << "total_entropy = " << entropy << "; mean weight = " << state->n_y /  (hmult * entropy + heps) << endl;
-    std::gamma_distribution<> d(state->n_y, 1);
-    weight = d(state->gen) / (hmult * entropy + heps);
+//    // sample weight based on entropy
+//     double entropy = accumulate(state->entropy.begin(), state->entropy.end(), 0.0);
+//     // cout << "total_entropy = " << entropy << "; mean weight = " << state->n_y /  (hmult * entropy + heps) << endl;
+//     std::gamma_distribution<> d(state->n_y, 1);
+//     weight = d(state->gen) / (hmult * entropy + heps);
 
+    // sample weight based on logloss
+    double logloss = accumulate(state->logloss.begin(), state->logloss.end(), 0.0);
+    std::gamma_distribution<> d(state->n_y, 1);
+    weight = d(state->gen) / (hmult * logloss + heps * (double) state->n_y); // it's like shift p down by
 
    // Sample tau_a
    if (update_tau)
