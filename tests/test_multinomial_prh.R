@@ -112,8 +112,8 @@ fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test,
                         Nmin=Nmin, num_cutpoints=round(n/20), alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1, 
                         no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = p_cat, 
                         kap = 1, s = 1, verbose = FALSE, set_random_seed = TRUE, 
-                        random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, stop_threshold = 0.005, nthread = 0, 
-                        weight = 1, hmult = 1, heps = 0.05) 
+                        random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, stop_threshold = 0, nthread = 0, 
+                        weight = 1, hmult = 1, heps = 0.1) 
 
 
 tm = proc.time()-tm
