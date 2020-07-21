@@ -252,14 +252,24 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
 
-//    // sample weight based on entropy
-//     double entropy = accumulate(state->entropy.begin(), state->entropy.end(), 0.0);
-//     // cout << "total_entropy = " << entropy << "; mean weight = " << state->n_y /  (hmult * entropy + heps) << endl;
-//     std::gamma_distribution<> d(state->n_y, 1);
-//     weight = d(state->gen) / (hmult * entropy + heps);
+    // Calculate logloss
+    size_t y_i;
+    double sum_fits;
+    logloss = 0; // reset logloss
 
+    for (size_t i = 0; i < state->n_y; i++)
+    {
+        sum_fits = 0;
+        y_i = (size_t) (*y_size_t)[i];
+        for (size_t j = 0; j < dim_residual; ++j)
+        {
+            sum_fits += exp(state->residual_std[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
+        }
+
+        logloss += - log( exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j) 
+    }
+        
     // sample weight based on logloss
-    double logloss = accumulate(state->logloss.begin(), state->logloss.end(), 0.0);
     std::gamma_distribution<> d(state->n_y, 1);
     weight = d(state->gen) / (hmult * logloss + heps * (double) state->n_y); // it's like shift p down by
 

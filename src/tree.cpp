@@ -709,6 +709,35 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 }
 
 
+
+void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state, std::vector<double> &theta_vector, double &entropy)
+{
+    size_t N_Xorder = Xorder_std[0].size();
+    size_t dim_residual = state->residual_std.size();
+    size_t next_obs;
+    double sum_fits;
+    entropy = 0.0;
+    std::vector<double> fits(dim_residual, 0.0);
+
+    for (size_t i = 0; i < N_Xorder; i++)
+    {
+        sum_fits = 0;
+        next_obs = Xorder_std[0][i];
+        for (size_t j = 0; j < dim_residual; ++j)
+        {
+            fits[j] = exp(state->residual_std[j][next_obs]) * theta_vector[j]; // f_j(x_i) = \prod lambdas
+        }
+        sum_fits = accumulate(fits.begin(), fits.end(), 0.0);
+        for (size_t j = 0; j < dim_residual; ++j)
+        {
+            entropy += - fits[j] / sum_fits * log(fits[j] / sum_fits);  // entropy = sum(- p_j * log(p_j)) 
+        }
+    }
+
+    return;
+}
+
+
 void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree, double entropy_threshold, size_t &num_stops)
 {
 
@@ -731,12 +760,8 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
     {
         model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
         if (entropy_threshold > 0){
-            state->update_entropy(Xorder_std, this->theta_vector);
-            double entropy = 0.0;
-            for (size_t i = 0; i < N_Xorder; i++)
-            {
-                entropy += state->entropy[Xorder_std[0][i]];
-            }
+            double entropy;
+            calculate_entropy(Xorder_std, state, this->theta_vector, entropy);
             if (entropy < entropy_threshold * N_Xorder) 
             {
                 #pragma omp critical 
@@ -760,7 +785,7 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
 
     std::vector<size_t> subset_vars(p);
 
-    if (state->use_all | state->mtry == state->p)
+    if (state->use_all | (state->mtry == state->p))
     {
         std::iota(subset_vars.begin(), subset_vars.end(), 0);
     }
@@ -797,7 +822,6 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
             {
                 x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
             }
-            state->update_logloss(Xorder_std, this->theta_vector);
             // update lambdas in state
             #pragma omp critical
             state->lambdas[tree_ind].push_back(this->theta_vector);
@@ -939,14 +963,9 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
     if (update_theta)
     {
         model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
-        state->update_entropy(Xorder_std, this->theta_vector);
         if (entropy_threshold > 0){
-            double entropy = 0.0;
-            for (size_t i = 0; i < N_Xorder; i++)
-            {
-                entropy += state->entropy[Xorder_std[0][i]];
-            }
-            cout << "entropy = " << entropy / N_Xorder << endl;
+            double entropy;
+            calculate_entropy(Xorder_std, state, this->theta_vector, entropy);
             if (entropy < entropy_threshold * N_Xorder) 
             {
                 #pragma omp critical 

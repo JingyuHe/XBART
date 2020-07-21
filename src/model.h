@@ -460,10 +460,9 @@ public:
 
     // Should these pointers live in model subclass or state subclass?
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
-    std::vector<double> entropy; // a vector recording entropy of each observation.
-
+    
     bool update_tau; // option to update tau_a
-    double weight; // pseudo replicates of observations
+    double weight, logloss; // pseudo replicates of observations
     double hmult, heps; // weight ~ Gamma(n, hmult * entropy + heps);
 
     LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, double weight, bool update_tau, double hmult, double heps) : Model(num_classes, 2*num_classes)
@@ -480,9 +479,7 @@ public:
         this->weight = weight;
         this->hmult = hmult;
         this->heps = heps;
-
-        // initialize entropy vector
-        this->entropy.resize((*y_size_t).size());
+        this->logloss = 0;
     }
 
     LogitModel() : Model(2, 4) {}
