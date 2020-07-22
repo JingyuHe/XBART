@@ -1771,8 +1771,13 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
     for (size_t i = 0; i < loglike.size(); i++){
         if (loglike[i] > -INFINITY){ loglike_size += 1; }
     }
-    loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike_size) + log(model->getNoSplitPenality()); 
+    if (loglike_size > 0){
+        loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike_size) + log(model->getNoSplitPenality()); 
     // !!Note loglike_size shouldn't get minus 1 when it count non zero of loglike.
+    }
+    else{
+        loglike[loglike.size() - 1] = 1; 
+    }
   
     // loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + log(model->getNoSplitPenality());
   
