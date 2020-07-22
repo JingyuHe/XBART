@@ -83,4 +83,4 @@ cat(paste("xbart logloss : ",round(logloss,3)),"\n")
 #       " misclassified as ", tail(names(sort(table(yhat[ytest==i]))), 2)[1], "\n " )
 # }
 # 
-saveRDS(fit, paste(path, 'mnist_result/logloss_072101.rds', sep = ''))
+saveRDS(fit, paste(path, 'mnist_result/logloss_072202.rds', sep = ''))
