@@ -1,4 +1,4 @@
-XBART.multinomial <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth = 250, Nmin = 1, num_cutpoints = 100, alpha = 0.95, beta = 1.25, tau_a = NULL, tau_b = NULL, no_split_penality = NULL, burnin = 1L, mtry = NULL, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, stop_threshold = 0.0, nthread = 0, weight = 1, hmult = 1, heps = 0.1, update_tau = FALSE, ...) {
+XBART.multinomial <- function(y, num_class, X, Xtest, num_trees = 20, num_sweeps = 20, max_depth = 250, Nmin = NULL, num_cutpoints = NULL, alpha = 0.95, beta = 1.25, tau_a = 1, tau_b = 1, no_split_penality = NULL, burnin = 3, mtry = NULL, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, stop_threshold = 0.1, nthread = 0, weight = 1, hmult = 1, heps = 0.1, update_tau = TRUE, ...) {
 
     if (class(X) != "matrix") {
         cat("Input X is not a matrix, try to convert type.\n")
@@ -13,6 +13,16 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max
     if (class(y) != "matrix") {
         cat("Input y is not a matrix, try to convert type.\n")
         y = as.matrix(y)
+    }
+
+    if (is.null(Nmin)) {
+        cat("Nmin = ", 2 * num_class, " by default, \n")
+        Nmin = 3 * num_class
+    }
+
+    if (is.null(num_cutpoints)){
+        cat("num_cutpoints = ", round(dim(X)[1] / 20), " by default. \n")
+        num_cutpoints = round(dim(X)[1] / 20)
     }
 
     #TODO: Transform y back to original label after training?
@@ -58,8 +68,11 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max
     # }
 
     if (is.null(mtry)) {
-        mtry = dim(X)[2]
-        cat("mtry = p, use all variables. \n")
+        p = dim(X)[2]
+        if (p <= 20){mtry = p}
+        else {mtry = floor(p/3)}
+        # mtry = p for p < 20, mtry = p/3 for p > 20
+        cat("mtry = ", mtry, " by default. \n")
     }
 
     if (mtry > dim(X)[2]) {

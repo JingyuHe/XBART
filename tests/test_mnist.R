@@ -47,47 +47,19 @@ p = v
 
 num_sweeps= 20
 num_trees = 20
-burnin = 3 #10
-Nmin = 10
+burnin = 3 
 max_depth = 20
-mtry = round(p/3)
-num_cutpoints=20
-
-drop_threshold = 1
-
-# ws = seq(1, 15, 0.5)
-
-
-##################### test run to drop variables #################
-# t = proc.time()
-# fit_test = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test, 
-#                         num_trees=num_trees, num_sweeps=3, max_depth=max_depth, 
-#                         Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau_a = 2, tau_b = 2,
-#                         no_split_penality = 1, weight = c(1), #seq(1, 10, 0.5), 
-#                         burnin = 1, mtry = mtry, p_categorical = p, 
-#                         kap = 1, s = 1, verbose = TRUE, parallel = TRUE, set_random_seed = TRUE, 
-#                         random_seed = NULL, sample_weights_flag = TRUE, sample_per_tree = TRUE, stop_threshold = 0.1) 
-# t = proc.time() - t
-# cat("test fit running time ", t[3], " seconds \n")
-
-# fit_test$importance
-
-# X_train = X_train[, -which(fit_test$importance < drop_threshold)]
-# X_test = X_test[, -which(fit_test$importance < drop_threshold)]
-# p = ncol(X_train)
-# cat('dropped variables ', which(fit_test$importance < drop_threshold) )
-# #################################################################
+mtry = floor(p/3)
 
 
 ###################### parallel #################
 t = proc.time()
 fit = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth, 
-                        Nmin=Nmin, num_cutpoints=num_cutpoints, alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1, 
-                        no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = p, 
+                        alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1, 
+                        no_split_penality = 1,  burnin = burnin, mtry = mtry , p_categorical = p, 
                         kap = 1, s = 1, verbose = TRUE, parallel = TRUE, set_random_seed = TRUE, 
-                        random_seed = NULL, sample_weights_flag = TRUE, stop_threshold = 0.005, nthread = 0, weight = 1,
-                        hmult = 1, heps = 0.1) 
+                        random_seed = NULL, sample_weights_flag = TRUE) 
 t = proc.time() - t
 
 

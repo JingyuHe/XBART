@@ -212,7 +212,7 @@ void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, //s
         total_points++;
     }
 
-    std::cout << "total_points " << total_points << std::endl;
+    // std::cout << "total_points " << total_points << std::endl;
 
     return;
 }

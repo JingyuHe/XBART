@@ -2,7 +2,7 @@ predict.XBARTmultinomial <- function(model, X, iteration = NULL) {
 
     if (is.null(iteration)) {
         cat("Predict with all iterations.", "\n")
-        iteration = 1:model$model_list$num_sweeps
+        iteration = 0:(model$model_list$num_sweeps - 1)
     } else {
         ## C++ counts from 0, subtract 1 to match the index
         ## 1L means integer 1, rather than a float 1
