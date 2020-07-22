@@ -272,7 +272,6 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     // sample weight based on logloss
     std::gamma_distribution<> d(state->n_y, 1);
     weight = d(state->gen) / (hmult * logloss + heps * (double) state->n_y); // it's like shift p down by
-    weight = weight >= 1 ? weight : 1;
 
    // Sample tau_a
    if (update_tau)
