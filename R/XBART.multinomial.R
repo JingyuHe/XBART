@@ -16,13 +16,13 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees = 20, num_sweeps
     }
 
     if (is.null(Nmin)) {
-        cat("Nmin = ", 2 * num_class, " by default, \n")
+        # cat("Nmin = ", 3 * num_class, " by default, \n")
         Nmin = 3 * num_class
     }
 
     if (is.null(num_cutpoints)){
-        cat("num_cutpoints = ", round(dim(X)[1] / 20), " by default. \n")
-        num_cutpoints = round(dim(X)[1] / 20)
+        # cat("num_cutpoints = ", 20, " by default. \n")
+        num_cutpoints = 20
     }
 
     #TODO: Transform y back to original label after training?
