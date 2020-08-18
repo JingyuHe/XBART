@@ -226,6 +226,13 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
             state->lambdas[tree_ind].clear();
 
+
+            // set nthread based on number of observations * mtry
+            double fake_p = (state->use_all) ? state->p : state->mtry;
+            if (state->n_y * fake_p < 1e5) { omp_set_num_threads( std::min(4, int(state->nthread)) ); }
+            else if (state->n_y * fake_p < 5e5 ) { omp_set_num_threads( std::min(6, int(state->nthread) ) ); }
+            else {omp_set_num_threads(state->nthread); }
+
             omp_set_nested(1);
             #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind, entropy_threshold, num_stops)
             {       
