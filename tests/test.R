@@ -35,14 +35,14 @@ verbose = FALSE # print the progress on screen
 
 
 if (small_case) {
-  n = 10000 # size of training set
+  n = 20000 # size of training set
   nt = 5000 # size of testing set
   d = 20 # number of TOTAL variables
   dcat = 10 # number of categorical variables
   # must be d >= dcat
   # (X_continuous, X_categorical), 10 and 10 for each case, 20 in total
 } else {
-  n = 1000000
+  n = 100000
   nt = 10000
   d = 50
   dcat = 0
@@ -124,7 +124,7 @@ fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat,
 # 1. set xtest as input to main fitting function
 fhat.1 = apply(fit$yhats_test[, params$burnin:params$num_sweeps], 1, mean)
 time = proc.time() - time
-print(time[3])
+print(time)
 
 # 2. a separate predict function
 pred = predict(fit, xtest)

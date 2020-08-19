@@ -23,6 +23,8 @@ public:
 
     size_t dim_residual;
 
+    size_t class_operating;
+
     /////////////////////////////////////
     //
     //  suff_stat_model and suff_stat_total
@@ -93,6 +95,14 @@ public:
         ;
     };
     void setNoSplitPenality(double pen) { this->no_split_penality = pen; };
+
+    virtual size_t get_class_operating() { return class_operating; };
+
+    virtual void set_class_operating(size_t i)
+    {
+        class_operating = i;
+        return;
+    };
 };
 
 class NormalModel : public Model
@@ -115,6 +125,7 @@ public:
         this->alpha = alpha;
         this->beta = beta;
         this->dim_residual = 1;
+        this->class_operating = 0;
     }
 
     NormalModel() : Model(1, 3) {}
@@ -423,76 +434,52 @@ public:
 class LogitModel : public Model
 {
 private:
-    //size_t dim_suffstat = 0; // = 2*dim_theta;
-    //std::vector<double> suff_stat_total;
 
     double LogitLIL(const vector<double> &suffstats) const
     {
 
-        size_t c = suffstats.size() / 2;
+        size_t c = dim_residual;
 
         //suffstats[0] .. suffstats[c-1]is count of y's in cat 0,...,c-1, i.e. r in proposal
         //suffstats[c] .. suffstats[2c-1] is sum of phi_i*(partial fit j)'s ie s in proposal
-      //  double nh = 0;
-      //  for (size_t j = 0; j < c; j++)
-      //  {
-      //    nh += suffstats[j];
-      //  }
         
-      double ret = 0;
-        
+        double ret = 0;
         
         for (size_t j = 0; j < c; j++)
         {
-            //!! devide s by min_sum_fits
-            ret += -(tau_a + suffstats[j] ) * log(tau_b + suffstats[c + j] / min_fits) + lgamma(tau_a + suffstats[j]);// - lgamma(suffstats[j] +1);
+            ret += -(tau_a + suffstats[j] ) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]);// - lgamma(suffstats[j] +1);
         }
         return ret;
     }
 
-    // void LogitSamplePars(vector<double> &suffstats, double &tau_a, double &tau_b, std::mt19937 &generator, std::vector<double> &theta_vector)
-    // {
-    //     //redefine these to use prior pars from Model class
-    //     int c = suffstats.size() / 2;
-
-    //     for (int j = 0; j < c; j++)
-    //     {
-    //         double r = suffstats[j];
-    //         double s = suffstats[c + j];
-
-    //         std::gamma_distribution<double> gammadist(tau_a + r, 1);
-
-    //         theta_vector[j] = gammadist(generator) / (tau_b + s);
-    //     }
-    // }
 
 public:
- //   size_t dim_suffstat = 3;
 
     // prior on leaf parameter
-    double tau_a, tau_b, weight; //leaf parameter is ~ G(tau_a, tau_b). tau_a = 1/tau + 1/2, tau_b = 1/tau -> f(x)\sim N(0,tau) approx
+    double tau_a, tau_b; //leaf parameter is ~ G(tau_a, tau_b). tau_a = 1/tau + 1/2, tau_b = 1/tau -> f(x)\sim N(0,tau) approx
 
     // Should these pointers live in model subclass or state subclass?
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
-    std::vector<double> *phi; // latent variables for mnl
+    
+    bool update_tau; // option to update tau_a
+    double weight, logloss; // pseudo replicates of observations
+    double hmult, heps; // weight ~ Gamma(n, hmult * entropy + heps);
 
-    std::vector<double> weight_std;
-
-    double min_fits;
-
-    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, std::vector<double> weight_std) : Model(num_classes, 2*num_classes)
+    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, double weight, bool update_tau, double hmult, double heps) : Model(num_classes, 2*num_classes)
     {
-      this->y_size_t = y_size_t;
-      this->phi = phi;
+        this->y_size_t = y_size_t;
         this->tau_a = tau_a;
         this->tau_b = tau_b;
         this->alpha = alpha;
         this->beta = beta;
         //what should this be?
         this->dim_residual = num_classes;
-        this->weight = weight_std[0];
-        this->weight_std = weight_std;
-        this->min_fits = 1.0;
+
+        this->update_tau = update_tau;
+        this->weight = weight;
+        this->hmult = hmult;
+        this->heps = heps;
+        this->logloss = 0;
     }
 
     LogitModel() : Model(2, 4) {}
@@ -524,6 +511,74 @@ public:
     void predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec, std::vector<size_t>& iteration);
 };
 
+
+
+
+class LogitModelSeparateTrees : public LogitModel
+{
+private: 
+    double LogitLIL(const vector<double> &suffstats) const
+    {   
+        return  -(tau_a + suffstats[class_operating] ) * log(tau_b + suffstats[dim_residual + class_operating]) + lgamma(tau_a + suffstats[class_operating]);
+    }
+
+    void ini_class_count(std::vector<double> & class_count, double &pseudo_norm, const double num_classes)
+    {
+        class_count.resize(num_classes);
+        std::fill(class_count.begin(), class_count.end(), 0.0);
+        for(size_t i = 0; i < (*y_size_t).size(); i++)
+        {
+            class_count[(*y_size_t)[i]] += 1.0;
+        }
+        for (size_t i = 0; i < num_classes; i++)
+        {
+            class_count[i] = class_count[i] / (*y_size_t).size();
+        }
+        pseudo_norm = 0.0;
+        for (size_t k = 0; k < class_count.size(); k++)
+        {
+            // pseudo_norm += lgamma(class_count[k] + 1);
+            pseudo_norm = class_count[k] * (*y_size_t).size() * log(class_count[k]);
+        }
+        // cout << "class_count = " << class_count << endl;
+
+    }
+
+public:
+
+
+    LogitModelSeparateTrees(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, double weight, bool update_tau, double hmult, double heps) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, weight, update_tau, hmult, heps) {}
+
+    // LogitModelSeparateTrees() : LogitModel() {}
+
+    Model *clone() { return new LogitModelSeparateTrees(*this); }
+
+    void incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats);
+
+    void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
+
+    void update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct);
+
+    // void initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat);
+
+    void updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
+
+    // void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side);
+
+    void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const;
+
+    double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const;
+
+    // double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const;
+
+    // void ini_residual_std(std::unique_ptr<State> &state);
+
+    void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<vector<tree>>> &trees, std::vector<double> &output_vec);
+
+    void predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<vector<tree>>> &trees, std::vector<double> &output_vec, std::vector<size_t>& iteration, double weight);
+
+
+};
 
 
 

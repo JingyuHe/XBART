@@ -5,9 +5,12 @@
 #include <chrono>
 #include "mcmc_loop.h"
 #include "X_struct.h"
+#include "omp.h"
 
 using namespace std;
 using namespace chrono;
+
+// [[Rcpp::plugins(openmp)]]
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //
@@ -58,11 +61,13 @@ void rcpp_to_std2(arma::mat y, arma::mat X, arma::mat Xtest, std::vector<double>
     // Create Xorder
     // Order
     arma::umat Xorder(X.n_rows, X.n_cols);
+    #pragma omp parallel for schedule(dynamic, 1) shared(X, Xorder)
     for (size_t i = 0; i < X.n_cols; i++)
     {
         Xorder.col(i) = arma::sort_index(X.col(i));
     }
     // Create
+    #pragma omp parallel for collapse(2)
     for (size_t i = 0; i < N; i++)
     {
         for (size_t j = 0; j < p; j++)
@@ -130,6 +135,17 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
 
     auto start = system_clock::now();
 
+    if (parallel){ // parallelization; 
+        double nthread = omp_get_max_threads();
+        omp_set_num_threads(nthread);
+        cout << "parallel threads " << nthread << endl;
+    }
+    else
+    {
+        omp_set_num_threads(1);
+        cout << "parallel disabled " << endl;
+    }
+
     size_t N = X.n_rows;
 
     // number of total variables
@@ -196,7 +212,7 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
 
     // State settings
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
-    std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual));
+    std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, 0)); //last input is nthread, need update
 
     // state->set_Xcut(Xcutmat);
 
@@ -212,7 +228,7 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     // Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
-    Rcpp::NumericVector split_count_sum(p);                // split counts
+    Rcpp::NumericVector split_count_sum(p, 0);                // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
 
     // TODO: Make these functions
@@ -239,7 +255,7 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     }
     for (size_t i = 0; i < p; i++)
     {
-        split_count_sum(i) = (int)state->mtry_weight_current_tree[i];
+        split_count_sum(i) = (int)state->split_count_all[i];
     }
 
     auto end = system_clock::now();
@@ -298,6 +314,17 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
 {
 
     auto start = system_clock::now();
+
+    if (parallel){ // parallelization; 
+        double nthread = omp_get_max_threads();
+        omp_set_num_threads(nthread);
+        cout << "parallel threads " << nthread << endl;
+    }
+    else
+    {
+        omp_set_num_threads(1);
+        cout << "parallel disabled " << endl;
+    }
 
     size_t N = X.n_rows;
 
@@ -365,7 +392,7 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
 
     // State settings
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
-    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual));
+    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, 0)); //last input is nthread, need update
 
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
@@ -408,7 +435,7 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
 
     for (size_t i = 0; i < p; i++)
     {
-        split_count_sum(i) = (int)state->mtry_weight_current_tree[i];
+        split_count_sum(i) = (int)state->split_count_all[i];
     }
 
     auto end = system_clock::now();
@@ -432,9 +459,8 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, Rcpp::DoubleVector weight, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true)
+Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, bool separate_tree = false, double stop_threshold = 0, size_t nthread = 0, double weight = 1, double hmult = 2, double heps = 0.1, bool update_tau = false) 
 {
-
     auto start = system_clock::now();
 
     size_t N = X.n_rows;
@@ -463,6 +489,11 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         COUT << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
     }
 
+    if (parallel & nthread == 0)
+    {
+        nthread = omp_get_max_threads();
+    }
+
     arma::umat Xorder(X.n_rows, X.n_cols);
     matrix<size_t> Xorder_std;
     ini_matrix(Xorder_std, N, p);
@@ -471,7 +502,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     for (size_t i = 0; i < N; ++i)
         y_size_t[i] = y[i];
 
-    //TODO: check if I need to carry this
+    //TODO: check if I need to carry this // Yes, for now we need it.
     std::vector<double> y_std(N);
     double y_mean = 0.0;
     for (size_t i = 0; i < N; ++i)
@@ -496,27 +527,11 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
 
     // // Create trees
-    vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
-    for (size_t i = 0; i < num_sweeps; i++)
-    {
-        (*trees2)[i] = vector<tree>(num_trees);
-    }
-
-    // define model
-    // double tau_a = 1/tau + 0.5;
-    // double tau_b = 1/tau;
-    double tau_a = 1;
-    double tau_b = 1;
-    std::vector<double> phi(N);
-    for (size_t i = 0; i < N; ++i)
-        phi[i] = 1;
-
-    std::vector<double> weight_std(weight.size());
-    for (size_t i = 0; i < weight.size(); ++i)
-        weight_std[i] = weight[i];
-
-    LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight_std);
-    model->setNoSplitPenality(no_split_penality);
+    // vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
+    // for (size_t i = 0; i < num_sweeps; i++)
+    // {
+    //     (*trees2)[i] = vector<tree>(num_trees);
+    // }
 
     // State settings
     // Logit doesn't need an inherited state class at the moment
@@ -525,21 +540,23 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     // (y_size_t definitely belongs there, phi probably does)
 
     std::vector<double> initial_theta(num_class, 1);
-    std::unique_ptr<State> state(new State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual));
+    std::unique_ptr<State> state(new LogitState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, num_class, nthread));
 
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
-    std::vector<std::vector<double>> phi_samples;
-    ini_matrix(phi_samples, N, num_sweeps * num_trees);
 
-    std::vector<std::vector<double>> weight_samples;
-    ini_matrix(weight_samples, num_trees, num_sweeps);
+    std::vector<std::vector<double>> tau_sample;
+    ini_matrix(tau_sample, num_trees, num_sweeps);
+
+    std::vector<std::vector<double>> weight_sample;
+    ini_matrix(weight_sample, num_trees, num_sweeps);
+
+    std::vector<std::vector<double>> logloss;
+    ini_matrix(logloss, num_trees, num_sweeps);
 
     ////////////////////////////////////////////////////////////////
-    mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples, weight_samples);
-
-    // TODO: Implement predict OOS
+    size_t num_stops = 0; 
 
     // output is in 3 dim, stacked as a vector, number of sweeps * observations * number of classes
     std::vector<double> output_vec(num_sweeps * N_test * num_class);
@@ -550,7 +567,53 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     // if stack by column, index starts from 0
     ////////////////////////////////////////////////
 
-    model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
+  
+    vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
+        for (size_t i = 0; i < num_sweeps; i++)
+        {
+            (*trees2)[i] = vector<tree>(num_trees);
+        }
+
+    // separate tree
+    vector<vector<vector<tree>>> *trees3 = new vector<vector<vector<tree>>>(num_class);
+        for (size_t i = 0; i < num_class; i++)
+        {
+            (*trees3)[i] = vector<vector<tree>>(num_sweeps);
+            for (size_t j = 0; j < num_sweeps; j++)
+            {
+                (*trees3)[i][j] = vector<tree>(num_trees);
+            }
+        }  
+
+    if (!separate_tree)
+    {
+        LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, weight, update_tau, hmult, heps);
+        model->setNoSplitPenality(no_split_penality);
+
+        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, tau_sample, weight_sample, logloss, stop_threshold, num_stops);
+
+        model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
+
+        delete model;
+
+    }
+    else
+    {
+        LogitModelSeparateTrees *model = new LogitModelSeparateTrees(num_class, tau_a, tau_b, alpha, beta, &y_size_t, weight, update_tau, hmult, heps);
+
+        model->setNoSplitPenality(no_split_penality);
+        
+        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penality, state, model, x_struct, tau_sample, weight_sample, stop_threshold, num_stops);
+
+        model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees3, output_vec);
+
+        delete model;
+
+    }
+
+    // mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples, tau_sample, stop_threshold, num_stops);
+
+    // model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
 
     Rcpp::NumericVector output = Rcpp::wrap(output_vec);
     output.attr("dim") = Rcpp::Dimension(num_sweeps, N_test, num_class);
@@ -564,9 +627,11 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     // Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericVector split_count_sum(p); // split counts
-    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
-    Rcpp::NumericMatrix phi_sample_rcpp(N, num_sweeps * num_trees);
+    // Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
+    Rcpp::NumericMatrix tau_sample_rcpp(num_trees, num_sweeps);
     Rcpp::NumericMatrix weight_sample_rcpp(num_trees, num_sweeps);
+    Rcpp::NumericMatrix logloss_rcpp(num_trees, num_sweeps);
+    
 
     // TODO: Make these functions
     // for (size_t i = 0; i < N; i++)
@@ -577,18 +642,25 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     //     }
     // }
 
-    for (size_t i = 0; i < N; i++)
+    for (size_t i = 0; i < num_trees; i++)
     {
-        for (size_t j = 0; j < num_trees * num_sweeps; j++)
+        for (size_t j = 0; j < num_sweeps; j++)
         {
-            phi_sample_rcpp(i, j) = phi_samples[j][i];
+            tau_sample_rcpp(i, j) = tau_sample[j][i];
         }
     }
     for (size_t i = 0; i < num_trees; i++)
     {
         for (size_t j = 0; j < num_sweeps; j++)
         {
-            weight_sample_rcpp(i, j) = weight_samples[j][i];
+            weight_sample_rcpp(i, j) = weight_sample[j][i];
+        }
+    }
+    for (size_t i = 0; i < num_trees; i++)
+    {
+        for (size_t j = 0; j < num_sweeps; j++)
+        {
+            logloss_rcpp(i, j) = logloss[j][i];
         }
     }
     for (size_t i = 0; i < N_test; i++)
@@ -600,7 +672,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     }
     for (size_t i = 0; i < p; i++)
     {
-        split_count_sum(i) = (int)state->mtry_weight_current_tree[i];
+        split_count_sum(i) = (int)state->split_count_all[i];
     }
 
     auto end = system_clock::now();
@@ -614,18 +686,37 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
     // clean memory
-    delete model;
+    // delete model;
     state.reset();
     x_struct.reset();
 
-    return Rcpp::List::create(
+    // cout << "creat output list " << endl;
+    Rcpp::List ret =  Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("num_class") = num_class,
         Rcpp::Named("yhats_test") = output,
-        Rcpp::Named("phi") = phi_sample_rcpp,
+        Rcpp::Named("tau_a") = tau_sample_rcpp,
         Rcpp::Named("weight") = weight_sample_rcpp,
+        Rcpp::Named("logloss") = logloss_rcpp,
         Rcpp::Named("importance") = split_count_sum,
-        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
+        Rcpp::Named("num_stops") = num_stops,
+        // Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
+        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
+
+    // cout << "export tree pointer " << endl;
+    if (!separate_tree)
+    {
+        Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
+        ret.push_back(tree_pnt, "tree_pnt"); 
+    }
+    else
+    {  
+        Rcpp::XPtr<std::vector<std::vector<std::vector<tree>>>> tree_pnt(trees3, true);
+        ret.push_back(tree_pnt, "tree_pnt");
+    }
+    
+
+    return ret;
 }
 
 // [[Rcpp::plugins(cpp11)]]
@@ -634,6 +725,17 @@ Rcpp::List XBART_Probit_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t nu
 {
 
     auto start = system_clock::now();
+
+    if (parallel){ // parallelization; 
+        double nthread = omp_get_max_threads();
+        omp_set_num_threads(nthread);
+        cout << "parallel threads " << nthread << endl;
+    }
+    else
+    {
+        omp_set_num_threads(1);
+        cout << "parallel disabled " << endl;
+    }
 
     size_t N = X.n_rows;
     // number of total variables
@@ -703,7 +805,7 @@ Rcpp::List XBART_Probit_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t nu
 
     // State settings
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
-    std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual));
+    std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, 0)); //last input is nthread, need update
 
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
@@ -745,7 +847,7 @@ Rcpp::List XBART_Probit_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t nu
     }
     for (size_t i = 0; i < p; i++)
     {
-        split_count_sum(i) = (int)state->mtry_weight_current_tree[i];
+        split_count_sum(i) = (int)state->split_count_all[i];
     }
 
     auto end = system_clock::now();
@@ -781,6 +883,17 @@ Rcpp::List XBART_MH_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
 {
 
     auto start = system_clock::now();
+
+    if (parallel){ // parallelization; 
+        double nthread = omp_get_max_threads();
+        omp_set_num_threads(nthread);
+        cout << "parallel threads " << nthread << endl;
+    }
+    else
+    {
+        omp_set_num_threads(1);
+        cout << "parallel disabled " << endl;
+    }
 
     size_t N = X.n_rows;
 
@@ -848,7 +961,7 @@ Rcpp::List XBART_MH_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
 
     // State settings
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
-    std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual));
+    std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, 0)); //last input is nthread, need update
 
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
@@ -895,7 +1008,7 @@ Rcpp::List XBART_MH_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
     }
     for (size_t i = 0; i < p; i++)
     {
-        split_count_sum(i) = (int)state->mtry_weight_current_tree[i];
+        split_count_sum(i) = (int)state->split_count_all[i];
     }
 
     auto end = system_clock::now();

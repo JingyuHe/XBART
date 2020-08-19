@@ -1,46 +1,51 @@
-# library(XBART)
+library(XBART)
 library(xgboost)
 
-D <- read.csv('~/mnist/mnist_train.csv',header=FALSE)
+path =  '~/Dropbox/MNIST/'
+D <- read.csv(paste(path,'mnist_train.csv', sep=''),header=FALSE)
 y = D[,1]
 D = D[,-1]
-#
-Dtest <- read.csv('~/mnist/mnist_test.csv',header=FALSE)
+# 
+Dtest <- read.csv(paste(path, 'mnist_test.csv', sep =''),header=FALSE)
 ytest = Dtest[,1]
 Dtest = Dtest[,-1]
-#
-#
-k = 3
-X = matrix(NA,28*28,k*10)
-for (h in 0:9){
-  print(h)
-  S = svd(t(D[y==h,]))
-  X[,(h*k):(h*k+k-1)+1] = S$u[,1:k]
-}
+pred = matrix(0,10000,10)
 
-
-XXinv = solve(t(X)%*%X)
-P = XXinv%*%t(X)
-X_train = t(P%*%t(D))
-X_test = t(P%*%t(Dtest))
+X_train = D
+X_test = Dtest
 p = ncol(X_train)
 
-#load("mnist_data.rda")
-
-# X_train = X_train + 0.0001*rnorm(ncol(X_train)*nrow(X_train))
-# X_test = X_test + 0.0001*rnorm(ncol(X_test)*nrow(X_test))
-
-# for (h in 1:p){
-# breaks =unique(as.numeric(quantile(c(X_train[,h],X_test[,h]),seq(0,1,length.out=20))))
-# breaks = seq(min(c(X_train[,h],X_test[,h])),max(c(X_train[,h],X_test[,h])),length.out = 25)
-# 
-# print(breaks)
-# X_train[,h] = cut(X_train[,h],breaks = breaks,include.lowest=TRUE,labels=FALSE)
-# X_test[,h] = cut(X_test[,h],breaks = breaks,include.lowest=TRUE,labels=FALSE)
+# for (i in 1:p){
+#   X_train[, i] = X_train[, i] + 0.01*rnorm(length(y))
+#   X_test[, i] = X_test[, i] + 0.01*rnorm(length(ytest))
 # }
-# X_train = X_train[1:1000,]
-# y = y[1:1000]
 
+
+X.train = X_train
+X.test = X_test
+
+v = 0
+for (h in 1:p){
+  breaks =unique(as.numeric(quantile(c(X_train[,h],X_test[,h]),seq(0,1,length.out=4))))
+  #breaks = seq(min(c(X_train[,h],X_test[,h])),max(c(X_train[,h],X_test[,h])),length.out = 25)
+  breaks = c(-Inf,breaks,+Inf)
+  #print(breaks)
+  if (length(breaks)>3){
+    v = v + 1
+    X.train[,v] = cut(X_train[,h],breaks = breaks,include.lowest=TRUE,labels=FALSE)
+    X.test[,v] = cut(X_test[,h],breaks = breaks,include.lowest=TRUE,labels=FALSE)
+  }
+}
+
+#print(v)
+X_train = X.train[,1:v]
+X_test = X.test[,1:v]
+p = v
+
+# X_train[,1] = X_train[,1] + 0.01*rnorm(length(y))
+
+X_train = as.matrix(X_train)
+X_test = as.matrix(X_test)
 
 t = proc.time()
 
@@ -53,6 +58,7 @@ xgb.basic.mod1 <- xgboost(data = X_train,label=y,
                           eta = 0.9,
                           params=list(objective="multi:softprob"))
 
+t = proc.time() - t
 xgb.basic.pred <- predict(xgb.basic.mod1, X_test)
 xgb.basic.pred <- matrix(xgb.basic.pred, ncol=10, byrow=TRUE)
 pred.xgb <- max.col(xgb.basic.pred) - 1
