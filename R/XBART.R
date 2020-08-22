@@ -4,18 +4,18 @@ XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
     kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, 
     sample_weights_flag = TRUE, ...) {
     
-    if (class(X) != "matrix") {
-        cat("Input X is not a matrix, try to convert type.\n")
+    if (! inherits(X, "matrix")) {
+        warning("Input X is not a matrix, try to convert type.\n")
         X = as.matrix(X)
     }
     
-    if (class(Xtest) != "matrix") {
-        cat("Input Xtest is not a matrix, try to convert type.\n")
+    if (! inherits(Xtest, "matrix")) {
+        warning("Input Xtest is not a matrix, try to convert type.\n")
         Xtest = as.matrix(Xtest)
     }
     
-    if (class(y) != "matrix") {
-        cat("Input y is not a matrix, try to convert type.\n")
+    if (! inherits(y, "matrix")) {
+        warning("Input y is not a matrix, try to convert type.\n")
         y = as.matrix(y)
     }
     
@@ -23,7 +23,7 @@ XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
         stop("Length of X must match length of y")
     }
     
-    if (dim(X)[2] != dim(X)[2]) {
+    if (ncol(X) != ncol(Xtest)) {
         stop("Column of X must match columns of Xtest")
     }
     
@@ -84,6 +84,6 @@ XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
         Nmin, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, 
         mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, 
         random_seed, sample_weights_flag)
-    class(obj) = "XBART"
+    class(obj) = c("XBART", class(obj))
     return(obj)
 }
