@@ -135,8 +135,10 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
 
     auto start = system_clock::now();
 
+    double nthread = 1.0;
+
     if (parallel){ // parallelization; 
-        double nthread = omp_get_max_threads();
+        nthread = omp_get_max_threads();
         omp_set_num_threads(nthread);
         cout << "parallel threads " << nthread << endl;
     }
@@ -315,8 +317,10 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
 
     auto start = system_clock::now();
 
+    double nthread = 1.0;
+
     if (parallel){ // parallelization; 
-        double nthread = omp_get_max_threads();
+        nthread = omp_get_max_threads();
         omp_set_num_threads(nthread);
         cout << "parallel threads " << nthread << endl;
     }
@@ -726,8 +730,10 @@ Rcpp::List XBART_Probit_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t nu
 
     auto start = system_clock::now();
 
+    double nthread = 1.0;
+
     if (parallel){ // parallelization; 
-        double nthread = omp_get_max_threads();
+        nthread = omp_get_max_threads();
         omp_set_num_threads(nthread);
         cout << "parallel threads " << nthread << endl;
     }
@@ -884,8 +890,10 @@ Rcpp::List XBART_MH_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
 
     auto start = system_clock::now();
 
+    double nthread = 1.0;
+    
     if (parallel){ // parallelization; 
-        double nthread = omp_get_max_threads();
+        nthread = omp_get_max_threads();
         omp_set_num_threads(nthread);
         cout << "parallel threads " << nthread << endl;
     }
