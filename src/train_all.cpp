@@ -135,6 +135,8 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
 
     auto start = system_clock::now();
 
+    double nthread = 1;
+
     if (parallel & (nthread == 0))
     {
         nthread = omp_get_max_threads();
@@ -309,6 +311,8 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
 
     auto start = system_clock::now();
 
+    double nthread = 1;
+
     if (parallel & (nthread == 0))
     {
         nthread = omp_get_max_threads();
@@ -477,10 +481,13 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         COUT << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
     }
 
+    double nthread = 1;
+
     if (parallel & (nthread == 0))
     {
         nthread = omp_get_max_threads();
     }
+
 
     arma::umat Xorder(X.n_rows, X.n_cols);
     matrix<size_t> Xorder_std;
@@ -714,11 +721,12 @@ Rcpp::List XBART_Probit_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t nu
 
     auto start = system_clock::now();
 
+    double nthread = 1.0;
+
     if (parallel & (nthread == 0))
     {
         nthread = omp_get_max_threads();
     }
-
     size_t N = X.n_rows;
     // number of total variables
     size_t p = X.n_cols;
@@ -866,11 +874,13 @@ Rcpp::List XBART_MH_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
 
     auto start = system_clock::now();
 
+    double nthread = 1;
+
     if (parallel & (nthread == 0))
     {
         nthread = omp_get_max_threads();
     }
-
+    
     size_t N = X.n_rows;
 
     // number of total variables
