@@ -216,7 +216,7 @@ public:
     {
         // fill the suff_stat_model with a value
         // in function call, a = 0.0 to reset sufficient statistics vector
-        size_t n = xorder.size();
+        // size_t n = xorder.size();
         size_t x_order_0 = xorder[0];
         double current_fit_val = total_fit[x_order_0];
 
@@ -228,6 +228,9 @@ public:
         return;
     }
     void incrementSuffStat() const { return; };
+
+    using Model::samplePars;
+
     void samplePars(double y_mean, size_t N_Xorder, double sigma, std::mt19937 &generator, std::vector<double> &theta_vector, std::vector<double> &y_std, matrix<size_t> &Xorder, double &prob_leaf)
     {
         // Update params
@@ -244,6 +247,8 @@ public:
         return;
     }
 
+    using Model::state_sweep;
+
     void state_sweep(size_t tree_ind, size_t M, std::vector<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
     {
         size_t next_index = tree_ind + 1;
@@ -254,7 +259,7 @@ public:
         // residual_std = residual_std - predictions_std[tree_ind] + predictions_std[next_index];
         return;
     }
-
+    
     void calcSuffStat_categorical(std::vector<double> &y, matrix<size_t> &Xorder, size_t &start, size_t &end, const size_t &var)
     {
         // calculate sufficient statistics for categorical variables
@@ -262,7 +267,7 @@ public:
         // compute sum of y[Xorder[start:end, var]]
         size_t loop_count = 0;
         std::vector<size_t> &xorder_var = Xorder[var];
-        size_t n = xorder_var.size();
+        // size_t n = xorder_var.size();
         double current_fit_val;
         double psi;
         double obs;
@@ -286,7 +291,7 @@ public:
     void calcSuffStat_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint)
     {
         // calculate sufficient statistics for continuous variables
-        size_t n = xorder.size();
+        // size_t n = xorder.size();
         double current_fit_val;
         double psi;
         double obs;
@@ -352,6 +357,8 @@ public:
         return;
     }
 
+    using Model::likelihood;
+
     double likelihood(std::vector<double> &node_suff_stat, size_t N_left, bool left_side, std::unique_ptr<State> &state) const
     {
         // likelihood equation,
@@ -384,6 +391,8 @@ public:
     }
 
     Model *clone() { return new CLTClass(*this); }
+
+    using Model::updateNodeSuffStat;
 
     virtual void updateNodeSuffStat(std::vector<double> &suff_stat, std::vector<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
     {
@@ -506,6 +515,7 @@ public:
 
     void ini_residual_std(std::unique_ptr<State> &state);
 
+    using Model::predict_std;
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec);
 
     void predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec, std::vector<size_t>& iteration);

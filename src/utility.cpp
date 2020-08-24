@@ -178,7 +178,7 @@ void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, //s
     size_t p = Xorder_std.size();
     double current_value = 0.0;
     size_t count_unique = 0;
-    size_t N_unique;
+    // size_t N_unique;
     variable_ind[0] = 0;
 
     total_points = 0;
