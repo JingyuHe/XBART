@@ -449,7 +449,6 @@ std::ostream& operator<<(std::ostream& os, const tree& t)
    tree::cnpv nds;
    t.getnodes(nds);
    os << nds.size() << std::endl;
-   cout << "number of all nodes " << nds.size() << endl;
    for(size_t i=0;i<nds.size();i++) {
       os << nds[i]->nid() << " ";
       os << nds[i]->getv() << " ";

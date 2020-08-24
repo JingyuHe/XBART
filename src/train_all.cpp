@@ -285,12 +285,7 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
         {
             treess << (*trees2)[i][t];
         }
-
-        for (size_t t = 0; t < num_trees; t++)
-        {
-            cout << (*trees2)[i][t].treesize() << endl;
-        }
-
+        
         output_tree(i) = treess.str();
     }
 
