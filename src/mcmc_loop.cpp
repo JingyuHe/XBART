@@ -57,7 +57,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             else if (state->n_y * fake_p < 5e5 ) { omp_set_num_threads( std::min(6, int(state->nthread) ) ); }
             else {omp_set_num_threads(state->nthread); }
 
-            omp_set_nested(1);
+            omp_set_max_active_levels(3);
             #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
             {       
                 #pragma omp sections
@@ -241,7 +241,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             else if (state->n_y * fake_p < 5e5 ) { omp_set_num_threads( std::min(6, int(state->nthread) ) ); }
             else {omp_set_num_threads(state->nthread); }
 
-            omp_set_nested(1);
+            omp_set_max_active_levels(3);
             #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind, entropy_threshold, num_stops)
             {       
                 #pragma omp sections
@@ -337,7 +337,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
             else if (state->n_y * fake_p < 5e5 ) { omp_set_num_threads( std::min(6, int(state->nthread) ) ); }
             else {omp_set_num_threads(state->nthread); }
 
-            omp_set_nested(1);
+            omp_set_max_active_levels(3);
             #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind, entropy_threshold, num_stops)
             {       
                 #pragma omp sections
@@ -428,7 +428,7 @@ void mcmc_loop_probit(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
             else if (state->n_y * fake_p < 5e5 ) { omp_set_num_threads( std::min(6, int(state->nthread) ) ); }
             else {omp_set_num_threads(state->nthread); }
 
-            omp_set_nested(1);
+            omp_set_max_active_levels(3);
             #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
             {       
                 #pragma omp sections
