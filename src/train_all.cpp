@@ -135,7 +135,7 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
 
     auto start = system_clock::now();
 
-    double nthread = 1;
+    // double nthread = 1;
 
     if (parallel & (nthread == 0))
     {
@@ -311,7 +311,7 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
 
     auto start = system_clock::now();
 
-    double nthread = 1;
+    // double nthread = 1;
 
     if (parallel & (nthread == 0))
     {
@@ -481,7 +481,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         COUT << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
     }
 
-    double nthread = 1;
+    // double nthread = 1;
 
     if (parallel & (nthread == 0))
     {
@@ -721,7 +721,7 @@ Rcpp::List XBART_Probit_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t nu
 
     auto start = system_clock::now();
 
-    double nthread = 1.0;
+    // double nthread = 1.0;
 
     if (parallel & (nthread == 0))
     {
@@ -874,7 +874,7 @@ Rcpp::List XBART_MH_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
 
     auto start = system_clock::now();
 
-    double nthread = 1;
+    // double nthread = 1;
 
     if (parallel & (nthread == 0))
     {
