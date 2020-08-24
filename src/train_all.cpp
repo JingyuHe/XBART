@@ -265,7 +265,7 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
     // clean memory
-    delete model;
+    // delete model;
     state.reset();
     x_struct.reset();
 
@@ -581,7 +581,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
 
         model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
 
-        delete model;
+        // delete model;
     }
     else
     {
@@ -593,7 +593,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
 
         model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees3, output_vec);
 
-        delete model;
+        // delete model;
     }
 
     // mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples, tau_sample, stop_threshold, num_stops);
@@ -670,7 +670,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
     // clean memory
-    // delete model;
+    // // delete model;
     state.reset();
     x_struct.reset();
 
@@ -841,7 +841,7 @@ Rcpp::List XBART_Probit_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t nu
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
 
     // clean memory
-    delete model;
+    // delete model;
     state.reset();
     x_struct.reset();
 
@@ -996,7 +996,7 @@ Rcpp::List XBART_MH_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
     // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
     // clean memory
-    delete model;
+    // delete model;
     state.reset();
     x_struct.reset();
 
