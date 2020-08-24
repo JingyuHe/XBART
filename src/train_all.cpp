@@ -128,7 +128,6 @@ void rcpp_to_std2(arma::mat X, arma::mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp
 Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true)
 {
 
-    auto start = system_clock::now();
 
     size_t N = X.n_rows;
 
@@ -242,9 +241,7 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
         split_count_sum(i) = (int)state->mtry_weight_current_tree[i];
     }
 
-    auto end = system_clock::now();
 
-    auto duration = duration_cast<microseconds>(end - start);
 
     // COUT << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
 
@@ -274,11 +271,6 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
             treess << (*trees2)[i][t];
         }
 
-        for (size_t t = 0; t < num_trees; t++)
-        {
-            cout << (*trees2)[i][t].treesize() << endl;
-        }
-
         output_tree(i) = treess.str();
     }
 
@@ -297,7 +289,6 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
 Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true)
 {
 
-    auto start = system_clock::now();
 
     size_t N = X.n_rows;
 
@@ -411,9 +402,7 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
         split_count_sum(i) = (int)state->mtry_weight_current_tree[i];
     }
 
-    auto end = system_clock::now();
 
-    auto duration = duration_cast<microseconds>(end - start);
 
     // COUT << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
 
@@ -435,7 +424,6 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
 Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, Rcpp::DoubleVector weight, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true)
 {
 
-    auto start = system_clock::now();
 
     size_t N = X.n_rows;
 
@@ -603,9 +591,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         split_count_sum(i) = (int)state->mtry_weight_current_tree[i];
     }
 
-    auto end = system_clock::now();
 
-    auto duration = duration_cast<microseconds>(end - start);
 
     // COUT << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
 
@@ -633,7 +619,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
 Rcpp::List XBART_Probit_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true)
 {
 
-    auto start = system_clock::now();
 
     size_t N = X.n_rows;
     // number of total variables
@@ -748,9 +733,7 @@ Rcpp::List XBART_Probit_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t nu
         split_count_sum(i) = (int)state->mtry_weight_current_tree[i];
     }
 
-    auto end = system_clock::now();
 
-    auto duration = duration_cast<microseconds>(end - start);
 
     // COUT << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
 
@@ -780,7 +763,6 @@ Rcpp::List XBART_Probit_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t nu
 Rcpp::List XBART_MH_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true)
 {
 
-    auto start = system_clock::now();
 
     size_t N = X.n_rows;
 
@@ -898,9 +880,7 @@ Rcpp::List XBART_MH_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
         split_count_sum(i) = (int)state->mtry_weight_current_tree[i];
     }
 
-    auto end = system_clock::now();
 
-    auto duration = duration_cast<microseconds>(end - start);
 
     // COUT << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
 

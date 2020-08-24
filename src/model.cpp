@@ -114,7 +114,7 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
     // double y_sum = (double)suff_stat_all[2] * suff_stat_all[0];
     // double y_sum = suff_stat_all[0];
     double sigma2 = state->sigma2;
-    double ntau;
+    // double ntau;
     // double suff_one_side;
 
     /////////////////////////////////////////////////////////////////////////

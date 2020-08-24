@@ -447,7 +447,6 @@ std::ostream& operator<<(std::ostream& os, const tree& t)
    tree::cnpv nds;
    t.getnodes(nds);
    os << nds.size() << std::endl;
-   cout << "number of all nodes " << nds.size() << endl;
    for(size_t i=0;i<nds.size();i++) {
       os << nds[i]->nid() << " ";
       os << nds[i]->getv() << " ";
@@ -545,7 +544,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
-    size_t ind;
+    // size_t ind;
     size_t split_var;
     size_t split_point;
 
@@ -722,8 +721,8 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
 
     // preserve order of other variables
     size_t N_Xorder = Xorder_std[0].size();
-    size_t left_ix = 0;
-    size_t right_ix = 0;
+    // size_t left_ix = 0;
+    // size_t right_ix = 0;
     size_t N_Xorder_left = Xorder_left_std[0].size();
     size_t N_Xorder_right = Xorder_right_std[0].size();
 
@@ -989,7 +988,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
     // N - 1 has to be greater than 2 * Nmin
 
     size_t N = Xorder_std[0].size();
-    size_t p = Xorder_std.size();
+    // size_t p = Xorder_std.size();
     size_t ind;
     size_t N_Xorder = N;
     size_t total_categorical_split_candidates = 0;
@@ -1212,8 +1211,8 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         // if we only have a few data observations in current node
         // use all of them as cutpoint candidates
 
-        double n1tau;
-        double n2tau;
+        // double n1tau;
+        // double n2tau;
         // double Ntau = N_Xorder * model->tau;
 
         // to have a generalized function, have to pass an empty candidate_index object for this case
@@ -1270,7 +1269,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
             {
 
                 // Lambda callback to perform the calculation
-                auto calcllc_i = [i, &loglike, &loglike_max, &Xorder_std, &state, &candidate_index2, &model, &llmax_mutex, N_Xorder, &tree_pointer]() {
+                auto calcllc_i = [i, &loglike, &loglike_max, &Xorder_std, &state, &candidate_index2, &model, &llmax_mutex,&tree_pointer]() {
                     std::vector<size_t> &xorder = Xorder_std[i];
                     double llmax = -INFINITY;
 
@@ -1318,9 +1317,9 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
     size_t end2;
     double y_cumsum = 0.0;
     size_t n1;
-    size_t n2;
+    // size_t n2;
     size_t temp;
-    size_t N = N_Xorder;
+    // size_t N = N_Xorder;
 
     size_t effective_cutpoints = 0;
 
