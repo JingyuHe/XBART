@@ -183,8 +183,3 @@ points(ftest, fhat.1, pch = 20, col = 'slategray')
 legend("topleft", c("dbarts", "XBART"), col = c("orange", "slategray"), pch = c(20, 20))
 
 
-# For Travis
-stopifnot(xbart_rmse < 1)
-stopifnot(time_XBART < 5)
-
-

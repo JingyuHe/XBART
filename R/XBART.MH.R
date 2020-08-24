@@ -4,17 +4,17 @@ XBART.MH <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
     kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, 
     sample_weights_flag = TRUE, nthread = 0, ...) {
     
-    if (class(X) != "matrix") {
+    if (!("matrix" %in% class(X))) {
         cat("Input X is not a matrix, try to convert type.\n")
         X = as.matrix(X)
     }
     
-    if (class(Xtest) != "matrix") {
+    if (!("matrix" %in% class(Xtest))) {
         cat("Input Xtest is not a matrix, try to convert type.\n")
         Xtest = as.matrix(Xtest)
     }
     
-    if (class(y) != "matrix") {
+    if (!("matrix" %in% class(y))) {
         cat("Input y is not a matrix, try to convert type.\n")
         y = as.matrix(y)
     }
