@@ -546,7 +546,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
-    size_t ind;
+    // size_t ind;
     size_t split_var;
     size_t split_point;
 
@@ -764,7 +764,7 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
-    size_t ind;
+    // size_t ind;
     size_t split_var;
     size_t split_point;
 
@@ -966,7 +966,7 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
-    size_t ind;
+    // size_t ind;
     size_t split_var;
     size_t split_point;
 
@@ -1161,8 +1161,8 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
 
     // preserve order of other variables
     size_t N_Xorder = Xorder_std[0].size();
-    size_t left_ix = 0;
-    size_t right_ix = 0;
+    // size_t left_ix = 0;
+    // size_t right_ix = 0;
     size_t N_Xorder_left = Xorder_left_std[0].size();
     size_t N_Xorder_right = Xorder_right_std[0].size();
 
@@ -1409,7 +1409,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
     // N - 1 has to be greater than 2 * Nmin
 
     size_t N = Xorder_std[0].size();
-    size_t p = Xorder_std.size();
+    // size_t p = Xorder_std.size();
     size_t ind;
     size_t N_Xorder = N;
     size_t total_categorical_split_candidates = 0;
@@ -1632,8 +1632,8 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         // if we only have a few data observations in current node
         // use all of them as cutpoint candidates
 
-        double n1tau;
-        double n2tau;
+        // double n1tau;
+        // double n2tau;
         // double Ntau = N_Xorder * model->tau;
 
         // to have a generalized function, have to pass an empty candidate_index object for this case
@@ -1712,8 +1712,8 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
     // loglike_start is an index to offset
     // consider loglikelihood start from loglike_start
 
-    size_t N = N_Xorder;
-    size_t effective_cutpoints = 0;
+    // size_t N = N_Xorder;
+    // size_t effective_cutpoints = 0;
 
     // #pragma omp parallel for 
     //schedule(dynamic, 1)
@@ -1730,7 +1730,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
             {
             std::vector<double> temp_suff_stat(model->dim_suffstat);
             std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
-            size_t start, end, end2, n1, n2, temp;
+            size_t start, end, end2, n1, temp;
 
             start = x_struct->variable_ind[i - state->p_continuous];
             end = x_struct->variable_ind[i + 1 - state->p_continuous] - 1; // minus one for indexing starting at 0

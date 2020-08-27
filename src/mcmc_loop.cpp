@@ -285,7 +285,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
     size_t p = Xorder_std.size();
     std::vector<size_t> subset_vars(p);
     std::vector<double> weight_samp(p);
-    double weight_sum;
+    // double weight_sum;
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {

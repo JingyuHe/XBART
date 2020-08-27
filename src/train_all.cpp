@@ -61,13 +61,13 @@ void rcpp_to_std2(arma::mat y, arma::mat X, arma::mat Xtest, std::vector<double>
     // Create Xorder
     // Order
     arma::umat Xorder(X.n_rows, X.n_cols);
-    #pragma omp parallel for schedule(dynamic, 1) shared(X, Xorder)
+#pragma omp parallel for schedule(dynamic, 1) shared(X, Xorder)
     for (size_t i = 0; i < X.n_cols; i++)
     {
         Xorder.col(i) = arma::sort_index(X.col(i));
     }
-    // Create
-    #pragma omp parallel for collapse(2)
+// Create
+#pragma omp parallel for collapse(2)
     for (size_t i = 0; i < N; i++)
     {
         for (size_t j = 0; j < p; j++)
@@ -133,7 +133,7 @@ void rcpp_to_std2(arma::mat X, arma::mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp
 Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, double nthread = 0)
 {
 
-    auto start = system_clock::now();
+    // auto start = system_clock::now();
 
     // double nthread = 1;
 
@@ -224,7 +224,7 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     // Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
-    Rcpp::NumericVector split_count_sum(p, 0);                // split counts
+    Rcpp::NumericVector split_count_sum(p, 0);             // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
 
     // TODO: Make these functions
@@ -254,9 +254,9 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
         split_count_sum(i) = (int)state->split_count_all[i];
     }
 
-    auto end = system_clock::now();
+    // auto end = system_clock::now();
 
-    auto duration = duration_cast<microseconds>(end - start);
+    // auto duration = duration_cast<microseconds>(end - start);
 
     // COUT << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
 
@@ -265,7 +265,7 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
     // clean memory
-    delete model;
+    // delete model;
     state.reset();
     x_struct.reset();
 
@@ -275,7 +275,8 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
 
     Rcpp::StringVector output_tree(num_sweeps);
 
-    for(size_t i = 0; i < num_sweeps; i ++ ){
+    for (size_t i = 0; i < num_sweeps; i++)
+    {
         treess.precision(10);
 
         treess.str(std::string());
@@ -285,7 +286,7 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
         {
             treess << (*trees2)[i][t];
         }
-        
+
         output_tree(i) = treess.str();
     }
 
@@ -295,8 +296,7 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p),
-        Rcpp::Named("treedraws") = output_tree
-        );
+        Rcpp::Named("treedraws") = output_tree);
 }
 
 // [[Rcpp::plugins(cpp11)]]
@@ -304,7 +304,7 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
 Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, double nthread = 0)
 {
 
-    auto start = system_clock::now();
+    // auto start = system_clock::now();
 
     // double nthread = 1;
 
@@ -425,9 +425,9 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
         split_count_sum(i) = (int)state->split_count_all[i];
     }
 
-    auto end = system_clock::now();
+    // auto end = system_clock::now();
 
-    auto duration = duration_cast<microseconds>(end - start);
+    // auto duration = duration_cast<microseconds>(end - start);
 
     // COUT << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
 
@@ -446,9 +446,9 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, bool separate_tree = false, double stop_threshold = 0, size_t nthread = 0, double weight = 1, double hmult = 2, double heps = 0.1, bool update_tau = false) 
+Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, bool separate_tree = false, double stop_threshold = 0, size_t nthread = 0, double weight = 1, double hmult = 2, double heps = 0.1, bool update_tau = false)
 {
-    auto start = system_clock::now();
+    // auto start = system_clock::now();
 
     size_t N = X.n_rows;
 
@@ -482,7 +482,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     {
         nthread = omp_get_max_threads();
     }
-
 
     arma::umat Xorder(X.n_rows, X.n_cols);
     matrix<size_t> Xorder_std;
@@ -535,7 +534,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
-
     std::vector<std::vector<double>> tau_sample;
     ini_matrix(tau_sample, num_trees, num_sweeps);
 
@@ -546,7 +544,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     ini_matrix(logloss, num_trees, num_sweeps);
 
     ////////////////////////////////////////////////////////////////
-    size_t num_stops = 0; 
+    size_t num_stops = 0;
 
     // output is in 3 dim, stacked as a vector, number of sweeps * observations * number of classes
     std::vector<double> output_vec(num_sweeps * N_test * num_class);
@@ -557,23 +555,22 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     // if stack by column, index starts from 0
     ////////////////////////////////////////////////
 
-  
     vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
-        for (size_t i = 0; i < num_sweeps; i++)
-        {
-            (*trees2)[i] = vector<tree>(num_trees);
-        }
+    for (size_t i = 0; i < num_sweeps; i++)
+    {
+        (*trees2)[i] = vector<tree>(num_trees);
+    }
 
     // separate tree
     vector<vector<vector<tree>>> *trees3 = new vector<vector<vector<tree>>>(num_class);
-        for (size_t i = 0; i < num_class; i++)
+    for (size_t i = 0; i < num_class; i++)
+    {
+        (*trees3)[i] = vector<vector<tree>>(num_sweeps);
+        for (size_t j = 0; j < num_sweeps; j++)
         {
-            (*trees3)[i] = vector<vector<tree>>(num_sweeps);
-            for (size_t j = 0; j < num_sweeps; j++)
-            {
-                (*trees3)[i][j] = vector<tree>(num_trees);
-            }
-        }  
+            (*trees3)[i][j] = vector<tree>(num_trees);
+        }
+    }
 
     if (!separate_tree)
     {
@@ -584,21 +581,19 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
 
         model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
 
-        delete model;
-
+        // delete model;
     }
     else
     {
         LogitModelSeparateTrees *model = new LogitModelSeparateTrees(num_class, tau_a, tau_b, alpha, beta, &y_size_t, weight, update_tau, hmult, heps);
 
         model->setNoSplitPenality(no_split_penality);
-        
+
         mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penality, state, model, x_struct, tau_sample, weight_sample, stop_threshold, num_stops);
 
         model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees3, output_vec);
 
-        delete model;
-
+        // delete model;
     }
 
     // mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples, tau_sample, stop_threshold, num_stops);
@@ -621,7 +616,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     Rcpp::NumericMatrix tau_sample_rcpp(num_trees, num_sweeps);
     Rcpp::NumericMatrix weight_sample_rcpp(num_trees, num_sweeps);
     Rcpp::NumericMatrix logloss_rcpp(num_trees, num_sweeps);
-    
 
     // TODO: Make these functions
     // for (size_t i = 0; i < N; i++)
@@ -665,9 +659,9 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         split_count_sum(i) = (int)state->split_count_all[i];
     }
 
-    auto end = system_clock::now();
+    // auto end = system_clock::now();
 
-    auto duration = duration_cast<microseconds>(end - start);
+    // auto duration = duration_cast<microseconds>(end - start);
 
     // COUT << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
 
@@ -676,12 +670,12 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
     // clean memory
-    // delete model;
+    // // delete model;
     state.reset();
     x_struct.reset();
 
     // cout << "creat output list " << endl;
-    Rcpp::List ret =  Rcpp::List::create(
+    Rcpp::List ret = Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("num_class") = num_class,
         Rcpp::Named("yhats_test") = output,
@@ -697,14 +691,13 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     if (!separate_tree)
     {
         Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
-        ret.push_back(tree_pnt, "tree_pnt"); 
+        ret.push_back(tree_pnt, "tree_pnt");
     }
     else
-    {  
+    {
         Rcpp::XPtr<std::vector<std::vector<std::vector<tree>>>> tree_pnt(trees3, true);
         ret.push_back(tree_pnt, "tree_pnt");
     }
-    
 
     return ret;
 }
@@ -714,7 +707,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
 Rcpp::List XBART_Probit_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, double nthread = 0)
 {
 
-    auto start = system_clock::now();
+    // auto start = system_clock::now();
 
     // double nthread = 1.0;
 
@@ -835,9 +828,9 @@ Rcpp::List XBART_Probit_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t nu
         split_count_sum(i) = (int)state->split_count_all[i];
     }
 
-    auto end = system_clock::now();
+    // auto end = system_clock::now();
 
-    auto duration = duration_cast<microseconds>(end - start);
+    // auto duration = duration_cast<microseconds>(end - start);
 
     // COUT << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
 
@@ -848,7 +841,7 @@ Rcpp::List XBART_Probit_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t nu
     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats, Rcpp::Named("yhats_test") = yhats_test, Rcpp::Named("sigma") = sigma_draw, Rcpp::Named("trees") = Rcpp::CharacterVector(treess.str()));
 
     // clean memory
-    delete model;
+    // delete model;
     state.reset();
     x_struct.reset();
 
@@ -867,7 +860,7 @@ Rcpp::List XBART_Probit_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t nu
 Rcpp::List XBART_MH_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, double nthread = 0)
 {
 
-    auto start = system_clock::now();
+    // auto start = system_clock::now();
 
     // double nthread = 1;
 
@@ -875,7 +868,7 @@ Rcpp::List XBART_MH_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
     {
         nthread = omp_get_max_threads();
     }
-    
+
     size_t N = X.n_rows;
 
     // number of total variables
@@ -992,9 +985,9 @@ Rcpp::List XBART_MH_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
         split_count_sum(i) = (int)state->split_count_all[i];
     }
 
-    auto end = system_clock::now();
+    // auto end = system_clock::now();
 
-    auto duration = duration_cast<microseconds>(end - start);
+    // auto duration = duration_cast<microseconds>(end - start);
 
     // COUT << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
 
@@ -1003,7 +996,7 @@ Rcpp::List XBART_MH_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_tr
     // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
 
     // clean memory
-    delete model;
+    // delete model;
     state.reset();
     x_struct.reset();
 

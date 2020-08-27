@@ -57,17 +57,18 @@ public:
     typedef std::vector<tree_cp> cnpv;
 
     //contructors,destructors--------------------
-    tree() : depth(0), suff_stat(3, 0.0), theta_vector(1, 0.0), v(0), c_index(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0), ID(1) {}
+    tree() : theta_vector(1, 0.0), suff_stat(3, 0.0), N(0), ID(1), depth(0), v(0), c_index(0), c(0.0), prob_split(0.0), prob_leaf(0.0), loglike_node(0.0), tree_like(0.0), drawn_ind(0), num_cutpoint_candidates(0), p(0), l(0), r(0) {}
+    
+    tree(size_t dim_suffstat) : theta_vector(1, 0.0), suff_stat(dim_suffstat, 0.0), N(0), ID(1), depth(0), v(0), c_index(0), c(0.0), prob_split(0.0), prob_leaf(0.0), loglike_node(0.0), tree_like(0.0), drawn_ind(0), num_cutpoint_candidates(0), p(0), l(0), r(0) {}
+    
+    tree(const tree &n) : theta_vector(1, 0.0), suff_stat(2, 0.0), depth(0), v(0), c_index(0), c(0.0), prob_split(0.0), prob_leaf(0.0), loglike_node(0.0), tree_like(0.0), drawn_ind(0), num_cutpoint_candidates(0), p(0), l(0), r(0) {cp(this, &n);}
+    
+    tree(double itheta) : theta_vector(itheta, 0.0), suff_stat(2, 0.0), depth(0), v(0), c_index(0), c(0.0), prob_split(0.0), prob_leaf(0.0), loglike_node(0.0), tree_like(0.0), drawn_ind(0), num_cutpoint_candidates(0), p(0), l(0), r(0) {}
 
-    tree(size_t dim_suffstat) : depth(0), suff_stat(dim_suffstat, 0.0), theta_vector(1, 0.0), v(0), c_index(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0), ID(1) {}
+    tree(size_t dim_theta, const tree_p parent, size_t dim_suffstat) : theta_vector(dim_theta, 0.0), suff_stat(dim_suffstat, 0.0), depth(0), v(0), c_index(0), c(0.0), prob_split(0.0), prob_leaf(0.0), loglike_node(0.0), tree_like(0.0), drawn_ind(0), num_cutpoint_candidates(0), p(parent), l(0), r(0) {}
 
-    tree(const tree &n) : depth(0), suff_stat(2, 0.0), theta_vector(1, 0.0), v(0), c_index(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) { cp(this, &n); }
-
-    tree(double itheta) : depth(0), suff_stat(2, 0.0), theta_vector(itheta, 0.0), v(0), c_index(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
-
-    tree(size_t dim_theta, const tree_p parent, size_t dim_suffstat) : suff_stat(dim_suffstat, 0.0), theta_vector(dim_theta, 0.0), v(0), c_index(0), c(0), p(parent), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
-
-    tree(size_t dim_theta, size_t dim_suffstat) : suff_stat(dim_suffstat, 0.0), theta_vector(dim_theta, 0.0), v(0), c_index(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
+    tree(size_t dim_theta, size_t dim_suffstat) : theta_vector(dim_theta, 0.0), suff_stat(dim_suffstat, 0.0), depth(0), v(0), c_index(0), c(0.0), prob_split(0.0), prob_leaf(0.0), loglike_node(0.0), tree_like(0.0), drawn_ind(0), num_cutpoint_candidates(0), p(0), l(0), r(0) {}
+    
     void tonull(); //like a "clear", null tree has just one node
 
     ~tree() { tonull(); }
