@@ -51,17 +51,17 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
 
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
-            omp_set_max_active_levels(3);
-            #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
-            {       
-                #pragma omp sections
-                {
-                    #pragma omp section
-                    {
-                        trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-                    }
-                }
-            }
+            // omp_set_max_active_levels(3);
+            // #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
+            // {       
+            //     #pragma omp sections
+            //     {
+            //         #pragma omp section
+            //         {
+            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+                    // }
+                // }
+            // }
 
             state->update_split_counts(tree_ind);
 
