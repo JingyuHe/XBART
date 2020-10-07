@@ -1,9 +1,11 @@
-# Jingyu He, Saar Yalov and P. Richrad Hahn (2019). XBART: Accelerated Bayesian Additive Regression Trees. The 22nd International Conference on Artificial Intelligence and Statistics (AISTATS)
+Jingyu He, Saar Yalov and P. Richrad Hahn (2019). XBART: Accelerated Bayesian Additive Regression Trees. The 22nd International Conference on Artificial Intelligence and Statistics (AISTATS)
 
-# For mac users seeing error clang: error: unsupported option '-fopenmp'
+For mac users seeing error clang: error: unsupported option '-fopenmp'
+
 It is because the default C++ compiler on Mac does not support openmp.
 
 To solve it
+
 1. Install necessary packages via homebrew 
    
    brew cask install gfortran
