@@ -35,8 +35,8 @@ get_entropy <- function(nclass){
 # nt = 50
 n = 10000
 nt = 5000
-p = 20
-p_cat = 20
+p = 6
+p_cat = 0
 k = 6
 lam = matrix(0,n,k)
 lamt = matrix(0,nt,k)
@@ -87,7 +87,7 @@ lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
 
 
 # vary s to make the problem harder s < 1 or easier s > 2
-s = 1
+s = 15
 pr = exp(s*lam)
 pr = t(scale(t(pr),center=FALSE, scale = rowSums(pr)))
 y_train = sapply(1:n,function(j) sample(0:(k-1),1,prob=pr[j,]))
@@ -119,7 +119,8 @@ tm = proc.time()-tm
 cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 # take average of all sweeps, discard burn-in
 # a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
-a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
+# a = a / rowSums(a) # bc a is the median of pi, need normalization
+a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), mean)
 pred = apply(a,1,which.max)-1
 yhat = apply(a,1,which.max)-1
 cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
@@ -145,8 +146,9 @@ yhat.xgb <- max.col(phat.xgb) - 1
 
 
 cat(paste("xbart rmse on probabilities: ", round(sqrt(mean((a-pr)^2)),3)),"\n")
-# cat(paste("ranger rmse on probabilities: ", round(sqrt(mean((pred3-pr)^2)),3)),"\n")
 cat(paste("xgboost rmse on probabilities: ", round(sqrt(mean((phat.xgb-pr)^2)),3)),"\n")
+
+
 
 spr <- split(a, row(a))
 logloss <- sum(mapply(function(x,y) -log(x[y]), spr, y_test+1, SIMPLIFY =TRUE))

@@ -616,6 +616,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     Rcpp::NumericMatrix tau_sample_rcpp(num_trees, num_sweeps);
     Rcpp::NumericMatrix weight_sample_rcpp(num_trees, num_sweeps);
     Rcpp::NumericMatrix logloss_rcpp(num_trees, num_sweeps);
+    Rcpp::NumericMatrix depth_rcpp(num_trees, num_sweeps);
 
     // TODO: Make these functions
     // for (size_t i = 0; i < N; i++)
@@ -638,6 +639,16 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         for (size_t j = 0; j < num_sweeps; j++)
         {
             weight_sample_rcpp(i, j) = weight_sample[j][i];
+        }
+    }
+    for (size_t i = 0; i < num_trees; i++)
+    {
+        for (size_t j = 0; j < num_sweeps; j++)
+        {
+            // npv bv = (*trees2)[j][i].bots()
+
+            depth_rcpp(i, j) = (*trees2)[j][i].getdepth();
+            // cout << "depth = "<< (*trees3)[j][i].getdepth() << endl;
         }
     }
     for (size_t i = 0; i < num_trees; i++)
@@ -684,6 +695,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         Rcpp::Named("logloss") = logloss_rcpp,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("num_stops") = num_stops,
+        Rcpp::Named("depth") = depth_rcpp,
         // Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
 

@@ -257,7 +257,8 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     double sum_fits;
     logloss = 0; // reset logloss
 
-    for (size_t i = 0; i < state->n_y; i++)
+
+        for (size_t i = 0; i < state->n_y; i++)
     {
         sum_fits = 0;
         y_i = (size_t) (*y_size_t)[i];
@@ -265,13 +266,21 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         {
             sum_fits += exp(state->residual_std[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
         }
+        // for (size_t j = 0; j < dim_residual; ++j)
+        // {
+        //     // logloss += - log( exp(state->residual_std[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j] / sum_fits); // logloss =  - log(p_j) 
+        // }
 
         logloss += - log( exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j) 
     }
         
+  
     // sample weight based on logloss
     std::gamma_distribution<> d(state->n_y, 1);
-    weight = d(state->gen) / (hmult * logloss + heps * (double) state->n_y); // it's like shift p down by
+    weight = d(state->gen) / (hmult * logloss + heps * (double) state->n_y) + 1; // it's like shift p down by
+
+    // std::gamma_distribution<> d(hmult + state->mtry * logloss / state->n_y, 1);
+    // weight = d(state->gen) + 1;
 
    // Sample tau_a
    if (update_tau)
