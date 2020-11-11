@@ -330,20 +330,22 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
                 {
                     #pragma omp section
                     {
-            for (size_t class_ind = 0; class_ind < model->dim_residual; class_ind++)
-            {
-                // cout << "class_ind " << class_ind << endl;
-                model->set_class_operating(class_ind);
+                        for (size_t class_ind = 0; class_ind < model->dim_residual; class_ind++)
+                        {
+                            // cout << "class_ind " << class_ind << endl;
+                            model->set_class_operating(class_ind);
 
-                state->lambdas_separate[tree_ind][class_ind].clear();
+                            state->lambdas_separate[tree_ind][class_ind].clear();
 
-                model->initialize_root_suffstat(state, trees[class_ind][sweeps][tree_ind].suff_stat);
+                            model->initialize_root_suffstat(state, trees[class_ind][sweeps][tree_ind].suff_stat);
 
-                trees[class_ind][sweeps][tree_ind].theta_vector.resize(model->dim_residual);
+                            trees[class_ind][sweeps][tree_ind].theta_vector.resize(model->dim_residual);
 
-                trees[class_ind][sweeps][tree_ind].grow_from_root_separate_tree(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true, entropy_threshold, num_stops);
+                            trees[class_ind][sweeps][tree_ind].grow_from_root_separate_tree(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true, entropy_threshold, num_stops);
+                        }
+                    }
+                }
             }
-                    }}}
 
             state->update_split_counts(tree_ind);
 

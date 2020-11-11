@@ -585,6 +585,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     }
     else
     {
+        cout << "grow separate trees" << endl;
         LogitModelSeparateTrees *model = new LogitModelSeparateTrees(num_class, tau_a, tau_b, alpha, beta, &y_size_t, weight, update_tau, hmult, heps);
 
         model->setNoSplitPenality(no_split_penality);

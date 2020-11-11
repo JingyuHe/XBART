@@ -42,11 +42,11 @@ p = v
 
 
 
-num_sweeps= 30
-num_trees = 20
+num_sweeps= 20
+num_trees = 150
 burnin = 3 
-max_depth = 30
-mtry = floor(p/3)
+max_depth = 20
+mtry = ceiling(p/2)
 
 ###################### xbart  #################
 t = proc.time()
@@ -70,6 +70,7 @@ cat("running time ", t[3], " seconds \n")
 cat("XBART error rate ", mean(yhat != ytest), "\n")
 
 cat(paste("xbart logloss : ",round(logloss,3)),"\n")
+
 ##################################################################
 
 
@@ -111,4 +112,5 @@ if (1)
   
 }
 
-save.image(paste(path, 'mnist_result/logloss_080501.rda', sep=''))
+remove(X_train, X_test, X.train, X.test)
+save.image(paste(path, 'mnist_result/logloss_110401.rda', sep=''))
