@@ -89,7 +89,7 @@ if (TRUE){
                           num_cutpoints=NULL, alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1, 
                           no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = 0, 
                           kap = 1, s = 1, verbose = TRUE, set_random_seed = FALSE, 
-                          random_seed = NULL, sample_weights_flag = TRUE, separate_tree = TRUE, stop_threshold = 0, 
+                          random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, stop_threshold = 0, 
                           weight = w, hmult = hmult, heps = heps) 
   tm = proc.time()-tm
   cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
@@ -98,7 +98,7 @@ if (TRUE){
   yhat = apply(a,1,which.max)-1
   
   
-  w_cand = seq(0.1, 3, by = 0.05)
+  w_cand = seq(0.8, 2, by = 0.02)
   ll = rep(0, length(w_cand))
   for (i in 1:length(w_cand))
   {

@@ -229,10 +229,10 @@ void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t 
 void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
 {
     suffstats[(*y_size_t)[index_next_obs]] += weight;
-
     for (size_t j = 0; j < dim_theta; ++j)
     {
-        suffstats[dim_residual + j] += weight * exp(residual_std[j][index_next_obs]);
+        // suffstats[dim_residual + j] += weight * exp(residual_std[j][index_next_obs]);
+        suffstats[dim_residual + j] += (*phi)[index_next_obs] * exp(residual_std[j][index_next_obs]);
     }
 
     return;
@@ -242,10 +242,14 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 {
     for (size_t j = 0; j < dim_theta; j++)
     {
-        std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1.0); // consider adding 1 sudo obs to prevent 0 theta value
+        if (isnan(suff_stat[j]))
+        {
+            cout <<"unidentified error: suff_stat is nan for class " << j << endl;
+            exit(1);
+        }
+        std::gamma_distribution<double> gammadist(tau_a + suff_stat[j] + 1, 1.0); // consider adding 1 sudo obs to prevent 0 theta value
         theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
     }
-
     return;
 }
 
@@ -256,6 +260,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     size_t y_i;
     double sum_fits;
     logloss = 0; // reset logloss
+    std::gamma_distribution<double> gammadist(weight, 1.0);
 
     for (size_t i = 0; i < state->n_y; i++)
     {
@@ -265,11 +270,21 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         {
             sum_fits += exp(state->residual_std[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
         }
+        // Sample phi
+        (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits);
+        // calculate logloss
         logloss += - log( exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j) 
+        if (isnan(logloss)){
+            cout << "unidentified error: logloss is nan" << endl;
+            cout << "class " << y_i << "; f = " << exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] << endl;
+            cout << "sum_fits = " << sum_fits << endl;
+            exit(1);
+        }
     }
     // sample weight based on logloss
     std::gamma_distribution<> d(state->n_y, 1);
     weight = d(state->gen) / (hmult * logloss + heps * (double) state->n_y) + 1; // it's like shift p down by
+    // cout << "weight" << weight <<  endl;
 
    // Sample tau_a
    if (update_tau)
@@ -641,7 +656,8 @@ void LogitModelSeparateTrees::incSuffStat(matrix<double> &residual_std, size_t i
     suffstats[(*y_size_t)[index_next_obs]] += weight;
 
     size_t j = class_operating;
-    suffstats[dim_theta + j] += weight * exp (residual_std[j][index_next_obs]);
+    // suffstats[dim_theta + j] += weight * exp (residual_std[j][index_next_obs]);
+    suffstats[dim_theta + j] += (*phi)[index_next_obs] * exp (residual_std[j][index_next_obs]);
 
     return;
 }
@@ -653,6 +669,11 @@ void LogitModelSeparateTrees::samplePars(std::unique_ptr<State> &state, std::vec
     std::gamma_distribution<double> gammadist(tau_a + suff_stat[j] + 1, 1.0); // add a sudo observation to prevent theta = 0;
     
     theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
+    if (theta_vector[j] == 0){
+        cout << "unidentified error, theta for class " << j << " = 0" << endl;
+        cout << "suff_stats = " << suff_stat[j] << ", " << suff_stat[dim_theta + j] << ", tau_a = " << tau_a << endl; 
+        exit(1);
+    }
 
     return;
 }
@@ -665,6 +686,7 @@ void LogitModelSeparateTrees::update_state(std::unique_ptr<State> &state, size_t
     size_t y_i;
     double sum_fits;
     logloss = 0; // reset logloss
+    std::gamma_distribution<double> gammadist(weight, 1.0);
 
     for (size_t i = 0; i < state->n_y; i++)
     {
@@ -674,12 +696,16 @@ void LogitModelSeparateTrees::update_state(std::unique_ptr<State> &state, size_t
         {
             sum_fits += exp(state->residual_std[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
         }
+        // Sample phi
+        (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits);
+        // cout << "phi " << i << " = " << (*phi)[i] << ", sum_fits = " << sum_fits << endl;
+        // calculate logloss
         logloss += - log( exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j) 
     }
     // sample weight based on logloss
     std::gamma_distribution<> d(state->n_y, 1);
     weight = d(state->gen) / (hmult * logloss + heps * (double) state->n_y) + 1; // it's like shift p down by
-
+    // cout << "weight = " << weight << endl;
 
     // Sample tau_a
    if (update_tau)

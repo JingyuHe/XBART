@@ -223,7 +223,13 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             }
 
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
-
+            for (size_t k = 0; k < trees[sweeps][tree_ind].suff_stat.size(); k++)
+            {
+                if (isnan(trees[sweeps][tree_ind].suff_stat[k])){
+                    cout << "unidentified error: suffstat " << k << " initialized as nan" << endl;
+                    exit(1);
+                }
+            }
             
             trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
             state->lambdas[tree_ind].clear();
