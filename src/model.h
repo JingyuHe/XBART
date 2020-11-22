@@ -531,7 +531,16 @@ class LogitModelSeparateTrees : public LogitModel
 private: 
     double LogitLIL(const vector<double> &suffstats) const
     {   
-        return  -(tau_a + suffstats[class_operating] ) * log(tau_b + suffstats[dim_residual + class_operating]) + lgamma(tau_a + suffstats[class_operating]);
+        double suff_stat_r = -suffstats[class_operating]; // sufficient statistics of all other classes
+        double suff_stat_s = -suffstats[class_operating + dim_residual];
+        for (size_t j = 0; j < dim_residual; j++)
+        {
+            suff_stat_r += suffstats[j];
+            suff_stat_s += suffstats[dim_residual + j];      
+        }
+        double ret = -(tau_a + suffstats[class_operating] ) * log(tau_b + suffstats[dim_residual + class_operating]) + lgamma(tau_a + suffstats[class_operating]);
+        ret += -(tau_a + suff_stat_r) * log(tau_b + suff_stat_s) + lgamma(tau_a + suff_stat_r);
+        return ret;
     }
 
     void ini_class_count(std::vector<double> & class_count, double &pseudo_norm, const double num_classes)
@@ -565,7 +574,7 @@ public:
 
     Model *clone() { return new LogitModelSeparateTrees(*this); }
 
-    void incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats);
+    // void incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats);
 
     void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
@@ -573,7 +582,7 @@ public:
 
     // void initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat);
 
-    void updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
+    // void updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
 
     // void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side);
 

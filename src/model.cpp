@@ -651,16 +651,16 @@ void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_tes
 //////////////////////////////////////////////////////////////////////////////////////
 
 //incSuffStat should take a state as its first argument
-void LogitModelSeparateTrees::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
-{
-    suffstats[(*y_size_t)[index_next_obs]] += weight;
+// void LogitModelSeparateTrees::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
+// {
+//     suffstats[(*y_size_t)[index_next_obs]] += weight;
 
-    size_t j = class_operating;
-    // suffstats[dim_theta + j] += weight * exp (residual_std[j][index_next_obs]);
-    suffstats[dim_theta + j] += (*phi)[index_next_obs] * exp (residual_std[j][index_next_obs]);
+//     size_t j = class_operating;
+//     // suffstats[dim_theta + j] += weight * exp (residual_std[j][index_next_obs]);
+//     suffstats[dim_theta + j] += (*phi)[index_next_obs] * exp (residual_std[j][index_next_obs]);
 
-    return;
-}
+//     return;
+// }
 
 void LogitModelSeparateTrees::samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
 {
@@ -749,18 +749,18 @@ void LogitModelSeparateTrees::update_state(std::unique_ptr<State> &state, size_t
 
 }
 
-void LogitModelSeparateTrees::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
-{
-    /*
-    suff_stat[0] += residual_std[0][Xorder_std[split_var][row_ind]];
-    suff_stat[1] += pow(residual_std[0][Xorder_std[split_var][row_ind]], 2);
-    suff_stat[2] += 1;
-    */
+// void LogitModelSeparateTrees::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
+// {
+//     /*
+//     suff_stat[0] += residual_std[0][Xorder_std[split_var][row_ind]];
+//     suff_stat[1] += pow(residual_std[0][Xorder_std[split_var][row_ind]], 2);
+//     suff_stat[2] += 1;
+//     */
 
-    incSuffStat(residual_std, Xorder_std[split_var][row_ind], suff_stat);
+//     incSuffStat(residual_std, Xorder_std[split_var][row_ind], suff_stat);
 
-    return;
-}
+//     return;
+// }
 
 void LogitModelSeparateTrees::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
 {
