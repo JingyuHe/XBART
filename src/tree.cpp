@@ -983,7 +983,6 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
     {
         model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
         if (entropy_threshold > 0){
-            cout << "early stopping is disabled for separate trees" << endl;
             //  calculate_entropy need a separate version
         //     double entropy;
         //     calculate_entropy(Xorder_std, state, this->theta_vector, entropy);

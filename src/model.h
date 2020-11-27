@@ -531,15 +531,15 @@ class LogitModelSeparateTrees : public LogitModel
 private: 
     double LogitLIL(const vector<double> &suffstats) const
     {   
-        double suff_stat_r = -suffstats[class_operating]; // sufficient statistics of all other classes
-        double suff_stat_s = -suffstats[class_operating + dim_residual];
-        for (size_t j = 0; j < dim_residual; j++)
-        {
-            suff_stat_r += suffstats[j];
-            suff_stat_s += suffstats[dim_residual + j];      
-        }
+        // double suff_stat_r = -suffstats[class_operating]; // sufficient statistics of all other classes
+        // double suff_stat_s = -suffstats[class_operating + dim_residual];
+        // for (size_t j = 0; j < dim_residual; j++)
+        // {
+        //     suff_stat_r += suffstats[j];
+        //     suff_stat_s += suffstats[dim_residual + j];      
+        // }
         double ret = -(tau_a + suffstats[class_operating] ) * log(tau_b + suffstats[dim_residual + class_operating]) + lgamma(tau_a + suffstats[class_operating]);
-        ret += -(tau_a + suff_stat_r) * log(tau_b + suff_stat_s) + lgamma(tau_a + suff_stat_r);
+        // ret += -(tau_a + suff_stat_r) * log(tau_b + suff_stat_s) + lgamma(tau_a + suff_stat_r);
         return ret;
     }
 

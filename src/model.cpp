@@ -694,13 +694,13 @@ void LogitModelSeparateTrees::update_state(std::unique_ptr<State> &state, size_t
         y_i = (size_t) (*y_size_t)[i];
         for (size_t j = 0; j < dim_residual; ++j)
         {
-            sum_fits += exp(state->residual_std[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
+            sum_fits += exp(state->residual_std[j][i]) * (*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
         }
         // Sample phi
         (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits);
         // cout << "phi " << i << " = " << (*phi)[i] << ", sum_fits = " << sum_fits << endl;
         // calculate logloss
-        logloss += - log( exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j) 
+        logloss += - log( exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers_multinomial[y_i][tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j) 
     }
     // sample weight based on logloss
     std::gamma_distribution<> d(state->n_y, 1);

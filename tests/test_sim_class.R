@@ -54,7 +54,7 @@ num_class = max(y_train)+1
 # num_sweeps = ceiling(200/log(n)) 
 num_sweeps = 20
 burnin = 3
-num_trees = 150
+num_trees = 20
 max_depth = 10
 mtry = ceiling(p/2) 
 if (TRUE){
