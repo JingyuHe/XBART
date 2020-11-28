@@ -368,7 +368,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
 
             tau_samples[sweeps][tree_ind] = model->tau_a;
-            weight_samples[sweeps][tree_ind] = wrap(model->weight);
+            weight_samples[sweeps][tree_ind] = model->weight;
         }
     }
 

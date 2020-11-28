@@ -704,8 +704,7 @@ void LogitModelSeparateTrees::update_state(std::unique_ptr<State> &state, size_t
     }
     // sample weight based on logloss
     std::gamma_distribution<> d(state->n_y, 1);
-    weight = d(state->gen) / (hmult * logloss + heps * (double) state->n_y) + 1; // it's like shift p down by
-    // cout << "weight = " << weight << endl;
+    weight = d(state->gen) / (hmult * logloss + heps * (double) state->n_y) + 1; 
 
     // Sample tau_a
    if (update_tau)

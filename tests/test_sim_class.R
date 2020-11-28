@@ -43,6 +43,7 @@ X_test = x[-(1:n.train),]
 
 y_train = y.all[1:n.train] - 1
 y_test = y.all[-(1:n.train)] - 1
+true_label = ind[-(1:n.train)] - 1
 
 # num_sweeps = 30
 # burnin = 3
@@ -58,29 +59,7 @@ num_trees = 20
 max_depth = 10
 mtry = ceiling(p/2) 
 if (TRUE){
-  # w_cand = seq(5, 15, by = 2)
-  # acc = rep(0, length(w_cand))
-  # #########################  parallel ####################3
-  # for (i in 1:length(w_cand))
-  # {
-  #   tm = proc.time()
-  #   fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test,
-  #                           num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth,
-  #                           num_cutpoints=NULL, alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1,
-  #                           no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = 0,
-  #                           kap = 1, s = 1, verbose = FALSE, set_random_seed = FALSE,
-  #                           random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, stop_threshold = 0,
-  #                           weight = w_cand[i], hmult = 1, heps = 0)
-  #   tm = proc.time()-tm
-  #   cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
-  #   a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), mean)
-  #   yhat = apply(a,1,which.max)-1
-  #   acc[i] = round(mean(y_test == yhat),3)
-  # }
-  # cat(paste('best w ', w_cand[which.max(acc)], "\n"))
-  # cat(paste("xbart classification accuracy: ",round(max(acc),3)),"\n")
-  # 
-  # w = w_cand[which.min(acc)]
+
   w = 1
   hmult = 1; heps = 0
   tm = proc.time()
@@ -90,7 +69,7 @@ if (TRUE){
                           no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = 0, 
                           kap = 1, s = 1, verbose = TRUE, set_random_seed = FALSE, 
                           random_seed = NULL, sample_weights_flag = TRUE, separate_tree = TRUE, stop_threshold = 0, 
-                          weight = w, hmult = hmult, heps = heps) 
+                          weight = w, hmult = hmult, heps = heps, update_tau = FALSE) 
   tm = proc.time()-tm
   cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
   a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), mean)
@@ -202,10 +181,6 @@ if (TRUE){
   
 }
 
-
-pr = sapply(1:n.test, function(i) error.mat[y_test[i] + 1, y_test[i] + 1])
-cat(paste("xbart rmse on probabilities: ", round(sqrt(mean((a-pr)^2)),3)),"\n")
-cat(paste("xgboost rmse on probabilities: ", round(sqrt(mean((phat.xgb-pr)^2)),3)),"\n")
 
 cat(paste("xbart logloss : ",round(logloss,3)),"\n")
 cat(paste("xgboost logloss : ", round(logloss.xgb,3)),"\n")
