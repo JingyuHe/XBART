@@ -11,7 +11,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
     // Residual for 0th tree
     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
     model->ini_residual_std(state);
-
+cout << "initial value of tau is " << model->tau << " " << model->tau_mean << endl;
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {
 
@@ -62,6 +62,9 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
                     }
                 }
             }
+
+            // update tau after sampling the tree
+            model->update_tau(state, tree_ind, sweeps, trees);
 
             state->update_split_counts(tree_ind);
 

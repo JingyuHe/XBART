@@ -204,6 +204,7 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
 
     // define model
     NormalModel *model = new NormalModel(kap, s, tau, alpha, beta);
+    cout << "after define model " << model->tau << " " << model->tau_mean << endl;
     model->setNoSplitPenality(no_split_penality);
 
     // State settings
