@@ -72,10 +72,10 @@ void NormalModel::update_tau(std::unique_ptr<State> &state, size_t tree_ind, siz
     double s = 1.0;
     // s = 1.0 / s;
     std::gamma_distribution<double> gamma_samp((leaf_nodes.size() + kap) / 2.0, 2.0 / (sum_squared + s));
-    cout << "------------------------" << endl;
-    cout << "original tau " << this->tau << endl;
+    // cout << "------------------------" << endl;
+    // cout << "original tau " << this->tau << endl;
     this->tau = 1.0 / gamma_samp(state->gen); 
-    cout << "new tau " << this->tau << endl;
+    // cout << "new tau " << this->tau << endl;
     return;
 };
 
