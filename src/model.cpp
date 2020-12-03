@@ -97,7 +97,7 @@ void NormalModel::update_tau_per_forest(std::unique_ptr<State> &state, size_t sw
     double s = 20.0 * this->tau_mean;
     // double kap = 40;
     // double s = 20;
-    cout << leaf_nodes.size() << " " << sum_squared << " " << sum_squared / leaf_nodes.size() << " " << s / kap << endl;
+    // cout << leaf_nodes.size() << " " << sum_squared << " " << sum_squared / leaf_nodes.size() << " " << s / kap << endl;
     // cout << "values " << sum_squared / leaf_nodes.size() << " " << s / kap << endl;
     // s = 1.0 / s;
     std::gamma_distribution<double> gamma_samp((leaf_nodes.size() + kap) / 2.0, 2.0 / (sum_squared + s));
