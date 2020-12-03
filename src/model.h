@@ -115,8 +115,22 @@ public:
     double kap;
     double s;
     // prior on leaf parameter
-    double tau;
-    double tau_mean;
+    double tau; // might be updated if sampling tau
+    double tau_mean; // copy of the original value
+    bool sampling_tau;
+
+    NormalModel(double kap, double s, double tau, double alpha, double beta, bool sampling_tau) : Model(1, 3)
+    {
+        this->kap = kap;
+        this->s = s;
+        this->tau = tau;
+        this->tau_mean = tau;
+        this->alpha = alpha;
+        this->beta = beta;
+        this->dim_residual = 1;
+        this->class_operating = 0;
+        this->sampling_tau = sampling_tau;
+    }
 
     NormalModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 3)
     {
@@ -128,6 +142,7 @@ public:
         this->beta = beta;
         this->dim_residual = 1;
         this->class_operating = 0;
+        this->sampling_tau = true;
     }
 
     NormalModel() : Model(1, 3) {}

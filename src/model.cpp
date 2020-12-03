@@ -54,33 +54,15 @@ void NormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, s
 void NormalModel::update_tau(std::unique_ptr<State> &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> & trees){
     std::vector<tree *> leaf_nodes;
     trees[sweeps][tree_ind].getbots(leaf_nodes);
-    // cout << "size of leaf nodes " << leaf_nodes.size() << endl;
-    
-    // calculate sum of squares of leaf parameters
     double sum_squared = 0.0;
     for(size_t i = 0; i < leaf_nodes.size(); i ++ ){
         sum_squared = sum_squared + pow(leaf_nodes[i]->theta_vector[0], 2);
     }
-    // cout << "sum of squared " << sum_squared << endl;
-
-    // calcuate prior paramter, add a little bit shrinkage
-    // double kap = 5.0;
-    // double s = kap / this->tau_mean + 1.0;
-    // cout << "prior tau being used " << this->tau_mean << endl;
-    // double s = 0.7 * this->tau_mean * 3.0;
-    // double kap = 2.0;
-    // double s = 1.0 * this->tau_mean;
-    // double s = 1.0;
     double kap = 40.0;
     double s = 20.0 * this->tau_mean;
-
-    // cout << "values " << sum_squared / leaf_nodes.size() << " " << s / kap << endl;
-    // s = 1.0 / s;
+    
     std::gamma_distribution<double> gamma_samp((leaf_nodes.size() + kap) / 2.0, 2.0 / (sum_squared + s));
-    // cout << "------------------------" << endl;
-    // cout << "original tau " << this->tau << endl;
     this->tau = 1.0 / gamma_samp(state->gen); 
-    // cout << "new tau " << this->tau << endl;
     return;
 };
 
@@ -95,16 +77,8 @@ void NormalModel::update_tau_per_forest(std::unique_ptr<State> &state, size_t sw
     }
     double kap = 40.0;
     double s = 20.0 * this->tau_mean;
-    // double kap = 40;
-    // double s = 20;
-    // cout << leaf_nodes.size() << " " << sum_squared << " " << sum_squared / leaf_nodes.size() << " " << s / kap << endl;
-    // cout << "values " << sum_squared / leaf_nodes.size() << " " << s / kap << endl;
-    // s = 1.0 / s;
     std::gamma_distribution<double> gamma_samp((leaf_nodes.size() + kap) / 2.0, 2.0 / (sum_squared + s));
-    // cout << "------------------------" << endl;
-    // cout << "original tau " << this->tau << endl;
     this->tau = 1.0 / gamma_samp(state->gen); 
-    // cout << "new tau " << this->tau << endl;
     return;
 }
 
