@@ -142,6 +142,8 @@ public:
 
     void update_tau(std::unique_ptr<State> &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> & trees);
 
+    void update_tau_per_forest(std::unique_ptr<State> &state, size_t sweeps, vector<vector<tree>> & trees);
+
     void initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat);
 
     void updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
