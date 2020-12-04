@@ -294,7 +294,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART_sample_int_ccrank", (DL_FUNC) &_XBART_sample_int_ccrank, 3},
     {"_XBART_sample_int_expj", (DL_FUNC) &_XBART_sample_int_expj, 3},
     {"_XBART_sample_int_expjs", (DL_FUNC) &_XBART_sample_int_expjs, 3},
-    {"_XBART_XBART_cpp", (DL_FUNC) &_XBART_XBART_cpp, 23},
+    {"_XBART_XBART_cpp", (DL_FUNC) &_XBART_XBART_cpp, 24},
     {"_XBART_XBART_CLT_cpp", (DL_FUNC) &_XBART_XBART_CLT_cpp, 23},
     {"_XBART_XBART_multinomial_cpp", (DL_FUNC) &_XBART_XBART_multinomial_cpp, 31},
     {"_XBART_XBART_Probit_cpp", (DL_FUNC) &_XBART_XBART_Probit_cpp, 23},
