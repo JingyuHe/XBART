@@ -59,7 +59,7 @@ void NormalModel::update_tau(std::unique_ptr<State> &state, size_t tree_ind, siz
         sum_squared = sum_squared + pow(leaf_nodes[i]->theta_vector[0], 2);
     }
     double kap = 3.0;
-    double s = 0.75 * this->tau_mean;
+    double s = 0.5 * this->tau_mean;
     
     std::gamma_distribution<double> gamma_samp((leaf_nodes.size() + kap) / 2.0, 2.0 / (sum_squared + s));
     this->tau = 1.0 / gamma_samp(state->gen); 
@@ -76,7 +76,7 @@ void NormalModel::update_tau_per_forest(std::unique_ptr<State> &state, size_t sw
         sum_squared = sum_squared + pow(leaf_nodes[i]->theta_vector[0], 2);
     }
     double kap = 3.0;
-    double s = 0.75 * this->tau_mean;
+    double s = 0.5 * this->tau_mean;
     std::gamma_distribution<double> gamma_samp((leaf_nodes.size() + kap) / 2.0, 2.0 / (sum_squared + s));
     this->tau = 1.0 / gamma_samp(state->gen); 
     return;
