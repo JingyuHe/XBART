@@ -114,18 +114,39 @@ public:
     // prior on sigma
     double kap;
     double s;
+    double tau_kap;
+    double tau_s;
     // prior on leaf parameter
-    double tau;
+    double tau; // might be updated if sampling tau
+    double tau_mean; // copy of the original value
+    bool sampling_tau;
+
+    NormalModel(double kap, double s, double tau, double alpha, double beta, bool sampling_tau, double tau_kap, double tau_s) : Model(1, 3)
+    {
+        this->kap = kap;
+        this->s = s;
+        this->tau_kap = tau_kap;
+        this->tau_s = tau_s;
+        this->tau = tau;
+        this->tau_mean = tau;
+        this->alpha = alpha;
+        this->beta = beta;
+        this->dim_residual = 1;
+        this->class_operating = 0;
+        this->sampling_tau = sampling_tau;
+    }
 
     NormalModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 3)
     {
         this->kap = kap;
         this->s = s;
         this->tau = tau;
+        this->tau_mean = tau;
         this->alpha = alpha;
         this->beta = beta;
         this->dim_residual = 1;
         this->class_operating = 0;
+        this->sampling_tau = true;
     }
 
     NormalModel() : Model(1, 3) {}
@@ -137,6 +158,10 @@ public:
     void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
     void update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct);
+
+    void update_tau(std::unique_ptr<State> &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> & trees);
+
+    void update_tau_per_forest(std::unique_ptr<State> &state, size_t sweeps, vector<vector<tree>> & trees);
 
     void initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat);
 

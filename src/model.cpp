@@ -51,6 +51,37 @@ void NormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, s
     return;
 }
 
+void NormalModel::update_tau(std::unique_ptr<State> &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> & trees){
+    std::vector<tree *> leaf_nodes;
+    trees[sweeps][tree_ind].getbots(leaf_nodes);
+    double sum_squared = 0.0;
+    for(size_t i = 0; i < leaf_nodes.size(); i ++ ){
+        sum_squared = sum_squared + pow(leaf_nodes[i]->theta_vector[0], 2);
+    }
+    double kap = this->tau_kap;
+    double s = this->tau_s * this->tau_mean;
+    
+    std::gamma_distribution<double> gamma_samp((leaf_nodes.size() + kap) / 2.0, 2.0 / (sum_squared + s));
+    this->tau = 1.0 / gamma_samp(state->gen); 
+    return;
+};
+
+void NormalModel::update_tau_per_forest(std::unique_ptr<State> &state, size_t sweeps, vector<vector<tree>> & trees){
+    std::vector<tree *> leaf_nodes;
+    for(size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind ++){
+        trees[sweeps][tree_ind].getbots(leaf_nodes);
+    }
+    double sum_squared = 0.0;
+    for(size_t i = 0; i < leaf_nodes.size(); i ++ ){
+        sum_squared = sum_squared + pow(leaf_nodes[i]->theta_vector[0], 2);
+    }
+    double kap = this->tau_kap;
+    double s = this->tau_s * this->tau_mean;
+    std::gamma_distribution<double> gamma_samp((leaf_nodes.size() + kap) / 2.0, 2.0 / (sum_squared + s));
+    this->tau = 1.0 / gamma_samp(state->gen); 
+    return;
+}
+
 void NormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
 {
     // sum of y
