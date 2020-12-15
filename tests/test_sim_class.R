@@ -8,7 +8,7 @@ n.all = n.train + n.test
 k = 10
 p = k
 acc_level = 0.95
-nthread = 4
+nthread = 6
 x = matrix(rnorm(n.all*(p)),n.all,(p))
 
 

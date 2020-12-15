@@ -579,7 +579,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
 
     if (!separate_tree)
     {
-        LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_tau, hmult, heps);
+        LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_tau, update_weight, hmult, heps);
         model->setNoSplitPenality(no_split_penality);
 
         mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, tau_sample, weight_sample, logloss, stop_threshold, num_stops);
@@ -594,7 +594,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         if (stop_threshold > 0){
             cout << "early stopping is disabled for separate trees" << endl;
         }
-        LogitModelSeparateTrees *model = new LogitModelSeparateTrees(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_tau, hmult, heps);
+        LogitModelSeparateTrees *model = new LogitModelSeparateTrees(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_tau, update_weight, hmult, heps);
 
         model->setNoSplitPenality(no_split_penality);
 
