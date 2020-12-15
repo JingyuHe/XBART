@@ -1,3 +1,4 @@
+# install.packages("D:/XBART",repos=NULL,type="source")
 library(XBART)
 library(xgboost)
 # library(ranger)
@@ -101,7 +102,7 @@ y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 # num_sweeps = ceiling(200/log(n)) 
 num_sweeps = 20
 burnin = 3
-num_trees = 150
+num_trees = 20
 max_depth = 20
 mtry = NULL # round((p + p_cat)/3)
 #########################  parallel ####################3
@@ -111,8 +112,8 @@ fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test,
                         num_cutpoints=NULL, alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1, 
                         no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = p_cat, 
                         kap = 1, s = 1, verbose = TRUE, set_random_seed = FALSE, 
-                        random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, stop_threshold = 0,
-                        weight = 1, hmult = 1, heps = 0.1) 
+                        random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, stop_threshold = 0, nthread = 0,
+                        weight = 1, hmult = 1, heps = 0) 
 
 
 tm = proc.time()-tm

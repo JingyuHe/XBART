@@ -1,4 +1,4 @@
-XBART.multinomial <- function(y, num_class, X, Xtest, num_trees = 20, num_sweeps = 20, max_depth = 250, Nmin = NULL, num_cutpoints = NULL, alpha = 0.95, beta = 1.25, tau_a = 1, tau_b = 1, no_split_penality = NULL, burnin = 3, mtry = NULL, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, stop_threshold = 0, nthread = 0, weight = 1, hmult = 1, heps = 0.1, update_tau = TRUE, ...) {
+XBART.multinomial <- function(y, num_class, X, Xtest, num_trees = 20, num_sweeps = 20, max_depth = 250, Nmin = NULL, num_cutpoints = NULL, alpha = 0.95, beta = 1.25, tau_a = 1, tau_b = 1, no_split_penality = NULL, burnin = 3, mtry = NULL, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, stop_threshold = 0, nthread = 0, weight = 1, hmult = 1, heps = 0, update_tau = TRUE, update_weight = TRUE, ...) {
 
     if (!("matrix" %in% class(X))) {
         cat("Input X is not a matrix, try to convert type.\n")
@@ -111,7 +111,7 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees = 20, num_sweeps
     check_scalar(kap, "kap")
     check_scalar(s, "s")
 
-    obj = XBART_multinomial_cpp(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, separate_tree, stop_threshold, nthread, weight, hmult, heps, update_tau)
+    obj = XBART_multinomial_cpp(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, separate_tree, stop_threshold, nthread, weight, hmult, heps, update_tau, update_weight)
     class(obj) = "XBARTmultinomial" # Change to XBARTProbit?
     return(obj)
 }
