@@ -7,8 +7,13 @@ n.test = 5000
 n.all = n.train + n.test
 k = 10
 p = k
+<<<<<<< HEAD
 acc_level = 0.5
 nthread = 12
+=======
+acc_level = 0.95
+nthread = 6
+>>>>>>> a2e309ad0b3ca0f0bf2b24773224988ddd0c1711
 x = matrix(rnorm(n.all*(p)),n.all,(p))
 
 
