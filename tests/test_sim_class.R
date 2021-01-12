@@ -7,8 +7,8 @@ n.test = 5000
 n.all = n.train + n.test
 k = 10
 p = k
-acc_level = 0.95
-nthread = 4
+acc_level = 0.5
+nthread = 12
 x = matrix(rnorm(n.all*(p)),n.all,(p))
 
 
@@ -55,7 +55,7 @@ num_class = max(y_train)+1
 # num_sweeps = ceiling(200/log(n)) 
 num_sweeps = 20
 burnin = 3
-num_trees = 20
+num_trees = 50
 max_depth = 10
 mtry = ceiling(p/2) 
 if (TRUE){
@@ -68,32 +68,34 @@ if (TRUE){
                           num_cutpoints=NULL, alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1, 
                           no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = 0, 
                           kap = 1, s = 1, verbose = TRUE, set_random_seed = FALSE, 
-                          random_seed = NULL, sample_weights_flag = TRUE, separate_tree = TRUE, stop_threshold = 0, 
+                          random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, stop_threshold = 0, 
                           weight = w, hmult = hmult, heps = heps, update_tau = FALSE) 
   tm = proc.time()-tm
   cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
   a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), mean)
   a = a / rowSums(a)
   yhat = apply(a,1,which.max)-1
+  spr.xbart = split(a, row(a))
+  logloss = sum(mapply(function(x, y) -log(x[y]), spr.xbart, y_test + 1, SIMPLIFY = TRUE))
   
   
-  w_cand = seq(0.8, 2, by = 0.02)
-  ll = rep(0, length(w_cand))
-  for (i in 1:length(w_cand))
-  {
-    w = w_cand[i]
-    prob = a^w / rowSums(a^w)
-    spr.xbart <- split(prob, row(prob))
-    ll[i] = sum(mapply(function(x,y) -log(x[y]), spr.xbart, y_test+1, SIMPLIFY =TRUE))
-  }
-  cat(paste('best w ', w_cand[which.min(ll)], "\n"))
-  logloss <- min(ll)
-  
-  
-  cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
-  cat(paste("xbart default logloss : ",round(ll[6],3)),"\n")
-  cat(paste("xbart logloss : ",round(logloss,3)),"\n")
-  
+  # w_cand = seq(0.8, 2, by = 0.02)
+  # ll = rep(0, length(w_cand))
+  # for (i in 1:length(w_cand))
+  # {
+  #   w = w_cand[i]
+  #   prob = a^w / rowSums(a^w)
+  #   spr.xbart <- split(prob, row(prob))
+  #   ll[i] = sum(mapply(function(x,y) -log(x[y]), spr.xbart, y_test+1, SIMPLIFY =TRUE))
+  # }
+  # cat(paste('best w ', w_cand[which.min(ll)], "\n"))
+  # logloss <- min(ll)
+  # 
+  # 
+  # cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
+  # cat(paste("xbart default logloss : ",round(ll[6],3)),"\n")
+  # cat(paste("xbart logloss : ",round(logloss,3)),"\n")
+  # 
   # plot(w_cand, ll)
 }
 

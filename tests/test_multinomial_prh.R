@@ -59,17 +59,17 @@ X_test = cbind(X_test, matrix(rbinom(nt*p_cat, 1, 0.5), nrow = nt))
 # X_test = cbind(X_test, matrix(rpois(nt*p_cat, 20), nrow=nt))
 
 
-lam[,1] = abs(2*X_train[,1] - X_train[,2])
-lam[,2] = 1
+lam[,1] = abs(3*X_train[,1] - X_train[,2])
+lam[,2] = 2
 lam[,3] = 3*X_train[,3]^2
-lam[,4] = 5*(X_train[, 4] * X_train[,5])
-lam[,5] = 2*(X_train[,5] + 2*X_train[,6])
+lam[,4] = 4*(X_train[, 4] * X_train[,5])
+lam[,5] = 2*(X_train[,5] + X_train[,6])
 lam[,6] = 2*(X_train[,1] + X_train[,3] - X_train[,5])
-lamt[,1] = abs(2*X_test[,1] - X_test[,2])
-lamt[,2] = 1
+lamt[,1] = abs(3*X_test[,1] - X_test[,2])
+lamt[,2] = 2
 lamt[,3] = 3*X_test[,3]^2
-lamt[,4] = 5*(X_test[,4]*X_test[,5])
-lamt[,5] = 2*(X_test[,5] + 2*X_test[,6])
+lamt[,4] = 4*(X_test[,4]*X_test[,5])
+lamt[,5] = 2*(X_test[,5] + X_test[,6])
 lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
 
 # lam[,1] = 3*abs(2*X_train[,1] - X_train[,2])
@@ -101,7 +101,7 @@ y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 # num_sweeps = ceiling(200/log(n)) 
 num_sweeps = 20
 burnin = 3
-num_trees = 150
+num_trees = 20
 max_depth = 20
 mtry = NULL # round((p + p_cat)/3)
 #########################  parallel ####################3

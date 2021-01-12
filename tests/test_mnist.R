@@ -43,9 +43,9 @@ p = v
 
 
 num_sweeps= 20
-num_trees = 150
+num_trees = 50
 burnin = 3 
-max_depth = 20
+max_depth = 10
 mtry = ceiling(p/2)
 
 ###################### xbart  #################
@@ -56,10 +56,11 @@ fit = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test,
                         no_split_penality = 1,  burnin = burnin, mtry = mtry , p_categorical = p, 
                         kap = 1, s = 1, verbose = TRUE, parallel = TRUE, set_random_seed = TRUE, 
                         random_seed = NULL, sample_weights_flag = TRUE, nthread = nthread,
-                        num_cutpoints = 20) 
+                        stop_threshold = 0, hmult=1,heps=0,separate_tree=FALSE,update_tau=FALSE
+                        ) 
 t = proc.time() - t
 
-pred = apply(fit$yhats_test[(burnin):(num_sweeps-0),,], c(2,3), median)
+pred = apply(fit$yhats_test[(burnin):(num_sweeps-0),,], c(2,3), mean)
 yhat = max.col(pred)-1
 
 spr <- split(pred, row(pred))
@@ -113,4 +114,4 @@ if (1)
 }
 
 remove(X_train, X_test, X.train, X.test)
-save.image(paste(path, 'mnist_result/logloss_110401.rda', sep=''))
+save.image(paste(path, 'mnist_result/123001.rda', sep=''))
