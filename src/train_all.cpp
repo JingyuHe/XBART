@@ -557,24 +557,16 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     ////////////////////////////////////////////////
 
     vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
-    for (size_t i = 0; i < num_sweeps; i++)
-    {
-        (*trees2)[i] = vector<tree>(num_trees);
-    }
-
     // separate tree
     vector<vector<vector<tree>>> *trees3 = new vector<vector<vector<tree>>>(num_class);
-    for (size_t i = 0; i < num_class; i++)
-    {
-        (*trees3)[i] = vector<vector<tree>>(num_sweeps);
-        for (size_t j = 0; j < num_sweeps; j++)
-        {
-            (*trees3)[i][j] = vector<tree>(num_trees);
-        }
-    }
 
     if (!separate_tree)
     {
+        for (size_t i = 0; i < num_sweeps; i++)
+        {
+            (*trees2)[i] = vector<tree>(num_trees);
+        }
+
         LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, weight, update_tau, hmult, heps);
         model->setNoSplitPenality(no_split_penality);
 
@@ -586,6 +578,14 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     }
     else
     {
+        for (size_t i = 0; i < num_class; i++)
+        {
+            (*trees3)[i] = vector<vector<tree>>(num_sweeps);
+            for (size_t j = 0; j < num_sweeps; j++)
+            {
+                (*trees3)[i][j] = vector<tree>(num_trees);
+            }
+        }
         LogitModelSeparateTrees *model = new LogitModelSeparateTrees(num_class, tau_a, tau_b, alpha, beta, &y_size_t, weight, update_tau, hmult, heps);
 
         model->setNoSplitPenality(no_split_penality);
@@ -660,15 +660,53 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         split_count_sum(i) = (int)state->split_count_all[i];
     }
 
-    // auto end = system_clock::now();
 
-    // auto duration = duration_cast<microseconds>(end - start);
+    std::stringstream treess;
 
-    // COUT << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
+    // if separate trees, return length num_class object, each contains num_sweeps * num_trees trees
+    // if shared trees, return length 1 object, num_sweeps * num_trees trees
+    Rcpp::StringVector output_tree(0);
 
-    // COUT << "Running time of split Xorder " << run_time << endl;
+    if(! separate_tree)
+    {
+        // shared trees
+        // the output is a length num_sweeps vector, each string is a sweep
+        // for each sweep, put first tree of all K classes first (duplicated), then the second tree
+        // still num_class * num_trees in each string, for convenience of BART initialization
+        for(size_t i = 0; i < num_sweeps; i++)
+        {
+            treess.precision(10);
+            treess.str(std::string());
+            treess << (double) separate_tree << " " << num_class << " " << num_sweeps << " " << num_trees << " " << p << endl;
+            for(size_t j = 0; j < num_trees; j ++)
+            {
+                for(size_t kk = 0; kk < num_trees; kk ++ )
+                {
+                    treess << (*trees2)[i][j];
+                }
+            }
+            output_tree.push_back(treess.str());    
+        }
 
-    // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
+    }else{
+        // separate trees
+        // the output is a length num_sweeps vector, each string is a sweep
+        // for each sweep, put first tree of all K classes first, then the second tree, etc
+        for(size_t i = 0; i < num_sweeps; i++)
+        {
+            treess.precision(10);
+            treess.str(std::string());
+            treess << (double) separate_tree << " " << num_class << " " << num_sweeps << " " << num_trees << " " << p << endl;
+            for(size_t j = 0; j < num_trees; j ++)
+            {
+                for(size_t kk = 0; kk < num_class; kk ++ )
+                {
+                    treess << (*trees3)[kk][i][j];
+                }
+            }
+            output_tree.push_back(treess.str());
+        }
+    }
 
     // clean memory
     // // delete model;
@@ -685,6 +723,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         Rcpp::Named("logloss") = logloss_rcpp,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("num_stops") = num_stops,
+        Rcpp::Named("treedraws") = output_tree,
         // Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
 

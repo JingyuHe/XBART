@@ -448,12 +448,19 @@ std::ostream& operator<<(std::ostream& os, const tree& t)
 {
    tree::cnpv nds;
    t.getnodes(nds);
+   // print size of theta first
+//    os << nds[0]->theta_vector.size() << std::endl;
+   // next print number of nodes
    os << nds.size() << std::endl;
    for(size_t i=0;i<nds.size();i++) {
       os << nds[i]->nid() << " ";
       os << nds[i]->getv() << " ";
-      os << nds[i]->getc_index() << " ";
+      os << nds[i]->getc_index();
       os << nds[i]->theta_vector[0] << std::endl;
+    //   for(size_t kk=0;kk<nds[i]->theta_vector.size();kk++){
+        //   os << " " << nds[i]->theta_vector[kk];
+    //   }
+      os << endl;
    }
    return os;
 }
@@ -865,6 +872,13 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
         // If GROW FROM ROOT MODE
         this->v = split_var;
         this->c = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
+        
+        
+        size_t index_in_full = 0;
+        while((state->Xorder_std)[split_var][index_in_full]!=Xorder_std[split_var][split_point]){
+            index_in_full++;
+        }
+        this->c_index = (size_t) round((double) index_in_full / (double) state->n_y * (double)state->n_cutpoints);
     }
 
     // Update Cutpoint to be a true seperating point
@@ -1068,6 +1082,12 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
         // If GROW FROM ROOT MODE
         this->v = split_var;
         this->c = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
+
+        size_t index_in_full = 0;
+        while((state->Xorder_std)[split_var][index_in_full]!=Xorder_std[split_var][split_point]){
+            index_in_full++;
+        }
+        this->c_index = (size_t) round((double) index_in_full / (double) state->n_y * (double)state->n_cutpoints);
     }
 
     // Update Cutpoint to be a true seperating point
