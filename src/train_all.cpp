@@ -680,7 +680,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
             treess << (double) separate_tree << " " << num_class << " " << num_sweeps << " " << num_trees << " " << p << endl;
             for(size_t j = 0; j < num_trees; j ++)
             {
-                for(size_t kk = 0; kk < num_trees; kk ++ )
+                for(size_t kk = 0; kk < num_class; kk ++ )
                 {
                     treess << (*trees2)[i][j];
                 }
