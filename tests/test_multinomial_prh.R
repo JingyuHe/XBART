@@ -34,8 +34,8 @@ get_entropy <- function(nclass){
 # 
 # n = 200
 # nt = 50
-n = 10000
-nt = 5000
+n = 5000
+nt = 1000
 p = 6
 p_cat = 0
 k = 6
@@ -88,7 +88,7 @@ lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
 
 
 # vary s to make the problem harder s < 1 or easier s > 2
-s = 15
+s = 10
 pr = exp(s*lam)
 pr = t(scale(t(pr),center=FALSE, scale = rowSums(pr)))
 y_train = sapply(1:n,function(j) sample(0:(k-1),1,prob=pr[j,]))
@@ -102,7 +102,7 @@ y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 # num_sweeps = ceiling(200/log(n)) 
 num_sweeps = 20
 burnin = 5
-num_trees = 20
+num_trees = 50
 #########################  parallel ####################3
 tm = proc.time()
 fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test, 
@@ -138,11 +138,6 @@ phat.xgb <- predict(fit.xgb, X_test)
 phat.xgb <- matrix(phat.xgb, ncol=k, byrow=TRUE)
 
 yhat.xgb <- max.col(phat.xgb) - 1
-
-
-cat(paste("xbart rmse on probabilities: ", round(sqrt(mean((a-pr)^2)),3)),"\n")
-cat(paste("xgboost rmse on probabilities: ", round(sqrt(mean((phat.xgb-pr)^2)),3)),"\n")
-
 
 
 spr <- split(a, row(a))

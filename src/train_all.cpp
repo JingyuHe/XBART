@@ -446,8 +446,13 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, bool separate_tree = false, double stop_threshold = 0, size_t nthread = 0, double weight = 1, double hmult = 1, double heps = 0, bool update_tau = false, bool update_weight = true)
+Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, 
+size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penality, 
+size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, 
+bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, double hmult = 1, double heps = 0, bool update_tau = false, bool update_weight = true, double nthread = 0)
 {
+    // temporary
+    double stop_threshold = 0;
     // auto start = system_clock::now();
 
     size_t N = X.n_rows;
@@ -476,13 +481,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         COUT << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
     }
 
-    // double nthread = 1;
-
-    if (parallel & (nthread == 0))
-    {
-        nthread = omp_get_max_threads();
-    }
-
+    if (parallel & (nthread == 0)) nthread = omp_get_max_threads();
     omp_set_num_threads(nthread);
 
     arma::umat Xorder(X.n_rows, X.n_cols);
@@ -622,27 +621,9 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericVector split_count_sum(p); // split counts
     // Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
-    Rcpp::NumericMatrix tau_sample_rcpp(num_trees, num_sweeps);
     Rcpp::NumericMatrix weight_sample_rcpp(num_trees, num_sweeps);
-    Rcpp::NumericMatrix logloss_rcpp(num_trees, num_sweeps);
     Rcpp::NumericMatrix depth_rcpp(num_trees, num_sweeps);
 
-    // TODO: Make these functions
-    // for (size_t i = 0; i < N; i++)
-    // {
-    //     for (size_t j = 0; j < num_sweeps; j++)
-    //     {
-    //         yhats(i, j) = yhats_xinfo[j][i];
-    //     }
-    // }
-
-    for (size_t i = 0; i < num_trees; i++)
-    {
-        for (size_t j = 0; j < num_sweeps; j++)
-        {
-            tau_sample_rcpp(i, j) = tau_sample[j][i];
-        }
-    }
     for (size_t i = 0; i < num_trees; i++)
     {
         for (size_t j = 0; j < num_sweeps; j++)
@@ -658,13 +639,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
 
             depth_rcpp(i, j) = (*trees2)[j][i].getdepth();
             // cout << "depth = "<< (*trees3)[j][i].getdepth() << endl;
-        }
-    }
-    for (size_t i = 0; i < num_trees; i++)
-    {
-        for (size_t j = 0; j < num_sweeps; j++)
-        {
-            logloss_rcpp(i, j) = logloss[j][i];
         }
     }
     for (size_t i = 0; i < N_test; i++)
@@ -699,14 +673,11 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("num_class") = num_class,
         Rcpp::Named("yhats_test") = output,
-        Rcpp::Named("tau_a") = tau_sample_rcpp,
         Rcpp::Named("weight") = weight_sample_rcpp,
-        Rcpp::Named("logloss") = logloss_rcpp,
         Rcpp::Named("importance") = split_count_sum,
-        Rcpp::Named("num_stops") = num_stops,
         Rcpp::Named("depth") = depth_rcpp,
-        // Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
-        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
+        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, 
+        Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
 
     // cout << "export tree pointer " << endl;
     if (!separate_tree)
