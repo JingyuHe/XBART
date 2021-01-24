@@ -130,7 +130,7 @@ void rcpp_to_std2(arma::mat X, arma::mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, double nthread = 0)
+Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, double tau_kap = 3, double tau_s = 0.5, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, double nthread = 0)
 {
 
     // auto start = system_clock::now();
@@ -203,7 +203,8 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     }
 
     // define model
-    NormalModel *model = new NormalModel(kap, s, tau, alpha, beta);
+    NormalModel *model = new NormalModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
+    // cout << "after define model " << model->tau << " " << model->tau_mean << endl;
     model->setNoSplitPenality(no_split_penality);
 
     // State settings
@@ -557,21 +558,15 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
     ////////////////////////////////////////////////
 
     vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
-    for (size_t i = 0; i < num_sweeps; i++)
-    {
-        (*trees2)[i] = vector<tree>(num_trees);
-    }
-
     // separate tree
     vector<vector<vector<tree>>> *trees3 = new vector<vector<vector<tree>>>(num_class);
-    for (size_t i = 0; i < num_class; i++)
+
+    if (!separate_tree)
     {
-        (*trees3)[i] = vector<vector<tree>>(num_sweeps);
-        for (size_t j = 0; j < num_sweeps; j++)
+        for (size_t i = 0; i < num_sweeps; i++)
         {
-            (*trees3)[i][j] = vector<tree>(num_trees);
+            (*trees2)[i] = vector<tree>(num_trees);
         }
-    }
 
     std::vector<double> phi(N);
     for(size_t i=0; i<N; ++i) phi[i] = 1;
@@ -653,15 +648,53 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
         split_count_sum(i) = (int)state->split_count_all[i];
     }
 
-    // auto end = system_clock::now();
 
-    // auto duration = duration_cast<microseconds>(end - start);
+    std::stringstream treess;
 
-    // COUT << "Total running time " << double(duration.count()) * microseconds::period::num / microseconds::period::den << endl;
+    // if separate trees, return length num_class object, each contains num_sweeps * num_trees trees
+    // if shared trees, return length 1 object, num_sweeps * num_trees trees
+    Rcpp::StringVector output_tree(0);
 
-    // COUT << "Running time of split Xorder " << run_time << endl;
+    if(! separate_tree)
+    {
+        // shared trees
+        // the output is a length num_sweeps vector, each string is a sweep
+        // for each sweep, put first tree of all K classes first (duplicated), then the second tree
+        // still num_class * num_trees in each string, for convenience of BART initialization
+        for(size_t i = 0; i < num_sweeps; i++)
+        {
+            treess.precision(10);
+            treess.str(std::string());
+            treess << (double) separate_tree << " " << num_class << " " << num_sweeps << " " << num_trees << " " << p << endl;
+            for(size_t j = 0; j < num_trees; j ++)
+            {
+                for(size_t kk = 0; kk < num_class; kk ++ )
+                {
+                    treess << (*trees2)[i][j];
+                }
+            }
+            output_tree.push_back(treess.str());    
+        }
 
-    // COUT << "Count of splits for each variable " << mtry_weight_current_tree << endl;
+    }else{
+        // separate trees
+        // the output is a length num_sweeps vector, each string is a sweep
+        // for each sweep, put first tree of all K classes first, then the second tree, etc
+        for(size_t i = 0; i < num_sweeps; i++)
+        {
+            treess.precision(10);
+            treess.str(std::string());
+            treess << (double) separate_tree << " " << num_class << " " << num_sweeps << " " << num_trees << " " << p << endl;
+            for(size_t j = 0; j < num_trees; j ++)
+            {
+                for(size_t kk = 0; kk < num_class; kk ++ )
+                {
+                    treess << (*trees3)[kk][i][j];
+                }
+            }
+            output_tree.push_back(treess.str());
+        }
+    }
 
     // clean memory
     // // delete model;
