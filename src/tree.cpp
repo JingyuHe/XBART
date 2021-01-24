@@ -449,17 +449,18 @@ std::ostream& operator<<(std::ostream& os, const tree& t)
    tree::cnpv nds;
    t.getnodes(nds);
    // print size of theta first
-//    os << nds[0]->theta_vector.size() << std::endl;
+   os << nds[0]->theta_vector.size() << std::endl;
    // next print number of nodes
    os << nds.size() << std::endl;
    for(size_t i=0;i<nds.size();i++) {
       os << nds[i]->nid() << " ";
       os << nds[i]->getv() << " ";
       os << nds[i]->getc_index();
-      os << nds[i]->theta_vector[0] << std::endl;
-    //   for(size_t kk=0;kk<nds[i]->theta_vector.size();kk++){
-        //   os << " " << nds[i]->theta_vector[kk];
-    //   }
+    //   os << nds[i]->theta_vector[0] << std::endl;
+      for(size_t kk=0;kk<nds[i]->theta_vector.size();kk++){
+          // be caucious, one space between c and theta
+          os << " " << nds[i]->theta_vector[kk];
+      }
       os << endl;
    }
    return os;
@@ -472,6 +473,10 @@ std::istream &operator>>(std::istream &is, tree &t)
     size_t nn;                          //number of nodes
 
     t.tonull(); // obliterate old tree (if there)
+
+    // read size of theta first
+    size_t theta_size;
+    is >> theta_size;
 
     //read number of nodes----------
     is >> nn;
@@ -486,7 +491,10 @@ std::istream &operator>>(std::istream &is, tree &t)
     std::vector<node_info> nv(nn);
     for (size_t i = 0; i != nn; i++)
     {
-        is >> nv[i].id >> nv[i].v >> nv[i].c >> nv[i].theta_vector[0]; // Only works on first theta for now, fix latex if needed
+        is >> nv[i].id >> nv[i].v >> nv[i].c;// >> nv[i].theta_vector[0]; // Only works on first theta for now, fix latex if needed
+        for(size_t kk =0; kk < theta_size; kk++){
+            is >> nv[i].theta_vector[kk];
+        }
         if (!is)
         {
             return is;
