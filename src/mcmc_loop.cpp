@@ -184,7 +184,7 @@ void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sig
 
 void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty,
                            std::unique_ptr<State> &state, LogitModel *model, std::unique_ptr<X_struct> &x_struct,
-                           std::vector< std::vector<double> > &tau_samples, std::vector< std::vector<double> > &weight_samples, std::vector< std::vector<double> > &logloss, double entropy_threshold, size_t &num_stops)
+                           std::vector< std::vector<double> > &weight_samples)
 {
     // if (state->parallel)
     //     thread_pool.start();
@@ -249,13 +249,13 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             else {omp_set_num_threads(state->nthread); }*/
 
             omp_set_max_active_levels(3);
-            #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind, entropy_threshold, num_stops)
+            #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
             {       
                 #pragma omp sections
                 {
                     #pragma omp section
                     {
-                        trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true, entropy_threshold, num_stops);
+                        trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
                     }
                 }
             }
@@ -273,9 +273,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
             
-            tau_samples[sweeps][tree_ind] = model->tau_a;
             weight_samples[sweeps][tree_ind] = model->weight;
-            logloss[sweeps][tree_ind] = model->logloss;
         }
 
         // if (sweeps <= state->burnin){
@@ -290,7 +288,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 }
 
 void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModelSeparateTrees *model,
-                                           std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &tau_samples, std::vector<std::vector<double>> &weight_samples, double entropy_threshold, size_t &num_stops)
+                                           std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &weight_samples)
 {
     // Residual for 0th tree
     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
@@ -337,7 +335,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
             }
             
             omp_set_max_active_levels(3);
-            #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind, entropy_threshold, num_stops)
+            #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
             {       
                 #pragma omp sections
                 {
@@ -354,7 +352,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
 
                             trees[class_ind][sweeps][tree_ind].theta_vector.resize(model->dim_residual);
 
-                            trees[class_ind][sweeps][tree_ind].grow_from_root_separate_tree(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true, entropy_threshold, num_stops);
+                            trees[class_ind][sweeps][tree_ind].grow_from_root_separate_tree(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
                         }
                     }
                 }
@@ -374,7 +372,6 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
 
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
 
-            tau_samples[sweeps][tree_ind] = model->tau_a;
             weight_samples[sweeps][tree_ind] = model->weight;
         }
     }

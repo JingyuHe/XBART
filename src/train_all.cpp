@@ -450,10 +450,7 @@ Rcpp::List XBART_CLT_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_t
 Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, 
 size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penality, 
 size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, 
-bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, double hmult = 1, double heps = 0, bool update_tau = false, bool update_weight = true, double nthread = 0)
-{
-    // temporary
-    double stop_threshold = 0;
+bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, bool update_weight = true, double nthread = 0){
     // auto start = system_clock::now();
 
     size_t N = X.n_rows;
@@ -536,17 +533,8 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
-    std::vector<std::vector<double>> tau_sample;
-    ini_matrix(tau_sample, num_trees, num_sweeps);
-
     std::vector<std::vector<double>> weight_sample;
     ini_matrix(weight_sample, num_trees, num_sweeps);
-
-    std::vector<std::vector<double>> logloss;
-    ini_matrix(logloss, num_trees, num_sweeps);
-
-    ////////////////////////////////////////////////////////////////
-    size_t num_stops = 0;
 
     // output is in 3 dim, stacked as a vector, number of sweeps * observations * number of classes
     std::vector<double> output_vec(num_sweeps * N_test * num_class);
@@ -567,16 +555,17 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
         {
             (*trees2)[i] = vector<tree>(num_trees);
         }
-
+    }
+    
     std::vector<double> phi(N);
     for(size_t i=0; i<N; ++i) phi[i] = 1;
 
     if (!separate_tree)
     {
-        LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_tau, update_weight, hmult, heps);
+        LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight);
         model->setNoSplitPenality(no_split_penality);
 
-        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, tau_sample, weight_sample, logloss, stop_threshold, num_stops);
+        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, weight_sample);
 
         model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
 
@@ -584,24 +573,16 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
     }
     else
     {
-        cout << "grow separate trees" << endl;
-        if (stop_threshold > 0){
-            cout << "early stopping is disabled for separate trees" << endl;
-        }
-        LogitModelSeparateTrees *model = new LogitModelSeparateTrees(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_tau, update_weight, hmult, heps);
+        LogitModelSeparateTrees *model = new LogitModelSeparateTrees(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight);
 
         model->setNoSplitPenality(no_split_penality);
 
-        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penality, state, model, x_struct, tau_sample, weight_sample, stop_threshold, num_stops);
+        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penality, state, model, x_struct, weight_sample);
 
         model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees3, output_vec);
 
         // delete model;
     }
-
-    // mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, phi_samples, tau_sample, stop_threshold, num_stops);
-
-    // model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
 
     Rcpp::NumericVector output = Rcpp::wrap(output_vec);
     output.attr("dim") = Rcpp::Dimension(num_sweeps, N_test, num_class);

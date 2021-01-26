@@ -496,11 +496,11 @@ public:
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
     std::vector<double> *phi;
     
-    bool update_tau, update_weight; // option to update tau_a
+    bool update_weight; // option to update tau_a
     double weight, logloss; // pseudo replicates of observations
     double hmult, heps; // weight ~ Gamma(n, hmult * entropy + heps);
 
-    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_tau, bool update_weight, double hmult, double heps) : Model(num_classes, 2*num_classes)
+    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight) : Model(num_classes, 2*num_classes)
     {
         this->y_size_t = y_size_t;
         this->phi = phi;
@@ -511,11 +511,10 @@ public:
         //what should this be?
         this->dim_residual = num_classes;
 
-        this->update_tau = update_tau;
         this->update_weight = update_weight;
         this->weight = weight;
-        this->hmult = hmult;
-        this->heps = heps;
+        this->hmult = 1;
+        this->heps = 0;
         this->logloss = 0;
     }
 
@@ -594,7 +593,7 @@ private:
 public:
 
 
-    LogitModelSeparateTrees(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_tau, bool update_weight, double hmult, double heps) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, update_tau, update_weight, hmult, heps) {}
+    LogitModelSeparateTrees(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, update_weight) {}
 
     // LogitModelSeparateTrees() : LogitModel() {}
 

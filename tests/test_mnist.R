@@ -52,12 +52,9 @@ mtry = ceiling(p/2)
 t = proc.time()
 fit = XBART.multinomial(y=matrix(y), num_class=10, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth, 
-                        alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1, 
-                        no_split_penality = 1,  burnin = burnin, mtry = mtry , p_categorical = p, 
-                        kap = 1, s = 1, verbose = TRUE, parallel = TRUE, set_random_seed = TRUE, 
-                        random_seed = NULL, sample_weights_flag = TRUE, nthread = nthread,
-                        stop_threshold = 0, hmult=1,heps=0,separate_tree=FALSE,update_tau=FALSE
-                        ) 
+                        burnin = burnin, mtry = mtry , p_categorical = p, 
+                        verbose = TRUE, parallel = TRUE, nthread = nthread,
+                        separate_tree=FALSE) 
 t = proc.time() - t
 
 pred = apply(fit$yhats_test[(burnin):(num_sweeps-0),,], c(2,3), mean)
