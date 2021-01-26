@@ -151,11 +151,11 @@ stopifnot(pred == pred2)
 
 
 
-#####
-# bart with default initialization
+# #####
+# # bart with default initialization
 fit_bart = wbart(x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, ndpost = 200, nskip = 0)
 
-pred_bart = colMeans(predict(fit_bart, xtest))
+# pred_bart = colMeans(predict(fit_bart, xtest))
 
 
 # bart with XBART initialization
