@@ -547,21 +547,15 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
 
     vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
     // separate tree
-    vector<vector<vector<tree>>> *trees3 = new vector<vector<vector<tree>>>(num_class);
-
-    if (!separate_tree)
-    {
-        for (size_t i = 0; i < num_sweeps; i++)
-        {
-            (*trees2)[i] = vector<tree>(num_trees);
-        }
-    }
+    vector<vector<vector<tree>>> *trees3 = new vector<vector<vector<tree>>> (num_class);
     
     std::vector<double> phi(N);
     for(size_t i=0; i<N; ++i) phi[i] = 1;
 
     if (!separate_tree)
     {
+        for (size_t i = 0; i < num_sweeps; i++)  { (*trees2)[i] = vector<tree>(num_trees); }
+
         LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight);
         model->setNoSplitPenality(no_split_penality);
 
@@ -573,6 +567,12 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
     }
     else
     {
+        for (size_t i = 0; i < num_class; i++)  
+        {
+            (*trees3)[i] = vector<vector<tree>> (num_sweeps);
+            for (size_t j = 0; j < num_sweeps; j++) { (*trees3)[i][j] = vector<tree> (num_trees); }
+        }
+        
         LogitModelSeparateTrees *model = new LogitModelSeparateTrees(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight);
 
         model->setNoSplitPenality(no_split_penality);
@@ -611,10 +611,8 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
     {
         for (size_t j = 0; j < num_sweeps; j++)
         {
-            // npv bv = (*trees2)[j][i].bots()
-
-            depth_rcpp(i, j) = (*trees2)[j][i].getdepth();
-            // cout << "depth = "<< (*trees3)[j][i].getdepth() << endl;
+            if (!separate_tree) {depth_rcpp(i, j) = (*trees2)[j][i].getdepth();}
+            else {depth_rcpp(i, j) = (*trees3)[0][j][i].getdepth();}
         }
     }
     for (size_t i = 0; i < N_test; i++)
@@ -676,13 +674,11 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
             output_tree.push_back(treess.str());
         }
     }
-
     // clean memory
     // // delete model;
     state.reset();
     x_struct.reset();
 
-    // cout << "creat output list " << endl;
     Rcpp::List ret = Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("num_class") = num_class,
@@ -693,7 +689,6 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, 
         Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
 
-    // cout << "export tree pointer " << endl;
     if (!separate_tree)
     {
         Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
