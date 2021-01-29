@@ -686,6 +686,7 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
         Rcpp::Named("weight") = weight_sample_rcpp,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("depth") = depth_rcpp,
+        Rcpp::Named("treedraws") = output_tree,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, 
         Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
 
