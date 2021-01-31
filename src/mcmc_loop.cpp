@@ -82,7 +82,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
 }
 
 
-void mcmc_loop_mix(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, MixClass *model, std::unique_ptr<X_struct> &x_struct)
+void mcmc_loop_mix(arma::mat &theta_draw, matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, MixClass *model, std::unique_ptr<X_struct> &x_struct)
 {
     // This function fits the model
     // Y = theta * Z + g(X) + e, e ~ N(0, sigma^2)
@@ -98,7 +98,6 @@ void mcmc_loop_mix(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sig
     // Residual for 0th tree
     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
     model->ini_residual_std(state);
-
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {
 
@@ -151,7 +150,6 @@ void mcmc_loop_mix(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sig
                     }
                 }
             }
-
             // update tau after sampling the tree
             // model->update_tau(state, tree_ind, sweeps, trees);
 
@@ -163,6 +161,9 @@ void mcmc_loop_mix(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sig
 
         model->update_theta(state);
 
+        model->state_sweep_after_theta(state, state->residual_std, x_struct);
+
+        theta_draw.row(sweeps) = trans(model->theta);
 
         if(model->sampling_tau){
             model->update_tau_per_forest(state, sweeps, trees);

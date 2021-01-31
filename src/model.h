@@ -8,6 +8,7 @@
 #include "state.h"
 #include "X_struct.h"
 #include "cdf.h"
+#include <RcppArmadillo.h>
 
 using namespace std;
 
@@ -183,20 +184,34 @@ public:
 
 class MixClass : public NormalModel
 {
-    // prior variance of theta
-    double delta;
 public:
-    MixClass(double delta, double kap, double s, double tau, double alpha, double beta, bool sampling_tau, double tau_kap, double tau_s) : NormalModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s)
+    // prior variance of theta
+    arma::mat theta_cov;
+    arma::mat theta_mu;
+    arma::mat ZtZ;
+    arma::mat ZtZ_theta_cov_inv;
+    arma::mat Z;
+    arma::mat theta;
+    arma::mat theta_precision_mu;
+    
+    MixClass(arma::mat Z, arma::mat &ZtZ_theta_cov_inv, arma::mat &theta_precision_mu, arma::mat &ZtZ, arma::mat &theta_mu, arma::mat &theta_cov, double kap, double s, double tau, double alpha, double beta, bool sampling_tau, double tau_kap, double tau_s) : NormalModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s)
     {
-        this->delta = delta;
+        this->Z = Z;
+        this->ZtZ_theta_cov_inv = ZtZ_theta_cov_inv;
+        this->ZtZ = ZtZ;
+        this->theta_cov = theta_cov;
+        this->theta_mu = theta_mu;
+        this->theta = theta_mu;
+        this->theta_precision_mu = theta_precision_mu;
     }
 
     // the state_sweep function is different from the normal model.
     // if we have done the last tree, the next step will be updating theta
     // thus calculate FULL residual for updating theta rather than the PARTIAL residual
+    void ini_residual_std(std::unique_ptr<State> &state);
     void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const;
-    void update_theta(std::unique_ptr<State> &state) const;
-
+    void update_theta(std::unique_ptr<State> &state);
+    void state_sweep_after_theta(std::unique_ptr<State> &state, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct);
 };
 
 

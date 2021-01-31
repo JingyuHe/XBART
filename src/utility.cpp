@@ -3,24 +3,6 @@
 // ThreadPool thread_pool;
 // 
 
-matrix<double> multiply(const matrix<double>& m1, const matrix<double>& m2)
-{
-    matrix result(m1.size(), std::vector<double>(m2.at(0).size()));
-
-    for (std::size_t row = 0; row < result.size(); ++row) 
-    {
-        for (std::size_t col = 0; col < result.at(0).size(); ++col) 
-        {
-            for (std::size_t inner = 0; inner < m2.size(); ++inner) 
-            {
-                result.at(row).at(col) += m1.at(row).at(inner) * m2.at(inner).at(col);
-            }
-        }
-    }
-    return result;
-}
-
-
 void ini_xinfo(matrix<double> &X, size_t N, size_t p)
 {
     // matrix<double> X;

@@ -37,8 +37,8 @@ XBART_cpp <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_
     .Call(`_XBART_XBART_cpp`, y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, tau_kap, tau_s, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights_flag, nthread)
 }
 
-XBART_mix_cpp <- function(y, X, Z, Xtest, Ztest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, tau_kap = 3, tau_s = 0.5, delta = 1, verbose = FALSE, sampling_tau = TRUE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights_flag = TRUE, nthread = 0) {
-    .Call(`_XBART_XBART_mix_cpp`, y, X, Z, Xtest, Ztest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, tau_kap, tau_s, delta, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights_flag, nthread)
+XBART_mix_cpp <- function(y, X, Z, Xtest, Ztest, theta_mu, theta_cov, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, tau_kap = 3, tau_s = 0.5, verbose = FALSE, sampling_tau = TRUE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights_flag = TRUE, nthread = 0) {
+    .Call(`_XBART_XBART_mix_cpp`, y, X, Z, Xtest, Ztest, theta_mu, theta_cov, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, tau_kap, tau_s, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights_flag, nthread)
 }
 
 XBART_CLT_cpp <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights_flag = TRUE, nthread = 0) {

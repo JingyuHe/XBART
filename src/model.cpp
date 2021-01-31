@@ -256,18 +256,31 @@ void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t 
 //
 //
 //////////////////////////////////////////////////////////////////////////////////////
+void MixClass::ini_residual_std(std::unique_ptr<State> &state)
+{
+    arma::mat temp = Z * theta_mu;
+    // initialize partial residual at (num_tree - 1) / num_tree * yhat
+    double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
+    for (size_t i = 0; i < state->residual_std[0].size(); i++)
+    {
+        state->residual_std[0][i] = (*state->y_std)[i] - value - temp(i, 0);
+    }
+    return;
+}
+
 
 
 void MixClass::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
 {
     size_t next_index = tree_ind + 1;
+    arma::mat temp;
     if (next_index == M)
-    {
-        // if this is the last tree, next step we will update theta,
-        // thus the residual_std vector should be FULL residual
+    {   
+        // if this is the last tree, next step we will update theta
+        temp = Z * theta;
         for (size_t i = 0; i < residual_std[0].size(); i++)
         {
-            residual_std[0][i] = residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
+            residual_std[0][i] = residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + temp(i, 0);
         }
     }else{
         // if this is NOT the last tree, next step we will update the next tree
@@ -281,19 +294,36 @@ void MixClass::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_s
 }
 
 
-void MixClass::update_theta(std::unique_ptr<State> &state) const
+void MixClass::update_theta(std::unique_ptr<State> &state)
 {
     // Y = theta * Z + g(X)
     // regression Y - g(X) on Z
-    std::vector<double> y_minus_g_x(state->n_y);
+    // std::vector<double> y_minus_g_x(state->n_y);
+    arma::mat y_minus_g_x(state->n_y, 1);
 
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
-        y_minus_g_x[i] = (*state->y_std)[i] - state->residual_std[0][i];
+        y_minus_g_x(i, 0) = state->residual_std[0][i];
     }
 
-    // lack of an efficient matrix multiplication algorithm.....
+    // calculate posterior mean and covariance
+    arma::mat theta_mean = ZtZ_theta_cov_inv * (trans(Z) * y_minus_g_x + theta_precision_mu);
+    arma::mat theta_cov = ZtZ_theta_cov_inv * pow(state->sigma, 2);
 
+    arma::mat temp = trans(chol(theta_cov)) * arma::randn(Z.n_cols,1);
+    theta = theta_mean + temp;
+    return;
+}
+
+
+void MixClass::state_sweep_after_theta(std::unique_ptr<State> &state, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct)
+{
+    arma::mat linearfit = Z * theta;
+    // update partial residuals for the first tree after sampling theta
+    for (size_t i = 0; i < residual_std[0].size(); i++)
+    {
+        residual_std[0][i] = residual_std[0][i] - linearfit(i, 0) + (*(x_struct->data_pointers[0][i]))[0];
+    }
     return;
 }
 

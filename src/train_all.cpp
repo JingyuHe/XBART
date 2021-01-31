@@ -381,13 +381,13 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBART_mix_cpp(arma::mat y, arma::mat X, arma::mat Z, arma::mat Xtest, arma::mat Ztest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, double tau_kap = 3, double tau_s = 0.5, double delta = 1, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, double nthread = 0)
+Rcpp::List XBART_mix_cpp(arma::mat y, arma::mat X, arma::mat Z, arma::mat Xtest, arma::mat Ztest, arma::mat theta_mu, arma::mat theta_cov, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, double tau_kap = 3, double tau_s = 0.5,  bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, double nthread = 0)
 {
     //-----------------------------------------------
     //
     // This function fits y = Z * theta + f(X) + e
     // linear in Z, and fit XBART with X
-    // e ~ N(0, 1), theta ~ N(0, delta)
+    // e ~ N(0, 1), theta ~ N(0, theta_cov)
     //
     //-----------------------------------------------
 
@@ -408,6 +408,14 @@ Rcpp::List XBART_mix_cpp(arma::mat y, arma::mat X, arma::mat Z, arma::mat Xtest,
     size_t p_z = Z.n_cols;
 
     size_t N_test = Xtest.n_rows;
+
+    arma::mat ZtZ = trans(Z) * Z;
+
+    arma::mat theta(p_z, 1);
+
+    // posterior mean of theta is (ZtZ + A^{-1})^{-1}(Zt(Y - g(X)) + theta_cov^{-1} * theta_mu)
+    arma::mat ZtZ_theta_cov_inv = inv(ZtZ + inv(theta_cov));
+    arma::mat theta_precision_mu = inv(theta_cov) * theta_mu;
 
     // number of continuous variables
     size_t p_continuous = p - p_categorical;
@@ -467,21 +475,23 @@ Rcpp::List XBART_mix_cpp(arma::mat y, arma::mat X, arma::mat Z, arma::mat Xtest,
     }
 
     // define model
-    MixClass *model = new MixClass(delta, kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
+    MixClass *model = new MixClass(Z, ZtZ_theta_cov_inv, theta_precision_mu, ZtZ, theta_mu, theta_cov, kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
     // cout << "after define model " << model->tau << " " << model->tau_mean << endl;
     model->setNoSplitPenality(no_split_penality);
 
     // State settings
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
-    std::unique_ptr<State> state(new MixState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, Zpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread)); //last input is nthread, need update
+    std::unique_ptr<State> state(new MixState(theta, Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, Zpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread)); //last input is nthread, need update
 
     // state->set_Xcut(Xcutmat);
 
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
+    arma::mat theta_draw(num_sweeps, p_z);
+
     ////////////////////////////////////////////////////////////////
-    mcmc_loop_mix(Xorder_std, verbose, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
+    mcmc_loop_mix(theta_draw, Xorder_std, verbose, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
 
     model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
@@ -491,6 +501,11 @@ Rcpp::List XBART_mix_cpp(arma::mat y, arma::mat X, arma::mat Z, arma::mat Xtest,
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum(p, 0);             // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
+
+
+    arma::mat Ztheta = Z * trans(theta_draw);
+    arma::mat Ztesttheta = Ztest * trans(theta_draw);
+
 
     // TODO: Make these functions
     // for (size_t i = 0; i < N; i++)
@@ -504,7 +519,7 @@ Rcpp::List XBART_mix_cpp(arma::mat y, arma::mat X, arma::mat Z, arma::mat Xtest,
     {
         for (size_t j = 0; j < num_sweeps; j++)
         {
-            yhats_test(i, j) = yhats_test_xinfo[j][i];
+            yhats_test(i, j) = yhats_test_xinfo[j][i] + Ztesttheta(i, j);
         }
     }
     for (size_t i = 0; i < num_trees; i++)
@@ -561,7 +576,8 @@ Rcpp::List XBART_mix_cpp(arma::mat y, arma::mat X, arma::mat Z, arma::mat Xtest,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p),
-        Rcpp::Named("treedraws") = output_tree);
+        Rcpp::Named("treedraws") = output_tree,
+        Rcpp::Named("theta") = theta_draw);
 }
 
 
