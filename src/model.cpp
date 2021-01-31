@@ -247,6 +247,56 @@ void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t 
     return;
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////
+//
+//
+//  Mix Model, y = theta * Z + g(X) + e, e ~ N(0, sigma^2)
+//
+//
+//
+//////////////////////////////////////////////////////////////////////////////////////
+
+
+void MixClass::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
+{
+    size_t next_index = tree_ind + 1;
+    if (next_index == M)
+    {
+        // if this is the last tree, next step we will update theta,
+        // thus the residual_std vector should be FULL residual
+        for (size_t i = 0; i < residual_std[0].size(); i++)
+        {
+            residual_std[0][i] = residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
+        }
+    }else{
+        // if this is NOT the last tree, next step we will update the next tree
+        // calculate PARTIAL residual for the next tree
+        for (size_t i = 0; i < residual_std[0].size(); i++)
+        {
+            residual_std[0][i] = residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + (*(x_struct->data_pointers[next_index][i]))[0];
+        }
+    }
+    return;
+}
+
+
+void MixClass::update_theta(std::unique_ptr<State> &state) const
+{
+    // Y = theta * Z + g(X)
+    // regression Y - g(X) on Z
+    std::vector<double> y_minus_g_x(state->n_y);
+
+    for (size_t i = 0; i < state->residual_std[0].size(); i++)
+    {
+        y_minus_g_x[i] = (*state->y_std)[i] - state->residual_std[0][i];
+    }
+
+    // lack of an efficient matrix multiplication algorithm.....
+
+    return;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////
 //
 //

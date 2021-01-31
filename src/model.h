@@ -180,6 +180,26 @@ public:
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
 };
 
+
+class MixClass : public NormalModel
+{
+    // prior variance of theta
+    double delta;
+public:
+    MixClass(double delta, double kap, double s, double tau, double alpha, double beta, bool sampling_tau, double tau_kap, double tau_s) : NormalModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s)
+    {
+        this->delta = delta;
+    }
+
+    // the state_sweep function is different from the normal model.
+    // if we have done the last tree, the next step will be updating theta
+    // thus calculate FULL residual for updating theta rather than the PARTIAL residual
+    void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const;
+    void update_theta(std::unique_ptr<State> &state) const;
+
+};
+
+
 class ProbitClass : public NormalModel
 {
 public:

@@ -27,6 +27,8 @@ void ini_matrix(matrix<T> &matrix, size_t N, size_t p)
     return;
 }
 
+matrix<double> multiply(const matrix<double>& m1, const matrix<double>& m2);
+
 // // initialize STD matrix
 void ini_xinfo(matrix<double> &X, size_t N, size_t p);
 
