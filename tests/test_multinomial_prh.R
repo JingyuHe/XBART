@@ -102,12 +102,12 @@ y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 # num_sweeps = ceiling(200/log(n)) 
 num_sweeps = 20
 burnin = 5
-num_trees = 50
+num_trees = 20
 #########################  parallel ####################3
 tm = proc.time()
 fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, p_categorical = p_cat, 
-                        separate_tree = FALSE)
+                        separate_tree = TRUE)
 
 
 tm = proc.time()-tm

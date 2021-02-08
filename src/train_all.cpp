@@ -513,6 +513,8 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
 
     matrix<double> yhats_test_xinfo;
     ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
+    matrix<double> yhats_train_xinfo;
+    ini_matrix(yhats_train_xinfo, N, num_sweeps);
 
     // // Create trees
     // vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
@@ -538,6 +540,7 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
 
     // output is in 3 dim, stacked as a vector, number of sweeps * observations * number of classes
     std::vector<double> output_vec(num_sweeps * N_test * num_class);
+    std::vector<double> output_train(num_sweeps * N * num_class);
 
     ////////////////////////////////////////////////
     // for a n * p * m matrix, the (i,j,k) element is
@@ -562,6 +565,7 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
         mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, weight_sample);
 
         model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
+        model->predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees2, output_train);
 
         // delete model;
     }
@@ -580,12 +584,15 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
         mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penality, state, model, x_struct, weight_sample);
 
         model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees3, output_vec);
+        model->predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees3, output_train);
 
         // delete model;
     }
 
     Rcpp::NumericVector output = Rcpp::wrap(output_vec);
     output.attr("dim") = Rcpp::Dimension(num_sweeps, N_test, num_class);
+    Rcpp::NumericVector output_tr = Rcpp::wrap(output_train);
+    output_tr.attr("dim") = Rcpp::Dimension(num_sweeps, N, num_class);
 
     // STOPPED HERE
     // TODO: Figure out how we should store and return in sample preds
@@ -683,6 +690,7 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
         // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("num_class") = num_class,
         Rcpp::Named("yhats_test") = output,
+        Rcpp::Named("yhats_train") = output_tr,
         Rcpp::Named("weight") = weight_sample_rcpp,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("depth") = depth_rcpp,
