@@ -135,6 +135,5 @@ Rcpp::List json_to_r(Rcpp::StringVector json_string_r)
     // Define External Pointer
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
 
-    return Rcpp::List::create(Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt,
-                                                                             Rcpp::Named("y_mean") = y_mean));
+    return Rcpp::List::create(Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean));
 }
