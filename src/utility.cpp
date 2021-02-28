@@ -281,4 +281,3 @@ void dirichlet_distribution(std::vector<double> &prob, std::vector<double> &alph
     }
     return;
 }
-
