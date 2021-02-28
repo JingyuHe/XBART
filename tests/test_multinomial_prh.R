@@ -125,6 +125,11 @@ yhat = apply(a,1,which.max)-1
 cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
 
 
+# you may use the predict function as well
+fitted = predict(fit, X_test)
+
+
+
 tm2 = proc.time()
 fit.xgb <- xgboost(data = X_train, label=y_train,
                    num_class=k,

@@ -249,6 +249,19 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
     state.reset();
     x_struct.reset();
 
+    Rcpp::List modelist = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees);
+
+    if (!separate_tree)
+    {
+        Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
+        modelist.push_back(tree_pnt, "tree_pnt");
+    }
+    else
+    {
+        Rcpp::XPtr<std::vector<std::vector<std::vector<tree>>>> tree_pnt(trees3, true);
+        modelist.push_back(tree_pnt, "tree_pnt");
+    }
+
     Rcpp::List ret = Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("num_class") = num_class,
@@ -259,18 +272,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("num_stops") = num_stops,
         Rcpp::Named("treedraws") = output_tree,
-        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
-
-    if (!separate_tree)
-    {
-        Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
-        ret.push_back(tree_pnt, "tree_pnt");
-    }
-    else
-    {
-        Rcpp::XPtr<std::vector<std::vector<std::vector<tree>>>> tree_pnt(trees3, true);
-        ret.push_back(tree_pnt, "tree_pnt");
-    }
+        Rcpp::Named("model_list") = modelist);
 
     return ret;
 }

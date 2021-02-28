@@ -581,10 +581,10 @@ private:
 
 public:
 
-
+    
     LogitModelSeparateTrees(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, double weight, bool update_tau, double hmult, double heps) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, weight, update_tau, hmult, heps) {}
 
-    // LogitModelSeparateTrees() : LogitModel() {}
+    LogitModelSeparateTrees() : LogitModel() {}
 
     Model *clone() { return new LogitModelSeparateTrees(*this); }
 
