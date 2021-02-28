@@ -112,6 +112,19 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees = 20, num_sweeps
     check_scalar(s, "s")
 
     obj = XBART_multinomial_cpp(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, separate_tree, stop_threshold, nthread, weight, hmult, heps, update_tau)
-    class(obj) = "XBARTmultinomial" # Change to XBARTProbit?
+    class(obj) = "XBARTmultinomial"
+
+
+    if(separate_tree){
+        tree_json = r_to_json_3D(obj$model_list$tree_pnt)
+        obj$tree_json = tree_json
+        obj$separate_tree = separate_tree
+    }else{
+        tree_json = r_to_json(obj$model_list$tree_pnt)
+        obj$tree_json = tree_json
+        obj$separate_tree = separate_tree
+    }
+
+
     return(obj)
 }

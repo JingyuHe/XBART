@@ -19,6 +19,13 @@ predict.XBARTmultinomial <- function(model, X, iteration = NULL) {
         stop("Index of iteration is out of bound.")
     }
 
-    obj = .Call(`_XBART_xbart_multinomial_predict`, X, model$model_list$y_mean, model$num_class, model$model_list$tree_pnt, iteration) # model$tree_pnt
+    if(model$separate_tree){
+        out = json_to_r_3D(model$tree_json)
+        obj = .Call(`_XBART_xbart_multinomial_predict_3D`, X, model$model_list$y_mean, model$num_class, out$model_list$tree_pnt, iteration) # model$tree_pnt
+    }else{
+        out = json_to_r(model$tree_json)
+        obj = .Call(`_XBART_xbart_multinomial_predict`, X, model$model_list$y_mean, model$num_class, out$model_list$tree_pnt, iteration) # model$tree_pnt
+    }   
+
     return(obj)
 }
