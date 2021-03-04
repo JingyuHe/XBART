@@ -1567,7 +1567,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
             // count how many
             split_point = std::accumulate(X_counts.begin() + start, X_counts.begin() + ind + 1, 0);
             // minus one for correct index (start from 0)
-            split_point = split_point - 1;
+            if (split_point > 0 ){split_point = split_point - 1;}
             split_var = split_var + state->p_continuous;
         }
     }
@@ -1628,7 +1628,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
             // count how many
             split_point = std::accumulate(X_counts.begin() + start, X_counts.begin() + ind + 1, 0);
             // minus one for correct index (start from 0)
-            split_point = split_point - 1;
+            if (split_point > 0 ){split_point = split_point - 1;}
             split_var = split_var + state->p_continuous;
         }
     }
