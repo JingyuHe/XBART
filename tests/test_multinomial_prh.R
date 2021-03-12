@@ -1,3 +1,4 @@
+# install.packages("D:/XBART",repos=NULL,type="source")
 library(XBART)
 library(xgboost)
 # library(ranger)
@@ -33,10 +34,10 @@ get_entropy <- function(nclass){
 # 
 # n = 200
 # nt = 50
-n = 10000
-nt = 5000
-p = 20
-p_cat = 20
+n = 5000
+nt = 1000
+p = 6
+p_cat = 0
 k = 6
 lam = matrix(0,n,k)
 lamt = matrix(0,nt,k)
@@ -59,17 +60,17 @@ X_test = cbind(X_test, matrix(rbinom(nt*p_cat, 1, 0.5), nrow = nt))
 # X_test = cbind(X_test, matrix(rpois(nt*p_cat, 20), nrow=nt))
 
 
-lam[,1] = abs(2*X_train[,1] - X_train[,2])
-lam[,2] = 1
+lam[,1] = abs(3*X_train[,1] - X_train[,2])
+lam[,2] = 2
 lam[,3] = 3*X_train[,3]^2
-lam[,4] = 5*(X_train[, 4] * X_train[,5])
-lam[,5] = 2*(X_train[,5] + 2*X_train[,6])
+lam[,4] = 4*(X_train[, 4] * X_train[,5])
+lam[,5] = 2*(X_train[,5] + X_train[,6])
 lam[,6] = 2*(X_train[,1] + X_train[,3] - X_train[,5])
-lamt[,1] = abs(2*X_test[,1] - X_test[,2])
-lamt[,2] = 1
+lamt[,1] = abs(3*X_test[,1] - X_test[,2])
+lamt[,2] = 2
 lamt[,3] = 3*X_test[,3]^2
-lamt[,4] = 5*(X_test[,4]*X_test[,5])
-lamt[,5] = 2*(X_test[,5] + 2*X_test[,6])
+lamt[,4] = 4*(X_test[,4]*X_test[,5])
+lamt[,5] = 2*(X_test[,5] + X_test[,6])
 lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
 
 # lam[,1] = 3*abs(2*X_train[,1] - X_train[,2])
@@ -87,7 +88,7 @@ lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
 
 
 # vary s to make the problem harder s < 1 or easier s > 2
-s = 1
+s = 10
 pr = exp(s*lam)
 pr = t(scale(t(pr),center=FALSE, scale = rowSums(pr)))
 y_train = sapply(1:n,function(j) sample(0:(k-1),1,prob=pr[j,]))
@@ -100,26 +101,21 @@ y_test = sapply(1:nt,function(j) sample(0:(k-1),1,prob=pr[j,]))
 
 # num_sweeps = ceiling(200/log(n)) 
 num_sweeps = 20
-burnin = 3
+burnin = 5
 num_trees = 20
-max_depth = 20
-mtry = NULL # round((p + p_cat)/3)
 #########################  parallel ####################3
 tm = proc.time()
 fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test, 
-                        num_trees=num_trees, num_sweeps=num_sweeps, max_depth=max_depth, 
-                        num_cutpoints=NULL, alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1, 
-                        no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = p_cat, 
-                        kap = 1, s = 1, verbose = FALSE, set_random_seed = FALSE, 
-                        random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, stop_threshold = 0.01, nthread = 1, 
-                        weight = 1, hmult = 1, heps = 0.1) 
+                        num_trees=num_trees, num_sweeps=num_sweeps, p_categorical = p_cat, 
+                        separate_tree = TRUE)
 
 
 tm = proc.time()-tm
 cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"],3)," seconds"),"\n")
 # take average of all sweeps, discard burn-in
 # a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
-a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
+# a = a / rowSums(a) # bc a is the median of pi, need normalization
+a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), mean)
 pred = apply(a,1,which.max)-1
 yhat = apply(a,1,which.max)-1
 cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
@@ -148,10 +144,6 @@ phat.xgb <- matrix(phat.xgb, ncol=k, byrow=TRUE)
 
 yhat.xgb <- max.col(phat.xgb) - 1
 
-
-cat(paste("xbart rmse on probabilities: ", round(sqrt(mean((a-pr)^2)),3)),"\n")
-# cat(paste("ranger rmse on probabilities: ", round(sqrt(mean((pred3-pr)^2)),3)),"\n")
-cat(paste("xgboost rmse on probabilities: ", round(sqrt(mean((phat.xgb-pr)^2)),3)),"\n")
 
 spr <- split(a, row(a))
 logloss <- sum(mapply(function(x,y) -log(x[y]), spr, y_test+1, SIMPLIFY =TRUE))

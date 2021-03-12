@@ -1,4 +1,8 @@
-XBART.multinomial <- function(y, num_class, X, Xtest, num_trees = 20, num_sweeps = 20, max_depth = 250, Nmin = NULL, num_cutpoints = NULL, alpha = 0.95, beta = 1.25, tau_a = 1, tau_b = 1, no_split_penality = NULL, burnin = 3, mtry = NULL, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, stop_threshold = 0.005, nthread = 0, weight = 1, hmult = 1, heps = 0.1, update_tau = TRUE, ...) {
+XBART.multinomial <- function(y, num_class, X, Xtest, num_trees = 20, num_sweeps = 20, max_depth = 20, 
+Nmin = NULL, num_cutpoints = NULL, alpha = 0.95, beta = 1.25, tau_a = 1, tau_b = 1, 
+no_split_penality = NULL, burnin = 5, mtry = NULL, p_categorical = 0L, verbose = FALSE, 
+parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, 
+weight = 1, update_weight = TRUE, nthread = 0, ...) {
 
     if (!("matrix" %in% class(X))) {
         cat("Input X is not a matrix, try to convert type.\n")
@@ -69,9 +73,9 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees = 20, num_sweeps
 
     if (is.null(mtry)) {
         p = dim(X)[2]
-        if (p <= 20){mtry = p}
-        else {mtry = floor(p/3)}
-        # mtry = p for p < 20, mtry = p/3 for p > 20
+        if (p <= 10){mtry = p}
+        else if (p <= 100) {mtry = ceiling(p/2)}
+        else {mtry = ceiling(p/3)}
         cat("mtry = ", mtry, " by default. \n")
     }
 
@@ -86,32 +90,29 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees = 20, num_sweeps
     }
 
     if(is.null(weight)){
-        weight = c(1)
+        weight = 1
     }
 
-    if (length(weight) > 1) {
-        cat("Input weight should be a single number, initialized as weight = ", weight[1], ".\n")
-        weight = weight[1]
-    }
     # check input type
-
     check_non_negative_integer(burnin, "burnin")
     check_non_negative_integer(p_categorical, "p_categorical")
+    check_non_negative_integer(nthread, "nthread")
 
     check_positive_integer(max_depth, "max_depth")
     check_positive_integer(Nmin, "Nmin")
     check_positive_integer(num_sweeps, "num_sweeps")
     check_positive_integer(num_trees, "num_trees")
     check_positive_integer(num_cutpoints, "num_cutpoints")
+    check_positive_integer(mtry, "mtry")
 
     # check_scalar(tau, "tau")
     check_scalar(no_split_penality, "no_split_penality")
     check_scalar(alpha, "alpha")
     check_scalar(beta, "beta")
-    check_scalar(kap, "kap")
-    check_scalar(s, "s")
 
-    obj = XBART_multinomial_cpp(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, separate_tree, stop_threshold, nthread, weight, hmult, heps, update_tau)
+    obj = XBART_multinomial_cpp(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau_a, tau_b, 
+    no_split_penality, burnin, mtry, p_categorical, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, separate_tree, 
+    weight, update_weight, nthread)
     class(obj) = "XBARTmultinomial"
 
 
@@ -124,7 +125,5 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees = 20, num_sweeps
         obj$tree_json = tree_json
         obj$separate_tree = separate_tree
     }
-
-
     return(obj)
 }

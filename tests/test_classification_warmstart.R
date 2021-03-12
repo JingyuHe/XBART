@@ -95,8 +95,7 @@ fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test,
                         num_cutpoints=NULL, alpha=0.95, beta=1.25, tau_a = 1, tau_b = 1, 
                         no_split_penality = 1,  burnin = burnin, mtry = mtry, p_categorical = p_cat, 
                         kap = 1, s = 1, verbose = FALSE, set_random_seed = FALSE, 
-                        random_seed = NULL, sample_weights_flag = TRUE, separate_tree = TRUE, stop_threshold = 0.01, nthread = 1, 
-                        weight = 1, hmult = 1, heps = 0.1) 
+                        random_seed = NULL, sample_weights_flag = TRUE, separate_tree = TRUE)
 
 # the warm start bart only draws 100 samples, without burnin, thinning = 1
 fit2 = mlbart_ini(fit$treedraws, X_train, y_train, k, type = "separate", ntree = num_trees, ndpost = 100, nskip = 0, keepevery = 1)

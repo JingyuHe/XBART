@@ -6,7 +6,7 @@
 .idea/
 src-i386/
 *.pdf
-*.xbart
+*.Bart
 *.json
 
 # Prerequisites

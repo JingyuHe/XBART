@@ -456,6 +456,7 @@ std::ostream& operator<<(std::ostream& os, const tree& t)
       os << nds[i]->nid() << " ";
       os << nds[i]->getv() << " ";
       os << nds[i]->getc();
+    //   os << nds[i]->theta_vector[0] << std::endl;
       for(size_t kk=0;kk<nds[i]->theta_vector.size();kk++){
           // be caucious, one space between c and theta
           os << " " << nds[i]->theta_vector[kk];
@@ -771,7 +772,8 @@ void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state
 }
 
 
-void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree, double entropy_threshold, size_t &num_stops)
+void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, 
+std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree)
 {
 
     // cout << "current depth " << getdepth() << endl;
@@ -792,16 +794,6 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
     if (update_theta)
     {
         model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
-        if (entropy_threshold > 0){
-            double entropy;
-            calculate_entropy(Xorder_std, state, this->theta_vector, entropy);
-            if (entropy < entropy_threshold * N_Xorder) 
-            {
-                #pragma omp critical 
-                num_stops += 1;
-                no_split = true;
-            }
-        }
     }
 
     if (N_Xorder <= state->n_min)
@@ -841,7 +833,6 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
     {
     BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this, update_split_prob);
     }
-    // cout << suff_stat << endl;
 
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
 
@@ -967,13 +958,13 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
 
-    #pragma omp task shared(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops)
+    #pragma omp task shared(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree)
     {
-            this->l->grow_from_root_entropy(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
+            this->l->grow_from_root_entropy(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree);
     }
-    #pragma omp task shared(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops)
+    #pragma omp task shared(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree)
     {
-        this->r->grow_from_root_entropy(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
+        this->r->grow_from_root_entropy(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree);
     }
 
     #pragma omp taskwait
@@ -982,9 +973,11 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
 
 }
 
-void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree, double entropy_threshold, size_t &num_stops)
+void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model,
+ std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree)
 {
     // grow a tree, users can control number of split points
+    // cout << "depth = " << this->depth << endl;
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
     // size_t ind;
@@ -1003,16 +996,6 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
     if (update_theta)
     {
         model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
-        if (entropy_threshold > 0){
-            double entropy;
-            calculate_entropy(Xorder_std, state, this->theta_vector, entropy);
-            if (entropy < entropy_threshold * N_Xorder) 
-            {
-                #pragma omp critical 
-                num_stops += 1;
-                no_split = true;
-            }
-        }
     }
 
     if (N_Xorder <= state->n_min)
@@ -1060,7 +1043,7 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
 
     if (!no_split)
     {
-    BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this, update_split_prob);
+        BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this, update_split_prob);
     }
 
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
@@ -1073,6 +1056,10 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
             for (size_t i = 0; i < N_Xorder; i++)
             {
                 x_struct->data_pointers_multinomial[j][tree_ind][Xorder_std[0][i]] = &this->theta_vector;
+                if ((*(x_struct->data_pointers_multinomial[j][tree_ind][Xorder_std[0][i]]))[j] == 0) {
+                    cout << "theta_vector = " << this->theta_vector << endl;
+                    exit(1);
+                }
             }
             #pragma omp critical
             state->lambdas_separate[tree_ind][j].push_back(this->theta_vector[j]);
@@ -1167,13 +1154,13 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
     {
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
-    #pragma omp task untied shared(state, Xorder_std, x_struct, model, entropy_threshold, num_stops, tree_ind, sweeps)
+    #pragma omp task untied shared(state, Xorder_std, x_struct, model, tree_ind, sweeps)
     {
-    this->l->grow_from_root_separate_tree(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
+    this->l->grow_from_root_separate_tree(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree);
     }
-    #pragma omp task untied shared(state, Xorder_std, x_struct, model, entropy_threshold, num_stops, tree_ind, sweeps)
+    #pragma omp task untied shared(state, Xorder_std, x_struct, model, tree_ind, sweeps)
     {
-    this->r->grow_from_root_separate_tree(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree, entropy_threshold, num_stops);
+    this->r->grow_from_root_separate_tree(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind, update_theta, update_split_prob, grow_new_tree);
     }
     
     #pragma omp taskwait
@@ -1580,7 +1567,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
             // count how many
             split_point = std::accumulate(X_counts.begin() + start, X_counts.begin() + ind + 1, 0);
             // minus one for correct index (start from 0)
-            split_point = split_point - 1;
+            if (split_point > 0 ){split_point = split_point - 1;}
             split_var = split_var + state->p_continuous;
         }
     }
@@ -1641,7 +1628,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
             // count how many
             split_point = std::accumulate(X_counts.begin() + start, X_counts.begin() + ind + 1, 0);
             // minus one for correct index (start from 0)
-            split_point = split_point - 1;
+            if (split_point > 0 ){split_point = split_point - 1;}
             split_var = split_var + state->p_continuous;
         }
     }
