@@ -63,8 +63,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< size_t >::type p_categorical(p_categoricalSEXP);
     Rcpp::traits::input_parameter< double >::type kap(kapSEXP);
     Rcpp::traits::input_parameter< double >::type s(sSEXP);
-    Rcpp::traits::input_parameter< double >::type tau_kap(tau_kapSEXP);
-    Rcpp::traits::input_parameter< double >::type tau_s(tau_sSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
     Rcpp::traits::input_parameter< bool >::type set_random_seed(set_random_seedSEXP);
@@ -325,7 +323,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART_XBART_CLT_cpp", (DL_FUNC) &_XBART_XBART_CLT_cpp, 23},
     {"_XBART_XBART_MH_cpp", (DL_FUNC) &_XBART_XBART_MH_cpp, 23},
     {"_XBART_XBART_cpp", (DL_FUNC) &_XBART_XBART_cpp, 26},
-    {"_XBART_XBART_multinomial_cpp", (DL_FUNC) &_XBART_XBART_multinomial_cpp, 31},
+    {"_XBART_XBART_multinomial_cpp", (DL_FUNC) &_XBART_XBART_multinomial_cpp, 26},
     {"_XBART_XBART_Probit_cpp", (DL_FUNC) &_XBART_XBART_Probit_cpp, 23},
     {"_XBART_xbart_predict", (DL_FUNC) &_XBART_xbart_predict, 3},
     {"_XBART_xbart_multinomial_predict", (DL_FUNC) &_XBART_xbart_multinomial_predict, 5},

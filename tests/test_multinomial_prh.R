@@ -107,7 +107,7 @@ num_trees = 20
 tm = proc.time()
 fit = XBART.multinomial(y=matrix(y_train), num_class=k, X=X_train, Xtest=X_test, 
                         num_trees=num_trees, num_sweeps=num_sweeps, p_categorical = p_cat, 
-                        separate_tree = TRUE)
+                        separate_tree = FALSE)
 
 
 tm = proc.time()-tm

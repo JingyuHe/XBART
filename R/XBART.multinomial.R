@@ -117,11 +117,11 @@ weight = 1, update_weight = TRUE, nthread = 0, ...) {
 
 
     if(separate_tree){
-        tree_json = r_to_json_3D(obj$model_list$tree_pnt)
+        tree_json = r_to_json_3D(obj$tree_pnt)
         obj$tree_json = tree_json
         obj$separate_tree = separate_tree
     }else{
-        tree_json = r_to_json(obj$model_list$tree_pnt)
+        tree_json = r_to_json(0, obj$tree_pnt)
         obj$tree_json = tree_json
         obj$separate_tree = separate_tree
     }
