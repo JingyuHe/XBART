@@ -262,8 +262,8 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
     suffstats[(*y_size_t)[index_next_obs]] += weight;
     for (size_t j = 0; j < dim_theta; ++j)
     {
-        // suffstats[dim_residual + j] += weight * exp(residual_std[j][index_next_obs]);
-        suffstats[dim_residual + j] += (*phi)[index_next_obs] * exp(residual_std[j][index_next_obs]);
+        suffstats[dim_residual + j] += weight * exp(residual_std[j][index_next_obs]);
+        // suffstats[dim_residual + j] += (*phi)[index_next_obs] * exp(residual_std[j][index_next_obs]);
     }
 
     return;
@@ -278,7 +278,7 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
             cout <<"unidentified error: suff_stat is nan for class " << j << endl;
             exit(1);
         }
-        std::gamma_distribution<double> gammadist(tau_a + suff_stat[j] + 1, 1.0); // consider adding 1 sudo obs to prevent 0 theta value
+        std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1.0); // consider adding 1 sudo obs to prevent 0 theta value
         theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
     }
     return;
@@ -302,14 +302,51 @@ void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, st
             sum_fits += exp(state->residual_std[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
         }
         // Sample phi
-        (*phi)[i] = gammadist(state->gen) / (1.0 * sum_fits);
+        // (*phi)[i] = gammadist(state->gen) / (1.0 * sum_fits);
         // calculate logloss
         logloss += -log(exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j) 
     }
     // sample weight based on logloss
     if (update_weight){
         std::gamma_distribution<> d(state->n_y, 1);
-        weight = d(state->gen) / (hmult * logloss + heps * (double)state->n_y) + 1; // it's like shift p down by
+        weight = d(state->gen) / (hmult * logloss + heps * (double)state->n_y); // it's like shift p down by
+    }
+
+    // Sample tau_a
+   if (update_tau)
+   {
+        size_t count_lambda = 0;
+        double mean_lambda = 0;
+        double var_lambda = 0;
+        for(size_t i = 0; i < state->num_trees; i++)
+        {
+            for(size_t j = 0; j < state->lambdas[i].size(); j++)
+            {
+                mean_lambda += std::accumulate(state->lambdas[i][j].begin(), state->lambdas[i][j].end(), 0.0);
+                count_lambda += dim_residual;
+            }
+        }
+        mean_lambda = mean_lambda / count_lambda;
+
+        for(size_t i = 0; i < state->num_trees; i++)
+        {
+            for(size_t j = 0; j < state->lambdas[i].size(); j++)
+            {
+                for(size_t k = 0; k < dim_residual; k++)
+                {
+                var_lambda += pow(state->lambdas[i][j][k] - mean_lambda, 2);
+                }
+            }
+        }    
+        var_lambda = var_lambda / count_lambda;
+        // cout << "mean = " << mean_lambda << "; var = " << var_lambda << endl;
+
+        std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda / count_lambda));
+        tau_a = 0;
+        while (tau_a <= 0)
+        {
+            tau_a = norm(state->gen) * tau_b;
+        }
     }
 
     return;
