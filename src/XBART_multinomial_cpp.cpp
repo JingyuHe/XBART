@@ -101,8 +101,9 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
-    std::vector<std::vector<double>> weight_sample;
-    ini_matrix(weight_sample, num_trees, num_sweeps);
+    std::vector<std::vector<double>> weight_samples;
+    ini_matrix(weight_samples, num_trees, num_sweeps);
+    std::vector<double> lambda_samples;
 
     // output is in 3 dim, stacked as a vector, number of sweeps * observations * number of classes
     std::vector<double> output_vec(num_sweeps * N_test * num_class);
@@ -128,7 +129,7 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
         LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau);
         model->setNoSplitPenality(no_split_penality);
 
-        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, weight_sample);
+        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, weight_samples, lambda_samples);
 
         model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
         model->predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees2, output_train);
@@ -147,7 +148,7 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
 
         model->setNoSplitPenality(no_split_penality);
 
-        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penality, state, model, x_struct, weight_sample);
+        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penality, state, model, x_struct, weight_samples);
 
         model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees3, output_vec);
         model->predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees3, output_train);
@@ -159,6 +160,7 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
     output.attr("dim") = Rcpp::Dimension(num_sweeps, N_test, num_class);
     Rcpp::NumericVector output_tr = Rcpp::wrap(output_train);
     output_tr.attr("dim") = Rcpp::Dimension(num_sweeps, N, num_class);
+    Rcpp::NumericVector lambda_samples_rcpp = Rcpp::wrap(lambda_samples);
 
     // STOPPED HERE
     // TODO: Figure out how we should store and return in sample preds
@@ -177,7 +179,7 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
     {
         for (size_t j = 0; j < num_sweeps; j++)
         {
-            weight_sample_rcpp(i, j) = weight_sample[j][i];
+            weight_sample_rcpp(i, j) = weight_samples[j][i];
         }
     }
     for (size_t i = 0; i < num_trees; i++)
@@ -258,6 +260,7 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
         Rcpp::Named("yhats_test") = output,
         Rcpp::Named("yhats_train") = output_tr,
         Rcpp::Named("weight") = weight_sample_rcpp,
+        Rcpp::Named("lambda") = lambda_samples_rcpp,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("depth") = depth_rcpp,
         Rcpp::Named("treedraws") = output_tree,
