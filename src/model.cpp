@@ -280,6 +280,10 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
         }
         std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1.0); // consider adding 1 sudo obs to prevent 0 theta value
         theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
+        while (theta_vector[j] == 0)
+        {
+            theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
+        }
     }
     return;
 }
@@ -311,6 +315,7 @@ void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, st
         std::gamma_distribution<> d(state->n_y, 1);
         weight = d(state->gen) / (hmult * logloss + heps * (double)state->n_y); // it's like shift p down by
     }
+    if (isnan(weight)) {cout << "weight is nan" << endl;}
 
     // Sample tau_a
    if (update_tau)
@@ -341,7 +346,7 @@ void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, st
         var_lambda = var_lambda / count_lambda;
         // cout << "mean = " << mean_lambda << "; var = " << var_lambda << endl;
 
-        std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda / count_lambda));
+        std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda));
         tau_a = 0;
         while (tau_a <= 0)
         {
@@ -431,6 +436,9 @@ void LogitModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual
         {
             // residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j] / (*(x_struct->data_pointers[next_index][i]))[j];
             residual_std[j][i] = residual_std[j][i] + log((*(x_struct->data_pointers[tree_ind][i]))[j]) - log( (*(x_struct->data_pointers[next_index][i]))[j] );
+            if (isnan(exp(residual_std[j][i]))) {
+                cout << "residual is nan, log(resid) = " << residual_std[j][i] << ", old_pointer = " << (*(x_struct->data_pointers[next_index][i]))[j]  << ", new = " << (*(x_struct->data_pointers[tree_ind][i]))[j] << endl;
+            }
         }
     }
 
