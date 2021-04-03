@@ -609,7 +609,7 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
 
 // this function is for a standalone prediction function for classification case.
 // with extra input iteration, which specifies which iteration (sweep / forest) to use
-void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec, std::vector<size_t>& iteration)
+void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec, std::vector<size_t>& iteration, std::vector<size_t> &output_leaf_index)
 {
 
     // output is a 3D array (armadillo cube), nsweeps by n by number of categories
@@ -633,6 +633,8 @@ void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_tes
             {
                 // search leaf
                 bn = trees[sweeps][i].search_bottom_std(Xtestpointer, data_ind, p, N_test);
+
+                output_leaf_index[iter + data_ind * num_iterations + i * num_iterations * N_test] = bn->nid();
 
                 for (size_t k = 0; k < dim_residual; k++)
                 {

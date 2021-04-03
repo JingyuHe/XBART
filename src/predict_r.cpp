@@ -73,11 +73,11 @@ Rcpp::List xbart_multinomial_predict(arma::mat X, double y_mean, size_t num_clas
     }
     double *Xpointer = &X_std[0];
 
-    size_t interation_len = iteration.n_elem;
+    size_t iteration_len = iteration.n_elem;
 
-    std::vector<size_t> iteration_vec(interation_len);
+    std::vector<size_t> iteration_vec(iteration_len);
 
-    for (size_t i = 0; i < interation_len; i++)
+    for (size_t i = 0; i < iteration_len; i++)
     {
         iteration_vec[i] = iteration(i);
     }
@@ -89,21 +89,24 @@ Rcpp::List xbart_multinomial_predict(arma::mat X, double y_mean, size_t num_clas
     matrix<double> yhats_test_xinfo;
     size_t N_sweeps = (*trees).size();
     size_t N_trees = (*trees)[0].size();
-    ini_xinfo(yhats_test_xinfo, N, interation_len);
+    ini_xinfo(yhats_test_xinfo, N, iteration_len);
 
-    std::vector<double> output_vec(interation_len * N * num_class);
+    std::vector<double> output_vec(iteration_len * N * num_class);
+    std::vector<size_t> output_leaf_index(iteration_len * N * N_trees);
 
     LogitModel *model = new LogitModel();
 
     model->dim_residual = num_class;
 
     // Predict
-    model->predict_std_standalone(Xpointer, N, p, N_trees, N_sweeps, yhats_test_xinfo, *trees, output_vec, iteration_vec);
+    model->predict_std_standalone(Xpointer, N, p, N_trees, N_sweeps, yhats_test_xinfo, *trees, output_vec, iteration_vec, output_leaf_index);
 
     Rcpp::NumericVector output = Rcpp::wrap(output_vec);
-    output.attr("dim") = Rcpp::Dimension(interation_len, N, num_class);
-
-    return Rcpp::List::create(Rcpp::Named("yhats") = output);
+    output.attr("dim") = Rcpp::Dimension(iteration_len, N, num_class);
+    Rcpp::NumericVector index = Rcpp::wrap(output_leaf_index);
+    index.attr("dim") = Rcpp::Dimension(iteration_len, N, N_trees);
+    
+    return Rcpp::List::create(Rcpp::Named("yhats") = output, Rcpp::Named("leaf_index") = index);
 }
 
 // [[Rcpp::export]]
@@ -125,11 +128,11 @@ Rcpp::List xbart_multinomial_predict_3D(arma::mat X, double y_mean, size_t num_c
     }
     double *Xpointer = &X_std[0];
 
-    size_t interation_len = iteration.n_elem;
+    size_t iteration_len = iteration.n_elem;
 
-    std::vector<size_t> iteration_vec(interation_len);
+    std::vector<size_t> iteration_vec(iteration_len);
 
-    for (size_t i = 0; i < interation_len; i++)
+    for (size_t i = 0; i < iteration_len; i++)
     {
         iteration_vec[i] = iteration(i);
     }
@@ -142,10 +145,9 @@ Rcpp::List xbart_multinomial_predict_3D(arma::mat X, double y_mean, size_t num_c
     size_t N_sweeps = (*trees)[0].size();
     size_t N_trees = (*trees)[0][0].size();
 
-    ini_xinfo(yhats_test_xinfo, N, interation_len);
-    
+    ini_xinfo(yhats_test_xinfo, N, iteration_len);
 
-    std::vector<double> output_vec(interation_len * N * num_class);
+    std::vector<double> output_vec(iteration_len * N * num_class);
 
     LogitModelSeparateTrees *model = new LogitModelSeparateTrees();
 
@@ -156,11 +158,10 @@ Rcpp::List xbart_multinomial_predict_3D(arma::mat X, double y_mean, size_t num_c
 
     Rcpp::NumericVector output = Rcpp::wrap(output_vec);
 
-    output.attr("dim") = Rcpp::Dimension(interation_len, N, num_class);
+    output.attr("dim") = Rcpp::Dimension(iteration_len, N, num_class);
 
     return Rcpp::List::create(Rcpp::Named("yhats") = output);
 }
-
 
 // [[Rcpp::export]]
 Rcpp::StringVector r_to_json(double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)
@@ -209,7 +210,7 @@ Rcpp::StringVector r_to_json_3D(Rcpp::XPtr<std::vector<std::vector<std::vector<t
 Rcpp::List json_to_r_3D(Rcpp::StringVector json_string_r)
 {
     // push json to 3 dimensional matrix of trees, used for separate trees in multinomial classification
-    std::vector<std::string> json_string(json_string_r.size()); 
+    std::vector<std::string> json_string(json_string_r.size());
     //std::string json_string = json_string_r(0);
     json_string[0] = json_string_r(0);
 
@@ -224,4 +225,3 @@ Rcpp::List json_to_r_3D(Rcpp::StringVector json_string_r)
 
     return Rcpp::List::create(Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt));
 }
-
