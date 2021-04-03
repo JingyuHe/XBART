@@ -104,6 +104,8 @@ double hmult = 1, double heps = 0.1){
 
     std::vector<std::vector<double>> weight_samples;
     ini_matrix(weight_samples, num_trees, num_sweeps);
+    std::vector<std::vector<double>> tau_samples;
+    ini_matrix(tau_samples, num_trees, num_sweeps);
     std::vector<double> lambda_samples;
 
     // output is in 3 dim, stacked as a vector, number of sweeps * observations * number of classes
@@ -130,7 +132,7 @@ double hmult = 1, double heps = 0.1){
         LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau, hmult, heps);
         model->setNoSplitPenality(no_split_penality);
 
-        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, weight_samples, lambda_samples);
+        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, weight_samples, lambda_samples, tau_samples);
 
         model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
         model->predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees2, output_train);
@@ -174,6 +176,7 @@ double hmult = 1, double heps = 0.1){
     Rcpp::NumericVector split_count_sum(p); // split counts
     // Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
     Rcpp::NumericMatrix weight_sample_rcpp(num_trees, num_sweeps);
+    Rcpp::NumericMatrix tau_sample_rcpp(num_trees, num_sweeps);
     Rcpp::NumericMatrix depth_rcpp(num_trees, num_sweeps);
 
     for (size_t i = 0; i < num_trees; i++)
@@ -181,6 +184,13 @@ double hmult = 1, double heps = 0.1){
         for (size_t j = 0; j < num_sweeps; j++)
         {
             weight_sample_rcpp(i, j) = weight_samples[j][i];
+        }
+    }
+    for (size_t i = 0; i < num_trees; i++)
+    {
+        for (size_t j = 0; j < num_sweeps; j++)
+        {
+            tau_sample_rcpp(i, j) = tau_samples[j][i];
         }
     }
     for (size_t i = 0; i < num_trees; i++)
@@ -261,6 +271,7 @@ double hmult = 1, double heps = 0.1){
         Rcpp::Named("yhats_test") = output,
         Rcpp::Named("yhats_train") = output_tr,
         Rcpp::Named("weight") = weight_sample_rcpp,
+        Rcpp::Named("tau_a") = tau_sample_rcpp,
         Rcpp::Named("lambda") = lambda_samples_rcpp,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("depth") = depth_rcpp,

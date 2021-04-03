@@ -269,6 +269,7 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
     return;
 }
 
+
 void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
 {
     for (size_t j = 0; j < dim_theta; j++)
@@ -284,6 +285,13 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
         {
             theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
         }
+
+        // std::gamma_distribution<double> gammadist(tau_a + suff_stat[j]/weight, 1.0); // consider adding 1 sudo obs to prevent 0 theta value
+        // theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]/weight);
+        // while (theta_vector[j] == 0)
+        // {
+        //     theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]/weight);
+        // }
     }
     return;
 }
@@ -295,6 +303,7 @@ void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, st
     size_t y_i;
     double sum_fits;
     logloss = 0; // reset logloss
+    double sum_prob = 0.0;
     std::gamma_distribution<double> gammadist(weight, 1.0);
 
     for (size_t i = 0; i < state->n_y; i++)
@@ -309,11 +318,14 @@ void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, st
         // (*phi)[i] = gammadist(state->gen) / (1.0 * sum_fits);
         // calculate logloss
         logloss += -log(exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j) 
+        // sum_prob += exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits;
     }
     // sample weight based on logloss
     if (update_weight){
-        std::gamma_distribution<> d(state->n_y, 1);
-        weight = d(state->gen) / (hmult * logloss + heps * (double)state->n_y); // it's like shift p down by
+        // std::gamma_distribution<> d(state->n_y, 1.0);
+        // weight = d(state->gen) / (hmult * logloss + heps * state->n_y);
+        std::gamma_distribution<> d(10.0, 1.0);
+        weight = d(state->gen) / (10.0 * logloss / (double)state->n_y + 1.0); // it's like shift p down by
     }
     if (isnan(weight)) {cout << "weight is nan" << endl;}
 
@@ -323,15 +335,19 @@ void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, st
         size_t count_lambda = 0;
         double mean_lambda = 0;
         double var_lambda = 0;
+        double max_lambda = -INFINITY;
+        double temp_max;
         for(size_t i = 0; i < state->num_trees; i++)
         {
             for(size_t j = 0; j < state->lambdas[i].size(); j++)
             {
                 mean_lambda += std::accumulate(state->lambdas[i][j].begin(), state->lambdas[i][j].end(), 0.0);
                 count_lambda += dim_residual;
+                temp_max = *max_element(state->lambdas[i][j].begin(), state->lambdas[i][j].end());
+                max_lambda = temp_max > max_lambda ? temp_max : max_lambda;
             }
         }
-        mean_lambda = mean_lambda / count_lambda;
+        mean_lambda = mean_lambda / count_lambda / max_lambda;
 
         for(size_t i = 0; i < state->num_trees; i++)
         {
@@ -339,7 +355,7 @@ void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, st
             {
                 for(size_t k = 0; k < dim_residual; k++)
                 {
-                var_lambda += pow(state->lambdas[i][j][k] - mean_lambda, 2);
+                var_lambda += pow(state->lambdas[i][j][k] / max_lambda - mean_lambda, 2);
                 }
             }
         }    
@@ -352,6 +368,11 @@ void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, st
         {
             tau_a = norm(state->gen) * tau_b;
         }
+
+        // std::gamma_distribution<> d(10.0 *logloss / (double)state->n_y , 1.0);
+        // tau_a = d(state->gen) ; // it's like shift p down by
+        // cout << "weight = " << weight << ", tau_a = " << tau_a << ", logloss = " << logloss/(double) state->n_y << endl;
+
     }
 
     return;
