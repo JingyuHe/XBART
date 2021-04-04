@@ -303,7 +303,7 @@ void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, st
     size_t y_i;
     double sum_fits;
     logloss = 0; // reset logloss
-    double sum_prob = 0.0;
+    double prob = 0.0;
     std::gamma_distribution<double> gammadist(weight, 1.0);
 
     for (size_t i = 0; i < state->n_y; i++)
@@ -317,8 +317,11 @@ void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, st
         // Sample phi
         // (*phi)[i] = gammadist(state->gen) / (1.0 * sum_fits);
         // calculate logloss
-        logloss += -log(exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j) 
-        // sum_prob += exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits;
+        prob = exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits; // logloss =  - log(p_j) 
+        // if (prob == 0){
+        //     cout << "resid = " << exp(state->residual_std[y_i][i]) << ", pointer = " << (*(x_struct->data_pointers[tree_ind][i]))[y_i] << ", sum_fits = " << sum_fits << endl;
+        // }
+        logloss += -log(prob);
     }
     // sample weight based on logloss
     if (update_weight){
@@ -343,11 +346,12 @@ void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, st
             {
                 mean_lambda += std::accumulate(state->lambdas[i][j].begin(), state->lambdas[i][j].end(), 0.0);
                 count_lambda += dim_residual;
-                temp_max = *max_element(state->lambdas[i][j].begin(), state->lambdas[i][j].end());
-                max_lambda = temp_max > max_lambda ? temp_max : max_lambda;
+                // temp_max = *max_element(state->lambdas[i][j].begin(), state->lambdas[i][j].end());
+                // max_lambda = temp_max > max_lambda ? temp_max : max_lambda;
             }
         }
-        mean_lambda = mean_lambda / count_lambda / max_lambda;
+        // mean_lambda = mean_lambda / count_lambda / max_lambda;
+        mean_lambda = mean_lambda / count_lambda;
 
         for(size_t i = 0; i < state->num_trees; i++)
         {
@@ -355,14 +359,16 @@ void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, st
             {
                 for(size_t k = 0; k < dim_residual; k++)
                 {
-                var_lambda += pow(state->lambdas[i][j][k] / max_lambda - mean_lambda, 2);
+                    // var_lambda += pow(state->lambdas[i][j][k] / max_lambda - mean_lambda, 2);
+                    var_lambda += pow(state->lambdas[i][j][k] / mean_lambda - 1, 2);
                 }
             }
         }    
         var_lambda = var_lambda / count_lambda;
         // cout << "mean = " << mean_lambda << "; var = " << var_lambda << endl;
 
-        std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda));
+        // std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda));
+        std::normal_distribution<> norm(1, sqrt(var_lambda));
         tau_a = 0;
         while (tau_a <= 0)
         {
@@ -371,7 +377,7 @@ void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, st
 
         // std::gamma_distribution<> d(10.0 *logloss / (double)state->n_y , 1.0);
         // tau_a = d(state->gen) ; // it's like shift p down by
-        // cout << "weight = " << weight << ", tau_a = " << tau_a << ", logloss = " << logloss/(double) state->n_y << endl;
+        // cout << "weight = " << weight << ", tau_a = " << tau_a <<", logloss = " << logloss/(double) state->n_y << endl;
 
     }
 
