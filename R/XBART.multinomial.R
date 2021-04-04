@@ -116,14 +116,14 @@ weight = 1, update_weight = TRUE, update_tau = TRUE, nthread = 0, hmult = 1, hep
     class(obj) = "XBARTmultinomial"
 
 
-    if(separate_tree){
-        tree_json = r_to_json_3D(obj$tree_pnt)
-        obj$tree_json = tree_json
-        obj$separate_tree = separate_tree
-    }else{
-        tree_json = r_to_json(0, obj$tree_pnt)
-        obj$tree_json = tree_json
-        obj$separate_tree = separate_tree
-    }
+    # if(separate_tree){
+    #     tree_json = r_to_json_3D(obj$tree_pnt)
+    #     obj$tree_json = tree_json
+    #     obj$separate_tree = separate_tree
+    # }else{
+    #     tree_json = r_to_json(0, obj$tree_pnt)
+    #     obj$tree_json = tree_json
+    #     obj$separate_tree = separate_tree
+    # }
     return(obj)
 }
