@@ -262,12 +262,13 @@ void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs
     suffstats[(*y_size_t)[index_next_obs]] += weight;
     for (size_t j = 0; j < dim_theta; ++j)
     {
-        // suffstats[dim_residual + j] += weight * exp(residual_std[j][index_next_obs]);
-        suffstats[dim_residual + j] += (*phi)[index_next_obs] * exp(residual_std[j][index_next_obs]);
+        suffstats[dim_residual + j] += weight * exp(residual_std[j][index_next_obs]);
+        // suffstats[dim_residual + j] += (*phi)[index_next_obs] * exp(residual_std[j][index_next_obs]);
     }
 
     return;
 }
+
 
 void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
 {
@@ -278,8 +279,19 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
             cout <<"unidentified error: suff_stat is nan for class " << j << endl;
             exit(1);
         }
-        std::gamma_distribution<double> gammadist(tau_a + suff_stat[j] + 1, 1.0); // consider adding 1 sudo obs to prevent 0 theta value
+        std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1.0); // consider adding 1 sudo obs to prevent 0 theta value
         theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
+        while (theta_vector[j] == 0)
+        {
+            theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
+        }
+
+        // std::gamma_distribution<double> gammadist(tau_a + suff_stat[j]/weight, 1.0); // consider adding 1 sudo obs to prevent 0 theta value
+        // theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]/weight);
+        // while (theta_vector[j] == 0)
+        // {
+        //     theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]/weight);
+        // }
     }
     return;
 }
@@ -291,6 +303,7 @@ void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, st
     size_t y_i;
     double sum_fits;
     logloss = 0; // reset logloss
+    double prob = 0.0;
     std::gamma_distribution<double> gammadist(weight, 1.0);
 
     for (size_t i = 0; i < state->n_y; i++)
@@ -302,14 +315,70 @@ void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, st
             sum_fits += exp(state->residual_std[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
         }
         // Sample phi
-        (*phi)[i] = gammadist(state->gen) / (1.0 * sum_fits);
+        // (*phi)[i] = gammadist(state->gen) / (1.0 * sum_fits);
         // calculate logloss
-        logloss += -log(exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j) 
+        prob = exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits; // logloss =  - log(p_j) 
+        // if (prob == 0){
+        //     cout << "resid = " << exp(state->residual_std[y_i][i]) << ", pointer = " << (*(x_struct->data_pointers[tree_ind][i]))[y_i] << ", sum_fits = " << sum_fits << endl;
+        // }
+        logloss += -log(prob);
     }
     // sample weight based on logloss
     if (update_weight){
-        std::gamma_distribution<> d(state->n_y, 1);
-        weight = d(state->gen) / (hmult * logloss + heps * (double)state->n_y) + 1; // it's like shift p down by
+        // std::gamma_distribution<> d(state->n_y, 1.0);
+        // weight = d(state->gen) / (hmult * logloss + heps * state->n_y);
+        std::gamma_distribution<> d(10.0, 1.0);
+        weight = d(state->gen) / (10.0 * logloss / (double)state->n_y + 1.0); // it's like shift p down by
+    }
+    if (isnan(weight)) {cout << "weight is nan" << endl;}
+
+    // Sample tau_a
+   if (update_tau)
+   {
+        size_t count_lambda = 0;
+        double mean_lambda = 0;
+        double var_lambda = 0;
+        double max_lambda = -INFINITY;
+        double temp_max;
+        for(size_t i = 0; i < state->num_trees; i++)
+        {
+            for(size_t j = 0; j < state->lambdas[i].size(); j++)
+            {
+                mean_lambda += std::accumulate(state->lambdas[i][j].begin(), state->lambdas[i][j].end(), 0.0);
+                count_lambda += dim_residual;
+                // temp_max = *max_element(state->lambdas[i][j].begin(), state->lambdas[i][j].end());
+                // max_lambda = temp_max > max_lambda ? temp_max : max_lambda;
+            }
+        }
+        // mean_lambda = mean_lambda / count_lambda / max_lambda;
+        mean_lambda = mean_lambda / count_lambda;
+
+        for(size_t i = 0; i < state->num_trees; i++)
+        {
+            for(size_t j = 0; j < state->lambdas[i].size(); j++)
+            {
+                for(size_t k = 0; k < dim_residual; k++)
+                {
+                    // var_lambda += pow(state->lambdas[i][j][k] / max_lambda - mean_lambda, 2);
+                    var_lambda += pow(state->lambdas[i][j][k] / mean_lambda - 1, 2);
+                }
+            }
+        }    
+        var_lambda = var_lambda / count_lambda;
+        // cout << "mean = " << mean_lambda << "; var = " << var_lambda << endl;
+
+        // std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda));
+        std::normal_distribution<> norm(1, sqrt(var_lambda));
+        tau_a = 0;
+        while (tau_a <= 0)
+        {
+            tau_a = norm(state->gen) * tau_b;
+        }
+
+        // std::gamma_distribution<> d(10.0 *logloss / (double)state->n_y , 1.0);
+        // tau_a = d(state->gen) ; // it's like shift p down by
+        // cout << "weight = " << weight << ", tau_a = " << tau_a <<", logloss = " << logloss/(double) state->n_y << endl;
+
     }
 
     return;
@@ -394,6 +463,9 @@ void LogitModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual
         {
             // residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j] / (*(x_struct->data_pointers[next_index][i]))[j];
             residual_std[j][i] = residual_std[j][i] + log((*(x_struct->data_pointers[tree_ind][i]))[j]) - log( (*(x_struct->data_pointers[next_index][i]))[j] );
+            if (isnan(exp(residual_std[j][i]))) {
+                cout << "residual is nan, log(resid) = " << residual_std[j][i] << ", old_pointer = " << (*(x_struct->data_pointers[next_index][i]))[j]  << ", new = " << (*(x_struct->data_pointers[tree_ind][i]))[j] << endl;
+            }
         }
     }
 
@@ -543,7 +615,7 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
 
 // this function is for a standalone prediction function for classification case.
 // with extra input iteration, which specifies which iteration (sweep / forest) to use
-void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec, std::vector<size_t>& iteration)
+void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec, std::vector<size_t>& iteration, std::vector<size_t> &output_leaf_index)
 {
 
     // output is a 3D array (armadillo cube), nsweeps by n by number of categories
@@ -567,6 +639,8 @@ void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_tes
             {
                 // search leaf
                 bn = trees[sweeps][i].search_bottom_std(Xtestpointer, data_ind, p, N_test);
+
+                output_leaf_index[iter + data_ind * num_iterations + i * num_iterations * N_test] = bn->nid();
 
                 for (size_t k = 0; k < dim_residual; k++)
                 {

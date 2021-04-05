@@ -2,7 +2,7 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees = 20, num_sweeps
 Nmin = NULL, num_cutpoints = NULL, alpha = 0.95, beta = 1.25, tau_a = 1, tau_b = 1, 
 no_split_penality = NULL, burnin = 5, mtry = NULL, p_categorical = 0L, verbose = FALSE, 
 parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, 
-weight = 1, update_weight = TRUE, nthread = 0, ...) {
+weight = 1, update_weight = TRUE, update_tau = TRUE, nthread = 0, hmult = 1, heps = 0.1, ...) {
 
     if (!("matrix" %in% class(X))) {
         cat("Input X is not a matrix, try to convert type.\n")
@@ -112,18 +112,18 @@ weight = 1, update_weight = TRUE, nthread = 0, ...) {
 
     obj = XBART_multinomial_cpp(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau_a, tau_b, 
     no_split_penality, burnin, mtry, p_categorical, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, separate_tree, 
-    weight, update_weight, nthread)
+    weight, update_weight, update_tau, nthread, hmult, heps)
     class(obj) = "XBARTmultinomial"
 
 
-    if(separate_tree){
-        tree_json = r_to_json_3D(obj$tree_pnt)
-        obj$tree_json = tree_json
-        obj$separate_tree = separate_tree
-    }else{
-        tree_json = r_to_json(0, obj$tree_pnt)
-        obj$tree_json = tree_json
-        obj$separate_tree = separate_tree
-    }
+    # if(separate_tree){
+    #     tree_json = r_to_json_3D(obj$tree_pnt)
+    #     obj$tree_json = tree_json
+    #     obj$separate_tree = separate_tree
+    # }else{
+    #     tree_json = r_to_json(0, obj$tree_pnt)
+    #     obj$tree_json = tree_json
+    #     obj$separate_tree = separate_tree
+    # }
     return(obj)
 }

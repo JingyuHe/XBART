@@ -184,7 +184,7 @@ void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sig
 
 void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty,
                            std::unique_ptr<State> &state, LogitModel *model, std::unique_ptr<X_struct> &x_struct,
-                           std::vector< std::vector<double> > &weight_samples)
+                           std::vector< std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector< std::vector<double>> &tau_samples)
 {
     // if (state->parallel)
     //     thread_pool.start();
@@ -274,6 +274,14 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
             
             weight_samples[sweeps][tree_ind] = model->weight;
+            tau_samples[sweeps][tree_ind] = model->tau_a;
+
+            for(size_t j = 0; j < state->lambdas[tree_ind].size(); j++)
+            {
+                for (size_t k = 0; k < state->lambdas[tree_ind][j].size(); k++){
+                    lambda_samples.push_back(state->lambdas[tree_ind][j][k]);
+                }
+            }
         }
 
         // if (sweeps <= state->burnin){

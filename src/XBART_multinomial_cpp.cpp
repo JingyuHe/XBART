@@ -16,7 +16,8 @@ using namespace chrono;
 Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, 
 size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penality, 
 size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, 
-bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, bool update_weight = true, double nthread = 0){
+bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, bool update_weight = true, bool update_tau = true, double nthread = 0,
+double hmult = 1, double heps = 0.1){
     // auto start = system_clock::now();
 
     size_t N = X.n_rows;
@@ -101,8 +102,11 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
-    std::vector<std::vector<double>> weight_sample;
-    ini_matrix(weight_sample, num_trees, num_sweeps);
+    std::vector<std::vector<double>> weight_samples;
+    ini_matrix(weight_samples, num_trees, num_sweeps);
+    std::vector<std::vector<double>> tau_samples;
+    ini_matrix(tau_samples, num_trees, num_sweeps);
+    std::vector<double> lambda_samples;
 
     // output is in 3 dim, stacked as a vector, number of sweeps * observations * number of classes
     std::vector<double> output_vec(num_sweeps * N_test * num_class);
@@ -125,10 +129,10 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
     {
         for (size_t i = 0; i < num_sweeps; i++)  { (*trees2)[i] = vector<tree>(num_trees); }
 
-        LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight);
+        LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau, hmult, heps);
         model->setNoSplitPenality(no_split_penality);
 
-        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, weight_sample);
+        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, weight_samples, lambda_samples, tau_samples);
 
         model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
         model->predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees2, output_train);
@@ -143,11 +147,11 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
             for (size_t j = 0; j < num_sweeps; j++) { (*trees3)[i][j] = vector<tree> (num_trees); }
         }
         
-        LogitModelSeparateTrees *model = new LogitModelSeparateTrees(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight);
+        LogitModelSeparateTrees *model = new LogitModelSeparateTrees(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau);
 
         model->setNoSplitPenality(no_split_penality);
 
-        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penality, state, model, x_struct, weight_sample);
+        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penality, state, model, x_struct, weight_samples);
 
         model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees3, output_vec);
         model->predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees3, output_train);
@@ -159,6 +163,7 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
     output.attr("dim") = Rcpp::Dimension(num_sweeps, N_test, num_class);
     Rcpp::NumericVector output_tr = Rcpp::wrap(output_train);
     output_tr.attr("dim") = Rcpp::Dimension(num_sweeps, N, num_class);
+    Rcpp::NumericVector lambda_samples_rcpp = Rcpp::wrap(lambda_samples);
 
     // STOPPED HERE
     // TODO: Figure out how we should store and return in sample preds
@@ -171,13 +176,21 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
     Rcpp::NumericVector split_count_sum(p); // split counts
     // Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
     Rcpp::NumericMatrix weight_sample_rcpp(num_trees, num_sweeps);
+    Rcpp::NumericMatrix tau_sample_rcpp(num_trees, num_sweeps);
     Rcpp::NumericMatrix depth_rcpp(num_trees, num_sweeps);
 
     for (size_t i = 0; i < num_trees; i++)
     {
         for (size_t j = 0; j < num_sweeps; j++)
         {
-            weight_sample_rcpp(i, j) = weight_sample[j][i];
+            weight_sample_rcpp(i, j) = weight_samples[j][i];
+        }
+    }
+    for (size_t i = 0; i < num_trees; i++)
+    {
+        for (size_t j = 0; j < num_sweeps; j++)
+        {
+            tau_sample_rcpp(i, j) = tau_samples[j][i];
         }
     }
     for (size_t i = 0; i < num_trees; i++)
@@ -258,22 +271,24 @@ bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, 
         Rcpp::Named("yhats_test") = output,
         Rcpp::Named("yhats_train") = output_tr,
         Rcpp::Named("weight") = weight_sample_rcpp,
+        Rcpp::Named("tau_a") = tau_sample_rcpp,
+        Rcpp::Named("lambda") = lambda_samples_rcpp,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("depth") = depth_rcpp,
         Rcpp::Named("treedraws") = output_tree,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, 
         Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
 
-    if (!separate_tree)
-    {
-        Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
-        ret.push_back(tree_pnt, "tree_pnt");
-    }
-    else
-    {
-        Rcpp::XPtr<std::vector<std::vector<std::vector<tree>>>> tree_pnt(trees3, true);
-        ret.push_back(tree_pnt, "tree_pnt");
-    }
+    // if (!separate_tree)
+    // {
+    //     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
+    //     ret.push_back(tree_pnt, "tree_pnt");
+    // }
+    // else
+    // {
+    //     Rcpp::XPtr<std::vector<std::vector<std::vector<tree>>>> tree_pnt(trees3, true);
+    //     ret.push_back(tree_pnt, "tree_pnt");
+    // }
 
     return ret;
 }

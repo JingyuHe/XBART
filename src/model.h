@@ -496,11 +496,11 @@ public:
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
     std::vector<double> *phi;
     
-    bool update_weight; // option to update tau_a
+    bool update_weight, update_tau; // option to update tau_a
     double weight, logloss; // pseudo replicates of observations
     double hmult, heps; // weight ~ Gamma(n, hmult * entropy + heps);
 
-    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight) : Model(num_classes, 2*num_classes)
+    LogitModel(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, double hmult, double heps) : Model(num_classes, 2*num_classes)
     {
         this->y_size_t = y_size_t;
         this->phi = phi;
@@ -512,9 +512,10 @@ public:
         this->dim_residual = num_classes;
 
         this->update_weight = update_weight;
+        this->update_tau = update_tau;
         this->weight = weight;
-        this->hmult = 1;
-        this->heps = 0;
+        this->hmult = hmult;
+        this->heps = heps;
         this->logloss = 0;
     }
 
@@ -545,7 +546,7 @@ public:
     using Model::predict_std;
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec);
 
-    void predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec, std::vector<size_t>& iteration);
+    void predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec, std::vector<size_t>& iteration, std::vector<size_t> &output_leaf_index);
 };
 
 
@@ -593,7 +594,7 @@ private:
 public:
 
 
-    LogitModelSeparateTrees(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, update_weight) {}
+    LogitModelSeparateTrees(int num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, update_weight, update_tau, 1, 0.1) {}
 
     LogitModelSeparateTrees() : LogitModel() {}
 
