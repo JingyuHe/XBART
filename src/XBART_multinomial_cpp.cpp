@@ -279,16 +279,16 @@ double hmult = 1, double heps = 0.1){
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, 
         Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
 
-    // if (!separate_tree)
-    // {
-    //     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
-    //     ret.push_back(tree_pnt, "tree_pnt");
-    // }
-    // else
-    // {
-    //     Rcpp::XPtr<std::vector<std::vector<std::vector<tree>>>> tree_pnt(trees3, true);
-    //     ret.push_back(tree_pnt, "tree_pnt");
-    // }
+    if (!separate_tree)
+    {
+        Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
+        ret.push_back(tree_pnt, "tree_pnt");
+    }
+    else
+    {
+        Rcpp::XPtr<std::vector<std::vector<std::vector<tree>>>> tree_pnt(trees3, true);
+        ret.push_back(tree_pnt, "tree_pnt");
+    }
 
     return ret;
 }
