@@ -17,6 +17,10 @@ To solve it
 
    brew install llvm boost libomp
 
+   brew info llvm
+   See what the LDFLAGS is, mine is like: 
+   LDFLAGS=“-L/opt/homebrew/opt/llvm/lib -Wl,-rpath,/opt/homebrew/opt/llvm/lib”
+
 2. Run the following code in the terminal, under your user directory (/Users/your_user_name)
    
    mkdir -p ~/.R
@@ -29,18 +33,12 @@ To solve it
 
 3. Then the text editor pops out, copy and paste the following lines to the file
    
-   CC=/usr/local/opt/llvm/bin/clang
-
-   CXX=/usr/local/opt/llvm/bin/clang++
-
-   CXX11=/usr/local/opt/llvm/bin/clang++
-
-   CXX14=/usr/local/opt/llvm/bin/clang++
-
-   CXX17=/usr/local/opt/llvm/bin/clang++
-   
-   CXX1X=/usr/local/opt/llvm/bin/clang++
-
-   LDFLAGS=-L/usr/local/opt/llvm/lib
+   CC=/opt/homebrew/opt/llvm/lclang
+   CXX=/opt/homebrew/opt/llvm/clang++
+   CXX11=/opt/homebrew/opt/llvm/clang++
+   CXX14=/opt/homebrew/opt/llvm/clang++
+   CXX17=/opt/homebrew/opt/llvm/clang++
+   CXX1X=/opt/homebrew/opt/llvm/clang++
+   LDFLAGS=-L/opt/homebrew/opt/llvm/lib
 
 4. Save, exit and reboot your Mac
