@@ -46,7 +46,7 @@ double hmult = 1, double heps = 0.1){
         COUT << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
     }
 
-    if (parallel & (nthread == 0)) nthread = omp_get_max_threads();
+    if (parallel && (nthread == 0)) nthread = omp_get_max_threads();
     omp_set_num_threads(nthread);
 
     arma::umat Xorder(X.n_rows, X.n_cols);

@@ -1,7 +1,6 @@
 #include "mcmc_loop.h"
 #include "omp.h"
 
-
 void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct)
 {
 
@@ -51,16 +50,25 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
 
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
-            omp_set_max_active_levels(3);
-            #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
-            {       
-                #pragma omp sections
-                {
-                    #pragma omp section
-                    {
-                        trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-                    }
-                }
+            if (state->parallel)
+            {
+                // run parallel
+                // omp_set_max_active_levels(state->nthread);
+// #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
+                // {
+// #pragma omp sections
+                    // {
+// #pragma omp section
+                        // {
+                            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+                        // }
+                    // }
+                // }
+            }
+            else
+            {
+                // single core
+                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
             }
 
             // update tau after sampling the tree
@@ -72,7 +80,8 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
         }
 
-        if(model->sampling_tau){
+        if (model->sampling_tau)
+        {
             model->update_tau_per_forest(state, sweeps, trees);
         }
     }
@@ -184,7 +193,7 @@ void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sig
 
 void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty,
                            std::unique_ptr<State> &state, LogitModel *model, std::unique_ptr<X_struct> &x_struct,
-                           std::vector< std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector< std::vector<double>> &tau_samples)
+                           std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &tau_samples)
 {
     // if (state->parallel)
     //     thread_pool.start();
@@ -206,14 +215,13 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
         {
 
-             if (verbose)
+            if (verbose)
             {
                 cout << "sweep " << sweeps << " tree " << tree_ind << endl;
             }
             // Draw latents -- do last?
 
             //Rcpp::Rcout << "Updating state";
-
 
             if (state->use_all && (sweeps >= state->burnin)) // && (state->mtry != state->p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
             {
@@ -232,38 +240,38 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
             for (size_t k = 0; k < trees[sweeps][tree_ind].suff_stat.size(); k++)
             {
-                if (isnan(trees[sweeps][tree_ind].suff_stat[k])){
+                if (isnan(trees[sweeps][tree_ind].suff_stat[k]))
+                {
                     cout << "unidentified error: suffstat " << k << " initialized as nan" << endl;
                     exit(1);
                 }
             }
-            
+
             trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
             state->lambdas[tree_ind].clear();
 
-
             // set nthread based on number of observations * mtry
-          /*  double fake_p = (state->use_all) ? state->p : state->mtry;
+            /*  double fake_p = (state->use_all) ? state->p : state->mtry;
             if (state->n_y * fake_p < 1e5) { omp_set_num_threads( std::min(4, int(state->nthread)) ); }
             else if (state->n_y * fake_p < 5e5 ) { omp_set_num_threads( std::min(6, int(state->nthread) ) ); }
             else {omp_set_num_threads(state->nthread); }*/
 
             omp_set_max_active_levels(3);
-            #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
-            {       
-                #pragma omp sections
+#pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
+            {
+#pragma omp sections
                 {
-                    #pragma omp section
+#pragma omp section
                     {
                         trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
                     }
                 }
             }
-            
+
             state->update_split_counts(tree_ind);
             if (sweeps >= state->burnin)
             {
-                for(size_t i = 0; i < state->split_count_all.size(); i++)
+                for (size_t i = 0; i < state->split_count_all.size(); i++)
                 {
                     state->split_count_all[i] += state->split_count_current_tree[i];
                 }
@@ -272,13 +280,14 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             model->update_state(state, tree_ind, x_struct);
 
             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
-            
+
             weight_samples[sweeps][tree_ind] = model->weight;
             tau_samples[sweeps][tree_ind] = model->tau_a;
 
-            for(size_t j = 0; j < state->lambdas[tree_ind].size(); j++)
+            for (size_t j = 0; j < state->lambdas[tree_ind].size(); j++)
             {
-                for (size_t k = 0; k < state->lambdas[tree_ind][j].size(); k++){
+                for (size_t k = 0; k < state->lambdas[tree_ind][j].size(); k++)
+                {
                     lambda_samples.push_back(state->lambdas[tree_ind][j][k]);
                 }
             }
@@ -292,7 +301,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
         //     break;
         // }
     }
-    // thread_pool.stop();  
+    // thread_pool.stop();
 }
 
 void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModelSeparateTrees *model,
@@ -319,14 +328,13 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
         {
 
-             if (verbose)
+            if (verbose)
             {
                 cout << "sweep " << sweeps << " tree " << tree_ind << endl;
             }
             // Draw latents -- do last?
 
             //Rcpp::Rcout << "Updating state";
-
 
             if (state->use_all && (sweeps >= state->burnin)) // && (state->mtry != state->p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
             {
@@ -341,13 +349,13 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
             {
                 state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
             }
-            
+
             omp_set_max_active_levels(3);
-            #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
-            {       
-                #pragma omp sections
+#pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
+            {
+#pragma omp sections
                 {
-                    #pragma omp section
+#pragma omp section
                     {
                         for (size_t class_ind = 0; class_ind < model->dim_residual; class_ind++)
                         {
@@ -370,7 +378,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
 
             if (sweeps >= state->burnin)
             {
-                for(size_t i = 0; i < state->split_count_all.size(); i++)
+                for (size_t i = 0; i < state->split_count_all.size(); i++)
                 {
                     state->split_count_all[i] += state->split_count_current_tree[i];
                 }
@@ -387,12 +395,11 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
     return;
 }
 
-
 void mcmc_loop_probit(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, ProbitClass *model, std::unique_ptr<X_struct> &x_struct)
 {
 
     // if (state->parallel)
-        // thread_pool.start();
+    // thread_pool.start();
 
     // Residual for 0th tree
     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
@@ -429,11 +436,11 @@ void mcmc_loop_probit(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
             omp_set_max_active_levels(3);
-            #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
-            {       
-                #pragma omp sections
+#pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
+            {
+#pragma omp sections
                 {
-                    #pragma omp section
+#pragma omp section
                     {
                         trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
                     }

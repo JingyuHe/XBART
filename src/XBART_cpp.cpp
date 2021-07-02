@@ -15,9 +15,21 @@ using namespace chrono;
 // [[Rcpp::export]]
 Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, double tau_kap = 3, double tau_s = 0.5, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, double nthread = 0)
 {
-    if (parallel & (nthread == 0))
+    if (parallel && (nthread == 0))
     {
-        nthread = omp_get_max_threads();
+        // if turn on parallel and do not sepicifiy number of threads
+        // use max - 1, leave one out
+        nthread = omp_get_max_threads() - 1;
+    }
+
+    if (parallel)
+    {
+        omp_set_num_threads(nthread);
+        cout << "Running in parallel with " << nthread << " threads." << endl;
+    }
+    else
+    {
+        cout << "Running with single thread." << endl;
     }
 
     size_t N = X.n_rows;
@@ -87,7 +99,7 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
 
     // State settings
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
-    std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread)); //last input is nthread, need update
+    std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread, parallel)); //last input is nthread, need update
 
     // state->set_Xcut(Xcutmat);
 
@@ -109,7 +121,6 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(yhats_test_xinfo, yhats_test);
     Matrix_to_NumericMatrix(sigma_draw_xinfo, sigma_draw);
-    
 
     for (size_t i = 0; i < p; i++)
     {
