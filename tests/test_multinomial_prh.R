@@ -122,7 +122,11 @@ cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
 
 
 # you may use the predict function as well
-fitted = predict(fit, X_test)
+fitted = predict.XBARTmultinomial(fit, X_test)
+a = apply(fitted$yhats[burnin:num_sweeps,,], c(2,3), mean)
+pred = apply(a,1,which.max)-1
+yhat = apply(a,1,which.max)-1
+cat(paste("xbart classification accuracy: ",round(mean(y_test == yhat),3)),"\n")
 
 
 
