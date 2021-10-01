@@ -17,6 +17,7 @@ public:
     std::vector<size_t> X_counts;
     std::vector<size_t> variable_ind;
     std::vector<size_t> X_num_unique;
+    std::vector<std::vector<double>> X_range;
     const double *X_std;    // pointer to original data
     const std::vector<double> *y_std; // pointer to y data
     size_t n_y; // number of total data points in root node
@@ -31,6 +32,8 @@ public:
         init_tree_pointers_multinomial(initial_theta, n_y, num_trees);
         
         unique_value_count2(X_std, Xorder_std, X_values, X_counts, variable_ind, n_y, X_num_unique, p_categorical, p_continuous);
+
+        get_X_range(X_std, Xorder_std, X_range);
 
         this->X_std = X_std;
         this->y_std = y_std;
