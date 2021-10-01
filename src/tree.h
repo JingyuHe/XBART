@@ -215,6 +215,10 @@ private:
 
     double c;
 
+    double v_min; // variable range
+
+    double v_max; // variable range
+
     double prob_split; // posterior of the chose split points, by Bayes rule
 
     double prob_leaf; // posterior of the leaf parameter, mu

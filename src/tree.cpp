@@ -662,6 +662,8 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
         // If GROW FROM ROOT MODE
         this->v = split_var;
         this->c = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
+        this->v_min = x_struct->X_range[split_var][0];
+        this->v_max = x_struct->X_range[split_var][1];
 
         size_t index_in_full = 0;
         while ((state->Xorder_std)[split_var][index_in_full] != Xorder_std[split_var][split_point])
