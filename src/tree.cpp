@@ -277,7 +277,7 @@ std::vector<double> tree::gettheta_outsample(const double *X, const size_t &i, c
     if ((*(X + N * v + i) < v_min) | ((*(X + N * v + i) > v_max))){
         // should move this into models with new samplePars_prior function
         std::vector<double> mu(1);
-        std::normal_distribution<double> normal_samp(0.0, tau);
+        std::normal_distribution<double> normal_samp(0.0, sqrt(tau));
         mu[0] = normal_samp(gen);
         return mu;
     }
