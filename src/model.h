@@ -118,15 +118,19 @@ public:
     double tau_s;
     // prior on leaf parameter
     double tau; // might be updated if sampling tau
+    double tau_prior;
     double tau_mean; // copy of the original value
     bool sampling_tau;
+    
+    double distance_s; // s: coefficient for distance in prediction
 
-    NormalModel(double kap, double s, double tau, double alpha, double beta, bool sampling_tau, double tau_kap, double tau_s) : Model(1, 3)
+    NormalModel(double kap, double s, double tau, double alpha, double beta, bool sampling_tau, double tau_kap, double tau_s, double distance_s) : Model(1, 3)
     {
         this->kap = kap;
         this->s = s;
         this->tau_kap = tau_kap;
         this->tau_s = tau_s;
+        this->tau_prior = tau;
         this->tau = tau;
         this->tau_mean = tau;
         this->alpha = alpha;
@@ -134,6 +138,7 @@ public:
         this->dim_residual = 1;
         this->class_operating = 0;
         this->sampling_tau = sampling_tau;
+        this->distance_s = distance_s;
     }
 
     NormalModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 3)
@@ -149,6 +154,11 @@ public:
         this->sampling_tau = true;
     }
 
+    NormalModel(double distance_s) : Model(1,3)
+    {
+        this->distance_s = distance_s;
+    }
+    
     NormalModel() : Model(1, 3) {}
 
     Model *clone() { return new NormalModel(*this); }

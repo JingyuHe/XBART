@@ -60,7 +60,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
                                     // {
                 // #pragma omp section
                         // {
-                            trees[sweeps][tree_ind].settau(model->tau);// initiate tau
+                            trees[sweeps][tree_ind].settau(model->tau_prior, model->tau);// initiate tau
                             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
                         // }
                     // }

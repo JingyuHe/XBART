@@ -74,8 +74,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // XBART_cpp
-Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin, size_t mtry, size_t p_categorical, double kap, double s, double tau_kap, double tau_s, bool verbose, bool sampling_tau, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights_flag, double nthread);
-RcppExport SEXP _XBART_XBART_cpp(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP num_treesSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP no_split_penalitySEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP tau_kapSEXP, SEXP tau_sSEXP, SEXP verboseSEXP, SEXP sampling_tauSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weights_flagSEXP, SEXP nthreadSEXP) {
+Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin, size_t mtry, size_t p_categorical, double kap, double s, double tau_kap, double tau_s, bool verbose, bool sampling_tau, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights_flag, double nthread, double distance_s);
+RcppExport SEXP _XBART_XBART_cpp(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP num_treesSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP no_split_penalitySEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP tau_kapSEXP, SEXP tau_sSEXP, SEXP verboseSEXP, SEXP sampling_tauSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weights_flagSEXP, SEXP nthreadSEXP, SEXP distance_sSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -105,7 +105,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< size_t >::type random_seed(random_seedSEXP);
     Rcpp::traits::input_parameter< bool >::type sample_weights_flag(sample_weights_flagSEXP);
     Rcpp::traits::input_parameter< double >::type nthread(nthreadSEXP);
-    rcpp_result_gen = Rcpp::wrap(XBART_cpp(y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, tau_kap, tau_s, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights_flag, nthread));
+    Rcpp::traits::input_parameter< double >::type distance_s(distance_sSEXP);
+    rcpp_result_gen = Rcpp::wrap(XBART_cpp(y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, tau_kap, tau_s, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights_flag, nthread, distance_s));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -182,15 +183,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // xbart_predict
-Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt);
-RcppExport SEXP _XBART_xbart_predict(SEXP XSEXP, SEXP y_meanSEXP, SEXP tree_pntSEXP) {
+Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, double distance_s);
+RcppExport SEXP _XBART_xbart_predict(SEXP XSEXP, SEXP y_meanSEXP, SEXP tree_pntSEXP, SEXP distance_sSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
     Rcpp::traits::input_parameter< double >::type y_mean(y_meanSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_pnt(tree_pntSEXP);
-    rcpp_result_gen = Rcpp::wrap(xbart_predict(X, y_mean, tree_pnt));
+    Rcpp::traits::input_parameter< double >::type distance_s(distance_sSEXP);
+    rcpp_result_gen = Rcpp::wrap(xbart_predict(X, y_mean, tree_pnt, distance_s));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -325,10 +327,10 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_XBART_XBART_CLT_cpp", (DL_FUNC) &_XBART_XBART_CLT_cpp, 23},
     {"_XBART_XBART_MH_cpp", (DL_FUNC) &_XBART_XBART_MH_cpp, 23},
-    {"_XBART_XBART_cpp", (DL_FUNC) &_XBART_XBART_cpp, 26},
+    {"_XBART_XBART_cpp", (DL_FUNC) &_XBART_XBART_cpp, 27},
     {"_XBART_XBART_multinomial_cpp", (DL_FUNC) &_XBART_XBART_multinomial_cpp, 29},
     {"_XBART_XBART_Probit_cpp", (DL_FUNC) &_XBART_XBART_Probit_cpp, 23},
-    {"_XBART_xbart_predict", (DL_FUNC) &_XBART_xbart_predict, 3},
+    {"_XBART_xbart_predict", (DL_FUNC) &_XBART_xbart_predict, 4},
     {"_XBART_xbart_multinomial_predict", (DL_FUNC) &_XBART_xbart_multinomial_predict, 5},
     {"_XBART_xbart_multinomial_predict_3D", (DL_FUNC) &_XBART_xbart_multinomial_predict_3D, 5},
     {"_XBART_r_to_json", (DL_FUNC) &_XBART_r_to_json, 2},

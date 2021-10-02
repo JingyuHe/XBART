@@ -8,7 +8,7 @@
 #include "json_io.h"
 
 // [[Rcpp::export]]
-Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)
+Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, double distance_s)
 {
 
     // Size of data
@@ -35,7 +35,7 @@ Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std:
     size_t M = (*trees)[0].size();
     ini_xinfo(yhats_test_xinfo, N, N_sweeps);
 
-    NormalModel *model = new NormalModel();
+    NormalModel *model = new NormalModel(distance_s);
 
     // Predict
     model->predict_std(Xpointer, N, p, M, N_sweeps,

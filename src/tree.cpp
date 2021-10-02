@@ -266,31 +266,62 @@ tree::tree_p tree::search_bottom_std(const double *X, const size_t &i, const siz
     }
 }
 
-std::vector<double> tree::gettheta_outsample(const double *X, const size_t &i, const size_t &p, const size_t &N, std::mt19937 &gen)
+std::vector<double> tree::gettheta_outsample(const double *X, const size_t &i, const size_t &p, const size_t &N, std::mt19937 &gen, double &d, double &s)
 {
     if (l == 0)
     {
-        return this->theta_vector;
+        if (d == 0){ // no outliers
+            return this->theta_vector;
+        }
+        else{
+            // generate w from beta(s*d, 1)
+            std::gamma_distribution<double> alpha(s*d,1.0);
+            std::gamma_distribution<double> beta(1.0, 1.0);
+            double x = alpha(gen);
+            double w = x / (x + beta(gen)); // x / (x+y) ~ beta(s*d, 1)
+
+            std::bernoulli_distribution w_dist(w);
+            double tau;
+            if (w_dist(gen)){
+                // use prior tau
+                tau = tau_prior;
+            } else {
+                // use posterior tau
+                tau = tau_post;
+            }
+            std::vector<double> mu(1);
+            std::normal_distribution<double> normal_samp(this->theta_vector[0], sqrt(tau));
+            mu[0] = normal_samp(gen);
+            return mu;
+            
+        }
     }
 
     // check outlier
-    if ((*(X + N * v + i) < v_min) | ((*(X + N * v + i) > v_max))){
-        // should move this into models with new samplePars_prior function
-        std::vector<double> mu(1);
-        std::normal_distribution<double> normal_samp(0.0, sqrt(tau));
-        mu[0] = normal_samp(gen);
-        return mu;
+    // if ((*(X + N * v + i) < v_min) | ((*(X + N * v + i) > v_max))){
+    //     // should move this into models with new samplePars_prior function
+    //     std::vector<double> mu(1);
+    //     std::normal_distribution<double> normal_samp(0.0, sqrt(tau));
+    //     mu[0] = normal_samp(gen);
+    //     return mu;
+    // }
+
+    // check outlier and get max distance
+    if (*(X + N * v + i) < v_min){
+        d = max(d, v_min - *(X + N * v + i));
+    } else if (*(X + N * v + i) > v_max){
+        d = max(d, *(X + N * v + i) - v_max);
     }
 
     // X[v][i], v-th column and i-th row
     // if(X[v][i] <= c){
     if (*(X + N * v + i) <= c)
     {
-        return l->gettheta_outsample(X, i, p, N, gen);
+        return l->gettheta_outsample(X, i, p, N, gen, d, s);
     }
     else
     {
-        return r->gettheta_outsample(X, i, p, N, gen);
+        return r->gettheta_outsample(X, i, p, N, gen, d, s);
     }
 }
 
@@ -735,8 +766,10 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
         rchild->ID = lchild->ID + 1;
 
         // inherit tau
-        lchild->tau = this->tau;
-        rchild->tau = this->tau;
+        lchild->tau_prior = this->tau_prior;
+        rchild->tau_prior = this->tau_prior;
+        lchild->tau_post = this->tau_post;
+        rchild->tau_post = this->tau_post;
     }
     else
     {
@@ -2016,7 +2049,7 @@ void getThetaForObs_Insample(matrix<double> &output, size_t x_index, std::unique
     return;
 }
 
-void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p, std::mt19937 &gen)
+void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p, std::mt19937 &gen, double &s)
 {
     // get theta of ONE observation of ALL trees, out sample fit
     // input is a pointer to testing set matrix because it is out of sample
@@ -2025,12 +2058,14 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
     // output should have dimension (dim_theta, num_trees)
 
     tree::tree_p bn; // pointer to bottom node
+    double d;
 
     for (size_t i = 0; i < tree.size(); i++)
     {
         // loop over trees
         // tree search
-        output[i] = tree[i].gettheta_outsample(Xtest, x_index, p, N_Xtest, gen);
+        d = 0; // max distance of outliers
+        output[i] = tree[i].gettheta_outsample(Xtest, x_index, p, N_Xtest, gen, d, s);
     }
     return;
 }

@@ -9,8 +9,8 @@ XBART_MH_cpp <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, n
     .Call(`_XBART_XBART_MH_cpp`, y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, nthread)
 }
 
-XBART_cpp <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, tau_kap = 3, tau_s = 0.5, verbose = FALSE, sampling_tau = TRUE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights_flag = TRUE, nthread = 0) {
-    .Call(`_XBART_XBART_cpp`, y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, tau_kap, tau_s, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights_flag, nthread)
+XBART_cpp <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, tau_kap = 3, tau_s = 0.5, verbose = FALSE, sampling_tau = TRUE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights_flag = TRUE, nthread = 0, distance_s = 1) {
+    .Call(`_XBART_XBART_cpp`, y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, tau_kap, tau_s, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights_flag, nthread, distance_s)
 }
 
 XBART_multinomial_cpp <- function(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penality, burnin = 1L, mtry = 0L, p_categorical = 0L, verbose = FALSE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights_flag = TRUE, separate_tree = FALSE, weight = 1, update_weight = TRUE, update_tau = TRUE, nthread = 0, hmult = 1, heps = 0.1) {
@@ -21,8 +21,8 @@ XBART_Probit_cpp <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, n_mi
     .Call(`_XBART_XBART_Probit_cpp`, y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, nthread)
 }
 
-xbart_predict <- function(X, y_mean, tree_pnt) {
-    .Call(`_XBART_xbart_predict`, X, y_mean, tree_pnt)
+xbart_predict <- function(X, y_mean, tree_pnt, distance_s) {
+    .Call(`_XBART_xbart_predict`, X, y_mean, tree_pnt, distance_s)
 }
 
 xbart_multinomial_predict <- function(X, y_mean, num_class, tree_pnt, iteration) {
