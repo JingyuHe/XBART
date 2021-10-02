@@ -166,7 +166,7 @@ public:
 
     tree_p search_bottom_std(const double *X, const size_t &i, const size_t &p, const size_t &N);
 
-    std::vector<double> gettheta_outsample(const double *X, const size_t &i, const size_t &p, const size_t &N, std::mt19937 gen);
+    std::vector<double> gettheta_outsample(const double *X, const size_t &i, const size_t &p, const size_t &N, std::mt19937 &gen);
 
     void rg(size_t v, size_t *L, size_t *U); //recursively find region [L,U] for var v
     //node functions--------------------
@@ -259,7 +259,7 @@ void getTheta_Outsample(matrix<double> &output, tree &tree, const double *Xtest,
 
 void getThetaForObs_Insample(matrix<double> &output, size_t x_index, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct);
 
-void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p, std::mt19937 gen);
+void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p, std::mt19937 &gen);
 
 void getThetaForObs_Outsample_ave(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p);
 
