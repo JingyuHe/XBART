@@ -226,6 +226,8 @@ void NormalModel::ini_residual_std(std::unique_ptr<State> &state)
 void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees)
 {
 
+    std::random_device rd;
+    std::mt19937 gen = std::mt19937(rd());
     matrix<double> output;
 
     // row : dimension of theta, column : number of trees
@@ -235,7 +237,7 @@ void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t 
     {
         for (size_t data_ind = 0; data_ind < N_test; data_ind++)
         {
-            getThetaForObs_Outsample(output, trees[sweeps], data_ind, Xtestpointer, N_test, p);
+            getThetaForObs_Outsample(output, trees[sweeps], data_ind, Xtestpointer, N_test, p, gen);
 
             // take sum of predictions of each tree, as final prediction
             for (size_t i = 0; i < trees[0].size(); i++)

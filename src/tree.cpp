@@ -266,6 +266,35 @@ tree::tree_p tree::search_bottom_std(const double *X, const size_t &i, const siz
     }
 }
 
+std::vector<double> tree::gettheta_outsample(const double *X, const size_t &i, const size_t &p, const size_t &N, std::mt19937 gen)
+{
+    if (l == 0)
+    {
+        return this->theta_vector;
+    }
+
+    // check outlier
+    if ((*(X + N * v + i) < v_min) | ((*(X + N * v + i) > v_max))){
+        // should move this into models with new samplePars_prior function
+        std::vector<double> mu(1);
+        std::normal_distribution<double> normal_samp(0.0, tau);
+        mu[0] = normal_samp(gen);
+        return mu;
+    }
+
+    // X[v][i], v-th column and i-th row
+    // if(X[v][i] <= c){
+    if (*(X + N * v + i) <= c)
+    {
+        return l->gettheta_outsample(X, i, p, N, gen);
+    }
+    else
+    {
+        return r->gettheta_outsample(X, i, p, N, gen);
+    }
+}
+
+
 //--------------------
 //find region for a given variable
 void tree::rg(size_t v, size_t *L, size_t *U)
@@ -704,6 +733,10 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
         lchild->ID = 2 * (this->ID);
         rchild->ID = lchild->ID + 1;
+
+        // inherit tau
+        lchild->tau = this->tau;
+        rchild->tau = this->tau;
     }
     else
     {
@@ -1983,7 +2016,7 @@ void getThetaForObs_Insample(matrix<double> &output, size_t x_index, std::unique
     return;
 }
 
-void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p)
+void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p, std::mt19937 gen)
 {
     // get theta of ONE observation of ALL trees, out sample fit
     // input is a pointer to testing set matrix because it is out of sample
@@ -1997,8 +2030,7 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
     {
         // loop over trees
         // tree search
-        bn = tree[i].search_bottom_std(Xtest, x_index, p, N_Xtest);
-        output[i] = bn->theta_vector;
+        output[i] = tree[i].gettheta_outsample(Xtest, x_index, p, N_Xtest, gen);
     }
     return;
 }

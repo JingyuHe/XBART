@@ -84,6 +84,8 @@ public:
 
     void setc(size_t c) { this->c = c; }
 
+    void settau(size_t tau) {this->tau = tau;}
+
     //get
     std::vector<double> gettheta_vector() const { return theta_vector; }
 
@@ -164,6 +166,8 @@ public:
 
     tree_p search_bottom_std(const double *X, const size_t &i, const size_t &p, const size_t &N);
 
+    std::vector<double> gettheta_outsample(const double *X, const size_t &i, const size_t &p, const size_t &N, std::mt19937 gen);
+
     void rg(size_t v, size_t *L, size_t *U); //recursively find region [L,U] for var v
     //node functions--------------------
 
@@ -219,6 +223,8 @@ private:
 
     double v_max; // variable range
 
+    double tau;
+
     double prob_split; // posterior of the chose split points, by Bayes rule
 
     double prob_leaf; // posterior of the leaf parameter, mu
@@ -253,7 +259,7 @@ void getTheta_Outsample(matrix<double> &output, tree &tree, const double *Xtest,
 
 void getThetaForObs_Insample(matrix<double> &output, size_t x_index, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct);
 
-void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p);
+void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p, std::mt19937 gen);
 
 void getThetaForObs_Outsample_ave(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p);
 
