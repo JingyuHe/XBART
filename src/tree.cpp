@@ -307,10 +307,19 @@ std::vector<double> tree::gettheta_outsample(const double *X, const size_t &i, c
     // }
 
     // check outlier and get max distance
+    // try the relative distance to boundary comparing to (v_max - v_min)
     if (*(X + N * v + i) < v_min){
-        d = max(d, v_min - *(X + N * v + i));
+        if (v_max > v_min){ // just in case v_max == v_min
+            d = max(d, (v_min - *(X + N * v + i)) / (v_max - v_min)); 
+        } else{
+            d = max(d, v_min - *(X + N * v + i));
+        }
     } else if (*(X + N * v + i) > v_max){
-        d = max(d, *(X + N * v + i) - v_max);
+        if (v_max > v_min){ // just in case v_max == v_min
+            d = max(d, (*(X + N * v + i) - v_max) / (v_max - v_min)); 
+        } else{
+            d = max(d, *(X + N * v + i) - v_max);
+        }
     }
 
     // X[v][i], v-th column and i-th row
