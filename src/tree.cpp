@@ -274,21 +274,25 @@ std::vector<double> tree::gettheta_outsample(const double *X, const size_t &i, c
             return this->theta_vector;
         }
         else{
+            // // sample tau between tau_prior tau_post
             // generate w from beta(s*d, 1)
-            std::gamma_distribution<double> alpha(s*d,1.0);
-            std::gamma_distribution<double> beta(1.0, 1.0);
-            double x = alpha(gen);
-            double w = x / (x + beta(gen)); // x / (x+y) ~ beta(s*d, 1)
+            // std::gamma_distribution<double> alpha(s*d,1.0);
+            // std::gamma_distribution<double> beta(1.0, 1.0);
+            // double x = alpha(gen);
+            // double w = x / (x + beta(gen)); // x / (x+y) ~ beta(s*d, 1)
 
-            std::bernoulli_distribution w_dist(w);
-            double tau;
-            if (w_dist(gen)){
-                // use prior tau
-                tau = tau_prior;
-            } else {
-                // use posterior tau
-                tau = tau_post;
-            }
+            // std::bernoulli_distribution w_dist(w);
+            // double tau;
+            // if (w_dist(gen)){
+            //     // use prior tau
+            //     tau = tau_prior;
+            // } else {
+            //     // use posterior tau
+            //     tau = tau_post;
+            // }
+
+            double tau = (tau_prior) * pow((2 / (1 + exp(- s * pow(d,2))) - 1), 2);
+            // double tau = pow(d, 2) * (tau_prior - tau_post);
             std::vector<double> mu(1);
             std::normal_distribution<double> normal_samp(this->theta_vector[0], sqrt(tau));
             mu[0] = normal_samp(gen);
@@ -307,6 +311,12 @@ std::vector<double> tree::gettheta_outsample(const double *X, const size_t &i, c
     // }
 
     // check outlier and get max distance
+    // if (*(X + N * v + i) < v_min){
+    //     d = max(d, v_min - *(X + N * v + i));
+    // } else if (*(X + N * v + i) > v_max){
+    //     d = max(d, *(X + N * v + i) - v_max);
+    // }
+
     // try the relative distance to boundary comparing to (v_max - v_min)
     if (*(X + N * v + i) < v_min){
         if (v_max > v_min){ // just in case v_max == v_min
