@@ -107,265 +107,265 @@ class XBART(object):
 		items = ("%s = %r" % (k, v) for k, v in self.params.items())
 		return str(self.__class__.__name__)+  '(' + str((', '.join(items))) + ")"
 
-	def __add_columns(self,x):
-		'''
-		Keep columns internally
-		'''
-		if isinstance(x,DataFrame):
-			self.columns = x.columns
-		else:
-			self.columns = range(x.shape[1])
-		self.num_columns = len(self.columns)
+	# def __add_columns(self,x):
+	# 	'''
+	# 	Keep columns internally
+	# 	'''
+	# 	if isinstance(x,DataFrame):
+	# 		self.columns = x.columns
+	# 	else:
+	# 		self.columns = range(x.shape[1])
+	# 	self.num_columns = len(self.columns)
 
-	def __update_fit_x_y(self,x,fit_x,y=None,fit_y=None):
-		'''
-		Convert DataFrame to numpy
-		'''
-		if isinstance(x,DataFrame):
-			fit_x = x.values
-		if y is not None:
-			if isinstance(y,Series):
-				fit_y = y.values
+	# def __update_fit_x_y(self,x,fit_x,y=None,fit_y=None):
+	# 	'''
+	# 	Convert DataFrame to numpy
+	# 	'''
+	# 	if isinstance(x,DataFrame):
+	# 		fit_x = x.values
+	# 	if y is not None:
+	# 		if isinstance(y,Series):
+	# 			fit_y = y.values
 
-	def __check_input_type(self,x,y=None):
-		'''
-		Dimension check
-		'''
-		if not isinstance(x,(np.ndarray,DataFrame)):
-			raise TypeError("x must be numpy array or pandas DataFrame")
+	# def __check_input_type(self,x,y=None):
+	# 	'''
+	# 	Dimension check
+	# 	'''
+	# 	if not isinstance(x,(np.ndarray,DataFrame)):
+	# 		raise TypeError("x must be numpy array or pandas DataFrame")
 
-		if np.any(np.isnan(x)) or np.any(~np.isfinite(x)):
-			 raise TypeError("Cannot have missing values!")
+	# 	if np.any(np.isnan(x)) or np.any(~np.isfinite(x)):
+	# 		 raise TypeError("Cannot have missing values!")
 
-		if y is not None: 
-			if not isinstance(y,(np.ndarray,Series)):
-				raise TypeError("y must be numpy array or pandas Series")
+	# 	if y is not None: 
+	# 		if not isinstance(y,(np.ndarray,Series)):
+	# 			raise TypeError("y must be numpy array or pandas Series")
 
-			if np.any(np.isnan(y)):
-				raise TypeError("Cannot have missing values!")
+	# 		if np.any(np.isnan(y)):
+	# 			raise TypeError("Cannot have missing values!")
 
-			assert x.shape[0] == y.shape[0], "X and y must be the same length"
+	# 		assert x.shape[0] == y.shape[0], "X and y must be the same length"
 
-			if self.model == "Multinomial":
-				assert all(y >=0) and all(y.astype(int) == y), "y must be a positive integer"
+	# 		if self.model == "Multinomial":
+	# 			assert all(y >=0) and all(y.astype(int) == y), "y must be a positive integer"
 		
-	def __check_test_shape(self,x):
-		assert x.shape[1] == self.num_columns, "Mismatch on number of columns"
+	# def __check_test_shape(self,x):
+	# 	assert x.shape[1] == self.num_columns, "Mismatch on number of columns"
 
-	def __check_params(self,p_cat):
-		assert p_cat <= self.num_columns, "p_cat must be <= number of columns"
-		assert self.params["mtry"] <= self.num_columns, "mtry must be <= number of columns"
+	# def __check_params(self,p_cat):
+	# 	assert p_cat <= self.num_columns, "p_cat must be <= number of columns"
+	# 	assert self.params["mtry"] <= self.num_columns, "mtry must be <= number of columns"
 
-	def __update_mtry_tau_penality(self,x):
-		'''
-		Handle mtry, tau, and no_split_penality defaults
-		'''
-		if self.params["mtry"] == "auto":
-			self.params["mtry"] = self.num_columns 
-		if self.params["tau"]  == "auto":
-			self.params["tau"] = float(1/self.params["num_trees"])
+	# def __update_mtry_tau_penality(self,x):
+	# 	'''
+	# 	Handle mtry, tau, and no_split_penality defaults
+	# 	'''
+	# 	if self.params["mtry"] == "auto":
+	# 		self.params["mtry"] = self.num_columns 
+	# 	if self.params["tau"]  == "auto":
+	# 		self.params["tau"] = float(1/self.params["num_trees"])
 		
-		if self.params["no_split_penality"] == "auto":
-			from math import log
-			if self.params["model_num"] == 0:
-				self.params["no_split_penality"] = log(self.params["num_cutpoints"])
-			else:
-				self.params["no_split_penality"] = 0.0
+	# 	if self.params["no_split_penality"] == "auto":
+	# 		from math import log
+	# 		if self.params["model_num"] == 0:
+	# 			self.params["no_split_penality"] = log(self.params["num_cutpoints"])
+	# 		else:
+	# 			self.params["no_split_penality"] = 0.0
 		
 				
-	def __convert_params_check_types(self,**params):
-		'''
-		This function converts params to list and handles type conversions
-		If a wrong type is provided function raises exceptions 
-		''' 
-		import warnings
-		from collections import OrderedDict
-		DEFAULT_PARAMS = OrderedDict([('num_trees',5),("num_sweeps",40)
-                        ,("n_min",1),("num_cutpoints",100) # CHANGE
-                        ,("alpha",0.95),("beta",1.25 ),("tau",0.3),# CHANGE
-                        ("burnin",15),("mtry",0),("max_depth_num",250) # CHANGE
-                        ,("kap",16.0),("s",4.0),("verbose",False),
-                        ("parallel",False),("seed",0),("model_num",0),("no_split_penality",0.0),("sample_weights_flag",True)])
+	# def __convert_params_check_types(self,**params):
+	# 	'''
+	# 	This function converts params to list and handles type conversions
+	# 	If a wrong type is provided function raises exceptions 
+	# 	''' 
+	# 	import warnings
+	# 	from collections import OrderedDict
+	# 	DEFAULT_PARAMS = OrderedDict([('num_trees',5),("num_sweeps",40)
+    #                     ,("n_min",1),("num_cutpoints",100) # CHANGE
+    #                     ,("alpha",0.95),("beta",1.25 ),("tau",0.3),# CHANGE
+    #                     ("burnin",15),("mtry",0),("max_depth_num",250) # CHANGE
+    #                     ,("kap",16.0),("s",4.0),("verbose",False),
+    #                     ("parallel",False),("seed",0),("model_num",0),("no_split_penality",0.0),("sample_weights_flag",True)])
 
-		DEFAULT_PARAMS_ = OrderedDict([('num_trees',int),("num_sweeps",int)
-                        ,("n_min",int),("num_cutpoints",int) # CHANGE
-                        ,("alpha",float),("beta",float ),("tau",float),# CHANGE
-                        ("burnin",int),("mtry",int),("max_depth_num",int) # CHANGE
-                        ,("kap",float),("s",float),("verbose",bool),
-                        ("parallel",bool),("seed",int),("model_num",int),("no_split_penality",float),("sample_weights_flag",bool)])
+	# 	DEFAULT_PARAMS_ = OrderedDict([('num_trees',int),("num_sweeps",int)
+    #                     ,("n_min",int),("num_cutpoints",int) # CHANGE
+    #                     ,("alpha",float),("beta",float ),("tau",float),# CHANGE
+    #                     ("burnin",int),("mtry",int),("max_depth_num",int) # CHANGE
+    #                     ,("kap",float),("s",float),("verbose",bool),
+    #                     ("parallel",bool),("seed",int),("model_num",int),("no_split_penality",float),("sample_weights_flag",bool)])
 		
-		for param,type_class in DEFAULT_PARAMS_.items():
-			default_value = DEFAULT_PARAMS[param]
-			new_value = params.get(param,default_value)
+	# 	for param,type_class in DEFAULT_PARAMS_.items():
+	# 		default_value = DEFAULT_PARAMS[param]
+	# 		new_value = params.get(param,default_value)
 
-			if (param in ["mtry","tau","no_split_penality"]) and new_value == "auto":
-					continue
+	# 		if (param in ["mtry","tau","no_split_penality"]) and new_value == "auto":
+	# 				continue
 
-			try:
-				self.params[param] = type_class(new_value)
-			except:
-				raise TypeError(str(param) + " should conform to type " + str(type_class)) 
+	# 		try:
+	# 			self.params[param] = type_class(new_value)
+	# 		except:
+	# 			raise TypeError(str(param) + " should conform to type " + str(type_class)) 
 
-	def _predict_normal(self,pred_x):
-		# Run Predict
-		self._xbart_cpp._predict(pred_x)
-		# Convert to numpy
-		yhats_test = self._xbart_cpp.get_yhats_test(self.params["num_sweeps"]*pred_x.shape[0])
-		# Convert from colum major 
-		self.yhats_test = yhats_test.reshape((pred_x.shape[0],self.params["num_sweeps"]),order='C')
-		# Compute mean
-		self.yhats_mean =  self.yhats_test[:,self.params["burnin"]:].mean(axis=1)
+	# def _predict_normal(self,pred_x):
+	# 	# Run Predict
+	# 	self._xbart_cpp._predict(pred_x)
+	# 	# Convert to numpy
+	# 	yhats_test = self._xbart_cpp.get_yhats_test(self.params["num_sweeps"]*pred_x.shape[0])
+	# 	# Convert from colum major 
+	# 	self.yhats_test = yhats_test.reshape((pred_x.shape[0],self.params["num_sweeps"]),order='C')
+	# 	# Compute mean
+	# 	self.yhats_mean =  self.yhats_test[:,self.params["burnin"]:].mean(axis=1)
 
-	def _predict_multinomial(self,pred_x):
-		# Run Predict
-		self._xbart_cpp._predict_multinomial(pred_x)
-		# Convert to numpy
-		yhats_test = self._xbart_cpp.get_yhats_test_multinomial(self.params["num_sweeps"]*pred_x.shape[0]*self.params["num_classes"])
-		# Convert from colum major 
-		self.yhats_test = yhats_test.reshape((pred_x.shape[0],self.params["num_sweeps"],
-												self.params["num_classes"]),
-												order='F')
-		# # Compute mean
-		self.yhats_mean =  self.yhats_test[:,self.params["burnin"]:,:].mean(axis=1)
+	# def _predict_multinomial(self,pred_x):
+	# 	# Run Predict
+	# 	self._xbart_cpp._predict_multinomial(pred_x)
+	# 	# Convert to numpy
+	# 	yhats_test = self._xbart_cpp.get_yhats_test_multinomial(self.params["num_sweeps"]*pred_x.shape[0]*self.params["num_classes"])
+	# 	# Convert from colum major 
+	# 	self.yhats_test = yhats_test.reshape((pred_x.shape[0],self.params["num_sweeps"],
+	# 											self.params["num_classes"]),
+	# 											order='F')
+	# 	# # Compute mean
+	# 	self.yhats_mean =  self.yhats_test[:,self.params["burnin"]:,:].mean(axis=1)
 
-	def fit(self,x,y,p_cat=0):
-		'''
-		Fit XBART model
-        Parameters
-        ----------
-		x : DataFrame or numpy array
-            Feature matrix (predictors)
-        y : array_like
-            Target (response)
-		p_cat: int
-			Number of features to treat as categorical for cutpoint options. More efficient.
-			To use this feature set place the categorical features as the last p_cat columns of x 
-		'''
+	# def fit(self,x,y,p_cat=0):
+	# 	'''
+	# 	Fit XBART model
+    #     Parameters
+    #     ----------
+	# 	x : DataFrame or numpy array
+    #         Feature matrix (predictors)
+    #     y : array_like
+    #         Target (response)
+	# 	p_cat: int
+	# 		Number of features to treat as categorical for cutpoint options. More efficient.
+	# 		To use this feature set place the categorical features as the last p_cat columns of x 
+	# 	'''
 
-		# Check inputs #
-		self.__check_input_type(x,y)
-		self.__add_columns(x)
-		fit_x = x 
-		fit_y = y
+	# 	# Check inputs #
+	# 	self.__check_input_type(x,y)
+	# 	self.__add_columns(x)
+	# 	fit_x = x 
+	# 	fit_y = y
 		
-		# Update Values #
-		self.__update_fit_x_y(x,fit_x,y,fit_y)
-		self.__update_mtry_tau_penality(fit_x)
-		self.__check_params(p_cat)
+	# 	# Update Values #
+	# 	self.__update_fit_x_y(x,fit_x,y,fit_y)
+	# 	self.__update_mtry_tau_penality(fit_x)
+	# 	self.__check_params(p_cat)
 
-		# Create xbart_cpp object #
-		if self._xbart_cpp is None:
-			#self.args = self.__convert_params_check_types(**self.params)
-			args = list(self.params.values())
-			self._xbart_cpp = XBARTcpp(*args) # Makes C++ object
+	# 	# Create xbart_cpp object #
+	# 	if self._xbart_cpp is None:
+	# 		#self.args = self.__convert_params_check_types(**self.params)
+	# 		args = list(self.params.values())
+	# 		self._xbart_cpp = XBARTcpp(*args) # Makes C++ object
 
-		# fit #
-		self._xbart_cpp._fit(fit_x,fit_y,p_cat)
+	# 	# fit #
+	# 	self._xbart_cpp._fit(fit_x,fit_y,p_cat)
 
-		# Additionaly Members
-		self.importance = self._xbart_cpp._get_importance(fit_x.shape[1])
-		self.importance = dict(zip(self.columns,self.importance.astype(int)))
+	# 	# Additionaly Members
+	# 	self.importance = self._xbart_cpp._get_importance(fit_x.shape[1])
+	# 	self.importance = dict(zip(self.columns,self.importance.astype(int)))
 		
 
-		if self.model == "Normal":
-			self.sigma_draws = self._xbart_cpp.get_sigma_draw(self.params["num_sweeps"]*self.params["num_trees"])
-			# Convert from colum major 
-			self.sigma_draws = self.sigma_draws.reshape((self.params["num_sweeps"],self.params["num_trees"]),order='F')
+	# 	if self.model == "Normal":
+	# 		self.sigma_draws = self._xbart_cpp.get_sigma_draw(self.params["num_sweeps"]*self.params["num_trees"])
+	# 		# Convert from colum major 
+	# 		self.sigma_draws = self.sigma_draws.reshape((self.params["num_sweeps"],self.params["num_trees"]),order='F')
 		
-		self.is_fit = True
-		return self
+	# 	self.is_fit = True
+	# 	return self
 
-	def predict(self,x_test,return_mean = True):
-		'''
-		Predict XBART model
-        Parameters
-        ----------
-		x_test : DataFrame or numpy array
-            Feature matrix (predictors)
-		return_mean: bool
-			If true, will return mean prediction, else will return (n X num_sweeps) "posterior" estimate
+	# def predict(self,x_test,return_mean = True):
+	# 	'''
+	# 	Predict XBART model
+    #     Parameters
+    #     ----------
+	# 	x_test : DataFrame or numpy array
+    #         Feature matrix (predictors)
+	# 	return_mean: bool
+	# 		If true, will return mean prediction, else will return (n X num_sweeps) "posterior" estimate
 	
-		Returns
-        -------
-        prediction : numpy array
-		'''
+	# 	Returns
+    #     -------
+    #     prediction : numpy array
+	# 	'''
 
-		assert self.is_fit, "Must run fit before running predict"
+	# 	assert self.is_fit, "Must run fit before running predict"
 
-		# Check inputs # 
+	# 	# Check inputs # 
 	
-		self.__check_input_type(x_test)
-		pred_x = x_test.copy()
-		self.__check_test_shape(pred_x)
-		self.__update_fit_x_y(x_test,pred_x)
+	# 	self.__check_input_type(x_test)
+	# 	pred_x = x_test.copy()
+	# 	self.__check_test_shape(pred_x)
+	# 	self.__update_fit_x_y(x_test,pred_x)
 
-		if self.model == "Multinomial":
-			self._predict_multinomial(pred_x)
-		else:
-			self._predict_normal(pred_x)
+	# 	if self.model == "Multinomial":
+	# 		self._predict_multinomial(pred_x)
+	# 	else:
+	# 		self._predict_normal(pred_x)
 
-		if return_mean:
-			return self.yhats_mean
-		else:
-			return self.yhats_test
+	# 	if return_mean:
+	# 		return self.yhats_mean
+	# 	else:
+	# 		return self.yhats_test
 
-	def fit_predict(self,x,y,x_test,p_cat=0,return_mean=True):	
-		'''
-		Fit and predict XBART model
-        Parameters
-        ----------
-		x : DataFrame or numpy array
-            Feature matrix (predictors)
-        y : array_like
-            Target (response)
-		x_test : DataFrame or numpy array
-            Feature matrix (predictors)
-		p_cat: int
-			Number of features to treat as categorical for cutpoint options. More efficient.
-			To use this feature set place the categorical features as the last p_cat columns of x 
-		return_mean: bool
-			If true, will return mean prediction, else will return (n X num_sweeps) "posterior" estimate
+	# def fit_predict(self,x,y,x_test,p_cat=0,return_mean=True):	
+	# 	'''
+	# 	Fit and predict XBART model
+    #     Parameters
+    #     ----------
+	# 	x : DataFrame or numpy array
+    #         Feature matrix (predictors)
+    #     y : array_like
+    #         Target (response)
+	# 	x_test : DataFrame or numpy array
+    #         Feature matrix (predictors)
+	# 	p_cat: int
+	# 		Number of features to treat as categorical for cutpoint options. More efficient.
+	# 		To use this feature set place the categorical features as the last p_cat columns of x 
+	# 	return_mean: bool
+	# 		If true, will return mean prediction, else will return (n X num_sweeps) "posterior" estimate
 			
-		Returns
-        -------
-        prediction : numpy array
-		'''
-		self.fit(x,y,p_cat)
-		return self.predict(x_test,return_mean)
+	# 	Returns
+    #     -------
+    #     prediction : numpy array
+	# 	'''
+	# 	self.fit(x,y,p_cat)
+	# 	return self.predict(x_test,return_mean)
 
-	def to_json(self,file=None):
-		'''
-		Serielize XBART model
-		Parameters
-        ----------
-		file: str
-			Output path to file. If none, returns string.
-		'''
-		json_str = self._xbart_cpp._to_json()
-		j = json.loads(json_str)
-		j["params"] = self.params
-		j["num_columns"] = self.num_columns
+	# def to_json(self,file=None):
+	# 	'''
+	# 	Serielize XBART model
+	# 	Parameters
+    #     ----------
+	# 	file: str
+	# 		Output path to file. If none, returns string.
+	# 	'''
+	# 	json_str = self._xbart_cpp._to_json()
+	# 	j = json.loads(json_str)
+	# 	j["params"] = self.params
+	# 	j["num_columns"] = self.num_columns
 
-		if file is not None:
-			with open(file, "w") as text_file:
-				json.dump(j,text_file)
-		else:
-			return json_str
+	# 	if file is not None:
+	# 		with open(file, "w") as text_file:
+	# 			json.dump(j,text_file)
+	# 	else:
+	# 		return json_str
 
-	def from_json(self,json_path):
-		'''
-		Converts serialized file into XBART object
-		Parameters
-        ----------
-		json_path: str
-			Path to file.
-		'''		
-		with open(json_path) as f:
-			j = json.load(f)
+	# def from_json(self,json_path):
+	# 	'''
+	# 	Converts serialized file into XBART object
+	# 	Parameters
+    #     ----------
+	# 	json_path: str
+	# 		Path to file.
+	# 	'''		
+	# 	with open(json_path) as f:
+	# 		j = json.load(f)
 
-		self._xbart_cpp = XBARTcpp(json.dumps(j))
-		self.is_fit = True
-		self.num_columns = j["num_columns"]
-		self.params = j["params"]
-		return self
+	# 	self._xbart_cpp = XBARTcpp(json.dumps(j))
+	# 	self.is_fit = True
+	# 	self.num_columns = j["num_columns"]
+	# 	self.params = j["params"]
+	# 	return self
 

@@ -55,31 +55,31 @@ private:
 
 public:
 	// Constructors
-	XBARTcpp(XBARTcppParams params);
-	XBARTcpp(size_t M, size_t N_sweeps,
-			 size_t Nmin, size_t Ncutpoints,		//CHANGE
-			 double alpha, double beta, double tau, //CHANGE!
-			 size_t burnin, size_t mtry,
-			 size_t max_depth_num, double kap,
-			 double s, bool verbose,
-			 bool parallel, int seed, size_t model_num, double no_split_penality, bool sample_weights_flag, size_t num_classes);
+	// XBARTcpp(XBARTcppParams params);
+	// XBARTcpp(size_t M, size_t N_sweeps,
+	// 		 size_t Nmin, size_t Ncutpoints,		//CHANGE
+	// 		 double alpha, double beta, double tau, //CHANGE!
+	// 		 size_t burnin, size_t mtry,
+	// 		 size_t max_depth_num, double kap,
+	// 		 double s, bool verbose,
+	// 		 bool parallel, int seed, size_t model_num, double no_split_penality, bool sample_weights_flag, size_t num_classes);
 
-	XBARTcpp(std::string json_string);
+	// XBARTcpp(std::string json_string);
 
-	std::string _to_json(void);
+	// std::string _to_json(void);
 
-	void _fit(int n, int d, double *a, // Train X
-			  int n_y, double *a_y, size_t p_cat);
-	void _predict(int n, int d, double *a); //,int size, double *arr);
-	void _predict_multinomial(int n, int d, double *a); //,int size, double *arr);
+	// void _fit(int n, int d, double *a, // Train X
+	// 		  int n_y, double *a_y, size_t p_cat);
+	// void _predict(int n, int d, double *a); //,int size, double *arr);
+	// void _predict_multinomial(int n, int d, double *a); //,int size, double *arr);
 
-	// Getters
-	int get_M(void);
-	int get_N_sweeps(void) { return ((int)params.N_sweeps); };
-	int get_burnin(void) { return ((int)params.burnin); };
-	void get_yhats(int size, double *arr);
-	void get_yhats_test(int size, double *arr);
-	void get_yhats_test_multinomial(int size,double *arr);
-	void get_sigma_draw(int size, double *arr);
-	void _get_importance(int size, double *arr);
+	// // Getters
+	// int get_M(void);
+	// int get_N_sweeps(void) { return ((int)params.N_sweeps); };
+	// int get_burnin(void) { return ((int)params.burnin); };
+	// void get_yhats(int size, double *arr);
+	// void get_yhats_test(int size, double *arr);
+	// void get_yhats_test_multinomial(int size,double *arr);
+	// void get_sigma_draw(int size, double *arr);
+	// void _get_importance(int size, double *arr);
 };
