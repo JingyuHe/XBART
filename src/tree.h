@@ -35,6 +35,8 @@ struct node_info
     std::size_t id; //node id
     std::size_t v;  //variable
     double c;       //cut point // different from BART
+    double v_min;
+    double v_max;
     std::vector<double> theta_vector;
 };
 
@@ -82,7 +84,11 @@ public:
 
     void setv(size_t v) { this->v = v; }
 
-    void setc(size_t c) { this->c = c; }
+    void setc(double c) { this->c = c; }
+
+    void setv_min(double v_min) { this->v_min = v_min; }
+    
+    void setv_max(double v_max) { this->v_max = v_max; }
 
     void settau(double tau_prior, double tau_post) {this->tau_prior = tau_prior; this->tau_post = tau_post;}
 
@@ -96,6 +102,10 @@ public:
     size_t getv() const { return v; }
 
     double getc() const { return c; }
+
+    double getv_min() const { return v_min; }
+    
+    double get_vmax() const { return v_max; }
 
     size_t getc_index() const { return c_index; }
 
