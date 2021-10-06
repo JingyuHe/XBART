@@ -8,3 +8,18 @@ predict.XBART <- function(model, X, distance_s=1) {
 }
 
 
+# predict.gp <- function() {
+#     # structure for returning training data in each leaf for each test dp.
+#     n_test = 10
+#     n_trees = 10
+#     n_sweeps = 100
+#     ret = list()
+#     for (i in 1:n_test){
+#         ret[[i]] = list()
+#         for(j in 1:(n_trees * n_sweeps)){
+#             ret[[i]][[j]] = .Call(`_XBART_gp_predict`)
+#         }
+#     }
+   
+#     return(ret)
+# }

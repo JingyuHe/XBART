@@ -6,6 +6,7 @@
 #include "mcmc_loop.h"
 #include "utility.h"
 #include "json_io.h"
+#include "utility_rcpp.h"
 
 // [[Rcpp::export]]
 Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, double distance_s)
@@ -53,6 +54,40 @@ Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std:
 
     return Rcpp::List::create(Rcpp::Named("yhats") = yhats);
 }
+
+// // [[Rcpp::export]]
+// Rcpp::List gp_predict()
+// {
+//     // Structure for returning training data in each leaf for each test dp.
+
+//     // arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt
+
+//     std::vector<size_t> var;
+//     for (size_t i = 0; i < 5; i++) { var.push_back(i); }
+//     Rcpp::NumericVector var_rcpp(5);
+//     for (size_t i = 0; i < 5; i++)  { var_rcpp(i) = (int)var[i];}
+
+//     matrix<double> x_train;
+//     size_t N = 5;
+//     size_t d = 10;
+//     ini_matrix(x_train, N, d);
+//     for (size_t i = 0; i < d; i++){
+//         for (size_t j = 0; j < N; j++){
+//             x_train[i][j] = i * 10 + j;
+//         }
+//     }
+//     Rcpp::NumericMatrix x_train_rcpp(N, d);
+//     Matrix_to_NumericMatrix(x_train, x_train_rcpp);
+
+//     return Rcpp::List::create(
+//         Rcpp::Named("mu") = 0,
+//         Rcpp::Named("var") = var_rcpp,
+//         Rcpp::Named("dp") = x_train_rcpp
+//         );
+
+//     // return Rcpp::List::create(Rcpp::Named("yhats") = yhats);
+// }
+
 
 // [[Rcpp::export]]
 Rcpp::List xbart_multinomial_predict(arma::mat X, double y_mean, size_t num_class, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, arma::vec iteration)
