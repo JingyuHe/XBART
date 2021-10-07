@@ -65,9 +65,8 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             tree::npv bv;
             trees[sweeps][tree_ind].getbots(bv); //get bottom nodes
             for (size_t i = 0; i < bv.size(); i++){
-                bv[i]->setID(i);
+                bv[i]->setID(i); 
             }
-
 
             // update tau after sampling the tree
             // model->update_tau(state, tree_ind, sweeps, trees);

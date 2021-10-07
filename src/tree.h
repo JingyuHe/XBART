@@ -125,7 +125,7 @@ public:
 
     tree_p getr() { return r; }
 
-    size_t getID() { return ID; }
+    size_t getID() const { return ID; }
 
     void setID(size_t ID) { this->ID = ID; }
 
@@ -218,7 +218,7 @@ public:
 private:
     size_t N; // number of data points in the level
 
-    size_t ID;
+    size_t ID; // initialize ids
 
     size_t depth;
 

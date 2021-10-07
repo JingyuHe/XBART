@@ -533,11 +533,11 @@ std::ostream &operator<<(std::ostream &os, const tree &t)
     os << nds.size() << std::endl;
     for (size_t i = 0; i < nds.size(); i++)
     {
-        os << nds[i]->nid() << " ";
+        os << nds[i]->getID() << " ";
         os << nds[i]->getv() << " ";
         os << nds[i]->getc() << " ";
         os << nds[i]->getv_min() << " ";
-        os << nds[i]->get_vmax();
+        os << nds[i]->get_vmax() << " ";
         //   os << nds[i]->theta_vector[0] << std::endl;
         for (size_t kk = 0; kk < nds[i]->theta_vector.size(); kk++)
         {
@@ -574,7 +574,7 @@ std::istream &operator>>(std::istream &is, tree &t)
     std::vector<node_info> nv(nn);
     for (size_t i = 0; i != nn; i++)
     {
-        is >> nv[i].id >> nv[i].v >> nv[i].c >> nv[i].v_min >> nv[i].v_max ; // >> nv[i].theta_vector[0]; // Only works on first theta for now, fix latex if needed
+        is >> nv[i].id >> nv[i].v >> nv[i].c >> nv[i].v_min >> nv[i].v_max; // >> nv[i].theta_vector[0]; // Only works on first theta for now, fix latex if needed
         for (size_t kk = 0; kk < theta_size; kk++)
         {
             is >> nv[i].theta_vector[kk];
@@ -587,6 +587,7 @@ std::istream &operator>>(std::istream &is, tree &t)
 
     //first node has to be the top one
     pts[1] = &t; //be careful! this is not the first pts, it is pointer of id 1.
+    t.setID(nv[0].id);
     t.setv(nv[0].v);
     t.setc(nv[0].c);
     t.setv_min(nv[0].v_min);
@@ -598,6 +599,7 @@ std::istream &operator>>(std::istream &is, tree &t)
     for (size_t i = 1; i != nv.size(); i++)
     {
         tree::tree_p np = new tree;
+        np->ID = nv[i].id;
         np->v = nv[i].v;
         np->c = nv[i].c;
         np->v_min = nv[i].v_min;
