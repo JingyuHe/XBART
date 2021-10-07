@@ -312,7 +312,7 @@ std::vector<double> tree::gettheta_outsample(const double *X, const size_t &i, c
 }
 
 
-void tree::get_gp_info(const double *X, const size_t &i, const size_t &p, const size_t &N, double &d, int &active_variable, double &theta, size_t &leaf_id)
+void tree::get_gp_info(const double *X, const size_t &i, const size_t &p, const size_t &N, std::vector<bool> &active_var, double &theta, size_t &leaf_id)
 {
     if (l == 0)
     {
@@ -322,31 +322,20 @@ void tree::get_gp_info(const double *X, const size_t &i, const size_t &p, const 
     }
 
     // try the relative distance to boundary comparing to (v_max - v_min)
-    if (*(X + N * v + i) < v_min){
-        if (v_max > v_min){ // just in case v_max == v_min
-            d = max(d, (v_min - *(X + N * v + i)) / (v_max - v_min)); 
-            active_variable = (int) v;
-        } else{
-            d = max(d, v_min - *(X + N * v + i));
-        }
-    } else if (*(X + N * v + i) > v_max){
-        if (v_max > v_min){ // just in case v_max == v_min
-            d = max(d, (*(X + N * v + i) - v_max) / (v_max - v_min)); 
-            active_variable = (int) v;
-        } else{
-            d = max(d, *(X + N * v + i) - v_max);
-        }
-    }
+    if ( (*(X + N * v + i) < v_min) | (*(X + N * v + i) > v_max) ){
+        // cout << "v = " << v << ", c = " << c << ", v_min = " << v_min << ", v_max = " << v_max << ", dp = " << *(X + N * v + i) << endl;
+        active_var[v] = true;
+    } 
 
     // X[v][i], v-th column and i-th row
     // if(X[v][i] <= c){
     if (*(X + N * v + i) <= c)
     {
-        return l->get_gp_info(X, i, p, N, d, active_variable, theta, leaf_id);
+        return l->get_gp_info(X, i, p, N, active_var, theta, leaf_id);
     }
     else
     {
-        return r->get_gp_info(X, i, p, N, d, active_variable, theta, leaf_id);
+        return r->get_gp_info(X, i, p, N, active_var, theta, leaf_id);
     }
 }
 
@@ -555,7 +544,7 @@ std::ostream &operator<<(std::ostream &os, const tree &t)
         os << nds[i]->getv() << " ";
         os << nds[i]->getc() << " ";
         os << nds[i]->getv_min() << " ";
-        os << nds[i]->get_vmax() << " ";
+        os << nds[i]->getv_max() << " ";
         //   os << nds[i]->theta_vector[0] << std::endl;
         for (size_t kk = 0; kk < nds[i]->theta_vector.size(); kk++)
         {

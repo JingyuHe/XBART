@@ -12,6 +12,21 @@ predict.gp <- function(model, y, X, Xtest) {
     out = json_to_r(model$tree_json)
 
     obj = .Call(`_XBART_gp_predict`, y, X, Xtest, out$model_list$tree_pnt) 
+
+    N_test = nrow(Xtest)
+    num_sweeps = obj$num_sweeps
+    num_trees = obj$num_trees
+    active_var = list()
+    for (i in 1:N_test){
+        active_var[[i]] = list()
+        for (j in 1:num_sweeps){
+            active_var[[i]][[j]] = list()
+            for (k in 1:num_trees){
+                active_var[[i]][[j]][[k]] = obj$active_var[i * num_sweeps * num_trees + j * num_trees + k]
+            }
+        }
+    }
+    obj$active_var = active_var
     return(obj)
 }
 
