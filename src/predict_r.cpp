@@ -55,13 +55,102 @@ Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std:
     return Rcpp::List::create(Rcpp::Named("yhats") = yhats);
 }
 
+// [[Rcpp::export]]
+Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)
+{
+    // return leaf id for train and test samples
+    // return max active variable for each test samples
+
+    // Size of data
+    size_t N = X.n_rows;
+    size_t p = X.n_cols;
+    size_t N_test = Xtest.n_rows;
+
+    // Init X_std matrix
+    Rcpp::NumericMatrix X_std(N, p);
+    for (size_t i = 0; i < N; i++)
+    {
+        for (size_t j = 0; j < p; j++)
+        {
+            X_std(i, j) = X(i, j);
+        }
+    }
+    double *Xpointer = &X_std[0];
+
+    Rcpp::NumericMatrix Xtest_std(N_test, p);
+    for (size_t i = 0; i < N_test; i++)
+    {
+        for (size_t j = 0; j < p; j++)
+        {
+            Xtest_std(i, j) = Xtest(i, j);
+        }
+    }
+    double *Xtestpointer = &Xtest_std[0];
+
+     // Trees
+    std::vector<std::vector<tree>> *trees = tree_pnt;
+
+    // Result Container
+    matrix<double> yhats_test_xinfo;
+    size_t N_sweeps = (*trees).size();
+    size_t M = (*trees)[0].size();
+    ini_xinfo(yhats_test_xinfo, N, N_sweeps);
+
+
+    // get leaf id for all train data
+    std::vector<double> train_id(N * N_sweeps * M );
+    tree::tree_p bn; // pointer to bottom node
+    for (size_t i = 0; i < N; i++)
+    {
+        for (size_t sweep_ind = 0; sweep_ind < N_sweeps; sweep_ind++){
+            
+            for (size_t tree_ind = 0; tree_ind < M; tree_ind++){
+                // loop over observations
+                // tree search
+                bn = (*trees)[sweep_ind][tree_ind].search_bottom_std(Xpointer, i, p, N);
+                train_id[i + sweep_ind * N + tree_ind * N * N_sweeps] = bn->getID();
+            }
+        }
+        
+    }
+
+    tree::npv bv;
+    (*trees)[0][0].getbots(bv); //get bottom nodes
+    for (size_t i = 0; i < bv.size(); i++){
+        cout << bv[i]->getID() << " " << endl;
+    }
+
+    Rcpp::NumericVector train_id_rcpp = Rcpp::wrap(train_id);
+    train_id_rcpp.attr("dim") = Rcpp::Dimension(N, N_sweeps, M);
+    
+    return Rcpp::List::create(Rcpp::Named("train_id") = train_id_rcpp);
+
+    // NormalModel *model = new NormalModel(distance_s);
+
+    // // Predict
+    // model->predict_std(Xpointer, N, p, M, N_sweeps,
+    //                    yhats_test_xinfo, *trees);
+
+    // // Convert back to Rcpp
+    // Rcpp::NumericMatrix yhats(N, N_sweeps);
+    // for (size_t i = 0; i < N; i++)
+    // {
+    //     for (size_t j = 0; j < N_sweeps; j++)
+    //     {
+    //         yhats(i, j) = yhats_test_xinfo[j][i];
+    //     }
+    // }
+
+    // return Rcpp::List::create(Rcpp::Named("yhats") = yhats);
+   
+}
+
 // // [[Rcpp::export]]
 // Rcpp::List gp_predict()
 // {
 //     // Structure for returning training data in each leaf for each test dp.
 
-//     // arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt
-
+//    
 //     std::vector<size_t> var;
 //     for (size_t i = 0; i < 5; i++) { var.push_back(i); }
 //     Rcpp::NumericVector var_rcpp(5);

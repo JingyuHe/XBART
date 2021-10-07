@@ -132,8 +132,9 @@ pred = rowMeans(pred[, params$burnin:params$num_sweeps])
 
 time_XBART = round(time[3], 3)
 
-pred2 = predict(fit, xtest)
-pred2 = rowMeans(pred2[, params$burnin:params$num_sweeps])
+gp_pred = predict.gp(fit, as.matrix(y), as.matrix(x), as.matrix(xtest))
+all(gp_pred$train_id==1)
+
 # stopifnot(pred == pred2)
 
 #######################################################################

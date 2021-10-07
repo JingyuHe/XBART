@@ -66,6 +66,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             trees[sweeps][tree_ind].getbots(bv); //get bottom nodes
             for (size_t i = 0; i < bv.size(); i++){
                 bv[i]->setID(i); 
+                // cout << bv[i]->getID() << " " << endl;
             }
 
             // update tau after sampling the tree

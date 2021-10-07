@@ -7,6 +7,14 @@ predict.XBART <- function(model, X, distance_s=1) {
     return(obj)
 }
 
+predict.gp <- function(model, y, X, Xtest) {
+    
+    out = json_to_r(model$tree_json)
+
+    obj = .Call(`_XBART_gp_predict`, y, X, Xtest, out$model_list$tree_pnt) 
+    return(obj)
+}
+
 
 # predict.gp <- function() {
 #     # structure for returning training data in each leaf for each test dp.

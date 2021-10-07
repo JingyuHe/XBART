@@ -274,23 +274,6 @@ std::vector<double> tree::gettheta_outsample(const double *X, const size_t &i, c
             return this->theta_vector;
         }
         else{
-            // // sample tau between tau_prior tau_post
-            // generate w from beta(s*d, 1)
-            // std::gamma_distribution<double> alpha(s*d,1.0);
-            // std::gamma_distribution<double> beta(1.0, 1.0);
-            // double x = alpha(gen);
-            // double w = x / (x + beta(gen)); // x / (x+y) ~ beta(s*d, 1)
-
-            // std::bernoulli_distribution w_dist(w);
-            // double tau;
-            // if (w_dist(gen)){
-            //     // use prior tau
-            //     tau = tau_prior;
-            // } else {
-            //     // use posterior tau
-            //     tau = tau_post;
-            // }
-
             double tau = (tau_prior) * pow((2 / (1 + exp(- s * pow(d,2))) - 1), 2);
             // double tau = pow(d, 2) * (tau_prior - tau_post);
             std::vector<double> mu(1);
@@ -300,22 +283,6 @@ std::vector<double> tree::gettheta_outsample(const double *X, const size_t &i, c
             
         }
     }
-
-    // check outlier
-    // if ((*(X + N * v + i) < v_min) | ((*(X + N * v + i) > v_max))){
-    //     // should move this into models with new samplePars_prior function
-    //     std::vector<double> mu(1);
-    //     std::normal_distribution<double> normal_samp(0.0, sqrt(tau));
-    //     mu[0] = normal_samp(gen);
-    //     return mu;
-    // }
-
-    // check outlier and get max distance
-    // if (*(X + N * v + i) < v_min){
-    //     d = max(d, v_min - *(X + N * v + i));
-    // } else if (*(X + N * v + i) > v_max){
-    //     d = max(d, *(X + N * v + i) - v_max);
-    // }
 
     // try the relative distance to boundary comparing to (v_max - v_min)
     if (*(X + N * v + i) < v_min){
@@ -413,6 +380,9 @@ void tree::cp(tree_p n, tree_cp o)
 
     n->v = o->v;
     n->c = o->c;
+    n->ID = o->ID;
+    n->v_min = o->v_min;
+    n->v_max = o->v_max;
     n->prob_split = o->prob_split;
     n->prob_leaf = o->prob_leaf;
     n->drawn_ind = o->drawn_ind;
@@ -472,7 +442,9 @@ json tree::to_json()
     {
         j["variable"] = this->v;
         j["cutpoint"] = this->c;
-        j["nodeid"] = this->nid();
+        j["nodeid"] = this->ID;
+        j["v_min"] = this->v_min;
+        j["v_max"] = this->v_max;
         j["left"] = this->l->to_json();
         j["right"] = this->r->to_json();
     }
@@ -498,6 +470,9 @@ void tree::from_json(json &j3, size_t dim_theta)
     {
         j3.at("variable").get_to(this->v);
         j3.at("cutpoint").get_to(this->c);
+        j3.at("nodeid").get_to(this->ID);
+        j3.at("v_min").get_to(this->v_min);
+        j3.at("v_max").get_to(this->v_max);
 
         tree *lchild = new tree(dim_theta);
         lchild->from_json(j3["left"], dim_theta);
