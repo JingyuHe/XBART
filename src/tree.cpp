@@ -717,6 +717,12 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
 
+    // If our current split is same as parent, exit
+    if ((this->p) && (this->v == (this->p)->v) && (this->c == (this->p)->c))
+    {
+        no_split = true;
+    }
+
     if (no_split == true)
     {
         if (!update_split_prob)
@@ -763,12 +769,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
     {
         split_point = split_point + 1;
-    }
-
-    // If our current split is same as parent, exit
-    if ((this->p) && (this->v == (this->p)->v) && (this->c == (this->p)->c))
-    {
-        return;
     }
 
     if (grow_new_tree)
