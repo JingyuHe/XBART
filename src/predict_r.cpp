@@ -114,11 +114,11 @@ Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std:
         
     }
 
-    tree::npv bv;
-    (*trees)[0][0].getbots(bv); //get bottom nodes
-    for (size_t i = 0; i < bv.size(); i++){
-        cout << bv[i]->getID() << " " << endl;
-    }
+    // tree::npv bv;
+    // (*trees)[0][0].getbots(bv); //get bottom nodes
+    // for (size_t i = 0; i < bv.size(); i++){
+    //     cout << bv[i]->getv() << " " << bv[i]->getID() << endl;
+    // }
 
     Rcpp::NumericVector train_id_rcpp = Rcpp::wrap(train_id);
     train_id_rcpp.attr("dim") = Rcpp::Dimension(N, N_sweeps, M);
@@ -312,6 +312,12 @@ Rcpp::List json_to_r(Rcpp::StringVector json_string_r)
 
     // Load
     from_json_to_forest(json_string[0], *trees2, y_mean);
+
+    // tree::npv bv;
+    // (*trees2)[0][0].getbots(bv); //get bottom nodes
+    // for (size_t i = 0; i < bv.size(); i++){
+    //     cout << bv[i]->getv() << " " << bv[i]->getID() << endl;
+    // }
 
     // Define External Pointer
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);

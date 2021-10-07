@@ -172,8 +172,9 @@ if (run_lightgbm) {
 #######################################################################
 # print
 xbart_rmse = sqrt(mean((fhat.1 - ftest) ^ 2))
+pred_rmse = sqrt(mean((pred - ftest) ^ 2))
 print(paste("rmse of fit xbart: ", round(xbart_rmse, digits = 4)))
-print(paste("rmse of fit dbart: ", round(sqrt(mean((fhat.db - ftest) ^ 2)), digits = 4)))
+print(paste("rmse of predict func: ", round(sqrt(mean((pred - ftest) ^ 2)), digits = 4)))
 
 print(paste("running time, dbarts", time_dbarts))
 print(paste("running time, XBART", time_XBART))

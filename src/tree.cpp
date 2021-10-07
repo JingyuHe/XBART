@@ -436,13 +436,15 @@ json tree::to_json()
     json j;
     if (l == 0)
     {
-        j = this->theta_vector;
+        j["left"] = 0;
+        j["right"] = 0;
+        j["leafid"] = this->ID;
+        j["theta"]= this->theta_vector;
     }
     else
     {
         j["variable"] = this->v;
         j["cutpoint"] = this->c;
-        j["nodeid"] = this->ID;
         j["v_min"] = this->v_min;
         j["v_max"] = this->v_max;
         j["left"] = this->l->to_json();
@@ -453,10 +455,11 @@ json tree::to_json()
 
 void tree::from_json(json &j3, size_t dim_theta)
 {
-    if (j3.is_array())
+    if (j3["left"].is_number())
     {
+        j3.at("leafid").get_to(this->ID);
         std::vector<double> temp;
-        j3.get_to(temp);
+        j3.at("theta").get_to(temp);
         if (temp.size() > 1)
         {
             this->theta_vector = temp;
@@ -470,9 +473,9 @@ void tree::from_json(json &j3, size_t dim_theta)
     {
         j3.at("variable").get_to(this->v);
         j3.at("cutpoint").get_to(this->c);
-        j3.at("nodeid").get_to(this->ID);
         j3.at("v_min").get_to(this->v_min);
         j3.at("v_max").get_to(this->v_max);
+        // std::cout << this->ID << " " << endl;
 
         tree *lchild = new tree(dim_theta);
         lchild->from_json(j3["left"], dim_theta);
@@ -623,6 +626,10 @@ std::istream &operator>>(std::istream &is, tree &t)
 
 void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree)
 {
+
+    // init ID
+    this->setID(0);
+
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
