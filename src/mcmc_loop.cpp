@@ -52,19 +52,8 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
 
             if (state->parallel)
             {
-                // run parallel
-                // omp_set_max_active_levels(state->nthread);
-                // #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
-                                // {
-                // #pragma omp sections
-                                    // {
-                // #pragma omp section
-                        // {
-                            trees[sweeps][tree_ind].settau(model->tau_prior, model->tau);// initiate tau
-                            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-                        // }
-                    // }
-                // }
+                trees[sweeps][tree_ind].settau(model->tau_prior, model->tau);// initiate tau
+                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
             }
             else
             {
@@ -73,11 +62,11 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             }
 
             // set id for bottom nodes
-            // tree::npv bv;
-            // trees[sweeps][tree_ind].getbots(bv); //get bottom nodes
-            // for (size_t i = 0; i < bv.size(); i++){
-            //     bv[i]->setID(i);
-            // }
+            tree::npv bv;
+            trees[sweeps][tree_ind].getbots(bv); //get bottom nodes
+            for (size_t i = 0; i < bv.size(); i++){
+                bv[i]->setID(i);
+            }
 
 
             // update tau after sampling the tree
