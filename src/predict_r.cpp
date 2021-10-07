@@ -110,20 +110,51 @@ Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std:
                 bn = (*trees)[sweep_ind][tree_ind].search_bottom_std(Xpointer, i, p, N);
                 train_id[i + sweep_ind * N + tree_ind * N * N_sweeps] = bn->getID();
             }
-        }
-        
+        }        
     }
 
-    // tree::npv bv;
-    // (*trees)[0][0].getbots(bv); //get bottom nodes
-    // for (size_t i = 0; i < bv.size(); i++){
-    //     cout << bv[i]->getv() << " " << bv[i]->getID() << endl;
-    // }
+    // get leaf id, mu and active variable for test data
+    std::vector<double> test_theta(N_test * N_sweeps * M );
+    std::vector<size_t> test_id(N_test * N_sweeps * M );
+    std::vector<int> test_var(N_test * N_sweeps * M );
+    double theta;
+    size_t leaf_id;
+    int active_variable;
+    double distance;
+    for (size_t i = 0; i < N_test; i++)
+    {
+        for (size_t sweep_ind = 0; sweep_ind < N_sweeps; sweep_ind++){
+            
+            for (size_t tree_ind = 0; tree_ind < M; tree_ind++){
+                // loop over observations
+                // tree search
+                distance = 0.0;
+                active_variable = -1;
+                (*trees)[sweep_ind][tree_ind].get_gp_info(Xtestpointer, i, p, N_test, distance, active_variable, theta, leaf_id);
+                test_id[i + sweep_ind * N_test + tree_ind * N_test * N_sweeps] = leaf_id;
+                test_theta[i + sweep_ind * N_test + tree_ind * N_test * N_sweeps] = theta;
+                test_var[i + sweep_ind * N_test + tree_ind * N_test * N_sweeps] = active_variable;
+            }
+        }        
+    }
 
     Rcpp::NumericVector train_id_rcpp = Rcpp::wrap(train_id);
+    Rcpp::NumericVector test_id_rcpp = Rcpp::wrap(test_id);
+    Rcpp::NumericVector test_theta_rcpp = Rcpp::wrap(test_theta);
+    Rcpp::NumericVector test_var_rcpp = Rcpp::wrap(test_var);
     train_id_rcpp.attr("dim") = Rcpp::Dimension(N, N_sweeps, M);
+    test_id_rcpp.attr("dim") = Rcpp::Dimension(N_test, N_sweeps, M);
+    test_theta_rcpp.attr("dim") = Rcpp::Dimension(N_test, N_sweeps, M);
+    test_var_rcpp.attr("dim") = Rcpp::Dimension(N_test, N_sweeps, M);
+
     
-    return Rcpp::List::create(Rcpp::Named("train_id") = train_id_rcpp);
+    
+    return Rcpp::List::create(
+        Rcpp::Named("train_id") = train_id_rcpp,
+        Rcpp::Named("test_id") = test_id_rcpp,
+        Rcpp::Named("yhat_test") = test_theta_rcpp,
+        Rcpp::Named("active_variable") = test_var_rcpp
+        );
 
     // NormalModel *model = new NormalModel(distance_s);
 

@@ -178,6 +178,8 @@ public:
 
     std::vector<double> gettheta_outsample(const double *X, const size_t &i, const size_t &p, const size_t &N, std::mt19937 &gen, double &d, double &s);
 
+    void get_gp_info(const double *X, const size_t &i, const size_t &p, const size_t &N, double &d, int &active_variable, double &theta, size_t &leaf_id);
+
     void rg(size_t v, size_t *L, size_t *U); //recursively find region [L,U] for var v
     //node functions--------------------
 

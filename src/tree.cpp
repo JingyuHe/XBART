@@ -312,6 +312,46 @@ std::vector<double> tree::gettheta_outsample(const double *X, const size_t &i, c
 }
 
 
+void tree::get_gp_info(const double *X, const size_t &i, const size_t &p, const size_t &N, double &d, int &active_variable, double &theta, size_t &leaf_id)
+{
+    if (l == 0)
+    {
+        theta = this->theta_vector[0];
+        leaf_id = this->ID;
+        return;
+    }
+
+    // try the relative distance to boundary comparing to (v_max - v_min)
+    if (*(X + N * v + i) < v_min){
+        if (v_max > v_min){ // just in case v_max == v_min
+            d = max(d, (v_min - *(X + N * v + i)) / (v_max - v_min)); 
+            active_variable = (int) v;
+        } else{
+            d = max(d, v_min - *(X + N * v + i));
+        }
+    } else if (*(X + N * v + i) > v_max){
+        if (v_max > v_min){ // just in case v_max == v_min
+            d = max(d, (*(X + N * v + i) - v_max) / (v_max - v_min)); 
+            active_variable = (int) v;
+        } else{
+            d = max(d, *(X + N * v + i) - v_max);
+        }
+    }
+
+    // X[v][i], v-th column and i-th row
+    // if(X[v][i] <= c){
+    if (*(X + N * v + i) <= c)
+    {
+        return l->get_gp_info(X, i, p, N, d, active_variable, theta, leaf_id);
+    }
+    else
+    {
+        return r->get_gp_info(X, i, p, N, d, active_variable, theta, leaf_id);
+    }
+}
+
+
+
 //--------------------
 //find region for a given variable
 void tree::rg(size_t v, size_t *L, size_t *U)
