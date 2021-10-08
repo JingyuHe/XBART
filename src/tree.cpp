@@ -2102,8 +2102,10 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
     {
         // loop over trees
         // tree search
-        d = 0; // max distance of outliers
-        output[i] = tree[i].gettheta_outsample(Xtest, x_index, p, N_Xtest, gen, d, s);
+        // d = 0; // max distance of outliers
+        // output[i] = tree[i].gettheta_outsample(Xtest, x_index, p, N_Xtest, gen, d, s);
+        bn = tree[i].search_bottom_std(Xtest, x_index, p, N_Xtest);
+        output[i] = bn->theta_vector;
     }
     return;
 }

@@ -249,6 +249,33 @@ void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t 
     return;
 }
 
+void NormalModel::predict_whole_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, std::vector<double> &output_vec, vector<vector<tree>> &trees)
+{
+
+    std::random_device rd;
+    std::mt19937 gen = std::mt19937(rd());
+    matrix<double> output;
+
+    // row : dimension of theta, column : number of trees
+    ini_matrix(output, this->dim_theta, trees[0].size());
+
+    for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
+    {
+        for (size_t data_ind = 0; data_ind < N_test; data_ind++)
+        {
+            getThetaForObs_Outsample(output, trees[sweeps], data_ind, Xtestpointer, N_test, p, gen, distance_s);
+            
+            // take sum of predictions of each tree, as final prediction
+            for (size_t i = 0; i < trees[0].size(); i++)
+            {
+                // yhats_test_xinfo[sweeps][data_ind] += output[i][0];
+                output_vec[data_ind + sweeps * N_test + i * num_sweeps * N_test] = output[i][0];
+            }
+        }
+    }
+    return;
+}
+
 //////////////////////////////////////////////////////////////////////////////////////
 //
 //

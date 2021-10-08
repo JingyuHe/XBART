@@ -7,6 +7,15 @@ predict.XBART <- function(model, X, distance_s=1) {
     return(obj)
 }
 
+predict.full <- function(model, X) {
+    
+    out = json_to_r(model$tree_json)
+
+    obj = .Call(`_XBART_xbart_predict_full`, X, model$model_list$y_mean, out$model_list$tree_pnt) # model$tree_pnt
+    obj = obj$yhats
+    return(obj)
+}
+
 predict.gp <- function(model, y, X, Xtest) {
     
     out = json_to_r(model$tree_json)

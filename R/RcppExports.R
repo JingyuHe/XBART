@@ -25,6 +25,10 @@ xbart_predict <- function(X, y_mean, tree_pnt, distance_s) {
     .Call(`_XBART_xbart_predict`, X, y_mean, tree_pnt, distance_s)
 }
 
+xbart_predict_full <- function(X, y_mean, tree_pnt) {
+    .Call(`_XBART_xbart_predict_full`, X, y_mean, tree_pnt)
+}
+
 gp_predict <- function(y, X, Xtest, tree_pnt) {
     .Call(`_XBART_gp_predict`, y, X, Xtest, tree_pnt)
 }
