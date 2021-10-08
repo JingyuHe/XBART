@@ -22,7 +22,7 @@ predict.gp <- function(model, y, X, Xtest) {
         for (j in 1:num_sweeps){
             active_var[[i]][[j]] = list()
             for (k in 1:num_trees){
-                active_var[[i]][[j]][[k]] = obj$active_var[i * num_sweeps * num_trees + j * num_trees + k]
+                active_var[[i]][[j]][[k]] = obj$active_var[(i - 1) * num_sweeps * num_trees + (j - 1) * num_trees + k]
             }
         }
     }
