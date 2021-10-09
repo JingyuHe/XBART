@@ -1,12 +1,13 @@
 #include "mcmc_loop.h"
 #include "omp.h"
 
-void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct)
+void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &resid)
 {
 
     // if (state->parallel)
     //     thread_pool.start();
 
+    size_t N = state->residual_std[0].size();
     // Residual for 0th tree
     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
     model->ini_residual_std(state);
@@ -69,6 +70,11 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
                 // cout << bv[i]->getID() << " " << endl;
             }
 
+            // store residuals:
+            for (size_t data_ind = 0; data_ind < state->residual_std[0].size(); data_ind++){
+                resid[data_ind + sweeps * N + tree_ind * state->num_sweeps * N] = state->residual_std[0][data_ind];
+            }
+            
             // update tau after sampling the tree
             // model->update_tau(state, tree_ind, sweeps, trees);
 

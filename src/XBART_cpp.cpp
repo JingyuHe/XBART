@@ -107,7 +107,9 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
 
     ////////////////////////////////////////////////////////////////
-    mcmc_loop(Xorder_std, verbose, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct);
+    std::vector<double> resid(N * num_sweeps * num_trees);
+
+    mcmc_loop(Xorder_std, verbose, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct, resid);
 
     model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
@@ -153,11 +155,17 @@ Rcpp::List XBART_cpp(arma::mat y, arma::mat X, arma::mat Xtest, size_t num_trees
         output_tree(i) = treess.str();
     }
 
+    Rcpp::NumericVector resid_rcpp = Rcpp::wrap(resid);
+    resid_rcpp.attr("dim") = Rcpp::Dimension(N, num_sweeps, num_trees);
+
     return Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("yhats_test") = yhats_test,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p),
-        Rcpp::Named("treedraws") = output_tree);
+        Rcpp::Named("treedraws") = output_tree,
+        Rcpp::Named("residuals") = resid_rcpp
+        );
+        
 }
