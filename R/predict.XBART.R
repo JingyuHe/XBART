@@ -16,11 +16,11 @@ predict.full <- function(model, X) {
     return(obj)
 }
 
-predict.gp <- function(model, y, X, Xtest) {
+predict.gp.old <- function(model, y, X, Xtest) {
     
     out = json_to_r(model$tree_json)
 
-    obj = .Call(`_XBART_gp_predict`, y, X, Xtest, out$model_list$tree_pnt) 
+    obj = .Call(`_XBART_gp_predict_old`, y, X, Xtest, out$model_list$tree_pnt) 
 
     N_test = nrow(Xtest)
     num_sweeps = obj$num_sweeps
@@ -39,19 +39,11 @@ predict.gp <- function(model, y, X, Xtest) {
     return(obj)
 }
 
+predict.gp <- function(model, y, X, Xtest) {
+    
+    out = json_to_r(model$tree_json)
 
-# predict.gp <- function() {
-#     # structure for returning training data in each leaf for each test dp.
-#     n_test = 10
-#     n_trees = 10
-#     n_sweeps = 100
-#     ret = list()
-#     for (i in 1:n_test){
-#         ret[[i]] = list()
-#         for(j in 1:(n_trees * n_sweeps)){
-#             ret[[i]][[j]] = .Call(`_XBART_gp_predict`)
-#         }
-#     }
-   
-#     return(ret)
-# }
+    obj = .Call(`_XBART_gp_predict`, y, X, Xtest, out$model_list$tree_pnt) 
+    
+    return(obj)
+}

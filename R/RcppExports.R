@@ -29,6 +29,10 @@ xbart_predict_full <- function(X, y_mean, tree_pnt) {
     .Call(`_XBART_xbart_predict_full`, X, y_mean, tree_pnt)
 }
 
+gp_predict_old <- function(y, X, Xtest, tree_pnt) {
+    .Call(`_XBART_gp_predict_old`, y, X, Xtest, tree_pnt)
+}
+
 gp_predict <- function(y, X, Xtest, tree_pnt) {
     .Call(`_XBART_gp_predict`, y, X, Xtest, tree_pnt)
 }
