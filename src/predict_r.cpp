@@ -217,35 +217,63 @@ Rcpp::List gp_predict_old(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<
 }
 
 // [[Rcpp::export]]
-Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)
+Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, size_t p_categorical = 0)
 {
-    // basic structure
+    // should be able to run in parallel
+
+    // if (parallel && (nthread == 0))
+    // {
+    //     // if turn on parallel and do not sepicifiy number of threads
+    //     // use max - 1, leave one out
+    //     nthread = omp_get_max_threads() - 1;
+    // }
+
+    // if (parallel)
+    // {
+    //     omp_set_num_threads(nthread);
+    //     cout << "Running in parallel with " << nthread << " threads." << endl;
+    // }
+    // else
+    // {
+    //     cout << "Running with single thread." << endl;
+    // }
 
     // Size of data
     size_t N = X.n_rows;
     size_t p = X.n_cols;
     size_t N_test = Xtest.n_rows;
+    // number of continuous variables
+    size_t p_continuous = p - p_categorical; // only work for continuous for now
 
-    // Init X_std matrix
+    matrix<size_t> Xorder_std;
+    ini_matrix(Xorder_std, N, p);
+
+    std::vector<double> y_std(N);
+    double y_mean = 0.0;
+
     Rcpp::NumericMatrix X_std(N, p);
-    for (size_t i = 0; i < N; i++)
-    {
-        for (size_t j = 0; j < p; j++)
-        {
-            X_std(i, j) = X(i, j);
-        }
-    }
-    double *Xpointer = &X_std[0];
-
     Rcpp::NumericMatrix Xtest_std(N_test, p);
+
+    rcpp_to_std2(y, X, Xtest, y_std, y_mean, X_std, Xtest_std, Xorder_std);
+
+
+    matrix<size_t> Xtestorder_std;
+    ini_matrix(Xtestorder_std, N_test, p);
+
+    // Create Xtestorder
+    arma::umat Xtestorder(Xtest.n_rows, Xtest.n_cols);
+    for (size_t i = 0; i < Xtest.n_cols; i++)
+    {
+        Xtestorder.col(i) = arma::sort_index(Xtest.col(i));
+    }
     for (size_t i = 0; i < N_test; i++)
     {
         for (size_t j = 0; j < p; j++)
         {
-            Xtest_std(i, j) = Xtest(i, j);
+            Xtestorder_std[j][i] = Xtestorder(i, j);
         }
     }
-    double *Xtestpointer = &Xtest_std[0];
+
 
      // Trees
     std::vector<std::vector<tree>> *trees = tree_pnt;

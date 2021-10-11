@@ -33,8 +33,8 @@ gp_predict_old <- function(y, X, Xtest, tree_pnt) {
     .Call(`_XBART_gp_predict_old`, y, X, Xtest, tree_pnt)
 }
 
-gp_predict <- function(y, X, Xtest, tree_pnt) {
-    .Call(`_XBART_gp_predict`, y, X, Xtest, tree_pnt)
+gp_predict <- function(y, X, Xtest, tree_pnt, p_categorical = 0L) {
+    .Call(`_XBART_gp_predict`, y, X, Xtest, tree_pnt, p_categorical)
 }
 
 xbart_multinomial_predict <- function(X, y_mean, num_class, tree_pnt, iteration) {
