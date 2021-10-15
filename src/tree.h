@@ -171,6 +171,10 @@ public:
     void grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, 
     std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree);
 
+    void gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_struct> &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, 
+    matrix<size_t> &Xtestorder_std, std::unique_ptr<X_struct> &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique, 
+    matrix<double> &yhats_test_xinfo, std::vector<bool> &active_var, const size_t &p_categorical, const size_t &sweeps, const size_t &tree_ind);
+    
     tree_p bn(double *x, matrix<double> &xi); //find Bottom Node, original BART version
 
     tree_p bn_std(double *x); // find Bottom Node, std version, compare
@@ -216,6 +220,12 @@ public:
     
     friend void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state, std::vector<double> &theta_vector, double &entropy);
 
+    friend size_t get_split_point(const double *Xpointer, matrix<size_t> &Xorder_std, size_t n_y, size_t v, double c);
+
+    friend void split_xorder_std_categorical_simplified(std::unique_ptr<X_struct> &x_struct, matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, size_t p_categorical);
+
+    friend void split_xorder_std_continuous_simplified(std::unique_ptr<X_struct> &x_struct, matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, size_t p_continuous);
+    
     // #ifndef NoRcpp
     // #endif
 private:

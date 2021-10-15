@@ -287,11 +287,6 @@ Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std:
     matrix<double> yhats_test_xinfo;
     ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
 
-
-    // initialize X_struct
-    std::unique_ptr<X_struct_gp> x_struct_gp(new X_struct_gp(Xpointer, &y_std, N, Xorder_std));
-
-
     // mcmc loop
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
