@@ -274,9 +274,32 @@ Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std:
         }
     }
 
+    // double *ypointer = &y_std[0];
+    double *Xpointer = &X_std[0];
+    double *Xtestpointer = &Xtest_std[0];
 
-     // Trees
+    // Trees
     std::vector<std::vector<tree>> *trees = tree_pnt;
+
+    size_t num_sweeps = (*trees).size();
+    size_t num_trees = (*trees)[0].size();
+
+    matrix<double> yhats_test_xinfo;
+    ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
+
+
+    // initialize X_struct
+    std::unique_ptr<X_struct_gp> x_struct_gp(new X_struct_gp(Xpointer, &y_std, N, Xorder_std));
+
+
+    // mcmc loop
+    for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
+    {
+        for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
+        {
+            // trees[sweeps][tree_ind].predict_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+        }
+    }
 
     // // Result Container
     // matrix<double> yhats_test_xinfo;
