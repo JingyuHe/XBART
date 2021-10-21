@@ -3,6 +3,7 @@
 #include <chrono>
 #include "omp.h"
 #include <ctime>
+#include<RcppArmadillo.h>
 
 using namespace std;
 using namespace chrono;
@@ -2334,7 +2335,27 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
 
     }
     else {
+        // construct covariance matrix
         size_t p_active = std::accumulate(active_var.begin(), active_var.begin() + p - p_categorical, 0);
+        // cout << "p_active = " << p_active << ", N = " << N << ", N_test = " << Ntest << endl;
+        arma::mat X(N + Ntest, p_active);
+        const double *split_var_x_pointer;
+        size_t j_count = 0;
+        for (size_t j = 0; j < p_continuous; j++){
+            if (active_var[j]) {
+                // cout << "j = " << j << endl;
+                split_var_x_pointer = x_struct->X_std + x_struct->n_y * j;
+                for (size_t i = 0; i < N; i++){
+                    X(i, j_count) = *(split_var_x_pointer + Xorder_std[j][i]);
+                }
+                split_var_x_pointer = xtest_struct->X_std + xtest_struct->n_y * j;
+                for (size_t i = 0; i < Ntest; i++){
+                    X(i + N, j_count) = *(split_var_x_pointer + Xtestorder_std[j][i]);
+                }
+                j_count += 1;
+            }
+        }
+
     }
 
     return;
