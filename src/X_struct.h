@@ -22,23 +22,25 @@ public:
     const std::vector<double> *y_std; // pointer to y data
     size_t n_y; // number of total data points in root node
 
-    X_struct(const double *X_std, const std::vector<double> *y_std, size_t n_y, std::vector< std::vector<size_t> > &Xorder_std, size_t p_categorical, size_t p_continuous, std::vector<double> *initial_theta, size_t num_trees){
+    X_struct(const double *X_std, const std::vector<double> *y_std, size_t N, std::vector< std::vector<size_t> > &Xorder_std, size_t p_categorical, size_t p_continuous, std::vector<double> *initial_theta, size_t num_trees){
 
         this->variable_ind = std::vector<size_t>(p_categorical + 1);
         this->X_num_unique = std::vector<size_t>(p_categorical);
 
-        init_tree_pointers(initial_theta, n_y, num_trees);
+        init_tree_pointers(initial_theta, N, num_trees);
 
-        init_tree_pointers_multinomial(initial_theta, n_y, num_trees);
+        init_tree_pointers_multinomial(initial_theta, N, num_trees);
         
-        unique_value_count2(X_std, Xorder_std, X_values, X_counts, variable_ind, n_y, X_num_unique, p_categorical, p_continuous);
+        unique_value_count2(X_std, Xorder_std, X_values, X_counts, variable_ind, N, X_num_unique, p_categorical, p_continuous);
 
         get_X_range(X_std, Xorder_std, X_range);
 
         this->X_std = X_std;
         this->y_std = y_std;
-        this->n_y = n_y;
+        this->n_y = N;
         this->data_pointers_copy = this->data_pointers;
+
+        return;
     }
 
 

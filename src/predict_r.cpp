@@ -280,19 +280,41 @@ Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std:
 
     // Trees
     std::vector<std::vector<tree>> *trees = tree_pnt;
-
     size_t num_sweeps = (*trees).size();
     size_t num_trees = (*trees)[0].size();
 
+    // initialize X_struct
+    std::vector<double> initial_theta(1, y_mean / (double)num_trees);
+    std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
+    std::unique_ptr<X_struct> xtest_struct(new X_struct(Xtestpointer, &y_std, N_test, Xtestorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
+    x_struct->n_y = N;
+    xtest_struct->n_y = N_test;
+
     matrix<double> yhats_test_xinfo;
     ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
+
+    std::vector<bool> active_var(p);
+    std::fill(active_var.begin(), active_var.end(), false);
+
+    // // define model
+    // NormalModel *model = new NormalModel(1, 1, 1, 1, 1, false, 1, 1, 1);
+    // // cout << "after define model " << model->tau << " " << model->tau_mean << endl;
+    // model->setNoSplitPenality(1);
+
+    // // State settings
+    // std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, false, 0, 5, 20, p, Xpointer, num_sweeps, false, &y_std, 1.0, 250, y_mean, 0, model->dim_residual, 12, true)); //last input is nthread, need update
+    // std::unique_ptr<State> state_test(new NormalState(Xtestpointer, Xtestorder_std, N_test, p, num_trees, p_categorical, p_continuous, false, 0, 5, 20, p, Xtestpointer, num_sweeps, false, &y_std, 1.0, 250, y_mean, 0, model->dim_residual, 12, true)); //last input is nthread, need update
 
     // mcmc loop
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
         {
-            // trees[sweeps][tree_ind].predict_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+            // cout << "sweeps = " << sweeps << ", tree_ind = " << tree_ind << endl;
+            (*trees)[sweeps][tree_ind].gp_predict_from_root(Xorder_std, x_struct, x_struct->X_counts, x_struct->X_num_unique, 
+            Xtestorder_std, xtest_struct, xtest_struct->X_counts, xtest_struct->X_num_unique, 
+            yhats_test_xinfo, active_var, p_categorical, sweeps, tree_ind);
+
         }
     }
 

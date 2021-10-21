@@ -10,7 +10,6 @@
 #include "node_data.h"
 #include "X_struct.h"
 #include "json.h"
-#include<set>
 
 //#include <armadillo>
 
@@ -224,8 +223,8 @@ public:
 
     friend void split_xorder_std_categorical_simplified(std::unique_ptr<X_struct> &x_struct, matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, size_t p_categorical);
 
-    friend void split_xorder_std_continuous_simplified(std::unique_ptr<X_struct> &x_struct, matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, size_t p_continuous);
-    
+    friend void split_xorder_std_continuous_simplified(std::unique_ptr<X_struct> &X_struct, matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, size_t p_continuous);
+
     // #ifndef NoRcpp
     // #endif
 private:

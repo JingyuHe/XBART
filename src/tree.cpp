@@ -497,6 +497,8 @@ void tree::from_json(json &j3, size_t dim_theta)
         {
             this->theta_vector[0] = temp[0];
         }
+        this->l = 0;
+        this->r = 0;
     }
     else
     {
@@ -1316,7 +1318,6 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
 
     const double *split_var_x_pointer = state->X_std + state->n_y * split_var;
 
-// #pragma omp parallel for schedule(dynamic, 1) default(none) shared(state, Xorder_std, Xorder_left_std, Xorder_right_std, N_Xorder, split_var_x_pointer, cutvalue)
     for (size_t i = 0; i < state->p_continuous; i++) // loop over variables
     {
         // lambda callback for multithreading
@@ -2044,6 +2045,7 @@ size_t get_split_point(const double *Xpointer, matrix<size_t> &Xorder_std, size_
 {
     // get split point
     // use bisection
+
     size_t left_ind = 0;
     size_t right_ind =  Xorder_std[0].size() - 1;
     size_t split_point = (left_ind + right_ind) / 2;
@@ -2215,7 +2217,7 @@ void split_xorder_std_continuous_simplified(std::unique_ptr<X_struct> &x_struct,
     size_t N_Xorder = Xorder_std[0].size();
     size_t N_Xorder_left = Xorder_left_std[0].size();
     size_t N_Xorder_right = Xorder_right_std[0].size();
-
+    
     // if the left side is smaller, we only compute sum of it
     bool compute_left_side = N_Xorder_left < N_Xorder_right;
 
@@ -2225,8 +2227,6 @@ void split_xorder_std_continuous_simplified(std::unique_ptr<X_struct> &x_struct,
 
     for (size_t i = 0; i < p_continuous; i++) // loop over variables
     {
-        // lambda callback for multithreading
-        // auto split_i = [&, i]() {
         size_t left_ix = 0;
         size_t right_ix = 0;
 
@@ -2257,11 +2257,10 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
 {
     // gaussian process prediction from root
 
-    // grow a tree, users can control number of split points
-    size_t N_Xorder = Xorder_std[0].size();
-    size_t p = Xorder_std.size();
+    size_t N = Xorder_std[0].size();
+    size_t Ntest = Xtestorder_std[0].size();
+    size_t p = active_var.size();
     size_t p_continuous = p - p_categorical;
-
     if (this->l)
     {
         active_var[v] = true;
@@ -2273,14 +2272,10 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
             active_var_right[i] = active_var[i];
         }
 
-        // get split point
-        size_t split_point = get_split_point(x_struct->X_std, Xorder_std, x_struct->n_y, v, c);
-        size_t test_split_point = get_split_point(xtest_struct->X_std, Xtestorder_std, xtest_struct->n_y, v, c);
-
         matrix<size_t> Xorder_left_std;
         matrix<size_t> Xorder_right_std;
-        ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
-        ini_xinfo_sizet(Xorder_right_std, Xorder_std[0].size() - split_point - 1, p);
+        matrix<size_t> Xtestorder_left_std;
+        matrix<size_t> Xtestorder_right_std;
 
         std::vector<size_t> X_num_unique_left(X_num_unique.size());
         std::vector<size_t> X_num_unique_right(X_num_unique.size());
@@ -2288,36 +2283,47 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
         std::vector<size_t> X_counts_left(X_counts.size());
         std::vector<size_t> X_counts_right(X_counts.size());
 
-        if (p_categorical > 0)
-        {
-            split_xorder_std_categorical_simplified(x_struct, Xorder_left_std, Xorder_right_std, this->v, split_point, Xorder_std, X_counts_left, X_counts_right, 
-            X_num_unique_left, X_num_unique_right, X_counts, p_categorical);
-        }
-
-        if (p_continuous > 0)
-        {
-            split_xorder_std_continuous_simplified(x_struct, Xorder_left_std, Xorder_right_std, v, split_point, Xorder_std, p_continuous);
-        }
-
-        matrix<size_t> Xtestorder_left_std;
-        matrix<size_t> Xtestorder_right_std;
-        ini_xinfo_sizet(Xtestorder_left_std, test_split_point + 1, p);
-        ini_xinfo_sizet(Xtestorder_right_std, Xtestorder_std[0].size() - test_split_point - 1, p);
-
         std::vector<size_t> Xtest_num_unique_left(Xtest_num_unique.size());
         std::vector<size_t> Xtest_num_unique_right(Xtest_num_unique.size());
 
         std::vector<size_t> Xtest_counts_left(Xtest_counts.size());
         std::vector<size_t> Xtest_counts_right(Xtest_counts.size());
 
-        if (p_categorical > 0)
-        {
-            split_xorder_std_categorical_simplified(xtest_struct, Xtestorder_left_std, Xtestorder_right_std, v, split_point, Xtestorder_std, Xtest_counts_left, Xtest_counts_right, Xtest_num_unique_left, Xtest_num_unique_right, Xtest_counts, p_categorical);
+        if (N > 0){
+            // get split point
+            size_t split_point = get_split_point(x_struct->X_std, Xorder_std, x_struct->n_y, v, c);
+            
+            ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
+            ini_xinfo_sizet(Xorder_right_std, N - split_point - 1, p);
+
+            if (p_categorical > 0)
+            {
+                split_xorder_std_categorical_simplified(x_struct, Xorder_left_std, Xorder_right_std, this->v, split_point, Xorder_std, X_counts_left, X_counts_right, 
+                X_num_unique_left, X_num_unique_right, X_counts, p_categorical);
+            }
+
+            if (p_continuous > 0)
+            {
+                split_xorder_std_continuous_simplified(x_struct, Xorder_left_std, Xorder_right_std, v, split_point, Xorder_std, p_continuous);
+            }
+
         }
 
-        if (p_continuous > 0)
-        {
-            split_xorder_std_continuous_simplified(xtest_struct, Xtestorder_left_std, Xtestorder_right_std, v, split_point, Xtestorder_std, p_continuous);
+        if (Xtestorder_std[0].size() > 0){
+
+            size_t test_split_point = get_split_point(xtest_struct->X_std, Xtestorder_std, xtest_struct->n_y, v, c);
+
+            ini_xinfo_sizet(Xtestorder_left_std, test_split_point + 1, p);
+            ini_xinfo_sizet(Xtestorder_right_std, Xtestorder_std[0].size() - test_split_point - 1, p);
+
+            if (p_categorical > 0)
+            {
+                split_xorder_std_categorical_simplified(xtest_struct, Xtestorder_left_std, Xtestorder_right_std, v, test_split_point, Xtestorder_std, Xtest_counts_left, Xtest_counts_right, Xtest_num_unique_left, Xtest_num_unique_right, Xtest_counts, p_categorical);
+            }
+            if (p_continuous > 0)
+            {
+                split_xorder_std_continuous_simplified(xtest_struct, Xtestorder_left_std, Xtestorder_right_std, v, test_split_point, Xtestorder_std, p_continuous);
+            }
         }
         
         this->l->gp_predict_from_root(Xorder_left_std, x_struct, X_counts_left, X_num_unique_left, 
@@ -2327,9 +2333,9 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
             Xtestorder_right_std, xtest_struct, Xtest_counts_right, Xtest_num_unique_right, yhats_test_xinfo, active_var_right, p_categorical, sweeps, tree_ind);
 
     }
-    // else {
-
-    // }
+    else {
+        size_t p_active = std::accumulate(active_var.begin(), active_var.begin() + p - p_categorical, 0);
+    }
 
     return;
 }
