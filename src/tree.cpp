@@ -2337,8 +2337,10 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
     else {
         // construct covariance matrix
         size_t p_active = std::accumulate(active_var.begin(), active_var.begin() + p - p_categorical, 0);
-        // cout << "p_active = " << p_active << ", N = " << N << ", N_test = " << Ntest << endl;
+        
+        if (N > 500) { N = 500;} // reduce computation
         arma::mat X(N + Ntest, p_active);
+        std::vector<double> x_range(p_active);
         const double *split_var_x_pointer;
         size_t j_count = 0;
         for (size_t j = 0; j < p_continuous; j++){
@@ -2352,9 +2354,16 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
                 for (size_t i = 0; i < Ntest; i++){
                     X(i + N, j_count) = *(split_var_x_pointer + Xtestorder_std[j][i]);
                 }
+
+                x_range[j_count] = x_struct->X_range[j][1] - x_struct->X_range[j][0];
                 j_count += 1;
             }
         }
+        double theta = 10;
+        double tau = 5;
+        arma::mat cov(X.n_rows, X.n_rows);
+        
+        get_rel_covariance(cov, X, x_range, theta, tau);
 
     }
 
