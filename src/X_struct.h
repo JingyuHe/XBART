@@ -23,6 +23,7 @@ public:
     size_t n_y; // number of total data points in root node
     std::random_device rd;
     std::mt19937 gen;
+    matrix<std::vector<double>> resid;
 
     X_struct(const double *X_std, const std::vector<double> *y_std, size_t N, std::vector< std::vector<size_t> > &Xorder_std, size_t p_categorical, size_t p_continuous, std::vector<double> *initial_theta, size_t num_trees){
 
@@ -92,6 +93,10 @@ public:
         }
         
         return;
+    }
+
+    void set_resid(matrix<std::vector<double>> &resid) {
+        this->resid = resid;
     }
 };
 

@@ -183,4 +183,3 @@ gp_pred = predict.gp(fit, as.matrix(y), as.matrix(x), as.matrix(xtest))
 # points(ftest, fhat.1, pch = 20, col = 'slategray')
 # legend("topleft", c("dbarts", "XBART"), col = c("orange", "slategray"), pch = c(20, 20))
 
-

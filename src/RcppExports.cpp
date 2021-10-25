@@ -229,8 +229,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // gp_predict
-Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, size_t p_categorical);
-RcppExport SEXP _XBART_gp_predict(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP tree_pntSEXP, SEXP p_categoricalSEXP) {
+Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, Rcpp::NumericVector resid, size_t p_categorical);
+RcppExport SEXP _XBART_gp_predict(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP tree_pntSEXP, SEXP residSEXP, SEXP p_categoricalSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -238,8 +238,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Xtest(XtestSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_pnt(tree_pntSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type resid(residSEXP);
     Rcpp::traits::input_parameter< size_t >::type p_categorical(p_categoricalSEXP);
-    rcpp_result_gen = Rcpp::wrap(gp_predict(y, X, Xtest, tree_pnt, p_categorical));
+    rcpp_result_gen = Rcpp::wrap(gp_predict(y, X, Xtest, tree_pnt, resid, p_categorical));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -380,7 +381,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART_xbart_predict", (DL_FUNC) &_XBART_xbart_predict, 4},
     {"_XBART_xbart_predict_full", (DL_FUNC) &_XBART_xbart_predict_full, 3},
     {"_XBART_gp_predict_old", (DL_FUNC) &_XBART_gp_predict_old, 4},
-    {"_XBART_gp_predict", (DL_FUNC) &_XBART_gp_predict, 5},
+    {"_XBART_gp_predict", (DL_FUNC) &_XBART_gp_predict, 6},
     {"_XBART_xbart_multinomial_predict", (DL_FUNC) &_XBART_xbart_multinomial_predict, 5},
     {"_XBART_xbart_multinomial_predict_3D", (DL_FUNC) &_XBART_xbart_multinomial_predict_3D, 5},
     {"_XBART_r_to_json", (DL_FUNC) &_XBART_r_to_json, 2},

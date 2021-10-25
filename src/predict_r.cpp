@@ -217,7 +217,7 @@ Rcpp::List gp_predict_old(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<
 }
 
 // [[Rcpp::export]]
-Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, size_t p_categorical = 0)
+Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, Rcpp::NumericVector resid, size_t p_categorical = 0)
 {
     // should be able to run in parallel
 
@@ -237,7 +237,7 @@ Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std:
     // {
     //     cout << "Running with single thread." << endl;
     // }
-
+    
     // Size of data
     size_t N = X.n_rows;
     size_t p = X.n_cols;
@@ -292,9 +292,25 @@ Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std:
 
     matrix<double> yhats_test_xinfo;
     ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
+    for (size_t i = 0; i < num_sweeps; i++){
+        std::fill(yhats_test_xinfo[i].begin(), yhats_test_xinfo[i].end(), 0.0);
+    }
 
     std::vector<bool> active_var(p);
     std::fill(active_var.begin(), active_var.end(), false);
+
+    // get residuals
+    matrix<std::vector<double>> residuals;
+    ini_matrix(residuals, num_trees, num_sweeps);
+    for (size_t i = 0; i < num_sweeps; i++){
+        for (size_t j = 0; j < num_trees; j++){
+            residuals[i][j].resize(N);
+            for (size_t k = 0; k < N; k++){
+                residuals[i][j][k] =  resid(k + i * N + j * num_sweeps * N);
+            }
+        }
+    }
+    x_struct->set_resid(residuals);
 
     // // define model
     // NormalModel *model = new NormalModel(1, 1, 1, 1, 1, false, 1, 1, 1);
@@ -318,31 +334,10 @@ Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std:
         }
     }
 
-    // // Result Container
-    // matrix<double> yhats_test_xinfo;
-    // size_t N_sweeps = (*trees).size();
-    // size_t M = (*trees)[0].size();
-    // ini_xinfo(yhats_test_xinfo, N, N_sweeps);
-
-
-    // // get leaf id for all train data
-    // std::vector<double> train_id(N * N_sweeps * M );
-    // tree::tree_p bn; // pointer to bottom node
-    // for (size_t i = 0; i < N; i++)
-    // {
-    //     for (size_t sweep_ind = 0; sweep_ind < N_sweeps; sweep_ind++){
-            
-    //         for (size_t tree_ind = 0; tree_ind < M; tree_ind++){
-    //             // loop over observations
-    //             // tree search
-    //             bn = (*trees)[sweep_ind][tree_ind].search_bottom_std(Xpointer, i, p, N);
-    //             train_id[i + sweep_ind * N + tree_ind * N * N_sweeps] = bn->getID();
-    //         }
-    //     }        
-    // }
+    Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
+    Matrix_to_NumericMatrix(yhats_test_xinfo, yhats_test);
     
-    return Rcpp::List::create(
-        );
+    return Rcpp::List::create( Rcpp::Named("yhats_test") = yhats_test);
 
 }
 
