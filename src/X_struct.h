@@ -21,6 +21,8 @@ public:
     const double *X_std;    // pointer to original data
     const std::vector<double> *y_std; // pointer to y data
     size_t n_y; // number of total data points in root node
+    std::random_device rd;
+    std::mt19937 gen;
 
     X_struct(const double *X_std, const std::vector<double> *y_std, size_t N, std::vector< std::vector<size_t> > &Xorder_std, size_t p_categorical, size_t p_continuous, std::vector<double> *initial_theta, size_t num_trees){
 
@@ -39,7 +41,7 @@ public:
         this->y_std = y_std;
         this->n_y = N;
         this->data_pointers_copy = this->data_pointers;
-
+        this->gen = std::mt19937(rd());
         return;
     }
 

@@ -2335,11 +2335,47 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
 
     }
     else {
+        // assign mu 
+        for (size_t i = 0; i < Ntest; i++){
+            yhats_test_xinfo[sweeps][Xtestorder_std[0][i]] = this->theta_vector[0];
+        }
+        
         // construct covariance matrix
         size_t p_active = std::accumulate(active_var.begin(), active_var.begin() + p - p_categorical, 0);
         
-        if (N > 500) { N = 500;} // reduce computation
-        arma::mat X(N + Ntest, p_active);
+        // check out of range test sets
+        std::vector<size_t> test_ind;
+        for (size_t i = 0; i < Ntest; i++){
+            for (size_t j = 0; j < p; j++){
+                if (active_var[j]){
+                    if (*(xtest_struct->X_std + x_struct->n_y * j + Xtestorder_std[j][i]) > x_struct->X_range[j][1]){
+                        test_ind.push_back(Xtestorder_std[j][i]);
+                        break;
+                    }
+                    if (*(xtest_struct->X_std + x_struct->n_y * j + Xtestorder_std[j][i]) < x_struct->X_range[j][0]){
+                        test_ind.push_back(Xtestorder_std[j][i]);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // sample training set
+        std::vector<size_t> train_ind;
+        if (N > 500) {
+            std::bernoulli_distribution d((double) 500/N);
+            for (size_t i = 0; i < N; i++){
+                if (d(x_struct->gen)){
+                    train_ind.push_back(Xorder_std[0][i]);
+                }
+            }
+        } 
+        else {
+            train_ind.resize(Xorder_std[0].size());
+            std::copy(Xorder_std[0].begin(), Xorder_std[0].end(), train_ind.begin());
+        }
+
+        arma::mat X(train_ind.size() + test_ind.size(), p_active);
         std::vector<double> x_range(p_active);
         const double *split_var_x_pointer;
         size_t j_count = 0;
@@ -2347,12 +2383,13 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
             if (active_var[j]) {
                 // cout << "j = " << j << endl;
                 split_var_x_pointer = x_struct->X_std + x_struct->n_y * j;
-                for (size_t i = 0; i < N; i++){
-                    X(i, j_count) = *(split_var_x_pointer + Xorder_std[j][i]);
+                for (size_t i = 0; i < train_ind.size(); i++){
+                    X(i, j_count) = *(split_var_x_pointer + train_ind[i]);
                 }
+
                 split_var_x_pointer = xtest_struct->X_std + xtest_struct->n_y * j;
-                for (size_t i = 0; i < Ntest; i++){
-                    X(i + N, j_count) = *(split_var_x_pointer + Xtestorder_std[j][i]);
+                for (size_t i = 0; i < test_ind.size(); i++){
+                    X(i + train_ind.size(), j_count) = *(split_var_x_pointer + test_ind[i]);
                 }
 
                 x_range[j_count] = x_struct->X_range[j][1] - x_struct->X_range[j][0];
@@ -2363,7 +2400,8 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
         double tau = 5;
         arma::mat cov(X.n_rows, X.n_rows);
         
-        get_rel_covariance(cov, X, x_range, theta, tau);
+        // get_rel_covariance(cov, X, x_range, theta, tau);
+
 
     }
 
