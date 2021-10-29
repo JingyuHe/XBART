@@ -118,8 +118,34 @@ ft = f_true(xt, func)
 yt = ft + rnorm(nt, 0, sigma)
 
 
+
 # train -------------------------------------------------------
 tau = 10*var(y)/10
 n_trees = 10
 fit <- XBART(y=matrix(y),  X=x, Xtest=xt, num_trees=n_trees, Nmin = 10,num_sweeps=200, burnin = 15, tau = tau, sampling_tau = TRUE, distance_s = 1)
+
 gp_pred <- predict.gp(fit, as.matrix(y), x, xt)
+
+
+gp_yhat <- t(apply(gp_pred, 1, function(x) rnorm(length(x), x, fit$sigma[10,])))
+
+gp.upper <- apply(gp_yhat, 1, quantile, 0.975, na.rm = TRUE)
+gp.lower <- apply(gp_yhat, 1, quantile, 0.025, na.rm = TRUE)
+coverage.gp <- (yt <= gp.upper & yt >= gp.lower)
+
+print(paste("gp rmse = ", sqrt(mean((yt - rowMeans(gp_yhat))^2, na.rm=TRUE))))
+print(paste("gp coverage = ", mean(coverage.gp)))
+print(paste("gp interval = ", mean(gp.upper - gp.lower)))
+
+x1 <- xt[,1]
+plot(x1, yt, pch = 19, cex = 0.5,ylim=c(-50,100))
+
+lines(x1, ft)
+# lines(x1, xbart.upper, col = 2)
+# lines(x1, xbart.lower, col = 2)
+lines(x1, gp.upper, col = 3)
+lines(x1, gp.lower, col = 3)
+abline(v = min(x[,1]), col = 4)
+abline(v = max(x[,1]), col = 4)
+legend('bottomright', legend = c('ftrue', 'xbart', 'gp'), col = c(1:3), lty = 1)
+
