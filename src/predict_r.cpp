@@ -217,7 +217,7 @@ Rcpp::List gp_predict_old(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<
 }
 
 // [[Rcpp::export]]
-Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, Rcpp::NumericVector resid, size_t p_categorical = 0)
+Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, Rcpp::NumericVector resid, double theta, double tau, size_t p_categorical = 0)
 {
     // should be able to run in parallel
 
@@ -329,7 +329,7 @@ Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std:
             // cout << "sweeps = " << sweeps << ", tree_ind = " << tree_ind << endl;
             (*trees)[sweeps][tree_ind].gp_predict_from_root(Xorder_std, x_struct, x_struct->X_counts, x_struct->X_num_unique, 
             Xtestorder_std, xtest_struct, xtest_struct->X_counts, xtest_struct->X_num_unique, 
-            yhats_test_xinfo, active_var, p_categorical, sweeps, tree_ind);
+            yhats_test_xinfo, active_var, p_categorical, sweeps, tree_ind, theta, tau);
 
         }
     }

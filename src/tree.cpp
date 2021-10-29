@@ -2256,7 +2256,7 @@ void split_xorder_std_continuous_simplified(std::unique_ptr<X_struct> &x_struct,
 
 void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_struct> &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, 
     matrix<size_t> &Xtestorder_std, std::unique_ptr<X_struct> &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique, 
-    matrix<double> &yhats_test_xinfo, std::vector<bool> active_var, const size_t &p_categorical, const size_t &sweeps, const size_t &tree_ind)
+    matrix<double> &yhats_test_xinfo, std::vector<bool> active_var, const size_t &p_categorical, const size_t &sweeps, const size_t &tree_ind, const double &theta, const double &tau)
 {
     // gaussian process prediction from root
 
@@ -2318,13 +2318,13 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
             if (c < *(xtest_struct->X_std + xtest_struct->n_y * v + Xtestorder_std[v][0])){
                 // all test data goes to the right node
                 this->r->gp_predict_from_root(Xorder_right_std, x_struct, X_counts_right, X_num_unique_right, 
-                    Xtestorder_std, xtest_struct, Xtest_counts, Xtest_num_unique, yhats_test_xinfo, active_var_right, p_categorical, sweeps, tree_ind);
+                    Xtestorder_std, xtest_struct, Xtest_counts, Xtest_num_unique, yhats_test_xinfo, active_var_right, p_categorical, sweeps, tree_ind, theta, tau);
                 return;
             }
             if (c >= *(xtest_struct->X_std + xtest_struct->n_y * v + Xtestorder_std[v][Ntest - 1])){
                 // all test data goes to the left node
                 this->l->gp_predict_from_root(Xorder_left_std, x_struct, X_counts_left, X_num_unique_left, 
-                    Xtestorder_std, xtest_struct, Xtest_counts, Xtest_num_unique, yhats_test_xinfo, active_var_left, p_categorical, sweeps, tree_ind);
+                    Xtestorder_std, xtest_struct, Xtest_counts, Xtest_num_unique, yhats_test_xinfo, active_var_left, p_categorical, sweeps, tree_ind, theta, tau);
                 return;
             }
 
@@ -2345,10 +2345,10 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
         }
 
         this->l->gp_predict_from_root(Xorder_left_std, x_struct, X_counts_left, X_num_unique_left, 
-            Xtestorder_left_std, xtest_struct, Xtest_counts_left, Xtest_num_unique_left, yhats_test_xinfo, active_var_left, p_categorical, sweeps, tree_ind);
+            Xtestorder_left_std, xtest_struct, Xtest_counts_left, Xtest_num_unique_left, yhats_test_xinfo, active_var_left, p_categorical, sweeps, tree_ind, theta, tau);
 
         this->r->gp_predict_from_root(Xorder_right_std, x_struct, X_counts_right, X_num_unique_right, 
-            Xtestorder_right_std, xtest_struct, Xtest_counts_right, Xtest_num_unique_right, yhats_test_xinfo, active_var_right, p_categorical, sweeps, tree_ind);
+            Xtestorder_right_std, xtest_struct, Xtest_counts_right, Xtest_num_unique_right, yhats_test_xinfo, active_var_right, p_categorical, sweeps, tree_ind, theta, tau);
 
     }
     else {
@@ -2360,7 +2360,7 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
         // construct covariance matrix
         size_t p_active = std::accumulate(active_var.begin(), active_var.begin() + p - p_categorical, 0);
         if (p_active == 0){
-            cout << "Error: number of continuous active variable is 0. "<<endl;
+            cout << "Warning: number of continuous active variable is 0. Sweep = " << sweeps << ", tree = " << tree_ind << endl;
             return;     
         }
        
@@ -2443,10 +2443,8 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
             resid(i, 0) = x_struct->resid[sweeps][tree_ind][train_ind[i]] - this->theta_vector[0];
         }
 
-        double theta = 10;
-        double tau = 5;
         arma::mat cov(N + Ntest, N + Ntest);
-        
+
         get_rel_covariance(cov, X, x_range, theta, tau);
         arma::mat k = cov.submat(N, 0, N + Ntest - 1, N - 1); // cov[2:nrow(cov), 1]
         arma::mat Kinv = pinv(cov.submat(0, 0, N - 1, N -1));

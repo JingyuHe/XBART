@@ -39,11 +39,11 @@ predict.gp.old <- function(model, y, X, Xtest) {
     return(obj)
 }
 
-predict.gp <- function(model, y, X, Xtest, p_categorical = 0) {
+predict.gp <- function(model, y, X, Xtest, theta = 10, tau = 5, p_categorical = 0) {
     
     out = json_to_r(model$tree_json)
 
-    obj = .Call(`_XBART_gp_predict`, y, X, Xtest, out$model_list$tree_pnt, model$residuals, p_categorical) 
+    obj = .Call(`_XBART_gp_predict`, y, X, Xtest, out$model_list$tree_pnt, model$residuals, theta, tau, p_categorical) 
     
     obj = obj$yhats_test
     return(obj)
