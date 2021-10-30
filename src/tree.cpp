@@ -2365,56 +2365,92 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
         }
        
         // check out of range test sets
-        std::vector<bool> is_outlier(Ntest, false);
+        // std::vector<bool> is_outlier(Ntest, false);
+        std::vector<size_t> test_ind;
+        std::vector<bool> active_var_left(active_var.size(), true); // check which side the outliers are on for each active var
         // std::fill(is_outlier.begin(), is_outlier.end(), false);
         for (size_t i = 0; i < Ntest; i++){
             for (size_t j = 0; j < p; j++){
                 if (active_var[j]){
                     if (*(xtest_struct->X_std + x_struct->n_y * j + Xtestorder_std[j][i]) > x_struct->X_range[j][1]){
-                        is_outlier[i] = true;
+                        // is_outlier[i] = true;
+                        test_ind.push_back(Xtestorder_std[j][i]);
+                        active_var_left[j] = false;
                         break;
                     }
                     if (*(xtest_struct->X_std + x_struct->n_y * j + Xtestorder_std[j][i]) < x_struct->X_range[j][0]){ 
-                        is_outlier[i] = true;
+                        // is_outlier[i] = true;
+                        test_ind.push_back(Xtestorder_std[j][i]);
                         break;
                     }
                 }
             }
         }
 
-        Ntest = std::accumulate(is_outlier.begin(), is_outlier.end(), 0);
+        // Ntest = std::accumulate(is_outlier.begin(), is_outlier.end(), 0);
+        Ntest = test_ind.size();
 
         if (Ntest == 0){
             return;
         }
+        
+        // get training set
+        std::vector<size_t> train_ind;
+        if (N < 100) {
+            train_ind.resize(N);
+            std::copy(Xorder_std[0].begin(), Xorder_std[0].end(), train_ind.begin());
+        }
+        else {
+            // get training set that's most adjacent to outliers on active variables
+            size_t N_active = 100 / p_active; // number of data to get per active var 
+            N = N_active * p_active;
+            train_ind.resize(N);
+            size_t i_count = 0;
+            for (size_t i = 0; i < active_var.size(); i++){
+                if (active_var[i]){
+                    if (active_var_left[i]){
+                        // get the smallest values (the first N_active obs in Xorder_std[i])
+                        std::copy(Xorder_std[i].begin(), Xorder_std[i].begin() + N_active, train_ind.begin() + i_count);
+                    }
+                    else {
+                        // get the largest values 
+                        std::copy(Xorder_std[i].end() - N_active, Xorder_std[i].end(), train_ind.begin() + i_count);      
+                    }
+                    i_count += N_active;
+                }
+            }
+        }
+       
 
         // sample training set
-        size_t sample_N;
-        if (N <= 500) { sample_N = N; } else { sample_N = 500;}
+        // size_t sample_N;
+        // if (N <= 500) { sample_N = N; } else { sample_N = 500;}
 
-        std::bernoulli_distribution d((double) sample_N / N);
-        std::vector<bool> sample_train(N, false);
-        for (size_t i = 0; i < N; i++){
-            if (d(x_struct->gen)) {sample_train[i] = true;}
-        }
-        N = std::accumulate(sample_train.begin(), sample_train.end(), 0);
+        // std::bernoulli_distribution d((double) sample_N / N);
+        // std::vector<bool> sample_train(N, false);
+        // for (size_t i = 0; i < N; i++){
+        //     if (d(x_struct->gen)) {sample_train[i] = true;}
+        // }
+        // N = std::accumulate(sample_train.begin(), sample_train.end(), 0);
 
-        std::vector<size_t> train_ind(N);
-        size_t i_count = 0;
-        for (size_t i = 0; i < Xorder_std[0].size(); i++){
-            if (sample_train[i]) {
-                train_ind[i_count] = Xorder_std[0][i];
-                i_count += 1;
-            }
-        }
-        i_count = 0;
-        std::vector<size_t> test_ind(Ntest);
-        for (size_t i = 0; i < Xtestorder_std[0].size(); i++){
-            if (is_outlier[i]) {
-                test_ind[i_count] = Xtestorder_std[0][i];
-                i_count += 1;
-            }
-        }
+        // std::vector<size_t> train_ind(N);
+        // size_t i_count = 0;
+        // for (size_t i = 0; i < Xorder_std[0].size(); i++){
+        //     if (sample_train[i]) {
+        //         train_ind[i_count] = Xorder_std[0][i];
+        //         i_count += 1;
+        //     }
+        // }
+        // i_count = 0;
+
+         // std::vector<size_t> test_ind(Ntest);
+        // for (size_t i = 0; i < Xtestorder_std[0].size(); i++){
+        //     if (is_outlier[i]) {
+        //         test_ind[i_count] = Xtestorder_std[0][i];
+        //         i_count += 1;
+        //     }
+        // }
+        
 
         arma::mat X(N + Ntest, p_active);
         std::vector<double> x_range(p_active);
