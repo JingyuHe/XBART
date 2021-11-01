@@ -10,62 +10,64 @@
 using namespace std;
 
 // Constructors
-// XBARTcpp::XBARTcpp(XBARTcppParams params){
-	// this->params = params;		
-// }
-// XBARTcpp::XBARTcpp (size_t M ,size_t N_sweeps ,
-//         size_t Nmin , size_t Ncutpoints , //CHANGE 
-//         double alpha , double beta , double tau , //CHANGE!
-//         size_t burnin, 
-//         size_t mtry , size_t max_depth_num, double kap , 
-//         double s , bool verbose, bool parallel,int seed,size_t model_num,double no_split_penality,bool sample_weights_flag,size_t num_classes){
-//   this->params.M = M; 
-//   this->params.N_sweeps = N_sweeps;
-//   this->params.Nmin = Nmin;
-//   this->params.Ncutpoints = Ncutpoints;
-//   this->params.alpha = alpha;
-//   this->params.beta = beta;
-//   this->params.tau = tau;
-//   this->params.burnin = burnin;
-//   this->params.mtry = mtry;
-//   this->params.max_depth_num = max_depth_num;
-//   this->params.kap = kap;
-//   this->params.s = s;
-//   this->params.verbose = verbose;
-//   this->params.parallel=parallel;
-//   this->trees =  vector< vector<tree>> (N_sweeps);
-//   this->model_num =  model_num;
-//   this->no_split_penality =  no_split_penality;
-//   this->params.sample_weights_flag =  sample_weights_flag;
-//   this->num_classes = num_classes;
+XBARTcpp::XBARTcpp(XBARTcppParams params){
+	this->params = params;		
+}
+XBARTcpp::XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
+			 size_t Nmin, size_t Ncutpoints,		//CHANGE
+			 double alpha, double beta, double tau, //CHANGE!
+			 size_t burnin, size_t mtry,
+			 double kap, double s, double tau_kap, double tau_s, 
+			 bool verbose, bool sampling_tau, bool parallel, 
+			 bool set_random_seed, int seed, double no_split_penality, bool sample_weights_flag){
+	this->params.num_trees = num_trees; 
+	this->params.num_sweeps = num_sweeps;
+	this->params.max_depth = max_depth;
+	this->params.Nmin = Nmin;
+	this->params.Ncutpoints = Ncutpoints;
+	this->params.alpha = alpha;
+	this->params.beta = beta;
+	this->params.tau = tau;
+	this->params.burnin = burnin;
+	this->params.mtry = mtry;
+	this->params.kap = kap;
+	this->params.s = s;
+	this->params.tau_kap = tau_kap;
+	this->params.tau_s = tau_s;
+	this->params.verbose = verbose;
+	this->params.sampling_tau = sampling_tau;
+	this->params.parallel = parallel;
+	this->trees =  vector< vector<tree>> (num_sweeps);
+	this->no_split_penality =  no_split_penality;
+	this->params.sample_weights_flag =  sample_weights_flag;
 
-//   // handling seed
-  
-//   if(seed == -1){
-//     this->seed_flag = false;
-//     this->seed = 0;
-//   }else{
-//     this->seed_flag = true; 
-//     this->seed = (size_t)seed;
-//   }
+	// handling seed
 
-  
-//   // Create trees
-//   for(size_t i = 0; i < N_sweeps;i++){
-//         this->trees[i]=  vector<tree>(M); 
-//     }
+	if(set_random_seed){
+	this->seed_flag = true; 
+	this->seed = (size_t)seed;
+	}else{
+	this->seed_flag = false;
+	this->seed = 0;
+	}
 
 
-//   // Initialize model
-//   //if(this->model_num == 0){ // NORMAL
-//     //define model
-//     // this->model = new NormalModel(this->params.kap, this->params.s, this->params.tau, this->params.alpha, this->params.beta);
-//     // this->model->setNoSplitPenality(no_split_penality);
-    
-//   //}
+	// Create trees
+	for(size_t i = 0; i < num_sweeps;i++){
+		this->trees[i]=  vector<tree>(num_trees); 
+	}
 
-//     return;
-// }
+
+	//   Initialize model
+	// NORMAL
+	// define model
+	this->model = new NormalModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
+	this->model->setNoSplitPenality(no_split_penality);
+
+	//}
+
+    return;
+}
 
 // XBARTcpp::XBARTcpp(std::string json_string){
 //   //std::vector<std::vector<tree>> temp_trees;

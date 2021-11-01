@@ -60,19 +60,22 @@ class _SwigNonDynamicMeta(type):
 class XBARTcppParams(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
-    M = property(_xbart_cpp_.XBARTcppParams_M_get, _xbart_cpp_.XBARTcppParams_M_set)
-    N_sweeps = property(_xbart_cpp_.XBARTcppParams_N_sweeps_get, _xbart_cpp_.XBARTcppParams_N_sweeps_set)
+    num_trees = property(_xbart_cpp_.XBARTcppParams_num_trees_get, _xbart_cpp_.XBARTcppParams_num_trees_set)
+    num_sweeps = property(_xbart_cpp_.XBARTcppParams_num_sweeps_get, _xbart_cpp_.XBARTcppParams_num_sweeps_set)
+    max_depth = property(_xbart_cpp_.XBARTcppParams_max_depth_get, _xbart_cpp_.XBARTcppParams_max_depth_set)
     Nmin = property(_xbart_cpp_.XBARTcppParams_Nmin_get, _xbart_cpp_.XBARTcppParams_Nmin_set)
     Ncutpoints = property(_xbart_cpp_.XBARTcppParams_Ncutpoints_get, _xbart_cpp_.XBARTcppParams_Ncutpoints_set)
     burnin = property(_xbart_cpp_.XBARTcppParams_burnin_get, _xbart_cpp_.XBARTcppParams_burnin_set)
     mtry = property(_xbart_cpp_.XBARTcppParams_mtry_get, _xbart_cpp_.XBARTcppParams_mtry_set)
-    max_depth_num = property(_xbart_cpp_.XBARTcppParams_max_depth_num_get, _xbart_cpp_.XBARTcppParams_max_depth_num_set)
     alpha = property(_xbart_cpp_.XBARTcppParams_alpha_get, _xbart_cpp_.XBARTcppParams_alpha_set)
     beta = property(_xbart_cpp_.XBARTcppParams_beta_get, _xbart_cpp_.XBARTcppParams_beta_set)
     tau = property(_xbart_cpp_.XBARTcppParams_tau_get, _xbart_cpp_.XBARTcppParams_tau_set)
     kap = property(_xbart_cpp_.XBARTcppParams_kap_get, _xbart_cpp_.XBARTcppParams_kap_set)
     s = property(_xbart_cpp_.XBARTcppParams_s_get, _xbart_cpp_.XBARTcppParams_s_set)
+    tau_kap = property(_xbart_cpp_.XBARTcppParams_tau_kap_get, _xbart_cpp_.XBARTcppParams_tau_kap_set)
+    tau_s = property(_xbart_cpp_.XBARTcppParams_tau_s_get, _xbart_cpp_.XBARTcppParams_tau_s_set)
     verbose = property(_xbart_cpp_.XBARTcppParams_verbose_get, _xbart_cpp_.XBARTcppParams_verbose_set)
+    sampling_tau = property(_xbart_cpp_.XBARTcppParams_sampling_tau_get, _xbart_cpp_.XBARTcppParams_sampling_tau_set)
     parallel = property(_xbart_cpp_.XBARTcppParams_parallel_get, _xbart_cpp_.XBARTcppParams_parallel_set)
     seed = property(_xbart_cpp_.XBARTcppParams_seed_get, _xbart_cpp_.XBARTcppParams_seed_set)
     sample_weights_flag = property(_xbart_cpp_.XBARTcppParams_sample_weights_flag_get, _xbart_cpp_.XBARTcppParams_sample_weights_flag_set)
@@ -88,8 +91,44 @@ class XBARTcpp(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
-    def __init__(self):
-        _xbart_cpp_.XBARTcpp_swiginit(self, _xbart_cpp_.new_XBARTcpp())
+    def __init__(self, *args):
+        _xbart_cpp_.XBARTcpp_swiginit(self, _xbart_cpp_.new_XBARTcpp(*args))
+
+    def _to_json(self) -> "std::string":
+        return _xbart_cpp_.XBARTcpp__to_json(self)
+
+    def _fit(self, n: "int", n_y: "int", p_cat: "size_t") -> "void":
+        return _xbart_cpp_.XBARTcpp__fit(self, n, n_y, p_cat)
+
+    def _predict(self, n: "int") -> "void":
+        return _xbart_cpp_.XBARTcpp__predict(self, n)
+
+    def _predict_multinomial(self, n: "int") -> "void":
+        return _xbart_cpp_.XBARTcpp__predict_multinomial(self, n)
+
+    def get_M(self) -> "int":
+        return _xbart_cpp_.XBARTcpp_get_M(self)
+
+    def get_N_sweeps(self) -> "int":
+        return _xbart_cpp_.XBARTcpp_get_N_sweeps(self)
+
+    def get_burnin(self) -> "int":
+        return _xbart_cpp_.XBARTcpp_get_burnin(self)
+
+    def get_yhats(self, size: "int") -> "void":
+        return _xbart_cpp_.XBARTcpp_get_yhats(self, size)
+
+    def get_yhats_test(self, size: "int") -> "void":
+        return _xbart_cpp_.XBARTcpp_get_yhats_test(self, size)
+
+    def get_yhats_test_multinomial(self, size: "int") -> "void":
+        return _xbart_cpp_.XBARTcpp_get_yhats_test_multinomial(self, size)
+
+    def get_sigma_draw(self, size: "int") -> "void":
+        return _xbart_cpp_.XBARTcpp_get_sigma_draw(self, size)
+
+    def _get_importance(self, size: "int") -> "void":
+        return _xbart_cpp_.XBARTcpp__get_importance(self, size)
     __swig_destroy__ = _xbart_cpp_.delete_XBARTcpp
 
 # Register XBARTcpp in _xbart_cpp_:
