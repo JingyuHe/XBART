@@ -35,7 +35,7 @@ private:
 	double y_mean;
 	size_t n_train;
 	size_t n_test;
-	size_t d;
+	size_t p;
 	matrix<double> yhats_xinfo;
 	matrix<double>  yhats_test_xinfo;
 	matrix<double>  sigma_draw_xinfo;
@@ -79,8 +79,8 @@ public:
 	void _predict_multinomial(int n, int d, double *a); //,int size, double *arr);
 
 	// Getters
-	int get_M(void);
-	int get_N_sweeps(void) { return ((int)params.num_sweeps); };
+	int get_num_trees(void) { return ((int)params.num_trees); };;
+	int get_num_sweeps(void) { return ((int)params.num_sweeps); };
 	int get_burnin(void) { return ((int)params.burnin); };
 	void get_yhats(int size, double *arr);
 	void get_yhats_test(int size, double *arr);

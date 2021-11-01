@@ -5449,7 +5449,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTcpp_get_M(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp_get_num_trees(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   void *argp1 = 0 ;
@@ -5461,10 +5461,10 @@ SWIGINTERN PyObject *_wrap_XBARTcpp_get_M(PyObject *SWIGUNUSEDPARM(self), PyObje
   swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_get_M" "', argument " "1"" of type '" "XBARTcpp *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_get_num_trees" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
   arg1 = reinterpret_cast< XBARTcpp * >(argp1);
-  result = (int)(arg1)->get_M();
+  result = (int)(arg1)->get_num_trees();
   resultobj = SWIG_From_int(static_cast< int >(result));
   return resultobj;
 fail:
@@ -5472,7 +5472,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTcpp_get_N_sweeps(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp_get_num_sweeps(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   void *argp1 = 0 ;
@@ -5484,10 +5484,10 @@ SWIGINTERN PyObject *_wrap_XBARTcpp_get_N_sweeps(PyObject *SWIGUNUSEDPARM(self),
   swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_get_N_sweeps" "', argument " "1"" of type '" "XBARTcpp *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_get_num_sweeps" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
   arg1 = reinterpret_cast< XBARTcpp * >(argp1);
-  result = (int)(arg1)->get_N_sweeps();
+  result = (int)(arg1)->get_num_sweeps();
   resultobj = SWIG_From_int(static_cast< int >(result));
   return resultobj;
 fail:
@@ -5815,8 +5815,8 @@ static PyMethodDef SwigMethods[] = {
 	 { "XBARTcpp__fit", _wrap_XBARTcpp__fit, METH_VARARGS, NULL},
 	 { "XBARTcpp__predict", _wrap_XBARTcpp__predict, METH_VARARGS, NULL},
 	 { "XBARTcpp__predict_multinomial", _wrap_XBARTcpp__predict_multinomial, METH_VARARGS, NULL},
-	 { "XBARTcpp_get_M", _wrap_XBARTcpp_get_M, METH_O, NULL},
-	 { "XBARTcpp_get_N_sweeps", _wrap_XBARTcpp_get_N_sweeps, METH_O, NULL},
+	 { "XBARTcpp_get_num_trees", _wrap_XBARTcpp_get_num_trees, METH_O, NULL},
+	 { "XBARTcpp_get_num_sweeps", _wrap_XBARTcpp_get_num_sweeps, METH_O, NULL},
 	 { "XBARTcpp_get_burnin", _wrap_XBARTcpp_get_burnin, METH_O, NULL},
 	 { "XBARTcpp_get_yhats", _wrap_XBARTcpp_get_yhats, METH_VARARGS, NULL},
 	 { "XBARTcpp_get_yhats_test", _wrap_XBARTcpp_get_yhats_test, METH_VARARGS, NULL},

@@ -106,11 +106,11 @@ class XBARTcpp(object):
     def _predict_multinomial(self, n: "int") -> "void":
         return _xbart_cpp_.XBARTcpp__predict_multinomial(self, n)
 
-    def get_M(self) -> "int":
-        return _xbart_cpp_.XBARTcpp_get_M(self)
+    def get_num_trees(self) -> "int":
+        return _xbart_cpp_.XBARTcpp_get_num_trees(self)
 
-    def get_N_sweeps(self) -> "int":
-        return _xbart_cpp_.XBARTcpp_get_N_sweeps(self)
+    def get_num_sweeps(self) -> "int":
+        return _xbart_cpp_.XBARTcpp_get_num_sweeps(self)
 
     def get_burnin(self) -> "int":
         return _xbart_cpp_.XBARTcpp_get_burnin(self)

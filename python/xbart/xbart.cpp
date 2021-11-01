@@ -69,43 +69,45 @@ XBARTcpp::XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
     return;
 }
 
-// XBARTcpp::XBARTcpp(std::string json_string){
-//   //std::vector<std::vector<tree>> temp_trees;
-//   from_json_to_forest(json_string,  this->trees,this->y_mean);  
-//   this->params.N_sweeps = this->trees.size();
-//   this->params.M = this->trees[0].size();
-// }
+XBARTcpp::XBARTcpp(std::string json_string){
+  //std::vector<std::vector<tree>> temp_trees;
+  from_json_to_forest(json_string,  this->trees,this->y_mean);  
+  this->params.num_sweeps = this->trees.size();
+  this->params.num_trees = this->trees[0].size();
+}
 
 
-// std::string XBARTcpp::_to_json(void){
-//   json j = get_forest_json(this->trees,this->y_mean);
-//   return j.dump();
-// }
+std::string XBARTcpp::_to_json(void){
+  json j = get_forest_json(this->trees,this->y_mean);
+  return j.dump();
+}
 
-// // Getter
-// int XBARTcpp::get_M(){return((int)params.M);} 
-
-// void XBARTcpp::_predict(int n,int d,double *a){//,int size, double *arr){
+void XBARTcpp::_predict(int n, int p, double *a){//,int size, double *arr){
   
-//   // Convert *a to col_major std::vector
-//   vec_d x_test_std_flat(n*d);
-//   XBARTcpp::np_to_col_major_vec(n,d,a,x_test_std_flat);
+	// Convert *a to col_major std::vector
+	vec_d x_test_std_flat(n * p);
+	XBARTcpp::np_to_col_major_vec(n, p, a, x_test_std_flat);
 
-//   // Initialize result
-//   ini_matrix(this->yhats_test_xinfo, n, this->params.N_sweeps);
-//   for(size_t i = 0;i<n;i++)for(size_t j = 0;j<this->params.N_sweeps;j++) this->yhats_test_xinfo[j][i]=0;
-//   // Convert column major vector to pointer
-//   const double *Xtestpointer = &x_test_std_flat[0];//&x_test_std[0][0];
-  
+	// Initialize result
+	ini_matrix(this->yhats_test_xinfo, n, this->params.num_sweeps);
+	for(size_t i = 0; i < n; i++) {
+		for(size_t j = 0; j <this->params.num_sweeps; j++) {
+			this->yhats_test_xinfo[j][i]=0;
+		}
+	}
 
-//   // Predict
-//   NormalModel *model = new NormalModel(); //(this->params.kap, this->params.s, this->params.tau, this->params.alpha, this->params.beta);
+	// Convert column major vector to pointer
+	const double *Xtestpointer = &x_test_std_flat[0];//&x_test_std[0][0];
 
-//   model->predict_std(Xtestpointer,n,d,this->params.M,this->params.N_sweeps,
-//         this->yhats_test_xinfo,this->trees); 
 
-//   delete model;
-// }
+	// Predict
+	NormalModel *model = new NormalModel(); //(this->params.kap, this->params.s, this->params.tau, this->params.alpha, this->params.beta);
+
+	model->predict_std(Xtestpointer, n, p, this->params.num_trees,this->params.num_sweeps,
+		this->yhats_test_xinfo, this->trees);  // *trees2
+
+	delete model;
+}
 
 
 // void XBARTcpp::_predict_multinomial(int n, int d, double *a){//,int size, double *arr){
@@ -309,16 +311,15 @@ XBARTcpp::XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
 //      }
 // }
 
-// void XBARTcpp::np_to_col_major_vec(int n, int d,double *a,vec_d &x_std){
-//   for(size_t i =0;i<n;i++){
-//     for(size_t j =0;j<d;j++){
-//       size_t index = i*d + j;
-//       size_t index_std = j*n +i;
-//       x_std[index_std] = a[index];
-//     }
-//   }
-
-// }
+void XBARTcpp::np_to_col_major_vec(int n, int d, double *a, vec_d &x_std){
+	for(size_t i = 0; i < n; i++){
+		for(size_t j = 0; j < d; j++){
+			size_t index = i * d + j;
+			size_t index_std = j * n +i;
+			x_std[index_std] = a[index];
+		}
+	}
+}
 
 
 // void XBARTcpp::xinfo_to_np(matrix<double>  x_std,double *arr){
