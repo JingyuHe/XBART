@@ -23,13 +23,14 @@ struct XBARTcppParams
 	bool verbose;
 	bool sampling_tau;
 	bool parallel;
+	size_t nthread;
 	int seed;
 	bool sample_weights_flag;
 };
 
-class XBARTcpp
+class XBART
 {
-private:
+public:
 	XBARTcppParams params;
 	vector<vector<tree>> trees;
 	double y_mean;
@@ -57,26 +58,18 @@ private:
 	bool seed_flag;
 	double no_split_penality;
 
-public:
 	// Constructors
-	XBARTcpp(XBARTcppParams params);
-	XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
-			 size_t Nmin, size_t Ncutpoints,		//CHANGE
-			 double alpha, double beta, double tau, //CHANGE!
-			 size_t burnin, size_t mtry,
-			 double kap, double s, double tau_kap, double tau_s, 
-			 bool verbose, bool sampling_tau, bool parallel, 
-			 bool set_random_seed, int seed, double no_split_penality, bool sample_weights_flag);
+	// XBART(?);
 
-
-	XBARTcpp(std::string json_string);
+	void XBARTcpp(XBARTcppParams params);
+	
+	void XBARTcpp(std::string json_string);
 
 	std::string _to_json(void);
 
-	void _fit(int n, int d, double *a, // Train X
-			  int n_y, double *a_y, size_t p_cat);
-	void _predict(int n, int d, double *a); //,int size, double *arr);
-	void _predict_multinomial(int n, int d, double *a); //,int size, double *arr);
+	virtual void _fit(int n, int d, double *a, int n_y, double *a_y, size_t p_cat);
+	virtual void _predict(int n, int d, double *a); //,int size, double *arr);
+	// void _predict_multinomial(int n, int d, double *a); //,int size, double *arr);
 
 	// Getters
 	int get_num_trees(void) { return ((int)params.num_trees); };;
@@ -87,4 +80,24 @@ public:
 	void get_yhats_test_multinomial(int size,double *arr);
 	void get_sigma_draw(int size, double *arr);
 	void _get_importance(int size, double *arr);
+};
+
+class XBARTcpp : public XBART 
+{
+	private:
+
+	NormalModel *model;
+
+	public:
+
+	XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
+			 size_t Nmin, size_t Ncutpoints,		//CHANGE
+			 double alpha, double beta, double tau, //CHANGE!
+			 size_t burnin, size_t mtry,
+			 double kap, double s, double tau_kap, double tau_s, 
+			 bool verbose, bool sampling_tau, bool parallel, size_t nthread,
+			 bool set_random_seed, int seed, double no_split_penality, bool sample_weights_flag);
+
+	void _fit(int n, int d, double *a, int n_y, double *a_y, size_t p_cat);
+	void _predict(int n, int d, double *a); //,int size, double *arr);
 };
