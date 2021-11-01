@@ -39,7 +39,7 @@ class XBART(object):
 		Prior for leaf mean variance : mu_j ~ N(0,tau) 
 	burnin: int
 		Number of sweeps used to burn in - not used for prediction.
-	max_depth_num: int
+	max_depth: int
 		Represents the maximum size of each tree - size is usually determined via tree prior.
 		Use this only when wanting to determnistically cap the size of each tree.
 	mtry: int / "auto"
@@ -50,6 +50,8 @@ class XBART(object):
 	s: double
 		Prior for sigma :  sigma^2 | residaul ~  1/ sqrt(G) 
 		where G ~ gamma( (num_samples + kap) / 2, 2/(sum(residual^2) + s) )
+	tau_kap: double
+	tau_s: double
 	verbose: bool
 		Print the progress 
 	parallel: bool
@@ -73,28 +75,35 @@ class XBART(object):
 	'''
 	def __init__(self, num_trees: int = 100, num_sweeps: int = 40, n_min: int = 1,
 				num_cutpoints: int = 100, alpha: float = 0.95, beta: float = 1.25, tau = "auto",
-                burnin: int = 15, mtry = "auto", max_depth_num: int = 250,
-                kap: float = 16.0, s: float = 4.0, verbose: bool = False,
-                parallel: bool = False, seed: int = 0, model: str = "Normal",
-				no_split_penality = "auto", sample_weights_flag: bool = True, num_classes = 1):
+                burnin: int = 15, mtry = "auto", max_depth: int = 250,
+                kap: float = 16.0, s: float = 4.0, tau_kap: float = 3, tau_s: float = 0.5, verbose: bool = False,
+                parallel: bool = False, nthread: int = 0, seed = "auto",
+				no_split_penality = "auto", sample_weights_flag: bool = True):
 
 		assert num_sweeps > burnin, "num_sweep must be greater than burnin"
 
-		MODEL_MAPPINGS = {"Normal":0,"Multinomial":1,"Probit":2}
-		if model in MODEL_MAPPINGS:
-			model_num = MODEL_MAPPINGS[model]
-		else:
-			raise ValueError("model must be either Normal,Multinomial, or Probit")
-
-		self.model = model
-		self.params = OrderedDict([("num_trees",num_trees),
-			("num_sweeps" , num_sweeps),("n_min" , n_min),("num_cutpoints" , num_cutpoints),
-			("alpha" ,alpha),("beta" , beta),( "tau" ,tau),("burnin", burnin),( "mtry",mtry), 
-			("max_depth_num",max_depth_num),
-			("kap",kap),("s",s),
+		self.params = OrderedDict([
+			("num_trees", num_trees),
+			("num_sweeps", num_sweeps),
+			("n_min", n_min),
+			("num_cutpoints" , num_cutpoints),
+			("alpha" ,alpha),
+			("beta" , beta),
+			("tau", tau),
+			("burnin", burnin),
+			("mtry", mtry), 
+			("max_depth", max_depth),
+			("kap", kap),
+			("s", s),
+			("tau_kap", tau_kap),
+			("tau_s", tau_s),
 			("verbose",verbose),
-			("parallel",parallel),("seed",seed),("model_num",model_num),("no_split_penality",no_split_penality),
-			("sample_weights_flag",sample_weights_flag),("num_classes",num_classes)])
+			("parallel",parallel),
+			("nthread", nthread),
+			("seed",seed),
+			("no_split_penality",no_split_penality),
+			("sample_weights_flag",sample_weights_flag)
+		])
 		self.__convert_params_check_types(**self.params)
 		self._xbart_cpp = None
 
@@ -173,38 +182,70 @@ class XBART(object):
 	# 			self.params["no_split_penality"] = 0.0
 		
 				
-	# def __convert_params_check_types(self,**params):
-	# 	'''
-	# 	This function converts params to list and handles type conversions
-	# 	If a wrong type is provided function raises exceptions 
-	# 	''' 
-	# 	import warnings
-	# 	from collections import OrderedDict
-	# 	DEFAULT_PARAMS = OrderedDict([('num_trees',5),("num_sweeps",40)
-    #                     ,("n_min",1),("num_cutpoints",100) # CHANGE
-    #                     ,("alpha",0.95),("beta",1.25 ),("tau",0.3),# CHANGE
-    #                     ("burnin",15),("mtry",0),("max_depth_num",250) # CHANGE
-    #                     ,("kap",16.0),("s",4.0),("verbose",False),
-    #                     ("parallel",False),("seed",0),("model_num",0),("no_split_penality",0.0),("sample_weights_flag",True)])
+	def __convert_params_check_types(self,**params):
+		'''
+		This function converts params to list and handles type conversions
+		If a wrong type is provided function raises exceptions 
+		''' 
+		import warnings
+		from collections import OrderedDict
+		DEFAULT_PARAMS = OrderedDict([
+			('num_trees', 5),
+			("num_sweeps", 40),
+			("n_min", 1),
+			("num_cutpoints", 100),
+			("alpha", 0.95),
+			("beta", 1.25 ),
+			("tau", 0.3),
+            ("burnin",15),
+			("mtry",0),
+			("max_depth",250),
+			("kap",16.0),
+			("s",4.0),
+			("tau_kap", 3),
+			("tau_s", 0.5),
+			("verbose", False),
+			("parallel", False),
+			("nthread", 0),
+			("seed", 0),
+			("no_split_penality", 0.0),
+			("sample_weights_flag",True)
+		])
 
-	# 	DEFAULT_PARAMS_ = OrderedDict([('num_trees',int),("num_sweeps",int)
-    #                     ,("n_min",int),("num_cutpoints",int) # CHANGE
-    #                     ,("alpha",float),("beta",float ),("tau",float),# CHANGE
-    #                     ("burnin",int),("mtry",int),("max_depth_num",int) # CHANGE
-    #                     ,("kap",float),("s",float),("verbose",bool),
-    #                     ("parallel",bool),("seed",int),("model_num",int),("no_split_penality",float),("sample_weights_flag",bool)])
+		DEFAULT_PARAMS_ = OrderedDict([
+			('num_trees',int),
+			("num_sweeps",int),
+			("n_min",int),
+			("num_cutpoints",int),
+			("alpha",float),
+			("beta",float ),
+			("tau",float),# CHANGE
+			("burnin",int),
+			("mtry",int),
+			("max_depth",int),
+			("kap",float),
+			("s",float),
+			("tau_kap", float),
+			("tau_s", float),
+			("verbose",bool),
+			("parallel",bool),
+			("nthread", int),
+			("seed",int),
+			("no_split_penality",float),
+			("sample_weights_flag",bool)
+		])
 		
-	# 	for param,type_class in DEFAULT_PARAMS_.items():
-	# 		default_value = DEFAULT_PARAMS[param]
-	# 		new_value = params.get(param,default_value)
+		for param, type_class in DEFAULT_PARAMS_.items():
+			default_value = DEFAULT_PARAMS[param]
+			new_value = params.get(param,default_value)
 
-	# 		if (param in ["mtry","tau","no_split_penality"]) and new_value == "auto":
-	# 				continue
+			if (param in ["mtry","tau","no_split_penality"]) and new_value == "auto":
+					continue
 
-	# 		try:
-	# 			self.params[param] = type_class(new_value)
-	# 		except:
-	# 			raise TypeError(str(param) + " should conform to type " + str(type_class)) 
+			try:
+				self.params[param] = type_class(new_value)
+			except:
+				raise TypeError(str(param) + " should conform to type " + str(type_class)) 
 
 	# def _predict_normal(self,pred_x):
 	# 	# Run Predict

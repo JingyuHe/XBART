@@ -45,38 +45,67 @@ void XBART::np_to_col_major_vec(int n, int d, double *a, vec_d &x_std){
 	}
 }
 
+void XBART::xinfo_to_np(matrix<double> x_std, double *arr){
+	// Fill in array values from xinfo
+	for(size_t i = 0 , n = (size_t) x_std[0].size(); i < n; i++){
+		for(size_t j = 0, d = (size_t)x_std.size(); j < d; j++){
+			size_t index = i * d + j;
+			arr[index] = x_std[j][i];
+		}
+	}
+	return;
+}
 
-// void XBARTcpp::xinfo_to_np(matrix<double>  x_std,double *arr){
-//   // Fill in array values from xinfo
-//   for(size_t i = 0 ,n = (size_t)x_std[0].size();i<n;i++){
-//     for(size_t j = 0,d = (size_t)x_std.size();j<d;j++){
-//       size_t index = i*d + j;
-//       arr[index] = x_std[j][i];
-//     }
-//   }
-//   return;
-// }
+void XBART::compute_Xorder(size_t n, size_t d, const vec_d &x_std_flat, matrix<size_t> &Xorder_std){
+    // Create Xorder
+	std::vector<size_t> temp;
+	std::vector<size_t> *xorder_std;
+	for (size_t j = 0; j < d; j++)
+	{ 
+		size_t column_start_index = j*n;
+		std::vector<double>::const_iterator first = x_std_flat.begin() + column_start_index;
+		std::vector<double>::const_iterator last = x_std_flat.begin() + column_start_index + n;
+		std::vector<double> colVec(first, last);
 
+		temp = sort_indexes(colVec);
 
-// void XBARTcpp::compute_Xorder(size_t n, size_t d,const vec_d &x_std_flat,matrix<size_t>  & Xorder_std){
-//         // Create Xorder
-//       std::vector<size_t> temp;
-//       std::vector<size_t> *xorder_std;
-//       for (size_t j = 0; j < d; j++)
-//       { 
-//         size_t column_start_index = j*n;
-//         std::vector<double>::const_iterator first = x_std_flat.begin() + column_start_index;
-//         std::vector<double>::const_iterator last = x_std_flat.begin() + column_start_index + n;
-//         std::vector<double> colVec(first, last);
+		xorder_std = &Xorder_std[j];
+		for(size_t i = 0; i<n; i++) (*xorder_std)[i] = temp[i];
+	}
+}
 
-//         temp = sort_indexes(colVec);
-    
-//         xorder_std = &Xorder_std[j];
-//         for(size_t i = 0; i<n; i++) (*xorder_std)[i] = temp[i];
+// Getters
+void XBART::get_yhats(int size,double *arr){
+  	xinfo_to_np(this->yhats_xinfo,arr);
+}
 
-//       }
-// }
+void XBART::get_yhats_test(int size,double *arr){
+  	xinfo_to_np(this->yhats_test_xinfo,arr);
+}
 
+void XBART::get_yhats_test_multinomial(int size,double *arr){
+  	for(size_t i=0; i < size; i++){
+		arr[i]=this->yhats_test_multinomial[i];
+	}
+}
+
+void XBART::get_sigma_draw(int size,double *arr){
+  	xinfo_to_np(this->sigma_draw_xinfo,arr);
+}
+
+void XBART::_get_importance(int size,double *arr){
+  	for(size_t i = 0; i < size ; i++){
+    	arr[i] = this->mtry_weight_current_tree[i];
+  	}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//
+//
+//  Normal Model
+//
+//
+//////////////////////////////////////////////////////////////////////////////////////
 
 XBARTcpp::XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
 			 size_t Nmin, size_t Ncutpoints,		//CHANGE
@@ -333,29 +362,3 @@ void XBARTcpp::_fit(int n, int p, double *a, int n_y, double *a_y, size_t p_cat)
 //     x_struct.reset();
 //   }
 // }    
-
-// // Getters
-// void XBARTcpp::get_yhats(int size,double *arr){
-//   xinfo_to_np(this->yhats_xinfo,arr);
-// }
-// void XBARTcpp::get_yhats_test(int size,double *arr){
-//   xinfo_to_np(this->yhats_test_xinfo,arr);
-// }
-// void XBARTcpp::get_yhats_test_multinomial(int size,double *arr){
-//   for(size_t i=0; i < size; i++){arr[i]=this->yhats_test_multinomial[i];}
-// }
-
-// void XBARTcpp::get_sigma_draw(int size,double *arr){
-//   xinfo_to_np(this->sigma_draw_xinfo,arr);
-// }
-// void XBARTcpp::_get_importance(int size,double *arr){
-//   for(size_t i =0; i < size ; i++){
-//     arr[i] = this->mtry_weight_current_tree[i];
-//   }
-// }
-
-
-
-
-
-
