@@ -88,93 +88,73 @@ class XBARTcppParams(object):
 # Register XBARTcppParams in _xbart_cpp_:
 _xbart_cpp_.XBARTcppParams_swigregister(XBARTcppParams)
 
-class XBART(object):
+class XBARTcpp(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
-    params = property(_xbart_cpp_.XBART_params_get, _xbart_cpp_.XBART_params_set)
-    trees = property(_xbart_cpp_.XBART_trees_get, _xbart_cpp_.XBART_trees_set)
-    y_mean = property(_xbart_cpp_.XBART_y_mean_get, _xbart_cpp_.XBART_y_mean_set)
-    n_train = property(_xbart_cpp_.XBART_n_train_get, _xbart_cpp_.XBART_n_train_set)
-    n_test = property(_xbart_cpp_.XBART_n_test_get, _xbart_cpp_.XBART_n_test_set)
-    p = property(_xbart_cpp_.XBART_p_get, _xbart_cpp_.XBART_p_set)
-    yhats_xinfo = property(_xbart_cpp_.XBART_yhats_xinfo_get, _xbart_cpp_.XBART_yhats_xinfo_set)
-    yhats_test_xinfo = property(_xbart_cpp_.XBART_yhats_test_xinfo_get, _xbart_cpp_.XBART_yhats_test_xinfo_set)
-    sigma_draw_xinfo = property(_xbart_cpp_.XBART_sigma_draw_xinfo_get, _xbart_cpp_.XBART_sigma_draw_xinfo_set)
-    mtry_weight_current_tree = property(_xbart_cpp_.XBART_mtry_weight_current_tree_get, _xbart_cpp_.XBART_mtry_weight_current_tree_set)
-    model = property(_xbart_cpp_.XBART_model_get, _xbart_cpp_.XBART_model_set)
-    yhats_test_multinomial = property(_xbart_cpp_.XBART_yhats_test_multinomial_get, _xbart_cpp_.XBART_yhats_test_multinomial_set)
-    num_classes = property(_xbart_cpp_.XBART_num_classes_get, _xbart_cpp_.XBART_num_classes_set)
+    params = property(_xbart_cpp_.XBARTcpp_params_get, _xbart_cpp_.XBARTcpp_params_set)
+    trees = property(_xbart_cpp_.XBARTcpp_trees_get, _xbart_cpp_.XBARTcpp_trees_set)
+    y_mean = property(_xbart_cpp_.XBARTcpp_y_mean_get, _xbart_cpp_.XBARTcpp_y_mean_set)
+    n_train = property(_xbart_cpp_.XBARTcpp_n_train_get, _xbart_cpp_.XBARTcpp_n_train_set)
+    n_test = property(_xbart_cpp_.XBARTcpp_n_test_get, _xbart_cpp_.XBARTcpp_n_test_set)
+    p = property(_xbart_cpp_.XBARTcpp_p_get, _xbart_cpp_.XBARTcpp_p_set)
+    yhats_xinfo = property(_xbart_cpp_.XBARTcpp_yhats_xinfo_get, _xbart_cpp_.XBARTcpp_yhats_xinfo_set)
+    yhats_test_xinfo = property(_xbart_cpp_.XBARTcpp_yhats_test_xinfo_get, _xbart_cpp_.XBARTcpp_yhats_test_xinfo_set)
+    sigma_draw_xinfo = property(_xbart_cpp_.XBARTcpp_sigma_draw_xinfo_get, _xbart_cpp_.XBARTcpp_sigma_draw_xinfo_set)
+    mtry_weight_current_tree = property(_xbart_cpp_.XBARTcpp_mtry_weight_current_tree_get, _xbart_cpp_.XBARTcpp_mtry_weight_current_tree_set)
+    model = property(_xbart_cpp_.XBARTcpp_model_get, _xbart_cpp_.XBARTcpp_model_set)
+    yhats_test_multinomial = property(_xbart_cpp_.XBARTcpp_yhats_test_multinomial_get, _xbart_cpp_.XBARTcpp_yhats_test_multinomial_set)
+    num_classes = property(_xbart_cpp_.XBARTcpp_num_classes_get, _xbart_cpp_.XBARTcpp_num_classes_set)
 
-    def np_to_vec_d(self, n: "int", y_std: "vec_d &") -> "void":
-        return _xbart_cpp_.XBART_np_to_vec_d(self, n, y_std)
-
-    def np_to_col_major_vec(self, n: "int", x_std: "vec_d &") -> "void":
-        return _xbart_cpp_.XBART_np_to_col_major_vec(self, n, x_std)
-
-    def xinfo_to_np(self, x_std: "matrix< double >", arr: "double *") -> "void":
-        return _xbart_cpp_.XBART_xinfo_to_np(self, x_std, arr)
-
-    def compute_Xorder(self, n: "size_t", d: "size_t", x_std_flat: "vec_d const &", Xorder_std: "matrix< size_t > &") -> "void":
-        return _xbart_cpp_.XBART_compute_Xorder(self, n, d, x_std_flat, Xorder_std)
-    seed = property(_xbart_cpp_.XBART_seed_get, _xbart_cpp_.XBART_seed_set)
-    seed_flag = property(_xbart_cpp_.XBART_seed_flag_get, _xbart_cpp_.XBART_seed_flag_set)
-    no_split_penality = property(_xbart_cpp_.XBART_no_split_penality_get, _xbart_cpp_.XBART_no_split_penality_set)
-
-    def XBARTcpp(self, *args) -> "void":
-        return _xbart_cpp_.XBART_XBARTcpp(self, *args)
-
-    def _to_json(self) -> "std::string":
-        return _xbart_cpp_.XBART__to_json(self)
-
-    def _fit(self, n: "int", n_y: "int", p_cat: "size_t") -> "void":
-        return _xbart_cpp_.XBART__fit(self, n, n_y, p_cat)
-
-    def _predict(self, n: "int") -> "void":
-        return _xbart_cpp_.XBART__predict(self, n)
-
-    def get_num_trees(self) -> "int":
-        return _xbart_cpp_.XBART_get_num_trees(self)
-
-    def get_num_sweeps(self) -> "int":
-        return _xbart_cpp_.XBART_get_num_sweeps(self)
-
-    def get_burnin(self) -> "int":
-        return _xbart_cpp_.XBART_get_burnin(self)
-
-    def get_yhats(self, size: "int") -> "void":
-        return _xbart_cpp_.XBART_get_yhats(self, size)
-
-    def get_yhats_test(self, size: "int") -> "void":
-        return _xbart_cpp_.XBART_get_yhats_test(self, size)
-
-    def get_yhats_test_multinomial(self, size: "int") -> "void":
-        return _xbart_cpp_.XBART_get_yhats_test_multinomial(self, size)
-
-    def get_sigma_draw(self, size: "int") -> "void":
-        return _xbart_cpp_.XBART_get_sigma_draw(self, size)
-
-    def _get_importance(self, size: "int") -> "void":
-        return _xbart_cpp_.XBART__get_importance(self, size)
-
-    def __init__(self):
-        _xbart_cpp_.XBART_swiginit(self, _xbart_cpp_.new_XBART())
-    __swig_destroy__ = _xbart_cpp_.delete_XBART
-
-# Register XBART in _xbart_cpp_:
-_xbart_cpp_.XBART_swigregister(XBART)
-
-class XBARTcpp(XBART):
-    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
-    __repr__ = _swig_repr
-
-    def __init__(self, num_trees: "size_t", num_sweeps: "size_t", max_depth: "size_t", Nmin: "size_t", Ncutpoints: "size_t", alpha: "double", beta: "double", tau: "double", burnin: "size_t", mtry: "size_t", kap: "double", s: "double", tau_kap: "double", tau_s: "double", verbose: "bool", sampling_tau: "bool", parallel: "bool", nthread: "size_t", set_random_seed: "bool", seed: "int", no_split_penality: "double", sample_weights_flag: "bool"):
-        _xbart_cpp_.XBARTcpp_swiginit(self, _xbart_cpp_.new_XBARTcpp(num_trees, num_sweeps, max_depth, Nmin, Ncutpoints, alpha, beta, tau, burnin, mtry, kap, s, tau_kap, tau_s, verbose, sampling_tau, parallel, nthread, set_random_seed, seed, no_split_penality, sample_weights_flag))
+    def __init__(self, *args):
+        _xbart_cpp_.XBARTcpp_swiginit(self, _xbart_cpp_.new_XBARTcpp(*args))
 
     def _fit(self, n: "int", n_y: "int", p_cat: "size_t") -> "void":
         return _xbart_cpp_.XBARTcpp__fit(self, n, n_y, p_cat)
 
     def _predict(self, n: "int") -> "void":
         return _xbart_cpp_.XBARTcpp__predict(self, n)
+
+    def np_to_vec_d(self, n: "int", y_std: "vec_d &") -> "void":
+        return _xbart_cpp_.XBARTcpp_np_to_vec_d(self, n, y_std)
+
+    def np_to_col_major_vec(self, n: "int", x_std: "vec_d &") -> "void":
+        return _xbart_cpp_.XBARTcpp_np_to_col_major_vec(self, n, x_std)
+
+    def xinfo_to_np(self, x_std: "matrix< double >", arr: "double *") -> "void":
+        return _xbart_cpp_.XBARTcpp_xinfo_to_np(self, x_std, arr)
+
+    def compute_Xorder(self, n: "size_t", d: "size_t", x_std_flat: "vec_d const &", Xorder_std: "matrix< size_t > &") -> "void":
+        return _xbart_cpp_.XBARTcpp_compute_Xorder(self, n, d, x_std_flat, Xorder_std)
+    seed = property(_xbart_cpp_.XBARTcpp_seed_get, _xbart_cpp_.XBARTcpp_seed_set)
+    seed_flag = property(_xbart_cpp_.XBARTcpp_seed_flag_get, _xbart_cpp_.XBARTcpp_seed_flag_set)
+    no_split_penality = property(_xbart_cpp_.XBARTcpp_no_split_penality_get, _xbart_cpp_.XBARTcpp_no_split_penality_set)
+
+    def _to_json(self) -> "std::string":
+        return _xbart_cpp_.XBARTcpp__to_json(self)
+
+    def get_num_trees(self) -> "int":
+        return _xbart_cpp_.XBARTcpp_get_num_trees(self)
+
+    def get_num_sweeps(self) -> "int":
+        return _xbart_cpp_.XBARTcpp_get_num_sweeps(self)
+
+    def get_burnin(self) -> "int":
+        return _xbart_cpp_.XBARTcpp_get_burnin(self)
+
+    def get_yhats(self, size: "int") -> "void":
+        return _xbart_cpp_.XBARTcpp_get_yhats(self, size)
+
+    def get_yhats_test(self, size: "int") -> "void":
+        return _xbart_cpp_.XBARTcpp_get_yhats_test(self, size)
+
+    def get_yhats_test_multinomial(self, size: "int") -> "void":
+        return _xbart_cpp_.XBARTcpp_get_yhats_test_multinomial(self, size)
+
+    def get_sigma_draw(self, size: "int") -> "void":
+        return _xbart_cpp_.XBARTcpp_get_sigma_draw(self, size)
+
+    def _get_importance(self, size: "int") -> "void":
+        return _xbart_cpp_.XBARTcpp__get_importance(self, size)
     __swig_destroy__ = _xbart_cpp_.delete_XBARTcpp
 
 # Register XBARTcpp in _xbart_cpp_:

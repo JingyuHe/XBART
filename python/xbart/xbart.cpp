@@ -10,102 +10,17 @@
 using namespace std;
 
 // Constructors
-void XBART::XBARTcpp(XBARTcppParams params){
+XBARTcpp::XBARTcpp(XBARTcppParams params){
 	this->params = params;		
 }
 
-void XBART::XBARTcpp(std::string json_string){
+XBARTcpp::XBARTcpp(std::string json_string){
   //std::vector<std::vector<tree>> temp_trees;
   from_json_to_forest(json_string,  this->trees,this->y_mean);  
   this->params.num_sweeps = this->trees.size();
   this->params.num_trees = this->trees[0].size();
 }
 
-std::string XBART::_to_json(void){
-  json j = get_forest_json(this->trees,this->y_mean);
-  return j.dump();
-}
-
-// Private Helper Functions 
-
-// Numpy 1D array to vec_d - std_vector of doubles
-void XBART::np_to_vec_d(int n, double *a, vec_d &y_std){
-	for (size_t i = 0; i < n; i++){
-		y_std[i] = a[i];
-	}
-}
-
-void XBART::np_to_col_major_vec(int n, int d, double *a, vec_d &x_std){
-	for(size_t i = 0; i < n; i++){
-		for(size_t j = 0; j < d; j++){
-			size_t index = i * d + j;
-			size_t index_std = j * n +i;
-			x_std[index_std] = a[index];
-		}
-	}
-}
-
-void XBART::xinfo_to_np(matrix<double> x_std, double *arr){
-	// Fill in array values from xinfo
-	for(size_t i = 0 , n = (size_t) x_std[0].size(); i < n; i++){
-		for(size_t j = 0, d = (size_t)x_std.size(); j < d; j++){
-			size_t index = i * d + j;
-			arr[index] = x_std[j][i];
-		}
-	}
-	return;
-}
-
-void XBART::compute_Xorder(size_t n, size_t d, const vec_d &x_std_flat, matrix<size_t> &Xorder_std){
-    // Create Xorder
-	std::vector<size_t> temp;
-	std::vector<size_t> *xorder_std;
-	for (size_t j = 0; j < d; j++)
-	{ 
-		size_t column_start_index = j*n;
-		std::vector<double>::const_iterator first = x_std_flat.begin() + column_start_index;
-		std::vector<double>::const_iterator last = x_std_flat.begin() + column_start_index + n;
-		std::vector<double> colVec(first, last);
-
-		temp = sort_indexes(colVec);
-
-		xorder_std = &Xorder_std[j];
-		for(size_t i = 0; i<n; i++) (*xorder_std)[i] = temp[i];
-	}
-}
-
-// Getters
-void XBART::get_yhats(int size,double *arr){
-  	xinfo_to_np(this->yhats_xinfo,arr);
-}
-
-void XBART::get_yhats_test(int size,double *arr){
-  	xinfo_to_np(this->yhats_test_xinfo,arr);
-}
-
-void XBART::get_yhats_test_multinomial(int size,double *arr){
-  	for(size_t i=0; i < size; i++){
-		arr[i]=this->yhats_test_multinomial[i];
-	}
-}
-
-void XBART::get_sigma_draw(int size,double *arr){
-  	xinfo_to_np(this->sigma_draw_xinfo,arr);
-}
-
-void XBART::_get_importance(int size,double *arr){
-  	for(size_t i = 0; i < size ; i++){
-    	arr[i] = this->mtry_weight_current_tree[i];
-  	}
-}
-
-//////////////////////////////////////////////////////////////////////////////////////
-//
-//
-//  Normal Model
-//
-//
-//////////////////////////////////////////////////////////////////////////////////////
 
 XBARTcpp::XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
 			 size_t Nmin, size_t Ncutpoints,		//CHANGE
@@ -164,6 +79,85 @@ XBARTcpp::XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
     return;
 }
 
+
+
+std::string XBARTcpp::_to_json(void){
+  json j = get_forest_json(this->trees,this->y_mean);
+  return j.dump();
+}
+
+// Private Helper Functions 
+
+// Numpy 1D array to vec_d - std_vector of doubles
+void XBARTcpp::np_to_vec_d(int n, double *a, vec_d &y_std){
+	for (size_t i = 0; i < n; i++){
+		y_std[i] = a[i];
+	}
+}
+
+void XBARTcpp::np_to_col_major_vec(int n, int d, double *a, vec_d &x_std){
+	for(size_t i = 0; i < n; i++){
+		for(size_t j = 0; j < d; j++){
+			size_t index = i * d + j;
+			size_t index_std = j * n +i;
+			x_std[index_std] = a[index];
+		}
+	}
+}
+
+void XBARTcpp::xinfo_to_np(matrix<double> x_std, double *arr){
+	// Fill in array values from xinfo
+	for(size_t i = 0 , n = (size_t) x_std[0].size(); i < n; i++){
+		for(size_t j = 0, d = (size_t)x_std.size(); j < d; j++){
+			size_t index = i * d + j;
+			arr[index] = x_std[j][i];
+		}
+	}
+	return;
+}
+
+void XBARTcpp::compute_Xorder(size_t n, size_t d, const vec_d &x_std_flat, matrix<size_t> &Xorder_std){
+    // Create Xorder
+	std::vector<size_t> temp;
+	std::vector<size_t> *xorder_std;
+	for (size_t j = 0; j < d; j++)
+	{ 
+		size_t column_start_index = j*n;
+		std::vector<double>::const_iterator first = x_std_flat.begin() + column_start_index;
+		std::vector<double>::const_iterator last = x_std_flat.begin() + column_start_index + n;
+		std::vector<double> colVec(first, last);
+
+		temp = sort_indexes(colVec);
+
+		xorder_std = &Xorder_std[j];
+		for(size_t i = 0; i<n; i++) (*xorder_std)[i] = temp[i];
+	}
+}
+
+// Getters
+void XBARTcpp::get_yhats(int size,double *arr){
+  	xinfo_to_np(this->yhats_xinfo,arr);
+}
+
+void XBARTcpp::get_yhats_test(int size,double *arr){
+  	xinfo_to_np(this->yhats_test_xinfo,arr);
+}
+
+void XBARTcpp::get_yhats_test_multinomial(int size,double *arr){
+  	for(size_t i=0; i < size; i++){
+		arr[i]=this->yhats_test_multinomial[i];
+	}
+}
+
+void XBARTcpp::get_sigma_draw(int size,double *arr){
+  	xinfo_to_np(this->sigma_draw_xinfo,arr);
+}
+
+void XBARTcpp::_get_importance(int size,double *arr){
+  	for(size_t i = 0; i < size ; i++){
+    	arr[i] = this->mtry_weight_current_tree[i];
+  	}
+}
 
 void XBARTcpp::_predict(int n, int p, double *a){//,int size, double *arr){
   

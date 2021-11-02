@@ -28,7 +28,7 @@ struct XBARTcppParams
 	bool sample_weights_flag;
 };
 
-class XBART
+class XBARTcpp
 {
 public:
 	XBARTcppParams params;
@@ -42,54 +42,16 @@ public:
 	matrix<double>  sigma_draw_xinfo;
 	vec_d mtry_weight_current_tree;
 
-	Model *model;
+	NormalModel *model;
 
 	// multinomial
 	vec_d yhats_test_multinomial;
 	size_t num_classes;
 	//xinfo split_count_all_tree;
 
-	// helper functions
-	void np_to_vec_d(int n, double *a, vec_d &y_std);
-	void np_to_col_major_vec(int n, int d, double *a, vec_d &x_std);
-	void xinfo_to_np(matrix<double>  x_std, double *arr);
-	void compute_Xorder(size_t n, size_t d, const vec_d &x_std_flat, matrix<size_t> &Xorder_std);
-	size_t seed;
-	bool seed_flag;
-	double no_split_penality;
-
 	// Constructors
-	// XBART(?);
-
-	void XBARTcpp(XBARTcppParams params);
-	
-	void XBARTcpp(std::string json_string);
-
-	std::string _to_json(void);
-
-	virtual void _fit(int n, int d, double *a, int n_y, double *a_y, size_t p_cat);
-	virtual void _predict(int n, int d, double *a); //,int size, double *arr);
-	// void _predict_multinomial(int n, int d, double *a); //,int size, double *arr);
-
-	// Getters
-	int get_num_trees(void) { return ((int)params.num_trees); };;
-	int get_num_sweeps(void) { return ((int)params.num_sweeps); };
-	int get_burnin(void) { return ((int)params.burnin); };
-	void get_yhats(int size, double *arr);
-	void get_yhats_test(int size, double *arr);
-	void get_yhats_test_multinomial(int size,double *arr);
-	void get_sigma_draw(int size, double *arr);
-	void _get_importance(int size, double *arr);
-};
-
-class XBARTcpp : public XBART 
-{
-	private:
-
-	NormalModel *model;
-
-	public:
-
+	XBARTcpp(XBARTcppParams params);
+	XBARTcpp(std::string json_string);
 	XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
 			 size_t Nmin, size_t Ncutpoints,		//CHANGE
 			 double alpha, double beta, double tau, //CHANGE!
@@ -100,4 +62,25 @@ class XBARTcpp : public XBART
 
 	void _fit(int n, int d, double *a, int n_y, double *a_y, size_t p_cat);
 	void _predict(int n, int d, double *a); //,int size, double *arr);
+
+	// helper functions
+	void np_to_vec_d(int n, double *a, vec_d &y_std);
+	void np_to_col_major_vec(int n, int d, double *a, vec_d &x_std);
+	void xinfo_to_np(matrix<double>  x_std, double *arr);
+	void compute_Xorder(size_t n, size_t d, const vec_d &x_std_flat, matrix<size_t> &Xorder_std);
+	size_t seed;
+	bool seed_flag;
+	double no_split_penality;
+
+	std::string _to_json(void);
+
+	// Getters
+	int get_num_trees(void) { return ((int)params.num_trees); };;
+	int get_num_sweeps(void) { return ((int)params.num_sweeps); };
+	int get_burnin(void) { return ((int)params.burnin); };
+	void get_yhats(int size, double *arr);
+	void get_yhats_test(int size, double *arr);
+	void get_yhats_test_multinomial(int size,double *arr);
+	void get_sigma_draw(int size, double *arr);
+	void _get_importance(int size, double *arr);
 };
