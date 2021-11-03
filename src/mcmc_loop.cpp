@@ -256,7 +256,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             else if (state->n_y * fake_p < 5e5 ) { omp_set_num_threads( std::min(6, int(state->nthread) ) ); }
             else {omp_set_num_threads(state->nthread); }*/
 
-            omp_set_max_active_levels(3);
+            // omp_set_max_active_levels(3);
 #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
             {
 #pragma omp sections
@@ -350,7 +350,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
                 state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
             }
 
-            omp_set_max_active_levels(3);
+            // omp_set_max_active_levels(3);
 #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
             {
 #pragma omp sections
@@ -435,7 +435,7 @@ void mcmc_loop_probit(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
 
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
-            omp_set_max_active_levels(3);
+            // omp_set_max_active_levels(3);
 #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
             {
 #pragma omp sections
