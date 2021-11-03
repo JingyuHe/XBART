@@ -76,8 +76,8 @@ class XBART(object):
 	def __init__(self, num_trees: int = 100, num_sweeps: int = 40, n_min: int = 1,
 				num_cutpoints: int = 100, alpha: float = 0.95, beta: float = 1.25, tau = "auto",
                 burnin: int = 15, mtry = "auto", max_depth: int = 250,
-                kap: float = 16.0, s: float = 4.0, tau_kap: float = 3, tau_s: float = 0.5, verbose: bool = False,
-                parallel: bool = False, nthread: int = 0, seed = "auto",
+                kap: float = 16.0, s: float = 4.0, tau_kap: float = 3, tau_s: float = 0.5, verbose: bool = False, 
+				sampling_tau: bool = True, parallel: bool = False, nthread: int = 0, set_random_seed: bool = False, seed = "auto",
 				no_split_penality = "auto", sample_weights_flag: bool = True):
 
 		assert num_sweeps > burnin, "num_sweep must be greater than burnin"
@@ -85,6 +85,7 @@ class XBART(object):
 		self.params = OrderedDict([
 			("num_trees", num_trees),
 			("num_sweeps", num_sweeps),
+			("max_depth", max_depth),
 			("n_min", n_min),
 			("num_cutpoints" , num_cutpoints),
 			("alpha" ,alpha),
@@ -92,14 +93,15 @@ class XBART(object):
 			("tau", tau),
 			("burnin", burnin),
 			("mtry", mtry), 
-			("max_depth", max_depth),
 			("kap", kap),
 			("s", s),
 			("tau_kap", tau_kap),
 			("tau_s", tau_s),
 			("verbose",verbose),
+			("sampling_tau", sampling_tau),
 			("parallel",parallel),
 			("nthread", nthread),
+			("set_random_seed", set_random_seed),
 			("seed",seed),
 			("no_split_penality",no_split_penality),
 			("sample_weights_flag",sample_weights_flag)
@@ -176,12 +178,22 @@ class XBART(object):
 		
 		if self.params["no_split_penality"] == "auto":
 			from math import log
-			if self.params["model_num"] == 0:
-				self.params["no_split_penality"] = log(self.params["num_cutpoints"])
+			# if self.params["model_num"] == 0:
+			self.params["no_split_penality"] = log(self.params["num_cutpoints"])
+			# else:
+			# 	self.params["no_split_penality"] = 0.0
+
+	def __update_random_seed(self):
+		if self.params["set_random_seed"]:
+			if self.params["seed"] == "auto":
+				raise TypeError("seed" + " should conform to type " + "int")
+		else:
+			if self.params["seed"] == "auto":
+				self.params["seed"] = 0
 			else:
-				self.params["no_split_penality"] = 0.0
-		
-				
+				raise TypeError("set_random_seed should set to True if seed is provided")
+
+
 	def __convert_params_check_types(self,**params):
 		'''
 		This function converts params to list and handles type conversions
@@ -192,6 +204,7 @@ class XBART(object):
 		DEFAULT_PARAMS = OrderedDict([
 			('num_trees', 5),
 			("num_sweeps", 40),
+			("max_depth", 250),
 			("n_min", 1),
 			("num_cutpoints", 100),
 			("alpha", 0.95),
@@ -199,14 +212,15 @@ class XBART(object):
 			("tau", 0.3),
             ("burnin",15),
 			("mtry",0),
-			("max_depth",250),
 			("kap",16.0),
 			("s",4.0),
 			("tau_kap", 3),
 			("tau_s", 0.5),
 			("verbose", False),
+			("sampling_tau", True),
 			("parallel", False),
 			("nthread", 0),
+			("set_random_seed", False),
 			("seed", 0),
 			("no_split_penality", 0.0),
 			("sample_weights_flag",True)
@@ -215,6 +229,7 @@ class XBART(object):
 		DEFAULT_PARAMS_ = OrderedDict([
 			('num_trees',int),
 			("num_sweeps",int),
+			("max_depth", int),
 			("n_min",int),
 			("num_cutpoints",int),
 			("alpha",float),
@@ -228,18 +243,20 @@ class XBART(object):
 			("tau_kap", float),
 			("tau_s", float),
 			("verbose",bool),
+			("sampling_tau", bool),
 			("parallel",bool),
 			("nthread", int),
+			("set_random_seed", bool),
 			("seed",int),
 			("no_split_penality",float),
 			("sample_weights_flag",bool)
 		])
-		
+
 		for param, type_class in DEFAULT_PARAMS_.items():
 			default_value = DEFAULT_PARAMS[param]
 			new_value = params.get(param,default_value)
 
-			if (param in ["mtry","tau","no_split_penality"]) and new_value == "auto":
+			if (param in ["mtry","tau","seed","no_split_penality"]) and new_value == "auto":
 					continue
 
 			try:
@@ -293,11 +310,13 @@ class XBART(object):
 		self.__update_fit_x_y(x,fit_x,y,fit_y)
 		self.__update_mtry_tau_penality(fit_x)
 		self.__check_params(p_cat)
+		self.__update_random_seed()
 
 		# Create xbart_cpp object #
 		if self._xbart_cpp is None:
-			#self.args = self.__convert_params_check_types(**self.params)
+			self.args = self.__convert_params_check_types(**self.params)
 			args = list(self.params.values())
+			# print(args)
 			self._xbart_cpp = XBARTcpp(*args) # Makes C++ object
 
 		# fit #
@@ -308,10 +327,10 @@ class XBART(object):
 		self.importance = dict(zip(self.columns,self.importance.astype(int)))
 		
 
-		if self.model == "Normal":
-			self.sigma_draws = self._xbart_cpp.get_sigma_draw(self.params["num_sweeps"]*self.params["num_trees"])
-			# Convert from colum major 
-			self.sigma_draws = self.sigma_draws.reshape((self.params["num_sweeps"],self.params["num_trees"]),order='F')
+		# if self.model == "Normal":
+		self.sigma_draws = self._xbart_cpp.get_sigma_draw(self.params["num_sweeps"]*self.params["num_trees"])
+		# Convert from colum major 
+		self.sigma_draws = self.sigma_draws.reshape((self.params["num_sweeps"],self.params["num_trees"]),order='F')
 		
 		self.is_fit = True
 		return self
