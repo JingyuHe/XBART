@@ -49,6 +49,8 @@ public:
 	size_t num_classes;
 	//xinfo split_count_all_tree;
 
+	std::vector<double> resid;
+
 	// Constructors
 	XBARTcpp(XBARTcppParams params);
 	XBARTcpp(std::string json_string);
@@ -62,6 +64,8 @@ public:
 
 	void _fit(int n, int d, double *a, int n_y, double *a_y, size_t p_cat);
 	void _predict(int n, int d, double *a); //,int size, double *arr);
+	void _gp_predict(int n, int p, double *a, double *a_y, int n_t, double *a_t, size_t p_cat);
+  
 
 	// helper functions
 	void np_to_vec_d(int n, double *a, vec_d &y_std);
@@ -82,5 +86,6 @@ public:
 	void get_yhats_test(int size, double *arr);
 	void get_yhats_test_multinomial(int size,double *arr);
 	void get_sigma_draw(int size, double *arr);
+	void get_residuals(double *arr);
 	void _get_importance(int size, double *arr);
 };

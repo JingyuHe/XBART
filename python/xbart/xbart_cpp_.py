@@ -104,6 +104,7 @@ class XBARTcpp(object):
     model = property(_xbart_cpp_.XBARTcpp_model_get, _xbart_cpp_.XBARTcpp_model_set)
     yhats_test_multinomial = property(_xbart_cpp_.XBARTcpp_yhats_test_multinomial_get, _xbart_cpp_.XBARTcpp_yhats_test_multinomial_set)
     num_classes = property(_xbart_cpp_.XBARTcpp_num_classes_get, _xbart_cpp_.XBARTcpp_num_classes_set)
+    resid = property(_xbart_cpp_.XBARTcpp_resid_get, _xbart_cpp_.XBARTcpp_resid_set)
 
     def __init__(self, *args):
         _xbart_cpp_.XBARTcpp_swiginit(self, _xbart_cpp_.new_XBARTcpp(*args))
@@ -113,6 +114,9 @@ class XBARTcpp(object):
 
     def _predict(self, n: "int") -> "void":
         return _xbart_cpp_.XBARTcpp__predict(self, n)
+
+    def _gp_predict(self, n: "int", p: "int", a: "double *", a_y: "double *", n_t: "int", a_t: "double *", p_cat: "size_t") -> "void":
+        return _xbart_cpp_.XBARTcpp__gp_predict(self, n, p, a, a_y, n_t, a_t, p_cat)
 
     def np_to_vec_d(self, n: "int", y_std: "vec_d &") -> "void":
         return _xbart_cpp_.XBARTcpp_np_to_vec_d(self, n, y_std)
@@ -152,6 +156,9 @@ class XBARTcpp(object):
 
     def get_sigma_draw(self, size: "int") -> "void":
         return _xbart_cpp_.XBARTcpp_get_sigma_draw(self, size)
+
+    def get_residuals(self, arr: "double *") -> "void":
+        return _xbart_cpp_.XBARTcpp_get_residuals(self, arr)
 
     def _get_importance(self, size: "int") -> "void":
         return _xbart_cpp_.XBARTcpp__get_importance(self, size)

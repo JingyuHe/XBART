@@ -112,6 +112,7 @@ class XBART(object):
 		# Additional Members
 		self.importance = None
 		self.sigma_draws = None
+		self.resid = None
 		self.is_fit = False
 
 	def __repr__(self):
@@ -331,6 +332,8 @@ class XBART(object):
 		self.sigma_draws = self._xbart_cpp.get_sigma_draw(self.params["num_sweeps"]*self.params["num_trees"])
 		# Convert from colum major 
 		self.sigma_draws = self.sigma_draws.reshape((self.params["num_sweeps"],self.params["num_trees"]),order='F')
+		# get residuals
+		self.resid = self._xbart_cpp.get_residuals()
 		
 		self.is_fit = True
 		return self
@@ -406,6 +409,7 @@ class XBART(object):
 		j = json.loads(json_str)
 		j["params"] = self.params
 		j["num_columns"] = self.num_columns
+		j["resid"] = self.resid
 
 		if file is not None:
 			with open(file, "w") as text_file:
@@ -428,5 +432,6 @@ class XBART(object):
 		self.is_fit = True
 		self.num_columns = j["num_columns"]
 		self.params = j["params"]
+		self.resid = j["resid"]
 		return self
 

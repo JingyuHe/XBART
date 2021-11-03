@@ -153,6 +153,10 @@ void XBARTcpp::get_sigma_draw(int size,double *arr){
   	xinfo_to_np(this->sigma_draw_xinfo,arr);
 }
 
+void XBARTcpp::get_residuals(double *arr){
+  	xinfo_to_np(this->resid,arr);
+}
+
 void XBARTcpp::_get_importance(int size,double *arr){
   	for(size_t i = 0; i < size ; i++){
     	arr[i] = this->mtry_weight_current_tree[i];
@@ -185,6 +189,116 @@ void XBARTcpp::_predict(int n, int p, double *a){//,int size, double *arr){
 
 	delete model;
 }
+
+void XBARTcpp::_gp_predict(int n, int p, double *a, double *a_y, int n_t, double *a_t, size_t p_cat){
+  
+  
+	// Convert row major *a to column major std::vector
+	vec_d x_std_flat(n * p);
+	XBARTcpp::np_to_col_major_vec(n, p, a, x_std_flat);
+
+	// Convert a_y to std::vector
+	vec_d y_std(n);
+	XBARTcpp::np_to_vec_d(n, a_y, y_std);
+			
+	// Calculate y_mean
+	double y_mean = 0.0;
+	for (size_t i = 0; i < n; i++){
+		y_mean = y_mean + y_std[i];
+	}
+	y_mean = y_mean/(double)n;
+	this->y_mean = y_mean;
+      
+	// xorder containers
+	matrix<size_t> Xorder_std;
+	ini_xinfo_sizet(Xorder_std, n, p);
+	XBARTcpp::compute_Xorder(n, p, x_std_flat, Xorder_std);
+
+	// Convert row major *a_t to column major std::vector
+	vec_d xtest_std_flat(n_t * p);
+	XBARTcpp::np_to_col_major_vec(n_t, p, a_t, xtest_std_flat);
+
+	// xtestorder containers
+	matrix<size_t> Xtestorder_std;
+	ini_xinfo_sizet(Xtestorder_std, n_t, p);
+	XBARTcpp::compute_Xorder(n_t, p, xtest_std_flat, Xtestorder_std);
+
+	// //max_depth_std container
+	// matrix<size_t> max_depth_std;
+	// ini_xinfo_sizet(max_depth_std, this->params.num_trees, this->params.num_sweeps);
+
+	// // Fill with max Depth Value
+	// for(size_t i = 0; i < this->params.num_trees; i++){
+	// 	for(size_t j = 0;j < this->params.num_sweeps; j++){
+	// 		max_depth_std[j][i] = this->params.max_depth;
+	// 	}
+	// }
+
+	// // Cpp native objects to return
+	// matrix<double>  yhats_xinfo; // Temp Change
+	// ini_xinfo(yhats_xinfo, n_t, this->params.num_sweeps);
+
+	// Temp Change
+	// ini_xinfo(this->sigma_draw_xinfo, this->params.num_trees, this->params.num_sweeps);
+	// this->mtry_weight_current_tree.resize(p);
+	//ini_xinfo(this->split_count_all_tree, d, this->params.M); // initialize at 0
+	double *ypointer = &a_y[0];
+	double *Xpointer = &x_std_flat[0];
+	double *Xtestpointer = &xtest_std_flat[0];
+
+
+	// Initialize result
+	ini_matrix(this->yhats_test_xinfo, n_t, this->params.num_sweeps);
+	for(size_t i = 0; i < n_t; i++) {
+		for(size_t j = 0; j <this->params.num_sweeps; j++) {
+			this->yhats_test_xinfo[j][i]=0;
+		}
+	}
+
+	// initialize X_struct
+    std::vector<double> initial_theta(1, y_mean / (double)this->params.num_trees);
+    std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, n, Xorder_std, p_cat, p-p_cat, &initial_theta, this->params.num_trees));
+	std::unique_ptr<X_struct> xtest_struct(new X_struct(Xtestpointer, &y_std, n_t, Xtestorder_std, p_cat, p-p_cat, &initial_theta, this->params.num_trees));
+	x_struct->n_y = N;
+    xtest_struct->n_y = N_test;
+
+	std::vector<bool> active_var(p);
+    std::fill(active_var.begin(), active_var.end(), false);
+
+	// get residuals
+    // matrix<std::vector<double>> residuals;
+    // ini_matrix(residuals, num_trees, num_sweeps);
+    // for (size_t i = 0; i < num_sweeps; i++){
+    //     for (size_t j = 0; j < num_trees; j++){
+    //         residuals[i][j].resize(N);
+    //         for (size_t k = 0; k < N; k++){
+    //             residuals[i][j][k] =  resid(k + i * N + j * num_sweeps * N);
+    //         }
+    //     }
+    // }
+    // x_struct->set_resid(residuals);
+
+
+	// // mcmc loop
+    // for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
+    // {
+    //     for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
+    //     {
+    //         // cout << "sweeps = " << sweeps << ", tree_ind = " << tree_ind << endl;
+    //         (*trees)[sweeps][tree_ind].gp_predict_from_root(Xorder_std, x_struct, x_struct->X_counts, x_struct->X_num_unique, 
+    //         Xtestorder_std, xtest_struct, xtest_struct->X_counts, xtest_struct->X_num_unique, 
+    //         yhats_test_xinfo, active_var, p_categorical, sweeps, tree_ind, theta, tau);
+
+    //     }
+    // }
+
+	// Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
+	// Matrix_to_NumericMatrix(yhats_test_xinfo, yhats_test);
+	
+	// return Rcpp::List::create( Rcpp::Named("yhats_test") = yhats_test);
+
+}
+
 
 
 // void XBARTcpp::_predict_multinomial(int n, int d, double *a){//,int size, double *arr){
@@ -284,7 +398,9 @@ void XBARTcpp::_fit(int n, int p, double *a, int n_y, double *a_y, size_t p_cat)
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, n, Xorder_std, p_cat, p-p_cat, &initial_theta, this->params.num_trees));
 
-    mcmc_loop(Xorder_std, this->params.verbose, sigma_draw_xinfo, this->trees, this->no_split_penality, state, this->model, x_struct);
+	this->resid.resize(N * num_sweeps * num_trees);
+
+    mcmc_loop(Xorder_std, this->params.verbose, sigma_draw_xinfo, this->trees, this->no_split_penality, state, this->model, x_struct, this->resid);
 
     this->mtry_weight_current_tree = state->mtry_weight_current_tree;
 
