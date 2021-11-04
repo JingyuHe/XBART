@@ -82,7 +82,7 @@ Rcpp::List xbart_predict_full(arma::mat X, double y_mean, Rcpp::XPtr<std::vector
 
     std::vector<double> output_vec(N * N_sweeps * M);
 
-    NormalModel *model = new NormalModel(1);
+    NormalModel *model = new NormalModel();
 
     // Predict
     model->predict_whole_std(Xpointer, N, p, M, N_sweeps,
