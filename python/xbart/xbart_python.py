@@ -336,6 +336,7 @@ class XBART(object):
 		self.resid = self._xbart_cpp.get_residuals()
 		
 		self.is_fit = True
+
 		return self
 
 	def predict(self,x_test,return_mean = True):
@@ -397,6 +398,48 @@ class XBART(object):
 		self.fit(x,y,p_cat)
 		return self.predict(x_test,return_mean)
 
+	def predict_gp(self, x, y, x_test, p_cat = 0, theta = 10, tau = "auto", return_mean = True):
+		'''
+		Predict XBART model
+        Parameters
+        ----------
+		x_test : DataFrame or numpy array
+            Feature matrix (predictors)
+		return_mean: bool
+			If true, will return mean prediction, else will return (n X num_sweeps) "posterior" estimate
+	
+		Returns
+        -------
+        prediction : numpy array
+		'''
+
+		assert self.is_fit, "Must run fit before running predict"
+
+		# check residuals
+
+		# get tau, default = var(y) / num_trees
+		if tau == "auto":
+			tau = np.var(y) / self.params["num_trees"]
+		# Check inputs # 
+	
+		self.__check_input_type(x_test)
+		pred_x = x_test.copy()
+		self.__check_test_shape(pred_x)
+		self.__update_fit_x_y(x_test,pred_x)
+
+		self._xbart_cpp._predict_gp(x, y, pred_x, p_cat, theta, tau)
+		# # Convert to numpy
+		yhats_test = self._xbart_cpp.get_yhats_test(self.params["num_sweeps"]*pred_x.shape[0])
+		# # Convert from colum major 
+		self.yhats_test = yhats_test.reshape((pred_x.shape[0],self.params["num_sweeps"]),order='C')
+		# # Compute mean
+		self.yhats_mean =  self.yhats_test[:,self.params["burnin"]:].mean(axis=1)
+
+		if return_mean:
+			return self.yhats_mean
+		else:
+			return self.yhats_test
+	
 	def to_json(self,file=None):
 		'''
 		Serielize XBART model

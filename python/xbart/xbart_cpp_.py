@@ -115,8 +115,8 @@ class XBARTcpp(object):
     def _predict(self, n: "int") -> "void":
         return _xbart_cpp_.XBARTcpp__predict(self, n)
 
-    def _gp_predict(self, n: "int", p: "int", a: "double *", a_y: "double *", n_t: "int", a_t: "double *", p_cat: "size_t") -> "void":
-        return _xbart_cpp_.XBARTcpp__gp_predict(self, n, p, a, a_y, n_t, a_t, p_cat)
+    def _predict_gp(self, n: "int", p: "int", a: "double *", n_y: "int", n_t: "int", p_t: "int", a_t: "double *", p_cat: "size_t", theta: "double", tau: "double") -> "void":
+        return _xbart_cpp_.XBARTcpp__predict_gp(self, n, p, a, n_y, n_t, p_t, a_t, p_cat, theta, tau)
 
     def np_to_vec_d(self, n: "int", y_std: "vec_d &") -> "void":
         return _xbart_cpp_.XBARTcpp_np_to_vec_d(self, n, y_std)
@@ -126,6 +126,9 @@ class XBARTcpp(object):
 
     def xinfo_to_np(self, x_std: "matrix< double >", arr: "double *") -> "void":
         return _xbart_cpp_.XBARTcpp_xinfo_to_np(self, x_std, arr)
+
+    def vec_d_to_np(self, y_std: "vec_d &", arr: "double *") -> "void":
+        return _xbart_cpp_.XBARTcpp_vec_d_to_np(self, y_std, arr)
 
     def compute_Xorder(self, n: "size_t", d: "size_t", x_std_flat: "vec_d const &", Xorder_std: "matrix< size_t > &") -> "void":
         return _xbart_cpp_.XBARTcpp_compute_Xorder(self, n, d, x_std_flat, Xorder_std)

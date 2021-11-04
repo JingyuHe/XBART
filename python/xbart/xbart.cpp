@@ -116,6 +116,14 @@ void XBARTcpp::xinfo_to_np(matrix<double> x_std, double *arr){
 	return;
 }
 
+void XBARTcpp::vec_d_to_np(vec_d &y_std, double *arr){
+	// Fill in array values from vec_d
+	for(size_t i = 0 , n = (size_t) y_std.size(); i < n; i++){
+		arr[i] = y_std[i];
+	}
+	return;
+}
+
 void XBARTcpp::compute_Xorder(size_t n, size_t d, const vec_d &x_std_flat, matrix<size_t> &Xorder_std){
     // Create Xorder
 	std::vector<size_t> temp;
@@ -154,8 +162,7 @@ void XBARTcpp::get_sigma_draw(int size,double *arr){
 }
 
 void XBARTcpp::get_residuals(double *arr){
-	std::cout << "resid size = " << this->resid.size() << endl;
-  	np_to_vec_d(this->resid.size(), arr, this->resid);
+  	vec_d_to_np(this->resid, arr);
 }
 
 void XBARTcpp::_get_importance(int size,double *arr){
@@ -191,7 +198,7 @@ void XBARTcpp::_predict(int n, int p, double *a){//,int size, double *arr){
 	delete model;
 }
 
-void XBARTcpp::_gp_predict(int n, int p, double *a, double *a_y, int n_t, double *a_t, size_t p_cat){
+void XBARTcpp::_predict_gp(int n, int p, double *a, int n_y, double *a_y, int n_t, int p_t, double *a_t, size_t p_cat, double theta, double tau){
   
   
 	// Convert row major *a to column major std::vector
@@ -268,37 +275,34 @@ void XBARTcpp::_gp_predict(int n, int p, double *a, double *a_y, int n_t, double
     std::fill(active_var.begin(), active_var.end(), false);
 
 	// get residuals
-    // matrix<std::vector<double>> residuals;
-    // ini_matrix(residuals, num_trees, num_sweeps);
-    // for (size_t i = 0; i < num_sweeps; i++){
-    //     for (size_t j = 0; j < num_trees; j++){
-    //         residuals[i][j].resize(N);
-    //         for (size_t k = 0; k < N; k++){
-    //             residuals[i][j][k] =  resid(k + i * N + j * num_sweeps * N);
-    //         }
-    //     }
-    // }
-    // x_struct->set_resid(residuals);
+    matrix<std::vector<double>> residuals;
+    ini_matrix(residuals, this->params.num_trees, this->params.num_sweeps);
+    for (size_t i = 0; i < this->params.num_sweeps; i++){
+        for (size_t j = 0; j < this->params.num_trees; j++){
+            residuals[i][j].resize(n);
+            for (size_t k = 0; k < n; k++){
+                residuals[i][j][k] =  this->resid[k + i * n + j * this->params.num_sweeps * n];
+            }
+        }
+    }
+    x_struct->set_resid(residuals);
 
 
-	// // mcmc loop
-    // for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
-    // {
-    //     for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
-    //     {
-    //         // cout << "sweeps = " << sweeps << ", tree_ind = " << tree_ind << endl;
-    //         (*trees)[sweeps][tree_ind].gp_predict_from_root(Xorder_std, x_struct, x_struct->X_counts, x_struct->X_num_unique, 
-    //         Xtestorder_std, xtest_struct, xtest_struct->X_counts, xtest_struct->X_num_unique, 
-    //         yhats_test_xinfo, active_var, p_categorical, sweeps, tree_ind, theta, tau);
+	// mcmc loop
+    for (size_t sweeps = 0; sweeps < this->params.num_sweeps; sweeps++)
+    {
+        for (size_t tree_ind = 0; tree_ind < this->params.num_trees; tree_ind++)
+        {
+            // cout << "sweeps = " << sweeps << ", tree_ind = " << tree_ind << endl;
+            (this->trees)[sweeps][tree_ind].gp_predict_from_root(Xorder_std, x_struct, x_struct->X_counts, x_struct->X_num_unique, 
+            Xtestorder_std, xtest_struct, xtest_struct->X_counts, xtest_struct->X_num_unique, 
+            this->yhats_test_xinfo, active_var, p_cat, sweeps, tree_ind, theta, tau);
 
-    //     }
-    // }
+        }
+    }
 
-	// Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
-	// Matrix_to_NumericMatrix(yhats_test_xinfo, yhats_test);
-	
-	// return Rcpp::List::create( Rcpp::Named("yhats_test") = yhats_test);
-
+    x_struct.reset();
+    xtest_struct.reset();
 }
 
 

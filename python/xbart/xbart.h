@@ -50,7 +50,7 @@ public:
 	size_t num_classes;
 	//xinfo split_count_all_tree;
 
-	std::vector<double> resid;
+	vec_d resid;
 
 	// Constructors
 	XBARTcpp(XBARTcppParams params);
@@ -65,13 +65,14 @@ public:
 
 	void _fit(int n, int d, double *a, int n_y, double *a_y, size_t p_cat);
 	void _predict(int n, int d, double *a); //,int size, double *arr);
-	void _gp_predict(int n, int p, double *a, double *a_y, int n_t, double *a_t, size_t p_cat);
+	void _predict_gp(int n, int p, double *a, int n_y, double *a_y, int n_t, int p_t, double *a_t, size_t p_cat, double theta, double tau);
   
 
 	// helper functions
 	void np_to_vec_d(int n, double *a, vec_d &y_std);
 	void np_to_col_major_vec(int n, int d, double *a, vec_d &x_std);
 	void xinfo_to_np(matrix<double>  x_std, double *arr);
+	void vec_d_to_np(vec_d &y_std, double *arr);
 	void compute_Xorder(size_t n, size_t d, const vec_d &x_std_flat, matrix<size_t> &Xorder_std);
 	size_t seed;
 	bool seed_flag;

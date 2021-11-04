@@ -2696,11 +2696,10 @@ SWIGINTERN PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyO
 #define SWIGTYPE_p_double swig_types[4]
 #define SWIGTYPE_p_matrixT_double_t swig_types[5]
 #define SWIGTYPE_p_matrixT_size_t_t swig_types[6]
-#define SWIGTYPE_p_std__vectorT_double_t swig_types[7]
-#define SWIGTYPE_p_vec_d swig_types[8]
-#define SWIGTYPE_p_vectorT_vectorT_tree_t_t swig_types[9]
-static swig_type_info *swig_types[11];
-static swig_module_info swig_module = {swig_types, 10, 0, 0, 0, 0};
+#define SWIGTYPE_p_vec_d swig_types[7]
+#define SWIGTYPE_p_vectorT_vectorT_tree_t_t swig_types[8]
+static swig_type_info *swig_types[10];
+static swig_module_info swig_module = {swig_types, 9, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -5624,7 +5623,7 @@ fail:
 SWIGINTERN PyObject *_wrap_XBARTcpp_resid_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   XBARTcpp *arg1 = (XBARTcpp *) 0 ;
-  std::vector< double > arg2 ;
+  vec_d arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 ;
@@ -5638,14 +5637,14 @@ SWIGINTERN PyObject *_wrap_XBARTcpp_resid_set(PyObject *SWIGUNUSEDPARM(self), Py
   }
   arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   {
-    res2 = SWIG_ConvertPtr(swig_obj[1], &argp2, SWIGTYPE_p_std__vectorT_double_t,  0  | 0);
+    res2 = SWIG_ConvertPtr(swig_obj[1], &argp2, SWIGTYPE_p_vec_d,  0  | 0);
     if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "XBARTcpp_resid_set" "', argument " "2"" of type '" "std::vector< double >""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "XBARTcpp_resid_set" "', argument " "2"" of type '" "vec_d""'"); 
     }  
     if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "XBARTcpp_resid_set" "', argument " "2"" of type '" "std::vector< double >""'");
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "XBARTcpp_resid_set" "', argument " "2"" of type '" "vec_d""'");
     } else {
-      std::vector< double > * temp = reinterpret_cast< std::vector< double > * >(argp2);
+      vec_d * temp = reinterpret_cast< vec_d * >(argp2);
       arg2 = *temp;
       if (SWIG_IsNewObj(res2)) delete temp;
     }
@@ -5664,7 +5663,7 @@ SWIGINTERN PyObject *_wrap_XBARTcpp_resid_get(PyObject *SWIGUNUSEDPARM(self), Py
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject *swig_obj[1] ;
-  std::vector< double > result;
+  vec_d result;
   
   if (!args) SWIG_fail;
   swig_obj[0] = args;
@@ -5674,7 +5673,7 @@ SWIGINTERN PyObject *_wrap_XBARTcpp_resid_get(PyObject *SWIGUNUSEDPARM(self), Py
   }
   arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   result =  ((arg1)->resid);
-  resultobj = SWIG_NewPointerObj((new std::vector< double >(static_cast< const std::vector< double >& >(result))), SWIGTYPE_p_std__vectorT_double_t, SWIG_POINTER_OWN |  0 );
+  resultobj = SWIG_NewPointerObj((new vec_d(static_cast< const vec_d& >(result))), SWIGTYPE_p_vec_d, SWIG_POINTER_OWN |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -6231,16 +6230,20 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTcpp__gp_predict(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp__predict_gp(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   int arg2 ;
   int arg3 ;
   double *arg4 = (double *) 0 ;
-  double *arg5 = (double *) 0 ;
-  int arg6 ;
-  double *arg7 = (double *) 0 ;
-  size_t arg8 ;
+  int arg5 ;
+  double *arg6 = (double *) 0 ;
+  int arg7 ;
+  int arg8 ;
+  double *arg9 = (double *) 0 ;
+  size_t arg10 ;
+  double arg11 ;
+  double arg12 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int val2 ;
@@ -6249,61 +6252,101 @@ SWIGINTERN PyObject *_wrap_XBARTcpp__gp_predict(PyObject *SWIGUNUSEDPARM(self), 
   int ecode3 = 0 ;
   void *argp4 = 0 ;
   int res4 = 0 ;
-  void *argp5 = 0 ;
-  int res5 = 0 ;
-  int val6 ;
-  int ecode6 = 0 ;
-  void *argp7 = 0 ;
-  int res7 = 0 ;
-  size_t val8 ;
+  PyArrayObject *array5 = NULL ;
+  int is_new_object5 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int val8 ;
   int ecode8 = 0 ;
-  PyObject *swig_obj[8] ;
+  void *argp9 = 0 ;
+  int res9 = 0 ;
+  size_t val10 ;
+  int ecode10 = 0 ;
+  double val11 ;
+  int ecode11 = 0 ;
+  double val12 ;
+  int ecode12 = 0 ;
+  PyObject *swig_obj[11] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "XBARTcpp__gp_predict", 8, 8, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "XBARTcpp__predict_gp", 11, 11, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp__gp_predict" "', argument " "1"" of type '" "XBARTcpp *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp__predict_gp" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
   arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   ecode2 = SWIG_AsVal_int(swig_obj[1], &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcpp__gp_predict" "', argument " "2"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcpp__predict_gp" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
   ecode3 = SWIG_AsVal_int(swig_obj[2], &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "XBARTcpp__gp_predict" "', argument " "3"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "XBARTcpp__predict_gp" "', argument " "3"" of type '" "int""'");
   } 
   arg3 = static_cast< int >(val3);
   res4 = SWIG_ConvertPtr(swig_obj[3], &argp4,SWIGTYPE_p_double, 0 |  0 );
   if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "XBARTcpp__gp_predict" "', argument " "4"" of type '" "double *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "XBARTcpp__predict_gp" "', argument " "4"" of type '" "double *""'"); 
   }
   arg4 = reinterpret_cast< double * >(argp4);
-  res5 = SWIG_ConvertPtr(swig_obj[4], &argp5,SWIGTYPE_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res5)) {
-    SWIG_exception_fail(SWIG_ArgError(res5), "in method '" "XBARTcpp__gp_predict" "', argument " "5"" of type '" "double *""'"); 
+  {
+    npy_intp size[1] = {
+      -1
+    };
+    array5 = obj_to_array_contiguous_allow_conversion(swig_obj[4],
+      NPY_DOUBLE,
+      &is_new_object5);
+    if (!array5 || !require_dimensions(array5, 1) ||
+      !require_size(array5, size, 1)) SWIG_fail;
+    arg5 = (int) array_size(array5,0);
+    arg6 = (double*) array_data(array5);
   }
-  arg5 = reinterpret_cast< double * >(argp5);
-  ecode6 = SWIG_AsVal_int(swig_obj[5], &val6);
-  if (!SWIG_IsOK(ecode6)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "XBARTcpp__gp_predict" "', argument " "6"" of type '" "int""'");
+  ecode7 = SWIG_AsVal_int(swig_obj[5], &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "XBARTcpp__predict_gp" "', argument " "7"" of type '" "int""'");
   } 
-  arg6 = static_cast< int >(val6);
-  res7 = SWIG_ConvertPtr(swig_obj[6], &argp7,SWIGTYPE_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res7)) {
-    SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "XBARTcpp__gp_predict" "', argument " "7"" of type '" "double *""'"); 
-  }
-  arg7 = reinterpret_cast< double * >(argp7);
-  ecode8 = SWIG_AsVal_size_t(swig_obj[7], &val8);
+  arg7 = static_cast< int >(val7);
+  ecode8 = SWIG_AsVal_int(swig_obj[6], &val8);
   if (!SWIG_IsOK(ecode8)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "XBARTcpp__gp_predict" "', argument " "8"" of type '" "size_t""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "XBARTcpp__predict_gp" "', argument " "8"" of type '" "int""'");
   } 
-  arg8 = static_cast< size_t >(val8);
-  (arg1)->_gp_predict(arg2,arg3,arg4,arg5,arg6,arg7,arg8);
+  arg8 = static_cast< int >(val8);
+  res9 = SWIG_ConvertPtr(swig_obj[7], &argp9,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res9)) {
+    SWIG_exception_fail(SWIG_ArgError(res9), "in method '" "XBARTcpp__predict_gp" "', argument " "9"" of type '" "double *""'"); 
+  }
+  arg9 = reinterpret_cast< double * >(argp9);
+  ecode10 = SWIG_AsVal_size_t(swig_obj[8], &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "XBARTcpp__predict_gp" "', argument " "10"" of type '" "size_t""'");
+  } 
+  arg10 = static_cast< size_t >(val10);
+  ecode11 = SWIG_AsVal_double(swig_obj[9], &val11);
+  if (!SWIG_IsOK(ecode11)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "XBARTcpp__predict_gp" "', argument " "11"" of type '" "double""'");
+  } 
+  arg11 = static_cast< double >(val11);
+  ecode12 = SWIG_AsVal_double(swig_obj[10], &val12);
+  if (!SWIG_IsOK(ecode12)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "XBARTcpp__predict_gp" "', argument " "12"" of type '" "double""'");
+  } 
+  arg12 = static_cast< double >(val12);
+  (arg1)->_predict_gp(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
   resultobj = SWIG_Py_Void();
+  {
+    if (is_new_object5 && array5)
+    {
+      Py_DECREF(array5); 
+    }
+  }
   return resultobj;
 fail:
+  {
+    if (is_new_object5 && array5)
+    {
+      Py_DECREF(array5); 
+    }
+  }
   return NULL;
 }
 
@@ -6468,6 +6511,46 @@ SWIGINTERN PyObject *_wrap_XBARTcpp_xinfo_to_np(PyObject *SWIGUNUSEDPARM(self), 
   }
   arg3 = reinterpret_cast< double * >(argp3);
   (arg1)->xinfo_to_np(arg2,arg3);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_XBARTcpp_vec_d_to_np(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
+  vec_d *arg2 = 0 ;
+  double *arg3 = (double *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  void *argp3 = 0 ;
+  int res3 = 0 ;
+  PyObject *swig_obj[3] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "XBARTcpp_vec_d_to_np", 3, 3, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_vec_d_to_np" "', argument " "1"" of type '" "XBARTcpp *""'"); 
+  }
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
+  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2, SWIGTYPE_p_vec_d,  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "XBARTcpp_vec_d_to_np" "', argument " "2"" of type '" "vec_d &""'"); 
+  }
+  if (!argp2) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "XBARTcpp_vec_d_to_np" "', argument " "2"" of type '" "vec_d &""'"); 
+  }
+  arg2 = reinterpret_cast< vec_d * >(argp2);
+  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "XBARTcpp_vec_d_to_np" "', argument " "3"" of type '" "double *""'"); 
+  }
+  arg3 = reinterpret_cast< double * >(argp3);
+  (arg1)->vec_d_to_np(*arg2,arg3);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -7136,10 +7219,11 @@ static PyMethodDef SwigMethods[] = {
 	 { "new_XBARTcpp", _wrap_new_XBARTcpp, METH_VARARGS, NULL},
 	 { "XBARTcpp__fit", _wrap_XBARTcpp__fit, METH_VARARGS, NULL},
 	 { "XBARTcpp__predict", _wrap_XBARTcpp__predict, METH_VARARGS, NULL},
-	 { "XBARTcpp__gp_predict", _wrap_XBARTcpp__gp_predict, METH_VARARGS, NULL},
+	 { "XBARTcpp__predict_gp", _wrap_XBARTcpp__predict_gp, METH_VARARGS, NULL},
 	 { "XBARTcpp_np_to_vec_d", _wrap_XBARTcpp_np_to_vec_d, METH_VARARGS, NULL},
 	 { "XBARTcpp_np_to_col_major_vec", _wrap_XBARTcpp_np_to_col_major_vec, METH_VARARGS, NULL},
 	 { "XBARTcpp_xinfo_to_np", _wrap_XBARTcpp_xinfo_to_np, METH_VARARGS, NULL},
+	 { "XBARTcpp_vec_d_to_np", _wrap_XBARTcpp_vec_d_to_np, METH_VARARGS, NULL},
 	 { "XBARTcpp_compute_Xorder", _wrap_XBARTcpp_compute_Xorder, METH_VARARGS, NULL},
 	 { "XBARTcpp_seed_set", _wrap_XBARTcpp_seed_set, METH_VARARGS, NULL},
 	 { "XBARTcpp_seed_get", _wrap_XBARTcpp_seed_get, METH_O, NULL},
@@ -7177,7 +7261,6 @@ static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_matrixT_double_t = {"_p_matrixT_double_t", "matrix< double > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_matrixT_size_t_t = {"_p_matrixT_size_t_t", "matrix< size_t > *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_std__vectorT_double_t = {"_p_std__vectorT_double_t", "std::vector< double > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_vec_d = {"_p_vec_d", "vec_d *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_vectorT_vectorT_tree_t_t = {"_p_vectorT_vectorT_tree_t_t", "vector< vector< tree > > *", 0, 0, (void*)0, 0};
 
@@ -7189,7 +7272,6 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_double,
   &_swigt__p_matrixT_double_t,
   &_swigt__p_matrixT_size_t_t,
-  &_swigt__p_std__vectorT_double_t,
   &_swigt__p_vec_d,
   &_swigt__p_vectorT_vectorT_tree_t_t,
 };
@@ -7201,7 +7283,6 @@ static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0,
 static swig_cast_info _swigc__p_double[] = {  {&_swigt__p_double, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_matrixT_double_t[] = {  {&_swigt__p_matrixT_double_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_matrixT_size_t_t[] = {  {&_swigt__p_matrixT_size_t_t, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_std__vectorT_double_t[] = {  {&_swigt__p_std__vectorT_double_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_vec_d[] = {  {&_swigt__p_vec_d, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_vectorT_vectorT_tree_t_t[] = {  {&_swigt__p_vectorT_vectorT_tree_t_t, 0, 0, 0},{0, 0, 0, 0}};
 
@@ -7213,7 +7294,6 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_double,
   _swigc__p_matrixT_double_t,
   _swigc__p_matrixT_size_t_t,
-  _swigc__p_std__vectorT_double_t,
   _swigc__p_vec_d,
   _swigc__p_vectorT_vectorT_tree_t_t,
 };
