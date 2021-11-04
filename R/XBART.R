@@ -2,7 +2,7 @@ XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
     Nmin = 1, num_cutpoints = 100, alpha = 0.95, beta = 1.25, tau = NULL, 
     no_split_penality = NULL, burnin = 1L, mtry = NULL, p_categorical = 0L, 
     kap = 16, s = 4, tau_kap = 3, tau_s = 0.5, verbose = FALSE, sampling_tau = TRUE, parallel = TRUE, random_seed = NULL, 
-    sample_weights_flag = TRUE, nthread = 0, distance_s = 1, ...) {
+    sample_weights_flag = TRUE, nthread = 0, ...) {
     
     if (!("matrix" %in% class(X))) {
         cat("Input X is not a matrix, try to convert type.\n")
@@ -83,7 +83,7 @@ XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
     obj = XBART_cpp(y, X, Xtest, num_trees, num_sweeps, max_depth, 
         Nmin, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, 
         mtry, p_categorical, kap, s, tau_kap, tau_s, verbose, sampling_tau, parallel, set_random_seed, 
-        random_seed, sample_weights_flag, nthread, distance_s)
+        random_seed, sample_weights_flag, nthread)
 
     tree_json = r_to_json(mean(y), obj$model$tree_pnt)
     obj$tree_json = tree_json

@@ -154,7 +154,8 @@ void XBARTcpp::get_sigma_draw(int size,double *arr){
 }
 
 void XBARTcpp::get_residuals(double *arr){
-  	xinfo_to_np(this->resid,arr);
+	std::cout << "resid size = " << this->resid.size() << endl;
+  	np_to_vec_d(this->resid.size(), arr, this->resid);
 }
 
 void XBARTcpp::_get_importance(int size,double *arr){
@@ -259,8 +260,8 @@ void XBARTcpp::_gp_predict(int n, int p, double *a, double *a_y, int n_t, double
     std::vector<double> initial_theta(1, y_mean / (double)this->params.num_trees);
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, n, Xorder_std, p_cat, p-p_cat, &initial_theta, this->params.num_trees));
 	std::unique_ptr<X_struct> xtest_struct(new X_struct(Xtestpointer, &y_std, n_t, Xtestorder_std, p_cat, p-p_cat, &initial_theta, this->params.num_trees));
-	x_struct->n_y = N;
-    xtest_struct->n_y = N_test;
+	x_struct->n_y = n;
+    xtest_struct->n_y = n_t;
 
 	std::vector<bool> active_var(p);
     std::fill(active_var.begin(), active_var.end(), false);
@@ -398,7 +399,7 @@ void XBARTcpp::_fit(int n, int p, double *a, int n_y, double *a_y, size_t p_cat)
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, n, Xorder_std, p_cat, p-p_cat, &initial_theta, this->params.num_trees));
 
-	this->resid.resize(N * num_sweeps * num_trees);
+	this->resid.resize(n * this->params.num_sweeps * this->params.num_trees);
 
     mcmc_loop(Xorder_std, this->params.verbose, sigma_draw_xinfo, this->trees, this->no_split_penality, state, this->model, x_struct, this->resid);
 

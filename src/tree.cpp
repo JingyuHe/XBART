@@ -3,7 +3,8 @@
 #include <chrono>
 #include "omp.h"
 #include <ctime>
-#include <RcppArmadillo.h>
+// #include <RcppArmadillo.h>
+# include <armadillo>
 
 using namespace std;
 using namespace chrono;
@@ -2549,7 +2550,7 @@ void getThetaForObs_Insample(matrix<double> &output, size_t x_index, std::unique
     return;
 }
 
-void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p, std::mt19937 &gen, double &s)
+void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p, std::mt19937 &gen)
 {
     // get theta of ONE observation of ALL trees, out sample fit
     // input is a pointer to testing set matrix because it is out of sample

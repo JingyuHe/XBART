@@ -122,7 +122,7 @@ yt = ft + rnorm(nt, 0, sigma)
 # train -------------------------------------------------------
 tau = var(y)/10
 n_trees = 10
-fit <- XBART(y=matrix(y),  X=x, Xtest=xt, num_trees=n_trees, Nmin = 10,num_sweeps=200, burnin = 15, tau = tau, sampling_tau = TRUE, distance_s = 1)
+fit <- XBART(y=matrix(y),  X=x, Xtest=xt, num_trees=n_trees, Nmin = 10,num_sweeps=200, burnin = 15, tau = tau, sampling_tau = TRUE)
 
 gp_pred <- predict.gp(fit, as.matrix(y), x, xt, theta = 10, tau = var(y)/10, p_categorical = 0)
 

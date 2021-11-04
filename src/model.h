@@ -121,10 +121,8 @@ public:
     double tau_prior;
     double tau_mean; // copy of the original value
     bool sampling_tau;
-    
-    double distance_s; // s: coefficient for distance in prediction
 
-    NormalModel(double kap, double s, double tau, double alpha, double beta, bool sampling_tau, double tau_kap, double tau_s, double distance_s) : Model(1, 3)
+    NormalModel(double kap, double s, double tau, double alpha, double beta, bool sampling_tau, double tau_kap, double tau_s) : Model(1, 3)
     {
         this->kap = kap;
         this->s = s;
@@ -138,7 +136,6 @@ public:
         this->dim_residual = 1;
         this->class_operating = 0;
         this->sampling_tau = sampling_tau;
-        this->distance_s = distance_s;
     }
 
     NormalModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 3)
@@ -152,11 +149,6 @@ public:
         this->dim_residual = 1;
         this->class_operating = 0;
         this->sampling_tau = true;
-    }
-
-    NormalModel(double distance_s) : Model(1,3)
-    {
-        this->distance_s = distance_s;
     }
     
     NormalModel() : Model(1, 3) {}
