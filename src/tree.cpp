@@ -3,7 +3,7 @@
 #include <chrono>
 #include "omp.h"
 #include <ctime>
-// #include <RcppArmadillo.h>
+#include <RcppArmadillo.h>
 #include <armadillo>
 
 using namespace std;
