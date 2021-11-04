@@ -220,7 +220,7 @@ Rcpp::List gp_predict_old(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<
 Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, Rcpp::NumericVector resid, double theta, double tau, size_t p_categorical = 0)
 {
     // should be able to run in parallel
-
+    cout << "predict with gaussian process" << endl;
     // if (parallel && (nthread == 0))
     // {
     //     // if turn on parallel and do not sepicifiy number of threads
@@ -340,9 +340,6 @@ Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std:
     return Rcpp::List::create( Rcpp::Named("yhats_test") = yhats_test);
 
 }
-
-
-
 
 // [[Rcpp::export]]
 Rcpp::List xbart_multinomial_predict(arma::mat X, double y_mean, size_t num_class, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, arma::vec iteration)
