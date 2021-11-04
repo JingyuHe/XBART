@@ -3,6 +3,7 @@
 #include <mcmc_loop.h>
 #include <json_io.h>
 #include <model.h>
+#include <armadillo>
 
 struct XBARTcppParams
 {
