@@ -1,10 +1,9 @@
 #include "tree.h"
-// #include <RcppArmadilloExtensions/sample.h>
 #include <chrono>
 #include "omp.h"
 #include <ctime>
-#include <RcppArmadillo.h>
-#include <armadillo>
+// #include <RcppArmadillo.h>
+// #include <armadillo>
 
 using namespace std;
 using namespace chrono;
@@ -2422,7 +2421,7 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
             }
         }
 
-        arma::mat X(N + Ntest, p_active);
+        mat X(N + Ntest, p_active);
         std::vector<double> x_range(p_active);
         const double *split_var_x_pointer;
         size_t j_count = 0;
@@ -2444,24 +2443,24 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
             }
         }
         
-        arma::mat resid(N, 1);
+        mat resid(N, 1);
         for (size_t i = 0; i < N; i++){
             resid(i, 0) = x_struct->resid[sweeps][tree_ind][train_ind[i]] - this->theta_vector[0];
         }
 
-        arma::mat cov(N + Ntest, N + Ntest);
+        mat cov(N + Ntest, N + Ntest);
 
         get_rel_covariance(cov, X, x_range, theta, tau);
-        arma::mat k = cov.submat(N, 0, N + Ntest - 1, N - 1); // cov[2:nrow(cov), 1]
-        arma::mat Kinv = pinv(cov.submat(0, 0, N - 1, N -1));
+        mat k = cov.submat(N, 0, N + Ntest - 1, N - 1); // cov[2:nrow(cov), 1]
+        mat Kinv = pinv(cov.submat(0, 0, N - 1, N -1));
         
-        arma::mat mu = this->theta_vector[0] + k * Kinv * resid;
-        arma::mat Sig =  cov.submat(N, N, N + Ntest - 1, N + Ntest - 1) - k * Kinv * trans(k);
+        mat mu = this->theta_vector[0] + k * Kinv * resid;
+        mat Sig =  cov.submat(N, N, N + Ntest - 1, N + Ntest - 1) - k * Kinv * trans(k);
         std::normal_distribution<double> normal_samp(0.0, 1.0);
-        arma::mat rnorm(Ntest , 1);
+        mat rnorm(Ntest , 1);
         for (size_t i = 0; i < Ntest; i++) { rnorm(i, 0) = normal_samp(x_struct->gen); }
 
-        arma::mat mu_pred = mu + Sig * rnorm;
+        mat mu_pred = mu + Sig * rnorm;
         for (size_t i = 0; i < Ntest; i++){
              yhats_test_xinfo[sweeps][test_ind[i]] += mu_pred(i) - this->theta_vector[0];
         }

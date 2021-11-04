@@ -300,7 +300,7 @@ void dirichlet_distribution(std::vector<double> &prob, std::vector<double> &alph
     return;
 }
 
-void get_rel_covariance(arma::mat &cov, arma::mat &X, std::vector<double> X_range, double theta, double tau)
+void get_rel_covariance(mat &cov, mat &X, std::vector<double> X_range, double theta, double tau)
 {
     double temp;
     for (size_t i = 0; i < X.n_rows; i++){

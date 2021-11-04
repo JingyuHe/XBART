@@ -6,16 +6,18 @@
 // #include "thread_pool.h"
 // extern ThreadPool thread_pool;
 
-#ifndef SWIG_FILE_WITH_INIT
+// #ifndef SWIG_FILE_WITH_INIT
 #include <algorithm>
 #include <functional>
 #include <iterator>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <numeric>
-#include<RcppArmadillo.h>
+// #include<RcppArmadillo.h>
 #include <armadillo>
-#endif
+// #endif
+
+using namespace arma;
 
 template <typename T>
 void ini_matrix(matrix<T> &matrix, size_t N, size_t p)
@@ -154,6 +156,6 @@ void multinomial_distribution(const size_t size, std::vector<double> &prob, std:
 
 void dirichlet_distribution(std::vector<double> &prob, std::vector<double> &alpha, std::mt19937 &gen);
 
-void get_rel_covariance(arma::mat &cov, arma::mat &X, std::vector<double> X_range, double theta, double tau);
+void get_rel_covariance(mat &cov, mat &X, std::vector<double> X_range, double theta, double tau);
 
 #endif

@@ -1,5 +1,7 @@
 #include <ctime>
-#include <RcppArmadillo.h>
+// #include <RcppArmadillo.h>
+#include "Rcpp.h"
+#include <armadillo>
 #include "tree.h"
 #include "forest.h"
 #include <chrono>
@@ -8,8 +10,10 @@
 #include "json_io.h"
 #include "utility_rcpp.h"
 
+using namespace arma;
+
 // [[Rcpp::export]]
-Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)
+Rcpp::List xbart_predict(mat X, double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)
 {
 
     // Size of data
@@ -56,7 +60,7 @@ Rcpp::List xbart_predict(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std:
 }
 
 // [[Rcpp::export]]
-Rcpp::List xbart_predict_full(arma::mat X, double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)
+Rcpp::List xbart_predict_full(mat X, double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)
 {
 
     // Size of data
@@ -95,129 +99,128 @@ Rcpp::List xbart_predict_full(arma::mat X, double y_mean, Rcpp::XPtr<std::vector
     return Rcpp::List::create(Rcpp::Named("yhats") = output);
 }
 
+// // [[Rcpp::export]]
+// Rcpp::List gp_predict_old(mat y, mat X, mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)
+// {
+//     // return leaf id for train and test samples
+//     // return max active variable for each test samples
 
-// [[Rcpp::export]]
-Rcpp::List gp_predict_old(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)
-{
-    // return leaf id for train and test samples
-    // return max active variable for each test samples
+//     // Size of data
+//     size_t N = X.n_rows;
+//     size_t p = X.n_cols;
+//     size_t N_test = Xtest.n_rows;
 
-    // Size of data
-    size_t N = X.n_rows;
-    size_t p = X.n_cols;
-    size_t N_test = Xtest.n_rows;
+//     // Init X_std matrix
+//     Rcpp::NumericMatrix X_std(N, p);
+//     for (size_t i = 0; i < N; i++)
+//     {
+//         for (size_t j = 0; j < p; j++)
+//         {
+//             X_std(i, j) = X(i, j);
+//         }
+//     }
+//     double *Xpointer = &X_std[0];
 
-    // Init X_std matrix
-    Rcpp::NumericMatrix X_std(N, p);
-    for (size_t i = 0; i < N; i++)
-    {
-        for (size_t j = 0; j < p; j++)
-        {
-            X_std(i, j) = X(i, j);
-        }
-    }
-    double *Xpointer = &X_std[0];
+//     Rcpp::NumericMatrix Xtest_std(N_test, p);
+//     for (size_t i = 0; i < N_test; i++)
+//     {
+//         for (size_t j = 0; j < p; j++)
+//         {
+//             Xtest_std(i, j) = Xtest(i, j);
+//         }
+//     }
+//     double *Xtestpointer = &Xtest_std[0];
 
-    Rcpp::NumericMatrix Xtest_std(N_test, p);
-    for (size_t i = 0; i < N_test; i++)
-    {
-        for (size_t j = 0; j < p; j++)
-        {
-            Xtest_std(i, j) = Xtest(i, j);
-        }
-    }
-    double *Xtestpointer = &Xtest_std[0];
+//      // Trees
+//     std::vector<std::vector<tree>> *trees = tree_pnt;
 
-     // Trees
-    std::vector<std::vector<tree>> *trees = tree_pnt;
-
-    // Result Container
-    matrix<double> yhats_test_xinfo;
-    size_t N_sweeps = (*trees).size();
-    size_t M = (*trees)[0].size();
-    ini_xinfo(yhats_test_xinfo, N, N_sweeps);
+//     // Result Container
+//     matrix<double> yhats_test_xinfo;
+//     size_t N_sweeps = (*trees).size();
+//     size_t M = (*trees)[0].size();
+//     ini_xinfo(yhats_test_xinfo, N, N_sweeps);
 
 
-    // get leaf id for all train data
-    std::vector<double> train_id(N * N_sweeps * M );
-    tree::tree_p bn; // pointer to bottom node
-    for (size_t i = 0; i < N; i++)
-    {
-        for (size_t sweep_ind = 0; sweep_ind < N_sweeps; sweep_ind++){
+//     // get leaf id for all train data
+//     std::vector<double> train_id(N * N_sweeps * M );
+//     tree::tree_p bn; // pointer to bottom node
+//     for (size_t i = 0; i < N; i++)
+//     {
+//         for (size_t sweep_ind = 0; sweep_ind < N_sweeps; sweep_ind++){
             
-            for (size_t tree_ind = 0; tree_ind < M; tree_ind++){
-                // loop over observations
-                // tree search
-                bn = (*trees)[sweep_ind][tree_ind].search_bottom_std(Xpointer, i, p, N);
-                train_id[i + sweep_ind * N + tree_ind * N * N_sweeps] = bn->getID();
-            }
-        }        
-    }
+//             for (size_t tree_ind = 0; tree_ind < M; tree_ind++){
+//                 // loop over observations
+//                 // tree search
+//                 bn = (*trees)[sweep_ind][tree_ind].search_bottom_std(Xpointer, i, p, N);
+//                 train_id[i + sweep_ind * N + tree_ind * N * N_sweeps] = bn->getID();
+//             }
+//         }        
+//     }
 
-    // get leaf id, mu and active variable for test data
-    std::vector<double> test_theta(N_test * N_sweeps * M );
-    std::vector<size_t> test_id(N_test * N_sweeps * M );
-    std::vector<std::vector<size_t>> test_var(N_test * N_sweeps * M);
-    double theta;
-    size_t leaf_id;
-    std::vector<bool> active_var(p);
-    std::vector<size_t> active_set;
+//     // get leaf id, mu and active variable for test data
+//     std::vector<double> test_theta(N_test * N_sweeps * M );
+//     std::vector<size_t> test_id(N_test * N_sweeps * M );
+//     std::vector<std::vector<size_t>> test_var(N_test * N_sweeps * M);
+//     double theta;
+//     size_t leaf_id;
+//     std::vector<bool> active_var(p);
+//     std::vector<size_t> active_set;
 
-    for (size_t i = 0; i < N_test; i++)
-    {
-        for (size_t sweep_ind = 0; sweep_ind < N_sweeps; sweep_ind++){
+//     for (size_t i = 0; i < N_test; i++)
+//     {
+//         for (size_t sweep_ind = 0; sweep_ind < N_sweeps; sweep_ind++){
             
-            for (size_t tree_ind = 0; tree_ind < M; tree_ind++){
-                // loop over observations
-                // // tree search
-                active_set.clear();
-                std::fill(active_var.begin(), active_var.end(), false);
-                (*trees)[sweep_ind][tree_ind].get_gp_info(Xtestpointer, i, p, N_test, active_var, theta, leaf_id);
-                test_id[i + sweep_ind * N_test + tree_ind * N_test * N_sweeps] = leaf_id;
-                test_theta[i + sweep_ind * N_test + tree_ind * N_test * N_sweeps] = theta;
+//             for (size_t tree_ind = 0; tree_ind < M; tree_ind++){
+//                 // loop over observations
+//                 // // tree search
+//                 active_set.clear();
+//                 std::fill(active_var.begin(), active_var.end(), false);
+//                 (*trees)[sweep_ind][tree_ind].get_gp_info(Xtestpointer, i, p, N_test, active_var, theta, leaf_id);
+//                 test_id[i + sweep_ind * N_test + tree_ind * N_test * N_sweeps] = leaf_id;
+//                 test_theta[i + sweep_ind * N_test + tree_ind * N_test * N_sweeps] = theta;
 
-                for (size_t v = 0; v < p; v++){
-                    if (active_var[v]) { active_set.push_back(v); }
-                }                              
-                test_var[i + sweep_ind * N_test + tree_ind * N_test * N_sweeps] = active_set;
-            }
-        }        
-    }
+//                 for (size_t v = 0; v < p; v++){
+//                     if (active_var[v]) { active_set.push_back(v); }
+//                 }                              
+//                 test_var[i + sweep_ind * N_test + tree_ind * N_test * N_sweeps] = active_set;
+//             }
+//         }        
+//     }
 
-    Rcpp::NumericVector train_id_rcpp = Rcpp::wrap(train_id);
-    Rcpp::NumericVector test_id_rcpp = Rcpp::wrap(test_id);
-    Rcpp::NumericVector test_theta_rcpp = Rcpp::wrap(test_theta);
-    train_id_rcpp.attr("dim") = Rcpp::Dimension(N, N_sweeps, M);
-    test_id_rcpp.attr("dim") = Rcpp::Dimension(N_test, N_sweeps, M);
-    test_theta_rcpp.attr("dim") = Rcpp::Dimension(N_test, N_sweeps, M);
+//     Rcpp::NumericVector train_id_rcpp = Rcpp::wrap(train_id);
+//     Rcpp::NumericVector test_id_rcpp = Rcpp::wrap(test_id);
+//     Rcpp::NumericVector test_theta_rcpp = Rcpp::wrap(test_theta);
+//     train_id_rcpp.attr("dim") = Rcpp::Dimension(N, N_sweeps, M);
+//     test_id_rcpp.attr("dim") = Rcpp::Dimension(N_test, N_sweeps, M);
+//     test_theta_rcpp.attr("dim") = Rcpp::Dimension(N_test, N_sweeps, M);
     
-    Rcpp::NumericVector active_var_rcpp(p);
-    arma::field<Rcpp::NumericVector> test_var_rcpp(N_test * N_sweeps * M);
-    for (size_t i = 0; i < N_test; i++)
-    {
+//     Rcpp::NumericVector active_var_rcpp(p);
+//     field<Rcpp::NumericVector> test_var_rcpp(N_test * N_sweeps * M);
+//     for (size_t i = 0; i < N_test; i++)
+//     {
         
-        for (size_t sweep_ind = 0; sweep_ind < N_sweeps; sweep_ind++){
+//         for (size_t sweep_ind = 0; sweep_ind < N_sweeps; sweep_ind++){
             
-            for (size_t tree_ind = 0; tree_ind < M; tree_ind++){
+//             for (size_t tree_ind = 0; tree_ind < M; tree_ind++){
 
-                test_var_rcpp(i * N_sweeps * M + sweep_ind * M + tree_ind ) = Rcpp::wrap(test_var[i + sweep_ind * N_test + tree_ind * N_test * N_sweeps]);;
-           }
-        }        
-    }
+//                 test_var_rcpp(i * N_sweeps * M + sweep_ind * M + tree_ind ) = Rcpp::wrap(test_var[i + sweep_ind * N_test + tree_ind * N_test * N_sweeps]);;
+//            }
+//         }        
+//     }
 
-    return Rcpp::List::create(
-        Rcpp::Named("train_id") = train_id_rcpp,
-        Rcpp::Named("test_id") = test_id_rcpp,
-        Rcpp::Named("yhat_test") = test_theta_rcpp,
-        Rcpp::Named("active_var") = test_var_rcpp,
-        Rcpp::Named("num_sweeps") = N_sweeps,
-        Rcpp::Named("num_trees") = M
-        );
+//     return Rcpp::List::create(
+//         Rcpp::Named("train_id") = train_id_rcpp,
+//         Rcpp::Named("test_id") = test_id_rcpp,
+//         Rcpp::Named("yhat_test") = test_theta_rcpp,
+//         Rcpp::Named("active_var") = test_var_rcpp,
+//         Rcpp::Named("num_sweeps") = N_sweeps,
+//         Rcpp::Named("num_trees") = M
+//         );
 
-}
+// }
 
 // [[Rcpp::export]]
-Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, Rcpp::NumericVector resid, double theta, double tau, size_t p_categorical = 0)
+Rcpp::List gp_predict(mat y, mat X, mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, Rcpp::NumericVector resid, double theta, double tau, size_t p_categorical = 0)
 {
     // should be able to run in parallel
     cout << "predict with gaussian process" << endl;
@@ -261,10 +264,10 @@ Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std:
     ini_matrix(Xtestorder_std, N_test, p);
 
     // Create Xtestorder
-    arma::umat Xtestorder(Xtest.n_rows, Xtest.n_cols);
+    umat Xtestorder(Xtest.n_rows, Xtest.n_cols);
     for (size_t i = 0; i < Xtest.n_cols; i++)
     {
-        Xtestorder.col(i) = arma::sort_index(Xtest.col(i));
+        Xtestorder.col(i) = sort_index(Xtest.col(i));
     }
     for (size_t i = 0; i < N_test; i++)
     {
@@ -342,7 +345,7 @@ Rcpp::List gp_predict(arma::mat y, arma::mat X, arma::mat Xtest, Rcpp::XPtr<std:
 }
 
 // [[Rcpp::export]]
-Rcpp::List xbart_multinomial_predict(arma::mat X, double y_mean, size_t num_class, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, arma::vec iteration)
+Rcpp::List xbart_multinomial_predict(mat X, double y_mean, size_t num_class, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, vec iteration)
 {
 
     // Size of data
@@ -397,7 +400,7 @@ Rcpp::List xbart_multinomial_predict(arma::mat X, double y_mean, size_t num_clas
 }
 
 // [[Rcpp::export]]
-Rcpp::List xbart_multinomial_predict_3D(arma::mat X, double y_mean, size_t num_class, Rcpp::XPtr<std::vector<std::vector<std::vector<tree>>>> tree_pnt, arma::vec iteration)
+Rcpp::List xbart_multinomial_predict_3D(mat X, double y_mean, size_t num_class, Rcpp::XPtr<std::vector<std::vector<std::vector<tree>>>> tree_pnt, vec iteration)
 {
     // used to predict for a three dimensional matrix of trees, for separate tree model of multinomial classification
     // Size of data

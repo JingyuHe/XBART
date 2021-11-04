@@ -11,7 +11,7 @@
 //                                                                    //
 ////////////////////////////////////////////////////////////////////////
 
-void rcpp_to_std2(arma::mat y, arma::mat X, arma::mat Xtest, std::vector<double> &y_std, double &y_mean, Rcpp::NumericMatrix &X_std, Rcpp::NumericMatrix &Xtest_std, matrix<size_t> &Xorder_std)
+void rcpp_to_std2(mat y, mat X, mat Xtest, std::vector<double> &y_std, double &y_mean, Rcpp::NumericMatrix &X_std, Rcpp::NumericMatrix &Xtest_std, matrix<size_t> &Xorder_std)
 {
     // The goal of this function is to convert RCPP object to std objects
 
@@ -51,11 +51,11 @@ void rcpp_to_std2(arma::mat y, arma::mat X, arma::mat Xtest, std::vector<double>
 
     // Create Xorder
     // Order
-    arma::umat Xorder(X.n_rows, X.n_cols);
+    umat Xorder(X.n_rows, X.n_cols);
 // #pragma omp parallel for schedule(dynamic, 1) shared(X, Xorder)
     for (size_t i = 0; i < X.n_cols; i++)
     {
-        Xorder.col(i) = arma::sort_index(X.col(i));
+        Xorder.col(i) = sort_index(X.col(i));
     }
 // Create
 // #pragma omp parallel for collapse(2)
@@ -70,7 +70,7 @@ void rcpp_to_std2(arma::mat y, arma::mat X, arma::mat Xtest, std::vector<double>
     return;
 }
 
-void rcpp_to_std2(arma::mat X, arma::mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp::NumericMatrix &Xtest_std, matrix<size_t> &Xorder_std)
+void rcpp_to_std2(mat X, mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp::NumericMatrix &Xtest_std, matrix<size_t> &Xorder_std)
 {
     // The goal of this function is to convert RCPP object to std objects
 
@@ -102,10 +102,10 @@ void rcpp_to_std2(arma::mat X, arma::mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp
 
     // Create Xorder
     // Order
-    arma::umat Xorder(X.n_rows, X.n_cols);
+    umat Xorder(X.n_rows, X.n_cols);
     for (size_t i = 0; i < X.n_cols; i++)
     {
-        Xorder.col(i) = arma::sort_index(X.col(i));
+        Xorder.col(i) = sort_index(X.col(i));
     }
     // Create
     for (size_t i = 0; i < N; i++)

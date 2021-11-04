@@ -16,28 +16,28 @@ predict.full <- function(model, X) {
     return(obj)
 }
 
-predict.gp.old <- function(model, y, X, Xtest) {
+# predict.gp.old <- function(model, y, X, Xtest) {
     
-    out = json_to_r(model$tree_json)
+#     out = json_to_r(model$tree_json)
 
-    obj = .Call(`_XBART_gp_predict_old`, y, X, Xtest, out$model_list$tree_pnt) 
+#     obj = .Call(`_XBART_`, y, X, Xtest, out$model_list$tree_pnt) 
 
-    N_test = nrow(Xtest)
-    num_sweeps = obj$num_sweeps
-    num_trees = obj$num_trees
-    active_var = list()
-    for (i in 1:N_test){
-        active_var[[i]] = list()
-        for (j in 1:num_sweeps){
-            active_var[[i]][[j]] = list()
-            for (k in 1:num_trees){
-                active_var[[i]][[j]][[k]] = obj$active_var[(i - 1) * num_sweeps * num_trees + (j - 1) * num_trees + k]
-            }
-        }
-    }
-    obj$active_var = active_var
-    return(obj)
-}
+#     N_test = nrow(Xtest)
+#     num_sweeps = obj$num_sweeps
+#     num_trees = obj$num_trees
+#     active_var = list()
+#     for (i in 1:N_test){
+#         active_var[[i]] = list()
+#         for (j in 1:num_sweeps){
+#             active_var[[i]][[j]] = list()
+#             for (k in 1:num_trees){
+#                 active_var[[i]][[j]][[k]] = obj$active_var[(i - 1) * num_sweeps * num_trees + (j - 1) * num_trees + k]
+#             }
+#         }
+#     }
+#     obj$active_var = active_var
+#     return(obj)
+# }
 
 predict.gp <- function(model, y, X, Xtest, theta = 10, tau = 5, p_categorical = 0) {
     

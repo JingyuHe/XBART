@@ -1,5 +1,7 @@
 #include <ctime>
-#include <RcppArmadillo.h>
+// #include <RcppArmadillo.h>
+#include "Rcpp.h"
+#include <armadillo>
 #include "tree.h"
 #include "forest.h"
 #include <chrono>
@@ -10,10 +12,11 @@
 
 using namespace std;
 using namespace chrono;
+using namespace arma;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, arma::mat X, arma::mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, 
+Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, mat X, mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, 
 size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penality, 
 size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, 
 bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, bool update_weight = true, bool update_tau = true, double nthread = 0,
@@ -49,7 +52,7 @@ double hmult = 1, double heps = 0.1){
     if (parallel && (nthread == 0)) nthread = omp_get_max_threads();
     omp_set_num_threads(nthread);
 
-    arma::umat Xorder(X.n_rows, X.n_cols);
+    umat Xorder(X.n_rows, X.n_cols);
     matrix<size_t> Xorder_std;
     ini_matrix(Xorder_std, N, p);
 
