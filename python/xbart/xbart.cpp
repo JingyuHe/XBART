@@ -243,6 +243,7 @@ void XBARTcpp::_gp_predict(int n, int p, double *a, double *a_y, int n_t, double
 	// ini_xinfo(this->sigma_draw_xinfo, this->params.num_trees, this->params.num_sweeps);
 	// this->mtry_weight_current_tree.resize(p);
 	//ini_xinfo(this->split_count_all_tree, d, this->params.M); // initialize at 0
+	
 	double *ypointer = &a_y[0];
 	double *Xpointer = &x_std_flat[0];
 	double *Xtestpointer = &xtest_std_flat[0];

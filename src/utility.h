@@ -6,16 +6,16 @@
 // #include "thread_pool.h"
 // extern ThreadPool thread_pool;
 
-#ifndef SWIG
+// #ifndef SWIG
 #include <algorithm>
 #include <functional>
 #include <iterator>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <numeric>
-#include<RcppArmadillo.h>
-// #include <armadillo>
-#endif
+// #include<RcppArmadillo.h>
+#include <armadillo>
+// #endif
 
 template <typename T>
 void ini_matrix(matrix<T> &matrix, size_t N, size_t p)

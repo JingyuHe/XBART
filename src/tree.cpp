@@ -3,8 +3,8 @@
 #include <chrono>
 #include "omp.h"
 #include <ctime>
-#include <RcppArmadillo.h>
-// #include <armadillo>
+// #include <RcppArmadillo.h>
+#include <armadillo>
 
 using namespace std;
 using namespace chrono;
@@ -2421,37 +2421,6 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
                 }
             }
         }
-       
-
-        // sample training set
-        // size_t sample_N;
-        // if (N <= 500) { sample_N = N; } else { sample_N = 500;}
-
-        // std::bernoulli_distribution d((double) sample_N / N);
-        // std::vector<bool> sample_train(N, false);
-        // for (size_t i = 0; i < N; i++){
-        //     if (d(x_struct->gen)) {sample_train[i] = true;}
-        // }
-        // N = std::accumulate(sample_train.begin(), sample_train.end(), 0);
-
-        // std::vector<size_t> train_ind(N);
-        // size_t i_count = 0;
-        // for (size_t i = 0; i < Xorder_std[0].size(); i++){
-        //     if (sample_train[i]) {
-        //         train_ind[i_count] = Xorder_std[0][i];
-        //         i_count += 1;
-        //     }
-        // }
-        // i_count = 0;
-
-         // std::vector<size_t> test_ind(Ntest);
-        // for (size_t i = 0; i < Xtestorder_std[0].size(); i++){
-        //     if (is_outlier[i]) {
-        //         test_ind[i_count] = Xtestorder_std[0][i];
-        //         i_count += 1;
-        //     }
-        // }
-        
 
         arma::mat X(N + Ntest, p_active);
         std::vector<double> x_range(p_active);
