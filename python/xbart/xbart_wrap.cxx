@@ -7040,11 +7040,11 @@ fail:
 SWIGINTERN PyObject *_wrap_XBARTcpp_get_residuals(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   XBARTcpp *arg1 = (XBARTcpp *) 0 ;
-  double *arg2 = (double *) 0 ;
+  int arg2 ;
+  double *arg3 = (double *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
+  PyObject *array2 = NULL ;
   PyObject *swig_obj[2] ;
   
   if (!SWIG_Python_UnpackTuple(args, "XBARTcpp_get_residuals", 2, 2, swig_obj)) SWIG_fail;
@@ -7053,13 +7053,27 @@ SWIGINTERN PyObject *_wrap_XBARTcpp_get_residuals(PyObject *SWIGUNUSEDPARM(self)
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_get_residuals" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
   arg1 = reinterpret_cast< XBARTcpp * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_double, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "XBARTcpp_get_residuals" "', argument " "2"" of type '" "double *""'"); 
+  {
+    npy_intp dims[1];
+    if (!PyInt_Check(swig_obj[1]))
+    {
+      const char* typestring = pytype_string(swig_obj[1]);
+      PyErr_Format(PyExc_TypeError,
+        "Int dimension expected.  '%s' given.",
+        typestring);
+      SWIG_fail;
+    }
+    arg2 = (int) PyInt_AsLong(swig_obj[1]);
+    dims[0] = (npy_intp) arg2;
+    array2 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array2) SWIG_fail;
+    arg3 = (double*) array_data(array2);
   }
-  arg2 = reinterpret_cast< double * >(argp2);
-  (arg1)->get_residuals(arg2);
+  (arg1)->get_residuals(arg2,arg3);
   resultobj = SWIG_Py_Void();
+  {
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array2);
+  }
   return resultobj;
 fail:
   return NULL;

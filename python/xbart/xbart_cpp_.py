@@ -160,8 +160,8 @@ class XBARTcpp(object):
     def get_sigma_draw(self, size: "int") -> "void":
         return _xbart_cpp_.XBARTcpp_get_sigma_draw(self, size)
 
-    def get_residuals(self, arr: "double *") -> "void":
-        return _xbart_cpp_.XBARTcpp_get_residuals(self, arr)
+    def get_residuals(self, size: "int") -> "void":
+        return _xbart_cpp_.XBARTcpp_get_residuals(self, size)
 
     def _get_importance(self, size: "int") -> "void":
         return _xbart_cpp_.XBARTcpp__get_importance(self, size)

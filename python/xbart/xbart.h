@@ -88,6 +88,6 @@ public:
 	void get_yhats_test(int size, double *arr);
 	void get_yhats_test_multinomial(int size,double *arr);
 	void get_sigma_draw(int size, double *arr);
-	void get_residuals(double *arr);
+	void get_residuals(int size, double *arr);
 	void _get_importance(int size, double *arr);
 };

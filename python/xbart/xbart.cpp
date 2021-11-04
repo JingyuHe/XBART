@@ -157,11 +157,11 @@ void XBARTcpp::get_yhats_test_multinomial(int size,double *arr){
 	}
 }
 
-void XBARTcpp::get_sigma_draw(int size,double *arr){
+void XBARTcpp::get_sigma_draw(int size, double *arr){
   	xinfo_to_np(this->sigma_draw_xinfo,arr);
 }
 
-void XBARTcpp::get_residuals(double *arr){
+void XBARTcpp::get_residuals(int size, double *arr){
   	vec_d_to_np(this->resid, arr);
 }
 
