@@ -2259,7 +2259,7 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
     matrix<double> &yhats_test_xinfo, std::vector<bool> active_var, const size_t &p_categorical, const size_t &sweeps, const size_t &tree_ind, const double &theta, const double &tau)
 {
     // gaussian process prediction from root
-
+    // cout << "gp_predict_from_root" << endl;
     size_t N = Xorder_std[0].size();
     size_t Ntest = Xtestorder_std[0].size();
     size_t p = active_var.size();

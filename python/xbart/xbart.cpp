@@ -220,12 +220,11 @@ void XBARTcpp::_predict_gp( int n, int d, double *a, int n_y, double *a_y, int n
 	}
 	y_mean = y_mean/(double)n;
 	this->y_mean = y_mean;
-      
+
 	// xorder containers
 	matrix<size_t> Xorder_std;
-	ini_xinfo_sizet(Xorder_std, n, p);
-	XBARTcpp::compute_Xorder(n, p, x_std_flat, Xorder_std);
-
+	ini_xinfo_sizet(Xorder_std, n, d);
+	XBARTcpp::compute_Xorder(n, d, x_std_flat, Xorder_std);
 
 	// xtestorder containers
 	matrix<size_t> Xtestorder_std;
@@ -256,7 +255,6 @@ void XBARTcpp::_predict_gp( int n, int d, double *a, int n_y, double *a_y, int n
 	double *Xpointer = &x_std_flat[0];
 	double *Xtestpointer = &xtest_std_flat[0];
 
-
 	// Initialize result
 	ini_matrix(this->yhats_test_xinfo, n_t, this->params.num_sweeps);
 	for(size_t i = 0; i < n_t; i++) {
@@ -267,12 +265,12 @@ void XBARTcpp::_predict_gp( int n, int d, double *a, int n_y, double *a_y, int n
 
 	// initialize X_struct
     std::vector<double> initial_theta(1, y_mean / (double)this->params.num_trees);
-    std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, n, Xorder_std, p_cat, p-p_cat, &initial_theta, this->params.num_trees));
-	std::unique_ptr<X_struct> xtest_struct(new X_struct(Xtestpointer, &y_std, n_t, Xtestorder_std, p_cat, p-p_cat, &initial_theta, this->params.num_trees));
+    std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, n, Xorder_std, p_cat, d-p_cat, &initial_theta, this->params.num_trees));
+	std::unique_ptr<X_struct> xtest_struct(new X_struct(Xtestpointer, &y_std, n_t, Xtestorder_std, p_cat, d-p_cat, &initial_theta, this->params.num_trees));
 	x_struct->n_y = n;
     xtest_struct->n_y = n_t;
 
-	std::vector<bool> active_var(p);
+	std::vector<bool> active_var(d);
     std::fill(active_var.begin(), active_var.end(), false);
 
 	// get residuals
@@ -294,7 +292,7 @@ void XBARTcpp::_predict_gp( int n, int d, double *a, int n_y, double *a_y, int n
     {
         for (size_t tree_ind = 0; tree_ind < this->params.num_trees; tree_ind++)
         {
-            // cout << "sweeps = " << sweeps << ", tree_ind = " << tree_ind << endl;
+            cout << "sweeps = " << sweeps << ", tree_ind = " << tree_ind << endl;
             (this->trees)[sweeps][tree_ind].gp_predict_from_root(Xorder_std, x_struct, x_struct->X_counts, x_struct->X_num_unique, 
             Xtestorder_std, xtest_struct, xtest_struct->X_counts, xtest_struct->X_num_unique, 
             this->yhats_test_xinfo, active_var, p_cat, sweeps, tree_ind, theta, tau);
