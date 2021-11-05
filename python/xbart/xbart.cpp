@@ -198,12 +198,16 @@ void XBARTcpp::_predict(int n, int p, double *a){//,int size, double *arr){
 	delete model;
 }
 
-void XBARTcpp::_predict_gp(int n, int p, double *a, int n_y, double *a_y, int n_t, int p_t, double *a_t, size_t p_cat, double theta, double tau){
-  
+void XBARTcpp::_predict_gp( int n, int d, double *a, int n_y, double *a_y, int n_t, int d_t, double *a_t, size_t p_cat, double theta, double tau){
+
   
 	// Convert row major *a to column major std::vector
-	vec_d x_std_flat(n * p);
-	XBARTcpp::np_to_col_major_vec(n, p, a, x_std_flat);
+	vec_d x_std_flat(n * d);
+	XBARTcpp::np_to_col_major_vec(n, d, a, x_std_flat);
+
+	// Convert row major *a_t to column major std::vector
+	vec_d xtest_std_flat(n_t * d_t);
+	XBARTcpp::np_to_col_major_vec(n_t, d_t, a_t, xtest_std_flat);
 
 	// Convert a_y to std::vector
 	vec_d y_std(n);
@@ -222,14 +226,11 @@ void XBARTcpp::_predict_gp(int n, int p, double *a, int n_y, double *a_y, int n_
 	ini_xinfo_sizet(Xorder_std, n, p);
 	XBARTcpp::compute_Xorder(n, p, x_std_flat, Xorder_std);
 
-	// Convert row major *a_t to column major std::vector
-	vec_d xtest_std_flat(n_t * p);
-	XBARTcpp::np_to_col_major_vec(n_t, p, a_t, xtest_std_flat);
 
 	// xtestorder containers
 	matrix<size_t> Xtestorder_std;
-	ini_xinfo_sizet(Xtestorder_std, n_t, p);
-	XBARTcpp::compute_Xorder(n_t, p, xtest_std_flat, Xtestorder_std);
+	ini_xinfo_sizet(Xtestorder_std, n_t, d_t);
+	XBARTcpp::compute_Xorder(n_t, d_t, xtest_std_flat, Xtestorder_std);
 
 	// //max_depth_std container
 	// matrix<size_t> max_depth_std;

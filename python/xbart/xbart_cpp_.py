@@ -115,8 +115,8 @@ class XBARTcpp(object):
     def _predict(self, n: "int") -> "void":
         return _xbart_cpp_.XBARTcpp__predict(self, n)
 
-    def _predict_gp(self, n: "int", p: "int", a: "double *", n_y: "int", n_t: "int", p_t: "int", a_t: "double *", p_cat: "size_t", theta: "double", tau: "double") -> "void":
-        return _xbart_cpp_.XBARTcpp__predict_gp(self, n, p, a, n_y, n_t, p_t, a_t, p_cat, theta, tau)
+    def _predict_gp(self, n: "int", n_y: "int", n_t: "int", p_cat: "size_t", theta: "double", tau: "double") -> "void":
+        return _xbart_cpp_.XBARTcpp__predict_gp(self, n, n_y, n_t, p_cat, theta, tau)
 
     def np_to_vec_d(self, n: "int", y_std: "vec_d &") -> "void":
         return _xbart_cpp_.XBARTcpp_np_to_vec_d(self, n, y_std)

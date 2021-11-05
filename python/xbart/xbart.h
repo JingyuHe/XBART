@@ -65,8 +65,7 @@ public:
 
 	void _fit(int n, int d, double *a, int n_y, double *a_y, size_t p_cat);
 	void _predict(int n, int d, double *a); //,int size, double *arr);
-	void _predict_gp(int n, int p, double *a, int n_y, double *a_y, int n_t, int p_t, double *a_t, size_t p_cat, double theta, double tau);
-  
+	void _predict_gp(int n, int d, double *a, int n_y, double *a_y, int n_t, int d_t, double *a_t, size_t p_cat, double theta, double tau);
 
 	// helper functions
 	void np_to_vec_d(int n, double *a, vec_d &y_std);

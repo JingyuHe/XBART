@@ -427,7 +427,11 @@ class XBART(object):
 		self.__check_test_shape(pred_x)
 		self.__update_fit_x_y(x_test,pred_x)
 
-		self._xbart_cpp._predict_gp(x, y, pred_x, p_cat, theta, tau)
+		fit_x = x 
+		fit_y = y
+		self.__update_fit_x_y(x,fit_x,y,fit_y)
+
+		self._xbart_cpp._predict_gp(fit_x, fit_y, pred_x, p_cat, theta, tau)
 		# # Convert to numpy
 		yhats_test = self._xbart_cpp.get_yhats_test(self.params["num_sweeps"]*pred_x.shape[0])
 		# # Convert from colum major 
