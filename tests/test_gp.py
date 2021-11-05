@@ -48,7 +48,7 @@ xbart = XBART(num_trees = num_trees, num_sweeps = 200, burnin = 15, tau = tau, s
 time_start_fit = time.time()
 xbart.fit(X,Y,0)
 time_start_predict = time.time()
-y_pred = xbart.predict_gp(X, Y, X1, p_cat = 10, theta = theta, tau = tau, return_mean=False)
+y_pred = xbart.predict_gp(X, Y, X1, p_cat = 0, theta = theta, tau = tau, return_mean=False)
 time_end_predict = time.time()
 y_hat_xbart = y_pred[:,15:].mean(axis=1)
 

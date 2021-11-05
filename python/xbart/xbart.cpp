@@ -292,7 +292,7 @@ void XBARTcpp::_predict_gp( int n, int d, double *a, int n_y, double *a_y, int n
     {
         for (size_t tree_ind = 0; tree_ind < this->params.num_trees; tree_ind++)
         {
-            cout << "sweeps = " << sweeps << ", tree_ind = " << tree_ind << endl;
+            // cout << "sweeps = " << sweeps << ", tree_ind = " << tree_ind << endl;
             (this->trees)[sweeps][tree_ind].gp_predict_from_root(Xorder_std, x_struct, x_struct->X_counts, x_struct->X_num_unique, 
             Xtestorder_std, xtest_struct, xtest_struct->X_counts, xtest_struct->X_num_unique, 
             this->yhats_test_xinfo, active_var, p_cat, sweeps, tree_ind, theta, tau);
