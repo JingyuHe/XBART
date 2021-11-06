@@ -2360,7 +2360,7 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
         // construct covariance matrix
         size_t p_active = std::accumulate(active_var.begin(), active_var.begin() + p - p_categorical, 0);
         if (p_active == 0){
-            cout << "Warning: number of continuous active variable is 0. Sweep = " << sweeps << ", tree = " << tree_ind << endl;
+            // cout << "Warning: number of continuous active variable is 0. Sweep = " << sweeps << ", tree = " << tree_ind << endl;
             return;     
         }
        
