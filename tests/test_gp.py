@@ -6,50 +6,46 @@ import time
 seed = 98765
 np.random.seed(98765)
 
+if __name__ == "__main__":
+    # simulation
+    n = 100; 
+    n1 = 100
+    SNR = 10
+    ntrial = 50
+    alpha = 0.1
+    dim_vals = np.arange(5,205,5)
+    d = dim_vals[0]
 
-run_full_CP = False
-# flag for whether to run full conformal prediction
-# requires the nonconformist library
+    beta = np.random.normal(size=d)
+    beta = beta/np.sqrt((beta**2).sum()) * np.sqrt(SNR)
+    X = np.random.normal(size=(n,d))
+    Y = X.dot(beta) + np.random.normal(size=n)
 
-TOL = 1e-8
+    min_Y = Y.min() - 0.1 * (Y.max()-Y.min())
+    max_Y = Y.max() + 0.1 * (Y.max()-Y.min())
 
-def leastsq_minL2(X,Y,X1,tol=TOL):
-    uX,dX,vX = np.linalg.svd(X)
-    rX = (dX>=dX[0]*tol).sum()
-    betahat = (vX[:rX].T/dX[:rX]).dot(uX[:,:rX].T.dot(Y))
-    return X1.dot(betahat)
+    X1 = np.random.normal(size=(n1,d))
+    Y1 = X1.dot(beta) + np.random.normal(size=n1)
 
-# simulation
-n = 100; 
-n1 = 100
-SNR = 10
-ntrial = 50
-alpha = 0.1
-dim_vals = np.arange(5,205,5)
-d = dim_vals[0]
+    num_trees = 10
+    num_sweeps = 1000
+    tau = np.var(Y) / num_trees
+    theta = 10
+    xbart = XBART(num_trees = num_trees, num_sweeps = num_sweeps, burnin = 15, tau = tau, sampling_tau = True, 
+        set_random_seed = True, seed = 98765)
+    xbart.fit(X,Y,0)
+    mu_pred = xbart.predict_gp(X, Y, X1, p_cat = 0, theta = theta, tau = tau, return_mean=False)
 
-beta = np.random.normal(size=d)
-beta = beta/np.sqrt((beta**2).sum()) * np.sqrt(SNR)
-X = np.random.normal(size=(n,d))
-Y = X.dot(beta) + np.random.normal(size=n)
+    y_pred = pd.DataFrame(mu_pred).transpose().apply(
+        lambda x: x + xbart.sigma_draws[:,num_trees - 1] * np.random.normal(size=num_sweeps), 0).transpose() 
 
-min_Y = Y.min() - 0.1 * (Y.max()-Y.min())
-max_Y = Y.max() + 0.1 * (Y.max()-Y.min())
+    bound =  pd.DataFrame(y_pred).transpose().apply(
+                        lambda x: np.quantile(x, [alpha/2, 1 - alpha/2]), 0).transpose()
+    bound.rename(columns = {0: 'lower', 1: 'upper'}, inplace = True)
 
-X1 = np.random.normal(size=(n1,d))
-Y1 = X1.dot(beta) + np.random.normal(size=n1)
-
-num_trees = 10
-num_sweeps = 1000
-tau = np.var(Y) / num_trees
-theta = 10
-xbart = XBART(num_trees = num_trees, num_sweeps = 200, burnin = 15, tau = tau, sampling_tau = True, 
-             set_random_seed = True, seed = 98765)
-time_start_fit = time.time()
-xbart.fit(X,Y,0)
-time_start_predict = time.time()
-y_pred = xbart.predict_gp(X, Y, X1, p_cat = 0, theta = theta, tau = tau, return_mean=False)
-time_end_predict = time.time()
-y_hat_xbart = y_pred[:,15:].mean(axis=1)
+    coverage = ((bound['lower'] <= Y1)&(bound['upper'] >= Y1)).mean()
+    width = (bound['upper'] - bound['lower']).mean()
+    print('coverage = ' + str(coverage))
+    print('interval width = ' + str(round(width, 3)))
 
 
