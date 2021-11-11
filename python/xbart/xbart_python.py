@@ -434,7 +434,7 @@ class XBART(object):
 		self.__update_fit_x_y(x,fit_x,y,fit_y)
 		self.__update_mtry_tau_penality(fit_x)
 		self.__check_params(p_cat)
-		self.__update_random_seed()
+		# self.__update_random_seed()
 
 		self._xbart_cpp._predict_gp(fit_x, fit_y, pred_x, p_cat, theta, tau)
 		# # Convert to numpy

@@ -90,19 +90,19 @@ y = f + rnorm(n, 0, sigma)
 
 x_range <- sapply(1:d, function(i, x) max(x[,i]) - min(x[,i]), x)
 
-# replicate test set
-nt = 30
-nrep = 1 # 100 replicates per dp
-xt = matrix(0, nt * nrep, d) # fix all variables but one
-x1 = seq(min(x[,1]) - 4, max(x[,1]) + 4, length.out = nt)
-xt[,1] = sapply(x1, rep, nrep) # repeat each dp nrep times
+# # replicate test set
+# nt = 30
+# nrep = 1 # 100 replicates per dp
+# xt = matrix(0, nt * nrep, d) # fix all variables but one
+# x1 = seq(min(x[,1]) - 4, max(x[,1]) + 4, length.out = nt)
+# xt[,1] = sapply(x1, rep, nrep) # repeat each dp nrep times
 
 # random test set
-# nt = 10000
-# xt = matrix(rnorm(nt * d), nt, d)
-# x1 = xt[,1]
-# ft = f_true(xt, func)
-# yt = ft + rnorm(nt, 0, sigma)
+nt = 1000
+xt = matrix(rnorm(nt * d), nt, d)
+x1 = xt[,1]
+ft = f_true(xt, func)
+yt = ft + rnorm(nt, 0, sigma)
 
 
 # uniform test set
