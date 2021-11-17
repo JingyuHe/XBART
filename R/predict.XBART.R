@@ -41,6 +41,21 @@ predict.full <- function(model, X) {
 
 predict.gp <- function(model, y, X, Xtest, theta = 10, tau = 5, p_categorical = 0) {
     
+    if (!("matrix" %in% class(X))) {
+        cat("Input X is not a matrix, try to convert type.\n")
+        X = as.matrix(X)
+    }
+    
+    if (!("matrix" %in% class(Xtest))) {
+        cat("Input Xtest is not a matrix, try to convert type.\n")
+        Xtest = as.matrix(Xtest)
+    }
+    
+    if (!("matrix" %in% class(y))) {
+        cat("Input y is not a matrix, try to convert type.\n")
+        y = as.matrix(y)
+    }
+    
     out = json_to_r(model$tree_json)
 
     obj = .Call(`_XBART_gp_predict`, y, X, Xtest, out$model_list$tree_pnt, model$residuals, theta, tau, p_categorical) 

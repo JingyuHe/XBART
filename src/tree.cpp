@@ -2054,10 +2054,12 @@ size_t get_split_point(const double *Xpointer, matrix<size_t> &Xorder_std, size_
 
     if (c < *(Xpointer + n_y * v + Xorder_std[v][0])) {
         cout << "Warning: cut point less than the smallest value" << endl;
+        // cout << "v = " << v << ", c = " << c << ", min = " << *(Xpointer + n_y * v + Xorder_std[v][0]) << ", max = " << *(Xpointer + n_y * v + Xorder_std[v][right_ind]) << ", N = " << Xorder_std[0].size() << endl;
         split_point = 0;
     }
-    else if (c >= *(Xpointer + n_y * v + Xorder_std[v][right_ind])) {
+    else if (c > *(Xpointer + n_y * v + Xorder_std[v][right_ind])) {
         cout << "Warning: cut point greater than the smallest value" << endl;
+        // cout << "v = " << v << ", c = " << c << ", min = " << *(Xpointer + n_y * v + Xorder_std[v][0]) << ", max = " << *(Xpointer + n_y * v + Xorder_std[v][right_ind])  << ", N = " << Xorder_std[0].size()  << endl;
         split_point = right_ind;
     }
     else {
@@ -2344,12 +2346,14 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
             }
         }
 
+        // cout << "left, N = " << Xorder_left_std[0].size() << endl;
         this->l->gp_predict_from_root(Xorder_left_std, x_struct, X_counts_left, X_num_unique_left, 
             Xtestorder_left_std, xtest_struct, Xtest_counts_left, Xtest_num_unique_left, yhats_test_xinfo, active_var_left, p_categorical, sweeps, tree_ind, theta, tau);
-
+        // cout << "end left" << endl;
+        // cout << "right, N = " << Xorder_right_std[0].size() << endl;
         this->r->gp_predict_from_root(Xorder_right_std, x_struct, X_counts_right, X_num_unique_right, 
             Xtestorder_right_std, xtest_struct, Xtest_counts_right, Xtest_num_unique_right, yhats_test_xinfo, active_var_right, p_categorical, sweeps, tree_ind, theta, tau);
-
+        // cout << "end rigth " << endl;
     }
     else {
         // assign mu 
