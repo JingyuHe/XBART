@@ -960,23 +960,25 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
 
 
-    double cutpoint = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
-    if ((this->p) && (this->v == (this->p)->v) && (cutpoint == (this->p)->c))
-    {
-        no_split = true;
-    }
+    if (!no_split){
+        double cutpoint = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
+        if ((this->p) && (this->v == (this->p)->v) && (cutpoint == (this->p)->c))
+        {
+            no_split = true;
+        }
 
-    // Update Cutpoint to be a true seperating point
-    // Increase split_point (index) until it is no longer equal to cutpoint value
-    while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == cutpoint))
-    {
-        split_point = split_point + 1;
-    }
+        // Update Cutpoint to be a true seperating point
+        // Increase split_point (index) until it is no longer equal to cutpoint value
+        while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == cutpoint))
+        {
+            split_point = split_point + 1;
+        }
 
-    if (split_point + 1 == N_Xorder){
-        no_split = true;
+        if (split_point + 1 == N_Xorder){
+            no_split = true;
+        }
     }
-
+    
     if (no_split == true)
     {
         // cout << "no split at depth " << this->depth << endl;
