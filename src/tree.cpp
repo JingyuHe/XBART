@@ -734,23 +734,27 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
 
     // If our current split is same as parent, exit
-    double cutpoint = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
-    if ((this->p) && (this->v == (this->p)->v) && (cutpoint == (this->p)->c))
-    {
-        no_split = true;
-    }
+    if (!no_split){
+        // only check this when split_var and split_point is not void
+        double cutpoint = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
+        if ((this->p) && (this->v == (this->p)->v) && (cutpoint == (this->p)->c))
+        {
+            no_split = true;
+        }
 
-    // Update Cutpoint to be a true seperating point
-    // Increase split_point (index) until it is no longer equal to cutpoint value
-    while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == cutpoint))
-    {
-        split_point = split_point + 1;
-    }
+        // Update Cutpoint to be a true seperating point
+        // Increase split_point (index) until it is no longer equal to cutpoint value
+        while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == cutpoint))
+        {
+            split_point = split_point + 1;
+        }
 
-    if (split_point + 1 == N_Xorder){
-        // cout << "split_point = N" << endl;
-        no_split = true;
+        if (split_point + 1 == N_Xorder){
+            // cout << "split_point = N" << endl;
+            no_split = true;
+        }
     }
+    
 
 
     if (no_split == true)
@@ -833,6 +837,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     matrix<size_t> Xorder_right_std;
     ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
     ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
+    // cout << "split_point = " << split_point << ", N = " << N_Xorder << ", cut = " << cutpoint << ", next = " << *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point+1])<< endl;
 
     std::vector<size_t> X_num_unique_left(X_num_unique.size());
     std::vector<size_t> X_num_unique_right(X_num_unique.size());
