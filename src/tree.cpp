@@ -734,10 +734,24 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
 
     // If our current split is same as parent, exit
-    if ((this->p) && (this->v == (this->p)->v) && (this->c == (this->p)->c))
+    double cutpoint = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
+    if ((this->p) && (this->v == (this->p)->v) && (cutpoint == (this->p)->c))
     {
         no_split = true;
     }
+
+    // Update Cutpoint to be a true seperating point
+    // Increase split_point (index) until it is no longer equal to cutpoint value
+    while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == cutpoint))
+    {
+        split_point = split_point + 1;
+    }
+
+    if (split_point + 1 == N_Xorder){
+        // cout << "split_point = N" << endl;
+        no_split = true;
+    }
+
 
     if (no_split == true)
     {
@@ -750,10 +764,11 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
             }
         }
 
-        if (update_theta)
-        {
-            model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
-        }
+        // already updated in the beginning
+        // if (update_theta)
+        // {
+        //     model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
+        // }
 
         this->l = 0;
         this->r = 0;
@@ -778,13 +793,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
             index_in_full++;
         }
         this->c_index = (size_t)round((double)index_in_full / (double)state->n_y * (double)state->n_cutpoints);
-    }
-
-    // Update Cutpoint to be a true seperating point
-    // Increase split_point (index) until it is no longer equal to cutpoint value
-    while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
-    {
-        split_point = split_point + 1;
     }
 
     if (grow_new_tree)
@@ -946,6 +954,24 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
 
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
 
+
+    double cutpoint = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
+    if ((this->p) && (this->v == (this->p)->v) && (cutpoint == (this->p)->c))
+    {
+        no_split = true;
+    }
+
+    // Update Cutpoint to be a true seperating point
+    // Increase split_point (index) until it is no longer equal to cutpoint value
+    while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == cutpoint))
+    {
+        split_point = split_point + 1;
+    }
+
+    if (split_point + 1 == N_Xorder){
+        no_split = true;
+    }
+
     if (no_split == true)
     {
         // cout << "no split at depth " << this->depth << endl;
@@ -956,8 +982,8 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
             {
                 x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
             }
-// update lambdas in state
-#pragma omp critical
+        // update lambdas in state
+        // #pragma omp critical
             state->lambdas[tree_ind].push_back(this->theta_vector);
         }
 
@@ -989,36 +1015,11 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
         this->c_index = (size_t)round((double)index_in_full / (double)state->n_y * (double)state->n_cutpoints);
     }
 
-    // Update Cutpoint to be a true seperating point
-    // Increase split_point (index) until it is no longer equal to cutpoint value
-    while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
-    {
-        split_point = split_point + 1;
-    }
-
-    // If our current split is same as parent, exit
-    if ((this->p) && (this->v == (this->p)->v) && (this->c == (this->p)->c))
-    {
-        if (!update_split_prob)
-        {
-            // #pragma omp parallel for schedule(static, 128)
-            for (size_t i = 0; i < N_Xorder; i++)
-            {
-                x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
-            }
-// update lambdas in state
-#pragma omp critical
-            state->lambdas[tree_ind].push_back(this->theta_vector);
-        }
-        // cout << "unusual return "  << endl;
-        return;
-    }
-
     if (grow_new_tree)
     {
-// If do not update split prob ONLY
-// grow from root, initialize new nodes
-#pragma omp critical
+        // If do not update split prob ONLY
+        // grow from root, initialize new nodes
+        // #pragma omp critical
         state->split_count_current_tree[split_var] += 1;
 
         tree::tree_p lchild = new tree(model->getNumClasses(), this, model->dim_suffstat);
@@ -2079,6 +2080,12 @@ size_t get_split_point(const double *Xpointer, matrix<size_t> &Xorder_std, size_
             split_point = split_point + 1;
         }
     }
+    if (Xorder_std[0].size() == split_point + 1) {
+        cout << "split_point = N = " << split_point + 1 << endl;
+        cout << "v = " << v << ", c = " << c << ", min = " << *(Xpointer + n_y * v + Xorder_std[v][0]) << ", max = " << *(Xpointer + n_y * v + Xorder_std[v][right_ind])  << ", N = " << Xorder_std[0].size()  << endl;
+        throw;
+    }
+
     return split_point;
 }
 
@@ -2356,6 +2363,10 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
         // cout << "end rigth " << endl;
     }
     else {
+        if (N == 0){
+            cout << "0 training data in the leaf node" << endl;
+            throw;
+        }
         // assign mu 
         for (size_t i = 0; i < Ntest; i++){
             yhats_test_xinfo[sweeps][Xtestorder_std[0][i]] += this->theta_vector[0];
@@ -2425,6 +2436,11 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
             }
         }
 
+        if (N == 0){
+            cout << "N = 0 after sampling, p_active = " << p_active << endl;
+            throw;
+        }
+
         mat X(N + Ntest, p_active);
         std::vector<double> x_range(p_active);
         const double *split_var_x_pointer;
@@ -2453,7 +2469,6 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
         }
 
         mat cov(N + Ntest, N + Ntest);
-
         get_rel_covariance(cov, X, x_range, theta, tau);
         mat k = cov.submat(N, 0, N + Ntest - 1, N - 1); // cov[2:nrow(cov), 1]
         mat Kinv = pinv(cov.submat(0, 0, N - 1, N -1));
