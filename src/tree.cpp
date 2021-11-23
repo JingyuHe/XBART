@@ -2387,21 +2387,17 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
         }
        
         // check out of range test sets
-        // std::vector<bool> is_outlier(Ntest, false);
         std::vector<size_t> test_ind;
         std::vector<bool> active_var_left(active_var.size(), true); // check which side the outliers are on for each active var
-        // std::fill(is_outlier.begin(), is_outlier.end(), false);
         for (size_t i = 0; i < Ntest; i++){
             for (size_t j = 0; j < p; j++){
                 if (active_var[j]){
-                    if (*(xtest_struct->X_std + x_struct->n_y * j + Xtestorder_std[j][i]) > x_struct->X_range[j][1]){
-                        // is_outlier[i] = true;
+                    if (*(xtest_struct->X_std + xtest_struct->n_y * j + Xtestorder_std[j][i]) > x_struct->X_range[j][1]){
                         test_ind.push_back(Xtestorder_std[j][i]);
                         active_var_left[j] = false;
                         break;
                     }
-                    if (*(xtest_struct->X_std + x_struct->n_y * j + Xtestorder_std[j][i]) < x_struct->X_range[j][0]){ 
-                        // is_outlier[i] = true;
+                    if (*(xtest_struct->X_std + xtest_struct->n_y * j + Xtestorder_std[j][i]) < x_struct->X_range[j][0]){ 
                         test_ind.push_back(Xtestorder_std[j][i]);
                         break;
                     }
@@ -2409,9 +2405,7 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
             }
         }
 
-        // Ntest = std::accumulate(is_outlier.begin(), is_outlier.end(), 0);
         Ntest = test_ind.size();
-
         if (Ntest == 0){
             return;
         }
