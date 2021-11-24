@@ -2390,7 +2390,7 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
         std::vector<size_t> test_ind;
         std::vector<bool> active_var_left(active_var.size(), true); // check which side the outliers are on for each active var
         for (size_t i = 0; i < Ntest; i++){
-            for (size_t j = 0; j < p; j++){
+            for (size_t j = 0; j < p_continuous; j++){
                 if (active_var[j]){
                     if (*(xtest_struct->X_std + xtest_struct->n_y * j + Xtestorder_std[j][i]) > x_struct->X_range[j][1]){
                         test_ind.push_back(Xtestorder_std[j][i]);
@@ -2448,22 +2448,23 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
         size_t j_count = 0;
         for (size_t j = 0; j < p_continuous; j++){
             if (active_var[j]) {
-                // cout << "j = " << j << endl;
                 split_var_x_pointer = x_struct->X_std + x_struct->n_y * j;
                 for (size_t i = 0; i < N; i++){
                     X(i, j_count) = *(split_var_x_pointer + train_ind[i]);
                 }
-
                 split_var_x_pointer = xtest_struct->X_std + xtest_struct->n_y * j;
                 for (size_t i = 0; i < Ntest; i++){
                     X(i + N, j_count) = *(split_var_x_pointer + test_ind[i]);
                 }
-
                 x_range[j_count] = x_struct->X_range[j][1] - x_struct->X_range[j][0];
+                if (x_range[j_count] == 0){
+                    cout << "x_range = 0" << ", j = " << j << endl;
+                    throw;
+                }
                 j_count += 1;
             }
         }
-        
+        // cout << "get resid" << ", sweeps = " << sweeps << ", tree = " << tree_ind << ", N = " << N << ", Ntest = " << Ntest << ", resid = " << x_struct->resid[sweeps][tree_ind][train_ind[N-1]] << endl;
         mat resid(N, 1);
         for (size_t i = 0; i < N; i++){
             resid(i, 0) = x_struct->resid[sweeps][tree_ind][train_ind[i]] - this->theta_vector[0];
