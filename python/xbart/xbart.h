@@ -61,7 +61,7 @@ public:
 			 size_t burnin, size_t mtry,
 			 double kap, double s, double tau_kap, double tau_s, 
 			 bool verbose, bool sampling_tau, bool parallel, size_t nthread,
-			 bool set_random_seed, int seed, double no_split_penality, bool sample_weights_flag);
+			 int seed, double no_split_penality, bool sample_weights_flag);
 
 	void _fit(int n, int d, double *a, int n_y, double *a_y, size_t p_cat);
 	void _predict(int n, int d, double *a); //,int size, double *arr);

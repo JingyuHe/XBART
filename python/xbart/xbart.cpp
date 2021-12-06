@@ -28,7 +28,7 @@ XBARTcpp::XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
 			 size_t burnin, size_t mtry,
 			 double kap, double s, double tau_kap, double tau_s, 
 			 bool verbose, bool sampling_tau, bool parallel, size_t nthread,
-			 bool set_random_seed, int seed, double no_split_penality, bool sample_weights_flag){
+			 int seed, double no_split_penality, bool sample_weights_flag){
 	this->params.num_trees = num_trees; 
 	this->params.num_sweeps = num_sweeps;
 	this->params.max_depth = max_depth;
@@ -53,7 +53,7 @@ XBARTcpp::XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
 
 	// handling seed
 
-	if(set_random_seed){
+	if(seed != 0){
 	this->seed_flag = true; 
 	this->seed = (size_t)seed;
 	}else{
