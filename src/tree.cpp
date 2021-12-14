@@ -2479,11 +2479,12 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
         mat Sig =  cov.submat(N, N, N + Ntest - 1, N + Ntest - 1) - k * Kinv * trans(k);
         std::normal_distribution<double> normal_samp(0.0, 1.0);
         mat rnorm(Ntest , 1);
-        for (size_t i = 0; i < Ntest; i++) { rnorm(i, 0) = normal_samp(x_struct->gen); }
+        // for (size_t i = 0; i < Ntest; i++) { rnorm(i, 0) = normal_samp(x_struct->gen); }
 
-        mat mu_pred = mu + Sig * rnorm;
+        // mat mu_pred = mu + Sig * rnorm;
         for (size_t i = 0; i < Ntest; i++){
-             yhats_test_xinfo[sweeps][test_ind[i]] += mu_pred(i) - this->theta_vector[0];
+            //  yhats_test_xinfo[sweeps][test_ind[i]] += mu_pred(i) - this->theta_vector[0];
+            yhats_test_xinfo[sweeps][test_ind[i]] += mu(i) + Sig(i, i) * normal_samp(x_struct->gen) - this->theta_vector[0];
         }
     }
 
