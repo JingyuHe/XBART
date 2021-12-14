@@ -91,18 +91,18 @@ y = f + rnorm(n, 0, sigma)
 x_range <- sapply(1:d, function(i, x) max(x[,i]) - min(x[,i]), x)
 
 # # replicate test set
-# nt = 30
-# nrep = 1 # 100 replicates per dp
-# xt = matrix(0, nt * nrep, d) # fix all variables but one
-# x1 = seq(min(x[,1]) - 4, max(x[,1]) + 4, length.out = nt)
-# xt[,1] = sapply(x1, rep, nrep) # repeat each dp nrep times
+nt = 30
+nrep = 1 # 100 replicates per dp
+xt = matrix(0, nt * nrep, d) # fix all variables but one
+x1 = seq(min(x[,1]) - 4, max(x[,1]) + 4, length.out = nt)
+xt[,1] = sapply(x1, rep, nrep) # repeat each dp nrep times
 
 # random test set
-nt = 1000
-xt = matrix(rnorm(nt * d), nt, d)
-x1 = xt[,1]
-ft = f_true(xt, func)
-yt = ft + rnorm(nt, 0, sigma)
+# nt = 1000
+# xt = matrix(rnorm(nt * d), nt, d)
+# x1 = xt[,1]
+# ft = f_true(xt, func)
+# yt = ft + rnorm(nt, 0, sigma)
 
 
 # uniform test set
@@ -124,7 +124,7 @@ tau = var(y)/10
 n_trees = 10
 fit <- XBART(y=matrix(y),  X=x, Xtest=xt, num_trees=n_trees, Nmin = 10,num_sweeps=200, burnin = 15, tau = tau, sampling_tau = TRUE)
 
-gp_pred <- predict.gp(fit, as.matrix(y), x, xt, theta = 10, tau = var(y)/n_trees, p_categorical = 0)
+gp_pred <- predict.gp(fit, as.matrix(y), x, xt, theta = 0.5, tau = var(y)/n_trees, p_categorical = 0)
 
 
 gp_yhat <- t(apply(gp_pred, 1, function(x) rnorm(length(x), x, fit$sigma[10,])))

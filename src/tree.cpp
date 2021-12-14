@@ -2481,10 +2481,11 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
         mat rnorm(Ntest , 1);
         // for (size_t i = 0; i < Ntest; i++) { rnorm(i, 0) = normal_samp(x_struct->gen); }
 
-        // mat mu_pred = mu + Sig * rnorm;
+        // mat L = arma::chol(Sig, "lower");
+        // mat mu_pred = mu + L * rnorm;
         for (size_t i = 0; i < Ntest; i++){
             //  yhats_test_xinfo[sweeps][test_ind[i]] += mu_pred(i) - this->theta_vector[0];
-            yhats_test_xinfo[sweeps][test_ind[i]] += mu(i) + Sig(i, i) * normal_samp(x_struct->gen) - this->theta_vector[0];
+            yhats_test_xinfo[sweeps][test_ind[i]] += mu(i) + pow(Sig(i, i), 0.5) * normal_samp(x_struct->gen) - this->theta_vector[0];
         }
     }
 
