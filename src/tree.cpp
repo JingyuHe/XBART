@@ -267,80 +267,6 @@ tree::tree_p tree::search_bottom_std(const double *X, const size_t &i, const siz
     }
 }
 
-std::vector<double> tree::gettheta_outsample(const double *X, const size_t &i, const size_t &p, const size_t &N, std::mt19937 &gen, double &d, double &s)
-{
-    if (l == 0)
-    {
-        if (d == 0){ // no outliers
-            return this->theta_vector;
-        }
-        else{
-            double tau = (tau_prior) * pow((2 / (1 + exp(- s * pow(d,2))) - 1), 2);
-            // double tau = pow(d, 2) * (tau_prior - tau_post);
-            std::vector<double> mu(1);
-            std::normal_distribution<double> normal_samp(this->theta_vector[0], sqrt(tau));
-            mu[0] = normal_samp(gen);
-            return mu;
-            
-        }
-    }
-
-    // try the relative distance to boundary comparing to (v_max - v_min)
-    if (*(X + N * v + i) < v_min){
-        if (v_max > v_min){ // just in case v_max == v_min
-            d = max(d, (v_min - *(X + N * v + i)) / (v_max - v_min)); 
-        } else{
-            d = max(d, v_min - *(X + N * v + i));
-        }
-    } else if (*(X + N * v + i) > v_max){
-        if (v_max > v_min){ // just in case v_max == v_min
-            d = max(d, (*(X + N * v + i) - v_max) / (v_max - v_min)); 
-        } else{
-            d = max(d, *(X + N * v + i) - v_max);
-        }
-    }
-
-    // X[v][i], v-th column and i-th row
-    // if(X[v][i] <= c){
-    if (*(X + N * v + i) <= c)
-    {
-        return l->gettheta_outsample(X, i, p, N, gen, d, s);
-    }
-    else
-    {
-        return r->gettheta_outsample(X, i, p, N, gen, d, s);
-    }
-}
-
-
-void tree::get_gp_info(const double *X, const size_t &i, const size_t &p, const size_t &N, std::vector<bool> &active_var, double &theta, size_t &leaf_id)
-{
-    if (l == 0)
-    {
-        theta = this->theta_vector[0];
-        leaf_id = this->ID;
-        return;
-    }
-
-    // try the relative distance to boundary comparing to (v_max - v_min)
-    if ( (*(X + N * v + i) < v_min) | (*(X + N * v + i) > v_max) ){
-        // cout << "v = " << v << ", c = " << c << ", v_min = " << v_min << ", v_max = " << v_max << ", dp = " << *(X + N * v + i) << endl;
-        active_var[v] = true;
-    } 
-
-    // X[v][i], v-th column and i-th row
-    // if(X[v][i] <= c){
-    if (*(X + N * v + i) <= c)
-    {
-        return l->get_gp_info(X, i, p, N, active_var, theta, leaf_id);
-    }
-    else
-    {
-        return r->get_gp_info(X, i, p, N, active_var, theta, leaf_id);
-    }
-}
-
-
 
 //--------------------
 //find region for a given variable
@@ -410,9 +336,6 @@ void tree::cp(tree_p n, tree_cp o)
 
     n->v = o->v;
     n->c = o->c;
-    n->ID = o->ID;
-    n->v_min = o->v_min;
-    n->v_max = o->v_max;
     n->prob_split = o->prob_split;
     n->prob_leaf = o->prob_leaf;
     n->drawn_ind = o->drawn_ind;
@@ -468,15 +391,12 @@ json tree::to_json()
     {
         j["left"] = 0;
         j["right"] = 0;
-        j["leafid"] = this->ID;
         j["theta"]= this->theta_vector;
     }
     else
     {
         j["variable"] = this->v;
         j["cutpoint"] = this->c;
-        j["v_min"] = this->v_min;
-        j["v_max"] = this->v_max;
         j["left"] = this->l->to_json();
         j["right"] = this->r->to_json();
     }
@@ -487,7 +407,6 @@ void tree::from_json(json &j3, size_t dim_theta)
 {
     if (j3["left"].is_number())
     {
-        j3.at("leafid").get_to(this->ID);
         std::vector<double> temp;
         j3.at("theta").get_to(temp);
         if (temp.size() > 1)
@@ -505,10 +424,6 @@ void tree::from_json(json &j3, size_t dim_theta)
     {
         j3.at("variable").get_to(this->v);
         j3.at("cutpoint").get_to(this->c);
-        j3.at("v_min").get_to(this->v_min);
-        j3.at("v_max").get_to(this->v_max);
-        // std::cout << this->ID << " " << endl;
-
         tree *lchild = new tree(dim_theta);
         lchild->from_json(j3["left"], dim_theta);
         tree *rchild = new tree(dim_theta);
@@ -543,11 +458,8 @@ std::ostream &operator<<(std::ostream &os, const tree &t)
     os << nds.size() << std::endl;
     for (size_t i = 0; i < nds.size(); i++)
     {
-        os << nds[i]->getID() << " ";
         os << nds[i]->getv() << " ";
         os << nds[i]->getc() << " ";
-        os << nds[i]->getv_min() << " ";
-        os << nds[i]->getv_max() << " ";
         //   os << nds[i]->theta_vector[0] << std::endl;
         for (size_t kk = 0; kk < nds[i]->theta_vector.size(); kk++)
         {
@@ -584,7 +496,7 @@ std::istream &operator>>(std::istream &is, tree &t)
     std::vector<node_info> nv(nn);
     for (size_t i = 0; i != nn; i++)
     {
-        is >> nv[i].id >> nv[i].v >> nv[i].c >> nv[i].v_min >> nv[i].v_max; // >> nv[i].theta_vector[0]; // Only works on first theta for now, fix latex if needed
+        is >> nv[i].v >> nv[i].c ; // >> nv[i].theta_vector[0]; // Only works on first theta for now, fix latex if needed
         for (size_t kk = 0; kk < theta_size; kk++)
         {
             is >> nv[i].theta_vector[kk];
@@ -597,11 +509,8 @@ std::istream &operator>>(std::istream &is, tree &t)
 
     //first node has to be the top one
     pts[1] = &t; //be careful! this is not the first pts, it is pointer of id 1.
-    t.setID(nv[0].id);
     t.setv(nv[0].v);
     t.setc(nv[0].c);
-    t.setv_min(nv[0].v_min);
-    t.setv_max(nv[0].v_max);
     t.settheta(nv[0].theta_vector);
     t.p = 0;
 
@@ -609,11 +518,8 @@ std::istream &operator>>(std::istream &is, tree &t)
     for (size_t i = 1; i != nv.size(); i++)
     {
         tree::tree_p np = new tree;
-        np->ID = nv[i].id;
         np->v = nv[i].v;
         np->c = nv[i].c;
-        np->v_min = nv[i].v_min;
-        np->v_max = nv[i].v_max;
         np->theta_vector = nv[i].theta_vector;
         tid = nv[i].id;
         pts[tid] = np;
@@ -658,10 +564,6 @@ std::istream &operator>>(std::istream &is, tree &t)
 
 void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree)
 {
-
-    // init ID
-    this->setID(0);
-
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
@@ -788,8 +690,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
         // If GROW FROM ROOT MODE
         this->v = split_var;
         this->c = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
-        this->v_min = x_struct->X_range[split_var][0];
-        this->v_max = x_struct->X_range[split_var][1];
 
         size_t index_in_full = 0;
         while ((state->Xorder_std)[split_var][index_in_full] != Xorder_std[split_var][split_point])
@@ -814,9 +714,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
         lchild->depth = this->depth + 1;
         rchild->depth = this->depth + 1;
-
-        lchild->ID = 2 * (this->ID);
-        rchild->ID = lchild->ID + 1;
 
         // inherit tau
         lchild->tau_prior = this->tau_prior;
@@ -1035,9 +932,6 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
         // lchild->depth = this->depth + 1;
         // rchild->depth = this->depth + 1;
 
-        lchild->ID = 2 * (this->ID);
-        rchild->ID = lchild->ID + 1;
-
         this->l = lchild;
         this->r = rchild;
 
@@ -1239,9 +1133,6 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
 
         lchild->depth = this->depth + 1;
         rchild->depth = this->depth + 1;
-
-        lchild->ID = 2 * (this->ID);
-        rchild->ID = lchild->ID + 1;
     }
     else
     {
@@ -2564,7 +2455,6 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
         // loop over trees
         // tree search
         // d = 0; // max distance of outliers
-        // output[i] = tree[i].gettheta_outsample(Xtest, x_index, p, N_Xtest, gen, d, s);
         bn = tree[i].search_bottom_std(Xtest, x_index, p, N_Xtest);
         output[i] = bn->theta_vector;
     }
