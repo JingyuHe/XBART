@@ -2370,7 +2370,7 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_s
 
         // cout << "cov = " << cov.submat(0, 0, N - 1, N -1) << endl;
         // mat Kinv = pinv(cov.submat(0, 0, N - 1, N -1));
-        mat Kinv = pinv(cov.submat(0, 0, N - 1, N -1) + 0.19 * eye<mat>(N, N));
+        mat Kinv = pinv(cov.submat(0, 0, N - 1, N -1) + pow(x_struct->sigma[tree_ind], 2) / x_struct->num_trees * eye<mat>(N, N));
         // cout << "Kinv = " << Kinv << endl;
         
         mat mu = this->theta_vector[0] + k * Kinv * resid;
