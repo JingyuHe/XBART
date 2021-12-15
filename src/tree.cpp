@@ -2471,9 +2471,13 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
         }
 
         mat cov(N + Ntest, N + Ntest);
-        get_rel_covariance(cov, X, x_range, theta, tau);
+        get_rel_covariance(cov, X, x_range, theta, tau); 
         mat k = cov.submat(N, 0, N + Ntest - 1, N - 1); // cov[2:nrow(cov), 1]
-        mat Kinv = pinv(cov.submat(0, 0, N - 1, N -1));
+
+        // cout << "cov = " << cov.submat(0, 0, N - 1, N -1) << endl;
+        // mat Kinv = pinv(cov.submat(0, 0, N - 1, N -1));
+        mat Kinv = pinv(cov.submat(0, 0, N - 1, N -1) + 0.19 * eye<mat>(N, N));
+        // cout << "Kinv = " << Kinv << endl;
         
         mat mu = this->theta_vector[0] + k * Kinv * resid;
         mat Sig =  cov.submat(N, N, N + Ntest - 1, N + Ntest - 1) - k * Kinv * trans(k);
