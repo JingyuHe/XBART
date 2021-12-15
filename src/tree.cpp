@@ -2096,7 +2096,7 @@ size_t get_split_point(const double *Xpointer, matrix<size_t> &Xorder_std, size_
     return split_point;
 }
 
-void split_xorder_std_categorical_simplified(std::unique_ptr<X_struct> &x_struct, matrix<size_t> &Xorder_left_std, 
+void split_xorder_std_categorical_simplified(std::unique_ptr<gp_struct> &x_struct, matrix<size_t> &Xorder_left_std, 
 matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, 
 std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, 
 std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, 
@@ -2229,7 +2229,7 @@ std::vector<size_t> &X_counts, size_t p_categorical)
     return;
 }
 
-void split_xorder_std_continuous_simplified(std::unique_ptr<X_struct> &x_struct, matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, size_t p_continuous)
+void split_xorder_std_continuous_simplified(std::unique_ptr<gp_struct> &x_struct, matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, size_t p_continuous)
 {
     // without model, state, don't update suff stats
 
@@ -2270,8 +2270,8 @@ void split_xorder_std_continuous_simplified(std::unique_ptr<X_struct> &x_struct,
     return;
 }
 
-void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_struct> &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, 
-    matrix<size_t> &Xtestorder_std, std::unique_ptr<X_struct> &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique, 
+void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_struct> &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, 
+    matrix<size_t> &Xtestorder_std, std::unique_ptr<gp_struct> &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique, 
     matrix<double> &yhats_test_xinfo, std::vector<bool> active_var, const size_t &p_categorical, const size_t &sweeps, const size_t &tree_ind, const double &theta, const double &tau)
 {
     // gaussian process prediction from root

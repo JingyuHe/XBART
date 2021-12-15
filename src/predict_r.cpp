@@ -289,14 +289,20 @@ Rcpp::List gp_predict(mat y, mat X, mat Xtest, Rcpp::XPtr<std::vector<std::vecto
     for (size_t i = 0; i < num_sweeps; i++){
         sigma_std[i] = sigma(i);
     }
-    // cout << "sigma = " << sigma_std << endl;
 
     // initialize X_struct
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
-    std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
-    std::unique_ptr<X_struct> xtest_struct(new X_struct(Xtestpointer, &y_std, N_test, Xtestorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
+    // std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
+    // std::unique_ptr<X_struct> xtest_struct(new X_struct(Xtestpointer, &y_std, N_test, Xtestorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
+    // x_struct->n_y = N;
+    // xtest_struct->n_y = N_test;
+
+    std::unique_ptr<gp_struct> x_struct(new gp_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, sigma_std, num_trees));
+    std::unique_ptr<gp_struct> xtest_struct(new gp_struct(Xtestpointer, &y_std, N_test, Xtestorder_std, p_categorical, p_continuous, &initial_theta, sigma_std, num_trees));
     x_struct->n_y = N;
     xtest_struct->n_y = N_test;
+
+
 
     matrix<double> yhats_test_xinfo;
     ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
