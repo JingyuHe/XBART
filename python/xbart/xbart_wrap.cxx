@@ -5620,6 +5620,66 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_XBARTcpp_sigma_draws_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
+  vec_d arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 ;
+  int res2 = 0 ;
+  PyObject *swig_obj[2] ;
+  
+  if (!SWIG_Python_UnpackTuple(args, "XBARTcpp_sigma_draws_set", 2, 2, swig_obj)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_sigma_draws_set" "', argument " "1"" of type '" "XBARTcpp *""'"); 
+  }
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
+  {
+    res2 = SWIG_ConvertPtr(swig_obj[1], &argp2, SWIGTYPE_p_vec_d,  0  | 0);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "XBARTcpp_sigma_draws_set" "', argument " "2"" of type '" "vec_d""'"); 
+    }  
+    if (!argp2) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "XBARTcpp_sigma_draws_set" "', argument " "2"" of type '" "vec_d""'");
+    } else {
+      vec_d * temp = reinterpret_cast< vec_d * >(argp2);
+      arg2 = *temp;
+      if (SWIG_IsNewObj(res2)) delete temp;
+    }
+  }
+  if (arg1) (arg1)->sigma_draws = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_XBARTcpp_sigma_draws_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  XBARTcpp *arg1 = (XBARTcpp *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *swig_obj[1] ;
+  vec_d result;
+  
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_sigma_draws_get" "', argument " "1"" of type '" "XBARTcpp *""'"); 
+  }
+  arg1 = reinterpret_cast< XBARTcpp * >(argp1);
+  result =  ((arg1)->sigma_draws);
+  resultobj = SWIG_NewPointerObj((new vec_d(static_cast< const vec_d& >(result))), SWIGTYPE_p_vec_d, SWIG_POINTER_OWN |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_XBARTcpp_resid_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   XBARTcpp *arg1 = (XBARTcpp *) 0 ;
@@ -7226,6 +7286,8 @@ static PyMethodDef SwigMethods[] = {
 	 { "XBARTcpp_yhats_test_multinomial_get", _wrap_XBARTcpp_yhats_test_multinomial_get, METH_O, NULL},
 	 { "XBARTcpp_num_classes_set", _wrap_XBARTcpp_num_classes_set, METH_VARARGS, NULL},
 	 { "XBARTcpp_num_classes_get", _wrap_XBARTcpp_num_classes_get, METH_O, NULL},
+	 { "XBARTcpp_sigma_draws_set", _wrap_XBARTcpp_sigma_draws_set, METH_VARARGS, NULL},
+	 { "XBARTcpp_sigma_draws_get", _wrap_XBARTcpp_sigma_draws_get, METH_O, NULL},
 	 { "XBARTcpp_resid_set", _wrap_XBARTcpp_resid_set, METH_VARARGS, NULL},
 	 { "XBARTcpp_resid_get", _wrap_XBARTcpp_resid_get, METH_O, NULL},
 	 { "new_XBARTcpp", _wrap_new_XBARTcpp, METH_VARARGS, NULL},

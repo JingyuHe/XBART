@@ -263,10 +263,15 @@ void XBARTcpp::_predict_gp( int n, int d, double *a, int n_y, double *a_y, int n
 		}
 	}
 
+	std::vector<double> sigma_std(this->params.num_sweeps);
+	for(size_t i = 0; i < this->params.num_sweeps; i++){
+		sigma_std[i] = this->sigma_draw_xinfo[i][this->params.num_trees - 1];
+	}
+
 	// initialize X_struct
     std::vector<double> initial_theta(1, y_mean / (double)this->params.num_trees);
-    std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, n, Xorder_std, p_cat, d-p_cat, &initial_theta, this->params.num_trees));
-	std::unique_ptr<X_struct> xtest_struct(new X_struct(Xtestpointer, &y_std, n_t, Xtestorder_std, p_cat, d-p_cat, &initial_theta, this->params.num_trees));
+    std::unique_ptr<gp_struct> x_struct(new gp_struct(Xpointer, &y_std, n, Xorder_std, p_cat, d-p_cat, &initial_theta, sigma_std, this->params.num_trees));
+	std::unique_ptr<gp_struct> xtest_struct(new gp_struct(Xtestpointer, &y_std, n_t, Xtestorder_std, p_cat, d-p_cat, &initial_theta, sigma_std, this->params.num_trees));
 	x_struct->n_y = n;
     xtest_struct->n_y = n_t;
 

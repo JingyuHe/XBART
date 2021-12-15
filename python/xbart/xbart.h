@@ -50,6 +50,7 @@ public:
 	size_t num_classes;
 	//xinfo split_count_all_tree;
 
+	vec_d sigma_draws;
 	vec_d resid;
 
 	// Constructors

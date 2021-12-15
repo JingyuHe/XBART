@@ -451,6 +451,7 @@ class XBART(object):
 		j = json.loads(json_str)
 		j["params"] = self.params
 		j["num_columns"] = self.num_columns
+		j["sigma_draws"] = self.sigma_draws
 		j["resid"] = self.resid.tolist()
 
 		if file is not None:
@@ -474,6 +475,7 @@ class XBART(object):
 		self.is_fit = True
 		self.num_columns = j["num_columns"]
 		self.params = j["params"]
+		self.sigma_draws = j["sigma_draws"]
 		self.resid = np.array(j["resid"])
 		return self
 

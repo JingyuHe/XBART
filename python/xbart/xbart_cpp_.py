@@ -104,6 +104,7 @@ class XBARTcpp(object):
     model = property(_xbart_cpp_.XBARTcpp_model_get, _xbart_cpp_.XBARTcpp_model_set)
     yhats_test_multinomial = property(_xbart_cpp_.XBARTcpp_yhats_test_multinomial_get, _xbart_cpp_.XBARTcpp_yhats_test_multinomial_set)
     num_classes = property(_xbart_cpp_.XBARTcpp_num_classes_get, _xbart_cpp_.XBARTcpp_num_classes_set)
+    sigma_draws = property(_xbart_cpp_.XBARTcpp_sigma_draws_get, _xbart_cpp_.XBARTcpp_sigma_draws_set)
     resid = property(_xbart_cpp_.XBARTcpp_resid_get, _xbart_cpp_.XBARTcpp_resid_set)
 
     def __init__(self, *args):
