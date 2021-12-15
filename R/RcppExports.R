@@ -29,8 +29,8 @@ xbart_predict_full <- function(X, y_mean, tree_pnt) {
     .Call(`_XBART_xbart_predict_full`, X, y_mean, tree_pnt)
 }
 
-gp_predict <- function(y, X, Xtest, tree_pnt, resid, theta, tau, p_categorical = 0L) {
-    .Call(`_XBART_gp_predict`, y, X, Xtest, tree_pnt, resid, theta, tau, p_categorical)
+gp_predict <- function(y, X, Xtest, tree_pnt, resid, sigma, theta, tau, p_categorical = 0L) {
+    .Call(`_XBART_gp_predict`, y, X, Xtest, tree_pnt, resid, sigma, theta, tau, p_categorical)
 }
 
 xbart_multinomial_predict <- function(X, y_mean, num_class, tree_pnt, iteration) {

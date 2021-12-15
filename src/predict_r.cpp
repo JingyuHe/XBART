@@ -220,7 +220,7 @@ Rcpp::List xbart_predict_full(mat X, double y_mean, Rcpp::XPtr<std::vector<std::
 // }
 
 // [[Rcpp::export]]
-Rcpp::List gp_predict(mat y, mat X, mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, Rcpp::NumericVector resid, double theta, double tau, size_t p_categorical = 0)
+Rcpp::List gp_predict(mat y, mat X, mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, Rcpp::NumericVector resid, mat sigma, double theta, double tau, size_t p_categorical = 0)
 {
     // should be able to run in parallel
     cout << "predict with gaussian process" << endl;
@@ -259,7 +259,6 @@ Rcpp::List gp_predict(mat y, mat X, mat Xtest, Rcpp::XPtr<std::vector<std::vecto
 
     rcpp_to_std2(y, X, Xtest, y_std, y_mean, X_std, Xtest_std, Xorder_std);
 
-
     matrix<size_t> Xtestorder_std;
     ini_matrix(Xtestorder_std, N_test, p);
 
@@ -285,6 +284,12 @@ Rcpp::List gp_predict(mat y, mat X, mat Xtest, Rcpp::XPtr<std::vector<std::vecto
     std::vector<std::vector<tree>> *trees = tree_pnt;
     size_t num_sweeps = (*trees).size();
     size_t num_trees = (*trees)[0].size();
+
+    std::vector<double> sigma_std(num_sweeps);
+    for (size_t i = 0; i < num_sweeps; i++){
+        sigma_std[i] = sigma(i);
+    }
+    // cout << "sigma = " << sigma_std << endl;
 
     // initialize X_struct
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
