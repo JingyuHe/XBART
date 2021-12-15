@@ -2452,11 +2452,14 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<X_st
                 for (size_t i = 0; i < N; i++){
                     X(i, j_count) = *(split_var_x_pointer + train_ind[i]);
                 }
+                // x_range[j_count] = x_struct->X_range[j][1] - x_struct->X_range[j][0];
+                x_range[j_count] =  *(split_var_x_pointer + Xorder_std[j][Xorder_std[j].size()-1]) - *(split_var_x_pointer + Xorder_std[j][0]);
+
                 split_var_x_pointer = xtest_struct->X_std + xtest_struct->n_y * j;
                 for (size_t i = 0; i < Ntest; i++){
                     X(i + N, j_count) = *(split_var_x_pointer + test_ind[i]);
                 }
-                x_range[j_count] = x_struct->X_range[j][1] - x_struct->X_range[j][0];
+                
                 if (x_range[j_count] == 0){
                     cout << "x_range = 0" << ", j = " << j << endl;
                     throw;
