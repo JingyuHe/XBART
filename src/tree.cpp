@@ -2270,31 +2270,40 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_s
             yhats_test_xinfo[sweeps][Xtestorder_std[0][i]] += this->theta_vector[0];
         }
         
-        // construct covariance matrix
-        size_t p_active = std::accumulate(active_var.begin(), active_var.begin() + p - p_categorical, 0);
-        if (p_active == 0){
-            // cout << "Warning: number of continuous active variable is 0. Sweep = " << sweeps << ", tree = " << tree_ind << endl;
-            return;     
-        }
-       
         // check out of range test sets
+        // exterior points may not be out-of-range on all active variables
+        // do we want to use all acitve_var info or just those having out-of-range points?
+        // FOR NOW: just those having out-of-range points
         std::vector<size_t> test_ind;
-        std::vector<bool> active_var_left(active_var.size(), true); // check which side the outliers are on for each active var
+        std::vector<bool> active_var_left(p_continuous, false); // check which side the outliers are on for each active var
+        std::vector<bool> active_var_right(p_continuous, false); // check which side the outliers are on for each active var
+
         for (size_t i = 0; i < Ntest; i++){
             for (size_t j = 0; j < p_continuous; j++){
                 if (active_var[j]){
                     if (*(xtest_struct->X_std + xtest_struct->n_y * j + Xtestorder_std[j][i]) > x_struct->X_range[j][1]){
                         test_ind.push_back(Xtestorder_std[j][i]);
-                        active_var_left[j] = false;
+                        active_var_right[j] = true; 
                         break;
                     }
-                    if (*(xtest_struct->X_std + xtest_struct->n_y * j + Xtestorder_std[j][i]) < x_struct->X_range[j][0]){ 
+                    else if (*(xtest_struct->X_std + xtest_struct->n_y * j + Xtestorder_std[j][i]) < x_struct->X_range[j][0]){ 
                         test_ind.push_back(Xtestorder_std[j][i]);
+                        active_var_left[j] = true; 
                         break;
                     }
                 }
             }
         }
+
+        // construct covariance matrix
+        // TODO: consider categorical active variables
+        size_t p_active = std::accumulate(active_var_left.begin(), active_var_left.end(), 0);
+        p_active += std::accumulate(active_var_right.begin(), active_var_right.end(), 0);
+        if (p_active == 0){
+            // cout << "Warning: number of continuous active variable is 0. Sweep = " << sweeps << ", tree = " << tree_ind << endl;
+            return;     
+        }
+       
 
         Ntest = test_ind.size();
         if (Ntest == 0){
@@ -2313,18 +2322,17 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_s
             N = N_active * p_active;
             train_ind.resize(N);
             size_t i_count = 0;
-            for (size_t i = 0; i < active_var.size(); i++){
-                if (active_var[i]){
-                    if (active_var_left[i]){
-                        // get the smallest values (the first N_active obs in Xorder_std[i])
-                        std::copy(Xorder_std[i].begin(), Xorder_std[i].begin() + N_active, train_ind.begin() + i_count);
-                    }
-                    else {
-                        // get the largest values 
-                        std::copy(Xorder_std[i].end() - N_active, Xorder_std[i].end(), train_ind.begin() + i_count);      
-                    }
+            for (size_t i = 0; i < p_continuous; i++){
+                if (active_var_left[i]){
+                    // get the smallest values (the first N_active obs in Xorder_std[i])
+                    std::copy(Xorder_std[i].begin(), Xorder_std[i].begin() + N_active, train_ind.begin() + i_count);
                     i_count += N_active;
                 }
+                else if (active_var_right[i]) {
+                    // get the largest values 
+                    std::copy(Xorder_std[i].end() - N_active, Xorder_std[i].end(), train_ind.begin() + i_count);   
+                    i_count += N_active;   
+                }   
             }
         }
 
@@ -2332,18 +2340,19 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_s
             cout << "N = 0 after sampling, p_active = " << p_active << endl;
             throw;
         }
-
+        
         mat X(N + Ntest, p_active);
         std::vector<double> x_range(p_active);
         const double *split_var_x_pointer;
         size_t j_count = 0;
         for (size_t j = 0; j < p_continuous; j++){
-            if (active_var[j]) {
+            if (active_var_left[j] | active_var_right[j]) {
                 split_var_x_pointer = x_struct->X_std + x_struct->n_y * j;
                 for (size_t i = 0; i < N; i++){
                     X(i, j_count) = *(split_var_x_pointer + train_ind[i]);
                 }
-                // x_range[j_count] = x_struct->X_range[j][1] - x_struct->X_range[j][0];
+                // x_range[j_count] = x_struct->X_range[j][1] - x_struct->X_range[j][0]; // fixed range scale
+                // flexible range scale per leaf node
                 x_range[j_count] =  *(split_var_x_pointer + Xorder_std[j][Xorder_std[j].size()-1]) - *(split_var_x_pointer + Xorder_std[j][0]);
 
                 split_var_x_pointer = xtest_struct->X_std + xtest_struct->n_y * j;
@@ -2358,7 +2367,7 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_s
                 j_count += 1;
             }
         }
-        // cout << "get resid" << ", sweeps = " << sweeps << ", tree = " << tree_ind << ", N = " << N << ", Ntest = " << Ntest << ", resid = " << x_struct->resid[sweeps][tree_ind][train_ind[N-1]] << endl;
+        
         mat resid(N, 1);
         for (size_t i = 0; i < N; i++){
             resid(i, 0) = x_struct->resid[sweeps][tree_ind][train_ind[i]] - this->theta_vector[0];
