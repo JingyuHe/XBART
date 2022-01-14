@@ -56,12 +56,6 @@ public:
 
     // for heteroskedastic case
     std::vector<double> sigma_vec; // residual standard deviation
-    std::vector<double> sigma2inv_vec; // vector of 1/sigma2_i
-    // we will need to adjust the residual by dividing entries by respective sigmas
-    // this adjusted residual will have to be stored in residual_std ...
-    // for appropriate sufficient statistics updates called from tree.cpp
-    // we will store unadjusted residual separately
-    matrix<double> residual_unadj; // unadjusted residual
 
     // paralization
     size_t nthread;
@@ -194,6 +188,11 @@ public:
 
 class hskState : public State
 {
+    // for hskState we have residual_std of size 3xN
+    // residual[0] is the original residual we try to learn
+    // residual[1] is the precision vector
+    // residual[2] is the element-wise product of residual[0] and residual[1]
+
     private:
 
         void ini_sigma(std::vector<double> &sigma, std::vector<double> &input)
@@ -205,22 +204,12 @@ class hskState : public State
             }
         }
 
-        void ini_sigma2inv(std::vector<double> &sigma2inv, std::vector<double> &input)
-        {
-            sigma2inv.resize(input.size());
-            for (size_t i = 0; i < input.size(); i++)
-            {
-                sigma2inv[i] = double(1 / pow(input[i], 2));
-            }
-        }
-
 
     public:
 
         hskState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, std::vector<double> &sigma_vec) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, mtry, X_std, num_sweeps, sample_weights_flag, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
         {
             ini_sigma(this->sigma_vec, sigma_vec);
-            ini_sigma2inv(this->sigma2inv_vec, sigma_vec);
         }
 
 
