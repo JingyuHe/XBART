@@ -1139,7 +1139,8 @@ void hskNormalModel::incSuffStat(matrix<double> &residual_std, size_t index_next
     // I have to pass matrix<double> &residual_std, size_t index_next_obs
     // which allows more flexibility for multidimensional residual_std
 
-    suffstats[0] += residual_std[0][index_next_obs];
+    suffstats[0] += residual_std[2][index_next_obs];
+    suffstats[1] += residual_std[1][index_next_obs];
     return;
 }
 
@@ -1148,14 +1149,13 @@ void hskNormalModel::samplePars(std::unique_ptr<State> &state, std::vector<doubl
     std::normal_distribution<double> normal_samp(0.0, 1.0);
 
     // test result should be theta
-    theta_vector[0] = suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)) + sqrt(1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2))) * normal_samp(state->gen); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-
-    // also update probability of leaf parameters
-    // prob_leaf = normal_density(theta_vector[0], suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), 1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), true);
+    theta_vector[0] = suff_stat[0] / (1.0 / tau + suff_stat[1])
+                    + sqrt(1.0 / tau + suff_stat[1]) * normal_samp(state->gen);
 
     return;
 }
 
+// UNNEEDED: we don't update sigma within this model
 void hskNormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
     // Draw Sigma
@@ -1177,20 +1177,16 @@ void hskNormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind
 
 void hskNormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
 {
-    // sum of y
-    suff_stat[0] = sum_vec(state->residual_std[0]);
-    // sum of y squared
-    suff_stat[1] = sum_squared(state->residual_std[0]);
-    // number of observations in the node
-    suff_stat[2] = state->n_y;
+    // sum of r
+    suff_stat[0] = sum_vec(state->residual_std[2]);
+    // sum of 1/sig2
+    suff_stat[1] = sum_vec(state->residual_std[1]);
     return;
 }
 
 void hskNormalModel::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
-    suff_stat[0] += residual_std[0][Xorder_std[split_var][row_ind]];
-    suff_stat[1] += pow(residual_std[0][Xorder_std[split_var][row_ind]], 2);
-    suff_stat[2] += 1;
+    incSuffStat(residual_std, Xorder_std[split_var][row_ind], suff_stat);
     return;
 }
 
@@ -1209,62 +1205,36 @@ void hskNormalModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &resi
     for (size_t i = 0; i < residual_std[0].size(); i++)
     {
         residual_std[0][i] = residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + (*(x_struct->data_pointers[next_index][i]))[0];
+        residual_std[2][i] = residual_std[0][i] * residual_std[1][i];
     }
     return;
 }
 
 double hskNormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const
 {
-    // likelihood equation,
-    // note the difference of left_side == true / false
-    // node_suff_stat is mean of y, sum of square of y, saved in tree class
-    // double y_sum = (double)suff_stat_all[2] * suff_stat_all[0];
-    // double y_sum = suff_stat_all[0];
-    double sigma2 = state->sigma2;
-    // double ntau;
-    // double suff_one_side;
-
-    size_t nb;
-    double nbtau;
-    double y_sum;
-    double y_squared_sum;
+    double res2;
+    double prec;
 
     if (no_split)
     {
-        // ntau = suff_stat_all[2] * tau;
-        // suff_one_side = y_sum;
-
-        nb = suff_stat_all[2];
-        nbtau = nb * tau;
-        y_sum = suff_stat_all[0];
-        y_squared_sum = suff_stat_all[1];
+        res2 = pow(suff_stat_all[0], 2);
+        prec = suff_stat_all[1];
     }
     else
     {
         if (left_side)
         {
-            nb = N_left + 1;
-            nbtau = nb * tau;
-            // ntau = (N_left + 1) * tau;
-            y_sum = temp_suff_stat[0];
-            y_squared_sum = temp_suff_stat[1];
-            // suff_one_side = temp_suff_stat[0];
+        res2 = pow(temp_suff_stat[0], 2);
+        prec = temp_suff_stat[1];
         }
         else
         {
-            nb = suff_stat_all[2] - N_left - 1;
-            nbtau = nb * tau;
-            y_sum = suff_stat_all[0] - temp_suff_stat[0];
-            y_squared_sum = suff_stat_all[1] - temp_suff_stat[1];
-
-            // ntau = (suff_stat_all[2] - N_left - 1) * tau;
-            // suff_one_side = y_sum - temp_suff_stat[0];
+            res2 = pow(suff_stat_all[0] - temp_suff_stat[0], 2);
+            prec= suff_stat_all[1] - temp_suff_stat[1];
         }
     }
 
-    // return 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
-
-    return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
+    return log(1.0 / (1.0 + tau * prec)) + res2 / (1.0 / tau + prec);
 }
 
 
@@ -1275,6 +1245,8 @@ void hskNormalModel::ini_residual_std(std::unique_ptr<State> &state)
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
         state->residual_std[0][i] = (*state->y_std)[i] - value;
+        state->residual_std[1][i] = double (1.0 / pow(state->sigma_vec[i], 2));
+        state->residual_std[2][i] = state->residual_std[0][i] * state->residual_std[1][i];
     }
     return;
 }
