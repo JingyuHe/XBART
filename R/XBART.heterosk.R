@@ -16,6 +16,7 @@ XBART.heterosk <- function(y,
                            p_categorical = 0L,
                            kap = 16, s = 4,
                            tau_kap = 3, tau_s = 0.5,
+                           a_v = 2.0, b_v = 2.0,
                            verbose = FALSE,
                            sampling_tau = TRUE,
                            parallel = TRUE,
@@ -23,6 +24,7 @@ XBART.heterosk <- function(y,
                            sample_weights_flag = TRUE,
                            nthread = 0,
                            ...) {
+    cat("Entered the R function. \n")
 
     if (!("matrix" %in% class(X))) {
         cat("Input X is not a matrix, try to convert type.\n")
@@ -100,15 +102,16 @@ XBART.heterosk <- function(y,
     check_scalar(kap, "kap")
     check_scalar(s, "s")
 
-    # TODO: update the inputs here as well
+    cat("To the source function call. \n")
+
     obj = XBART_heterosk_cpp(y, X, Xtest, num_trees, num_sweeps, max_depth,
         Nmin, num_cutpoints, alpha, beta, tau, no_split_penality, burnin,
-        mtry, p_categorical, kap, s, tau_kap, tau_s, verbose, sampling_tau, parallel, set_random_seed,
+        mtry, p_categorical, kap, s, tau_kap, tau_s, a_v, b_v, verbose, sampling_tau, parallel, set_random_seed,
         random_seed, sample_weights_flag, nthread)
 
-    tree_json = r_to_json(mean(y), obj$model$tree_pnt)
-    obj$tree_json = tree_json
+#    tree_json = r_to_json(mean(y), obj$model$tree_pnt)
+#   obj$tree_json = tree_json
 
-    class(obj) = "XBART"
-    return(obj)
+#   class(obj) = "XBART"
+#    return(obj)
 }
