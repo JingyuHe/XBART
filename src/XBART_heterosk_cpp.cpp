@@ -149,30 +149,27 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     // State settings for the variance model
     std::unique_ptr<State> state_v(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model_v->dim_residual, nthread, parallel)); //last input is nthread, need update
 
-
     // initialize X_struct
-    // TODO: check if one object is enough for two models
     std::vector<double> initial_theta_m(1, y_mean / (double)num_trees);
     std::unique_ptr<X_struct> x_struct_m(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_m, num_trees));
 
-    std::vector<double> initial_theta_v(1, 1.0);
+    std::vector<double> initial_theta_v(1, 1.0); // it should be either 1 or 0 depending on the scale used
     std::unique_ptr<X_struct> x_struct_v(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_v, num_trees));
 
     COUT << "Running the model." << endl;
     ////////////////////////////////////////////////////////////////
     // mcmc loop
-    // TODO: determine the appropriate set of input variables
-   mcmc_loop_hsk(Xorder_std,
-                    verbose,
-                    sigma_draw_xinfo,
-                    *trees2_m,
-                    state_m,
-                    model_m,
-                    x_struct_m,
-                    *trees2_v,
-                    state_v,
-                    model_v,
-                    x_struct_v);
+    mcmc_loop_hsk(Xorder_std,
+                  verbose,
+                  sigma_draw_xinfo,
+                  *trees2_m,
+                  state_m,
+                  model_m,
+                  x_struct_m,
+                  *trees2_v,
+                  state_v,
+                  model_v,
+                  x_struct_v);
 /*
     COUT << "Predict." << endl;
     // TODO: check how predict function will be different
@@ -189,54 +186,18 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     // R Objects to Return
     // Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
-    Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
-    Rcpp::NumericVector split_count_sum(p, 0);             // split counts
-    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2_m, true);
 
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(yhats_test_xinfo, yhats_test);
-    Matrix_to_NumericMatrix(sigma_draw_xinfo, sigma_draw);
 
-/* NK: do we need to output this? per component?
-    for (size_t i = 0; i < p; i++)
-    {
-        split_count_sum(i) = (int)state->split_count_all[i];
-    } */
 
-    // TODO: make sure all objects are removed from memory
     state_m.reset();
     state_v.reset();
     x_struct_m.reset();
     x_struct_v.reset();
 
-    // print out tree structure, for usage of BART warm-start
-
-    std::stringstream treess;
-
-    Rcpp::StringVector output_tree(num_sweeps);
-
-    // TODO: chek if we need this for storing trees (warmstart use?)
-    for (size_t i = 0; i < num_sweeps; i++)
-    {
-        treess.precision(10);
-
-        treess.str(std::string());
-        treess << num_trees << " " << p << endl;
-
-        for (size_t t = 0; t < num_trees; t++)
-        {
-            treess << (*trees2_m)[i][t];
-        }
-
-        output_tree(i) = treess.str();
-    }
-
     // TODO: check outputs
     return Rcpp::List::create(
-        // Rcpp::Named("yhats") = yhats,
-        Rcpp::Named("yhats_test") = yhats_test,
-        Rcpp::Named("sigma") = sigma_draw,
-        Rcpp::Named("importance") = split_count_sum,
-        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p),
-        Rcpp::Named("treedraws") = output_tree);
+        Rcpp::Named("yhats_test") = yhats_test
+        );
 }
