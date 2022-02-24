@@ -104,7 +104,7 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     double *Xtestpointer = &Xtest_std[0];
 
     matrix<double> yhats_test_xinfo;
-    ini_matrix(yhats_test_xinfo, N, num_sweeps);
+    ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
 
     matrix<double> mhats_test_xinfo;
     ini_matrix(mhats_test_xinfo, N_test, num_sweeps);
@@ -130,22 +130,22 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
         (*trees2_v)[i] = vector<tree>(num_trees);
     }
 
-    COUT << "Objects init." << endl;
+    // COUT << "Objects init." << endl;
     // define the mean model
     hskNormalModel *model_m = new hskNormalModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
     // cout << "after define model " << model->tau << " " << model->tau_mean << endl;
     model_m->setNoSplitPenality(no_split_penality);
 
     // define the variance model
-    logNormalModel *model_v = new logNormalModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
+    // TODO:update the first two inputs
+    logNormalModel *model_v = new logNormalModel(1,1,kap, s, tau, alpha, beta);
     // cout << "after define model " << model->tau << " " << model->tau_mean << endl;
     model_v->setNoSplitPenality(no_split_penality);
 
     // State settings for the mean model
-    std::vector<double> sigma_vec(N, 0); // initialize vector of heterogeneous sigmas
+    std::vector<double> sigma_vec(N, 1); // initialize vector of heterogeneous sigmas
     std::unique_ptr<State> state_m(new hskState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model_m->dim_residual, nthread, parallel, sigma_vec)); //last input is nthread, need update
 
-    COUT << y_mean << "< varyhat | state >" << state_m->ini_var_yhat << endl;
     // State settings for the variance model
     std::unique_ptr<State> state_v(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model_v->dim_residual, nthread, parallel)); //last input is nthread, need update
 
@@ -153,34 +153,31 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     std::vector<double> initial_theta_m(1, y_mean / (double)num_trees);
     std::unique_ptr<X_struct> x_struct_m(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_m, num_trees));
 
-    std::vector<double> initial_theta_v(1, 1.0); // it should be either 1 or 0 depending on the scale used
+    std::vector<double> initial_theta_v(1, 0); // it should be either 1 or 0 depending on the scale used
     std::unique_ptr<X_struct> x_struct_v(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_v, num_trees));
 
-    COUT << "Running the model." << endl;
+    //COUT << "Running the model." << endl;
     ////////////////////////////////////////////////////////////////
     // mcmc loop
-    mcmc_loop_hsk(Xorder_std,
-                  verbose,
-                  sigma_draw_xinfo,
-                  *trees2_m,
-                  state_m,
-                  model_m,
-                  x_struct_m,
-                  *trees2_v,
-                  state_v,
-                  model_v,
-                  x_struct_v);
-/*
-    COUT << "Predict." << endl;
+    mcmc_loop_hsk(Xorder_std, verbose, sigma_draw_xinfo, *trees2_m, state_m, model_m, x_struct_m, *trees2_v, state_v, model_v, x_struct_v);
+
+    //mcmc_loop_hsk_test(Xorder_std, verbose, sigma_draw_xinfo, *trees2_m, state_m, model_m, x_struct_m);
+
+    //COUT << "Predict." << endl;
     // TODO: check how predict function will be different
     model_m->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, mhats_test_xinfo, *trees2_m);
     model_v->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, vhats_test_xinfo, *trees2_v);
-*/
-    COUT << "Re-format objects for output." << endl;
+
+    state_m.reset();
+    state_v.reset();
+    x_struct_m.reset();
+    x_struct_v.reset();
+
+    //COUT << "Re-format objects for output." << endl;
 
     for(size_t i = 0; i < N_test; i++) {
-        for(size_t j = 0; j < p; j++) {
-            yhats_test_xinfo[j][i] = 0; //mhats_test_xinfo[j][i] + mhats_test_xinfo[j][i];
+        for(size_t j = 0; j < num_sweeps; j++) {
+            yhats_test_xinfo[j][i] = mhats_test_xinfo[j][i] + vhats_test_xinfo[j][i];
         }
     }
     // R Objects to Return
@@ -189,12 +186,6 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
 
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(yhats_test_xinfo, yhats_test);
-
-
-    state_m.reset();
-    state_v.reset();
-    x_struct_m.reset();
-    x_struct_v.reset();
 
     // TODO: check outputs
     return Rcpp::List::create(

@@ -10,6 +10,31 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////
 
+void hskNormalModel::ini_residual_std(std::unique_ptr<State> &state)
+{
+    COUT << "Residual dim: " << state->residual_std.size() << endl;
+
+    // initialize partial residual at (num_tree - 1) / num_tree * yhat
+    double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
+    for (size_t i = 0; i < state->residual_std[0].size(); i++)
+    {
+        state->residual_std[0][i] = (*state->y_std)[i];// - value;
+        state->residual_std[1][i] = double (1.0 / pow(state->sigma_vec[i], 2));
+        state->residual_std[2][i] = state->residual_std[0][i] * state->residual_std[1][i];
+    }
+
+    return;
+}
+
+void hskNormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
+{
+    // sum of r/sig2
+    suff_stat[0] = sum_vec(state->residual_std[2]);
+    // sum of 1/sig2
+    suff_stat[1] = sum_vec(state->residual_std[1]);
+    return;
+}
+
 void hskNormalModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
 {
     // I have to pass matrix<double> &residual_std, size_t index_next_obs
@@ -26,43 +51,30 @@ void hskNormalModel::samplePars(std::unique_ptr<State> &state, std::vector<doubl
 
     // test result should be theta
     theta_vector[0] = suff_stat[0] / (1.0 / tau + suff_stat[1])
-                    + sqrt(1.0 / tau + suff_stat[1]) * normal_samp(state->gen);
-
-    return;
-}
-
-// UNNEEDED: we don't update sigma within this model
-void hskNormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
-{
-    // Draw Sigma
-    // state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
-
-    // residual_std is only 1 dimensional for regression model
-
-    std::vector<double> full_residual(state->n_y);
-
-    for (size_t i = 0; i < state->residual_std[0].size(); i++)
-    {
-        full_residual[i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
-    }
-
-    std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(full_residual) + s));
-    state->update_sigma(1.0 / sqrt(gamma_samp(state->gen)));
-    return;
-}
-
-void hskNormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
-{
-    // sum of r
-    suff_stat[0] = sum_vec(state->residual_std[2]);
-    // sum of 1/sig2
-    suff_stat[1] = sum_vec(state->residual_std[1]);
+                    + sqrt(1.0 / (1.0 / tau + suff_stat[1])) * normal_samp(state->gen);
     return;
 }
 
 void hskNormalModel::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
     incSuffStat(residual_std, Xorder_std[split_var][row_ind], suff_stat);
+    return;
+}
+
+void hskNormalModel::calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side)
+{
+
+    // in function split_xorder_std_categorical, for efficiency, the function only calculates suff stat of ONE child
+    // this function calculate the other side based on parent and the other child
+
+    if (compute_left_side)
+    {
+        rchild_suff_stat = parent_suff_stat - lchild_suff_stat;
+    }
+    else
+    {
+        lchild_suff_stat = parent_suff_stat - rchild_suff_stat;
+    }
     return;
 }
 
@@ -113,16 +125,46 @@ double hskNormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vect
     return log(1.0 / (1.0 + tau * prec)) + res2 / (1.0 / tau + prec);
 }
 
-
-void hskNormalModel::ini_residual_std(std::unique_ptr<State> &state)
+void hskNormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees)
 {
-    // initialize partial residual at (num_tree - 1) / num_tree * yhat
-    double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
+
+    matrix<double> output;
+
+    // row : dimension of theta, column : number of trees
+    ini_matrix(output, this->dim_theta, trees[0].size());
+
+    for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
+    {
+        for (size_t data_ind = 0; data_ind < N_test; data_ind++)
+        {
+            getThetaForObs_Outsample(output, trees[sweeps], data_ind, Xtestpointer, N_test, p);
+
+            // take sum of predictions of each tree, as final prediction
+            for (size_t i = 0; i < trees[0].size(); i++)
+            {
+                yhats_test_xinfo[sweeps][data_ind] += output[i][0];
+            }
+        }
+    }
+    return;
+}
+
+// UNNEEDED: we don't update sigma within this model
+void hskNormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
+{
+    // Draw Sigma
+    // state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
+
+    // residual_std is only 1 dimensional for regression model
+
+    std::vector<double> full_residual(state->n_y);
+
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
-        state->residual_std[0][i] = (*state->y_std)[i] - value;
-        state->residual_std[1][i] = double (1.0 / pow(state->sigma_vec[i], 2));
-        state->residual_std[2][i] = state->residual_std[0][i] * state->residual_std[1][i];
+        full_residual[i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
     }
+
+    std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(full_residual) + s));
+    state->update_sigma(1.0 / sqrt(gamma_samp(state->gen)));
     return;
 }

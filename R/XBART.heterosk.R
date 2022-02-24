@@ -24,7 +24,6 @@ XBART.heterosk <- function(y,
                            sample_weights_flag = TRUE,
                            nthread = 0,
                            ...) {
-    cat("Entered the R function. \n")
 
     if (!("matrix" %in% class(X))) {
         cat("Input X is not a matrix, try to convert type.\n")
@@ -102,7 +101,6 @@ XBART.heterosk <- function(y,
     check_scalar(kap, "kap")
     check_scalar(s, "s")
 
-    cat("To the source function call. \n")
 
     obj = XBART_heterosk_cpp(y, X, Xtest, num_trees, num_sweeps, max_depth,
         Nmin, num_cutpoints, alpha, beta, tau, no_split_penality, burnin,

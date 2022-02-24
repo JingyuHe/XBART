@@ -26,13 +26,21 @@ void mcmc_loop_probit(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
 //void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &accept_count, std::vector<double> &MH_vector, std::vector<double> &P_ratio, std::vector<double> &Q_ratio, std::vector<double> &prior_ratio);
 
 void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
+                    bool verbose,
+                    matrix<double> &sigma_draw_xinfo,
+                    vector<vector<tree>> &mean_trees,
+                    std::unique_ptr<State> &mean_state,
+                    hskNormalModel *mean_model,
+                    std::unique_ptr<X_struct> &mean_x_struct,
+                    vector<vector<tree>> &var_trees,
+                    std::unique_ptr<State> &var_state,
+                    logNormalModel *var_model,
+                    std::unique_ptr<X_struct> &var_x_struct);
+
+void mcmc_loop_hsk_test(matrix<size_t> &Xorder_std,
                         bool verbose,
                         matrix<double> &sigma_draw_xinfo,
                         vector<vector<tree>> &mean_trees,
                         std::unique_ptr<State> &mean_state,
                         hskNormalModel *mean_model,
-                        std::unique_ptr<X_struct> &mean_x_struct,
-                        vector<vector<tree>> &var_trees,
-                        std::unique_ptr<State> &var_state,
-                        logNormalModel *var_model,
-                        std::unique_ptr<X_struct> &var_x_struct);
+                        std::unique_ptr<X_struct> &mean_x_struct);
