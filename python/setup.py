@@ -9,7 +9,7 @@ if sys.platform == "win32":
     compile_args = []
     link_args = []
 else:
-    compile_args = ["-std=c++11", "-fpic",  "-g"]
+    compile_args = ["-std=c++17", "-fpic",  "-g"]
     link_args = ["-larmadillo"]
 if sys.platform == "darwin":
     if 'MACOSX_DEPLOYMENT_TARGET' not in os.environ:

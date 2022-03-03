@@ -66,7 +66,7 @@ if __name__ == "__main__":
     num_trees = 10
     num_sweeps = 200
     tau = np.var(Y) / num_trees
-    theta = 1
+    theta = 0.1
     xbart = XBART(num_trees = num_trees, num_sweeps = num_sweeps, burnin = 15, tau = tau, sampling_tau = True)
     xbart.fit(X,Y,0)
     mu_pred = xbart.predict_gp(X, Y, X1, p_cat = 0, theta = theta, tau = tau, return_mean=False)
