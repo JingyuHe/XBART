@@ -18,7 +18,7 @@ void hskNormalModel::ini_residual_std(std::unique_ptr<State> &state)
     double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
-        state->residual_std[0][i] = (*state->y_std)[i];// - value;
+        state->residual_std[0][i] = (*state->y_std)[i] - value;
         state->residual_std[1][i] = double (1.0 / pow(state->sigma_vec[i], 2));
         state->residual_std[2][i] = state->residual_std[0][i] * state->residual_std[1][i];
     }
@@ -32,6 +32,20 @@ void hskNormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std
     suff_stat[0] = sum_vec(state->residual_std[2]);
     // sum of 1/sig2
     suff_stat[1] = sum_vec(state->residual_std[1]);
+    // sum of r
+    //suff_stat[2] = sum_vec(state->residual_std[0]);
+
+    COUT << "parent node | ss0: " << suff_stat[0] << ", ss1:" << suff_stat[1] << endl;
+    for (size_t i = 0; i < state->residual_std[1].size(); i++)
+    {
+        if(state->residual_std[1][i] < 0) {
+            COUT << i << " <- i | res -> " << state->residual_std[1][i] << endl;
+        }
+    }
+
+    if(suff_stat[1] < 0)
+        COUT << suff_stat[1] << "<- tmp ini root " << endl;
+
     return;
 }
 
@@ -39,10 +53,10 @@ void hskNormalModel::incSuffStat(matrix<double> &residual_std, size_t index_next
 {
     // I have to pass matrix<double> &residual_std, size_t index_next_obs
     // which allows more flexibility for multidimensional residual_std
+    suffstats[0] += residual_std[2][index_next_obs]; // r/sigma^2
+    suffstats[1] += residual_std[1][index_next_obs]; // 1/sigma^2
+    //suffstats[2] += residual_std[0][index_next_obs]; // r
 
-    suffstats[0] += residual_std[2][index_next_obs];
-    suffstats[1] += residual_std[1][index_next_obs];
-    return;
 }
 
 void hskNormalModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
@@ -52,12 +66,18 @@ void hskNormalModel::samplePars(std::unique_ptr<State> &state, std::vector<doubl
     // test result should be theta
     theta_vector[0] = suff_stat[0] / (1.0 / tau + suff_stat[1])
                     + sqrt(1.0 / (1.0 / tau + suff_stat[1])) * normal_samp(state->gen);
+    if(suff_stat[1] < 0) {
+        COUT << suff_stat[0] << " <- ss0 | ss1 -> " << suff_stat[1] << endl;
+        COUT << theta_vector[0] << endl;
+    }
+
     return;
 }
 
 void hskNormalModel::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
     incSuffStat(residual_std, Xorder_std[split_var][row_ind], suff_stat);
+    //COUT << "local node | ss0: " << suff_stat[0] << ", ss1:" << suff_stat[1] << endl;
     return;
 }
 
@@ -66,6 +86,9 @@ void hskNormalModel::calculateOtherSideSuffStat(std::vector<double> &parent_suff
 
     // in function split_xorder_std_categorical, for efficiency, the function only calculates suff stat of ONE child
     // this function calculate the other side based on parent and the other child
+    //if(rchild_suff_stat[1] < 0 || parent_suff_stat[1] < 0 || lchild_suff_stat[1] < 0) {
+    //    COUT << "right: " << rchild_suff_stat[1] << ", parent: " << parent_suff_stat[1] << ", left: " << lchild_suff_stat[1] << endl;
+    //}
 
     if (compute_left_side)
     {
@@ -121,6 +144,8 @@ double hskNormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vect
             prec= suff_stat_all[1] - temp_suff_stat[1];
         }
     }
+    if(temp_suff_stat[1] < 0 || suff_stat_all[1] < temp_suff_stat[1])
+        COUT << temp_suff_stat[1] << "<- tmp | all -> " << suff_stat_all[1] << endl;
 
     return log(1.0 / (1.0 + tau * prec)) + res2 / (1.0 / tau + prec);
 }
@@ -149,7 +174,7 @@ void hskNormalModel::predict_std(const double *Xtestpointer, size_t N_test, size
     return;
 }
 
-// UNNEEDED: we don't update sigma within this model
+// DELETE: we don't update sigma within this model
 void hskNormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
     // Draw Sigma

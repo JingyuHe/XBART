@@ -22,7 +22,7 @@ void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
     // NK: if not, we'll just pass num_sweeps as a aseparate variable
     for (size_t sweeps = 0; sweeps < mean_state->num_sweeps; sweeps++)
     {
-/*
+
         if (verbose == true)
         {
             COUT << "--------------------------------" << endl;
@@ -76,8 +76,9 @@ void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
         //{
         //    mean_model->update_tau_per_forest(mean_state, sweeps, trees);
         //}
-*/
+
         var_model->ini_residual_std(var_state, mean_state->residual_std, var_x_struct);
+        //var_state->update_target(mean_state->log_res2);
 
         // NK: loop for the variance model forest
         for (size_t tree_ind = 0; tree_ind < var_state->num_trees; tree_ind++)

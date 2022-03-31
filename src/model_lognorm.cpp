@@ -12,11 +12,14 @@
 
 void logNormalModel::ini_residual_std(std::unique_ptr<State> &state, matrix<double> &mean_residual_std, std::unique_ptr<X_struct> &x_struct)
 {
+
     // initialize partial residual at the residual^2 from the mean model
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
+        COUT << log(pow(mean_residual_std[0][i],2)) << " - " << state->var_fit[i] << "+" << log((*(x_struct->data_pointers[0][i]))[0]) << endl;
         // put residual to the log scale
-        state->residual_std[0][i] = log(pow(mean_residual_std[0][i],2)) - state->var_fit[i] + (*(x_struct->data_pointers[0][i]))[0];
+        state->residual_std[0][i] = log(pow(mean_residual_std[0][i],2)) - state->var_fit[i] + log((*(x_struct->data_pointers[0][i]))[0]);
+        //state->residual_std[0][i] = log(pow(mean_residual_std[0][i],2)) - state->var_fit[i] + (*(x_struct->data_pointers[0][i]))[0];
         //COUT << state->residual_std[0][i] << endl;
     }
     return;
@@ -25,18 +28,10 @@ void logNormalModel::ini_residual_std(std::unique_ptr<State> &state, matrix<doub
 void logNormalModel::initialize_root_suffstat(std::unique_ptr<State> &state,
                                               std::vector<double> &suff_stat)
 {
-    // sum of r
-    std::vector<double> exp_res;
-    exp_res = std::vector<double>(state->residual_std[0].size(), 0);
-    for(size_t i = 0; i < state->residual_std[0].size(); i++)
+    for (size_t i = 0; i < state->n_y; i++)
     {
-        exp_res[i] = exp(state->residual_std[0][i]);
-        //COUT << state->residual_std[0][i] << endl;
+        incSuffStat(state->residual_std, i, suff_stat);
     }
-    suff_stat[0] = sum_vec(exp_res);
-    //COUT << "suffstat0 = " << suff_stat[0] << endl;
-    // number of observations in the node
-    suff_stat[1] = state->n_y;
     return;
 }
 
@@ -67,12 +62,22 @@ void logNormalModel::samplePars(std::unique_ptr<State> &state,
                                 std::vector<double> &theta_vector,
                                 double &prob_leaf)
 {
-    //std::gamma_distribution<double> gammadist(tau_a + 0.5 * suff_stat[1], 1.0 / (tau_b + 0.5 * suff_stat[0]));
-    //theta_vector[0] = gammadist(state->gen);
-    std::gamma_distribution<double> gammadist(tau_a + 0.5 * suff_stat[1], 1.0); // Maggie's Multinom: consider adding 1 sudo obs to prevent 0 theta value
-    theta_vector[0] = log(gammadist(state->gen) / (tau_b + 0.5 * suff_stat[0]));
-    // COUT << suff_stat[0] << " <- ss0 | ss1 -> " << suff_stat[1] << endl;
-    // COUT << theta_vector[0] << endl;
+    std::gamma_distribution<double> gammadist(tau_a + 0.5 * suff_stat[1], 1.0 / (tau_b + 0.5 * suff_stat[0]));
+    //std::gamma_distribution<double> gammadist(tau_a, 1.0 / (tau_b));
+    theta_vector[0] = gammadist(state->gen);
+
+
+
+    //theta_vector[0] = log(gammadist(state->gen));
+    //std::gamma_distribution<double> gammadist(tau_a + 0.5 * suff_stat[1], 1.0); // Maggie's Multinom: consider adding 1 sudo obs to prevent 0 theta value
+    //theta_vector[0] = log(gammadist(state->gen) / (tau_b + 0.5 * suff_stat[0]));
+    //COUT << suff_stat[0] << " <- ss0 | ss1 -> " << suff_stat[1] << endl;
+    //COUT << theta_vector[0] << endl;
+
+//    while (theta_vector[0] == 0)
+//    {
+//        theta_vector[0] = log(gammadist(state->gen) / (tau_b + 0.5 * suff_stat[0]));
+//    }
 
     return;
 }
@@ -138,23 +143,28 @@ void logNormalModel::state_sweep(size_t tree_ind,
         next_index = 0;
     }
 
+    //COUT << "fitted value: " << (*(x_struct->data_pointers[tree_ind][1]))[0] << endl;
 
     for (size_t i = 0; i < fit.size(); i++)
     {
         if (tree_ind == 0)
         {
-            fit[i] = (*(x_struct->data_pointers[tree_ind][i]))[0];
+            fit[i] = log((*(x_struct->data_pointers[tree_ind][i]))[0]);
+            //fit[i] = (*(x_struct->data_pointers[tree_ind][i]))[0];
         } else {
-            fit[i] += (*(x_struct->data_pointers[tree_ind][i]))[0];
+            fit[i] += log((*(x_struct->data_pointers[tree_ind][i]))[0]);
+            //fit[i] += (*(x_struct->data_pointers[tree_ind][i]))[0];
         }
 
     }
 
-    //COUT << residual_std[0][1] << " - " << (*(x_struct->data_pointers[tree_ind][1]))[0] << " + " << (*(x_struct->data_pointers[next_index][1]))[0] << endl;
-
     for (size_t i = 0; i < residual_std[0].size(); i++)
     {
-        residual_std[0][i] = residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + (*(x_struct->data_pointers[next_index][i]))[0];
+        //if(tree_ind == 3) {
+        //    COUT << residual_std[0][i] << " - " << (*(x_struct->data_pointers[tree_ind][i]))[0] << " + " << (*(x_struct->data_pointers[next_index][i]))[0] << endl;
+        //}
+        residual_std[0][i] = residual_std[0][i] - log((*(x_struct->data_pointers[tree_ind][i]))[0]) + log((*(x_struct->data_pointers[next_index][i]))[0]);
+        //residual_std[0][i] = residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + (*(x_struct->data_pointers[next_index][i]))[0];
     }
     return;
 }
@@ -176,7 +186,8 @@ void logNormalModel::predict_std(const double *Xtestpointer, size_t N_test, size
             // take sum of predictions of each tree, as final prediction
             for (size_t i = 0; i < trees[0].size(); i++)
             {
-                yhats_test_xinfo[sweeps][data_ind] += output[i][0];
+                yhats_test_xinfo[sweeps][data_ind] += log(output[i][0]);
+                //yhats_test_xinfo[sweeps][data_ind] += output[i][0];
             }
             yhats_test_xinfo[sweeps][data_ind] = exp(yhats_test_xinfo[sweeps][data_ind]);
         }
@@ -184,20 +195,27 @@ void logNormalModel::predict_std(const double *Xtestpointer, size_t N_test, size
     return;
 }
 
-// do not directly update the residuals for the other model here; update state instead
+// TODO: do not directly update the residuals for the other model here; update state instead
 void logNormalModel::update_sigmas(matrix<double> &mean_residual_std, std::vector<double> &fit)
 {
+    if(mean_residual_std[0].size() != mean_residual_std[1].size()) {
+        COUT << "SIZE MISMATCH OMG" << endl;
+    }
+
     // initialize partial residual at the residual^2 from the mean model
     for (size_t i = 0; i < mean_residual_std[0].size(); i++)
     {
         //COUT << "fitted value is " << exp(fit[i]) << endl;
         mean_residual_std[1][i] = 1.0 / exp(fit[i]);
+        if(mean_residual_std[1][i] < 0) {
+            COUT << i << " <- i | res -> " << mean_residual_std[1][i] << endl;
+        }
         mean_residual_std[2][i] = mean_residual_std[0][i] * mean_residual_std[1][i];
     }
     return;
 }
 
-// UNNEDED: we don't draw sigma here (aat least for now)
+// DELETE: we don't draw sigma here (aat least for now)
 void logNormalModel::update_state(std::unique_ptr<State> &state,
                                   size_t tree_ind,
                                   std::unique_ptr<X_struct> &x_struct)

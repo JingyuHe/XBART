@@ -17,20 +17,26 @@ using namespace chrono;
 Rcpp::List XBART_heterosk_cpp(arma::mat y,
                               arma::mat X,
                               arma::mat Xtest,
-                              size_t num_trees,
                               size_t num_sweeps,
-                              size_t max_depth,
-                              size_t n_min,
-                              size_t num_cutpoints,
-                              double alpha, double beta,
-                              double tau,
-                              double no_split_penality,
-                              size_t burnin = 1,
-                              size_t mtry = 0,
-                              size_t p_categorical = 0,
+                              size_t burnin,
+                              size_t p_categorical,
+                              size_t mtry,
+                              double no_split_penality_m,
+                              size_t num_trees_m,
+                              size_t max_depth_m,
+                              size_t n_min_m,
+                              size_t num_cutpoints_m,
+                              double tau_m,
+                              double no_split_penality_v,
+                              size_t num_trees_v,
+                              size_t max_depth_v,
+                              size_t n_min_v,
+                              size_t num_cutpoints_v,
+                              double a_v, double b_v, // shape and rate
+                              double ini_var, // optional initialization for variance
                               double kap = 16, double s = 4,
                               double tau_kap = 3, double tau_s = 0.5,
-                              double a_v = 2.0, double b_v = 2.0, // shape and rate
+                              double alpha = 0.95, double beta = 1.25, //BART tree params
                               bool verbose = false,
                               bool sampling_tau = true,
                               bool parallel = true,
@@ -40,8 +46,9 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
                               double nthread = 0
                               )
 {
-    COUT << "In source." << endl;
-
+    //COUT << "In source." << endl;
+    //double var = ini_var;
+    nthread = 0;
     if (parallel && (nthread == 0))
     {
         // if turn on parallel and do not sepicifiy number of threads
@@ -114,47 +121,57 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
 
     // TODO: check and remove -- this is likely an unnecessary storage
     matrix<double> sigma_draw_xinfo;
-    ini_matrix(sigma_draw_xinfo, num_trees, num_sweeps);
+    ini_matrix(sigma_draw_xinfo, num_trees_m, num_sweeps);
 
     // Create trees for the mean model
     vector<vector<tree>> *trees2_m = new vector<vector<tree>>(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++)
     {
-        (*trees2_m)[i] = vector<tree>(num_trees);
+        (*trees2_m)[i] = vector<tree>(num_trees_m);
     }
 
     // Create trees for the variance model
     vector<vector<tree>> *trees2_v = new vector<vector<tree>>(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++)
     {
-        (*trees2_v)[i] = vector<tree>(num_trees);
+        (*trees2_v)[i] = vector<tree>(num_trees_v);
     }
 
     // COUT << "Objects init." << endl;
     // define the mean model
-    hskNormalModel *model_m = new hskNormalModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
+    hskNormalModel *model_m = new hskNormalModel(kap, s, tau_m, alpha, beta, sampling_tau, tau_kap, tau_s);
     // cout << "after define model " << model->tau << " " << model->tau_mean << endl;
-    model_m->setNoSplitPenality(no_split_penality);
+    model_m->setNoSplitPenality(no_split_penality_m);
 
     // define the variance model
     // TODO:update the first two inputs
-    logNormalModel *model_v = new logNormalModel(1,1,kap, s, tau, alpha, beta);
+    logNormalModel *model_v = new logNormalModel(a_v, b_v, kap, s, tau_m, alpha, beta);
     // cout << "after define model " << model->tau << " " << model->tau_mean << endl;
-    model_v->setNoSplitPenality(no_split_penality);
+    model_v->setNoSplitPenality(no_split_penality_v);
 
     // State settings for the mean model
     std::vector<double> sigma_vec(N, 1); // initialize vector of heterogeneous sigmas
-    std::unique_ptr<State> state_m(new hskState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model_m->dim_residual, nthread, parallel, sigma_vec)); //last input is nthread, need update
-
+    std::unique_ptr<State> state_m(new hskState(Xpointer, Xorder_std, N, p, num_trees_m,
+                                                p_categorical, p_continuous, set_random_seed,
+                                                random_seed, n_min_m, num_cutpoints_m,
+                                                mtry, Xpointer, num_sweeps, sample_weights_flag,
+                                                &y_std, 1.0, max_depth_m, y_mean, burnin, model_m->dim_residual,
+                                                nthread, parallel, sigma_vec)); //last input is nthread, need update
     // State settings for the variance model
-    std::unique_ptr<State> state_v(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model_v->dim_residual, nthread, parallel)); //last input is nthread, need update
+    std::unique_ptr<State> state_v(new NormalState(Xpointer, Xorder_std, N, p, num_trees_v,
+                                                   p_categorical, p_continuous, set_random_seed,
+                                                   random_seed, n_min_v, num_cutpoints_v,
+                                                   mtry, Xpointer, num_sweeps, sample_weights_flag,
+                                                   &y_std, 1.0, max_depth_v, y_mean, burnin, model_v->dim_residual,
+                                                   nthread, parallel)); //last input is nthread, need update
 
     // initialize X_struct
-    std::vector<double> initial_theta_m(1, y_mean / (double)num_trees);
-    std::unique_ptr<X_struct> x_struct_m(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_m, num_trees));
-
-    std::vector<double> initial_theta_v(1, 0); // it should be either 1 or 0 depending on the scale used
-    std::unique_ptr<X_struct> x_struct_v(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_v, num_trees));
+    std::vector<double> initial_theta_m(1, y_mean / (double)num_trees_m);
+    std::unique_ptr<X_struct> x_struct_m(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_m, num_trees_m));
+    //COUT << "var: " << ini_var << endl;
+    //std::vector<double> initial_theta_v(1, ini_var / (double)num_trees_v);
+    std::vector<double> initial_theta_v(1, 1);
+    std::unique_ptr<X_struct> x_struct_v(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_v, num_trees_v));
 
     //COUT << "Running the model." << endl;
     ////////////////////////////////////////////////////////////////
@@ -165,8 +182,8 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
 
     //COUT << "Predict." << endl;
     // TODO: check how predict function will be different
-    model_m->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, mhats_test_xinfo, *trees2_m);
-    model_v->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, vhats_test_xinfo, *trees2_v);
+    model_m->predict_std(Xtestpointer, N_test, p, num_trees_m, num_sweeps, mhats_test_xinfo, *trees2_m);
+    model_v->predict_std(Xtestpointer, N_test, p, num_trees_v, num_sweeps, vhats_test_xinfo, *trees2_v);
 
     state_m.reset();
     state_v.reset();
@@ -177,7 +194,8 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
 
     for(size_t i = 0; i < N_test; i++) {
         for(size_t j = 0; j < num_sweeps; j++) {
-            yhats_test_xinfo[j][i] = mhats_test_xinfo[j][i] + vhats_test_xinfo[j][i];
+            //yhats_test_xinfo[j][i] = mhats_test_xinfo[j][i] + vhats_test_xinfo[j][i];
+            yhats_test_xinfo[j][i] = mhats_test_xinfo[j][i];
         }
     }
     // R Objects to Return

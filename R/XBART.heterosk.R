@@ -2,21 +2,27 @@
 XBART.heterosk <- function(y,
                            X,
                            Xtest,
-                           num_trees,
                            num_sweeps,
-                           max_depth = 250,
-                           Nmin = 1,
-                           num_cutpoints = 100,
+                           burnin = 1L,
+                           p_categorical = 0L,
+                           mtry = NULL,
+                           no_split_penality_m = NULL,
+                           num_trees_m = 10,
+                           max_depth_m = 250,
+                           Nmin_m = 1,
+                           num_cutpoints_m = 100,
+                           tau_m = NULL,
+                           no_split_penality_v = NULL,
+                           num_trees_v = 2,
+                           max_depth_v = 250,
+                           Nmin_v = 50,
+                           num_cutpoints_v = 100,
+                           ini_var = 0, # optional initialization for variance
+                           a_v = 1.0, b_v = 1.0,
                            alpha = 0.95,
                            beta = 1.25,
-                           tau = NULL,
-                           no_split_penality = NULL,
-                           burnin = 1L,
-                           mtry = NULL,
-                           p_categorical = 0L,
                            kap = 16, s = 4,
                            tau_kap = 3, tau_s = 0.5,
-                           a_v = 2.0, b_v = 2.0,
                            verbose = FALSE,
                            sampling_tau = TRUE,
                            parallel = TRUE,
@@ -60,13 +66,17 @@ XBART.heterosk <- function(y,
         stop("Burnin samples should be smaller than number of sweeps.\n")
     }
 
-    if (is.null(no_split_penality) || no_split_penality == "Auto") {
-        no_split_penality = log(num_cutpoints)
+    if (is.null(no_split_penality_m) || no_split_penality_m == "Auto") {
+        no_split_penality_m = log(num_cutpoints_m)
     }
 
-    if (is.null(tau)) {
-        tau = 1/num_trees
-        cat("tau = 1/num_trees, default value. \n")
+    if (is.null(no_split_penality_v) || no_split_penality_v == "Auto") {
+        no_split_penality_v = log(num_cutpoints_v)
+    }
+
+    if (is.null(tau_m)) {
+        tau_m = 1/num_trees_m
+        cat("tau_m = 1/num_trees_m, default value. \n")
     }
 
     if (is.null(mtry)) {
@@ -85,31 +95,41 @@ XBART.heterosk <- function(y,
     }
     # check input type
 
+    check_positive_integer(num_sweeps, "num_sweeps")
     check_non_negative_integer(burnin, "burnin")
     check_non_negative_integer(p_categorical, "p_categorical")
 
-    check_positive_integer(max_depth, "max_depth")
-    check_positive_integer(Nmin, "Nmin")
-    check_positive_integer(num_sweeps, "num_sweeps")
-    check_positive_integer(num_trees, "num_trees")
-    check_positive_integer(num_cutpoints, "num_cutpoints")
+    check_positive_integer(max_depth_m, "max_depth_m")
+    check_positive_integer(Nmin_m, "Nmin_m")
+    check_positive_integer(num_trees_m, "num_trees_m")
+    check_positive_integer(num_cutpoints_m, "num_cutpoints_m")
 
-    check_scalar(tau, "tau")
-    check_scalar(no_split_penality, "no_split_penality")
+    check_positive_integer(max_depth_v, "max_depth_v")
+    check_positive_integer(Nmin_v, "Nmin_v")
+    check_positive_integer(num_trees_v, "num_trees_v")
+    check_positive_integer(num_cutpoints_v, "num_cutpoints_v")
+
+    check_scalar(tau_m, "tau_m")
+    check_scalar(no_split_penality_m, "no_split_penality_m")
+    check_scalar(no_split_penality_v, "no_split_penality_v")
     check_scalar(alpha, "alpha")
     check_scalar(beta, "beta")
     check_scalar(kap, "kap")
     check_scalar(s, "s")
 
 
-    obj = XBART_heterosk_cpp(y, X, Xtest, num_trees, num_sweeps, max_depth,
-        Nmin, num_cutpoints, alpha, beta, tau, no_split_penality, burnin,
-        mtry, p_categorical, kap, s, tau_kap, tau_s, a_v, b_v, verbose, sampling_tau, parallel, set_random_seed,
-        random_seed, sample_weights_flag, nthread)
+    obj = XBART_heterosk_cpp(y, X, Xtest, num_sweeps, burnin, p_categorical, mtry,
+                             no_split_penality_m, num_trees_m, max_depth_m,
+                             Nmin_m, num_cutpoints_m, tau_m,
+                             no_split_penality_v, num_trees_v, max_depth_v,
+                             Nmin_v, num_cutpoints_v, a_v, b_v, ini_var,
+                             kap, s, tau_kap, tau_s, alpha, beta,
+                             verbose, sampling_tau, parallel, set_random_seed,
+                             random_seed, sample_weights_flag, nthread)
 
 #    tree_json = r_to_json(mean(y), obj$model$tree_pnt)
 #   obj$tree_json = tree_json
 
-#   class(obj) = "XBART"
-#    return(obj)
+    class(obj) = "XBART"
+    return(obj)
 }
