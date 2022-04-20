@@ -123,7 +123,7 @@ yt = ft + rnorm(nt, 0, sigma)
 n_trees = 20
 tau = var(y)/n_trees
 fit <- XBART(y=matrix(y),  X=x, Xtest=xt, num_trees=n_trees, Nmin = 20, num_sweeps=100, burnin = 20, tau = tau, sampling_tau = TRUE)
-gp_pred <- predict.gp(fit, as.matrix(y), x, xt, theta = 0.1, tau = mean(fit$sigma)^2/n_trees, p_categorical = 0)
+gp_pred <- predict.gp(fit, as.matrix(y), x, xt, theta = 0.1, tau = var(y)/n_trees, p_categorical = 0)
 
 
 gp_yhat <- t(apply(gp_pred, 1, function(x) rnorm(length(x), x, fit$sigma[10,])))

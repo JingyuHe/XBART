@@ -224,11 +224,18 @@ void get_X_range(const double *Xpointer, std::vector< std::vector<size_t> > &Xor
     size_t p = Xorder_std.size();
     ini_matrix(X_range, 2, p);
 
-    // next step is to get 95% quantile to avoid outliers
+    // get 95% quantile to avoid outliers
+    double alpha = 0.05;
+    size_t low_idx = (size_t) floor(N * alpha / 2);
+    size_t up_idx = (size_t) floor(N * (1 - alpha / 2));
+    // cout << "N = " << N << ", low = " << low_idx << ", up_idx = " << up_idx<< endl;
     for (size_t i = 0; i < p; i++)
     {
-        X_range[i][0] = *(Xpointer + i * n_y + Xorder_std[i][0]);
-        X_range[i][1] = *(Xpointer + i * n_y + Xorder_std[i][N-1]);
+        // X_range[i][0] = *(Xpointer + i * n_y + Xorder_std[i][0]);
+        // X_range[i][1] = *(Xpointer + i * n_y + Xorder_std[i][N-1]);
+        X_range[i][0] = *(Xpointer + i * n_y + Xorder_std[i][low_idx]);
+        X_range[i][1] = *(Xpointer + i * n_y + Xorder_std[i][up_idx]);
+    
     }
 
     // std::cout << "total_points " << total_points << std::endl;

@@ -2273,6 +2273,7 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_s
         // get local range
         matrix<double> local_X_range;
         get_X_range(x_struct->X_std, Xorder_std, local_X_range, x_struct->n_y);
+        // cout << "N = " << N << ", X_range = " << local_X_range << endl;
 
         // check out of range test sets
         // exterior points may not be out-of-range on all active variables
@@ -2335,10 +2336,15 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_s
                     X(i, j_count) = *(split_var_x_pointer + train_ind[i]);
                 }
 
+                // if (local_X_range[j][1] > local_X_range[j][0]){
+                //     x_range[j_count] = sqrt(local_X_range[j][1] - local_X_range[j][0]);
+                // }else{
+                //     x_range[j_count] =  sqrt(*(split_var_x_pointer + Xorder_std[j][Xorder_std[j].size()-1]) - *(split_var_x_pointer + Xorder_std[j][0]));                
+                // }
                 if (local_X_range[j][1] > local_X_range[j][0]){
-                    x_range[j_count] = sqrt(local_X_range[j][1] - local_X_range[j][0]);
+                    x_range[j_count] = (local_X_range[j][1] - local_X_range[j][0]);
                 }else{
-                    x_range[j_count] =  sqrt(*(split_var_x_pointer + Xorder_std[j][Xorder_std[j].size()-1]) - *(split_var_x_pointer + Xorder_std[j][0]));                
+                    x_range[j_count] =  (*(split_var_x_pointer + Xorder_std[j][Xorder_std[j].size()-1]) - *(split_var_x_pointer + Xorder_std[j][0]));                
                 }
 
                 split_var_x_pointer = xtest_struct->X_std + xtest_struct->n_y * j;
