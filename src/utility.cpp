@@ -218,16 +218,17 @@ void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, //s
 }
 
 
-void get_X_range(const double *Xpointer, std::vector< std::vector<size_t> > &Xorder_std, std::vector<std::vector<double>> &X_range)
+void get_X_range(const double *Xpointer, std::vector< std::vector<size_t> > &Xorder_std, std::vector<std::vector<double>> &X_range, size_t &n_y)
 {
     size_t N = Xorder_std[0].size();
     size_t p = Xorder_std.size();
     ini_matrix(X_range, 2, p);
 
+    // next step is to get 95% quantile to avoid outliers
     for (size_t i = 0; i < p; i++)
     {
-        X_range[i][0] = *(Xpointer + i * N + Xorder_std[i][0]);
-        X_range[i][1] = *(Xpointer + i * N + Xorder_std[i][N-1]);
+        X_range[i][0] = *(Xpointer + i * n_y + Xorder_std[i][0]);
+        X_range[i][1] = *(Xpointer + i * n_y + Xorder_std[i][N-1]);
     }
 
     // std::cout << "total_points " << total_points << std::endl;

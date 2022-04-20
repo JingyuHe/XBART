@@ -2272,7 +2272,7 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_s
         
         // get local range
         matrix<double> local_X_range;
-        get_X_range(x_struct->X_std, Xorder_std, local_X_range);
+        get_X_range(x_struct->X_std, Xorder_std, local_X_range, x_struct->n_y);
 
         // check out of range test sets
         // exterior points may not be out-of-range on all active variables
