@@ -27,13 +27,6 @@ phat_test_hack = preds_hack.mean(axis=1)
 xbart_hack_score = accuracy_score(valid_fe['Survived'],phat_test_hack>0)
 xbart_hack_log = log_loss(valid_fe['Survived'],norm.cdf(phat_test_hack))
 
-# print("Fit XBART CLT")
-# model = XBART(num_trees = 15,num_sweeps = 150,n_min = 5,burnin = 25,model = "CLT")
-# model.fit(train_fe.drop("Survived",axis=1),train_fe["Survived"]*2-1)
-# preds_clt = model.predict(valid_fe.drop("Survived",axis=1),return_mean=False)
-# phat_test_clt = preds_clt.mean(axis=1)
-# xbart_clt_score = accuracy_score(valid_fe['Survived'],phat_test_clt>0)
-
 print("Fit XBART Probit")
 model = XBART(num_trees = 10,num_sweeps = 150,n_min = 5,burnin = 25,model = "Probit")
 model.fit(train_fe.drop("Survived",axis=1),train_fe["Survived"]*2-1)
