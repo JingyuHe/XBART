@@ -274,7 +274,7 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
 {
     for (size_t j = 0; j < dim_theta; j++)
     {
-        if (isnan(suff_stat[j]))
+        if (std::isnan(suff_stat[j]))
         {
             cout <<"unidentified error: suff_stat is nan for class " << j << endl;
             exit(1);
@@ -330,7 +330,7 @@ void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, st
         std::gamma_distribution<> d(10.0, 1.0);
         weight = d(state->gen) / (10.0 * logloss / (double)state->n_y + 1.0); // it's like shift p down by
     }
-    if (isnan(weight)) {cout << "weight is nan" << endl;}
+    if (std::isnan(weight)) {cout << "weight is nan" << endl;}
 
     // Sample tau_a
    if (update_tau)
@@ -463,7 +463,7 @@ void LogitModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual
         {
             // residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j] / (*(x_struct->data_pointers[next_index][i]))[j];
             residual_std[j][i] = residual_std[j][i] + log((*(x_struct->data_pointers[tree_ind][i]))[j]) - log( (*(x_struct->data_pointers[next_index][i]))[j] );
-            if (isnan(exp(residual_std[j][i]))) {
+            if (std::isnan(exp(residual_std[j][i]))) {
                 cout << "residual is nan, log(resid) = " << residual_std[j][i] << ", old_pointer = " << (*(x_struct->data_pointers[next_index][i]))[j]  << ", new = " << (*(x_struct->data_pointers[tree_ind][i]))[j] << endl;
             }
         }
