@@ -2,7 +2,7 @@
 # set parameters of XBART
 get_XBART_params <- function(y) {
   XBART_params = list(num_trees = 30, # number of trees 
-                      num_sweeps = 40, # number of sweeps (samples of the forest)
+                      num_sweeps = 50, # number of sweeps (samples of the forest)
                       n_min = 1, # minimal node size
                       alpha = 0.95, # BART prior parameter 
                       beta = 1.25, # BART prior parameter
@@ -12,7 +12,7 @@ get_XBART_params <- function(y) {
                       ) # burnin of MCMC sample
   num_tress = XBART_params$num_trees
   XBART_params$max_depth = 250
-  XBART_params$num_cutpoints = 50;
+  XBART_params$num_cutpoints = 100;
   # number of adaptive cutpoints
   XBART_params$tau = var(y) / num_tress # prior variance of mu (leaf parameter)
   return(XBART_params)
@@ -21,6 +21,7 @@ get_XBART_params <- function(y) {
 
 #######################################################################
 library(XBART)
+library(BART)
 
 set.seed(100)
 new_data = TRUE # generate new data
@@ -35,14 +36,14 @@ verbose = FALSE # print the progress on screen
 
 
 if (small_case) {
-  n = 20000 # size of training set
+  n = 10000 # size of training set
   nt = 5000 # size of testing set
   d = 20 # number of TOTAL variables
-  dcat = 10 # number of categorical variables
+  dcat = 0 # number of categorical variables
   # must be d >= dcat
   # (X_continuous, X_categorical), 10 and 10 for each case, 20 in total
 } else {
-  n = 100000
+  n = 1000000
   nt = 10000
   d = 50
   dcat = 0
@@ -110,12 +111,24 @@ categ <- function(z, j) {
 }
 
 
+
+
 params = get_XBART_params(y)
 time = proc.time()
-fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat,
+
+
+
+
+
+
+
+
+
+# XBART
+fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat, 
             params$num_trees, params$num_sweeps, params$max_depth,
             params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1,
-            mtry = params$mtry, verbose = verbose,
+            mtry = params$mtry, verbose = TRUE,
             num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100, no_split_penality = params$no_split_penality)
 
 ################################
@@ -124,7 +137,7 @@ fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat,
 # 1. set xtest as input to main fitting function
 fhat.1 = apply(fit$yhats_test[, params$burnin:params$num_sweeps], 1, mean)
 time = proc.time() - time
-print(time)
+print(time[3])
 
 # 2. a separate predict function
 pred = predict(fit, xtest)
@@ -132,54 +145,111 @@ pred = rowMeans(pred[, params$burnin:params$num_sweeps])
 
 time_XBART = round(time[3], 3)
 
-pred2 = predict(fit, xtest)
+pred2 = predict(fit, xtest) 
 pred2 = rowMeans(pred2[, params$burnin:params$num_sweeps])
 stopifnot(pred == pred2)
 
-#######################################################################
-# dbarts
-if (run_dbarts) {
-  library(dbarts)
-
-  time = proc.time()
-  fit = bart(x, y, xtest, verbose = FALSE, numcut = 100, ndpost = 1000, nskip = 500)
-  time = proc.time() - time
-  print(time[3])
-  fhat.db = fit$yhat.test.mean
-  time_dbarts = round(time[3], 3)
-} else {
-  fhat.db = fhat.1
-  time_dbarts = time_XBART
-}
 
 
-#######################################################################
-# XGBoost
-if (run_xgboost) {
-  library(xgboost)
-}
+# #####
+# # bart with default initialization
+fit_bart = wbart(x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, ndpost = 200, nskip = 0)
+
+# pred_bart = colMeans(predict(fit_bart, xtest))
 
 
-
-#######################################################################
-# LightGBM
-if (run_lightgbm) {
-  library(xgboost)
-}
+# bart with XBART initialization
+fit_bart2 = wbart_ini(treedraws = fit$treedraws, x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 100, sigest = mean(fit$sigma))
 
 
-#######################################################################
-# print
+pred_bart_ini = colMeans(predict(fit_bart2, xtest))
+
+
 xbart_rmse = sqrt(mean((fhat.1 - ftest) ^ 2))
-print(paste("rmse of fit xbart: ", round(xbart_rmse, digits = 4)))
-print(paste("rmse of fit dbart: ", round(sqrt(mean((fhat.db - ftest) ^ 2)), digits = 4)))
-
-print(paste("running time, dbarts", time_dbarts))
-print(paste("running time, XBART", time_XBART))
+bart_rmse = sqrt(mean((pred_bart - ftest)^2))
+bart_ini_rmse = sqrt(mean((pred_bart_ini - ftest)^2))
 
 
-plot(ftest, fhat.db, pch = 20, col = 'orange')
-points(ftest, fhat.1, pch = 20, col = 'slategray')
-legend("topleft", c("dbarts", "XBART"), col = c("orange", "slategray"), pch = c(20, 20))
+xbart_rmse
+bart_rmse
+bart_ini_rmse
+
+
+
+
+
+#######################################################################
+# Calculate coverage
+#######################################################################
+
+# coverage of the real average
+draw_BART_XBART = c()
+
+for(i in 15:50){
+  # bart with XBART initialization
+  cat("------------- i ", i , "\n")
+  set.seed(1)
+  fit_bart2 = wbart_ini(treedraws = fit$treedraws[i], x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 100)
+
+  draw_BART_XBART = rbind(draw_BART_XBART, fit_bart2$yhat.test)
+
+}
+
+
+i = 20
+set.seed(1)
+  fit_bart2 = wbart_ini(treedraws = fit$treedraws[i], x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 100)
+  plot(fit_bart2$yhat.test[1,])
+
+
+# #######################################################################
+# # print
+xbart_rmse = sqrt(mean((fhat.1 - ftest) ^ 2))
+bart_rmse = sqrt(mean((pred_bart - ftest)^2))
+bart_ini_rmse = sqrt(mean((colMeans(draw_BART_XBART) - ftest)^2))
+
+
+xbart_rmse
+bart_rmse
+bart_ini_rmse
+
+
+
+
+
+coverage = c(0,0,0)
+
+length = matrix(0, nt, 3)
+
+for(i in 1:nt){
+  lower = quantile(fit$yhats_test[i, 15:50], 0.025)
+  higher = quantile(fit$yhats_test[i, 15:50], 0.975)
+  if(ftest[i] < higher && ftest[i] > lower){
+    coverage[1] = coverage[1] + 1
+  }
+  length[i,1] = higher - lower
+
+  lower = quantile(fit_bart$yhat.test[,i], 0.025)
+  higher = quantile(fit_bart$yhat.test[,i], 0.975)
+  if(ftest[i] < higher && ftest[i] > lower){
+    coverage[2] = coverage[2] + 1
+  }
+  length[i,2] = higher - lower
+
+  lower = quantile(draw_BART_XBART[,i], 0.025)
+  higher = quantile(draw_BART_XBART[,i], 0.975)
+  if(ftest[i] < higher && ftest[i] > lower){
+    coverage[3] = coverage[3] + 1
+  }
+  length[i,3] = higher - lower
+
+}
+
+coverage / nt
+colMeans(length)
+
+
+
+
 
 

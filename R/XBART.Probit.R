@@ -2,19 +2,19 @@ XBART.Probit <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
     Nmin = 1, num_cutpoints = 100, alpha = 0.95, beta = 1.25, tau = NULL, 
     no_split_penality = NULL, burnin = 1L, mtry = NULL, p_categorical = 0L, 
     kap = 16, s = 4, verbose = FALSE, parallel = TRUE, random_seed = NULL, 
-    sample_weights_flag = TRUE, ...) {
+    sample_weights_flag = TRUE, nthread = 0, ...) {
     
-    if (class(X) != "matrix") {
+    if (!("matrix" %in% class(X))) {
         cat("Input X is not a matrix, try to convert type.\n")
         X = as.matrix(X)
     }
     
-    if (class(Xtest) != "matrix") {
+    if (!("matrix" %in% class(Xtest))) {
         cat("Input Xtest is not a matrix, try to convert type.\n")
         Xtest = as.matrix(Xtest)
     }
     
-    if (class(y) != "matrix") {
+    if (!("matrix" %in% class(y))) {
         cat("Input y is not a matrix, try to convert type.\n")
         y = as.matrix(y)
     }
@@ -83,7 +83,7 @@ XBART.Probit <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250,
     obj = XBART_Probit_cpp(y, X, Xtest, num_trees, num_sweeps, max_depth, 
         Nmin, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, 
         mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, 
-        random_seed, sample_weights_flag)
+        random_seed, sample_weights_flag, nthread)
     class(obj) = "XBART"  # Change to XBARTProbit?
     return(obj)
 }

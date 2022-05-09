@@ -51,6 +51,37 @@ void NormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, s
     return;
 }
 
+void NormalModel::update_tau(std::unique_ptr<State> &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> & trees){
+    std::vector<tree *> leaf_nodes;
+    trees[sweeps][tree_ind].getbots(leaf_nodes);
+    double sum_squared = 0.0;
+    for(size_t i = 0; i < leaf_nodes.size(); i ++ ){
+        sum_squared = sum_squared + pow(leaf_nodes[i]->theta_vector[0], 2);
+    }
+    double kap = this->tau_kap;
+    double s = this->tau_s * this->tau_mean;
+    
+    std::gamma_distribution<double> gamma_samp((leaf_nodes.size() + kap) / 2.0, 2.0 / (sum_squared + s));
+    this->tau = 1.0 / gamma_samp(state->gen); 
+    return;
+};
+
+void NormalModel::update_tau_per_forest(std::unique_ptr<State> &state, size_t sweeps, vector<vector<tree>> & trees){
+    std::vector<tree *> leaf_nodes;
+    for(size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind ++){
+        trees[sweeps][tree_ind].getbots(leaf_nodes);
+    }
+    double sum_squared = 0.0;
+    for(size_t i = 0; i < leaf_nodes.size(); i ++ ){
+        sum_squared = sum_squared + pow(leaf_nodes[i]->theta_vector[0], 2);
+    }
+    double kap = this->tau_kap;
+    double s = this->tau_s * this->tau_mean;
+    std::gamma_distribution<double> gamma_samp((leaf_nodes.size() + kap) / 2.0, 2.0 / (sum_squared + s));
+    this->tau = 1.0 / gamma_samp(state->gen); 
+    return;
+}
+
 void NormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
 {
     // sum of y
@@ -114,7 +145,7 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
     // double y_sum = (double)suff_stat_all[2] * suff_stat_all[0];
     // double y_sum = suff_stat_all[0];
     double sigma2 = state->sigma2;
-    double ntau;
+    // double ntau;
     // double suff_one_side;
 
     /////////////////////////////////////////////////////////////////////////
@@ -228,120 +259,127 @@ void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t 
 //incSuffStat should take a state as its first argument
 void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
 {
-    // I have to pass matrix<double> &residual_std, size_t index_next_obs
-    // which allows more flexibility for multidimensional residual_std
-
-    // suffstats[0] += residual_std[0][index_next_obs];
-
-    // sufficient statistics have 2 * num_classes
-
     suffstats[(*y_size_t)[index_next_obs]] += weight;
-
-
     for (size_t j = 0; j < dim_theta; ++j)
     {
-        // count number of observations, y_{ij}
-        // if ((*y_size_t)[index_next_obs] == j)
-            // suffstats[j] += 1;
-
-        // psi * f
-        suffstats[dim_theta + j] += (*phi)[index_next_obs] * residual_std[j][index_next_obs];
+        suffstats[dim_residual + j] += weight * exp(residual_std[j][index_next_obs]);
+        // suffstats[dim_residual + j] += (*phi)[index_next_obs] * exp(residual_std[j][index_next_obs]);
     }
 
     return;
 }
+
 
 void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
 {
-
-    //redefine these to use prior pars from Model class
-    // int c = dim_theta; //suffstats.size() / 2;
-
-    // double r;
-    // double s;
-
     for (size_t j = 0; j < dim_theta; j++)
     {
-        // not necessary to assign to r and s again
-        // r = suff_stat[j];
-        // s = suff_stat[c + j];
+        if (std::isnan(suff_stat[j]))
+        {
+            cout <<"unidentified error: suff_stat is nan for class " << j << endl;
+            exit(1);
+        }
+        std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1.0); // consider adding 1 sudo obs to prevent 0 theta value
+        theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
+        while (theta_vector[j] == 0)
+        {
+            theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
+        }
 
-        // std::gamma_distribution<double> gammadist(tau_a + r, 1);
-
-        // theta_vector[j] = gammadist(state->gen) / (tau_b + s);
-
-        std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1.0);
-
-        // !! devide s by min_sum_fits
-        theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]/min_fits);
+        // std::gamma_distribution<double> gammadist(tau_a + suff_stat[j]/weight, 1.0); // consider adding 1 sudo obs to prevent 0 theta value
+        // theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]/weight);
+        // while (theta_vector[j] == 0)
+        // {
+        //     theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]/weight);
+        // }
     }
-    // cout << "theta_vector" << theta_vector << endl;
-
     return;
 }
 
-void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
+void LogitModel::update_state(std::unique_ptr<State>& state, size_t tree_ind, std::unique_ptr<X_struct>& x_struct)
 {
-    std::feclearexcept(FE_OVERFLOW);
-    std::feclearexcept(FE_UNDERFLOW);
 
-    // Draw phi
-
-    double sum_fits = 0;
-    double loglike_pi = 0;
-    // double min_fits = INFINITY;
-    // std::vector<double> fits(dim_theta, 0.0);
-    // std::vector<double> sum_fits_w(weight_std.size(), 0.0);
-    // std::vector<double> loglike_weight(weight_std.size(), 0.0);
-
+    // Calculate logloss
     size_t y_i;
-    
-
+    double sum_fits;
+    logloss = 0; // reset logloss
+    double prob = 0.0;
     std::gamma_distribution<double> gammadist(weight, 1.0);
 
-    min_fits = INFINITY;
-    std::vector<double> sum_fits_v (state->residual_std[0].size(), 0.0);
-
-    for (size_t i = 0; i < state->residual_std[0].size(); i++)
+    for (size_t i = 0; i < state->n_y; i++)
     {
         sum_fits = 0;
-        // std::fill(sum_fits_w.begin(), sum_fits_w.end(), 0.0);
-        for (size_t j = 0; j < dim_theta; ++j)
+        y_i = (size_t)(*y_size_t)[i];
+        for (size_t j = 0; j < dim_residual; ++j)
         {
-            sum_fits += state->residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j];
+            sum_fits += exp(state->residual_std[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
         }
-        if (sum_fits < min_fits) {min_fits = sum_fits;}
-        sum_fits_v[i] = sum_fits;
-
-        y_i = (*state->y_std)[i];
-        loglike_pi += log(state->residual_std[y_i][i]) + log((*(x_struct->data_pointers[tree_ind][i]))[y_i]) - log(sum_fits);
-
-        // !! devide sum_fits by min_sum_fits
-        // (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits/min_fits); 
+        // Sample phi
+        // (*phi)[i] = gammadist(state->gen) / (1.0 * sum_fits);
+        // calculate logloss
+        prob = exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits; // logloss =  - log(p_j) 
+        // if (prob == 0){
+        //     cout << "resid = " << exp(state->residual_std[y_i][i]) << ", pointer = " << (*(x_struct->data_pointers[tree_ind][i]))[y_i] << ", sum_fits = " << sum_fits << endl;
+        // }
+        logloss += -log(prob);
     }
-
-    for (size_t i = 0; i < state->residual_std[0].size(); i++){
-        (*phi)[i] = gammadist(state->gen) / (1.0*sum_fits_v[i]/min_fits); 
+    // sample weight based on logloss
+    if (update_weight){
+        // std::gamma_distribution<> d(state->n_y, 1.0);
+        // weight = d(state->gen) / (hmult * logloss + heps * state->n_y);
+        std::gamma_distribution<> d(10.0, 1.0);
+        weight = d(state->gen) / (10.0 * logloss / (double)state->n_y + 1.0); // it's like shift p down by
     }
+    if (std::isnan(weight)) {cout << "weight is nan" << endl;}
 
-    // Draw weight
-    double max = -INFINITY;
-    size_t n = state->residual_std[0].size();
-    std::vector<double> loglike_weight(weight_std.size(), 0.0);
-    for (size_t i = 0; i < weight_std.size(); i++)
-    {
-        loglike_weight[i] = weight_std[i] * loglike_pi + lgamma(weight_std[i] * n + 1) - lgamma(n + 1) - lgamma((weight_std[i] - 1) * n + 1);
-        // loglike_weight[i] = weight_std[i] * loglike_pi - loglike_weight[i];
-        if (loglike_weight[i] > max){max = loglike_weight[i];}
-    }
-    for (size_t i = 0; i < weight_std.size(); i++)
-    {
-        loglike_weight[i] = exp(loglike_weight[i] - max);
-    }
-    // cout << "weight likelihood " << loglike_weight << endl;
-    std::discrete_distribution<> d(loglike_weight.begin(), loglike_weight.end());
-    weight = weight_std[d(state->gen)];
+    // Sample tau_a
+   if (update_tau)
+   {
+        size_t count_lambda = 0;
+        double mean_lambda = 0;
+        double var_lambda = 0;
+        double max_lambda = -INFINITY;
+        double temp_max;
+        for(size_t i = 0; i < state->num_trees; i++)
+        {
+            for(size_t j = 0; j < state->lambdas[i].size(); j++)
+            {
+                mean_lambda += std::accumulate(state->lambdas[i][j].begin(), state->lambdas[i][j].end(), 0.0);
+                count_lambda += dim_residual;
+                // temp_max = *max_element(state->lambdas[i][j].begin(), state->lambdas[i][j].end());
+                // max_lambda = temp_max > max_lambda ? temp_max : max_lambda;
+            }
+        }
+        // mean_lambda = mean_lambda / count_lambda / max_lambda;
+        mean_lambda = mean_lambda / count_lambda;
 
+        for(size_t i = 0; i < state->num_trees; i++)
+        {
+            for(size_t j = 0; j < state->lambdas[i].size(); j++)
+            {
+                for(size_t k = 0; k < dim_residual; k++)
+                {
+                    // var_lambda += pow(state->lambdas[i][j][k] / max_lambda - mean_lambda, 2);
+                    var_lambda += pow(state->lambdas[i][j][k] / mean_lambda - 1, 2);
+                }
+            }
+        }    
+        var_lambda = var_lambda / count_lambda;
+        // cout << "mean = " << mean_lambda << "; var = " << var_lambda << endl;
+
+        // std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda));
+        std::normal_distribution<> norm(1, sqrt(var_lambda));
+        tau_a = 0;
+        while (tau_a <= 0)
+        {
+            tau_a = norm(state->gen) * tau_b;
+        }
+
+        // std::gamma_distribution<> d(10.0 *logloss / (double)state->n_y , 1.0);
+        // tau_a = d(state->gen) ; // it's like shift p down by
+        // cout << "weight = " << weight << ", tau_a = " << tau_a <<", logloss = " << logloss/(double) state->n_y << endl;
+
+    }
 
     return;
 }
@@ -423,7 +461,11 @@ void LogitModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual
     {
         for (size_t j = 0; j < dim_theta; ++j)
         {
-            residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j] / (*(x_struct->data_pointers[next_index][i]))[j];
+            // residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j] / (*(x_struct->data_pointers[next_index][i]))[j];
+            residual_std[j][i] = residual_std[j][i] + log((*(x_struct->data_pointers[tree_ind][i]))[j]) - log( (*(x_struct->data_pointers[next_index][i]))[j] );
+            if (std::isnan(exp(residual_std[j][i]))) {
+                cout << "residual is nan, log(resid) = " << residual_std[j][i] << ", old_pointer = " << (*(x_struct->data_pointers[next_index][i]))[j]  << ", new = " << (*(x_struct->data_pointers[tree_ind][i]))[j] << endl;
+            }
         }
     }
 
@@ -475,13 +517,8 @@ double LogitModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<d
         }
     }
 
-    // return 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
-
-    //return - 0.5 * nb * log(2 * 3.141592653) -  0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
-
     return (LogitLIL(local_suff_stat));
 }
-
 
 void LogitModel::ini_residual_std(std::unique_ptr<State> &state)
 {
@@ -489,9 +526,11 @@ void LogitModel::ini_residual_std(std::unique_ptr<State> &state)
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
         // init leaf pars are all 1, partial fits are all 1
+        // save fits in log scale -> 0.0
         for (size_t j = 0; j < dim_theta; ++j)
         {
-            state->residual_std[j][i] = 1.0; // (*state->y_std)[i] - value;
+            state->residual_std[j][i] =  0.0; // save resdiual_std as log(lamdas), start at 0.0.
+            // originally residual_std initialized at 1.0; // (*state->y_std)[i] - value;
         }
     }
     return;
@@ -576,7 +615,7 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
 
 // this function is for a standalone prediction function for classification case.
 // with extra input iteration, which specifies which iteration (sweep / forest) to use
-void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec, std::vector<size_t>& iteration)
+void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec, std::vector<size_t>& iteration, std::vector<size_t> &output_leaf_index)
 {
 
     // output is a 3D array (armadillo cube), nsweeps by n by number of categories
@@ -600,6 +639,8 @@ void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_tes
             {
                 // search leaf
                 bn = trees[sweeps][i].search_bottom_std(Xtestpointer, data_ind, p, N_test);
+
+                output_leaf_index[iter + data_ind * num_iterations + i * num_iterations * N_test] = bn->nid();
 
                 for (size_t k = 0; k < dim_residual; k++)
                 {
@@ -661,6 +702,338 @@ void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_tes
     }
     return;
 }
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+//
+//
+//  Logit Model Separate Trees
+//
+//
+//
+//////////////////////////////////////////////////////////////////////////////////////
+
+//incSuffStat should take a state as its first argument
+// void LogitModelSeparateTrees::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
+// {
+//     suffstats[(*y_size_t)[index_next_obs]] += weight;
+
+//     size_t j = class_operating;
+//     // suffstats[dim_theta + j] += weight * exp (residual_std[j][index_next_obs]);
+//     suffstats[dim_theta + j] += (*phi)[index_next_obs] * exp (residual_std[j][index_next_obs]);
+
+//     return;
+// }
+
+void LogitModelSeparateTrees::samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
+{
+    size_t j = class_operating;
+
+    std::gamma_distribution<double> gammadist(tau_a + suff_stat[j] + 1, 1.0); // add a sudo observation to prevent theta = 0;
+    
+    theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
+    if (theta_vector[j] == 0){
+        cout << "unidentified error, theta for class " << j << " = 0" << endl;
+        cout << "suff_stats = " << suff_stat[j] << ", " << suff_stat[dim_theta + j] << ", tau_a = " << tau_a << endl; 
+        exit(1);
+    }
+
+    return;
+}
+
+void LogitModelSeparateTrees::update_state(std::unique_ptr<State>& state, size_t tree_ind, std::unique_ptr<X_struct>& x_struct)
+{
+    // Draw weight
+    // Calculate logloss
+    size_t y_i;
+    double sum_fits;
+    logloss = 0; // reset logloss
+    std::gamma_distribution<double> gammadist(weight, 1.0);
+
+    for (size_t i = 0; i < state->n_y; i++)
+    {
+        sum_fits = 0;
+        y_i = (size_t)(*y_size_t)[i];
+        for (size_t j = 0; j < dim_residual; ++j)
+        {
+            sum_fits += exp(state->residual_std[j][i]) * (*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
+        }
+        // Sample phi
+        (*phi)[i] = gammadist(state->gen) / (1.0 * sum_fits);
+        // cout << "phi " << i << " = " << (*phi)[i] << ", sum_fits = " << sum_fits << endl;
+        // calculate logloss
+        logloss += -log(exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers_multinomial[y_i][tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j) 
+    }
+    if (update_weight) 
+    {
+        std::gamma_distribution<> d(state->n_y, 1);
+        weight = d(state->gen) / (hmult * logloss + heps * (double)state->n_y) + 1;
+    }
+    return;
+
+}
+
+// void LogitModelSeparateTrees::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
+// {
+//     /*
+//     suff_stat[0] += residual_std[0][Xorder_std[split_var][row_ind]];
+//     suff_stat[1] += pow(residual_std[0][Xorder_std[split_var][row_ind]], 2);
+//     suff_stat[2] += 1;
+//     */
+
+//     incSuffStat(residual_std, Xorder_std[split_var][row_ind], suff_stat);
+
+//     return;
+// }
+
+void LogitModelSeparateTrees::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
+{
+
+    size_t next_index = tree_ind + 1;
+    if (next_index == M)
+    {
+        next_index = 0;
+    }
+
+    ////////////////////////////////////////////////////////
+    // Be care of line 151 in train_all.cpp, initial_theta
+    ////////////////////////////////////////////////////////
+
+    // cumulative product of trees, multiply current one, divide by next one
+
+    for (size_t i = 0; i < residual_std[0].size(); i++)
+    {
+        for (size_t j = 0; j < dim_theta; ++j)
+        {
+            // residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j] / (*(x_struct->data_pointers_multinomial[j][next_index][i]))[j];
+            residual_std[j][i] = residual_std[j][i] + log((*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j]) - log((*(x_struct->data_pointers_multinomial[j][next_index][i]))[j]);
+        }
+    }
+
+    return;
+}
+
+double LogitModelSeparateTrees::likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const
+{
+    // likelihood equation,
+    // note the difference of left_side == true / false
+    // node_suff_stat is mean of y, sum of square of y, saved in tree class
+    // double y_sum = (double)suff_stat_all[2] * suff_stat_all[0];
+    // double y_sum = suff_stat_all[0];
+    // double suff_one_side;
+
+    /////////////////////////////////////////////////////////////////////////
+    //
+    //  I know combining likelihood and likelihood_no_split looks nicer
+    //  but this is a very fundamental function, executed many times
+    //  the extra if(no_split) statement and value assignment make the code about 5% slower!!
+    //
+    /////////////////////////////////////////////////////////////////////////
+
+    //could rewrite without all these local assigments if that helps...
+    std::vector<double> local_suff_stat = suff_stat_all; // no split
+
+    //COUT << "LIK" << endl;
+
+    //COUT << "all suff stat dim " << suff_stat_all.size();
+
+    if (!no_split)
+    {
+        if (left_side)
+        {
+            //COUT << "LEFTWARD HO" << endl;
+            //COUT << "local suff stat dim " << local_suff_stat.size() << endl;
+            //COUT << "temp suff stat dim " << temp_suff_stat.size() << endl;
+            local_suff_stat = temp_suff_stat;
+        }
+        else
+        {
+            //COUT << "RIGHT HO" << endl;
+            //COUT << "local suff stat dim " << local_suff_stat.size() << endl;
+            //COUT << "temp suff stat dim " << temp_suff_stat.size() << endl;
+            local_suff_stat = suff_stat_all - temp_suff_stat;
+
+            // ntau = (suff_stat_all[2] - N_left - 1) * tau;
+            // suff_one_side = y_sum - temp_suff_stat[0];
+        }
+    }
+
+    // return 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
+
+    //return - 0.5 * nb * log(2 * 3.141592653) -  0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
+
+    return (LogitLIL(local_suff_stat));
+}
+
+void LogitModelSeparateTrees::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<vector<tree>>> &trees, std::vector<double> &output_vec)
+{
+
+    // output is a 3D array (armadillo cube), nsweeps by n by number of categories
+
+    tree::tree_p bn;
+
+    for (size_t data_ind = 0; data_ind < N_test; data_ind++)
+    { // for each data observation
+
+        for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
+        {
+
+            for (size_t k = 0; k < dim_residual; k++)
+            { // loop over class
+
+                for (size_t i = 0; i < trees[0][0].size(); i++)
+                {
+                    bn = trees[k][sweeps][i].search_bottom_std(Xtestpointer, data_ind, p, N_test);
+
+                    // product of trees, thus sum of logs
+
+                    // cout << "one obs " << log(bn->theta_vector[k]) << "  "  << bn->theta_vector[k]  << endl;
+
+                    output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] += log(bn->theta_vector[k]);
+                }
+            }
+        }
+    }
+
+    // normalizing probability
+
+    double denom = 0.0;
+    double max_log_prob = -INFINITY;
+
+    for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
+    {
+        for (size_t data_ind = 0; data_ind < N_test; data_ind++)
+        {
+
+            max_log_prob = -INFINITY;
+            // take exp, subtract max to avoid overflow
+
+            // this line does not work for some reason, havd to write loops manually
+            // output.tube(sweeps, data_ind) = exp(output.tube(sweeps, data_ind) - output.tube(sweeps, data_ind).max());
+
+            // find max of probability for all classes
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                if(output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] > max_log_prob){
+                    max_log_prob = output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test];
+                }
+            }
+
+            // take exp after subtracting max to avoid overflow
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] = exp(output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] - max_log_prob);
+            }
+
+            // calculate normalizing constant
+            denom = 0.0;
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                // denom += output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test];
+                denom += output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test];
+            }
+
+            // normalizing
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] = output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] / denom;
+            }
+        }
+    }
+    return;
+}
+
+// this function is for a standalone prediction function for classification case.
+// with extra input iteration, which specifies which iteration (sweep / forest) to use
+void LogitModelSeparateTrees::predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo,  vector<vector<vector<tree>>> &trees, std::vector<double> &output_vec, std::vector<size_t>& iteration, double weight)
+{
+
+    // output is a 3D array (armadillo cube), nsweeps by n by number of categories
+
+    size_t num_iterations = iteration.size();
+
+    tree::tree_p bn;
+
+    cout << "number of iterations " << num_iterations << " " << num_sweeps << endl;
+
+    size_t sweeps;
+
+    for (size_t iter = 0; iter < num_iterations; iter++)
+    {
+        sweeps = iteration[iter];
+
+        for (size_t data_ind = 0; data_ind < N_test; data_ind++)
+        {
+
+            for (size_t i = 0; i < trees[0][0].size(); i++)
+            {
+                
+                for (size_t k = 0; k < dim_residual; k++)
+                {
+                    // search leaf
+                    bn = trees[k][sweeps][i].search_bottom_std(Xtestpointer, data_ind, p, N_test);
+
+                    // add all trees
+
+                    // product of trees, thus sum of logs
+
+                    output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] += log(bn->theta_vector[k]);
+                }
+            }
+        }
+    }
+    
+    // normalizing probability
+
+    double denom = 0.0;
+    double max_log_prob = -INFINITY;
+
+    for (size_t iter = 0; iter < num_iterations; iter++)
+    {
+
+        sweeps = iteration[iter];
+
+        for (size_t data_ind = 0; data_ind < N_test; data_ind++)
+        {
+
+            max_log_prob = -INFINITY;
+            // take exp, subtract max to avoid overflow
+
+            // this line does not work for some reason, havd to write loops manually
+            // output.tube(sweeps, data_ind) = exp(output.tube(sweeps, data_ind) - output.tube(sweeps, data_ind).max());
+
+            // find max of probability for all classes
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                if(output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] > max_log_prob){
+                    max_log_prob = output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test];
+                }
+            }
+
+            // take exp after subtracting max to avoid overflow
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] = exp(output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] - max_log_prob);
+            }
+
+            // calculate normalizing constant
+            denom = 0.0;
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                // denom += output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test];
+                denom +=  output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] ;
+            }
+
+            // normalizing
+            for (size_t k = 0; k < dim_residual; k++)
+            {
+                output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] = output_vec[iter + data_ind * num_iterations + k * num_iterations * N_test] / denom;
+            }
+        }
+    }
+    return;
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////
 //

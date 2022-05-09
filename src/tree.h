@@ -18,7 +18,7 @@ using json = nlohmann::json;
 
 void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, size_t &start, size_t &end, Model *model, std::unique_ptr<State> &state);
 
-void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint, Model *model, std::unique_ptr<State> &state);
+void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, std::vector<size_t> &candidate_index, size_t index, bool adaptive_cutpoint, Model *model, matrix<double> &residual_std);
 
 // void calc_suff_continuous(std::vector<size_t> &xorder, std::vector<double> &y_std, std::vector<size_t> &candidate_index, size_t index, double &suff_stat, bool adaptive_cutpoint);
 
@@ -57,17 +57,18 @@ public:
     typedef std::vector<tree_cp> cnpv;
 
     //contructors,destructors--------------------
-    tree() : depth(0), suff_stat(3, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0), ID(1) {}
+    tree() : theta_vector(1, 0.0), suff_stat(3, 0.0), N(0), ID(1), depth(0), v(0), c_index(0), c(0.0), prob_split(0.0), prob_leaf(0.0), loglike_node(0.0), tree_like(0.0), drawn_ind(0), num_cutpoint_candidates(0), p(0), l(0), r(0) {}
+    
+    tree(size_t dim_suffstat) : theta_vector(1, 0.0), suff_stat(dim_suffstat, 0.0), N(0), ID(1), depth(0), v(0), c_index(0), c(0.0), prob_split(0.0), prob_leaf(0.0), loglike_node(0.0), tree_like(0.0), drawn_ind(0), num_cutpoint_candidates(0), p(0), l(0), r(0) {}
+    
+    tree(const tree &n) : theta_vector(1, 0.0), suff_stat(2, 0.0), depth(0), v(0), c_index(0), c(0.0), prob_split(0.0), prob_leaf(0.0), loglike_node(0.0), tree_like(0.0), drawn_ind(0), num_cutpoint_candidates(0), p(0), l(0), r(0) {cp(this, &n);}
+    
+    tree(double itheta) : theta_vector(itheta, 0.0), suff_stat(2, 0.0), depth(0), v(0), c_index(0), c(0.0), prob_split(0.0), prob_leaf(0.0), loglike_node(0.0), tree_like(0.0), drawn_ind(0), num_cutpoint_candidates(0), p(0), l(0), r(0) {}
 
-    tree(size_t dim_suffstat) : depth(0), suff_stat(dim_suffstat, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0), ID(1) {}
+    tree(size_t dim_theta, const tree_p parent, size_t dim_suffstat) : theta_vector(dim_theta, 0.0), suff_stat(dim_suffstat, 0.0), depth(0), v(0), c_index(0), c(0.0), prob_split(0.0), prob_leaf(0.0), loglike_node(0.0), tree_like(0.0), drawn_ind(0), num_cutpoint_candidates(0), p(parent), l(0), r(0) {}
 
-    tree(const tree &n) : depth(0), suff_stat(2, 0.0), theta_vector(1, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) { cp(this, &n); }
-
-    tree(double itheta) : depth(0), suff_stat(2, 0.0), theta_vector(itheta, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
-
-    tree(size_t dim_theta, const tree_p parent, size_t dim_suffstat) : suff_stat(dim_suffstat, 0.0), theta_vector(dim_theta, 0.0), v(0), c(0), p(parent), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
-
-    tree(size_t dim_theta, size_t dim_suffstat) : suff_stat(dim_suffstat, 0.0), theta_vector(dim_theta, 0.0), v(0), c(0), p(0), l(0), r(0), prob_split(0.0), prob_leaf(0.0), drawn_ind(0), loglike_node(0.0), tree_like(0.0), num_cutpoint_candidates(0) {}
+    tree(size_t dim_theta, size_t dim_suffstat) : theta_vector(dim_theta, 0.0), suff_stat(dim_suffstat, 0.0), depth(0), v(0), c_index(0), c(0.0), prob_split(0.0), prob_leaf(0.0), loglike_node(0.0), tree_like(0.0), drawn_ind(0), num_cutpoint_candidates(0), p(0), l(0), r(0) {}
+    
     void tonull(); //like a "clear", null tree has just one node
 
     ~tree() { tonull(); }
@@ -93,6 +94,8 @@ public:
     size_t getv() const { return v; }
 
     double getc() const { return c; }
+
+    size_t getc_index() const { return c_index; }
 
     double getloglike_node() const { return loglike_node; }
 
@@ -149,6 +152,12 @@ public:
 
     void grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree);
 
+    void grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, 
+    std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree);
+
+    void grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, 
+    std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind, bool update_theta, bool update_split_prob, bool grow_new_tree);
+
     tree_p bn(double *x, matrix<double> &xi); //find Bottom Node, original BART version
 
     tree_p bn_std(double *x); // find Bottom Node, std version, compare
@@ -187,6 +196,8 @@ public:
     friend void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, Model *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<State> &state, tree *current_node);
 
     friend void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, Model *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<State> &state, tree *current_node);
+    
+    friend void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state, std::vector<double> &theta_vector, double &entropy);
 
     // #ifndef NoRcpp
     // #endif
@@ -199,6 +210,8 @@ private:
 
     //rule: left if x[v] < matrix<double>[v][c]
     size_t v; //index of variable to split
+
+    size_t c_index;
 
     double c;
 
@@ -215,7 +228,7 @@ private:
     size_t num_cutpoint_candidates; // number of cutpoint candidates
 
     //tree structure
-    tree_p p; //parent
+    tree_p p; //paren
 
     tree_p l; //left child
 

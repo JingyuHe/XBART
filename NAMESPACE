@@ -1,5 +1,7 @@
 useDynLib(XBART, .registration=TRUE)
 exportPattern("^[[:alpha:]]+")
 importFrom(Rcpp, evalCpp)
-importFrom(stats, ar, cor, lm, predict, pnorm, qnorm, qchisq, quantile, residuals, runif, sd)
+importFrom(stats, predict, pnorm, quantile, runif, sd)
 importFrom(tools, psnice)
+S3method(predict, XBART)
+S3method(predict, XBARTmultinomial)
