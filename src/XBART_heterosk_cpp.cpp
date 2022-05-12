@@ -113,6 +113,9 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     matrix<double> yhats_test_xinfo;
     ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
 
+    matrix<double> sigma2_test_xinfo;
+    ini_matrix(sigma2_test_xinfo, N_test, num_sweeps);
+
     matrix<double> mhats_test_xinfo;
     ini_matrix(mhats_test_xinfo, N_test, num_sweeps);
 
@@ -150,7 +153,7 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     model_v->setNoSplitPenality(no_split_penality_v);
 
     // State settings for the mean model
-    std::vector<double> sigma_vec(N, 1); // initialize vector of heterogeneous sigmas
+    std::vector<double> sigma_vec(N, ini_var); // initialize vector of heterogeneous sigmas
     std::unique_ptr<State> state_m(new hskState(Xpointer, Xorder_std, N, p, num_trees_m,
                                                 p_categorical, p_continuous, set_random_seed,
                                                 random_seed, n_min_m, num_cutpoints_m,
@@ -169,8 +172,8 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     std::vector<double> initial_theta_m(1, y_mean / (double)num_trees_m);
     std::unique_ptr<X_struct> x_struct_m(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_m, num_trees_m));
     //COUT << "var: " << ini_var << endl;
-    //std::vector<double> initial_theta_v(1, ini_var / (double)num_trees_v);
-    std::vector<double> initial_theta_v(1, 1);
+    std::vector<double> initial_theta_v(1, exp(log(1.0/ ini_var) / (double)num_trees_v));
+    //std::vector<double> initial_theta_v(1, 1);
     std::unique_ptr<X_struct> x_struct_v(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_v, num_trees_v));
 
     //COUT << "Running the model." << endl;
@@ -194,19 +197,22 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
 
     for(size_t i = 0; i < N_test; i++) {
         for(size_t j = 0; j < num_sweeps; j++) {
-            //yhats_test_xinfo[j][i] = mhats_test_xinfo[j][i] + vhats_test_xinfo[j][i];
+            sigma2_test_xinfo[j][i] = 1.0 / vhats_test_xinfo[j][i];
             yhats_test_xinfo[j][i] = mhats_test_xinfo[j][i];
         }
     }
     // R Objects to Return
     // Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
+    Rcpp::NumericMatrix sigma2_test(N_test, num_sweeps);
 
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(yhats_test_xinfo, yhats_test);
+    Matrix_to_NumericMatrix(sigma2_test_xinfo, sigma2_test);
 
     // TODO: check outputs
     return Rcpp::List::create(
-        Rcpp::Named("yhats_test") = yhats_test
+        Rcpp::Named("yhats_test") = yhats_test,
+        Rcpp::Named("sigma2hats_test") = sigma2_test
         );
 }

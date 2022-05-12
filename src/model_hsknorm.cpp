@@ -12,14 +12,16 @@
 
 void hskNormalModel::ini_residual_std(std::unique_ptr<State> &state)
 {
-    COUT << "Residual dim: " << state->residual_std.size() << endl;
+    //COUT << "Residual dim: " << state->residual_std.size() << endl;
 
     // initialize partial residual at (num_tree - 1) / num_tree * yhat
     double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
         state->residual_std[0][i] = (*state->y_std)[i] - value;
-        state->residual_std[1][i] = double (1.0 / pow(state->sigma_vec[i], 2));
+        //COUT << state->residual_std[0][i] << endl;
+        state->residual_std[1][i] = double (1.0 / state->sigma_vec[i]);
+        //COUT << state->residual_std[1][i] << endl;
         state->residual_std[2][i] = state->residual_std[0][i] * state->residual_std[1][i];
     }
 
@@ -34,7 +36,7 @@ void hskNormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std
     suff_stat[1] = sum_vec(state->residual_std[1]);
     // sum of r
     //suff_stat[2] = sum_vec(state->residual_std[0]);
-
+/*
     COUT << "parent node | ss0: " << suff_stat[0] << ", ss1:" << suff_stat[1] << endl;
     for (size_t i = 0; i < state->residual_std[1].size(); i++)
     {
@@ -45,7 +47,7 @@ void hskNormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std
 
     if(suff_stat[1] < 0)
         COUT << suff_stat[1] << "<- tmp ini root " << endl;
-
+*/
     return;
 }
 
@@ -66,11 +68,11 @@ void hskNormalModel::samplePars(std::unique_ptr<State> &state, std::vector<doubl
     // test result should be theta
     theta_vector[0] = suff_stat[0] / (1.0 / tau + suff_stat[1])
                     + sqrt(1.0 / (1.0 / tau + suff_stat[1])) * normal_samp(state->gen);
-    if(suff_stat[1] < 0) {
+/*    if(suff_stat[1] < 0) {
         COUT << suff_stat[0] << " <- ss0 | ss1 -> " << suff_stat[1] << endl;
         COUT << theta_vector[0] << endl;
     }
-
+*/
     return;
 }
 
@@ -144,9 +146,9 @@ double hskNormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vect
             prec= suff_stat_all[1] - temp_suff_stat[1];
         }
     }
-    if(temp_suff_stat[1] < 0 || suff_stat_all[1] < temp_suff_stat[1])
+/*    if(temp_suff_stat[1] < 0 || suff_stat_all[1] < temp_suff_stat[1])
         COUT << temp_suff_stat[1] << "<- tmp | all -> " << suff_stat_all[1] << endl;
-
+*/
     return log(1.0 / (1.0 + tau * prec)) + res2 / (1.0 / tau + prec);
 }
 

@@ -754,7 +754,8 @@ public:
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
 
     //new functions added
-    void update_sigmas(matrix<double> &mean_residual_std, std::vector<double> &fit);
+    //void update_sigmas(matrix<double> &mean_residual_std, std::vector<double> &fit);
+    void update_sigmas(matrix<double> &mean_residual_std, size_t M, std::unique_ptr<X_struct> &x_struct);
 
     //unused
     void update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct);

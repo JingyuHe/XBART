@@ -26,9 +26,6 @@ void NormalModel::samplePars(std::unique_ptr<State> &state, std::vector<double> 
     // test result should be theta
     theta_vector[0] = suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)) + sqrt(1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2))) * normal_samp(state->gen); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
 
-    COUT << suff_stat[0] << " <- ss0 | ss1 -> " << suff_stat[1] << endl;
-    COUT << theta_vector[0] << endl;
-
     // also update probability of leaf parameters
     // prob_leaf = normal_density(theta_vector[0], suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), 1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), true);
 
