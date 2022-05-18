@@ -12,72 +12,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// XBART_CLT_cpp
-Rcpp::List XBART_CLT_cpp(mat y, mat X, mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin, size_t mtry, size_t p_categorical, double kap, double s, bool verbose, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights_flag, double nthread);
-RcppExport SEXP _XBART_XBART_CLT_cpp(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP num_treesSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP no_split_penalitySEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weights_flagSEXP, SEXP nthreadSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< mat >::type y(ySEXP);
-    Rcpp::traits::input_parameter< mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< mat >::type Xtest(XtestSEXP);
-    Rcpp::traits::input_parameter< size_t >::type num_trees(num_treesSEXP);
-    Rcpp::traits::input_parameter< size_t >::type num_sweeps(num_sweepsSEXP);
-    Rcpp::traits::input_parameter< size_t >::type max_depth(max_depthSEXP);
-    Rcpp::traits::input_parameter< size_t >::type n_min(n_minSEXP);
-    Rcpp::traits::input_parameter< size_t >::type num_cutpoints(num_cutpointsSEXP);
-    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< double >::type no_split_penality(no_split_penalitySEXP);
-    Rcpp::traits::input_parameter< size_t >::type burnin(burninSEXP);
-    Rcpp::traits::input_parameter< size_t >::type mtry(mtrySEXP);
-    Rcpp::traits::input_parameter< size_t >::type p_categorical(p_categoricalSEXP);
-    Rcpp::traits::input_parameter< double >::type kap(kapSEXP);
-    Rcpp::traits::input_parameter< double >::type s(sSEXP);
-    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
-    Rcpp::traits::input_parameter< bool >::type set_random_seed(set_random_seedSEXP);
-    Rcpp::traits::input_parameter< size_t >::type random_seed(random_seedSEXP);
-    Rcpp::traits::input_parameter< bool >::type sample_weights_flag(sample_weights_flagSEXP);
-    Rcpp::traits::input_parameter< double >::type nthread(nthreadSEXP);
-    rcpp_result_gen = Rcpp::wrap(XBART_CLT_cpp(y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, nthread));
-    return rcpp_result_gen;
-END_RCPP
-}
-// XBART_MH_cpp
-Rcpp::List XBART_MH_cpp(mat y, mat X, mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin, size_t mtry, size_t p_categorical, double kap, double s, bool verbose, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights_flag, double nthread);
-RcppExport SEXP _XBART_XBART_MH_cpp(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP num_treesSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP no_split_penalitySEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weights_flagSEXP, SEXP nthreadSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< mat >::type y(ySEXP);
-    Rcpp::traits::input_parameter< mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< mat >::type Xtest(XtestSEXP);
-    Rcpp::traits::input_parameter< size_t >::type num_trees(num_treesSEXP);
-    Rcpp::traits::input_parameter< size_t >::type num_sweeps(num_sweepsSEXP);
-    Rcpp::traits::input_parameter< size_t >::type max_depth(max_depthSEXP);
-    Rcpp::traits::input_parameter< size_t >::type n_min(n_minSEXP);
-    Rcpp::traits::input_parameter< size_t >::type num_cutpoints(num_cutpointsSEXP);
-    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< double >::type no_split_penality(no_split_penalitySEXP);
-    Rcpp::traits::input_parameter< size_t >::type burnin(burninSEXP);
-    Rcpp::traits::input_parameter< size_t >::type mtry(mtrySEXP);
-    Rcpp::traits::input_parameter< size_t >::type p_categorical(p_categoricalSEXP);
-    Rcpp::traits::input_parameter< double >::type kap(kapSEXP);
-    Rcpp::traits::input_parameter< double >::type s(sSEXP);
-    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
-    Rcpp::traits::input_parameter< bool >::type set_random_seed(set_random_seedSEXP);
-    Rcpp::traits::input_parameter< size_t >::type random_seed(random_seedSEXP);
-    Rcpp::traits::input_parameter< bool >::type sample_weights_flag(sample_weights_flagSEXP);
-    Rcpp::traits::input_parameter< double >::type nthread(nthreadSEXP);
-    rcpp_result_gen = Rcpp::wrap(XBART_MH_cpp(y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, nthread));
-    return rcpp_result_gen;
-END_RCPP
-}
 // XBART_cpp
 Rcpp::List XBART_cpp(mat y, mat X, mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin, size_t mtry, size_t p_categorical, double kap, double s, double tau_kap, double tau_s, bool verbose, bool sampling_tau, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights_flag, double nthread);
 RcppExport SEXP _XBART_XBART_cpp(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP num_treesSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP no_split_penalitySEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP tau_kapSEXP, SEXP tau_sSEXP, SEXP verboseSEXP, SEXP sampling_tauSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weights_flagSEXP, SEXP nthreadSEXP) {
@@ -150,39 +84,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type hmult(hmultSEXP);
     Rcpp::traits::input_parameter< double >::type heps(hepsSEXP);
     rcpp_result_gen = Rcpp::wrap(XBART_multinomial_cpp(y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penality, burnin, mtry, p_categorical, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, separate_tree, weight, update_weight, update_tau, nthread, hmult, heps));
-    return rcpp_result_gen;
-END_RCPP
-}
-// XBART_Probit_cpp
-Rcpp::List XBART_Probit_cpp(mat y, mat X, mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin, size_t mtry, size_t p_categorical, double kap, double s, bool verbose, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights_flag, double nthread);
-RcppExport SEXP _XBART_XBART_Probit_cpp(SEXP ySEXP, SEXP XSEXP, SEXP XtestSEXP, SEXP num_treesSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP no_split_penalitySEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP verboseSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weights_flagSEXP, SEXP nthreadSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< mat >::type y(ySEXP);
-    Rcpp::traits::input_parameter< mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< mat >::type Xtest(XtestSEXP);
-    Rcpp::traits::input_parameter< size_t >::type num_trees(num_treesSEXP);
-    Rcpp::traits::input_parameter< size_t >::type num_sweeps(num_sweepsSEXP);
-    Rcpp::traits::input_parameter< size_t >::type max_depth(max_depthSEXP);
-    Rcpp::traits::input_parameter< size_t >::type n_min(n_minSEXP);
-    Rcpp::traits::input_parameter< size_t >::type num_cutpoints(num_cutpointsSEXP);
-    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< double >::type no_split_penality(no_split_penalitySEXP);
-    Rcpp::traits::input_parameter< size_t >::type burnin(burninSEXP);
-    Rcpp::traits::input_parameter< size_t >::type mtry(mtrySEXP);
-    Rcpp::traits::input_parameter< size_t >::type p_categorical(p_categoricalSEXP);
-    Rcpp::traits::input_parameter< double >::type kap(kapSEXP);
-    Rcpp::traits::input_parameter< double >::type s(sSEXP);
-    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
-    Rcpp::traits::input_parameter< bool >::type set_random_seed(set_random_seedSEXP);
-    Rcpp::traits::input_parameter< size_t >::type random_seed(random_seedSEXP);
-    Rcpp::traits::input_parameter< bool >::type sample_weights_flag(sample_weights_flagSEXP);
-    Rcpp::traits::input_parameter< double >::type nthread(nthreadSEXP);
-    rcpp_result_gen = Rcpp::wrap(XBART_Probit_cpp(y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, nthread));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -306,65 +207,10 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// sample_int_crank
-IntegerVector sample_int_crank(int n, int size, NumericVector prob);
-RcppExport SEXP _XBART_sample_int_crank(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type prob(probSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_int_crank(n, size, prob));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_int_ccrank
-SEXP sample_int_ccrank(int n, int size, NumericVector prob);
-RcppExport SEXP _XBART_sample_int_ccrank(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type prob(probSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_int_ccrank(n, size, prob));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_int_expj
-IntegerVector sample_int_expj(int n, int size, NumericVector prob);
-RcppExport SEXP _XBART_sample_int_expj(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type prob(probSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_int_expj(n, size, prob));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_int_expjs
-IntegerVector sample_int_expjs(int n, int size, NumericVector prob);
-RcppExport SEXP _XBART_sample_int_expjs(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type prob(probSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_int_expjs(n, size, prob));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_XBART_XBART_CLT_cpp", (DL_FUNC) &_XBART_XBART_CLT_cpp, 23},
-    {"_XBART_XBART_MH_cpp", (DL_FUNC) &_XBART_XBART_MH_cpp, 23},
     {"_XBART_XBART_cpp", (DL_FUNC) &_XBART_XBART_cpp, 26},
     {"_XBART_XBART_multinomial_cpp", (DL_FUNC) &_XBART_XBART_multinomial_cpp, 29},
-    {"_XBART_XBART_Probit_cpp", (DL_FUNC) &_XBART_XBART_Probit_cpp, 23},
     {"_XBART_xbart_predict", (DL_FUNC) &_XBART_xbart_predict, 3},
     {"_XBART_xbart_predict_full", (DL_FUNC) &_XBART_xbart_predict_full, 3},
     {"_XBART_gp_predict", (DL_FUNC) &_XBART_gp_predict, 9},
@@ -374,10 +220,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART_json_to_r", (DL_FUNC) &_XBART_json_to_r, 1},
     {"_XBART_r_to_json_3D", (DL_FUNC) &_XBART_r_to_json_3D, 1},
     {"_XBART_json_to_r_3D", (DL_FUNC) &_XBART_json_to_r_3D, 1},
-    {"_XBART_sample_int_crank", (DL_FUNC) &_XBART_sample_int_crank, 3},
-    {"_XBART_sample_int_ccrank", (DL_FUNC) &_XBART_sample_int_ccrank, 3},
-    {"_XBART_sample_int_expj", (DL_FUNC) &_XBART_sample_int_expj, 3},
-    {"_XBART_sample_int_expjs", (DL_FUNC) &_XBART_sample_int_expjs, 3},
     {NULL, NULL, 0}
 };
 

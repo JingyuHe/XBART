@@ -3,7 +3,6 @@
 #include "Rcpp.h"
 #include <armadillo>
 #include "tree.h"
-#include "forest.h"
 #include <chrono>
 #include "mcmc_loop.h"
 #include "X_struct.h"
