@@ -37,19 +37,3 @@ json_to_r_3D <- function(json_string_r) {
     .Call(`_XBART_json_to_r_3D`, json_string_r)
 }
 
-sample_int_crank <- function(n, size, prob) {
-    .Call(`_XBART_sample_int_crank`, n, size, prob)
-}
-
-sample_int_ccrank <- function(n, size, prob) {
-    .Call(`_XBART_sample_int_ccrank`, n, size, prob)
-}
-
-sample_int_expj <- function(n, size, prob) {
-    .Call(`_XBART_sample_int_expj`, n, size, prob)
-}
-
-sample_int_expjs <- function(n, size, prob) {
-    .Call(`_XBART_sample_int_expjs`, n, size, prob)
-}
-

@@ -175,58 +175,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// sample_int_crank
-IntegerVector sample_int_crank(int n, int size, NumericVector prob);
-RcppExport SEXP _XBART_sample_int_crank(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type prob(probSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_int_crank(n, size, prob));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_int_ccrank
-SEXP sample_int_ccrank(int n, int size, NumericVector prob);
-RcppExport SEXP _XBART_sample_int_ccrank(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type prob(probSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_int_ccrank(n, size, prob));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_int_expj
-IntegerVector sample_int_expj(int n, int size, NumericVector prob);
-RcppExport SEXP _XBART_sample_int_expj(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type prob(probSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_int_expj(n, size, prob));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sample_int_expjs
-IntegerVector sample_int_expjs(int n, int size, NumericVector prob);
-RcppExport SEXP _XBART_sample_int_expjs(SEXP nSEXP, SEXP sizeSEXP, SEXP probSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< int >::type size(sizeSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type prob(probSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_int_expjs(n, size, prob));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_XBART_XBART_cpp", (DL_FUNC) &_XBART_XBART_cpp, 26},
@@ -238,10 +186,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART_json_to_r", (DL_FUNC) &_XBART_json_to_r, 1},
     {"_XBART_r_to_json_3D", (DL_FUNC) &_XBART_r_to_json_3D, 1},
     {"_XBART_json_to_r_3D", (DL_FUNC) &_XBART_json_to_r_3D, 1},
-    {"_XBART_sample_int_crank", (DL_FUNC) &_XBART_sample_int_crank, 3},
-    {"_XBART_sample_int_ccrank", (DL_FUNC) &_XBART_sample_int_ccrank, 3},
-    {"_XBART_sample_int_expj", (DL_FUNC) &_XBART_sample_int_expj, 3},
-    {"_XBART_sample_int_expjs", (DL_FUNC) &_XBART_sample_int_expjs, 3},
     {NULL, NULL, 0}
 };
 

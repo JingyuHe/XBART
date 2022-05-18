@@ -1,6 +1,5 @@
 #include <ctime>
 #include "tree.h"
-#include "forest.h"
 #include <chrono>
 #include "model.h"
 #include "node_data.h"

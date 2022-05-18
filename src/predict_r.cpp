@@ -1,7 +1,6 @@
 #include <ctime>
 #include <RcppArmadillo.h>
 #include "tree.h"
-#include "forest.h"
 #include <chrono>
 #include "mcmc_loop.h"
 #include "utility.h"
