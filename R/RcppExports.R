@@ -9,10 +9,6 @@ XBART_multinomial_cpp <- function(y, num_class, X, Xtest, num_trees, num_sweeps,
     .Call(`_XBART_XBART_multinomial_cpp`, y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penality, burnin, mtry, p_categorical, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, separate_tree, weight, update_weight, update_tau, nthread, hmult, heps)
 }
 
-XBART_Probit_cpp <- function(y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin = 1L, mtry = 0L, p_categorical = 0L, kap = 16, s = 4, verbose = FALSE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights_flag = TRUE, nthread = 0) {
-    .Call(`_XBART_XBART_Probit_cpp`, y, X, Xtest, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry, p_categorical, kap, s, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, nthread)
-}
-
 xbart_predict <- function(X, y_mean, tree_pnt) {
     .Call(`_XBART_xbart_predict`, X, y_mean, tree_pnt)
 }

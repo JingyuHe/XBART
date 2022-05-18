@@ -96,15 +96,6 @@ a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), mean)
 # final predcition
 pred = apply(a, 1, which.max) - 1
 ​
-​
-# Compare with BART probit
-#fit2 = pbart(X_train, y_train)
-​
-#pred2 = predict(fit2, X_test)
-#pred2 = as.numeric(pred2$prob.test.mean > 0.5)
-​
-​
-​
 # Compare with ranger
 data = data.frame( y = y_train, X = X_train)
 data.test = data.frame(X = X_test)

@@ -10,15 +10,6 @@ print("Read Data")
 train_fe = pd.read_csv("train_fe.csv")
 valid_fe = pd.read_csv("valid_fe.csv")
 
-# print("Fit XBART Multinomial")
-# model = XBART(num_trees = 10,num_sweeps = 30,n_min = 5,burnin = 25,
-# 				model = "Multinomial",num_classes=2)
-# model.fit(train_fe.drop("Survived",axis=1),train_fe["Survived"])
-# preds_probit = model.predict(valid_fe.drop("Survived",axis=1),return_mean=False)
-# phat_test_probit = preds_probit.mean(axis=1)
-# xbart_probit_score = accuracy_score(valid_fe['Survived'],norm.cdf(phat_test_probit)>0.5)
-# xbart_probit_log = log_loss(valid_fe['Survived'],norm.cdf(phat_test_probit))
-
 print("Fit XBART Hack")
 model = XBART(num_trees = 15,num_sweeps = 150,n_min = 30,burnin = 25)
 model.fit(train_fe.drop("Survived",axis=1),train_fe["Survived"]*2-1)
@@ -26,16 +17,6 @@ preds_hack = model.predict(valid_fe.drop("Survived",axis=1),return_mean=False)
 phat_test_hack = preds_hack.mean(axis=1)
 xbart_hack_score = accuracy_score(valid_fe['Survived'],phat_test_hack>0)
 xbart_hack_log = log_loss(valid_fe['Survived'],norm.cdf(phat_test_hack))
-
-print("Fit XBART Probit")
-model = XBART(num_trees = 10,num_sweeps = 150,n_min = 5,burnin = 25,model = "Probit")
-model.fit(train_fe.drop("Survived",axis=1),train_fe["Survived"]*2-1)
-preds_probit = model.predict(valid_fe.drop("Survived",axis=1),return_mean=False)
-phat_test_probit = preds_probit.mean(axis=1)
-xbart_probit_score = accuracy_score(valid_fe['Survived'],norm.cdf(phat_test_probit)>0.5)
-xbart_probit_log = log_loss(valid_fe['Survived'],norm.cdf(phat_test_probit))
-
-
 
 print("Fit RF")
 rf = RandomForestClassifier(n_estimators=20) 
@@ -54,7 +35,5 @@ xgb_log = log_loss(valid_fe['Survived'],xgb_pred)
 
 
 print("XBART Hack: acc: " + str(xbart_hack_score) + " log_loss: " + str(xbart_hack_log) )
-# print("XBART CLT: " +str(xbart_clt_score) )
-print("XBART Probit acc: " +str(xbart_probit_score) + " log_loss: " + str(xbart_probit_log))
 print("RF acc: " + str(rf_score) + " log_loss: " + str(rf_log))
 print("XGB acc"+ str(xgb_score)  + "log_loss: " + str(xgb_log))
