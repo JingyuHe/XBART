@@ -43,7 +43,7 @@
 using std::endl;
 
 #ifdef BEGIN_RCPP   // May need to change this
-#include <RcppArmadillo.h>
+// #include <RcppArmadillo.h>
 #define COUT Rcpp::Rcout
 #else
 #define COUT std::cout

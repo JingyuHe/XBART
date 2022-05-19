@@ -39,7 +39,7 @@ class XBART(object):
 		Prior for leaf mean variance : mu_j ~ N(0,tau) 
 	burnin: int
 		Number of sweeps used to burn in - not used for prediction.
-	max_depth_num: int
+	max_depth: int
 		Represents the maximum size of each tree - size is usually determined via tree prior.
 		Use this only when wanting to determnistically cap the size of each tree.
 	mtry: int / "auto"
@@ -50,6 +50,8 @@ class XBART(object):
 	s: double
 		Prior for sigma :  sigma^2 | residaul ~  1/ sqrt(G) 
 		where G ~ gamma( (num_samples + kap) / 2, 2/(sum(residual^2) + s) )
+	tau_kap: double
+	tau_s: double
 	verbose: bool
 		Print the progress 
 	parallel: bool
@@ -73,34 +75,43 @@ class XBART(object):
 	'''
 	def __init__(self, num_trees: int = 100, num_sweeps: int = 40, n_min: int = 1,
 				num_cutpoints: int = 100, alpha: float = 0.95, beta: float = 1.25, tau = "auto",
-                burnin: int = 15, mtry = "auto", max_depth_num: int = 250,
-                kap: float = 16.0, s: float = 4.0, verbose: bool = False,
-                parallel: bool = False, seed: int = 0, model: str = "Normal",
-				no_split_penality = "auto", sample_weights_flag: bool = True, num_classes = 1):
+                burnin: int = 15, mtry = "auto", max_depth: int = 250,
+                kap: float = 16.0, s: float = 4.0, tau_kap: float = 3, tau_s: float = 0.5, verbose: bool = False, 
+				sampling_tau: bool = True, parallel: bool = False, nthread: int = 0, seed = "auto",
+				no_split_penality = "auto", sample_weights_flag: bool = True):
 
 		assert num_sweeps > burnin, "num_sweep must be greater than burnin"
 
-		MODEL_MAPPINGS = {"Normal":0,"Multinomial":1,"Probit":2}
-		if model in MODEL_MAPPINGS:
-			model_num = MODEL_MAPPINGS[model]
-		else:
-			raise ValueError("model must be either Normal,Multinomial, or Probit")
-
-		self.model = model
-		self.params = OrderedDict([("num_trees",num_trees),
-			("num_sweeps" , num_sweeps),("n_min" , n_min),("num_cutpoints" , num_cutpoints),
-			("alpha" ,alpha),("beta" , beta),( "tau" ,tau),("burnin", burnin),( "mtry",mtry), 
-			("max_depth_num",max_depth_num),
-			("kap",kap),("s",s),
+		self.params = OrderedDict([
+			("num_trees", num_trees),
+			("num_sweeps", num_sweeps),
+			("max_depth", max_depth),
+			("n_min", n_min),
+			("num_cutpoints" , num_cutpoints),
+			("alpha" ,alpha),
+			("beta" , beta),
+			("tau", tau),
+			("burnin", burnin),
+			("mtry", mtry), 
+			("kap", kap),
+			("s", s),
+			("tau_kap", tau_kap),
+			("tau_s", tau_s),
 			("verbose",verbose),
-			("parallel",parallel),("seed",seed),("model_num",model_num),("no_split_penality",no_split_penality),
-			("sample_weights_flag",sample_weights_flag),("num_classes",num_classes)])
+			("sampling_tau", sampling_tau),
+			("parallel",parallel),
+			("nthread", nthread),
+			("seed",seed),
+			("no_split_penality",no_split_penality),
+			("sample_weights_flag",sample_weights_flag)
+		])
 		self.__convert_params_check_types(**self.params)
 		self._xbart_cpp = None
 
 		# Additional Members
 		self.importance = None
 		self.sigma_draws = None
+		self.resid = None
 		self.is_fit = False
 
 	def __repr__(self):
@@ -146,8 +157,8 @@ class XBART(object):
 
 			assert x.shape[0] == y.shape[0], "X and y must be the same length"
 
-			if self.model == "Multinomial":
-				assert all(y >=0) and all(y.astype(int) == y), "y must be a positive integer"
+			# if self.model == "Multinomial":
+			# 	assert all(y >=0) and all(y.astype(int) == y), "y must be a positive integer"
 		
 	def __check_test_shape(self,x):
 		assert x.shape[1] == self.num_columns, "Mismatch on number of columns"
@@ -167,12 +178,15 @@ class XBART(object):
 		
 		if self.params["no_split_penality"] == "auto":
 			from math import log
-			if self.params["model_num"] == 0:
-				self.params["no_split_penality"] = log(self.params["num_cutpoints"])
-			else:
-				self.params["no_split_penality"] = 0.0
-		
-				
+			# if self.params["model_num"] == 0:
+			self.params["no_split_penality"] = log(self.params["num_cutpoints"])
+			# else:
+			# 	self.params["no_split_penality"] = 0.0
+
+	def __update_random_seed(self):
+		if self.params["seed"] == "auto":
+				self.params["seed"] = 0
+
 	def __convert_params_check_types(self,**params):
 		'''
 		This function converts params to list and handles type conversions
@@ -180,25 +194,60 @@ class XBART(object):
 		''' 
 		import warnings
 		from collections import OrderedDict
-		DEFAULT_PARAMS = OrderedDict([('num_trees',5),("num_sweeps",40)
-                        ,("n_min",1),("num_cutpoints",100) # CHANGE
-                        ,("alpha",0.95),("beta",1.25 ),("tau",0.3),# CHANGE
-                        ("burnin",15),("mtry",0),("max_depth_num",250) # CHANGE
-                        ,("kap",16.0),("s",4.0),("verbose",False),
-                        ("parallel",False),("seed",0),("model_num",0),("no_split_penality",0.0),("sample_weights_flag",True)])
+		DEFAULT_PARAMS = OrderedDict([
+			('num_trees', 5),
+			("num_sweeps", 40),
+			("max_depth", 250),
+			("n_min", 1),
+			("num_cutpoints", 100),
+			("alpha", 0.95),
+			("beta", 1.25 ),
+			("tau", 0.3),
+            ("burnin",15),
+			("mtry",0),
+			("kap",16.0),
+			("s",4.0),
+			("tau_kap", 3),
+			("tau_s", 0.5),
+			("verbose", False),
+			("sampling_tau", True),
+			("parallel", False),
+			("nthread", 0),
+			("seed", 0),
+			("no_split_penality", 0.0),
+			("sample_weights_flag",True)
+		])
 
-		DEFAULT_PARAMS_ = OrderedDict([('num_trees',int),("num_sweeps",int)
-                        ,("n_min",int),("num_cutpoints",int) # CHANGE
-                        ,("alpha",float),("beta",float ),("tau",float),# CHANGE
-                        ("burnin",int),("mtry",int),("max_depth_num",int) # CHANGE
-                        ,("kap",float),("s",float),("verbose",bool),
-                        ("parallel",bool),("seed",int),("model_num",int),("no_split_penality",float),("sample_weights_flag",bool)])
-		
-		for param,type_class in DEFAULT_PARAMS_.items():
+		DEFAULT_PARAMS_ = OrderedDict([
+			('num_trees',int),
+			("num_sweeps",int),
+			("max_depth", int),
+			("n_min",int),
+			("num_cutpoints",int),
+			("alpha",float),
+			("beta",float ),
+			("tau",float),# CHANGE
+			("burnin",int),
+			("mtry",int),
+			("max_depth",int),
+			("kap",float),
+			("s",float),
+			("tau_kap", float),
+			("tau_s", float),
+			("verbose",bool),
+			("sampling_tau", bool),
+			("parallel",bool),
+			("nthread", int),
+			("seed",int),
+			("no_split_penality",float),
+			("sample_weights_flag",bool)
+		])
+
+		for param, type_class in DEFAULT_PARAMS_.items():
 			default_value = DEFAULT_PARAMS[param]
 			new_value = params.get(param,default_value)
 
-			if (param in ["mtry","tau","no_split_penality"]) and new_value == "auto":
+			if (param in ["mtry","tau","seed","no_split_penality"]) and new_value == "auto":
 					continue
 
 			try:
@@ -216,17 +265,17 @@ class XBART(object):
 		# Compute mean
 		self.yhats_mean =  self.yhats_test[:,self.params["burnin"]:].mean(axis=1)
 
-	def _predict_multinomial(self,pred_x):
-		# Run Predict
-		self._xbart_cpp._predict_multinomial(pred_x)
-		# Convert to numpy
-		yhats_test = self._xbart_cpp.get_yhats_test_multinomial(self.params["num_sweeps"]*pred_x.shape[0]*self.params["num_classes"])
-		# Convert from colum major 
-		self.yhats_test = yhats_test.reshape((pred_x.shape[0],self.params["num_sweeps"],
-												self.params["num_classes"]),
-												order='F')
-		# # Compute mean
-		self.yhats_mean =  self.yhats_test[:,self.params["burnin"]:,:].mean(axis=1)
+	# def _predict_multinomial(self,pred_x):
+	# 	# Run Predict
+	# 	self._xbart_cpp._predict_multinomial(pred_x)
+	# 	# Convert to numpy
+	# 	yhats_test = self._xbart_cpp.get_yhats_test_multinomial(self.params["num_sweeps"]*pred_x.shape[0]*self.params["num_classes"])
+	# 	# Convert from colum major 
+	# 	self.yhats_test = yhats_test.reshape((pred_x.shape[0],self.params["num_sweeps"],
+	# 											self.params["num_classes"]),
+	# 											order='F')
+	# 	# # Compute mean
+	# 	self.yhats_mean =  self.yhats_test[:,self.params["burnin"]:,:].mean(axis=1)
 
 	def fit(self,x,y,p_cat=0):
 		'''
@@ -252,11 +301,13 @@ class XBART(object):
 		self.__update_fit_x_y(x,fit_x,y,fit_y)
 		self.__update_mtry_tau_penality(fit_x)
 		self.__check_params(p_cat)
+		self.__update_random_seed()
 
 		# Create xbart_cpp object #
 		if self._xbart_cpp is None:
-			#self.args = self.__convert_params_check_types(**self.params)
+			self.args = self.__convert_params_check_types(**self.params)
 			args = list(self.params.values())
+			# print(args)
 			self._xbart_cpp = XBARTcpp(*args) # Makes C++ object
 
 		# fit #
@@ -267,12 +318,15 @@ class XBART(object):
 		self.importance = dict(zip(self.columns,self.importance.astype(int)))
 		
 
-		if self.model == "Normal":
-			self.sigma_draws = self._xbart_cpp.get_sigma_draw(self.params["num_sweeps"]*self.params["num_trees"])
-			# Convert from colum major 
-			self.sigma_draws = self.sigma_draws.reshape((self.params["num_sweeps"],self.params["num_trees"]),order='F')
+		# if self.model == "Normal":
+		self.sigma_draws = self._xbart_cpp.get_sigma_draw(self.params["num_sweeps"]*self.params["num_trees"])
+		# Convert from colum major 
+		self.sigma_draws = self.sigma_draws.reshape((self.params["num_sweeps"],self.params["num_trees"]),order='F')
+		# get residuals
+		self.resid = self._xbart_cpp.get_residuals(self.params["num_sweeps"] * self.params["num_trees"]*len(y))
 		
 		self.is_fit = True
+
 		return self
 
 	def predict(self,x_test,return_mean = True):
@@ -299,10 +353,11 @@ class XBART(object):
 		self.__check_test_shape(pred_x)
 		self.__update_fit_x_y(x_test,pred_x)
 
-		if self.model == "Multinomial":
-			self._predict_multinomial(pred_x)
-		else:
-			self._predict_normal(pred_x)
+		# if self.model == "Multinomial":
+		# 	self._predict_multinomial(pred_x)
+		# else:
+		# 	self._predict_normal(pred_x)
+		self._predict_normal(pred_x)
 
 		if return_mean:
 			return self.yhats_mean
@@ -333,6 +388,57 @@ class XBART(object):
 		self.fit(x,y,p_cat)
 		return self.predict(x_test,return_mean)
 
+	def predict_gp(self, x, y, x_test, p_cat = 0, theta = 10, tau = "auto", return_mean = True):
+		'''
+		Predict XBART model
+        Parameters
+        ----------
+		x_test : DataFrame or numpy array
+            Feature matrix (predictors)
+		return_mean: bool
+			If true, will return mean prediction, else will return (n X num_sweeps) "posterior" estimate
+	
+		Returns
+        -------
+        prediction : numpy array
+		'''
+
+		assert self.is_fit, "Must run fit before running predict"
+		# check residuals
+
+		# get tau, default = var(y) / num_trees
+		if tau == "auto":
+			tau = np.var(y) / self.params["num_trees"]
+		# Check inputs # 
+	
+		self.__check_input_type(x_test)
+		pred_x = x_test.copy()
+		self.__check_test_shape(pred_x)
+		self.__update_fit_x_y(x_test,pred_x)
+
+		self.__check_input_type(x,y)
+		self.__add_columns(x)
+		fit_x = x 
+		fit_y = y
+		
+		self.__update_fit_x_y(x,fit_x,y,fit_y)
+		self.__update_mtry_tau_penality(fit_x)
+		self.__check_params(p_cat)
+		# self.__update_random_seed()
+
+		self._xbart_cpp._predict_gp(fit_x, fit_y, pred_x, p_cat, theta, tau)
+		# # Convert to numpy
+		yhats_test = self._xbart_cpp.get_yhats_test(self.params["num_sweeps"]*pred_x.shape[0])
+		# # Convert from colum major 
+		self.yhats_test = yhats_test.reshape((pred_x.shape[0],self.params["num_sweeps"]),order='C')
+		# # Compute mean
+		self.yhats_mean =  self.yhats_test[:,self.params["burnin"]:].mean(axis=1)
+
+		if return_mean:
+			return self.yhats_mean
+		else:
+			return self.yhats_test
+	
 	def to_json(self,file=None):
 		'''
 		Serielize XBART model
@@ -345,6 +451,8 @@ class XBART(object):
 		j = json.loads(json_str)
 		j["params"] = self.params
 		j["num_columns"] = self.num_columns
+		j["sigma_draws"] = self.sigma_draws
+		j["resid"] = self.resid.tolist()
 
 		if file is not None:
 			with open(file, "w") as text_file:
@@ -367,5 +475,7 @@ class XBART(object):
 		self.is_fit = True
 		self.num_columns = j["num_columns"]
 		self.params = j["params"]
+		self.sigma_draws = j["sigma_draws"]
+		self.resid = np.array(j["resid"])
 		return self
 

@@ -121,65 +121,65 @@ fit = XBART(as.matrix(y), as.matrix(x), as.matrix(xtest), p_categorical = dcat,
 ################################
 # two ways to predict on testing set
 
-# 1. set xtest as input to main fitting function
+# # 1. set xtest as input to main fitting function
 fhat.1 = apply(fit$yhats_test[, params$burnin:params$num_sweeps], 1, mean)
 time = proc.time() - time
 print(time)
 
-# 2. a separate predict function
+# # 2. a separate predict function
 pred = predict(fit, xtest)
 pred = rowMeans(pred[, params$burnin:params$num_sweeps])
 
-time_XBART = round(time[3], 3)
+# time_XBART = round(time[3], 3)
+# pred_full = predict.full(fit, xtest)
+gp_pred = predict.gp(fit, as.matrix(y), as.matrix(x), as.matrix(xtest))
 
-pred2 = predict(fit, xtest)
-pred2 = rowMeans(pred2[, params$burnin:params$num_sweeps])
-stopifnot(pred == pred2)
+# # stopifnot(pred == pred2)
 
-#######################################################################
-# dbarts
-if (run_dbarts) {
-  library(dbarts)
+# #######################################################################
+# # dbarts
+# if (run_dbarts) {
+#   library(dbarts)
 
-  time = proc.time()
-  fit = bart(x, y, xtest, verbose = FALSE, numcut = 100, ndpost = 1000, nskip = 500)
-  time = proc.time() - time
-  print(time[3])
-  fhat.db = fit$yhat.test.mean
-  time_dbarts = round(time[3], 3)
-} else {
-  fhat.db = fhat.1
-  time_dbarts = time_XBART
-}
-
-
-#######################################################################
-# XGBoost
-if (run_xgboost) {
-  library(xgboost)
-}
+#   time = proc.time()
+#   fit = bart(x, y, xtest, verbose = FALSE, numcut = 100, ndpost = 1000, nskip = 500)
+#   time = proc.time() - time
+#   print(time[3])
+#   fhat.db = fit$yhat.test.mean
+#   time_dbarts = round(time[3], 3)
+# } else {
+#   fhat.db = fhat.1
+#   time_dbarts = time_XBART
+# }
 
 
-
-#######################################################################
-# LightGBM
-if (run_lightgbm) {
-  library(xgboost)
-}
-
-
-#######################################################################
-# print
-xbart_rmse = sqrt(mean((fhat.1 - ftest) ^ 2))
-print(paste("rmse of fit xbart: ", round(xbart_rmse, digits = 4)))
-print(paste("rmse of fit dbart: ", round(sqrt(mean((fhat.db - ftest) ^ 2)), digits = 4)))
-
-print(paste("running time, dbarts", time_dbarts))
-print(paste("running time, XBART", time_XBART))
+# #######################################################################
+# # XGBoost
+# if (run_xgboost) {
+#   library(xgboost)
+# }
 
 
-plot(ftest, fhat.db, pch = 20, col = 'orange')
-points(ftest, fhat.1, pch = 20, col = 'slategray')
-legend("topleft", c("dbarts", "XBART"), col = c("orange", "slategray"), pch = c(20, 20))
 
+# #######################################################################
+# # LightGBM
+# if (run_lightgbm) {
+#   library(xgboost)
+# }
+
+
+# #######################################################################
+# # print
+# xbart_rmse = sqrt(mean((fhat.1 - ftest) ^ 2))
+# pred_rmse = sqrt(mean((pred - ftest) ^ 2))
+# print(paste("rmse of fit xbart: ", round(xbart_rmse, digits = 4)))
+# print(paste("rmse of predict func: ", round(sqrt(mean((pred - ftest) ^ 2)), digits = 4)))
+
+# print(paste("running time, dbarts", time_dbarts))
+# print(paste("running time, XBART", time_XBART))
+
+
+# plot(ftest, fhat.db, pch = 20, col = 'orange')
+# points(ftest, fhat.1, pch = 20, col = 'slategray')
+# legend("topleft", c("dbarts", "XBART"), col = c("orange", "slategray"), pch = c(20, 20))
 

@@ -117,7 +117,9 @@ public:
     double tau_kap;
     double tau_s;
     // prior on leaf parameter
-    double tau;      // might be updated if sampling tau
+    double tau; // might be updated if sampling tau
+    double tau_prior;
+
     double tau_mean; // copy of the original value
     bool sampling_tau;
 
@@ -127,6 +129,7 @@ public:
         this->s = s;
         this->tau_kap = tau_kap;
         this->tau_s = tau_s;
+        this->tau_prior = tau;
         this->tau = tau;
         this->tau_mean = tau;
         this->alpha = alpha;
@@ -178,6 +181,9 @@ public:
     void ini_residual_std(std::unique_ptr<State> &state);
 
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
+
+    void predict_whole_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, std::vector<double> &output_vec, vector<vector<tree>> &trees);
+
 };
 
 //////////////////////////////////////////////////////////////////////////////////////

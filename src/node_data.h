@@ -12,30 +12,35 @@ public:
     double sigma;
     size_t N_Xorder; // number of data observations in the current node
 
-    NodeData(){
+    NodeData()
+    {
         sigma = 1.0;
         N_Xorder = 1;
         return;
     }
 
-    NodeData(double sigma, size_t N_Xorder){
+    NodeData(double sigma, size_t N_Xorder)
+    {
         this->sigma = sigma;
         this->N_Xorder = N_Xorder;
         return;
     }
 
-    void update_value(double sigma, size_t N_Xorder){
+    void update_value(double sigma, size_t N_Xorder)
+    {
         this->sigma = sigma;
         this->N_Xorder = N_Xorder;
         return;
     }
 
-    void update_sigma(double sigma){
+    void update_sigma(double sigma)
+    {
         this->sigma = sigma;
         return;
     }
 
-    void update_N_Xorder(size_t N_Xorder){
+    void update_N_Xorder(size_t N_Xorder)
+    {
         this->N_Xorder = N_Xorder;
         return;
     }

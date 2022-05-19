@@ -217,6 +217,32 @@ void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, //s
     return;
 }
 
+
+void get_X_range(const double *Xpointer, std::vector< std::vector<size_t> > &Xorder_std, std::vector<std::vector<double>> &X_range, size_t &n_y)
+{
+    size_t N = Xorder_std[0].size();
+    size_t p = Xorder_std.size();
+    ini_matrix(X_range, 2, p);
+
+    // get 95% quantile to avoid outliers
+    double alpha = 0.05;
+    size_t low_idx = (size_t) floor(N * alpha / 2);
+    size_t up_idx = (size_t) floor(N * (1 - alpha / 2));
+    // cout << "N = " << N << ", low = " << low_idx << ", up_idx = " << up_idx<< endl;
+    for (size_t i = 0; i < p; i++)
+    {
+        // X_range[i][0] = *(Xpointer + i * n_y + Xorder_std[i][0]);
+        // X_range[i][1] = *(Xpointer + i * n_y + Xorder_std[i][N-1]);
+        X_range[i][0] = *(Xpointer + i * n_y + Xorder_std[i][low_idx]);
+        X_range[i][1] = *(Xpointer + i * n_y + Xorder_std[i][up_idx]);
+    
+    }
+
+    // std::cout << "total_points " << total_points << std::endl;
+
+    return;
+}
+
 double normal_density(double y, double mean, double var, bool take_log)
 {
     // density of normal distribution
@@ -280,4 +306,23 @@ void dirichlet_distribution(std::vector<double> &prob, std::vector<double> &alph
         prob[i] = prob[i] / weight_sum;
     }
     return;
+}
+
+void get_rel_covariance(mat &cov, mat &X, std::vector<double> X_range, double theta, double tau)
+{
+    double temp;
+    for (size_t i = 0; i < X.n_rows; i++){
+        for (size_t j = i; j < X.n_rows; j++){
+            // (tau*exp(-sum(theta * abs(x - y) / range)))
+            temp = 0;
+            for (size_t k = 0; k < X.n_cols; k++){
+                temp += pow(X(i, k) - X(j, k), 2) / pow(X_range[k], 2) / 2;
+                // temp += std::abs(X(i,k) - X(j, k)) / X_range[k];
+            }
+            // cout << "distance = " << temp << endl;
+            cov(i, j) = tau * exp( - theta * temp);
+            cov(j, i) = cov(i, j);
+        }
+    } 
+    return;  
 }

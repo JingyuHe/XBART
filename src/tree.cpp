@@ -1,8 +1,9 @@
 #include "tree.h"
-// #include <RcppArmadilloExtensions/sample.h>
 #include <chrono>
 #include "omp.h"
 #include <ctime>
+// #include <RcppArmadillo.h>
+// #include <armadillo>
 
 using namespace std;
 using namespace chrono;
@@ -266,6 +267,7 @@ tree::tree_p tree::search_bottom_std(const double *X, const size_t &i, const siz
     }
 }
 
+
 //--------------------
 //find region for a given variable
 void tree::rg(size_t v, size_t *L, size_t *U)
@@ -387,13 +389,14 @@ json tree::to_json()
     json j;
     if (l == 0)
     {
-        j = this->theta_vector;
+        j["left"] = 0;
+        j["right"] = 0;
+        j["theta"]= this->theta_vector;
     }
     else
     {
         j["variable"] = this->v;
         j["cutpoint"] = this->c;
-        j["nodeid"] = this->nid();
         j["left"] = this->l->to_json();
         j["right"] = this->r->to_json();
     }
@@ -402,10 +405,10 @@ json tree::to_json()
 
 void tree::from_json(json &j3, size_t dim_theta)
 {
-    if (j3.is_array())
+    if (j3["left"].is_number())
     {
         std::vector<double> temp;
-        j3.get_to(temp);
+        j3.at("theta").get_to(temp);
         if (temp.size() > 1)
         {
             this->theta_vector = temp;
@@ -414,12 +417,13 @@ void tree::from_json(json &j3, size_t dim_theta)
         {
             this->theta_vector[0] = temp[0];
         }
+        this->l = 0;
+        this->r = 0;
     }
     else
     {
         j3.at("variable").get_to(this->v);
         j3.at("cutpoint").get_to(this->c);
-
         tree *lchild = new tree(dim_theta);
         lchild->from_json(j3["left"], dim_theta);
         tree *rchild = new tree(dim_theta);
@@ -454,9 +458,8 @@ std::ostream &operator<<(std::ostream &os, const tree &t)
     os << nds.size() << std::endl;
     for (size_t i = 0; i < nds.size(); i++)
     {
-        os << nds[i]->nid() << " ";
         os << nds[i]->getv() << " ";
-        os << nds[i]->getc();
+        os << nds[i]->getc() << " ";
         //   os << nds[i]->theta_vector[0] << std::endl;
         for (size_t kk = 0; kk < nds[i]->theta_vector.size(); kk++)
         {
@@ -493,7 +496,7 @@ std::istream &operator>>(std::istream &is, tree &t)
     std::vector<node_info> nv(nn);
     for (size_t i = 0; i != nn; i++)
     {
-        is >> nv[i].id >> nv[i].v >> nv[i].c; // >> nv[i].theta_vector[0]; // Only works on first theta for now, fix latex if needed
+        is >> nv[i].v >> nv[i].c ; // >> nv[i].theta_vector[0]; // Only works on first theta for now, fix latex if needed
         for (size_t kk = 0; kk < theta_size; kk++)
         {
             is >> nv[i].theta_vector[kk];
@@ -632,6 +635,30 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
 
+    // If our current split is same as parent, exit
+    if (!no_split){
+        // only check this when split_var and split_point is not void
+        double cutpoint = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
+        if ((this->p) && (this->v == (this->p)->v) && (cutpoint == (this->p)->c))
+        {
+            no_split = true;
+        }
+
+        // Update Cutpoint to be a true seperating point
+        // Increase split_point (index) until it is no longer equal to cutpoint value
+        while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == cutpoint))
+        {
+            split_point = split_point + 1;
+        }
+
+        if (split_point + 1 == N_Xorder){
+            // cout << "split_point = N" << endl;
+            no_split = true;
+        }
+    }
+    
+
+
     if (no_split == true)
     {
         if (!update_split_prob)
@@ -643,10 +670,11 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
             }
         }
 
-        if (update_theta)
-        {
-            model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
-        }
+        // already updated in the beginning
+        // if (update_theta)
+        // {
+        //     model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
+        // }
 
         this->l = 0;
         this->r = 0;
@@ -671,19 +699,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
         this->c_index = (size_t)round((double)index_in_full / (double)state->n_y * (double)state->n_cutpoints);
     }
 
-    // Update Cutpoint to be a true seperating point
-    // Increase split_point (index) until it is no longer equal to cutpoint value
-    while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
-    {
-        split_point = split_point + 1;
-    }
-
-    // If our current split is same as parent, exit
-    if ((this->p) && (this->v == (this->p)->v) && (this->c == (this->p)->c))
-    {
-        return;
-    }
-
     if (grow_new_tree)
     {
         // If do not update split prob ONLY
@@ -700,8 +715,11 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
         lchild->depth = this->depth + 1;
         rchild->depth = this->depth + 1;
 
-        lchild->ID = 2 * (this->ID);
-        rchild->ID = lchild->ID + 1;
+        // inherit tau
+        lchild->tau_prior = this->tau_prior;
+        rchild->tau_prior = this->tau_prior;
+        lchild->tau_post = this->tau_post;
+        rchild->tau_post = this->tau_post;
     }
     else
     {
@@ -716,6 +734,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     matrix<size_t> Xorder_right_std;
     ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
     ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
+    // cout << "split_point = " << split_point << ", N = " << N_Xorder << ", cut = " << cutpoint << ", next = " << *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point+1])<< endl;
 
     std::vector<size_t> X_num_unique_left(X_num_unique.size());
     std::vector<size_t> X_num_unique_right(X_num_unique.size());
@@ -837,6 +856,26 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
 
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
 
+
+    if (!no_split){
+        double cutpoint = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
+        if ((this->p) && (this->v == (this->p)->v) && (cutpoint == (this->p)->c))
+        {
+            no_split = true;
+        }
+
+        // Update Cutpoint to be a true seperating point
+        // Increase split_point (index) until it is no longer equal to cutpoint value
+        while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == cutpoint))
+        {
+            split_point = split_point + 1;
+        }
+
+        if (split_point + 1 == N_Xorder){
+            no_split = true;
+        }
+    }
+    
     if (no_split == true)
     {
         // cout << "no split at depth " << this->depth << endl;
@@ -847,8 +886,8 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
             {
                 x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
             }
-// update lambdas in state
-#pragma omp critical
+        // update lambdas in state
+        // #pragma omp critical
             state->lambdas[tree_ind].push_back(this->theta_vector);
         }
 
@@ -880,36 +919,11 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
         this->c_index = (size_t)round((double)index_in_full / (double)state->n_y * (double)state->n_cutpoints);
     }
 
-    // Update Cutpoint to be a true seperating point
-    // Increase split_point (index) until it is no longer equal to cutpoint value
-    while ((split_point < N_Xorder - 1) && (*(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point + 1]) == this->c))
-    {
-        split_point = split_point + 1;
-    }
-
-    // If our current split is same as parent, exit
-    if ((this->p) && (this->v == (this->p)->v) && (this->c == (this->p)->c))
-    {
-        if (!update_split_prob)
-        {
-            // #pragma omp parallel for schedule(static, 128)
-            for (size_t i = 0; i < N_Xorder; i++)
-            {
-                x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
-            }
-// update lambdas in state
-#pragma omp critical
-            state->lambdas[tree_ind].push_back(this->theta_vector);
-        }
-        // cout << "unusual return "  << endl;
-        return;
-    }
-
     if (grow_new_tree)
     {
-// If do not update split prob ONLY
-// grow from root, initialize new nodes
-#pragma omp critical
+        // If do not update split prob ONLY
+        // grow from root, initialize new nodes
+        // #pragma omp critical
         state->split_count_current_tree[split_var] += 1;
 
         tree::tree_p lchild = new tree(model->getNumClasses(), this, model->dim_suffstat);
@@ -917,9 +931,6 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
 
         // lchild->depth = this->depth + 1;
         // rchild->depth = this->depth + 1;
-
-        lchild->ID = 2 * (this->ID);
-        rchild->ID = lchild->ID + 1;
 
         this->l = lchild;
         this->r = rchild;
@@ -1122,9 +1133,6 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
 
         lchild->depth = this->depth + 1;
         rchild->depth = this->depth + 1;
-
-        lchild->ID = 2 * (this->ID);
-        rchild->ID = lchild->ID + 1;
     }
     else
     {
@@ -1210,7 +1218,6 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
 
     const double *split_var_x_pointer = state->X_std + state->n_y * split_var;
 
-// #pragma omp parallel for schedule(dynamic, 1) default(none) shared(state, Xorder_std, Xorder_left_std, Xorder_right_std, N_Xorder, split_var_x_pointer, cutvalue)
     for (size_t i = 0; i < state->p_continuous; i++) // loop over variables
     {
         // lambda callback for multithreading
@@ -1932,6 +1939,465 @@ void calcSuffStat_continuous(std::vector<double> &temp_suff_stat, std::vector<si
     return;
 }
 
+
+
+size_t get_split_point(const double *Xpointer, matrix<size_t> &Xorder_std, size_t n_y, size_t v, double c)
+{
+    // get split point
+    // use bisection
+
+    size_t left_ind = 0;
+    size_t right_ind =  Xorder_std[0].size() - 1;
+    size_t split_point = (left_ind + right_ind) / 2;
+    double split_val = *(Xpointer + n_y * v + Xorder_std[v][split_point]);
+
+    if (c < *(Xpointer + n_y * v + Xorder_std[v][0])) {
+        cout << "Warning: cut point less than the smallest value" << endl;
+        // cout << "v = " << v << ", c = " << c << ", min = " << *(Xpointer + n_y * v + Xorder_std[v][0]) << ", max = " << *(Xpointer + n_y * v + Xorder_std[v][right_ind]) << ", N = " << Xorder_std[0].size() << endl;
+        split_point = 0;
+    }
+    else if (c > *(Xpointer + n_y * v + Xorder_std[v][right_ind])) {
+        cout << "Warning: cut point greater than the smallest value" << endl;
+        // cout << "v = " << v << ", c = " << c << ", min = " << *(Xpointer + n_y * v + Xorder_std[v][0]) << ", max = " << *(Xpointer + n_y * v + Xorder_std[v][right_ind])  << ", N = " << Xorder_std[0].size()  << endl;
+        split_point = right_ind;
+    }
+    else {
+
+        while ((c != split_val) & (left_ind <= right_ind)){
+            if (split_val > c) {
+                right_ind = split_point - 1;
+            } else {
+                left_ind = split_point + 1;
+            }
+            split_point = (left_ind + right_ind) / 2;
+            split_val = *(Xpointer + n_y * v + Xorder_std[v][split_point]);
+        }
+       
+        while ((split_point <  Xorder_std[0].size() - 1) && (*(Xpointer + n_y * v + Xorder_std[v][split_point + 1]) == c))
+        {
+            split_point = split_point + 1;
+        }
+    }
+    if (Xorder_std[0].size() == split_point + 1) {
+        cout << "split_point = N = " << split_point + 1 << endl;
+        cout << "v = " << v << ", c = " << c << ", min = " << *(Xpointer + n_y * v + Xorder_std[v][0]) << ", max = " << *(Xpointer + n_y * v + Xorder_std[v][right_ind])  << ", N = " << Xorder_std[0].size()  << endl;
+        throw;
+    }
+
+    return split_point;
+}
+
+void split_xorder_std_categorical_simplified(std::unique_ptr<gp_struct> &x_struct, matrix<size_t> &Xorder_left_std, 
+matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, 
+std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, 
+std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, 
+std::vector<size_t> &X_counts, size_t p_categorical)
+{
+    // without model, state, don't update suff stats
+
+    // preserve order of other variables
+    size_t N_Xorder = Xorder_std[0].size();
+    size_t N_Xorder_left = Xorder_left_std[0].size();
+    size_t N_Xorder_right = Xorder_right_std[0].size();
+    size_t p = Xorder_std.size();
+    size_t p_continuous = p - p_categorical;
+    const double *temp_pointer = x_struct->X_std + x_struct->n_y * split_var;
+
+    // if the left side is smaller, we only compute sum of it
+    bool compute_left_side = N_Xorder_left < N_Xorder_right;
+
+    double cutvalue = *(x_struct->X_std + x_struct->n_y * split_var + Xorder_std[split_var][split_point]);
+
+    std::fill(X_num_unique_left.begin(), X_num_unique_left.end(), 0.0);
+    std::fill(X_num_unique_right.begin(), X_num_unique_right.end(), 0.0);
+
+    for (size_t i = p_continuous; i < p; i++)
+    {
+        // loop over variables
+        size_t left_ix = 0;
+        size_t right_ix = 0;
+
+        // index range of X_counts, X_values that are corresponding to current variable
+        // start <= i <= end;
+        size_t start = x_struct->variable_ind[i - p_continuous];
+        size_t end = x_struct->variable_ind[i + 1 - p_continuous];
+
+        if (i == split_var)
+        {
+            if (compute_left_side)
+            {
+                for (size_t j = 0; j < N_Xorder; j++)
+                {
+                    if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
+                    {
+                        Xorder_left_std[i][left_ix] = Xorder_std[i][j];
+                        left_ix = left_ix + 1;
+                    }
+                    else
+                    {
+                        // go to right side
+                        Xorder_right_std[i][right_ix] = Xorder_std[i][j];
+                        right_ix = right_ix + 1;
+                    }
+                }
+            }
+            else
+            {
+                for (size_t j = 0; j < N_Xorder; j++)
+                {
+                    if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
+                    {
+                        Xorder_left_std[i][left_ix] = Xorder_std[i][j];
+                        left_ix = left_ix + 1;
+                    }
+                    else
+                    {
+                        Xorder_right_std[i][right_ix] = Xorder_std[i][j];
+                        right_ix = right_ix + 1;
+                    }
+                }
+            }
+
+            // for the cut variable, it's easy to counts X_counts_left and X_counts_right, simply cut X_counts to two pieces.
+
+            for (size_t k = start; k < end; k++)
+            {
+                // loop from start to end!
+
+                if (x_struct->X_values[k] <= cutvalue)
+                {
+                    // smaller than cutvalue, go left
+                    X_counts_left[k] = X_counts[k];
+                }
+                else
+                {
+                    // otherwise go right
+                    X_counts_right[k] = X_counts[k];
+                }
+            }
+        }
+        else
+        {
+            size_t X_counts_index = start;
+            // split other variables, need to compare each row
+            for (size_t j = 0; j < N_Xorder; j++)
+            {
+                while (*(x_struct->X_std + x_struct->n_y * i + Xorder_std[i][j]) != x_struct->X_values[X_counts_index])
+                {
+                    //     // for the current observation, find location of corresponding unique values
+                    X_counts_index++;
+                }
+
+                if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
+                {
+                    // go to left side
+                    Xorder_left_std[i][left_ix] = Xorder_std[i][j];
+                    left_ix = left_ix + 1;
+                    X_counts_left[X_counts_index]++;
+                }
+                else
+                {
+                    // go to right side
+                    Xorder_right_std[i][right_ix] = Xorder_std[i][j];
+                    right_ix = right_ix + 1;
+                    X_counts_right[X_counts_index]++;
+                }
+            }
+        }
+
+        for (size_t j = start; j < end; j++)
+        {
+            if (X_counts_left[j] > 0)
+            {
+                X_num_unique_left[i - p_continuous] = X_num_unique_left[i - p_continuous] + 1;
+            }
+            if (X_counts_right[j] > 0)
+            {
+                X_num_unique_right[i - p_continuous] = X_num_unique_right[i - p_continuous] + 1;
+            }
+        }
+    }
+    return;
+}
+
+void split_xorder_std_continuous_simplified(std::unique_ptr<gp_struct> &x_struct, matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, size_t p_continuous)
+{
+    // without model, state, don't update suff stats
+
+    size_t N_Xorder = Xorder_std[0].size();
+    size_t N_Xorder_left = Xorder_left_std[0].size();
+    size_t N_Xorder_right = Xorder_right_std[0].size();
+    
+    // if the left side is smaller, we only compute sum of it
+    bool compute_left_side = N_Xorder_left < N_Xorder_right;
+
+    double cutvalue = *(x_struct->X_std + x_struct->n_y * split_var + Xorder_std[split_var][split_point]);
+
+    const double *split_var_x_pointer = x_struct->X_std + x_struct->n_y * split_var;
+
+    for (size_t i = 0; i < p_continuous; i++) // loop over variables
+    {
+        size_t left_ix = 0;
+        size_t right_ix = 0;
+
+        std::vector<size_t> &xo = Xorder_std[i];
+        std::vector<size_t> &xo_left = Xorder_left_std[i];
+        std::vector<size_t> &xo_right = Xorder_right_std[i];
+
+        for (size_t j = 0; j < N_Xorder; j++)
+        {
+            if (*(split_var_x_pointer + xo[j]) <= cutvalue)
+            {
+                xo_left[left_ix] = xo[j];
+                left_ix = left_ix + 1;
+            }
+            else
+            {
+                xo_right[right_ix] = xo[j];
+                right_ix = right_ix + 1;
+            }
+        }
+    }
+    return;
+}
+
+void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_struct> &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, 
+    matrix<size_t> &Xtestorder_std, std::unique_ptr<gp_struct> &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique, 
+    matrix<double> &yhats_test_xinfo, std::vector<bool> active_var, const size_t &p_categorical, const size_t &sweeps, const size_t &tree_ind, const double &theta, const double &tau)
+{
+    // gaussian process prediction from root
+    // cout << "gp_predict_from_root" << endl;
+    size_t N = Xorder_std[0].size();
+    size_t Ntest = Xtestorder_std[0].size();
+    size_t p = active_var.size();
+    size_t p_continuous = p - p_categorical;
+
+    if (Ntest == 0){ // no need to split if Ntest = 0
+        return;
+    }
+
+    if (this->l)
+    {
+        active_var[v] = true;
+        std::vector<bool> active_var_left(active_var.size());
+        std::vector<bool> active_var_right(active_var.size());
+        std::copy(active_var.begin(), active_var.end(), active_var_left.begin());
+        std::copy(active_var.begin(), active_var.end(), active_var_right.begin());
+
+        matrix<size_t> Xorder_left_std;
+        matrix<size_t> Xorder_right_std;
+        matrix<size_t> Xtestorder_left_std;
+        matrix<size_t> Xtestorder_right_std;
+
+        std::vector<size_t> X_num_unique_left(X_num_unique.size());
+        std::vector<size_t> X_num_unique_right(X_num_unique.size());
+
+        std::vector<size_t> X_counts_left(X_counts.size());
+        std::vector<size_t> X_counts_right(X_counts.size());
+
+        std::vector<size_t> Xtest_num_unique_left(Xtest_num_unique.size());
+        std::vector<size_t> Xtest_num_unique_right(Xtest_num_unique.size());
+
+        std::vector<size_t> Xtest_counts_left(Xtest_counts.size());
+        std::vector<size_t> Xtest_counts_right(Xtest_counts.size());
+
+        if (N > 0){
+            // get split point
+            size_t split_point = get_split_point(x_struct->X_std, Xorder_std, x_struct->n_y, v, c);
+            ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
+            ini_xinfo_sizet(Xorder_right_std, N - split_point - 1, p);
+
+            if (p_categorical > 0)
+            {
+                split_xorder_std_categorical_simplified(x_struct, Xorder_left_std, Xorder_right_std, this->v, split_point, Xorder_std, X_counts_left, X_counts_right, 
+                X_num_unique_left, X_num_unique_right, X_counts, p_categorical);
+            }
+
+            if (p_continuous > 0)
+            {
+                split_xorder_std_continuous_simplified(x_struct, Xorder_left_std, Xorder_right_std, v, split_point, Xorder_std, p_continuous);
+            }
+
+        }
+        
+        if (Ntest> 0){
+            
+            if (c < *(xtest_struct->X_std + xtest_struct->n_y * v + Xtestorder_std[v][0])){
+                // all test data goes to the right node
+                this->r->gp_predict_from_root(Xorder_right_std, x_struct, X_counts_right, X_num_unique_right, 
+                    Xtestorder_std, xtest_struct, Xtest_counts, Xtest_num_unique, yhats_test_xinfo, active_var_right, p_categorical, sweeps, tree_ind, theta, tau);
+                return;
+            }
+            if (c >= *(xtest_struct->X_std + xtest_struct->n_y * v + Xtestorder_std[v][Ntest - 1])){
+                // all test data goes to the left node
+                this->l->gp_predict_from_root(Xorder_left_std, x_struct, X_counts_left, X_num_unique_left, 
+                    Xtestorder_std, xtest_struct, Xtest_counts, Xtest_num_unique, yhats_test_xinfo, active_var_left, p_categorical, sweeps, tree_ind, theta, tau);
+                return;
+            }
+
+            size_t test_split_point = get_split_point(xtest_struct->X_std, Xtestorder_std, xtest_struct->n_y, v, c);
+            
+            ini_xinfo_sizet(Xtestorder_left_std, test_split_point + 1, p);
+            ini_xinfo_sizet(Xtestorder_right_std, Ntest - test_split_point - 1, p);
+            
+
+            if (p_categorical > 0)
+            {
+                split_xorder_std_categorical_simplified(xtest_struct, Xtestorder_left_std, Xtestorder_right_std, v, test_split_point, Xtestorder_std, Xtest_counts_left, Xtest_counts_right, Xtest_num_unique_left, Xtest_num_unique_right, Xtest_counts, p_categorical);
+            }
+            if (p_continuous > 0)
+            {   
+                split_xorder_std_continuous_simplified(xtest_struct, Xtestorder_left_std, Xtestorder_right_std, v, test_split_point, Xtestorder_std, p_continuous);
+            }
+        }
+
+        // cout << "left, N = " << Xorder_left_std[0].size() << endl;
+        this->l->gp_predict_from_root(Xorder_left_std, x_struct, X_counts_left, X_num_unique_left, 
+            Xtestorder_left_std, xtest_struct, Xtest_counts_left, Xtest_num_unique_left, yhats_test_xinfo, active_var_left, p_categorical, sweeps, tree_ind, theta, tau);
+        // cout << "end left" << endl;
+        // cout << "right, N = " << Xorder_right_std[0].size() << endl;
+        this->r->gp_predict_from_root(Xorder_right_std, x_struct, X_counts_right, X_num_unique_right, 
+            Xtestorder_right_std, xtest_struct, Xtest_counts_right, Xtest_num_unique_right, yhats_test_xinfo, active_var_right, p_categorical, sweeps, tree_ind, theta, tau);
+        // cout << "end rigth " << endl;
+    }
+    else {
+        if (N == 0){
+            cout << "0 training data in the leaf node" << endl;
+            throw;
+        }
+        // assign mu 
+        for (size_t i = 0; i < Ntest; i++){
+            yhats_test_xinfo[sweeps][Xtestorder_std[0][i]] += this->theta_vector[0];
+        }
+        
+        // get local range
+        matrix<double> local_X_range;
+        get_X_range(x_struct->X_std, Xorder_std, local_X_range, x_struct->n_y);
+        // cout << "N = " << N << ", X_range = " << local_X_range << endl;
+
+        // check out of range test sets
+        // exterior points may not be out-of-range on all active variables
+        // do we want to use all acitve_var info or just those having out-of-range points?
+        // FOR NOW: just those having out-of-range points
+        std::vector<size_t> test_ind;
+        std::vector<bool> active_var_out_range(p_continuous, false); 
+        for (size_t i = 0; i < Ntest; i++){
+            for (size_t j = 0; j < p_continuous; j++){
+                if (active_var[j]){
+                    if (*(xtest_struct->X_std + xtest_struct->n_y * j + Xtestorder_std[j][i]) > local_X_range[j][1]){
+                        test_ind.push_back(Xtestorder_std[j][i]);
+                        active_var_out_range[j] = true;
+                        break;
+                    }
+                    else if (*(xtest_struct->X_std + xtest_struct->n_y * j + Xtestorder_std[j][i]) < local_X_range[j][0]){ 
+                        test_ind.push_back(Xtestorder_std[j][i]);
+                        active_var_out_range[j] = true; 
+                        break;
+                    }
+                }
+            }
+        }
+
+        // construct covariance matrix
+        // TODO: consider categorical active variables
+        size_t p_active = std::accumulate(active_var_out_range.begin(), active_var_out_range.end(), 0);
+        if (p_active == 0){
+            // cout << "Warning: number of continuous active variable is 0. Sweep = " << sweeps << ", tree = " << tree_ind << endl;
+            return;     
+        }
+       
+
+        Ntest = test_ind.size();
+        if (Ntest == 0){
+            return;
+        }
+        
+        // get training set
+        std::vector<size_t> train_ind;
+        if (N < 100) {
+            train_ind.resize(N);
+            std::copy(Xorder_std[0].begin(), Xorder_std[0].end(), train_ind.begin());
+        }
+        else {
+            N = 100;
+            train_ind.resize(100);
+            std::sample(Xorder_std[0].begin(), Xorder_std[0].end(), train_ind.begin(), 100, x_struct->gen);
+            
+        }
+        
+        mat X(N + Ntest, p_active);
+        std::vector<double> x_range(p_active);
+        const double *split_var_x_pointer;
+        size_t j_count = 0;
+        for (size_t j = 0; j < p_continuous; j++){
+            if (active_var_out_range[j]) {
+                split_var_x_pointer = x_struct->X_std + x_struct->n_y * j;
+                for (size_t i = 0; i < N; i++){
+                    X(i, j_count) = *(split_var_x_pointer + train_ind[i]);
+                }
+
+                // if (local_X_range[j][1] > local_X_range[j][0]){
+                //     x_range[j_count] = sqrt(local_X_range[j][1] - local_X_range[j][0]);
+                // }else{
+                //     x_range[j_count] =  sqrt(*(split_var_x_pointer + Xorder_std[j][Xorder_std[j].size()-1]) - *(split_var_x_pointer + Xorder_std[j][0]));                
+                // }
+                if (local_X_range[j][1] > local_X_range[j][0]){
+                    x_range[j_count] = (local_X_range[j][1] - local_X_range[j][0]);
+                }else{
+                    x_range[j_count] =  (*(split_var_x_pointer + Xorder_std[j][Xorder_std[j].size()-1]) - *(split_var_x_pointer + Xorder_std[j][0]));                
+                }
+
+                split_var_x_pointer = xtest_struct->X_std + xtest_struct->n_y * j;
+                for (size_t i = 0; i < Ntest; i++){
+                    X(i + N, j_count) = *(split_var_x_pointer + test_ind[i]);
+                }
+                
+                if (x_range[j_count] == 0){
+                    cout << "x_range = 0" << ", j = " << j << endl;
+                    throw;
+                }
+                j_count += 1;
+            }
+        }
+
+        mat resid(N, 1);
+        for (size_t i = 0; i < N; i++){
+            resid(i, 0) = x_struct->resid[sweeps][tree_ind][train_ind[i]] - this->theta_vector[0];
+        }
+
+        mat cov(N + Ntest, N + Ntest);
+        get_rel_covariance(cov, X, x_range, theta, tau); 
+        for (size_t i = 0; i < N; i++){
+            cov(i, i) +=  pow(x_struct->sigma[tree_ind], 2) / x_struct->num_trees;
+        }
+
+        mat mu(Ntest, 1);
+        mat Sig(Ntest, Ntest);
+        if (N > 0){
+            mat k = cov.submat(N, 0, N + Ntest - 1, N - 1);
+            mat Kinv = pinv(cov.submat(0, 0, N - 1, N - 1));
+            mu = k * Kinv * resid;
+            Sig =  cov.submat(N, N, N + Ntest - 1, N + Ntest - 1) - k * Kinv * trans(k);
+            
+        }else{
+            // prior
+            mu.zeros(Ntest, 1);
+            Sig = cov.submat(0, 0, Ntest - 1, Ntest - 1);
+        }
+        mat U;
+        vec S;
+        mat V;
+        svd(U, S, V, Sig);
+        
+        std::normal_distribution<double> normal_samp(0.0, 1.0);
+        mat samp(Ntest, 1);
+        for (size_t i = 0; i < Ntest; i++) samp(i, 0) = normal_samp(x_struct->gen);
+        mat draws = mu + U * diagmat(sqrt(S)) * samp;
+        for (size_t i = 0; i < Ntest; i++) yhats_test_xinfo[sweeps][test_ind[i]] += draws(i, 0);
+    }
+    return;
+}
+
 void getTheta_Insample(matrix<double> &output, size_t tree_ind, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct)
 {
     // get theta of ALL observations of ONE tree, in sample fit
@@ -1981,7 +2447,7 @@ void getThetaForObs_Insample(matrix<double> &output, size_t x_index, std::unique
     return;
 }
 
-void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p)
+void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p, std::mt19937 &gen)
 {
     // get theta of ONE observation of ALL trees, out sample fit
     // input is a pointer to testing set matrix because it is out of sample
@@ -1990,11 +2456,13 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
     // output should have dimension (dim_theta, num_trees)
 
     tree::tree_p bn; // pointer to bottom node
+    double d;
 
     for (size_t i = 0; i < tree.size(); i++)
     {
         // loop over trees
         // tree search
+        // d = 0; // max distance of outliers
         bn = tree[i].search_bottom_std(Xtest, x_index, p, N_Xtest);
         output[i] = bn->theta_vector;
     }
