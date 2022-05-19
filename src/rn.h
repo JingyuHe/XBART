@@ -20,16 +20,16 @@
 // #ifndef GUARD_rn_h
 // #define GUARD_rn_h
 
-//pure virtual base class for random numbers
+// pure virtual base class for random numbers
 class rn
 {
-  public:
+public:
     rn() {}
-    virtual double normal() = 0;        //standard normal
-    virtual double uniform() = 0;       //uniform(0,1)
-    virtual double chi_square() = 0;    //chi-square
-    virtual double exp() = 0;           //exponential
-    virtual void set_df(size_t df) = 0; //set df for chi-square
+    virtual double normal() = 0;        // standard normal
+    virtual double uniform() = 0;       // uniform(0,1)
+    virtual double chi_square() = 0;    // chi-square
+    virtual double exp() = 0;           // exponential
+    virtual void set_df(size_t df) = 0; // set df for chi-square
     virtual ~rn() {}
 };
 
@@ -38,24 +38,24 @@ class rn
 #include <Rmath.h>
 #include <random>
 
-//abstract random number generator based on C++ <random>
+// abstract random number generator based on C++ <random>
 class arn : public rn
 {
-    //typedefs
+    // typedefs
     typedef std::default_random_engine genD;
     typedef std::normal_distribution<double> norD;
     typedef std::uniform_real_distribution<double> uniD;
     typedef std::chi_squared_distribution<double> chiD;
 
-  public:
-    //constructor
+public:
+    // constructor
     arn() {}
     arn(unsigned size_t n1, unsigned size_t n2)
     {
         this->n1 = n1;
         this->n2 = n2;
     }
-    //virtual
+    // virtual
     virtual ~arn() {}
     virtual double normal() { return (nor)(gen); }
     virtual double uniform() { return (uni)(gen); }
@@ -64,7 +64,7 @@ class arn : public rn
     virtual void set_df(size_t df) { this->df = df; }
     size_t get_df() { return df; }
 
-  private:
+private:
     size_t df;
     unsigned size_t n1, n2;
     genD gen;
@@ -77,14 +77,14 @@ class arn : public rn
 
 #include <Rmath.h>
 
-//abstract random number generator based on Rmath
+// abstract random number generator based on Rmath
 class arn : public rn
 {
-  public:
-    //constructor
+public:
+    // constructor
     arn() : df(1) {}
     arn(unsigned size_t n1, unsigned size_t n2) : df(1) { ::set_seed(n1, n2); }
-    //virtual
+    // virtual
     virtual ~arn() {}
     virtual double normal() { return ::norm_rand(); }
     virtual double uniform() { return ::unif_rand(); }
@@ -101,20 +101,20 @@ class arn : public rn
         ::get_seed(n1, n2);
     }
 
-  private:
+private:
     size_t df;
 };
 
 #else // YesRcpp
 
-//abstract random number generator based on C++ <random>
-// class arn : public rn
-// {
-//     //typedefs
-//     typedef std::default_random_engine genD;
-//     typedef std::normal_distribution<double> norD;
-//     typedef std::uniform_real_distribution<double> uniD;
-//     typedef std::chi_squared_distribution<double> chiD;
+// abstract random number generator based on C++ <random>
+//  class arn : public rn
+//  {
+//      //typedefs
+//      typedef std::default_random_engine genD;
+//      typedef std::normal_distribution<double> norD;
+//      typedef std::uniform_real_distribution<double> uniD;
+//      typedef std::chi_squared_distribution<double> chiD;
 
 //   public:
 //     //constructor

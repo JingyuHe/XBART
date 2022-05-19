@@ -24,7 +24,8 @@ void ThreadPool::start(size_t nthreads)
 
                         // Wait for something interesting to happen
                         this->wake_worker.wait(lock,
-                                               [this] { return this->stopping || !this->tasks.empty(); });
+                                               [this]
+                                               { return this->stopping || !this->tasks.empty(); });
 
                         // If stopping, exit
                         if (this->stopping && this->tasks.empty())

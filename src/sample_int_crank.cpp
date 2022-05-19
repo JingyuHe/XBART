@@ -53,12 +53,13 @@ std::vector<size_t> sample_int_ccrank(int n, int size, std::vector<double> prob,
     // Here, ~ means "doesn't change order statistics".
     // std::vector<double> rnd(n + 1);
     std::vector<double> rnd = std::vector<double>(n + 1);
-    //std::vector<double> prob (n);
+    // std::vector<double> prob (n);
 
     // Already shift by one, rnd[0] is uninitialized (and never accessed)
-    //std::transform(prob.begin(), prob.end(), rnd.begin() + 1, &_divide_by_rexp<double>);
+    // std::transform(prob.begin(), prob.end(), rnd.begin() + 1, &_divide_by_rexp<double>);
     std::exponential_distribution<> d(1);
-    std::transform(prob.begin(), prob.end(), rnd.begin() + 1, [&gen, &d](double t) -> double { return t / d(gen); });
+    std::transform(prob.begin(), prob.end(), rnd.begin() + 1, [&gen, &d](double t) -> double
+                   { return t / d(gen); });
 
     // Find the indexes of the first "size" elements under inverted
     // comparison.  Here, vx is zero-based.
@@ -81,7 +82,7 @@ std::vector<size_t> sample_int_ccrank(int n, int size, std::vector<double> prob,
         v_int[i] = (size_t)(vx[i] - 1);
     }
 
-    //std::cout << v_int << endl;
+    // std::cout << v_int << endl;
 
     return v_int;
 }

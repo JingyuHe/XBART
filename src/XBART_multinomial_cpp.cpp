@@ -15,11 +15,8 @@ using namespace arma;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, mat X, mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, 
-size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penality, 
-size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, 
-bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, bool update_weight = true, bool update_tau = true, double nthread = 0,
-double hmult = 1, double heps = 0.1){
+Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, mat X, mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, bool update_weight = true, bool update_tau = true, double nthread = 0, double hmult = 1, double heps = 0.1)
+{
     // auto start = system_clock::now();
 
     size_t N = X.n_rows;
@@ -48,7 +45,8 @@ double hmult = 1, double heps = 0.1){
         COUT << "Sample " << mtry << " out of " << p << " variables when grow each tree." << endl;
     }
 
-    if (parallel && (nthread == 0)) nthread = omp_get_max_threads();
+    if (parallel && (nthread == 0))
+        nthread = omp_get_max_threads();
     omp_set_num_threads(nthread);
 
     umat Xorder(X.n_rows, X.n_cols);
@@ -59,7 +57,7 @@ double hmult = 1, double heps = 0.1){
     for (size_t i = 0; i < N; ++i)
         y_size_t[i] = y[i];
 
-    //TODO: check if I need to carry this // Yes, for now we need it.
+    // TODO: check if I need to carry this // Yes, for now we need it.
     std::vector<double> y_std(N);
     double y_mean = 0.0;
     for (size_t i = 0; i < N; ++i)
@@ -68,7 +66,7 @@ double hmult = 1, double heps = 0.1){
     Rcpp::NumericMatrix X_std(N, p);
     Rcpp::NumericMatrix Xtest_std(N_test, p);
 
-    //dumb little hack to make this work, should write a new one of these
+    // dumb little hack to make this work, should write a new one of these
     rcpp_to_std2(X, Xtest, X_std, Xtest_std, Xorder_std);
 
     ///////////////////////////////////////////////////////////////////
@@ -122,14 +120,18 @@ double hmult = 1, double heps = 0.1){
 
     vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
     // separate tree
-    vector<vector<vector<tree>>> *trees3 = new vector<vector<vector<tree>>> (num_class);
-    
+    vector<vector<vector<tree>>> *trees3 = new vector<vector<vector<tree>>>(num_class);
+
     std::vector<double> phi(N);
-    for(size_t i=0; i<N; ++i) phi[i] = 1;
+    for (size_t i = 0; i < N; ++i)
+        phi[i] = 1;
 
     if (!separate_tree)
     {
-        for (size_t i = 0; i < num_sweeps; i++)  { (*trees2)[i] = vector<tree>(num_trees); }
+        for (size_t i = 0; i < num_sweeps; i++)
+        {
+            (*trees2)[i] = vector<tree>(num_trees);
+        }
 
         LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau, hmult, heps);
         model->setNoSplitPenality(no_split_penality);
@@ -143,12 +145,15 @@ double hmult = 1, double heps = 0.1){
     }
     else
     {
-        for (size_t i = 0; i < num_class; i++)  
+        for (size_t i = 0; i < num_class; i++)
         {
-            (*trees3)[i] = vector<vector<tree>> (num_sweeps);
-            for (size_t j = 0; j < num_sweeps; j++) { (*trees3)[i][j] = vector<tree> (num_trees); }
+            (*trees3)[i] = vector<vector<tree>>(num_sweeps);
+            for (size_t j = 0; j < num_sweeps; j++)
+            {
+                (*trees3)[i][j] = vector<tree>(num_trees);
+            }
         }
-        
+
         LogitModelSeparateTrees *model = new LogitModelSeparateTrees(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau);
 
         model->setNoSplitPenality(no_split_penality);
@@ -199,8 +204,14 @@ double hmult = 1, double heps = 0.1){
     {
         for (size_t j = 0; j < num_sweeps; j++)
         {
-            if (!separate_tree) {depth_rcpp(i, j) = (*trees2)[j][i].getdepth();}
-            else {depth_rcpp(i, j) = (*trees3)[0][j][i].getdepth();}
+            if (!separate_tree)
+            {
+                depth_rcpp(i, j) = (*trees2)[j][i].getdepth();
+            }
+            else
+            {
+                depth_rcpp(i, j) = (*trees3)[0][j][i].getdepth();
+            }
         }
     }
     for (size_t i = 0; i < N_test; i++)
@@ -215,46 +226,46 @@ double hmult = 1, double heps = 0.1){
         split_count_sum(i) = (int)state->split_count_all[i];
     }
 
-
     std::stringstream treess;
 
     // if separate trees, return length num_class object, each contains num_sweeps * num_trees trees
     // if shared trees, return length 1 object, num_sweeps * num_trees trees
     Rcpp::StringVector output_tree(0);
 
-    if(! separate_tree)
+    if (!separate_tree)
     {
         // shared trees
         // the output is a length num_sweeps vector, each string is a sweep
         // for each sweep, put first tree of all K classes first (duplicated), then the second tree
         // still num_class * num_trees in each string, for convenience of BART initialization
-        for(size_t i = 0; i < num_sweeps; i++)
+        for (size_t i = 0; i < num_sweeps; i++)
         {
             treess.precision(10);
             treess.str(std::string());
-            treess << (double) separate_tree << " " << num_class << " " << num_sweeps << " " << num_trees << " " << p << endl;
-            for(size_t j = 0; j < num_trees; j ++)
+            treess << (double)separate_tree << " " << num_class << " " << num_sweeps << " " << num_trees << " " << p << endl;
+            for (size_t j = 0; j < num_trees; j++)
             {
-                for(size_t kk = 0; kk < num_class; kk ++ )
+                for (size_t kk = 0; kk < num_class; kk++)
                 {
                     treess << (*trees2)[i][j];
                 }
             }
-            output_tree.push_back(treess.str());    
+            output_tree.push_back(treess.str());
         }
-
-    }else{
+    }
+    else
+    {
         // separate trees
         // the output is a length num_sweeps vector, each string is a sweep
         // for each sweep, put first tree of all K classes first, then the second tree, etc
-        for(size_t i = 0; i < num_sweeps; i++)
+        for (size_t i = 0; i < num_sweeps; i++)
         {
             treess.precision(10);
             treess.str(std::string());
-            treess << (double) separate_tree << " " << num_class << " " << num_sweeps << " " << num_trees << " " << p << endl;
-            for(size_t j = 0; j < num_trees; j ++)
+            treess << (double)separate_tree << " " << num_class << " " << num_sweeps << " " << num_trees << " " << p << endl;
+            for (size_t j = 0; j < num_trees; j++)
             {
-                for(size_t kk = 0; kk < num_class; kk ++ )
+                for (size_t kk = 0; kk < num_class; kk++)
                 {
                     treess << (*trees3)[kk][i][j];
                 }
@@ -278,8 +289,8 @@ double hmult = 1, double heps = 0.1){
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("depth") = depth_rcpp,
         Rcpp::Named("treedraws") = output_tree,
-        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class, 
-        Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
+        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class,
+                                                       Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
 
     if (!separate_tree)
     {

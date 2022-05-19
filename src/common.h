@@ -38,18 +38,16 @@
 #include <map>
 #include <climits>
 
-//using namespace RcppParallel;
+// using namespace RcppParallel;
 
 using std::endl;
 
-#ifdef BEGIN_RCPP   // May need to change this
+#ifdef BEGIN_RCPP // May need to change this
 // #include <RcppArmadillo.h>
 #define COUT Rcpp::Rcout
 #else
 #define COUT std::cout
 #endif
-
-
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::plugins(cpp11)]]
@@ -71,7 +69,7 @@ std::ostream &operator<<(std::ostream &out, const std::vector<size_t> &v);
 std::ostream &operator<<(std::ostream &out, const std::vector<std::vector<double>> &v);
 std::ostream &operator<<(std::ostream &out, const std::vector<std::vector<size_t>> &v);
 
-typedef std::vector<double> vec_d;     //double vector
+typedef std::vector<double> vec_d;     // double vector
 typedef std::vector<size_t> vec_sizet; // unsigned int vector
 
 template <typename T>

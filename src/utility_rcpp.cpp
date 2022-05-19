@@ -1,6 +1,5 @@
 #include "utility_rcpp.h"
 
-
 // [[Rcpp::plugins(openmp)]]
 
 ////////////////////////////////////////////////////////////////////////
@@ -40,7 +39,7 @@ void rcpp_to_std2(mat y, mat X, mat Xtest, std::vector<double> &y_std, double &y
         }
     }
 
-    //X_std_test
+    // X_std_test
     for (size_t i = 0; i < N_test; i++)
     {
         for (size_t j = 0; j < p; j++)
@@ -52,13 +51,13 @@ void rcpp_to_std2(mat y, mat X, mat Xtest, std::vector<double> &y_std, double &y
     // Create Xorder
     // Order
     umat Xorder(X.n_rows, X.n_cols);
-// #pragma omp parallel for schedule(dynamic, 1) shared(X, Xorder)
+    // #pragma omp parallel for schedule(dynamic, 1) shared(X, Xorder)
     for (size_t i = 0; i < X.n_cols; i++)
     {
         Xorder.col(i) = sort_index(X.col(i));
     }
-// Create
-// #pragma omp parallel for collapse(2)
+    // Create
+    // #pragma omp parallel for collapse(2)
     for (size_t i = 0; i < N; i++)
     {
         for (size_t j = 0; j < p; j++)
@@ -91,7 +90,7 @@ void rcpp_to_std2(mat X, mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp::NumericMat
         }
     }
 
-    //X_std_test
+    // X_std_test
     for (size_t i = 0; i < N_test; i++)
     {
         for (size_t j = 0; j < p; j++)
@@ -118,7 +117,6 @@ void rcpp_to_std2(mat X, mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp::NumericMat
 
     return;
 }
-
 
 void Matrix_to_NumericMatrix(matrix<double> &a, Rcpp::NumericMatrix &b)
 {

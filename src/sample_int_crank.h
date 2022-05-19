@@ -3,7 +3,7 @@
 
 #include "utility.h"
 
-//ADDED
+// ADDED
 #include "rn.h"
 
 // using namespace Rcpp;

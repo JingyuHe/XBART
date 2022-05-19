@@ -10,4 +10,5 @@ void from_json_to_forest(std::string &json_string, vector<vector<tree>> &trees, 
 json get_forest_json_3D(std::vector<std::vector<std::vector<tree>>> &trees);
 
 void from_json_to_forest_3D(std::string &json_string, vector<vector<vector<tree>>> &trees);
+
 #endif

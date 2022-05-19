@@ -269,7 +269,7 @@ void NormalModel::predict_whole_std(const double *Xtestpointer, size_t N_test, s
         for (size_t data_ind = 0; data_ind < N_test; data_ind++)
         {
             getThetaForObs_Outsample(output, trees[sweeps], data_ind, Xtestpointer, N_test, p, gen);
-            
+
             // take sum of predictions of each tree, as final prediction
             for (size_t i = 0; i < trees[0].size(); i++)
             {
@@ -1048,4 +1048,3 @@ void LogitModelSeparateTrees::predict_std_standalone(const double *Xtestpointer,
     }
     return;
 }
-

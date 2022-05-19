@@ -1,7 +1,7 @@
 #include "utility.h"
 
 // ThreadPool thread_pool;
-// 
+//
 void ini_xinfo(matrix<double> &X, size_t N, size_t p)
 {
     // matrix<double> X;
@@ -171,7 +171,7 @@ double sq_vec_diff_sizet(std::vector<size_t> &v1, std::vector<size_t> &v2)
     return output;
 }
 
-void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, //std::vector<size_t> &X_values,
+void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, // std::vector<size_t> &X_values,
                          std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique, size_t &p_categorical, size_t &p_continuous)
 {
     size_t N = Xorder_std[0].size();
@@ -217,8 +217,7 @@ void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, //s
     return;
 }
 
-
-void get_X_range(const double *Xpointer, std::vector< std::vector<size_t> > &Xorder_std, std::vector<std::vector<double>> &X_range, size_t &n_y)
+void get_X_range(const double *Xpointer, std::vector<std::vector<size_t>> &Xorder_std, std::vector<std::vector<double>> &X_range, size_t &n_y)
 {
     size_t N = Xorder_std[0].size();
     size_t p = Xorder_std.size();
@@ -226,8 +225,8 @@ void get_X_range(const double *Xpointer, std::vector< std::vector<size_t> > &Xor
 
     // get 95% quantile to avoid outliers
     double alpha = 0.05;
-    size_t low_idx = (size_t) floor(N * alpha / 2);
-    size_t up_idx = (size_t) floor(N * (1 - alpha / 2));
+    size_t low_idx = (size_t)floor(N * alpha / 2);
+    size_t up_idx = (size_t)floor(N * (1 - alpha / 2));
     // cout << "N = " << N << ", low = " << low_idx << ", up_idx = " << up_idx<< endl;
     for (size_t i = 0; i < p; i++)
     {
@@ -235,7 +234,6 @@ void get_X_range(const double *Xpointer, std::vector< std::vector<size_t> > &Xor
         // X_range[i][1] = *(Xpointer + i * n_y + Xorder_std[i][N-1]);
         X_range[i][0] = *(Xpointer + i * n_y + Xorder_std[i][low_idx]);
         X_range[i][1] = *(Xpointer + i * n_y + Xorder_std[i][up_idx]);
-    
     }
 
     // std::cout << "total_points " << total_points << std::endl;
@@ -311,18 +309,21 @@ void dirichlet_distribution(std::vector<double> &prob, std::vector<double> &alph
 void get_rel_covariance(mat &cov, mat &X, std::vector<double> X_range, double theta, double tau)
 {
     double temp;
-    for (size_t i = 0; i < X.n_rows; i++){
-        for (size_t j = i; j < X.n_rows; j++){
+    for (size_t i = 0; i < X.n_rows; i++)
+    {
+        for (size_t j = i; j < X.n_rows; j++)
+        {
             // (tau*exp(-sum(theta * abs(x - y) / range)))
             temp = 0;
-            for (size_t k = 0; k < X.n_cols; k++){
+            for (size_t k = 0; k < X.n_cols; k++)
+            {
                 temp += pow(X(i, k) - X(j, k), 2) / pow(X_range[k], 2) / 2;
                 // temp += std::abs(X(i,k) - X(j, k)) / X_range[k];
             }
             // cout << "distance = " << temp << endl;
-            cov(i, j) = tau * exp( - theta * temp);
+            cov(i, j) = tau * exp(-theta * temp);
             cov(j, i) = cov(i, j);
         }
-    } 
-    return;  
+    }
+    return;
 }

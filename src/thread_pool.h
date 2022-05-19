@@ -19,7 +19,7 @@ class ThreadPoolTaskStatus
 {
     friend class ThreadPool;
 
-  private:
+private:
     inline ThreadPoolTaskStatus() : done(false){};
     std::atomic<bool> done;
     std::condition_variable changed;
@@ -30,7 +30,7 @@ class ThreadPoolTaskStatus
 
 class ThreadPool
 {
-  public:
+public:
     inline ThreadPool() : stopping(false){};
     inline ~ThreadPool() { stop(); }
 
@@ -47,7 +47,7 @@ class ThreadPool
     // Returns a future that will provide the return value, if any.
     // This must be in the header because it's a template function.
     template <class F, class... Args>
-    auto add_task(F &&f, Args &&... args)
+    auto add_task(F &&f, Args &&...args)
         -> std::future<typename std::result_of<F(Args...)>::type>
     {
         if (threads.size() == 0)
@@ -79,7 +79,8 @@ class ThreadPool
         // When this lambda is called by a worker, it will call f(args),
         // then set the done flag in the status.
         tasks.emplace(
-            [this, sharedf, status]() {
+            [this, sharedf, status]()
+            {
                 (*sharedf)();
                 std::unique_lock<std::mutex> lock(this->pool_mutex);
                 status->done = true;
@@ -99,7 +100,7 @@ class ThreadPool
     // Are the worker threads running?
     inline bool is_active() { return !stopping && threads.size() > 0; }
 
-  private:
+private:
     std::vector<std::thread> threads;
     std::queue<std::shared_ptr<ThreadPoolTaskStatus>> statuses;
     std::queue<std::function<void()>> tasks;

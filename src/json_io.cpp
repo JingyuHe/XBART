@@ -12,16 +12,16 @@ json get_forest_json(std::vector<std::vector<tree>> &trees, double y_mean)
     result["y_mean"] = y_mean;
 
     json trees_j;
-    //auto jsonObjects = json::array();
+    // auto jsonObjects = json::array();
 
-    //result[std::to_string(0)] = trees[0][0].to_json();
+    // result[std::to_string(0)] = trees[0][0].to_json();
     for (size_t i = 0; i < trees.size(); i++)
     {
         std::vector<tree> &tree_vec = trees[i];
         for (size_t j = 0; j < tree_vec.size(); j++)
         {
             trees_j[std::to_string(i)][std::to_string(j)] = tree_vec[j].to_json();
-            //jsonObjects.push_back(tree_vec[j].to_json());
+            // jsonObjects.push_back(tree_vec[j].to_json());
         }
     }
     result["trees"] = trees_j;
@@ -84,7 +84,7 @@ json get_forest_json_3D(std::vector<std::vector<std::vector<tree>>> &trees)
             for (size_t j = 0; j < trees[0][0].size(); j++)
             {
                 trees_j[std::to_string(k)][std::to_string(i)][std::to_string(j)] = trees[k][i][j].to_json();
-                //jsonObjects.push_back(tree_vec[j].to_json());
+                // jsonObjects.push_back(tree_vec[j].to_json());
             }
         }
     }
@@ -111,7 +111,7 @@ void from_json_to_forest_3D(std::string &json_string, vector<vector<vector<tree>
     j3.at("dim_theta").get_to(dim_theta);
 
     // // Create trees
-    trees.resize(num_classes); 
+    trees.resize(num_classes);
     for (size_t k = 0; k < num_classes; k++)
     {
         trees[k] = vector<vector<tree>>(num_sweeps);
