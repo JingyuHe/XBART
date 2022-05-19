@@ -4798,7 +4798,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTcppParams_sample_weights_flag_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_sample_weights_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   bool arg2 ;
@@ -4808,18 +4808,18 @@ SWIGINTERN PyObject *_wrap_XBARTcppParams_sample_weights_flag_set(PyObject *SWIG
   int ecode2 = 0 ;
   PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "XBARTcppParams_sample_weights_flag_set", 2, 2, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "XBARTcppParams_sample_weights_set", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_sample_weights_flag_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_sample_weights_set" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
   arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
   ecode2 = SWIG_AsVal_bool(swig_obj[1], &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_sample_weights_flag_set" "', argument " "2"" of type '" "bool""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcppParams_sample_weights_set" "', argument " "2"" of type '" "bool""'");
   } 
   arg2 = static_cast< bool >(val2);
-  if (arg1) (arg1)->sample_weights_flag = arg2;
+  if (arg1) (arg1)->sample_weights = arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -4827,7 +4827,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTcppParams_sample_weights_flag_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcppParams_sample_weights_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   XBARTcppParams *arg1 = (XBARTcppParams *) 0 ;
   void *argp1 = 0 ;
@@ -4839,10 +4839,10 @@ SWIGINTERN PyObject *_wrap_XBARTcppParams_sample_weights_flag_get(PyObject *SWIG
   swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_XBARTcppParams, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_sample_weights_flag_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcppParams_sample_weights_get" "', argument " "1"" of type '" "XBARTcppParams *""'"); 
   }
   arg1 = reinterpret_cast< XBARTcppParams * >(argp1);
-  result = (bool) ((arg1)->sample_weights_flag);
+  result = (bool) ((arg1)->sample_weights);
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
 fail:
@@ -7254,8 +7254,8 @@ static PyMethodDef SwigMethods[] = {
 	 { "XBARTcppParams_nthread_get", _wrap_XBARTcppParams_nthread_get, METH_O, NULL},
 	 { "XBARTcppParams_seed_set", _wrap_XBARTcppParams_seed_set, METH_VARARGS, NULL},
 	 { "XBARTcppParams_seed_get", _wrap_XBARTcppParams_seed_get, METH_O, NULL},
-	 { "XBARTcppParams_sample_weights_flag_set", _wrap_XBARTcppParams_sample_weights_flag_set, METH_VARARGS, NULL},
-	 { "XBARTcppParams_sample_weights_flag_get", _wrap_XBARTcppParams_sample_weights_flag_get, METH_O, NULL},
+	 { "XBARTcppParams_sample_weights_set", _wrap_XBARTcppParams_sample_weights_set, METH_VARARGS, NULL},
+	 { "XBARTcppParams_sample_weights_get", _wrap_XBARTcppParams_sample_weights_get, METH_O, NULL},
 	 { "new_XBARTcppParams", _wrap_new_XBARTcppParams, METH_NOARGS, NULL},
 	 { "delete_XBARTcppParams", _wrap_delete_XBARTcppParams, METH_O, NULL},
 	 { "XBARTcppParams_swigregister", XBARTcppParams_swigregister, METH_O, NULL},

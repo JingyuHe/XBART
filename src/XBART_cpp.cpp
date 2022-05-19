@@ -15,7 +15,7 @@ using namespace arma;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBART_cpp(mat y, mat X, mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, double tau_kap = 3, double tau_s = 0.5, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, double nthread = 0)
+Rcpp::List XBART_cpp(mat y, mat X, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, double tau_kap = 3, double tau_s = 0.5, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, double nthread = 0)
 {
     if (parallel && (nthread == 0))
     {
@@ -38,8 +38,6 @@ Rcpp::List XBART_cpp(mat y, mat X, mat Xtest, size_t num_trees, size_t num_sweep
 
     // number of total variables
     size_t p = X.n_cols;
-
-    size_t N_test = Xtest.n_rows;
 
     // number of continuous variables
     size_t p_continuous = p - p_categorical;
@@ -68,21 +66,13 @@ Rcpp::List XBART_cpp(mat y, mat X, mat Xtest, size_t num_trees, size_t num_sweep
     double y_mean = 0.0;
 
     Rcpp::NumericMatrix X_std(N, p);
-    Rcpp::NumericMatrix Xtest_std(N_test, p);
 
-    rcpp_to_std2(y, X, Xtest, y_std, y_mean, X_std, Xtest_std, Xorder_std);
+    rcpp_to_std2(y, X, y_std, y_mean, X_std, Xorder_std);
 
     ///////////////////////////////////////////////////////////////////
 
     // double *ypointer = &y_std[0];
     double *Xpointer = &X_std[0];
-    double *Xtestpointer = &Xtest_std[0];
-
-    // matrix<double> yhats_xinfo;
-    // ini_matrix(yhats_xinfo, N, num_sweeps);
-
-    matrix<double> yhats_test_xinfo;
-    ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
 
     matrix<double> sigma_draw_xinfo;
     ini_matrix(sigma_draw_xinfo, num_trees, num_sweeps);
@@ -101,7 +91,7 @@ Rcpp::List XBART_cpp(mat y, mat X, mat Xtest, size_t num_trees, size_t num_sweep
 
     // State settings
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
-    std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread, parallel)); // last input is nthread, need update
+    std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread, parallel)); // last input is nthread, need update
 
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
@@ -111,17 +101,12 @@ Rcpp::List XBART_cpp(mat y, mat X, mat Xtest, size_t num_trees, size_t num_sweep
 
     mcmc_loop(Xorder_std, verbose, sigma_draw_xinfo, *trees2, no_split_penality, state, model, x_struct, resid);
 
-    model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
-
     // R Objects to Return
-    // Rcpp::NumericMatrix yhats(N, num_sweeps);
-    Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum(p, 0);             // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
 
     // copy from std vector to Rcpp Numeric Matrix objects
-    Matrix_to_NumericMatrix(yhats_test_xinfo, yhats_test);
     Matrix_to_NumericMatrix(sigma_draw_xinfo, sigma_draw);
 
     for (size_t i = 0; i < p; i++)
@@ -160,7 +145,6 @@ Rcpp::List XBART_cpp(mat y, mat X, mat Xtest, size_t num_trees, size_t num_sweep
 
     return Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,
-        Rcpp::Named("yhats_test") = yhats_test,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p),

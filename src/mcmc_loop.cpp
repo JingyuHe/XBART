@@ -44,7 +44,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
 
             // subtract old tree for sampling case
-            if (state->sample_weights_flag)
+            if (state->sample_weights)
             {
                 state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
             }
@@ -135,7 +135,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
 
             // subtract old tree for sampling case
-            if (state->sample_weights_flag)
+            if (state->sample_weights)
             {
                 state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
             }
@@ -247,7 +247,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
             std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
 
             // subtract old tree for sampling case
-            if (state->sample_weights_flag)
+            if (state->sample_weights)
             {
                 state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
             }

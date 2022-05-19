@@ -28,7 +28,7 @@ XBARTcpp::XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
 			 size_t burnin, size_t mtry,
 			 double kap, double s, double tau_kap, double tau_s, 
 			 bool verbose, bool sampling_tau, bool parallel, size_t nthread,
-			 int seed, double no_split_penality, bool sample_weights_flag){
+			 int seed, double no_split_penality, bool sample_weights){
 	this->params.num_trees = num_trees; 
 	this->params.num_sweeps = num_sweeps;
 	this->params.max_depth = max_depth;
@@ -49,7 +49,7 @@ XBARTcpp::XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
 	this->params.nthread = nthread;
 	this->trees = vector< vector<tree>> (num_sweeps);
 	this->no_split_penality =  no_split_penality;
-	this->params.sample_weights_flag =  sample_weights_flag;
+	this->params.sample_weights =  sample_weights;
 
 	// handling seed
 
@@ -401,7 +401,7 @@ void XBARTcpp::_fit(int n, int p, double *a, int n_y, double *a_y, size_t p_cat)
     std::vector<double> initial_theta(1, y_mean / (double)this->params.num_trees);
     std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, n, p, this->params.num_trees, 
 		p_cat, p - p_cat, this->seed_flag, this->seed, this->params.Nmin, this->params.Ncutpoints, 
-		this->params.mtry, Xpointer, this->params.num_sweeps, this->params.sample_weights_flag, 
+		this->params.mtry, Xpointer, this->params.num_sweeps, this->params.sample_weights, 
 		&y_std, 1.0, this->params.max_depth, y_mean, this->params.burnin, this->model->dim_residual, this->params.nthread, this->params.parallel)); //last input is nthread, need update
 
 
@@ -440,7 +440,7 @@ void XBARTcpp::_fit(int n, int p, double *a, int n_y, double *a_y, size_t p_cat)
 //   std::vector<double> initial_theta(this->num_classes, 1); 
 //   std::unique_ptr<State> state(new State(Xpointer, Xorder_std, n, d, this->params.M, p_cat, d-p_cat, 
 //   this->seed_flag, this->seed, this->params.Nmin, this->params.Ncutpoints, this->params.parallel, this->params.mtry, 
-//   Xpointer, this->params.N_sweeps, this->params.sample_weights_flag, &y_std, 1.0, 
+//   Xpointer, this->params.N_sweeps, this->params.sample_weights, &y_std, 1.0, 
 //   this->params.max_depth_num, y_mean, this->params.burnin, model->dim_residual));
 //   std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, n, Xorder_std, p_cat, d-p_cat, &initial_theta, this->params.M));
 
@@ -466,7 +466,7 @@ void XBARTcpp::_fit(int n, int p, double *a, int n_y, double *a_y, size_t p_cat)
 //     std::vector<double> initial_theta(1, y_mean / (double)this->params.M);
 //     std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, n, d, this->params.M, p_cat, d-p_cat, 
 //     this->seed_flag, this->seed, this->params.Nmin, this->params.Ncutpoints, this->params.parallel, this->params.mtry, 
-//     Xpointer, this->params.N_sweeps, this->params.sample_weights_flag, &y_std, 1.0, 
+//     Xpointer, this->params.N_sweeps, this->params.sample_weights, &y_std, 1.0, 
 //     this->params.max_depth_num, y_mean, this->params.burnin, model->dim_residual));
 
 //     // initialize X_struct

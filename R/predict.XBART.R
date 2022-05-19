@@ -14,7 +14,7 @@ predict.full <- function(model, X) {
     return(obj)
 }
 
-predict.gp <- function(model, y, X, Xtest, theta = 10, tau = 5, p_categorical = 0) {
+predict_gp <- function(model, y, X, Xtest, theta = 10, tau = 5, p_categorical = 0) {
     if (!("matrix" %in% class(X))) {
         cat("Input X is not a matrix, try to convert type.\n")
         X <- as.matrix(X)

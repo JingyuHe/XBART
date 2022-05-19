@@ -15,7 +15,7 @@ using namespace arma;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, mat X, mat Xtest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights_flag = true, bool separate_tree = false, double weight = 1, bool update_weight = true, bool update_tau = true, double nthread = 0, double hmult = 1, double heps = 0.1)
+Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, mat X, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, bool separate_tree = false, double weight = 1, bool update_weight = true, bool update_tau = true, double nthread = 0, double hmult = 1, double heps = 0.1)
 {
     // auto start = system_clock::now();
 
@@ -23,8 +23,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, mat X, ma
 
     // number of total variables
     size_t p = X.n_cols;
-
-    size_t N_test = Xtest.n_rows;
 
     // number of continuous variables
     size_t p_continuous = p - p_categorical;
@@ -64,22 +62,17 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, mat X, ma
         y_std[i] = y[i];
 
     Rcpp::NumericMatrix X_std(N, p);
-    Rcpp::NumericMatrix Xtest_std(N_test, p);
 
     // dumb little hack to make this work, should write a new one of these
-    rcpp_to_std2(X, Xtest, X_std, Xtest_std, Xorder_std);
+    rcpp_to_std2(X, X_std, Xorder_std);
 
     ///////////////////////////////////////////////////////////////////
 
     // double *ypointer = &y_std[0];
     double *Xpointer = &X_std[0];
-    double *Xtestpointer = &Xtest_std[0];
 
     // matrix<double> yhats_xinfo;
     // ini_matrix(yhats_xinfo, N, num_sweeps);
-
-    matrix<double> yhats_test_xinfo;
-    ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
     matrix<double> yhats_train_xinfo;
     ini_matrix(yhats_train_xinfo, N, num_sweeps);
 
@@ -97,7 +90,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, mat X, ma
     // (y_size_t definitely belongs there, phi probably does)
 
     std::vector<double> initial_theta(num_class, 1);
-    std::unique_ptr<State> state(new LogitState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights_flag, &y_std, 1.0, max_depth, y_mean, burnin, num_class, nthread));
+    std::unique_ptr<State> state(new LogitState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, num_class, nthread));
 
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
@@ -109,7 +102,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, mat X, ma
     std::vector<double> lambda_samples;
 
     // output is in 3 dim, stacked as a vector, number of sweeps * observations * number of classes
-    std::vector<double> output_vec(num_sweeps * N_test * num_class);
     std::vector<double> output_train(num_sweeps * N * num_class);
 
     ////////////////////////////////////////////////
@@ -138,7 +130,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, mat X, ma
 
         mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, weight_samples, lambda_samples, tau_samples);
 
-        model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2, output_vec);
         model->predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees2, output_train);
 
         // delete model;
@@ -160,14 +151,11 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, mat X, ma
 
         mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penality, state, model, x_struct, weight_samples);
 
-        model->predict_std(Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees3, output_vec);
         model->predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees3, output_train);
 
         // delete model;
     }
 
-    Rcpp::NumericVector output = Rcpp::wrap(output_vec);
-    output.attr("dim") = Rcpp::Dimension(num_sweeps, N_test, num_class);
     Rcpp::NumericVector output_tr = Rcpp::wrap(output_train);
     output_tr.attr("dim") = Rcpp::Dimension(num_sweeps, N, num_class);
     Rcpp::NumericVector lambda_samples_rcpp = Rcpp::wrap(lambda_samples);
@@ -179,7 +167,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, mat X, ma
 
     // R Objects to Return
     // Rcpp::NumericMatrix yhats(N, num_sweeps);
-    Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericVector split_count_sum(p); // split counts
     // Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
     Rcpp::NumericMatrix weight_sample_rcpp(num_trees, num_sweeps);
@@ -212,13 +199,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, mat X, ma
             {
                 depth_rcpp(i, j) = (*trees3)[0][j][i].getdepth();
             }
-        }
-    }
-    for (size_t i = 0; i < N_test; i++)
-    {
-        for (size_t j = 0; j < num_sweeps; j++)
-        {
-            yhats_test(i, j) = yhats_test_xinfo[j][i];
         }
     }
     for (size_t i = 0; i < p; i++)
@@ -281,7 +261,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, mat X, ma
     Rcpp::List ret = Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("num_class") = num_class,
-        Rcpp::Named("yhats_test") = output,
         Rcpp::Named("yhats_train") = output_tr,
         Rcpp::Named("weight") = weight_sample_rcpp,
         Rcpp::Named("tau_a") = tau_sample_rcpp,

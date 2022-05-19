@@ -82,7 +82,7 @@ fit = XBART.multinomial(y=y_train, num_class=3, X=X_train, Xtest=X_test,
             Nmin=1, num_cutpoints=100, alpha=0.95, beta=2.0, tau=8/num_trees, 
             no_split_penality = "Auto", burnin = 1L, mtry = p, p_categorical = 0L, 
             kap = 1, s = 1, verbose = TRUE, parallel = FALSE, set_random_seed = FALSE, 
-            random_seed = seed, sample_weights_flag = TRUE) 
+            random_seed = seed, sample_weights = TRUE) 
 ​
 # number of sweeps * number of observations * number of classes
 # dim(fit$yhats_test)

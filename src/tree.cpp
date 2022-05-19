@@ -602,7 +602,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     }
     else
     {
-        if (state->sample_weights_flag)
+        if (state->sample_weights)
         {
             std::vector<double> weight_samp(p);
             double weight_sum;
@@ -835,7 +835,7 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
     }
     else
     {
-        if (state->sample_weights_flag)
+        if (state->sample_weights)
         {
             std::vector<double> weight_samp(p);
             dirichlet_distribution(weight_samp, state->mtry_weight_current_tree, state->gen);
@@ -1025,7 +1025,7 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
     }
     else
     {
-        if (state->sample_weights_flag)
+        if (state->sample_weights)
         {
             std::vector<double> weight_samp(p);
             double weight_sum;

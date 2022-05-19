@@ -79,7 +79,7 @@ class XBARTcppParams(object):
     parallel = property(_xbart_cpp_.XBARTcppParams_parallel_get, _xbart_cpp_.XBARTcppParams_parallel_set)
     nthread = property(_xbart_cpp_.XBARTcppParams_nthread_get, _xbart_cpp_.XBARTcppParams_nthread_set)
     seed = property(_xbart_cpp_.XBARTcppParams_seed_get, _xbart_cpp_.XBARTcppParams_seed_set)
-    sample_weights_flag = property(_xbart_cpp_.XBARTcppParams_sample_weights_flag_get, _xbart_cpp_.XBARTcppParams_sample_weights_flag_set)
+    sample_weights = property(_xbart_cpp_.XBARTcppParams_sample_weights_get, _xbart_cpp_.XBARTcppParams_sample_weights_set)
 
     def __init__(self):
         _xbart_cpp_.XBARTcppParams_swiginit(self, _xbart_cpp_.new_XBARTcppParams())

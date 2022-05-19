@@ -1,12 +1,7 @@
-XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250, Nmin = 1, num_cutpoints = 100, alpha = 0.95, beta = 1.25, tau = NULL, no_split_penality = NULL, burnin = 1L, mtry = NULL, p_categorical = 0L, kap = 16, s = 4, tau_kap = 3, tau_s = 0.5, verbose = FALSE, sampling_tau = TRUE, parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE, nthread = 0, ...) {
+XBART <- function(y, X, num_trees, num_sweeps, max_depth = 250, Nmin = 1, num_cutpoints = 100, alpha = 0.95, beta = 1.25, tau = NULL, no_split_penality = NULL, burnin = 1L, mtry = NULL, p_categorical = 0L, kap = 16, s = 4, tau_kap = 3, tau_s = 0.5, verbose = FALSE, sampling_tau = TRUE, parallel = TRUE, random_seed = NULL, sample_weights = TRUE, nthread = 0, ...) {
     if (!inherits(X, "matrix")) {
         warning("Input X is not a matrix, try to convert type.\n")
         X <- as.matrix(X)
-    }
-
-    if (!inherits(Xtest, "matrix")) {
-        warning("Input Xtest is not a matrix, try to convert type.\n")
-        Xtest <- as.matrix(Xtest)
     }
 
     if (!inherits(y, "matrix")) {
@@ -16,10 +11,6 @@ XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250, Nmin = 1,
 
     if (dim(X)[1] != length(y)) {
         stop("Length of X must match length of y")
-    }
-
-    if (ncol(X) != ncol(Xtest)) {
-        stop("Column of X must match columns of Xtest")
     }
 
     if (is.null(random_seed)) {
@@ -76,10 +67,10 @@ XBART <- function(y, X, Xtest, num_trees, num_sweeps, max_depth = 250, Nmin = 1,
     check_scalar(s, "s")
 
     obj <- XBART_cpp(
-        y, X, Xtest, num_trees, num_sweeps, max_depth,
+        y, X, num_trees, num_sweeps, max_depth,
         Nmin, num_cutpoints, alpha, beta, tau, no_split_penality, burnin,
         mtry, p_categorical, kap, s, tau_kap, tau_s, verbose, sampling_tau, parallel, set_random_seed,
-        random_seed, sample_weights_flag, nthread
+        random_seed, sample_weights, nthread
     )
 
     tree_json <- r_to_json(mean(y), obj$model$tree_pnt)

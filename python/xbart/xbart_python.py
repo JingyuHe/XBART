@@ -67,7 +67,7 @@ class XBART(object):
 	no_split_penality: double
 		Weight of no-split option. The default value in the normal model is log(num_cutpoints). 
 		Values should be considered in log scale.
-	sample_weights_flag: bool (True)
+	sample_weights: bool (True)
 		To sample weights according to Dirchlet distribution
 	num_classes: int (1)
 		Number of classes
@@ -78,7 +78,7 @@ class XBART(object):
                 burnin: int = 15, mtry = "auto", max_depth: int = 250,
                 kap: float = 16.0, s: float = 4.0, tau_kap: float = 3, tau_s: float = 0.5, verbose: bool = False, 
 				sampling_tau: bool = True, parallel: bool = False, nthread: int = 0, seed = "auto",
-				no_split_penality = "auto", sample_weights_flag: bool = True):
+				no_split_penality = "auto", sample_weights: bool = True):
 
 		assert num_sweeps > burnin, "num_sweep must be greater than burnin"
 
@@ -103,7 +103,7 @@ class XBART(object):
 			("nthread", nthread),
 			("seed",seed),
 			("no_split_penality",no_split_penality),
-			("sample_weights_flag",sample_weights_flag)
+			("sample_weights",sample_weights)
 		])
 		self.__convert_params_check_types(**self.params)
 		self._xbart_cpp = None
@@ -215,7 +215,7 @@ class XBART(object):
 			("nthread", 0),
 			("seed", 0),
 			("no_split_penality", 0.0),
-			("sample_weights_flag",True)
+			("sample_weights",True)
 		])
 
 		DEFAULT_PARAMS_ = OrderedDict([
@@ -240,7 +240,7 @@ class XBART(object):
 			("nthread", int),
 			("seed",int),
 			("no_split_penality",float),
-			("sample_weights_flag",bool)
+			("sample_weights",bool)
 		])
 
 		for param, type_class in DEFAULT_PARAMS_.items():

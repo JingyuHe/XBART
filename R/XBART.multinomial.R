@@ -1,12 +1,7 @@
-XBART.multinomial <- function(y, num_class, X, Xtest, num_trees = 20, num_sweeps = 20, max_depth = 20, Nmin = NULL, num_cutpoints = NULL, alpha = 0.95, beta = 1.25, tau_a = 1, tau_b = 1, no_split_penality = NULL, burnin = 5, mtry = NULL, p_categorical = 0L, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights_flag = TRUE, separate_tree = FALSE, weight = 1, update_weight = TRUE, update_tau = TRUE, nthread = 0, hmult = 1, heps = 0.1, ...) {
+XBART.multinomial <- function(y, num_class, X, num_trees = 20, num_sweeps = 20, max_depth = 20, Nmin = NULL, num_cutpoints = NULL, alpha = 0.95, beta = 1.25, tau_a = 1, tau_b = 1, no_split_penality = NULL, burnin = 5, mtry = NULL, p_categorical = 0L, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights = TRUE, separate_tree = FALSE, weight = 1, update_weight = TRUE, update_tau = TRUE, nthread = 0, hmult = 1, heps = 0.1, ...) {
     if (!("matrix" %in% class(X))) {
         cat("Input X is not a matrix, try to convert type.\n")
         X <- as.matrix(X)
-    }
-
-    if (!("matrix" %in% class(Xtest))) {
-        cat("Input Xtest is not a matrix, try to convert type.\n")
-        Xtest <- as.matrix(Xtest)
     }
 
     if (!("matrix" %in% class(y))) {
@@ -41,10 +36,6 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees = 20, num_sweeps
         stop("Length of X must match length of y")
     }
 
-    if (dim(X)[2] != dim(X)[2]) {
-        stop("Column of X must match columns of Xtest")
-    }
-
     if (is.null(random_seed)) {
         set_random_seed <- FALSE
         random_seed <- 0
@@ -60,11 +51,6 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees = 20, num_sweeps
     if (is.null(no_split_penality) || no_split_penality == "Auto") {
         no_split_penality <- log(num_cutpoints)
     }
-
-    # if (is.null(tau)) {
-    #     tau = 1 / num_trees
-    #     cat("tau = 1/num_trees, default value. \n")
-    # }
 
     if (is.null(mtry)) {
         p <- dim(X)[2]
@@ -110,8 +96,8 @@ XBART.multinomial <- function(y, num_class, X, Xtest, num_trees = 20, num_sweeps
     check_scalar(beta, "beta")
 
     obj <- XBART_multinomial_cpp(
-        y, num_class, X, Xtest, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau_a, tau_b,
-        no_split_penality, burnin, mtry, p_categorical, verbose, parallel, set_random_seed, random_seed, sample_weights_flag, separate_tree,
+        y, num_class, X, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau_a, tau_b,
+        no_split_penality, burnin, mtry, p_categorical, verbose, parallel, set_random_seed, random_seed, sample_weights, separate_tree,
         weight, update_weight, update_tau, nthread, hmult, heps
     )
     class(obj) <- "XBARTmultinomial"
