@@ -11,10 +11,6 @@
 #ifndef __CDF_H
 #define __CDF_H
 
-// const double PI = 3.1415926535;
-// const double SQRT2PI = 2.5066282746;
-// const double SQRT2 = 1.414214;
-
 #include "common.h"
 
 double normCDF(const double x);

@@ -201,9 +201,6 @@ private:
 
         size_t c = dim_residual;
 
-        // suffstats[0] .. suffstats[c-1]is count of y's in cat 0,...,c-1, i.e. r in proposal
-        // suffstats[c] .. suffstats[2c-1] is sum of phi_i*(partial fit j)'s ie s in proposal
-
         double ret = 0;
 
         for (size_t j = 0; j < c; j++)
@@ -264,14 +261,12 @@ public:
 
     double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const;
 
-    // double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const;
-
     void ini_residual_std(std::unique_ptr<State> &state);
 
     using Model::predict_std;
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec);
 
-    void predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec, std::vector<size_t> &iteration, std::vector<size_t> &output_leaf_index);
+    void predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec, std::vector<size_t> &iteration);
 };
 
 class LogitModelSeparateTrees : public LogitModel
@@ -279,15 +274,8 @@ class LogitModelSeparateTrees : public LogitModel
 private:
     double LogitLIL(const vector<double> &suffstats) const
     {
-        // double suff_stat_r = -suffstats[class_operating]; // sufficient statistics of all other classes
-        // double suff_stat_s = -suffstats[class_operating + dim_residual];
-        // for (size_t j = 0; j < dim_residual; j++)
-        // {
-        //     suff_stat_r += suffstats[j];
-        //     suff_stat_s += suffstats[dim_residual + j];
-        // }
         double ret = -(tau_a + suffstats[class_operating]) * log(tau_b + suffstats[dim_residual + class_operating]) + lgamma(tau_a + suffstats[class_operating]);
-        // ret += -(tau_a + suff_stat_r) * log(tau_b + suff_stat_s) + lgamma(tau_a + suff_stat_r);
+
         return ret;
     }
 
@@ -309,7 +297,6 @@ private:
             // pseudo_norm += lgamma(class_count[k] + 1);
             pseudo_norm = class_count[k] * (*y_size_t).size() * log(class_count[k]);
         }
-        // cout << "class_count = " << class_count << endl;
     }
 
 public:
@@ -319,25 +306,13 @@ public:
 
     Model *clone() { return new LogitModelSeparateTrees(*this); }
 
-    // void incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats);
-
     void samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
     void update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct);
 
-    // void initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat);
-
-    // void updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
-
-    // void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side);
-
     void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const;
 
     double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const;
-
-    // double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const;
-
-    // void ini_residual_std(std::unique_ptr<State> &state);
 
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<vector<tree>>> &trees, std::vector<double> &output_vec);
 

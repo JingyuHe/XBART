@@ -1,5 +1,8 @@
+//////////////////////////////////////////////////////////////////////////////////////
+// predict from tree structure
+//////////////////////////////////////////////////////////////////////////////////////
+
 #include <ctime>
-// #include <RcppArmadillo.h>
 #include "Rcpp.h"
 #include <armadillo>
 #include "tree.h"
@@ -14,6 +17,7 @@ using namespace arma;
 // [[Rcpp::export]]
 Rcpp::List xbart_predict(mat X, double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)
 {
+    // predict for XBART normal regression model
 
     // Size of data
     size_t N = X.n_rows;
@@ -42,8 +46,7 @@ Rcpp::List xbart_predict(mat X, double y_mean, Rcpp::XPtr<std::vector<std::vecto
     NormalModel *model = new NormalModel();
 
     // Predict
-    model->predict_std(Xpointer, N, p, M, N_sweeps,
-                       yhats_test_xinfo, *trees);
+    model->predict_std(Xpointer, N, p, M, N_sweeps, yhats_test_xinfo, *trees);
 
     // Convert back to Rcpp
     Rcpp::NumericMatrix yhats(N, N_sweeps);
@@ -88,8 +91,7 @@ Rcpp::List xbart_predict_full(mat X, double y_mean, Rcpp::XPtr<std::vector<std::
     NormalModel *model = new NormalModel();
 
     // Predict
-    model->predict_whole_std(Xpointer, N, p, M, N_sweeps,
-                             output_vec, *trees);
+    model->predict_whole_std(Xpointer, N, p, M, N_sweeps, output_vec, *trees);
 
     Rcpp::NumericVector output = Rcpp::wrap(output_vec);
     output.attr("dim") = Rcpp::Dimension(N, N_sweeps, M);
@@ -171,10 +173,6 @@ Rcpp::List gp_predict(mat y, mat X, mat Xtest, Rcpp::XPtr<std::vector<std::vecto
 
     // initialize X_struct
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
-    // std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
-    // std::unique_ptr<X_struct> xtest_struct(new X_struct(Xtestpointer, &y_std, N_test, Xtestorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
-    // x_struct->n_y = N;
-    // xtest_struct->n_y = N_test;
 
     std::unique_ptr<gp_struct> x_struct(new gp_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, sigma_std, num_trees));
     std::unique_ptr<gp_struct> xtest_struct(new gp_struct(Xtestpointer, &y_std, N_test, Xtestorder_std, p_categorical, p_continuous, &initial_theta, sigma_std, num_trees));
@@ -206,15 +204,6 @@ Rcpp::List gp_predict(mat y, mat X, mat Xtest, Rcpp::XPtr<std::vector<std::vecto
         }
     }
     x_struct->set_resid(residuals);
-
-    // // define model
-    // NormalModel *model = new NormalModel(1, 1, 1, 1, 1, false, 1, 1, 1);
-    // // cout << "after define model " << model->tau << " " << model->tau_mean << endl;
-    // model->setNoSplitPenality(1);
-
-    // // State settings
-    // std::unique_ptr<State> state(new NormalState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, false, 0, 5, 20, p, Xpointer, num_sweeps, false, &y_std, 1.0, 250, y_mean, 0, model->dim_residual, 12, true)); //last input is nthread, need update
-    // std::unique_ptr<State> state_test(new NormalState(Xtestpointer, Xtestorder_std, N_test, p, num_trees, p_categorical, p_continuous, false, 0, 5, 20, p, Xtestpointer, num_sweeps, false, &y_std, 1.0, 250, y_mean, 0, model->dim_residual, 12, true)); //last input is nthread, need update
 
     // mcmc loop
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
@@ -272,21 +261,18 @@ Rcpp::List xbart_multinomial_predict(mat X, double y_mean, size_t num_class, Rcp
     ini_xinfo(yhats_test_xinfo, N, iteration_len);
 
     std::vector<double> output_vec(iteration_len * N * num_class);
-    std::vector<size_t> output_leaf_index(iteration_len * N * N_trees);
 
     LogitModel *model = new LogitModel();
 
     model->dim_residual = num_class;
 
     // Predict
-    model->predict_std_standalone(Xpointer, N, p, N_trees, N_sweeps, yhats_test_xinfo, *trees, output_vec, iteration_vec, output_leaf_index);
+    model->predict_std_standalone(Xpointer, N, p, N_trees, N_sweeps, yhats_test_xinfo, *trees, output_vec, iteration_vec);
 
     Rcpp::NumericVector output = Rcpp::wrap(output_vec);
     output.attr("dim") = Rcpp::Dimension(iteration_len, N, num_class);
-    Rcpp::NumericVector index = Rcpp::wrap(output_leaf_index);
-    index.attr("dim") = Rcpp::Dimension(iteration_len, N, N_trees);
 
-    return Rcpp::List::create(Rcpp::Named("yhats") = output, Rcpp::Named("leaf_index") = index);
+    return Rcpp::List::create(Rcpp::Named("yhats") = output);
 }
 
 // [[Rcpp::export]]

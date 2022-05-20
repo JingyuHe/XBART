@@ -13,9 +13,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <numeric>
-// #include<RcppArmadillo.h>
 #include <armadillo>
-// #endif
 
 using namespace arma;
 

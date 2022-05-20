@@ -1,10 +1,5 @@
-# install.packages("D:/XBART",repos=NULL,type="source")
 library(XBART)
 library(xgboost)
-# library(ranger)
-
-# start_profiler('test_multinomial_prh.log')
-#
 
 plotROC <- function(pihat, ytrue, add = FALSE, col = "steelblue") {
     thresh <- sort(pihat)
@@ -18,7 +13,6 @@ plotROC <- function(pihat, ytrue, add = FALSE, col = "steelblue") {
     } else {
         points(fpr, tpr, pch = 20, cex = 0.8, col = col, bty = "n", type = "b")
     }
-    # print(mean(tpr))
 }
 
 get_entropy <- function(nclass) {
@@ -27,12 +21,6 @@ get_entropy <- function(nclass) {
     return(sum(-pi * log(pi)))
 }
 
-# seed = 10
-# set.seed(seed)
-
-#
-# n = 200
-# nt = 50
 n <- 5000
 nt <- 1000
 p <- 6
@@ -49,15 +37,8 @@ X_test <- t(K %*% matrix(rnorm(3 * nt), 3, nt))
 X_train <- pnorm(X_train)
 X_test <- pnorm(X_test)
 
-# X_train = matrix(runif(n*p,-1,1), nrow=n)
-# X_test = matrix(runif(nt*p,-1,1), nrow=nt)
-
 X_train <- cbind(X_train, matrix(rbinom(n * p_cat, 1, 0.5), nrow = n))
 X_test <- cbind(X_test, matrix(rbinom(nt * p_cat, 1, 0.5), nrow = nt))
-
-# X_train = cbind(X_train, matrix(rpois(n*p_cat, 20), nrow=n))
-# X_test = cbind(X_test, matrix(rpois(nt*p_cat, 20), nrow=nt))
-
 
 lam[, 1] <- abs(3 * X_train[, 1] - X_train[, 2])
 lam[, 2] <- 2
@@ -71,20 +52,6 @@ lamt[, 3] <- 3 * X_test[, 3]^2
 lamt[, 4] <- 4 * (X_test[, 4] * X_test[, 5])
 lamt[, 5] <- 2 * (X_test[, 5] + X_test[, 6])
 lamt[, 6] <- 2 * (X_test[, 1] + X_test[, 3] - X_test[, 5])
-
-# lam[,1] = 3*abs(2*X_train[,1] - X_train[,2])
-# lam[,2] = 2
-# lam[,3] = 3*X_train[,3]^2
-# lam[,4] = 5*(X_train[, 4] * X_train[,5])
-# lam[,5] = (X_train[,5] + 2*X_train[,6])
-# lam[,6] = 2*(X_train[,1] + X_train[,3] - X_train[,5])
-# lamt[,1] = 3*abs(2*X_test[,1] - X_test[,2])
-# lamt[,2] = 2
-# lamt[,3] = 3*X_test[,3]^2
-# lamt[,4] = 5*(X_test[,4]*X_test[,5])
-# lamt[,5] = (X_test[,5] + 2*X_test[,6])
-# lamt[,6] = 2*(X_test[,1] + X_test[,3] - X_test[,5])
-
 
 # vary s to make the problem harder s < 1 or easier s > 2
 s <- 10
@@ -110,18 +77,8 @@ fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, num_tr
 tm <- proc.time() - tm
 cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
 # take average of all sweeps, discard burn-in
-pred <- predict(fit, X_test)
-a <- apply(pred$yhats[burnin:num_sweeps, , ], c(2, 3), mean)
-pred <- apply(a, 1, which.max) - 1
-yhat <- apply(a, 1, which.max) - 1
-cat(paste("xbart classification accuracy: ", round(mean(y_test == yhat), 3)), "\n")
-
-
-# you may use the predict function as well
-fitted <- predict.XBARTmultinomial(fit, X_test)
-a <- apply(fitted$yhats[burnin:num_sweeps, , ], c(2, 3), mean)
-pred <- apply(a, 1, which.max) - 1
-yhat <- apply(a, 1, which.max) - 1
+pred <- predict(fit, X_test, burnin = burnin)
+yhat <- pred$label
 cat(paste("xbart classification accuracy: ", round(mean(y_test == yhat), 3)), "\n")
 
 
@@ -169,4 +126,3 @@ cat("importance ", fit$importance, "\n")
 plot(as.vector(fit$weight))
 # plot(as.vector(fit$tau_a))
 summary(as.vector(fit$weight))
-# stop_profiler()

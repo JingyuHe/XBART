@@ -1,3 +1,8 @@
+//////////////////////////////////////////////////////////////////////////////////////
+// main function of the Bayesian backfitting algorithm
+//////////////////////////////////////////////////////////////////////////////////////
+
+
 #include "mcmc_loop.h"
 #include "omp.h"
 
@@ -8,8 +13,8 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
     //     thread_pool.start();
 
     size_t N = state->residual_std[0].size();
-    // Residual for 0th tree
-    // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
+
+    // initialize the matrix of residuals
     model->ini_residual_std(state);
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
@@ -29,8 +34,8 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             {
                 cout << "sweep " << sweeps << " tree " << tree_ind << endl;
             }
-            // Draw Sigma
 
+            // draw Sigma
             model->update_state(state, tree_ind, x_struct);
 
             sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
@@ -49,18 +54,16 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
                 state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
             }
 
+            // initialize sufficient statistics of the current tree to be updated
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
             if (state->parallel)
             {
                 trees[sweeps][tree_ind].settau(model->tau_prior, model->tau); // initiate tau
-                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
             }
-            else
-            {
-                // single core
-                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-            }
+
+            // main function to grow the tree from root
+            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind);
 
             // set id for bottom nodes
             tree::npv bv;
@@ -68,7 +71,6 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             for (size_t i = 0; i < bv.size(); i++)
             {
                 bv[i]->setID(i + 1);
-                // cout << bv[i]->getID() << " " << endl;
             }
 
             // store residuals:
@@ -77,9 +79,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
                 resid[data_ind + sweeps * N + tree_ind * state->num_sweeps * N] = state->residual_std[0][data_ind];
             }
 
-            // update tau after sampling the tree
-            // model->update_tau(state, tree_ind, sweeps, trees);
-
+            // count number of splits at each variable
             state->update_split_counts(tree_ind);
 
             // update partial residual for the next tree to fit
@@ -88,11 +88,11 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
 
         if (model->sampling_tau)
         {
+            // update tau per sweep (after drawing a forest)
             model->update_tau_per_forest(state, sweeps, trees);
         }
     }
     // thread_pool.stop();
-
     return;
 }
 
@@ -102,7 +102,6 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
     //     thread_pool.start();
 
     // Residual for 0th tree
-    // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
     model->ini_residual_std(state);
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
@@ -123,8 +122,6 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                 cout << "sweep " << sweeps << " tree " << tree_ind << endl;
             }
             // Draw latents -- do last?
-
-            // Rcpp::Rcout << "Updating state";
 
             if (state->use_all && (sweeps >= state->burnin)) // && (state->mtry != state->p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
             {
@@ -166,7 +163,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                 {
 #pragma omp section
                     {
-                        trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+                        trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind);
                     }
                 }
             }
@@ -195,14 +192,6 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                 }
             }
         }
-
-        // if (sweeps <= state->burnin){
-        //     model->stop = false;
-        // }
-        // if (sweeps > state->burnin & model->stop){
-        //     state->num_sweeps = sweeps + 1;
-        //     break;
-        // }
     }
     // thread_pool.stop();
 }
@@ -210,12 +199,10 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModelSeparateTrees *model, std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &weight_samples)
 {
     // Residual for 0th tree
-    // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
     model->ini_residual_std(state);
     size_t p = Xorder_std.size();
     std::vector<size_t> subset_vars(p);
     std::vector<double> weight_samp(p);
-    // double weight_sum;
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {
@@ -235,8 +222,6 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
                 cout << "sweep " << sweeps << " tree " << tree_ind << endl;
             }
             // Draw latents -- do last?
-
-            // Rcpp::Rcout << "Updating state";
 
             if (state->use_all && (sweeps >= state->burnin)) // && (state->mtry != state->p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
             {
@@ -270,7 +255,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
 
                             trees[class_ind][sweeps][tree_ind].theta_vector.resize(model->dim_residual);
 
-                            trees[class_ind][sweeps][tree_ind].grow_from_root_separate_tree(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+                            trees[class_ind][sweeps][tree_ind].grow_from_root_separate_tree(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind);
                         }
                     }
                 }

@@ -1,3 +1,7 @@
+//////////////////////////////////////////////////////////////////////////////////////
+// class to carry all intermediate data vectors, parameters across all functions
+//////////////////////////////////////////////////////////////////////////////////////
+
 #ifndef GUARD_fit_info_h
 #define GUARD_fit_info_h
 
@@ -9,13 +13,10 @@
 class State
 {
 public:
-    // residual size
-    size_t dim_residual;
+    size_t dim_residual;         // residual size
+    matrix<double> residual_std; // a matrix to save all residuals
 
-    // vectors (slop?)
-    matrix<double> residual_std;
-
-    // Random
+    // random number generators
     std::vector<double> prob;
     std::random_device rd;
     std::mt19937 gen;
@@ -74,14 +75,6 @@ public:
 
         // Init containers
         // initialize predictions_std at given value / number of trees
-        // ini_xinfo(this->predictions_std, N, num_trees, ini_var_yhat / (double)num_trees);
-
-        // initialize yhat at given value
-
-        // this->residual_std = std::vector<double>(N);
-        // this->residual_std_full = std::vector<double>(N);
-
-        // Warning! ini_matrix(matrix, N, p).
         ini_matrix(this->residual_std, N, dim_residual);
 
         // Random
@@ -148,11 +141,6 @@ class LogitState : public State
     {
         // each tree has different number of theta vectors, each is of the size dim_residual (num classes)
         lambdas.resize(num_trees);
-        // for (size_t i = 0; i < num_trees; i++){
-        //     lambdas[i].resize(1);
-        //     lambdas[i][0].resize(dim_residual);
-        //     std::fill(lambdas[i][0].begin(), lambdas[i][0].end(), 1.0);
-        // }
     }
 
     void ini_lambda_separate(std::vector<std::vector<std::vector<double>>> &lambdas, size_t num_trees, size_t dim_residual)
@@ -162,11 +150,6 @@ class LogitState : public State
         for (size_t i = 0; i < num_trees; i++)
         {
             lambdas[i].resize(dim_residual);
-            // for (size_t j = 0; j < dim_residual; j++)
-            // {
-            //     lambdas[i][j].resize(1);
-            //     lambdas[i][j][0] = 1.0;
-            // }
         }
     }
 

@@ -1,4 +1,4 @@
-predict.XBARTmultinomial <- function(model, X, iteration = NULL) {
+predict.XBARTmultinomial <- function(model, X, iteration = NULL, burnin = 0) {
     if (is.null(iteration)) {
         cat("Predict with all iterations.", "\n")
         iteration <- 0:(model$model_list$num_sweeps - 1)
@@ -25,6 +25,13 @@ predict.XBARTmultinomial <- function(model, X, iteration = NULL) {
         out <- json_to_r(model$tree_json)
         obj <- .Call(`_XBART_xbart_multinomial_predict`, X, model$model_list$y_mean, model$num_class, out$model_list$tree_pnt, iteration) # model$tree_pnt
     }
+
+    num_sweeps <- dim(obj$yhats)[1]
+
+    a <- apply(obj$yhats[burnin:num_sweeps, , ], c(2, 3), mean)
+    obj$label <- apply(a, 1, which.max) - 1
+
+
 
     return(obj)
 }

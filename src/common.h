@@ -61,6 +61,8 @@ using std::endl;
 
 // log(2*pi)
 #define LTPI 1.83787706640934536
+// pi
+#define PI 3.141592653
 
 // #include "rn.h" // Removed
 

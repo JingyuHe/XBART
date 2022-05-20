@@ -1,3 +1,8 @@
+//////////////////////////////////////////////////////////////////////////////////////
+// Details of sufficient statistics calculation, likelihood of various models
+//////////////////////////////////////////////////////////////////////////////////////
+
+
 #include "tree.h"
 #include "model.h"
 #include <cfenv>
@@ -24,20 +29,14 @@ void NormalModel::samplePars(std::unique_ptr<State> &state, std::vector<double> 
     std::normal_distribution<double> normal_samp(0.0, 1.0);
 
     // test result should be theta
-    theta_vector[0] = suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)) + sqrt(1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2))) * normal_samp(state->gen); // Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-
-    // also update probability of leaf parameters
-    // prob_leaf = normal_density(theta_vector[0], suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), 1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), true);
+    theta_vector[0] = suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)) + sqrt(1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2))) * normal_samp(state->gen);
 
     return;
 }
 
 void NormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
-    // Draw Sigma
-    // state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
-
-    // residual_std is only 1 dimensional for regression model
+    // This function updates sigma, residual variance
 
     std::vector<double> full_residual(state->n_y);
 
@@ -53,6 +52,7 @@ void NormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, s
 
 void NormalModel::update_tau(std::unique_ptr<State> &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> &trees)
 {
+    // this function samples tau based on leaf parameters of a single tree
     std::vector<tree *> leaf_nodes;
     trees[sweeps][tree_ind].getbots(leaf_nodes);
     double sum_squared = 0.0;
@@ -70,6 +70,9 @@ void NormalModel::update_tau(std::unique_ptr<State> &state, size_t tree_ind, siz
 
 void NormalModel::update_tau_per_forest(std::unique_ptr<State> &state, size_t sweeps, vector<vector<tree>> &trees)
 {
+    // this function samples tau based on all leaf parameters of the entire forest (a sweep)
+    // tighter posterior, better performance
+
     std::vector<tree *> leaf_nodes;
     for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
     {
@@ -89,6 +92,7 @@ void NormalModel::update_tau_per_forest(std::unique_ptr<State> &state, size_t sw
 
 void NormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
 {
+    // this function calculates sufficient statistics at the root node when growing a new tree
     // sum of y
     suff_stat[0] = sum_vec(state->residual_std[0]);
     // sum of y squared
@@ -100,8 +104,12 @@ void NormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::v
 
 void NormalModel::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
+    // this function updates the sufficient statistics at each intermediate nodes when growing a new tree
+    // sum of y
     suff_stat[0] += residual_std[0][Xorder_std[split_var][row_ind]];
+    // sum of y squared
     suff_stat[1] += pow(residual_std[0][Xorder_std[split_var][row_ind]], 2);
+    // number of data observations
     suff_stat[2] += 1;
     return;
 }
@@ -111,7 +119,6 @@ void NormalModel::calculateOtherSideSuffStat(std::vector<double> &parent_suff_st
 
     // in function split_xorder_std_categorical, for efficiency, the function only calculates suff stat of ONE child
     // this function calculate the other side based on parent and the other child
-
     if (compute_left_side)
     {
         rchild_suff_stat = parent_suff_stat - lchild_suff_stat;
@@ -125,18 +132,16 @@ void NormalModel::calculateOtherSideSuffStat(std::vector<double> &parent_suff_st
 
 void NormalModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::unique_ptr<X_struct> &x_struct) const
 {
+    // this function updates the residual vector (fitting target) for the next tree when the current tree was grown
     size_t next_index = tree_ind + 1;
     if (next_index == M)
     {
         next_index = 0;
     }
 
-    ////////////////////////////////////////////////////////
-    // Be care of line 151 in train_all.cpp, initial_theta
-    ////////////////////////////////////////////////////////
-
     for (size_t i = 0; i < residual_std[0].size(); i++)
     {
+        // residual becomes subtracting the current grown tree, add back the next tree
         residual_std[0][i] = residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + (*(x_struct->data_pointers[next_index][i]))[0];
     }
     return;
@@ -147,11 +152,7 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
     // likelihood equation,
     // note the difference of left_side == true / false
     // node_suff_stat is mean of y, sum of square of y, saved in tree class
-    // double y_sum = (double)suff_stat_all[2] * suff_stat_all[0];
-    // double y_sum = suff_stat_all[0];
     double sigma2 = state->sigma2;
-    // double ntau;
-    // double suff_one_side;
 
     /////////////////////////////////////////////////////////////////////////
     //
@@ -161,16 +162,15 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
     //
     /////////////////////////////////////////////////////////////////////////
 
-    size_t nb;
-    double nbtau;
+    size_t nb;    // number of data in the current node
+    double nbtau; // n * tau
     double y_sum;
     double y_squared_sum;
 
+    // find sufficient statistics under certain cases
     if (no_split)
     {
-        // ntau = suff_stat_all[2] * tau;
-        // suff_one_side = y_sum;
-
+        // calculate likelihood for no-split option (early stop)
         nb = suff_stat_all[2];
         nbtau = nb * tau;
         y_sum = suff_stat_all[0];
@@ -178,14 +178,13 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
     }
     else
     {
+        // calculate likelihood for regular split point
         if (left_side)
         {
             nb = N_left + 1;
             nbtau = nb * tau;
-            // ntau = (N_left + 1) * tau;
             y_sum = temp_suff_stat[0];
             y_squared_sum = temp_suff_stat[1];
-            // suff_one_side = temp_suff_stat[0];
         }
         else
         {
@@ -193,15 +192,11 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
             nbtau = nb * tau;
             y_sum = suff_stat_all[0] - temp_suff_stat[0];
             y_squared_sum = suff_stat_all[1] - temp_suff_stat[1];
-
-            // ntau = (suff_stat_all[2] - N_left - 1) * tau;
-            // suff_one_side = y_sum - temp_suff_stat[0];
         }
     }
 
-    // return 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
-
-    return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
+    // note that LTPI = log(2 * pi), defined in common.h
+    return -0.5 * nb * LTPI - 0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
 }
 
 // double NormalModel::likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const
@@ -230,9 +225,7 @@ void NormalModel::ini_residual_std(std::unique_ptr<State> &state)
 
 void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees)
 {
-
-    std::random_device rd;
-    std::mt19937 gen = std::mt19937(rd());
+    // predict the output as a matrix
     matrix<double> output;
 
     // row : dimension of theta, column : number of trees
@@ -242,7 +235,7 @@ void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t 
     {
         for (size_t data_ind = 0; data_ind < N_test; data_ind++)
         {
-            getThetaForObs_Outsample(output, trees[sweeps], data_ind, Xtestpointer, N_test, p, gen);
+            getThetaForObs_Outsample(output, trees[sweeps], data_ind, Xtestpointer, N_test, p);
 
             // take sum of predictions of each tree, as final prediction
             for (size_t i = 0; i < trees[0].size(); i++)
@@ -256,9 +249,7 @@ void NormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t 
 
 void NormalModel::predict_whole_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, std::vector<double> &output_vec, vector<vector<tree>> &trees)
 {
-
-    std::random_device rd;
-    std::mt19937 gen = std::mt19937(rd());
+    // predict the output, stack as a vector
     matrix<double> output;
 
     // row : dimension of theta, column : number of trees
@@ -268,7 +259,7 @@ void NormalModel::predict_whole_std(const double *Xtestpointer, size_t N_test, s
     {
         for (size_t data_ind = 0; data_ind < N_test; data_ind++)
         {
-            getThetaForObs_Outsample(output, trees[sweeps], data_ind, Xtestpointer, N_test, p, gen);
+            getThetaForObs_Outsample(output, trees[sweeps], data_ind, Xtestpointer, N_test, p);
 
             // take sum of predictions of each tree, as final prediction
             for (size_t i = 0; i < trees[0].size(); i++)
@@ -318,13 +309,6 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
         {
             theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
         }
-
-        // std::gamma_distribution<double> gammadist(tau_a + suff_stat[j]/weight, 1.0); // consider adding 1 sudo obs to prevent 0 theta value
-        // theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]/weight);
-        // while (theta_vector[j] == 0)
-        // {
-        //     theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]/weight);
-        // }
     }
     return;
 }
@@ -351,16 +335,13 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         // (*phi)[i] = gammadist(state->gen) / (1.0 * sum_fits);
         // calculate logloss
         prob = exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits; // logloss =  - log(p_j)
-        // if (prob == 0){
-        //     cout << "resid = " << exp(state->residual_std[y_i][i]) << ", pointer = " << (*(x_struct->data_pointers[tree_ind][i]))[y_i] << ", sum_fits = " << sum_fits << endl;
-        // }
+
         logloss += -log(prob);
     }
     // sample weight based on logloss
     if (update_weight)
     {
-        // std::gamma_distribution<> d(state->n_y, 1.0);
-        // weight = d(state->gen) / (hmult * logloss + heps * state->n_y);
+
         std::gamma_distribution<> d(10.0, 1.0);
         weight = d(state->gen) / (10.0 * logloss / (double)state->n_y + 1.0); // it's like shift p down by
     }
@@ -450,12 +431,6 @@ void LogitModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::ve
 
 void LogitModel::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
-    /*
-    suff_stat[0] += residual_std[0][Xorder_std[split_var][row_ind]];
-    suff_stat[1] += pow(residual_std[0][Xorder_std[split_var][row_ind]], 2);
-    suff_stat[2] += 1;
-    */
-
     incSuffStat(residual_std, Xorder_std[split_var][row_ind], suff_stat);
 
     return;
@@ -487,17 +462,12 @@ void LogitModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual
         next_index = 0;
     }
 
-    ////////////////////////////////////////////////////////
-    // Be care of line 151 in train_all.cpp, initial_theta
-    ////////////////////////////////////////////////////////
-
     // cumulative product of trees, multiply current one, divide by next one
 
     for (size_t i = 0; i < residual_std[0].size(); i++)
     {
         for (size_t j = 0; j < dim_theta; ++j)
         {
-            // residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers[tree_ind][i]))[j] / (*(x_struct->data_pointers[next_index][i]))[j];
             residual_std[j][i] = residual_std[j][i] + log((*(x_struct->data_pointers[tree_ind][i]))[j]) - log((*(x_struct->data_pointers[next_index][i]))[j]);
             if (std::isnan(exp(residual_std[j][i])))
             {
@@ -518,39 +488,18 @@ double LogitModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<d
     // double y_sum = suff_stat_all[0];
     // double suff_one_side;
 
-    /////////////////////////////////////////////////////////////////////////
-    //
-    //  I know combining likelihood and likelihood_no_split looks nicer
-    //  but this is a very fundamental function, executed many times
-    //  the extra if(no_split) statement and value assignment make the code about 5% slower!!
-    //
-    /////////////////////////////////////////////////////////////////////////
-
     // could rewrite without all these local assigments if that helps...
     std::vector<double> local_suff_stat = suff_stat_all; // no split
-
-    // COUT << "LIK" << endl;
-
-    // COUT << "all suff stat dim " << suff_stat_all.size();
 
     if (!no_split)
     {
         if (left_side)
         {
-            // COUT << "LEFTWARD HO" << endl;
-            // COUT << "local suff stat dim " << local_suff_stat.size() << endl;
-            // COUT << "temp suff stat dim " << temp_suff_stat.size() << endl;
             local_suff_stat = temp_suff_stat;
         }
         else
         {
-            // COUT << "RIGHT HO" << endl;
-            // COUT << "local suff stat dim " << local_suff_stat.size() << endl;
-            // COUT << "temp suff stat dim " << temp_suff_stat.size() << endl;
             local_suff_stat = suff_stat_all - temp_suff_stat;
-
-            // ntau = (suff_stat_all[2] - N_left - 1) * tau;
-            // suff_one_side = y_sum - temp_suff_stat[0];
         }
     }
 
@@ -567,7 +516,6 @@ void LogitModel::ini_residual_std(std::unique_ptr<State> &state)
         for (size_t j = 0; j < dim_theta; ++j)
         {
             state->residual_std[j][i] = 0.0; // save resdiual_std as log(lamdas), start at 0.0.
-            // originally residual_std initialized at 1.0; // (*state->y_std)[i] - value;
         }
     }
     return;
@@ -653,7 +601,7 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
 
 // this function is for a standalone prediction function for classification case.
 // with extra input iteration, which specifies which iteration (sweep / forest) to use
-void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec, std::vector<size_t> &iteration, std::vector<size_t> &output_leaf_index)
+void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec, std::vector<size_t> &iteration)
 {
 
     // output is a 3D array (armadillo cube), nsweeps by n by number of categories
@@ -677,8 +625,6 @@ void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_tes
             {
                 // search leaf
                 bn = trees[sweeps][i].search_bottom_std(Xtestpointer, data_ind, p, N_test);
-
-                output_leaf_index[iter + data_ind * num_iterations + i * num_iterations * N_test] = bn->nid();
 
                 for (size_t k = 0; k < dim_residual; k++)
                 {
@@ -808,17 +754,12 @@ void LogitModelSeparateTrees::state_sweep(size_t tree_ind, size_t M, matrix<doub
         next_index = 0;
     }
 
-    ////////////////////////////////////////////////////////
-    // Be care of line 151 in train_all.cpp, initial_theta
-    ////////////////////////////////////////////////////////
-
     // cumulative product of trees, multiply current one, divide by next one
 
     for (size_t i = 0; i < residual_std[0].size(); i++)
     {
         for (size_t j = 0; j < dim_theta; ++j)
         {
-            // residual_std[j][i] = residual_std[j][i] * (*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j] / (*(x_struct->data_pointers_multinomial[j][next_index][i]))[j];
             residual_std[j][i] = residual_std[j][i] + log((*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j]) - log((*(x_struct->data_pointers_multinomial[j][next_index][i]))[j]);
         }
     }
@@ -828,52 +769,21 @@ void LogitModelSeparateTrees::state_sweep(size_t tree_ind, size_t M, matrix<doub
 
 double LogitModelSeparateTrees::likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const
 {
-    // likelihood equation,
-    // note the difference of left_side == true / false
-    // node_suff_stat is mean of y, sum of square of y, saved in tree class
-    // double y_sum = (double)suff_stat_all[2] * suff_stat_all[0];
-    // double y_sum = suff_stat_all[0];
-    // double suff_one_side;
-
-    /////////////////////////////////////////////////////////////////////////
-    //
-    //  I know combining likelihood and likelihood_no_split looks nicer
-    //  but this is a very fundamental function, executed many times
-    //  the extra if(no_split) statement and value assignment make the code about 5% slower!!
-    //
-    /////////////////////////////////////////////////////////////////////////
 
     // could rewrite without all these local assigments if that helps...
     std::vector<double> local_suff_stat = suff_stat_all; // no split
-
-    // COUT << "LIK" << endl;
-
-    // COUT << "all suff stat dim " << suff_stat_all.size();
 
     if (!no_split)
     {
         if (left_side)
         {
-            // COUT << "LEFTWARD HO" << endl;
-            // COUT << "local suff stat dim " << local_suff_stat.size() << endl;
-            // COUT << "temp suff stat dim " << temp_suff_stat.size() << endl;
             local_suff_stat = temp_suff_stat;
         }
         else
         {
-            // COUT << "RIGHT HO" << endl;
-            // COUT << "local suff stat dim " << local_suff_stat.size() << endl;
-            // COUT << "temp suff stat dim " << temp_suff_stat.size() << endl;
             local_suff_stat = suff_stat_all - temp_suff_stat;
-
-            // ntau = (suff_stat_all[2] - N_left - 1) * tau;
-            // suff_one_side = y_sum - temp_suff_stat[0];
         }
     }
-
-    // return 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
-
-    // return - 0.5 * nb * log(2 * 3.141592653) -  0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
 
     return (LogitLIL(local_suff_stat));
 }
@@ -899,9 +809,6 @@ void LogitModelSeparateTrees::predict_std(const double *Xtestpointer, size_t N_t
                     bn = trees[k][sweeps][i].search_bottom_std(Xtestpointer, data_ind, p, N_test);
 
                     // product of trees, thus sum of logs
-
-                    // cout << "one obs " << log(bn->theta_vector[k]) << "  "  << bn->theta_vector[k]  << endl;
-
                     output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test] += log(bn->theta_vector[k]);
                 }
             }
