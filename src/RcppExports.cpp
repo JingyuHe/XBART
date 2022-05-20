@@ -48,13 +48,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // XBART_multinomial_cpp
-Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, int num_class, mat X, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penality, size_t burnin, size_t mtry, size_t p_categorical, bool verbose, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights, bool separate_tree, double weight, bool update_weight, bool update_tau, double nthread, double hmult, double heps);
+Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penality, size_t burnin, size_t mtry, size_t p_categorical, bool verbose, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights, bool separate_tree, double weight, bool update_weight, bool update_tau, double nthread, double hmult, double heps);
 RcppExport SEXP _XBART_XBART_multinomial_cpp(SEXP ySEXP, SEXP num_classSEXP, SEXP XSEXP, SEXP num_treesSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tau_aSEXP, SEXP tau_bSEXP, SEXP no_split_penalitySEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP verboseSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weightsSEXP, SEXP separate_treeSEXP, SEXP weightSEXP, SEXP update_weightSEXP, SEXP update_tauSEXP, SEXP nthreadSEXP, SEXP hmultSEXP, SEXP hepsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type y(ySEXP);
-    Rcpp::traits::input_parameter< int >::type num_class(num_classSEXP);
+    Rcpp::traits::input_parameter< size_t >::type num_class(num_classSEXP);
     Rcpp::traits::input_parameter< mat >::type X(XSEXP);
     Rcpp::traits::input_parameter< size_t >::type num_trees(num_treesSEXP);
     Rcpp::traits::input_parameter< size_t >::type num_sweeps(num_sweepsSEXP);

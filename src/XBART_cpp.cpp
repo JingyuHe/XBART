@@ -111,7 +111,7 @@ Rcpp::List XBART_cpp(mat y, mat X, size_t num_trees, size_t num_sweeps, size_t m
 
     for (size_t i = 0; i < p; i++)
     {
-        split_count_sum(i) = (int)state->split_count_all[i];
+        split_count_sum(i) = (size_t)state->split_count_all[i];
     }
 
     // clean memory

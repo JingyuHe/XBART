@@ -2008,9 +2008,6 @@ void split_xorder_std_continuous_simplified(std::unique_ptr<gp_struct> &x_struct
     size_t N_Xorder_left = Xorder_left_std[0].size();
     size_t N_Xorder_right = Xorder_right_std[0].size();
 
-    // if the left side is smaller, we only compute sum of it
-    bool compute_left_side = N_Xorder_left < N_Xorder_right;
-
     double cutvalue = *(x_struct->X_std + x_struct->n_y * split_var + Xorder_std[split_var][split_point]);
 
     const double *split_var_x_pointer = x_struct->X_std + x_struct->n_y * split_var;

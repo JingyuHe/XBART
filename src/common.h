@@ -72,7 +72,7 @@ std::ostream &operator<<(std::ostream &out, const std::vector<std::vector<double
 std::ostream &operator<<(std::ostream &out, const std::vector<std::vector<size_t>> &v);
 
 typedef std::vector<double> vec_d;     // double vector
-typedef std::vector<size_t> vec_sizet; // unsigned int vector
+typedef std::vector<size_t> vec_sizet; // unsigned size_t vector
 
 template <typename T>
 using matrix = std::vector<std::vector<T>>;

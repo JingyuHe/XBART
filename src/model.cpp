@@ -356,19 +356,14 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         size_t count_lambda = 0;
         double mean_lambda = 0;
         double var_lambda = 0;
-        double max_lambda = -INFINITY;
-        double temp_max;
         for (size_t i = 0; i < state->num_trees; i++)
         {
             for (size_t j = 0; j < state->lambdas[i].size(); j++)
             {
                 mean_lambda += std::accumulate(state->lambdas[i][j].begin(), state->lambdas[i][j].end(), 0.0);
                 count_lambda += dim_residual;
-                // temp_max = *max_element(state->lambdas[i][j].begin(), state->lambdas[i][j].end());
-                // max_lambda = temp_max > max_lambda ? temp_max : max_lambda;
             }
         }
-        // mean_lambda = mean_lambda / count_lambda / max_lambda;
         mean_lambda = mean_lambda / count_lambda;
 
         for (size_t i = 0; i < state->num_trees; i++)

@@ -11,8 +11,8 @@
 #include <queue>
 //#endif
 
-void check_args(int n, int size, const std::vector<double> &prob);
+void check_args(size_t n, size_t size, const std::vector<double> &prob);
 
-std::vector<size_t> sample_int_ccrank(int n, int size, std::vector<double> prob, std::mt19937 &gen);
+std::vector<size_t> sample_int_ccrank(size_t n, size_t size, std::vector<double> prob, std::mt19937 &gen);
 
 #endif

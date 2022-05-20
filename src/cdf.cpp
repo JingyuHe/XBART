@@ -22,7 +22,7 @@ double logGamma(double x)
                          9.9843695780195716e-6, 1.5056327351493116e-7};
     double sum = 0.99999999999980993;
     double y = x;
-    for (int j = 0; j < 8; j++)
+    for (size_t j = 0; j < 8; j++)
         sum += c[j] / ++y;
     return log(SQRT2PI * sum / x) - (x + 7.5) + (x + 0.5) * log(x + 7.5);
 }
@@ -32,7 +32,7 @@ double logGamma(double x)
 // source: Numerical Recipes in C
 double betaContFrac(double a, double b, double x)
 {
-    const int MAXIT = 1000;
+    const size_t MAXIT = 1000;
     const double EPS = 3e-7;
     const double FPMIN = 1e-30;
     double qab = a + b;
@@ -44,10 +44,10 @@ double betaContFrac(double a, double b, double x)
         d = FPMIN;
     d = 1 / d;
     double h = d;
-    int m;
+    size_t m;
     for (m = 1; m <= MAXIT; m++)
     {
-        int m2 = 2 * m;
+        size_t m2 = 2 * m;
         double aa = m * (b - m) * x / ((qam + m2) * (a + m2));
         d = 1 + aa * d;
         if (fabs(d) < FPMIN)

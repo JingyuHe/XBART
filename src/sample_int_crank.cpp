@@ -5,7 +5,7 @@
 
 #include "sample_int_crank.h"
 
-void check_args(int n, int size, const std::vector<double> &prob)
+void check_args(size_t n, size_t size, const std::vector<double> &prob)
 {
     if (n < size)
     {
@@ -34,18 +34,18 @@ struct CComp
 {
     CComp(const std::vector<double> &v) : _v(v) {}
     // Inverted comparison!
-    bool operator()(int a, int b) { return _v[a] > _v[b]; }
+    bool operator()(size_t a, size_t b) { return _v[a] > _v[b]; }
     const std::vector<double> &_v;
 };
 
 struct UniqueNumber
 {
-    int current;
-    UniqueNumber(int start = 0) { current = start; }
-    int operator()() { return current++; }
+    size_t current;
+    UniqueNumber(size_t start = 0) { current = start; }
+    size_t operator()() { return current++; }
 };
 
-std::vector<size_t> sample_int_ccrank(int n, int size, std::vector<double> prob, std::mt19937 &gen)
+std::vector<size_t> sample_int_ccrank(size_t n, size_t size, std::vector<double> prob, std::mt19937 &gen)
 {
     check_args(n, size, prob);
 
@@ -107,6 +107,6 @@ struct Indirection
 {
     Indirection(const std::vector<size_t> &v) : _v(v) {}
     // Inverted comparison!
-    int operator()(int a) { return _v[a]; }
+    size_t operator()(size_t a) { return _v[a]; }
     const std::vector<size_t> &_v;
 };
