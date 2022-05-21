@@ -1,3 +1,11 @@
+###################################################
+# This script shows initialize BART using XBART trees
+# classification case
+# use the customized BART package https://github.com/jingyuhe/BART
+###################################################
+
+
+
 library(XBART)
 library(BART)
 

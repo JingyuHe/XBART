@@ -1,3 +1,11 @@
+###################################################
+# This script demonsrates warmstart BART package with XBART trees
+# regression case
+# use the customized BART package https://github.com/jingyuhe/BART
+###################################################
+
+
+
 #######################################################################
 # set parameters of XBART
 get_XBART_params <- function(y) {

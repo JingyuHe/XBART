@@ -61,15 +61,16 @@ max_depth <- 10
 mtry <- (p + p_add) / 2 # round((p + p_cat)/3)
 tm <- proc.time()
 fit <- XBART.multinomial(
-    y = matrix(y_train), num_class = k, X = X_train, Xtest = X_test,
+    y = matrix(y_train), num_class = k, X = X_train,
     num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth,
     num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat,
     verbose = FALSE, separate_tree = FALSE, updte_tau = FALSE
 )
 tm <- proc.time() - tm
 cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
-phat <- apply(fit$yhats_test[burnin:num_sweeps, , ], c(2, 3), mean)
-yhat <- apply((phat), 1, which.max) - 1
+pred = predict(fit, X_test, burnin = burnin)
+phat <- apply(pred$yhats[burnin:num_sweeps, , ], c(2, 3), mean)
+yhat <- pred$label
 
 spr.xbart <- split(phat, row(phat))
 logloss <- sum(mapply(function(x, y) -log(x[y]), spr.xbart, y_test + 1, SIMPLIFY = TRUE))
@@ -101,8 +102,6 @@ spr <- split(phat.xgb, row(phat.xgb))
 logloss.xgb <- sum(mapply(function(x, y) -log(x[y]), spr, y_test + 1, SIMPLIFY = TRUE))
 
 cat(paste("xbart logloss : ", round(logloss, 3)), "\n")
-# cat(paste("xgboost logloss : ", round(logloss.xgb,3)),"\n")
-
 cat(paste("\n", "xbart runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
 cat(paste("xgboost runtime: ", round(tm2["elapsed"], 3), " seconds"), "\n")
 

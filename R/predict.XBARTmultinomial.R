@@ -28,10 +28,8 @@ predict.XBARTmultinomial <- function(model, X, iteration = NULL, burnin = 0) {
 
     num_sweeps <- dim(obj$yhats)[1]
 
-    a <- apply(obj$yhats[burnin:num_sweeps, , ], c(2, 3), mean)
-    obj$label <- apply(a, 1, which.max) - 1
-
-
+    obj$prob <- apply(obj$yhats[burnin:num_sweeps, , ], c(2, 3), mean)
+    obj$label <- apply(obj$prob, 1, which.max) - 1
 
     return(obj)
 }

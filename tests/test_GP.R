@@ -1,6 +1,12 @@
+###################################################
+# This script demonstrates predicting out-of-range testing data 
+# using Gaussian process extrapolation
+# example of R
+###################################################
+
+
+
 func = 'single_index'
-
-
 set.seed(230)
 
 library(MASS)

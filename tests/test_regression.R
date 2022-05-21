@@ -1,3 +1,9 @@
+###################################################
+# This script shows regression using XBART
+###################################################
+
+
+
 #######################################################################
 # set parameters of XBART
 get_XBART_params <- function(y) {
@@ -122,6 +128,6 @@ fit <- XBART(as.matrix(y), as.matrix(x),
 pred <- predict(fit, xtest)
 pred <- rowMeans(pred[, params$burnin:params$num_sweeps])
 
-# predict with Gaussian process extrapolation
+# predict with Gaussian process extrapolation for out-of-range data points
 gp_pred <- predict_gp(fit, as.matrix(y), as.matrix(x), as.matrix(xtest))
 

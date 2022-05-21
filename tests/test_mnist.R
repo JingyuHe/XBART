@@ -1,3 +1,9 @@
+###################################################
+# This script run classification using MNIST data
+# compare XBART with XGBoost
+###################################################
+
+
 library(XBART)
 library(xgboost)
 library(ranger)

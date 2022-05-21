@@ -2,7 +2,7 @@
 \alias{XBART-package}
 \docType{package}
 \title{
-  XBART: Accelerated Bayesian Additive Regression Trees
+  Accelerated Bayesian Additive Regression Trees (XBART)
 }
 \description{
   A stochastic hill climbing algorithm for Bayesian additive regression trees model. 
@@ -12,9 +12,9 @@
   package, including the most important functions.
 }
 \author{
-Jingyu He, Saar Yalov and P. Richard Hahn
+Jingyu He, Saar Yalov, P. Richard Hahn and Meijiang Wang
 
-Maintainer: Jingyu He <jingyu.he@chicagobooth.edu>
+Maintainer: Jingyu He <jingyuhe@cityu.edu.hk>
 }
 \references{
   XBART: Accelerated Bayesian Additive Regression Trees, AISTATS 2019.
