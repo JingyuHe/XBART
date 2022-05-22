@@ -5,7 +5,6 @@
 #include "Rcpp.h"
 #include <armadillo>
 #include "X_struct.h"
-#include "omp.h"
 
 using namespace arma;
 

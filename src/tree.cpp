@@ -4,7 +4,6 @@
 
 #include "tree.h"
 #include <chrono>
-#include "omp.h"
 #include <ctime>
 using namespace std;
 using namespace chrono;
@@ -627,7 +626,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
     if (no_split == true)
     {
-        // #pragma omp parallel for schedule(static, 128)
         for (size_t i = 0; i < N_Xorder; i++)
         {
             x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
@@ -648,7 +646,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     }
     this->c_index = (size_t)round((double)index_in_full / (double)state->n_y * (double)state->n_cutpoints);
 
-    // #pragma omp critical
     state->split_count_current_tree[split_var] += 1;
 
     tree::tree_p lchild = new tree(model->getNumClasses(), this, model->dim_suffstat);
@@ -690,16 +687,10 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     {
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
-    // #pragma omp task shared(state, x_struct, model, tree_ind, sweeps)
-    //
-    this->l->grow_from_root(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind);
-    // }
-    // #pragma omp task shared(state, x_struct, model, tree_ind, sweeps)
-    // {
-    this->r->grow_from_root(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind);
-    // }
 
-    // #pragma omp taskwait
+    this->l->grow_from_root(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind);
+
+    this->r->grow_from_root(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind);
 
     return;
 }
@@ -813,13 +804,11 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
 
     if (no_split == true)
     {
-        // #pragma omp parallel for schedule(static, 128)
         for (size_t i = 0; i < N_Xorder; i++)
         {
             x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
         }
         // update lambdas in state
-        // #pragma omp critical
         state->lambdas[tree_ind].push_back(this->theta_vector);
 
         // if (update_theta)
@@ -847,7 +836,6 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
     }
     this->c_index = (size_t)round((double)index_in_full / (double)state->n_y * (double)state->n_cutpoints);
 
-    // #pragma omp critical
     state->split_count_current_tree[split_var] += 1;
 
     tree::tree_p lchild = new tree(model->getNumClasses(), this, model->dim_suffstat);
@@ -883,17 +871,10 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
 
-    // #pragma omp task shared(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind)
-    // {
     this->l->grow_from_root_entropy(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind);
-    // }
-    // #pragma omp task shared(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind)
-    // {
+    
     this->r->grow_from_root_entropy(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind);
-    // }
-
-    // #pragma omp taskwait
-
+   
     return;
 }
 
@@ -979,7 +960,7 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
                 exit(1);
             }
         }
-#pragma omp critical
+        
         state->lambdas_separate[tree_ind][j].push_back(this->theta_vector[j]);
 
         this->l = 0;
@@ -1013,13 +994,12 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
         {
             x_struct->data_pointers_multinomial[j][tree_ind][Xorder_std[0][i]] = &this->theta_vector;
         }
-#pragma omp critical
+        
         state->lambdas_separate[tree_ind][j].push_back(this->theta_vector[j]);
 
         return;
     }
 
-#pragma omp critical
     state->split_count_current_tree[split_var] += 1;
 
     tree::tree_p lchild = new tree(model->getNumClasses(), this, model->dim_suffstat);
@@ -1053,17 +1033,11 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
     {
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
-#pragma omp task untied shared(state, Xorder_std, x_struct, model, tree_ind, sweeps)
-    {
-        this->l->grow_from_root_separate_tree(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind);
-    }
-#pragma omp task untied shared(state, Xorder_std, x_struct, model, tree_ind, sweeps)
-    {
-        this->r->grow_from_root_separate_tree(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind);
-    }
 
-#pragma omp taskwait
-
+    this->l->grow_from_root_separate_tree(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind);
+    
+    this->r->grow_from_root_separate_tree(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind);
+    
     return;
 }
 
@@ -1161,8 +1135,6 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
 
     std::fill(X_num_unique_left.begin(), X_num_unique_left.end(), 0.0);
     std::fill(X_num_unique_right.begin(), X_num_unique_right.end(), 0.0);
-
-    // #pragma omp parallel for schedule(dynamic, 1) default(none) shared(state, temp_pointer, Xorder_std, Xorder_left_std, Xorder_right_std, N_Xorder, N_Xorder_left, N_Xorder_right, cutvalue, x_struct, compute_left_side, model, split_var, X_num_unique_left, X_num_unique_right, current_node, X_counts, X_counts_left, X_counts_right)
 
     for (size_t i = state->p_continuous; i < state->p; i++)
     {
@@ -1538,33 +1510,26 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
         // set up parallel during burnin
         //  state->p_continuous * state->nthread > 100 // this is approximately the cost to set up parallel for
-        // #pragma omp parallel for if(state->use_all & state->p_continuous * state->nthread > 120) schedule(dynamic, 1) default(none) shared(N_Xorder, state, subset_vars, Xorder_std, model, candidate_index, tree_pointer, loglike, loglike_max)
         for (auto i : subset_vars)
         {
-#pragma omp task firstprivate(i) shared(N_Xorder, Xorder_std, subset_vars, state, tree_pointer, candidate_index, model, loglike, loglike_max)
+            if (i < state->p_continuous)
             {
-                // size_t i = subset_vars[var_i];
+                std::vector<size_t> &xorder = Xorder_std[i];
 
-                if (i < state->p_continuous)
+                // initialize sufficient statistics
+                std::vector<double> temp_suff_stat(model->dim_suffstat);
+                std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
+
+                for (size_t j = 0; j < N_Xorder - 1; j++)
                 {
-                    std::vector<size_t> &xorder = Xorder_std[i];
+                    calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index, j, false, model, state->residual_std);
 
-                    // initialize sufficient statistics
-                    std::vector<double> temp_suff_stat(model->dim_suffstat);
-                    std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
+                    loglike[(N_Xorder - 1) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, false, false, state);
 
-                    for (size_t j = 0; j < N_Xorder - 1; j++)
-                    {
-                        calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index, j, false, model, state->residual_std);
-
-                        loglike[(N_Xorder - 1) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, false, false, state);
-
-                        loglike_max = loglike_max > loglike[(N_Xorder - 1) * i + j] ? loglike_max : loglike[(N_Xorder - 1) * i + j];
-                    }
+                    loglike_max = loglike_max > loglike[(N_Xorder - 1) * i + j] ? loglike_max : loglike[(N_Xorder - 1) * i + j];
                 }
-            }
+            }   
         }
-#pragma omp taskwait
     }
     else
     {
@@ -1580,27 +1545,23 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         // state->p_continuous * state->nthread > 100 // this is approximately the cost to set up parallel for
         for (auto i : subset_vars)
         {
-#pragma omp task firstprivate(i) shared(Xorder_std, subset_vars, state, tree_pointer, candidate_index2, model, loglike, loglike_max)
+            if (i < state->p_continuous)
             {
-                if (i < state->p_continuous)
+
+                std::vector<size_t> &xorder = Xorder_std[i];
+
+                std::vector<double> temp_suff_stat(model->dim_suffstat);
+                std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
+
+                for (size_t j = 0; j < state->n_cutpoints; j++)
                 {
-
-                    std::vector<size_t> &xorder = Xorder_std[i];
-
-                    std::vector<double> temp_suff_stat(model->dim_suffstat);
-                    std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
-
-                    for (size_t j = 0; j < state->n_cutpoints; j++)
-                    {
-                        calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index2, j, true, model, state->residual_std);
-                        // move likelihood calculation to a new thread
-                        loglike[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
-                        loglike_max = loglike_max > loglike[(state->n_cutpoints) * i + j] ? loglike_max : loglike[(state->n_cutpoints) * i + j];
-                    }
+                    calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index2, j, true, model, state->residual_std);
+                    // move likelihood calculation to a new thread
+                    loglike[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
+                    loglike_max = loglike_max > loglike[(state->n_cutpoints) * i + j] ? loglike_max : loglike[(state->n_cutpoints) * i + j];
                 }
             }
         }
-#pragma omp taskwait
     }
 }
 
@@ -1613,9 +1574,6 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
     // size_t N = N_Xorder;
     // size_t effective_cutpoints = 0;
 
-    // #pragma omp parallel for
-    // schedule(dynamic, 1)
-    // #pragma omp parallel for if(state->use_all & state->p_categorical * state->nthread > 140) schedule(dynamic, 1) default(none) shared(loglike_start, x_struct, X_counts,X_num_unique,  state, subset_vars, Xorder_std, model, tree_pointer, loglike, loglike_max)
     for (size_t var_i = 0; var_i < subset_vars.size(); var_i++)
     {
 
@@ -1625,57 +1583,45 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
         if ((i >= state->p_continuous) && (X_num_unique[i - state->p_continuous] > 1))
         {
-#pragma omp task firstprivate(i) shared(x_struct, state, model, X_counts, Xorder_std, loglike_start, loglike, loglike_max, tree_pointer)
+            std::vector<double> temp_suff_stat(model->dim_suffstat);
+            std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
+            size_t start, end, end2, n1, temp;
+
+            start = x_struct->variable_ind[i - state->p_continuous];
+            end = x_struct->variable_ind[i + 1 - state->p_continuous] - 1; // minus one for indexing starting at 0
+            end2 = end;
+
+            while (X_counts[end2] == 0)
             {
-                std::vector<double> temp_suff_stat(model->dim_suffstat);
-                std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
-                size_t start, end, end2, n1, temp;
-
-                start = x_struct->variable_ind[i - state->p_continuous];
-                end = x_struct->variable_ind[i + 1 - state->p_continuous] - 1; // minus one for indexing starting at 0
-                end2 = end;
-
-                while (X_counts[end2] == 0)
-                {
-                    // move backward if the last unique value has zero counts
-                    end2 = end2 - 1;
-                    // COUT << end2 << endl;
-                }
-                // move backward again, do not consider the last unique value as cutpoint
+                // move backward if the last unique value has zero counts
                 end2 = end2 - 1;
+                // COUT << end2 << endl;
+            }
+            // move backward again, do not consider the last unique value as cutpoint
+            end2 = end2 - 1;
 
-                n1 = 0;
+            n1 = 0;
 
-                for (size_t j = start; j <= end2; j++)
+            for (size_t j = start; j <= end2; j++)
+            {
+
+                if (X_counts[j] != 0)
                 {
 
-                    if (X_counts[j] != 0)
-                    {
+                    temp = n1 + X_counts[j] - 1;
 
-                        temp = n1 + X_counts[j] - 1;
+                    // modify sufficient statistics vector directly inside model class
+                    // model->calcSuffStat_categorical(temp_suff_stat, state->residual_std, Xorder_std, n1, temp, i);
+                    calcSuffStat_categorical(temp_suff_stat, Xorder_std[i], n1, temp, model, state);
 
-                        // modify sufficient statistics vector directly inside model class
-                        // model->calcSuffStat_categorical(temp_suff_stat, state->residual_std, Xorder_std, n1, temp, i);
-                        calcSuffStat_categorical(temp_suff_stat, Xorder_std[i], n1, temp, model, state);
+                    n1 = n1 + X_counts[j];
 
-                        n1 = n1 + X_counts[j];
-
-                        // #pragma omp task firstprivate(temp_suff_stat, j, n1) shared(loglike_start, state, tree_pointer, model, loglike, loglike_max)
-                        // {
-                        loglike[loglike_start + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, false, false, state);
-
-                        // count total number of cutpoint candidates
-                        // var_effective_cutpoints++; // need to be added in task shared
-                        // #pragma omp flush(var_effective_cutpoints);
-
-                        loglike_max = loglike_max > loglike[loglike_start + j] ? loglike_max : loglike[loglike_start + j];
-                        // }
-                    }
+                    loglike[loglike_start + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, false, false, state);
+                    loglike_max = loglike_max > loglike[loglike_start + j] ? loglike_max : loglike[loglike_start + j];
                 }
             }
         }
     }
-#pragma omp taskwait
 }
 
 void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, double &loglike_max, Model *model, std::unique_ptr<X_struct> &x_struct, size_t &total_categorical_split_candidates, std::unique_ptr<State> &state, tree *tree_pointer)

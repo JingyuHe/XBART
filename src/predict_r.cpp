@@ -104,22 +104,6 @@ Rcpp::List gp_predict(mat y, mat X, mat Xtest, Rcpp::XPtr<std::vector<std::vecto
 {
     // should be able to run in parallel
     cout << "predict with gaussian process" << endl;
-    // if (parallel && (nthread == 0))
-    // {
-    //     // if turn on parallel and do not sepicifiy number of threads
-    //     // use max - 1, leave one out
-    //     nthread = omp_get_max_threads() - 1;
-    // }
-
-    // if (parallel)
-    // {
-    //     omp_set_num_threads(nthread);
-    //     cout << "Running in parallel with " << nthread << " threads." << endl;
-    // }
-    // else
-    // {
-    //     cout << "Running with single thread." << endl;
-    // }
 
     // Size of data
     size_t N = X.n_rows;
