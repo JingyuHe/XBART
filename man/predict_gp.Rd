@@ -12,8 +12,8 @@ predict_gp(object, y, X, Xtest, theta = 10, tau = 5, p_categorical = 0)
   \item{y}{A vector of the training data \eqn{y}. Used to fit Gaussian process in the leaf nodes.}
   \item{X}{A matrix of the training data \eqn{X}. Used to fit Gaussian process in the leaf nodes.}
   \item{Xtest}{A matrix of the testing data to predict.}
-  \item{theta}{....}
-  \item{tau}{....}
+  \item{theta}{Lengthscale parameter of the covariance kernel.}
+  \item{tau}{Variance parameter of the covariance kernel.}
   \item{p_categorical}{Number of categorical \eqn{X} variables. All of categorical variables should be placed after continuous ones.}
 }
 \details{
