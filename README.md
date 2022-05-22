@@ -15,7 +15,7 @@ To solve it
    
    brew cask install gfortran
 
-   brew install llvm boost libomp
+   brew install llvm boost
 
    brew info llvm
    See what the LDFLAGS is, mine is like: 

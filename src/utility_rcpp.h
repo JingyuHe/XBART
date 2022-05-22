@@ -3,9 +3,6 @@
 
 #include<RcppArmadillo.h>
 #include "X_struct.h"
-#include "omp.h"
-
-
 
 // utility functions that rely on Rcpp packages
 
