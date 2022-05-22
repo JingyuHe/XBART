@@ -131,8 +131,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // xbart_multinomial_predict
-Rcpp::List xbart_multinomial_predict(mat X, double y_mean, size_t num_class, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, vec iteration);
-RcppExport SEXP _XBART_xbart_multinomial_predict(SEXP XSEXP, SEXP y_meanSEXP, SEXP num_classSEXP, SEXP tree_pntSEXP, SEXP iterationSEXP) {
+Rcpp::List xbart_multinomial_predict(mat X, double y_mean, size_t num_class, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt);
+RcppExport SEXP _XBART_xbart_multinomial_predict(SEXP XSEXP, SEXP y_meanSEXP, SEXP num_classSEXP, SEXP tree_pntSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -140,23 +140,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type y_mean(y_meanSEXP);
     Rcpp::traits::input_parameter< size_t >::type num_class(num_classSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_pnt(tree_pntSEXP);
-    Rcpp::traits::input_parameter< vec >::type iteration(iterationSEXP);
-    rcpp_result_gen = Rcpp::wrap(xbart_multinomial_predict(X, y_mean, num_class, tree_pnt, iteration));
-    return rcpp_result_gen;
-END_RCPP
-}
-// xbart_multinomial_predict_3D
-Rcpp::List xbart_multinomial_predict_3D(mat X, double y_mean, size_t num_class, Rcpp::XPtr<std::vector<std::vector<std::vector<tree>>>> tree_pnt, vec iteration);
-RcppExport SEXP _XBART_xbart_multinomial_predict_3D(SEXP XSEXP, SEXP y_meanSEXP, SEXP num_classSEXP, SEXP tree_pntSEXP, SEXP iterationSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< double >::type y_mean(y_meanSEXP);
-    Rcpp::traits::input_parameter< size_t >::type num_class(num_classSEXP);
-    Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<std::vector<tree>>>> >::type tree_pnt(tree_pntSEXP);
-    Rcpp::traits::input_parameter< vec >::type iteration(iterationSEXP);
-    rcpp_result_gen = Rcpp::wrap(xbart_multinomial_predict_3D(X, y_mean, num_class, tree_pnt, iteration));
+    rcpp_result_gen = Rcpp::wrap(xbart_multinomial_predict(X, y_mean, num_class, tree_pnt));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -212,8 +196,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART_xbart_predict", (DL_FUNC) &_XBART_xbart_predict, 3},
     {"_XBART_xbart_predict_full", (DL_FUNC) &_XBART_xbart_predict_full, 3},
     {"_XBART_gp_predict", (DL_FUNC) &_XBART_gp_predict, 9},
-    {"_XBART_xbart_multinomial_predict", (DL_FUNC) &_XBART_xbart_multinomial_predict, 5},
-    {"_XBART_xbart_multinomial_predict_3D", (DL_FUNC) &_XBART_xbart_multinomial_predict_3D, 5},
+    {"_XBART_xbart_multinomial_predict", (DL_FUNC) &_XBART_xbart_multinomial_predict, 4},
     {"_XBART_r_to_json", (DL_FUNC) &_XBART_r_to_json, 2},
     {"_XBART_json_to_r", (DL_FUNC) &_XBART_json_to_r, 1},
     {"_XBART_r_to_json_3D", (DL_FUNC) &_XBART_r_to_json_3D, 1},

@@ -5,12 +5,11 @@
   This function predict testing data given fitted XBART classification model.
 }
 \usage{
-\method{predict}{XBARTmultinomial}(object, X, iteration = NULL, burnin = 0, ...)
+\method{predict}{XBARTmultinomial}(object, X, burnin = 0, ...)
 }
 \arguments{
   \item{object}{Fitted \code{object} returned from XBART.multinomial fit.}
   \item{X}{A matrix of input testing data \eqn{X}.}
-  \item{iteration}{...}
   \item{burnin}{The first \code{burnin} sweeps will be discarded for prediction.}
   \item{...}{optional parameters.}
 }
