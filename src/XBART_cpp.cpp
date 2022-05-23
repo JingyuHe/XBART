@@ -123,10 +123,15 @@ Rcpp::List XBART_cpp(mat y, mat X, size_t num_trees, size_t num_sweeps, size_t m
         output_tree(i) = treess.str();
     }
 
+    // return the matrix of residuals, useful for prediction by GP
+    Rcpp::NumericVector resid_rcpp = Rcpp::wrap(resid);
+    resid_rcpp.attr("dim") = Rcpp::Dimension(N, num_sweeps, num_trees);
+
     return Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p),
-        Rcpp::Named("treedraws") = output_tree);
+        Rcpp::Named("treedraws") = output_tree,
+        Rcpp::Named("residuals") = resid_rcpp);
 }
