@@ -3,7 +3,6 @@
 #include <vector>
 #include "xbart.h"
 #include <utility.h>
-#include <forest.h>
 
 
 

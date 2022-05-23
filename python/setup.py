@@ -24,7 +24,7 @@ XBART_cpp_module = Extension('_xbart_cpp_',
                              sources=['xbart/xbart_wrap.cxx', 'xbart/xbart.cpp',
                                       "src/utility.cpp", 'src/mcmc_loop.cpp',
                                       "src/sample_int_crank.cpp",
-                                      "src/common.cpp",   "src/forest.cpp",
+                                      "src/common.cpp",  
                                       "src/tree.cpp", "src/thread_pool.cpp",
                                       "src/cdf.cpp", "src/json_io.cpp","src/model.cpp"
                                       ],
