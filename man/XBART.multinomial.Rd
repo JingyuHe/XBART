@@ -34,12 +34,12 @@ update_tau = TRUE, nthread = 0, hmult = 1, heps = 0.1, ...)
   \item{random_seed}{Random seed, should be a positive integer.}
   \item{sample_weights}{Bool. If \code{TRUE}, the weight to sample \eqn{X} variables at each tree will be sampled.}
   \item{separate_tree}{Bool. If \code{TRUE}, fit separate trees for different classes, otherwise all classes share the same tree structure.}
-  \item{weight}{....}
-  \item{update_weight}{...}
-  \item{update_tau}{...}
+  \item{weight}{Replicate factor of the Poisson observations. The default value is 1.}
+  \item{update_weight}{Bool. If \code{TRUE}, sample the replicate factor to reflect the data entropy.}
+  \item{update_tau}{Bool. If \code{TRUE}, update the prior of leaf mean.}
   \item{nthread}{Number of threads to use if the \code{parallel=TRUE}.}
-  \item{hmult}{...}
-  \item{heps}{...}
+  \item{hmult}{Prior of the replicate factor.}
+  \item{heps}{Prior of the replicate factor.}
   \item{...}{optional parameters to be passed to the low level function \code{XBART}.}
 }
 \details{

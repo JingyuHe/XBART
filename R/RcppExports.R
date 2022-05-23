@@ -21,12 +21,8 @@ gp_predict <- function(y, X, Xtest, tree_pnt, resid, sigma, theta, tau, p_catego
     .Call(`_XBART_gp_predict`, y, X, Xtest, tree_pnt, resid, sigma, theta, tau, p_categorical)
 }
 
-xbart_multinomial_predict <- function(X, y_mean, num_class, tree_pnt, iteration) {
-    .Call(`_XBART_xbart_multinomial_predict`, X, y_mean, num_class, tree_pnt, iteration)
-}
-
-xbart_multinomial_predict_3D <- function(X, y_mean, num_class, tree_pnt, iteration) {
-    .Call(`_XBART_xbart_multinomial_predict_3D`, X, y_mean, num_class, tree_pnt, iteration)
+xbart_multinomial_predict <- function(X, y_mean, num_class, tree_pnt) {
+    .Call(`_XBART_xbart_multinomial_predict`, X, y_mean, num_class, tree_pnt)
 }
 
 r_to_json <- function(y_mean, tree_pnt) {

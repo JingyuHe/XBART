@@ -208,7 +208,7 @@ Rcpp::List gp_predict(mat y, mat X, mat Xtest, Rcpp::XPtr<std::vector<std::vecto
 }
 
 // [[Rcpp::export]]
-Rcpp::List xbart_multinomial_predict(mat X, double y_mean, size_t num_class, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, vec iteration)
+Rcpp::List xbart_multinomial_predict(mat X, double y_mean, size_t num_class, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)
 {
 
     // Size of data
@@ -225,15 +225,6 @@ Rcpp::List xbart_multinomial_predict(mat X, double y_mean, size_t num_class, Rcp
         }
     }
     double *Xpointer = &X_std[0];
-
-    size_t iteration_len = iteration.n_elem;
-
-    std::vector<size_t> iteration_vec(iteration_len);
-
-    for (size_t i = 0; i < iteration_len; i++)
-    {
-        iteration_vec[i] = iteration(i);
-    }
 
     // Trees
     std::vector<std::vector<tree>> *trees = tree_pnt;
@@ -242,73 +233,19 @@ Rcpp::List xbart_multinomial_predict(mat X, double y_mean, size_t num_class, Rcp
     matrix<double> yhats_test_xinfo;
     size_t N_sweeps = (*trees).size();
     size_t N_trees = (*trees)[0].size();
-    ini_xinfo(yhats_test_xinfo, N, iteration_len);
+    ini_xinfo(yhats_test_xinfo, N, N_sweeps);
 
-    std::vector<double> output_vec(iteration_len * N * num_class);
+    std::vector<double> output_vec(N_sweeps * N * num_class);
 
     LogitModel *model = new LogitModel();
 
     model->dim_residual = num_class;
 
     // Predict
-    model->predict_std_standalone(Xpointer, N, p, N_trees, N_sweeps, yhats_test_xinfo, *trees, output_vec, iteration_vec);
+    model->predict_std(Xpointer, N, p, N_trees, N_sweeps, yhats_test_xinfo, *trees, output_vec);
 
     Rcpp::NumericVector output = Rcpp::wrap(output_vec);
-    output.attr("dim") = Rcpp::Dimension(iteration_len, N, num_class);
-
-    return Rcpp::List::create(Rcpp::Named("yhats") = output);
-}
-
-// [[Rcpp::export]]
-Rcpp::List xbart_multinomial_predict_3D(mat X, double y_mean, size_t num_class, Rcpp::XPtr<std::vector<std::vector<std::vector<tree>>>> tree_pnt, vec iteration)
-{
-    // used to predict for a three dimensional matrix of trees, for separate tree model of multinomial classification
-    // Size of data
-    size_t N = X.n_rows;
-    size_t p = X.n_cols;
-
-    // Init X_std matrix
-    Rcpp::NumericMatrix X_std(N, p);
-    for (size_t i = 0; i < N; i++)
-    {
-        for (size_t j = 0; j < p; j++)
-        {
-            X_std(i, j) = X(i, j);
-        }
-    }
-    double *Xpointer = &X_std[0];
-
-    size_t iteration_len = iteration.n_elem;
-
-    std::vector<size_t> iteration_vec(iteration_len);
-
-    for (size_t i = 0; i < iteration_len; i++)
-    {
-        iteration_vec[i] = iteration(i);
-    }
-
-    // Trees
-    std::vector<std::vector<std::vector<tree>>> *trees = tree_pnt;
-
-    // Result Container
-    vector<vector<double>> yhats_test_xinfo;
-    size_t N_sweeps = (*trees)[0].size();
-    size_t N_trees = (*trees)[0][0].size();
-
-    ini_xinfo(yhats_test_xinfo, N, iteration_len);
-
-    std::vector<double> output_vec(iteration_len * N * num_class);
-
-    LogitModelSeparateTrees *model = new LogitModelSeparateTrees();
-
-    model->dim_residual = num_class;
-
-    // Predict
-    model->predict_std_standalone(Xpointer, N, p, N_trees, N_sweeps, yhats_test_xinfo, *trees, output_vec, iteration_vec, 0);
-
-    Rcpp::NumericVector output = Rcpp::wrap(output_vec);
-
-    output.attr("dim") = Rcpp::Dimension(iteration_len, N, num_class);
+    output.attr("dim") = Rcpp::Dimension(N_sweeps, N, num_class);
 
     return Rcpp::List::create(Rcpp::Named("yhats") = output);
 }
