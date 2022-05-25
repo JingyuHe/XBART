@@ -1,7 +1,7 @@
 #include "utility.h"
 
-// ThreadPool thread_pool;
-//
+ThreadPool thread_pool;
+
 void ini_xinfo(matrix<double> &X, size_t N, size_t p)
 {
     // matrix<double> X;

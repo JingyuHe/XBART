@@ -19,7 +19,7 @@ class ThreadPoolTaskStatus
 {
     friend class ThreadPool;
 
-private:
+  private:
     inline ThreadPoolTaskStatus() : done(false){};
     std::atomic<bool> done;
     std::condition_variable changed;
@@ -30,7 +30,7 @@ private:
 
 class ThreadPool
 {
-public:
+  public:
     inline ThreadPool() : stopping(false){};
     inline ~ThreadPool() { stop(); }
 
@@ -47,8 +47,11 @@ public:
     // Returns a future that will provide the return value, if any.
     // This must be in the header because it's a template function.
     template <class F, class... Args>
-    auto add_task(F &&f, Args &&...args)
-        -> std::future<typename std::result_of<F(Args...)>::type>
+    auto add_task(F &&f, Args &&... args)
+        // C++ 11
+        // -> std::future<typename std::result_of<F(Args...)>::type>
+        // C++ 17
+        -> std::future<typename std::invoke_result<F,Args...>::type>
     {
         if (threads.size() == 0)
             throw std::runtime_error("add_task() called on inactive ThreadPool");
@@ -57,7 +60,10 @@ public:
             throw std::runtime_error("add_task() called on stopping ThreadPool");
 
         // Get return type from passed function f
-        using return_type = typename std::result_of<F(Args...)>::type;
+        // C++ 11
+        // using return_type = typename std::result_of<F(Args...)>::type;
+        // C++ 17
+        using return_type = typename std::invoke_result<F, Args...>::type;
 
         // Created a shared_ptr to a packaged_task for f(args)
         auto sharedf = std::make_shared<std::packaged_task<return_type()>>(
@@ -79,8 +85,7 @@ public:
         // When this lambda is called by a worker, it will call f(args),
         // then set the done flag in the status.
         tasks.emplace(
-            [this, sharedf, status]()
-            {
+            [this, sharedf, status]() {
                 (*sharedf)();
                 std::unique_lock<std::mutex> lock(this->pool_mutex);
                 status->done = true;
@@ -100,7 +105,7 @@ public:
     // Are the worker threads running?
     inline bool is_active() { return !stopping && threads.size() > 0; }
 
-private:
+  private:
     std::vector<std::thread> threads;
     std::queue<std::shared_ptr<ThreadPoolTaskStatus>> statuses;
     std::queue<std::function<void()>> tasks;

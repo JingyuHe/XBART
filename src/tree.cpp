@@ -872,9 +872,9 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
     }
 
     this->l->grow_from_root_entropy(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind);
-    
+
     this->r->grow_from_root_entropy(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind);
-   
+
     return;
 }
 
@@ -960,7 +960,7 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
                 exit(1);
             }
         }
-        
+
         state->lambdas_separate[tree_ind][j].push_back(this->theta_vector[j]);
 
         this->l = 0;
@@ -994,7 +994,7 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
         {
             x_struct->data_pointers_multinomial[j][tree_ind][Xorder_std[0][i]] = &this->theta_vector;
         }
-        
+
         state->lambdas_separate[tree_ind][j].push_back(this->theta_vector[j]);
 
         return;
@@ -1035,9 +1035,9 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
     }
 
     this->l->grow_from_root_separate_tree(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind);
-    
+
     this->r->grow_from_root_separate_tree(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind);
-    
+
     return;
 }
 
@@ -1086,28 +1086,42 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
     for (size_t i = 0; i < state->p_continuous; i++) // loop over variables
     {
         // lambda callback for multithreading
-        // auto split_i = [&, i]() {
-        size_t left_ix = 0;
-        size_t right_ix = 0;
-
-        std::vector<size_t> &xo = Xorder_std[i];
-        std::vector<size_t> &xo_left = Xorder_left_std[i];
-        std::vector<size_t> &xo_right = Xorder_right_std[i];
-
-        for (size_t j = 0; j < N_Xorder; j++)
+        auto split_i = [&, i]()
         {
-            if (*(split_var_x_pointer + xo[j]) <= cutvalue)
+            size_t left_ix = 0;
+            size_t right_ix = 0;
+
+            std::vector<size_t> &xo = Xorder_std[i];
+            std::vector<size_t> &xo_left = Xorder_left_std[i];
+            std::vector<size_t> &xo_right = Xorder_right_std[i];
+
+            for (size_t j = 0; j < N_Xorder; j++)
             {
-                xo_left[left_ix] = xo[j];
-                left_ix = left_ix + 1;
+                if (*(split_var_x_pointer + xo[j]) <= cutvalue)
+                {
+                    xo_left[left_ix] = xo[j];
+                    left_ix = left_ix + 1;
+                }
+                else
+                {
+                    xo_right[right_ix] = xo[j];
+                    right_ix = right_ix + 1;
+                }
             }
-            else
-            {
-                xo_right[right_ix] = xo[j];
-                right_ix = right_ix + 1;
-            }
+        };
+
+        if (thread_pool.is_active())
+        {
+            thread_pool.add_task(split_i);
+        }
+        else
+        {
+            split_i();
         }
     }
+
+    if (thread_pool.is_active())
+        thread_pool.wait();
 
     model->calculateOtherSideSuffStat(current_node->suff_stat, current_node->l->suff_stat, current_node->r->suff_stat, N_Xorder, N_Xorder_left, N_Xorder_right, compute_left_side);
 
@@ -1528,7 +1542,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                     loglike_max = loglike_max > loglike[(N_Xorder - 1) * i + j] ? loglike_max : loglike[(N_Xorder - 1) * i + j];
                 }
-            }   
+            }
         }
     }
     else
@@ -1541,27 +1555,75 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         seq_gen_std2(state->n_min, N - state->n_min, state->n_cutpoints, candidate_index2);
         // size_t p_continuous = state->p_continuous;
 
-        // set up parallel during burnin?
-        // state->p_continuous * state->nthread > 100 // this is approximately the cost to set up parallel for
-        for (auto i : subset_vars)
+        // // set up parallel during burnin?
+        //         // state->p_continuous * state->nthread > 100 // this is approximately the cost to set up parallel for
+        //         for (auto i : subset_vars)
+        //         {
+        //             // #pragma omp task firstprivate(i) shared(Xorder_std, subset_vars, state, tree_pointer, candidate_index2, model, loglike, loglike_max)
+        //             {
+        //                 if (i < state->p_continuous)
+        //                 {
+
+        //                     std::vector<size_t> &xorder = Xorder_std[i];
+
+        //                     std::vector<double> temp_suff_stat(model->dim_suffstat * state->unique_months);
+        //                     std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
+
+        //                     for (size_t j = 0; j < state->n_cutpoints; j++)
+        //                     {
+        //                         calcSuffStat_continuous(state->months, temp_suff_stat, xorder, candidate_index2, j, true, model, state->residual_std);
+
+        //                         // move likelihood calculation to a new thread
+        //                         loglike[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
+        //                         loglike_max = loglike_max > loglike[(state->n_cutpoints) * i + j] ? loglike_max : loglike[(state->n_cutpoints) * i + j];
+        //                     }
+        //                 }
+        //             }
+        //         }
+
+        std::mutex llmax_mutex;
+
+        for (auto &&i : subset_vars)
         {
             if (i < state->p_continuous)
             {
 
-                std::vector<size_t> &xorder = Xorder_std[i];
-
-                std::vector<double> temp_suff_stat(model->dim_suffstat);
-                std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
-
-                for (size_t j = 0; j < state->n_cutpoints; j++)
+                // Lambda callback to perform the calculation
+                auto calcllc_i = [i, &loglike, &loglike_max, &Xorder_std, &state, &candidate_index2, &model, &llmax_mutex, N_Xorder, &tree_pointer]()
                 {
-                    calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index2, j, true, model, state->residual_std);
-                    // move likelihood calculation to a new thread
-                    loglike[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
-                    loglike_max = loglike_max > loglike[(state->n_cutpoints) * i + j] ? loglike_max : loglike[(state->n_cutpoints) * i + j];
-                }
+                    std::vector<size_t> &xorder = Xorder_std[i];
+                    double llmax = -INFINITY;
+
+                    std::vector<double> temp_suff_stat(model->dim_suffstat);
+
+                    std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
+
+                    for (size_t j = 0; j < state->n_cutpoints; j++)
+                    {
+
+                        calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index2, j, true, model, state->residual_std);
+
+                        loglike[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
+
+                        if (loglike[(state->n_cutpoints) * i + j] > llmax)
+                        {
+                            llmax = loglike[(state->n_cutpoints) * i + j];
+                        }
+                    }
+                    llmax_mutex.lock();
+                    if (llmax > loglike_max)
+                        loglike_max = llmax;
+                    llmax_mutex.unlock();
+                };
+
+                if (thread_pool.is_active())
+                    thread_pool.add_task(calcllc_i);
+                else
+                    calcllc_i();
             }
         }
+        if (thread_pool.is_active())
+            thread_pool.wait();
     }
 }
 
@@ -1995,6 +2057,10 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_s
     size_t p = active_var.size();
     size_t p_continuous = p - p_categorical;
 
+    std::random_device rd;
+    std::mt19937 gen;
+    gen = std::mt19937(rd());
+
     if (Ntest == 0)
     { // no need to split if Ntest = 0
         return;
@@ -2157,8 +2223,18 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_s
         else
         {
             N = 100;
-            train_ind.resize(100);
+            // size_t num_d = Xorder_std[0].size();
+            // std::vector<size_t> sample_ind(num_d);
+            // std::vector<double> weight_samp(num_d, 1.0 / num_d);
+            // sample_ind = sample_int_ccrank(num_d, 100, weight_samp, gen);
+
+            // for (size_t iii = 0; iii < num_d; iii++)
+            // {
+            // train_ind[iii] = Xorder_std[0][sample_ind[iii]];
+            // }
+
             std::sample(Xorder_std[0].begin(), Xorder_std[0].end(), train_ind.begin(), 100, x_struct->gen);
+            // cout << train_ind << endl;
         }
 
         mat X(N + Ntest, p_active);

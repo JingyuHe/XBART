@@ -37,7 +37,7 @@ run_lightgbm <- FALSE # run lightgbm
 parl <- TRUE # parallel computing
 
 
-small_case <- TRUE # run simulation on small data set
+small_case <- FALSE # run simulation on small data set
 verbose <- FALSE # print the progress on screen
 
 
@@ -51,7 +51,7 @@ if (small_case) {
 } else {
     n <- 100000
     nt <- 10000
-    d <- 50
+    d <- 30
     dcat <- 0
 }
 
@@ -116,18 +116,24 @@ categ <- function(z, j) {
     return(output)
 }
 
+nthread = 8
+
 
 params <- get_XBART_params(y)
 time <- proc.time()
-fit <- XBART(as.matrix(y), as.matrix(x),
-    p_categorical = dcat, params$num_trees, params$num_sweeps, params$max_depth, params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1, mtry = params$mtry, verbose = verbose, num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100, no_split_penality = params$no_split_penality
-)
+fit <- XBART(as.matrix(y), as.matrix(x), p_categorical = dcat, params$num_trees, params$num_sweeps, params$max_depth, params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1, mtry = params$mtry, verbose = verbose, num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100, no_split_penality = params$no_split_penality, nthread = nthread)
+time <- proc.time() - time
+cat("Running time ", time[3], " seconds.\n")
 
 ################################
 # predict for testing set
 pred <- predict(fit, xtest)
 pred <- rowMeans(pred[, params$burnin:params$num_sweeps])
 
-# predict with Gaussian process extrapolation for out-of-range data points
-gp_pred <- predict_gp(fit, as.matrix(y), as.matrix(x), as.matrix(xtest))
 
+xbart_rmse = sqrt(mean((pred - ftest) ^ 2))
+print(paste("rmse of fit xbart: ", round(xbart_rmse, digits = 4)))
+
+
+# predict with Gaussian process extrapolation for out-of-range data points
+# gp_pred <- predict_gp(fit, as.matrix(y), as.matrix(x), as.matrix(xtest))

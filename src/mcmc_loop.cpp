@@ -8,8 +8,8 @@
 void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &resid)
 {
 
-    // if (state->parallel)
-    //     thread_pool.start();
+    if (state->parallel)
+        thread_pool.start(state->nthread);
 
     size_t N = state->residual_std[0].size();
 
@@ -91,7 +91,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             model->update_tau_per_forest(state, sweeps, trees);
         }
     }
-    // thread_pool.stop();
+    thread_pool.stop();
     return;
 }
 
