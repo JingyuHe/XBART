@@ -37,7 +37,7 @@ run_lightgbm <- FALSE # run lightgbm
 parl <- TRUE # parallel computing
 
 
-small_case <- FALSE # run simulation on small data set
+small_case <- TRUE # run simulation on small data set
 verbose <- FALSE # print the progress on screen
 
 
@@ -136,4 +136,4 @@ print(paste("rmse of fit xbart: ", round(xbart_rmse, digits = 4)))
 
 
 # predict with Gaussian process extrapolation for out-of-range data points
-# gp_pred <- predict_gp(fit, as.matrix(y), as.matrix(x), as.matrix(xtest))
+gp_pred <- predict_gp(fit, as.matrix(y), as.matrix(x), as.matrix(xtest))

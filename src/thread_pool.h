@@ -13,6 +13,9 @@
 #include <stdexcept>
 #include <thread>
 #include <vector>
+#include <iostream>
+
+using namespace std;
 
 // Private class ThreadPool uses to track task status
 class ThreadPoolTaskStatus

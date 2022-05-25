@@ -6,7 +6,10 @@ void ThreadPool::start(size_t nthreads)
         throw std::runtime_error("start() called on already started ThreadPool");
 
     if (nthreads == 0)
+    {
         nthreads = std::thread::hardware_concurrency();
+        std::cout << "Running in parallel, using " << nthreads << " threads." << std::endl;
+    }
 
     for (size_t i = 0; i < nthreads; ++i)
     {
@@ -24,7 +27,8 @@ void ThreadPool::start(size_t nthreads)
 
                         // Wait for something interesting to happen
                         this->wake_worker.wait(lock,
-                                               [this] { return this->stopping || !this->tasks.empty(); });
+                                               [this]
+                                               { return this->stopping || !this->tasks.empty(); });
 
                         // If stopping, exit
                         if (this->stopping && this->tasks.empty())

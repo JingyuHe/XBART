@@ -29,7 +29,7 @@ get_entropy <- function(nclass) {
 
 #####################
 # simulation parameters
-n <- 5000 # training size
+n <- 100000 # training size
 nt <- 1000 # testing size
 p <- 6 # number of X variables
 p_cat <- 0 # number of categorical X variables
@@ -78,7 +78,7 @@ num_sweeps <- 20
 burnin <- 5
 num_trees <- 20
 tm <- proc.time()
-fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, num_trees = num_trees, num_sweeps = num_sweeps, p_categorical = p_cat, separate_tree = FALSE)
+fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, num_trees = num_trees, num_sweeps = num_sweeps, p_categorical = p_cat, separate_tree = FALSE, parallel = FALSE)
 
 
 tm <- proc.time() - tm

@@ -2046,9 +2046,7 @@ void split_xorder_std_continuous_simplified(std::unique_ptr<gp_struct> &x_struct
     return;
 }
 
-void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_struct> &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique,
-                                matrix<size_t> &Xtestorder_std, std::unique_ptr<gp_struct> &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique,
-                                matrix<double> &yhats_test_xinfo, std::vector<bool> active_var, const size_t &p_categorical, const size_t &sweeps, const size_t &tree_ind, const double &theta, const double &tau)
+void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_struct> &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, matrix<size_t> &Xtestorder_std, std::unique_ptr<gp_struct> &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique, matrix<double> &yhats_test_xinfo, std::vector<bool> active_var, const size_t &p_categorical, const size_t &sweeps, const size_t &tree_ind, const double &theta, const double &tau)
 {
     // gaussian process prediction from root
     // cout << "gp_predict_from_root" << endl;
@@ -2056,10 +2054,6 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_s
     size_t Ntest = Xtestorder_std[0].size();
     size_t p = active_var.size();
     size_t p_continuous = p - p_categorical;
-
-    std::random_device rd;
-    std::mt19937 gen;
-    gen = std::mt19937(rd());
 
     if (Ntest == 0)
     { // no need to split if Ntest = 0
@@ -2223,18 +2217,8 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_s
         else
         {
             N = 100;
-            // size_t num_d = Xorder_std[0].size();
-            // std::vector<size_t> sample_ind(num_d);
-            // std::vector<double> weight_samp(num_d, 1.0 / num_d);
-            // sample_ind = sample_int_ccrank(num_d, 100, weight_samp, gen);
-
-            // for (size_t iii = 0; iii < num_d; iii++)
-            // {
-            // train_ind[iii] = Xorder_std[0][sample_ind[iii]];
-            // }
-
+            train_ind.resize(100);
             std::sample(Xorder_std[0].begin(), Xorder_std[0].end(), train_ind.begin(), 100, x_struct->gen);
-            // cout << train_ind << endl;
         }
 
         mat X(N + Ntest, p_active);

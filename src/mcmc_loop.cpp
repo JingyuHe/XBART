@@ -2,7 +2,6 @@
 // main function of the Bayesian backfitting algorithm
 //////////////////////////////////////////////////////////////////////////////////////
 
-
 #include "mcmc_loop.h"
 
 void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &resid)
@@ -97,9 +96,11 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
 
 void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, LogitModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &tau_samples)
 {
-    // if (state->parallel)
-    //     thread_pool.start();
-
+    if (state->parallel)
+    {
+        thread_pool.start(state->nthread);
+    }
+    
     // Residual for 0th tree
     model->ini_residual_std(state);
 
@@ -176,7 +177,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             }
         }
     }
-    // thread_pool.stop();
+    thread_pool.stop();
 }
 
 void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModelSeparateTrees *model, std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &weight_samples)
@@ -233,7 +234,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
 
                 trees[class_ind][sweeps][tree_ind].grow_from_root_separate_tree(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind);
             }
-  
+
             state->update_split_counts(tree_ind);
 
             if (sweeps >= state->burnin)
