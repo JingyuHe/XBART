@@ -2,7 +2,11 @@
 
 XBART -- Accelerated Bayesian Additive Regression Trees is an optimized machine learning library that provides efficient and accurate predictions. It implements a tree ensemble model inspired by the Bayesian Additive Regression Trees. XBART discards the slow random walk Metropolis-Hastings algorithms implemented by BART, rather fit the trees recursively and maintains the regularization from BART model. It can solve many data analytics problem efficiently and accurately. Furthermore it works for both regression and classification tasks, provides package in R and python, and can take advantage of parallel computing.
 
+## Warm-start BART
 
+The BART Markov chain Monte Carlo algorithm can initialize at XBART fitted trees (rather than the default root nodes) to speed up convergence. See the demo examples under /tests folder for more details.
+
+Currently, the warm-start BART relies on a customerized version of BART package [Github Link](https://github.com/jingyuhe/BART). We are working with the developers of BART pacakage to bring this feature to the original package.
 
 ## Reference
 
@@ -33,6 +37,12 @@ library(devtools)
 install_github("JingyuHe/XBART")
 ```
 
+You may also install the customerized BART package to try the warm-start feature.
+```R
+library(devtools)
+install_github("JingyuHe/BART")
+```
+
 
 
 #### Trouble shooting
@@ -43,45 +53,14 @@ If you have any compiler error, please install the latest version of Rtools [Lin
 
 ##### Mac
 
+You might need to install the Xcode command line tools for compilers. (Not necessary to install the entire large Xcode software.)
 
-For mac users seeing error clang: error: unsupported option '-fopenmp'
+Open a terminal, run 
 
-It is because the default C++ compiler on Mac does not support openmp.
-
-To solve it
-
-1. Install necessary packages via homebrew 
-   
-   brew cask install gfortran
-
-   brew install llvm boost libomp
-
-   brew info llvm
-   See what the LDFLAGS is, mine is like: 
-   LDFLAGS=“-L/opt/homebrew/opt/llvm/lib -Wl,-rpath,/opt/homebrew/opt/llvm/lib”
-
-2. Run the following code in the terminal, under your user directory (/Users/your_user_name)
-   
-   mkdir -p ~/.R
-
-   cd .R
-
-   touch Makevars
-
-   open -e Makevars
-
-3. Then the text editor pops out, copy and paste the following lines to the file
-   
-   CC=/opt/homebrew/opt/llvm/lclang
-   CXX=/opt/homebrew/opt/llvm/clang++
-   CXX11=/opt/homebrew/opt/llvm/clang++
-   CXX14=/opt/homebrew/opt/llvm/clang++
-   CXX17=/opt/homebrew/opt/llvm/clang++
-   CXX1X=/opt/homebrew/opt/llvm/clang++
-   LDFLAGS=-L/opt/homebrew/opt/llvm/lib
-
-4. Save, exit and reboot your Mac
+```R
+xcode-select --install
+```
 
 ##### Linux
 
-Since you are using Linux, you must be an expert ;-)
+Linux is already shipped with all necessary compilers. Since you are using Linux, you must be an expert ;-)
