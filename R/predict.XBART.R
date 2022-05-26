@@ -8,7 +8,6 @@ predict.XBART <- function(object, X, ...) {
 
 predict_full <- function(object, X, ...) {
     out <- json_to_r(object$tree_json)
-
     obj <- .Call(`_XBART_xbart_predict_full`, X, object$model_list$y_mean, out$model_list$tree_pnt) # object$tree_pnt
     obj <- obj$yhats
     return(obj)
