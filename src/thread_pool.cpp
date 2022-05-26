@@ -8,7 +8,11 @@ void ThreadPool::start(size_t nthreads)
     if (nthreads == 0)
     {
         nthreads = std::thread::hardware_concurrency();
-        std::cout << "Running in parallel, using " << nthreads << " threads." << std::endl;
+    }
+
+    if (nthreads > std::thread::hardware_concurrency())
+    {
+        nthreads = std::thread::hardware_concurrency();
     }
 
     for (size_t i = 0; i < nthreads; ++i)

@@ -84,9 +84,6 @@ std::vector<size_t> sample_int_ccrank(size_t n, size_t size, std::vector<double>
     {
         v_int[i] = (size_t)(vx[i] - 1);
     }
-
-    // std::cout << v_int << endl;
-
     return v_int;
 }
 

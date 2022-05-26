@@ -300,7 +300,7 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
     {
         if (std::isnan(suff_stat[j]))
         {
-            cout << "unidentified error: suff_stat is nan for class " << j << endl;
+            COUT << "unidentified error: suff_stat is nan for class " << j << endl;
             exit(1);
         }
         std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1.0); // consider adding 1 sudo obs to prevent 0 theta value
@@ -347,7 +347,7 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
     }
     if (std::isnan(weight))
     {
-        cout << "weight is nan" << endl;
+        COUT << "weight is nan" << endl;
     }
 
     // Sample tau_a
@@ -378,7 +378,6 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
             }
         }
         var_lambda = var_lambda / count_lambda;
-        // cout << "mean = " << mean_lambda << "; var = " << var_lambda << endl;
 
         // std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda));
         std::normal_distribution<> norm(1, sqrt(var_lambda));
@@ -390,7 +389,6 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 
         // std::gamma_distribution<> d(10.0 *logloss / (double)state->n_y , 1.0);
         // tau_a = d(state->gen) ; // it's like shift p down by
-        // cout << "weight = " << weight << ", tau_a = " << tau_a <<", logloss = " << logloss/(double) state->n_y << endl;
     }
 
     return;
@@ -466,7 +464,7 @@ void LogitModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual
             residual_std[j][i] = residual_std[j][i] + log((*(x_struct->data_pointers[tree_ind][i]))[j]) - log((*(x_struct->data_pointers[next_index][i]))[j]);
             if (std::isnan(exp(residual_std[j][i])))
             {
-                cout << "residual is nan, log(resid) = " << residual_std[j][i] << ", old_pointer = " << (*(x_struct->data_pointers[next_index][i]))[j] << ", new = " << (*(x_struct->data_pointers[tree_ind][i]))[j] << endl;
+                COUT << "residual is nan, log(resid) = " << residual_std[j][i] << ", old_pointer = " << (*(x_struct->data_pointers[next_index][i]))[j] << ", new = " << (*(x_struct->data_pointers[tree_ind][i]))[j] << endl;
             }
         }
     }
@@ -605,7 +603,7 @@ void LogitModel::predict_std_standalone(const double *Xtestpointer, size_t N_tes
 
     tree::tree_p bn;
 
-    cout << "number of iterations " << num_iterations << " " << num_sweeps << endl;
+    COUT << "number of iterations " << num_iterations << " " << num_sweeps << endl;
 
     size_t sweeps;
 
@@ -701,8 +699,8 @@ void LogitModelSeparateTrees::samplePars(std::unique_ptr<State> &state, std::vec
     theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
     if (theta_vector[j] == 0)
     {
-        cout << "unidentified error, theta for class " << j << " = 0" << endl;
-        cout << "suff_stats = " << suff_stat[j] << ", " << suff_stat[dim_theta + j] << ", tau_a = " << tau_a << endl;
+        COUT << "unidentified error, theta for class " << j << " = 0" << endl;
+        COUT << "suff_stats = " << suff_stat[j] << ", " << suff_stat[dim_theta + j] << ", tau_a = " << tau_a << endl;
         exit(1);
     }
 
@@ -728,7 +726,6 @@ void LogitModelSeparateTrees::update_state(std::unique_ptr<State> &state, size_t
         }
         // Sample phi
         (*phi)[i] = gammadist(state->gen) / (1.0 * sum_fits);
-        // cout << "phi " << i << " = " << (*phi)[i] << ", sum_fits = " << sum_fits << endl;
         // calculate logloss
         logloss += -log(exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers_multinomial[y_i][tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j)
     }
@@ -870,7 +867,7 @@ void LogitModelSeparateTrees::predict_std_standalone(const double *Xtestpointer,
 
     tree::tree_p bn;
 
-    cout << "number of iterations " << num_iterations << " " << num_sweeps << endl;
+    COUT << "number of iterations " << num_iterations << " " << num_sweeps << endl;
 
     size_t sweeps;
 

@@ -34,10 +34,10 @@ new_data <- TRUE # generate new data
 run_dbarts <- FALSE # run dbarts
 run_xgboost <- FALSE # run xgboost
 run_lightgbm <- FALSE # run lightgbm
-parl <- TRUE # parallel computing
+parl <- FALSE # parallel computing
 
 
-small_case <- TRUE # run simulation on small data set
+small_case <- FALSE # run simulation on small data set
 verbose <- FALSE # print the progress on screen
 
 
@@ -117,7 +117,6 @@ categ <- function(z, j) {
 }
 
 nthread = 8
-
 
 params <- get_XBART_params(y)
 time <- proc.time()

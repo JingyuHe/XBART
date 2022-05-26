@@ -6,10 +6,6 @@
 
 void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &resid)
 {
-
-    if (state->parallel)
-        thread_pool.start(state->nthread);
-
     size_t N = state->residual_std[0].size();
 
     // initialize the matrix of residuals
@@ -30,7 +26,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
 
             if (verbose)
             {
-                cout << "sweep " << sweeps << " tree " << tree_ind << endl;
+                COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
             }
 
             // draw Sigma
@@ -90,17 +86,11 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             model->update_tau_per_forest(state, sweeps, trees);
         }
     }
-    thread_pool.stop();
     return;
 }
 
 void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, LogitModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &tau_samples)
 {
-    if (state->parallel)
-    {
-        thread_pool.start(state->nthread);
-    }
-    
     // Residual for 0th tree
     model->ini_residual_std(state);
 
@@ -119,7 +109,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 
             if (verbose)
             {
-                cout << "sweep " << sweeps << " tree " << tree_ind << endl;
+                COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
             }
             // Draw latents -- do last?
 
@@ -142,7 +132,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             {
                 if (std::isnan(trees[sweeps][tree_ind].suff_stat[k]))
                 {
-                    cout << "unidentified error: suffstat " << k << " initialized as nan" << endl;
+                    COUT << "unidentified error: suffstat " << k << " initialized as nan" << endl;
                     exit(1);
                 }
             }
@@ -177,11 +167,11 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             }
         }
     }
-    thread_pool.stop();
 }
 
 void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModelSeparateTrees *model, std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &weight_samples)
 {
+
     // Residual for 0th tree
     model->ini_residual_std(state);
     size_t p = Xorder_std.size();
@@ -203,7 +193,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
 
             if (verbose)
             {
-                cout << "sweep " << sweeps << " tree " << tree_ind << endl;
+                COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
             }
             // Draw latents -- do last?
 
@@ -223,7 +213,6 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
 
             for (size_t class_ind = 0; class_ind < model->dim_residual; class_ind++)
             {
-                // cout << "class_ind " << class_ind << endl;
                 model->set_class_operating(class_ind);
 
                 state->lambdas_separate[tree_ind][class_ind].clear();

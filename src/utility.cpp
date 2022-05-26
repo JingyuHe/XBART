@@ -211,9 +211,6 @@ void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, // 
         X_num_unique[i - p_continuous] = count_unique;
         total_points++;
     }
-
-    // std::cout << "total_points " << total_points << std::endl;
-
     return;
 }
 
@@ -227,7 +224,7 @@ void get_X_range(const double *Xpointer, std::vector<std::vector<size_t>> &Xorde
     double alpha = 0.05;
     size_t low_idx = (size_t)floor(N * alpha / 2);
     size_t up_idx = (size_t)floor(N * (1 - alpha / 2));
-    // cout << "N = " << N << ", low = " << low_idx << ", up_idx = " << up_idx<< endl;
+
     for (size_t i = 0; i < p; i++)
     {
         // X_range[i][0] = *(Xpointer + i * n_y + Xorder_std[i][0]);
@@ -235,9 +232,6 @@ void get_X_range(const double *Xpointer, std::vector<std::vector<size_t>> &Xorde
         X_range[i][0] = *(Xpointer + i * n_y + Xorder_std[i][low_idx]);
         X_range[i][1] = *(Xpointer + i * n_y + Xorder_std[i][up_idx]);
     }
-
-    // std::cout << "total_points " << total_points << std::endl;
-
     return;
 }
 
@@ -320,7 +314,6 @@ void get_rel_covariance(mat &cov, mat &X, std::vector<double> X_range, double th
                 temp += pow(X(i, k) - X(j, k), 2) / pow(X_range[k], 2) / 2;
                 // temp += std::abs(X(i,k) - X(j, k)) / X_range[k];
             }
-            // cout << "distance = " << temp << endl;
             cov(i, j) = tau * exp(-theta * temp);
             cov(j, i) = cov(i, j);
         }

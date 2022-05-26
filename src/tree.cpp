@@ -619,7 +619,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 
         if (split_point + 1 == N_Xorder)
         {
-            // cout << "split_point = N" << endl;
             no_split = true;
         }
     }
@@ -670,7 +669,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     matrix<size_t> Xorder_right_std;
     ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
     ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
-    // cout << "split_point = " << split_point << ", N = " << N_Xorder << ", cut = " << cutpoint << ", next = " << *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point+1])<< endl;
 
     std::vector<size_t> X_num_unique_left(X_num_unique.size());
     std::vector<size_t> X_num_unique_right(X_num_unique.size());
@@ -724,8 +722,6 @@ void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state
 
 void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind)
 {
-
-    // cout << "current depth " << getdepth() << endl;
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
@@ -881,7 +877,6 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
 void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, std::unique_ptr<X_struct> &x_struct, const size_t &sweeps, const size_t &tree_ind)
 {
     // grow a tree, users can control number of split points
-    // cout << "depth = " << this->depth << endl;
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
     // size_t ind;
@@ -956,7 +951,7 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
             x_struct->data_pointers_multinomial[j][tree_ind][Xorder_std[0][i]] = &this->theta_vector;
             if ((*(x_struct->data_pointers_multinomial[j][tree_ind][Xorder_std[0][i]]))[j] == 0)
             {
-                cout << "theta_vector = " << this->theta_vector << endl;
+                COUT << "theta_vector = " << this->theta_vector << endl;
                 exit(1);
             }
         }
@@ -1110,7 +1105,7 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
             }
         };
 
-        if (thread_pool.is_active())
+        if (thread_pool.is_active() && state->parallel)
         {
             thread_pool.add_task(split_i);
         }
@@ -1315,13 +1310,11 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
     // decide lenght of loglike vector
     if (N <= state->n_cutpoints + 1 + 2 * state->n_min)
     {
-        // cout << "small set " << endl;
         loglike.resize((N_Xorder - 1) * state->p_continuous + x_struct->X_values.size() + 1, -INFINITY);
         loglike_start = (N_Xorder - 1) * state->p_continuous;
     }
     else
     {
-        // cout << "bigger set " << endl;
         loglike.resize(state->n_cutpoints * state->p_continuous + x_struct->X_values.size() + 1, -INFINITY);
         loglike_start = state->n_cutpoints * state->p_continuous;
     }
@@ -1340,14 +1333,21 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
     // calculate likelihood of no-split option
     calculate_likelihood_no_split(loglike, N_Xorder, loglike_max, model, x_struct, total_categorical_split_candidates, state, tree_pointer);
 
+    loglike_max = -INFINITY;
+    for (size_t ii = 0; ii < loglike.size(); ii++)
+    {
+        if (loglike[ii] > loglike_max)
+        {
+            loglike_max = loglike[ii];
+        }
+    }
+
     // transfer loglikelihood to likelihood
     for (size_t ii = 0; ii < loglike.size(); ii++)
     {
         // if a variable is not selected, take exp will becomes 0
         loglike[ii] = exp(loglike[ii] - loglike_max);
     }
-    // cout << "loglike " << loglike << endl;
-    // cout << " ok " << endl;
 
     // sampling cutpoints
     if (N <= state->n_cutpoints + 1 + 2 * state->n_min)
@@ -1514,10 +1514,6 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         // if we only have a few data observations in current node
         // use all of them as cutpoint candidates
 
-        // double n1tau;
-        // double n2tau;
-        // double Ntau = N_Xorder * model->tau;
-
         // to have a generalized function, have to pass an empty candidate_index object for this case
         // is there any smarter way to do it?
         std::vector<size_t> candidate_index(1);
@@ -1540,7 +1536,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                     loglike[(N_Xorder - 1) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, false, false, state);
 
-                    loglike_max = loglike_max > loglike[(N_Xorder - 1) * i + j] ? loglike_max : loglike[(N_Xorder - 1) * i + j];
+                    // loglike_max = loglike_max > loglike[(N_Xorder - 1) * i + j] ? loglike_max : loglike[(N_Xorder - 1) * i + j];
                 }
             }
         }
@@ -1581,7 +1577,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         //             }
         //         }
 
-        std::mutex llmax_mutex;
+        // std::mutex llmax_mutex;
 
         for (auto &&i : subset_vars)
         {
@@ -1589,10 +1585,10 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
             {
 
                 // Lambda callback to perform the calculation
-                auto calcllc_i = [i, &loglike, &loglike_max, &Xorder_std, &state, &candidate_index2, &model, &llmax_mutex, N_Xorder, &tree_pointer]()
+                auto calcllc_i = [i, &loglike, &loglike_max, &Xorder_std, &state, &candidate_index2, &model, N_Xorder, &tree_pointer]()
                 {
                     std::vector<size_t> &xorder = Xorder_std[i];
-                    double llmax = -INFINITY;
+                    // double llmax = -INFINITY;
 
                     std::vector<double> temp_suff_stat(model->dim_suffstat);
 
@@ -1605,18 +1601,18 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                         loglike[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
 
-                        if (loglike[(state->n_cutpoints) * i + j] > llmax)
-                        {
-                            llmax = loglike[(state->n_cutpoints) * i + j];
-                        }
+                        // if (loglike[(state->n_cutpoints) * i + j] > llmax)
+                        // {
+                        // llmax = loglike[(state->n_cutpoints) * i + j];
+                        // }
                     }
-                    llmax_mutex.lock();
-                    if (llmax > loglike_max)
-                        loglike_max = llmax;
-                    llmax_mutex.unlock();
+                    // llmax_mutex.lock();
+                    // if (llmax > loglike_max)
+                    // loglike_max = llmax;
+                    // llmax_mutex.unlock();
                 };
 
-                if (thread_pool.is_active())
+                if (thread_pool.is_active() && state->parallel)
                     thread_pool.add_task(calcllc_i);
                 else
                     calcllc_i();
@@ -1657,7 +1653,6 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
             {
                 // move backward if the last unique value has zero counts
                 end2 = end2 - 1;
-                // COUT << end2 << endl;
             }
             // move backward again, do not consider the last unique value as cutpoint
             end2 = end2 - 1;
@@ -1679,7 +1674,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                     n1 = n1 + X_counts[j];
 
                     loglike[loglike_start + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, false, false, state);
-                    loglike_max = loglike_max > loglike[loglike_start + j] ? loglike_max : loglike[loglike_start + j];
+                    // loglike_max = loglike_max > loglike[loglike_start + j] ? loglike_max : loglike[loglike_start + j];
                 }
             }
         }
@@ -1708,7 +1703,6 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
 
     // loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + log(model->getNoSplitPenality());
 
-    // cout << loglike << endl;
     //  then adjust according to number of variables and split points
 
     ////////////////////////////////////////////////////////////////
@@ -1753,33 +1747,11 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
     // loglike[loglike.size() - 1] += log(p - p_continuous) + log(Ncutpoints);
 
     // this is important, update maximum of loglike vector
-    if (loglike[loglike.size() - 1] > loglike_max)
-    {
-        loglike_max = loglike[loglike.size() - 1];
-    }
+    // if (loglike[loglike.size() - 1] > loglike_max)
+    // {
+    // loglike_max = loglike[loglike.size() - 1];
+    // }
 }
-
-// void predict_from_tree(tree &tree, const double *X_std, size_t N, size_t p, std::vector<double> &output, Model *model)
-// {
-//     tree::tree_p bn;
-//     for (size_t i = 0; i < N; i++)
-//     {
-//         bn = tree.search_bottom_std(X_std, i, p, N);
-//         output[i] = model->predictFromTheta(bn->theta_vector);
-//     }
-//     return;
-// }
-
-// void predict_from_datapointers(size_t tree_ind, Model *model, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct)
-// {
-//     // // tree search, but read from the matrix of pointers to end node directly
-//     // // easier to get fitted value of training set
-//     // for (size_t i = 0; i < state->n_y; i++)
-//     // {
-//     //     state->predictions_std[tree_ind][i] = model->predictFromTheta(*(x_struct->data_pointers[tree_ind][i]));
-//     // }
-//     // return;
-// }
 
 void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<size_t> &xorder, size_t &start, size_t &end, Model *model, std::unique_ptr<State> &state)
 {
@@ -1833,14 +1805,12 @@ size_t get_split_point(const double *Xpointer, matrix<size_t> &Xorder_std, size_
 
     if (c < *(Xpointer + n_y * v + Xorder_std[v][0]))
     {
-        cout << "Warning: cut point less than the smallest value" << endl;
-        // cout << "v = " << v << ", c = " << c << ", min = " << *(Xpointer + n_y * v + Xorder_std[v][0]) << ", max = " << *(Xpointer + n_y * v + Xorder_std[v][right_ind]) << ", N = " << Xorder_std[0].size() << endl;
+        COUT << "Warning: cut point less than the smallest value" << endl;
         split_point = 0;
     }
     else if (c > *(Xpointer + n_y * v + Xorder_std[v][right_ind]))
     {
-        cout << "Warning: cut point greater than the smallest value" << endl;
-        // cout << "v = " << v << ", c = " << c << ", min = " << *(Xpointer + n_y * v + Xorder_std[v][0]) << ", max = " << *(Xpointer + n_y * v + Xorder_std[v][right_ind])  << ", N = " << Xorder_std[0].size()  << endl;
+        COUT << "Warning: cut point greater than the smallest value" << endl;
         split_point = right_ind;
     }
     else
@@ -1867,19 +1837,15 @@ size_t get_split_point(const double *Xpointer, matrix<size_t> &Xorder_std, size_
     }
     if (Xorder_std[0].size() == split_point + 1)
     {
-        cout << "split_point = N = " << split_point + 1 << endl;
-        cout << "v = " << v << ", c = " << c << ", min = " << *(Xpointer + n_y * v + Xorder_std[v][0]) << ", max = " << *(Xpointer + n_y * v + Xorder_std[v][right_ind]) << ", N = " << Xorder_std[0].size() << endl;
+        COUT << "split_point = N = " << split_point + 1 << endl;
+        COUT << "v = " << v << ", c = " << c << ", min = " << *(Xpointer + n_y * v + Xorder_std[v][0]) << ", max = " << *(Xpointer + n_y * v + Xorder_std[v][right_ind]) << ", N = " << Xorder_std[0].size() << endl;
         throw;
     }
 
     return split_point;
 }
 
-void split_xorder_std_categorical_simplified(std::unique_ptr<gp_struct> &x_struct, matrix<size_t> &Xorder_left_std,
-                                             matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std,
-                                             std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right,
-                                             std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right,
-                                             std::vector<size_t> &X_counts, size_t p_categorical)
+void split_xorder_std_categorical_simplified(std::unique_ptr<gp_struct> &x_struct, matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, size_t p_categorical)
 {
     // without model, state, don't update suff stats
 
@@ -2049,7 +2015,6 @@ void split_xorder_std_continuous_simplified(std::unique_ptr<gp_struct> &x_struct
 void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_struct> &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, matrix<size_t> &Xtestorder_std, std::unique_ptr<gp_struct> &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique, matrix<double> &yhats_test_xinfo, std::vector<bool> active_var, const size_t &p_categorical, const size_t &sweeps, const size_t &tree_ind, const double &theta, const double &tau)
 {
     // gaussian process prediction from root
-    // cout << "gp_predict_from_root" << endl;
     size_t N = Xorder_std[0].size();
     size_t Ntest = Xtestorder_std[0].size();
     size_t p = active_var.size();
@@ -2137,20 +2102,17 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_s
             }
         }
 
-        // cout << "left, N = " << Xorder_left_std[0].size() << endl;
         this->l->gp_predict_from_root(Xorder_left_std, x_struct, X_counts_left, X_num_unique_left,
                                       Xtestorder_left_std, xtest_struct, Xtest_counts_left, Xtest_num_unique_left, yhats_test_xinfo, active_var_left, p_categorical, sweeps, tree_ind, theta, tau);
-        // cout << "end left" << endl;
-        // cout << "right, N = " << Xorder_right_std[0].size() << endl;
+
         this->r->gp_predict_from_root(Xorder_right_std, x_struct, X_counts_right, X_num_unique_right,
                                       Xtestorder_right_std, xtest_struct, Xtest_counts_right, Xtest_num_unique_right, yhats_test_xinfo, active_var_right, p_categorical, sweeps, tree_ind, theta, tau);
-        // cout << "end rigth " << endl;
     }
     else
     {
         if (N == 0)
         {
-            cout << "0 training data in the leaf node" << endl;
+            COUT << "0 training data in the leaf node" << endl;
             throw;
         }
         // assign mu
@@ -2162,7 +2124,6 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_s
         // get local range
         matrix<double> local_X_range;
         get_X_range(x_struct->X_std, Xorder_std, local_X_range, x_struct->n_y);
-        // cout << "N = " << N << ", X_range = " << local_X_range << endl;
 
         // check out of range test sets
         // exterior points may not be out-of-range on all active variables
@@ -2197,7 +2158,6 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_s
         size_t p_active = std::accumulate(active_var_out_range.begin(), active_var_out_range.end(), 0);
         if (p_active == 0)
         {
-            // cout << "Warning: number of continuous active variable is 0. Sweep = " << sweeps << ", tree = " << tree_ind << endl;
             return;
         }
 
@@ -2257,7 +2217,7 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, std::unique_ptr<gp_s
 
                 if (x_range[j_count] == 0)
                 {
-                    cout << "x_range = 0"
+                    COUT << "x_range = 0"
                          << ", j = " << j << endl;
                     throw;
                 }

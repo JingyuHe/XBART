@@ -52,12 +52,11 @@ if (small_case) {
     # must be d >= dcat
     # (X_continuous, X_categorical), 10 and 10 for each case, 20 in total
 } else {
-    n <- 1000000
+    n <- 100000
     nt <- 10000
     d <- 50
     dcat <- 0
 }
-
 
 
 #######################################################################
@@ -110,52 +109,21 @@ if (new_data) {
 
 #######################################################################
 # XBART
-categ <- function(z, j) {
-    q <- as.numeric(quantile(x[, j], seq(0, 1, length.out = 100)))
-    output <- findInterval(z, c(q, +Inf))
-    return(output)
-}
-
-
-
-
 params <- get_XBART_params(y)
 time <- proc.time()
 
-
-
-
-
-
-
-
+nthread <- 4
 
 # XBART
-fit <- XBART(as.matrix(y), as.matrix(x), as.matrix(xtest),
-    p_categorical = dcat,
-    params$num_trees, params$num_sweeps, params$max_depth,
-    params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1,
-    mtry = params$mtry, verbose = TRUE,
-    num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100, no_split_penality = params$no_split_penality
-)
+fit <- XBART(as.matrix(y), as.matrix(x), p_categorical = dcat, params$num_trees, params$num_sweeps, params$max_depth, params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1, mtry = params$mtry, verbose = verbose, num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100, no_split_penality = params$no_split_penality, nthread = nthread)
 
-################################
-# two ways to predict on testing set
-
-# 1. set xtest as input to main fitting function
-fhat.1 <- apply(fit$yhats_test[, params$burnin:params$num_sweeps], 1, mean)
 time <- proc.time() - time
-print(time[3])
-
-# 2. a separate predict function
-pred <- predict(fit, xtest)
-pred <- rowMeans(pred[, params$burnin:params$num_sweeps])
-
 time_XBART <- round(time[3], 3)
 
-pred2 <- predict(fit, xtest)
-pred2 <- rowMeans(pred2[, params$burnin:params$num_sweeps])
-stopifnot(pred == pred2)
+################################
+# predict on testing set
+pred <- predict(fit, xtest)
+pred <- rowMeans(pred[, params$burnin:params$num_sweeps])
 
 
 
@@ -184,8 +152,6 @@ bart_ini_rmse
 
 
 
-
-
 #######################################################################
 # Calculate coverage
 #######################################################################
@@ -201,7 +167,6 @@ for (i in 15:50) {
 
     draw_BART_XBART <- rbind(draw_BART_XBART, fit_bart2$yhat.test)
 }
-
 
 i <- 20
 set.seed(1)
@@ -219,8 +184,6 @@ bart_ini_rmse <- sqrt(mean((colMeans(draw_BART_XBART) - ftest)^2))
 xbart_rmse
 bart_rmse
 bart_ini_rmse
-
-
 
 
 
