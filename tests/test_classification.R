@@ -29,9 +29,9 @@ get_entropy <- function(nclass) {
 
 #####################
 # simulation parameters
-n <- 5000 # training size
+n <- 100000 # training size
 nt <- 1000 # testing size
-p <- 6 # number of X variables
+p <- 30 # number of X variables
 p_cat <- 0 # number of categorical X variables
 k <- 6 # number of classes
 lam <- matrix(0, n, k)
@@ -78,11 +78,11 @@ num_sweeps <- 20
 burnin <- 5
 num_trees <- 20
 tm <- proc.time()
-fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, num_trees = num_trees, num_sweeps = num_sweeps, p_categorical = p_cat, separate_tree = FALSE)
+fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, num_trees = num_trees, num_sweeps = num_sweeps, p_categorical = p_cat, separate_tree = FALSE, parallel = TRUE, nthread = 8)
 
 
 tm <- proc.time() - tm
-cat(paste("parallel XBART runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
+cat(paste("XBART runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
 # take average of all sweeps, discard burn-in
 pred <- predict(fit, X_test, burnin = burnin)
 yhat <- pred$label # prediction of classes
@@ -92,17 +92,7 @@ cat("-----------------------------\n")
 
 
 tm2 <- proc.time()
-fit.xgb <- xgboost(
-    data = X_train, label = y_train,
-    num_class = k,
-    verbose = 0,
-    max_depth = 4,
-    subsample = 0.80,
-    nrounds = 500,
-    early_stopping_rounds = 2,
-    eta = 0.1,
-    params = list(objective = "multi:softprob")
-)
+# fit.xgb <- xgboost(data = X_train, label = y_train, num_class = k, verbose = 0, max_depth = 4, subsample = 0.80, nrounds = 500, early_stopping_rounds = 2, eta = 0.1, params = list(objective = "multi:softprob"))
 
 tm2 <- proc.time() - tm2
 cat(paste("XGBoost runtime: ", round(tm2["elapsed"], 3), " seconds"), "\n")

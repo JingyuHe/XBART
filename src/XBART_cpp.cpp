@@ -16,6 +16,10 @@ using namespace arma;
 // [[Rcpp::export]]
 Rcpp::List XBART_cpp(mat y, mat X, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, double tau_kap = 3, double tau_s = 0.5, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, double nthread = 0)
 {
+    if (parallel)
+    {
+        thread_pool.start(nthread);
+    }
 
     size_t N = X.n_rows;
 
@@ -69,7 +73,6 @@ Rcpp::List XBART_cpp(mat y, mat X, size_t num_trees, size_t num_sweeps, size_t m
 
     // define model
     NormalModel *model = new NormalModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
-    // cout << "after define model " << model->tau << " " << model->tau_mean << endl;
     model->setNoSplitPenality(no_split_penality);
 
     // State settings
@@ -126,6 +129,8 @@ Rcpp::List XBART_cpp(mat y, mat X, size_t num_trees, size_t num_sweeps, size_t m
     // return the matrix of residuals, useful for prediction by GP
     Rcpp::NumericVector resid_rcpp = Rcpp::wrap(resid);
     resid_rcpp.attr("dim") = Rcpp::Dimension(N, num_sweeps, num_trees);
+
+    thread_pool.stop();
 
     return Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,

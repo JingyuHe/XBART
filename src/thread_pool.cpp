@@ -1,8 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////
-// parallel computing
-//////////////////////////////////////////////////////////////////////////////////////
-
-
 #include "thread_pool.h"
 
 void ThreadPool::start(size_t nthreads)
@@ -11,7 +6,14 @@ void ThreadPool::start(size_t nthreads)
         throw std::runtime_error("start() called on already started ThreadPool");
 
     if (nthreads == 0)
+    {
         nthreads = std::thread::hardware_concurrency();
+    }
+
+    if (nthreads > std::thread::hardware_concurrency())
+    {
+        nthreads = std::thread::hardware_concurrency();
+    }
 
     for (size_t i = 0; i < nthreads; ++i)
     {

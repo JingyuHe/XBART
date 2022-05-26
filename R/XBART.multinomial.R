@@ -95,13 +95,9 @@ XBART.multinomial <- function(y, num_class, X, num_trees = 20, num_sweeps = 20, 
     check_scalar(alpha, "alpha")
     check_scalar(beta, "beta")
 
-    obj <- XBART_multinomial_cpp(
-        y, num_class, X, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau_a, tau_b,
-        no_split_penality, burnin, mtry, p_categorical, verbose, parallel, set_random_seed, random_seed, sample_weights, separate_tree,
-        weight, update_weight, update_tau, nthread, hmult, heps
-    )
-    class(obj) <- "XBARTmultinomial"
+    obj <- XBART_multinomial_cpp(y, num_class, X, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penality, burnin, mtry, p_categorical, verbose, parallel, set_random_seed, random_seed, sample_weights, separate_tree, weight, update_weight, update_tau, nthread, hmult, heps)
 
+    class(obj) <- "XBARTmultinomial"
 
     if (separate_tree) {
         tree_json <- r_to_json_3D(obj$tree_pnt)

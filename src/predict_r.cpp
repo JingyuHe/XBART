@@ -103,7 +103,7 @@ Rcpp::List xbart_predict_full(mat X, double y_mean, Rcpp::XPtr<std::vector<std::
 Rcpp::List gp_predict(mat y, mat X, mat Xtest, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt, Rcpp::NumericVector resid, mat sigma, double theta, double tau, size_t p_categorical = 0)
 {
     // should be able to run in parallel
-    cout << "predict with gaussian process" << endl;
+    COUT << "predict with gaussian process" << endl;
 
     // Size of data
     size_t N = X.n_rows;
@@ -194,7 +194,6 @@ Rcpp::List gp_predict(mat y, mat X, mat Xtest, Rcpp::XPtr<std::vector<std::vecto
     {
         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
         {
-            // cout << "sweeps = " << sweeps << ", tree_ind = " << tree_ind << endl;
             (*trees)[sweeps][tree_ind].gp_predict_from_root(Xorder_std, x_struct, x_struct->X_counts, x_struct->X_num_unique,
                                                             Xtestorder_std, xtest_struct, xtest_struct->X_counts, xtest_struct->X_num_unique,
                                                             yhats_test_xinfo, active_var, p_categorical, sweeps, tree_ind, theta, tau);
@@ -275,12 +274,6 @@ Rcpp::List json_to_r(Rcpp::StringVector json_string_r)
 
     // Load
     from_json_to_forest(json_string[0], *trees2, y_mean);
-
-    // tree::npv bv;
-    // (*trees2)[0][0].getbots(bv); //get bottom nodes
-    // for (size_t i = 0; i < bv.size(); i++){
-    //     cout << bv[i]->getv() << " " << bv[i]->getID() << endl;
-    // }
 
     // Define External Pointer
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);

@@ -16,7 +16,10 @@ using namespace arma;
 // [[Rcpp::export]]
 Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, bool separate_tree = false, double weight = 1, bool update_weight = true, bool update_tau = true, double nthread = 0, double hmult = 1, double heps = 0.1)
 {
-    // auto start = system_clock::now();
+    if (parallel)
+    {
+        thread_pool.start(nthread);
+    }
 
     size_t N = X.n_rows;
 
@@ -249,9 +252,11 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
         }
     }
     // clean memory
-    // // delete model;
     state.reset();
     x_struct.reset();
+
+    // stop parallel computing
+    thread_pool.stop();
 
     Rcpp::List ret = Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,

@@ -62,11 +62,6 @@ void from_json_to_forest(std::string &json_string, vector<vector<tree>> &trees, 
             trees[i][j].from_json(j3["trees"][std::to_string(i)][std::to_string(j)], dim_theta);
         }
     }
-    // tree::npv bv;
-    // trees[0][0].getnodes(bv); //get bottom nodes
-    // for (size_t i = 0; i < bv.size(); i++){
-    //     cout << bv[i]->getv() << " " << bv[i]->getID() << endl;
-    // }
     return;
 }
 

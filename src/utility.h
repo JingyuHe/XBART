@@ -3,8 +3,8 @@
 
 #include "common.h"
 
-// #include "thread_pool.h"
-// extern ThreadPool thread_pool;
+#include "thread_pool.h"
+extern ThreadPool thread_pool;
 
 // #ifndef SWIG_FILE_WITH_INIT
 #include <algorithm>
