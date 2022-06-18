@@ -1519,7 +1519,6 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
         std::vector<size_t> candidate_index(1);
 
         // set up parallel during burnin
-        //  state->p_continuous * state->nthread > 100 // this is approximately the cost to set up parallel for
         for (auto i : subset_vars)
         {
             if (i < state->p_continuous)
@@ -1535,8 +1534,6 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index, j, false, model, state->residual_std);
 
                     loglike[(N_Xorder - 1) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, false, false, state);
-
-                    // loglike_max = loglike_max > loglike[(N_Xorder - 1) * i + j] ? loglike_max : loglike[(N_Xorder - 1) * i + j];
                 }
             }
         }
@@ -1549,35 +1546,6 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
         std::vector<size_t> candidate_index2(state->n_cutpoints + 1);
         seq_gen_std2(state->n_min, N - state->n_min, state->n_cutpoints, candidate_index2);
-        // size_t p_continuous = state->p_continuous;
-
-        // // set up parallel during burnin?
-        //         // state->p_continuous * state->nthread > 100 // this is approximately the cost to set up parallel for
-        //         for (auto i : subset_vars)
-        //         {
-        //             // #pragma omp task firstprivate(i) shared(Xorder_std, subset_vars, state, tree_pointer, candidate_index2, model, loglike, loglike_max)
-        //             {
-        //                 if (i < state->p_continuous)
-        //                 {
-
-        //                     std::vector<size_t> &xorder = Xorder_std[i];
-
-        //                     std::vector<double> temp_suff_stat(model->dim_suffstat * state->unique_months);
-        //                     std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
-
-        //                     for (size_t j = 0; j < state->n_cutpoints; j++)
-        //                     {
-        //                         calcSuffStat_continuous(state->months, temp_suff_stat, xorder, candidate_index2, j, true, model, state->residual_std);
-
-        //                         // move likelihood calculation to a new thread
-        //                         loglike[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
-        //                         loglike_max = loglike_max > loglike[(state->n_cutpoints) * i + j] ? loglike_max : loglike[(state->n_cutpoints) * i + j];
-        //                     }
-        //                 }
-        //             }
-        //         }
-
-        // std::mutex llmax_mutex;
 
         for (auto &&i : subset_vars)
         {
@@ -1585,7 +1553,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
             {
 
                 // Lambda callback to perform the calculation
-                auto calcllc_i = [i, &loglike, &loglike_max, &Xorder_std, &state, &candidate_index2, &model, N_Xorder, &tree_pointer]()
+                auto calcllc_i = [&, i]()
                 {
                     std::vector<size_t> &xorder = Xorder_std[i];
                     // double llmax = -INFINITY;
@@ -1594,22 +1562,15 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                     std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
 
+                    std::vector<double> &temp = loglike;
+
                     for (size_t j = 0; j < state->n_cutpoints; j++)
                     {
 
                         calcSuffStat_continuous(temp_suff_stat, xorder, candidate_index2, j, true, model, state->residual_std);
 
-                        loglike[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
-
-                        // if (loglike[(state->n_cutpoints) * i + j] > llmax)
-                        // {
-                        // llmax = loglike[(state->n_cutpoints) * i + j];
-                        // }
+                        temp[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
                     }
-                    // llmax_mutex.lock();
-                    // if (llmax > loglike_max)
-                    // loglike_max = llmax;
-                    // llmax_mutex.unlock();
                 };
 
                 if (thread_pool.is_active() && state->parallel)
@@ -1629,15 +1590,10 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
     // loglike_start is an index to offset
     // consider loglikelihood start from loglike_start
 
-    // size_t N = N_Xorder;
-    // size_t effective_cutpoints = 0;
-
     for (size_t var_i = 0; var_i < subset_vars.size(); var_i++)
     {
 
         size_t i = subset_vars[var_i]; // get subset varaible
-
-        // size_t var_effective_cutpoints = 0;
 
         if ((i >= state->p_continuous) && (X_num_unique[i - state->p_continuous] > 1))
         {
@@ -1664,9 +1620,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
                 if (X_counts[j] != 0)
                 {
-
                     temp = n1 + X_counts[j] - 1;
-
                     // modify sufficient statistics vector directly inside model class
                     // model->calcSuffStat_categorical(temp_suff_stat, state->residual_std, Xorder_std, n1, temp, i);
                     calcSuffStat_categorical(temp_suff_stat, Xorder_std[i], n1, temp, model, state);
@@ -1674,7 +1628,6 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                     n1 = n1 + X_counts[j];
 
                     loglike[loglike_start + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, false, false, state);
-                    // loglike_max = loglike_max > loglike[loglike_start + j] ? loglike_max : loglike[loglike_start + j];
                 }
             }
         }
@@ -1760,7 +1713,6 @@ void calcSuffStat_categorical(std::vector<double> &temp_suff_stat, std::vector<s
     // compute sum of y[Xorder[start:end, var]]
     for (size_t i = start; i <= end; i++)
     {
-        // Model::suff_stat_model[0] += y[Xorder[var][i]];
         model->incSuffStat(state->residual_std, xorder[i], temp_suff_stat);
     }
     return;

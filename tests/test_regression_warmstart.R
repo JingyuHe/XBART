@@ -116,7 +116,6 @@ nthread <- 4
 
 # XBART
 fit <- XBART(as.matrix(y), as.matrix(x), p_categorical = dcat, params$num_trees, params$num_sweeps, params$max_depth, params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1, mtry = params$mtry, verbose = verbose, num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100, no_split_penality = params$no_split_penality, nthread = nthread)
-
 time <- proc.time() - time
 time_XBART <- round(time[3], 3)
 
@@ -127,24 +126,20 @@ pred <- rowMeans(pred[, params$burnin:params$num_sweeps])
 
 
 
-# #####
+#######################################################################
 # # bart with default initialization
 fit_bart <- wbart(x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, ndpost = 200, nskip = 0)
+pred_bart <- colMeans(predict(fit_bart, xtest))
 
-# pred_bart = colMeans(predict(fit_bart, xtest))
-
-
+#######################################################################
 # bart with XBART initialization
 fit_bart2 <- wbart_ini(treedraws = fit$treedraws, x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 100, sigest = mean(fit$sigma))
 
-
 pred_bart_ini <- colMeans(predict(fit_bart2, xtest))
-
 
 xbart_rmse <- sqrt(mean((fhat.1 - ftest)^2))
 bart_rmse <- sqrt(mean((pred_bart - ftest)^2))
 bart_ini_rmse <- sqrt(mean((pred_bart_ini - ftest)^2))
-
 
 xbart_rmse
 bart_rmse

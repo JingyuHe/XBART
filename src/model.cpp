@@ -301,7 +301,7 @@ void LogitModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &
         if (std::isnan(suff_stat[j]))
         {
             COUT << "unidentified error: suff_stat is nan for class " << j << endl;
-            exit(1);
+            // exit(1);
         }
         std::gamma_distribution<double> gammadist(tau_a + suff_stat[j], 1.0); // consider adding 1 sudo obs to prevent 0 theta value
         theta_vector[j] = gammadist(state->gen) / (tau_b + suff_stat[dim_theta + j]);
@@ -701,7 +701,7 @@ void LogitModelSeparateTrees::samplePars(std::unique_ptr<State> &state, std::vec
     {
         COUT << "unidentified error, theta for class " << j << " = 0" << endl;
         COUT << "suff_stats = " << suff_stat[j] << ", " << suff_stat[dim_theta + j] << ", tau_a = " << tau_a << endl;
-        exit(1);
+        // exit(1);
     }
 
     return;

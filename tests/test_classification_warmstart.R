@@ -31,7 +31,7 @@ get_entropy <- function(nclass) {
 }
 
 
-#####################
+#######################################################################
 # simulation parameters
 n <- 3000 # training size
 nt <- 1000 # testing size
@@ -42,7 +42,7 @@ lam <- matrix(0, n, k)
 lamt <- matrix(0, nt, k)
 
 
-#####################
+#######################################################################
 # simulate data
 K <- matrix(rnorm(3 * p), p, 3)
 X_train <- t(K %*% matrix(rnorm(3 * n), 3, n))
@@ -64,7 +64,6 @@ lamt[, 4] <- 4 * (X_test[, 4] * X_test[, 5])
 lamt[, 5] <- 2 * (X_test[, 5] + X_test[, 6])
 lamt[, 6] <- 2 * (X_test[, 1] + X_test[, 3] - X_test[, 5])
 
-#####################
 # vary s to make the problem harder s < 1 or easier s > 2
 s <- 10
 pr <- exp(s * lam)
@@ -76,8 +75,10 @@ pr <- t(scale(t(pr), center = FALSE, scale = rowSums(pr)))
 y_test <- sapply(1:nt, function(j) sample(0:(k - 1), 1, prob = pr[j, ]))
 
 
-#####################
-# parameters of XBART
+#######################################################################
+# XBART
+
+# parameters
 num_sweeps <- 20
 burnin <- 5
 num_trees <- 20
@@ -99,16 +100,18 @@ if (separate_tree) {
 tm <- proc.time()
 fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, num_trees = num_trees, num_sweeps = num_sweeps, p_categorical = p_cat, separate_tree = separate_tree, parallel = FALSE)
 
+
+#######################################################################
 # initialize BART at XBART trees
 # the warm start bart only draws 100 samples, without burnin, thinning = 1
+# note that the warm start BART can achieve great performance with small number of posterior samples
+
 fit2 <- mlbart_ini(fit$treedraws, x.train = X_train, y.train = y_train, num_class = k, x.test = X_test, type = tree_type, ntree = num_trees, ndpost = 100, nskip = 0, keepevery = 1)
 tm <- proc.time() - tm
 
+cat(paste("XBART + warm start runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
 
-cat(paste("\n", "XBART runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
-
-
-#####################
+#######################################################################
 # out of sample prediction of XBART
 # take average of all sweeps, discard burn-in
 pred <- predict(fit, X_test)
@@ -118,7 +121,7 @@ yhat <- apply(a, 1, which.max) - 1
 cat(paste("XBART classification accuracy: ", round(mean(y_test == yhat), 3)), "\n")
 
 
-#####################
+#######################################################################
 # out of sample prediction of warm-start BART
 # not necessary to discard burnin since they are initialized at XBART trees!
 pred_warmstart <- fit2$yhat.test
