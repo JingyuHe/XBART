@@ -266,8 +266,8 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
             {
                 cout << "sweep " << sweeps << " tree " << tree_ind << endl;
             }
-            // Draw Sigma
 
+            // Draw Sigma
             model->update_state(state, tree_ind, x_struct);
 
             sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
@@ -288,16 +288,7 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
 
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
-            if (state->parallel)
-            {
-                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind);
-
-            }
-            else
-            {
-                // single core
-                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind);
-            }
+            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind);
 
             // update tau after sampling the tree
             // model->update_tau(state, tree_ind, sweeps, trees);

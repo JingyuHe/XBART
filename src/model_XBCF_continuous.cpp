@@ -23,7 +23,7 @@ void NormalLinearModel::samplePars(std::unique_ptr<State> &state, std::vector<do
     std::normal_distribution<double> normal_samp(0.0, 1.0);
 
     // test result should be theta
-    theta_vector[0] = suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[1] / pow(state->sigma, 2)) + sqrt(1.0 / (1.0 / tau + suff_stat[1] / pow(state->sigma, 2))) * normal_samp(state->gen); //Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
+    theta_vector[0] = suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[1] / pow(state->sigma, 2)) + sqrt(1.0 / (1.0 / tau + suff_stat[1] / pow(state->sigma, 2))) * normal_samp(state->gen); // Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
 
     // also update probability of leaf parameters
     // prob_leaf = normal_density(theta_vector[0], suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), 1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), true);
@@ -50,11 +50,13 @@ void NormalLinearModel::update_state(std::unique_ptr<State> &state, size_t tree_
     return;
 }
 
-void NormalLinearModel::update_tau(std::unique_ptr<State> &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> & trees){
+void NormalLinearModel::update_tau(std::unique_ptr<State> &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> &trees)
+{
     std::vector<tree *> leaf_nodes;
     trees[sweeps][tree_ind].getbots(leaf_nodes);
     double sum_squared = 0.0;
-    for(size_t i = 0; i < leaf_nodes.size(); i ++ ){
+    for (size_t i = 0; i < leaf_nodes.size(); i++)
+    {
         sum_squared = sum_squared + pow(leaf_nodes[i]->theta_vector[0], 2);
     }
     double kap = this->tau_kap;
@@ -65,13 +67,16 @@ void NormalLinearModel::update_tau(std::unique_ptr<State> &state, size_t tree_in
     return;
 };
 
-void NormalLinearModel::update_tau_per_forest(std::unique_ptr<State> &state, size_t sweeps, vector<vector<tree>> & trees){
+void NormalLinearModel::update_tau_per_forest(std::unique_ptr<State> &state, size_t sweeps, vector<vector<tree>> &trees)
+{
     std::vector<tree *> leaf_nodes;
-    for(size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind ++){
+    for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
+    {
         trees[sweeps][tree_ind].getbots(leaf_nodes);
     }
     double sum_squared = 0.0;
-    for(size_t i = 0; i < leaf_nodes.size(); i ++ ){
+    for (size_t i = 0; i < leaf_nodes.size(); i++)
+    {
         sum_squared = sum_squared + pow(leaf_nodes[i]->theta_vector[0], 2);
     };
     double kap = this->tau_kap;
@@ -161,7 +166,7 @@ double NormalLinearModel::likelihood(std::vector<double> &temp_suff_stat, std::v
     double nbtau;
     double yz_sum;
     double z_squared_sum;
-    //double y_squared_sum;
+    // double y_squared_sum;
 
     if (no_split)
     {
@@ -169,42 +174,42 @@ double NormalLinearModel::likelihood(std::vector<double> &temp_suff_stat, std::v
         // suff_one_side = y_sum;
 
         nb = suff_stat_all[2];
-        //nbtau = nb * tau;
+        // nbtau = nb * tau;
         yz_sum = suff_stat_all[0];
         z_squared_sum = suff_stat_all[1];
-        //y_squared_sum = suff_stat_all[3];
+        // y_squared_sum = suff_stat_all[3];
     }
     else
     {
         if (left_side)
         {
             nb = N_left + 1;
-            //nbtau = nb * tau;
-            // ntau = (N_left + 1) * tau;
+            // nbtau = nb * tau;
+            //  ntau = (N_left + 1) * tau;
             yz_sum = temp_suff_stat[0];
             z_squared_sum = temp_suff_stat[1];
-            //y_squared_sum = temp_suff_stat[3];
-            // suff_one_side = temp_suff_stat[0];
+            // y_squared_sum = temp_suff_stat[3];
+            //  suff_one_side = temp_suff_stat[0];
         }
         else
         {
             nb = suff_stat_all[2] - N_left - 1;
-            //nbtau = nb * tau;
+            // nbtau = nb * tau;
             yz_sum = suff_stat_all[0] - temp_suff_stat[0];
             z_squared_sum = suff_stat_all[1] - temp_suff_stat[1];
-            //y_squared_sum = suff_stat_all[3] - temp_suff_stat[3];
-            // ntau = (suff_stat_all[2] - N_left - 1) * tau;
-            // suff_one_side = y_sum - temp_suff_stat[0];
+            // y_squared_sum = suff_stat_all[3] - temp_suff_stat[3];
+            //  ntau = (suff_stat_all[2] - N_left - 1) * tau;
+            //  suff_one_side = y_sum - temp_suff_stat[0];
         }
     }
 
     // return 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
 
-    //return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * z_squared_sum / sigma2 + 0.5 * tau * pow(yz_sum, 2) / (sigma2 * (nbtau + sigma2));
+    // return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * z_squared_sum / sigma2 + 0.5 * tau * pow(yz_sum, 2) / (sigma2 * (nbtau + sigma2));
 
-    //return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) - 0.5 * log(1 + z_squared_sum/sigma2) + 0.5 * pow(yz_sum/sigma2, 2) * (1 + z_squared_sum/sigma2);
-    return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) - 0.5 * log(tau) - 0.5 * log(1.0/tau + z_squared_sum/sigma2) + 0.5 * pow(yz_sum/sigma2, 2) / (1.0/tau + z_squared_sum/sigma2);
-    //return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) - 0.5 * log(1 + z_squared_sum/sigma2) + 0.5 * pow(yz_sum/sigma2, 2) * (1 + z_squared_sum/sigma2);
+    // return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) - 0.5 * log(1 + z_squared_sum/sigma2) + 0.5 * pow(yz_sum/sigma2, 2) * (1 + z_squared_sum/sigma2);
+    return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) - 0.5 * log(tau) - 0.5 * log(1.0 / tau + z_squared_sum / sigma2) + 0.5 * pow(yz_sum / sigma2, 2) / (1.0 / tau + z_squared_sum / sigma2);
+    // return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) - 0.5 * log(1 + z_squared_sum/sigma2) + 0.5 * pow(yz_sum/sigma2, 2) * (1 + z_squared_sum/sigma2);
 }
 
 // double NormalLinearModel::likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const
@@ -226,7 +231,7 @@ void NormalLinearModel::ini_residual_std(std::unique_ptr<State> &state)
     double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
-        state->residual_std[0][i] = (*state->y_std)[i] - value*((*state->Z_std)[0][i]);
+        state->residual_std[0][i] = (*state->y_std)[i] - value * ((*state->Z_std)[0][i]);
     }
     return;
 }
@@ -248,7 +253,7 @@ void NormalLinearModel::predict_std(matrix<double> &Ztestpointer, const double *
             // take sum of predictions of each tree, as final prediction
             for (size_t i = 0; i < trees[0].size(); i++)
             {
-                yhats_test_xinfo[sweeps][data_ind] += output[i][0]*(Ztestpointer[0][data_ind]);
+                yhats_test_xinfo[sweeps][data_ind] += output[i][0] * (Ztestpointer[0][data_ind]);
             }
         }
     }

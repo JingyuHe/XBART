@@ -12,36 +12,16 @@ using namespace arma;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z,
-                               arma::mat X, arma::mat Xtest, arma::mat Ztest,
-                               size_t num_trees, size_t num_sweeps, size_t max_depth,
-                               size_t n_min, size_t num_cutpoints,
-                               double alpha, double beta,
-                               double tau, double no_split_penality,
-                               size_t burnin = 1, size_t mtry = 0,
-                               size_t p_categorical = 0,
-                               double kap = 16, double s = 4,
-                               double tau_kap = 3, double tau_s = 0.5,
-                               bool verbose = false, bool sampling_tau = true,
-                               bool parallel = true, bool set_random_seed = false,
-                               size_t random_seed = 0, bool sample_weights = true,
-                               double nthread = 0)
+Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat Xtest, arma::mat Ztest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, double tau_kap = 3, double tau_s = 0.5, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, double nthread = 0)
 {
-    if (parallel && (nthread == 0))
-    {
-        // if turn on parallel and do not sepicifiy number of threads
-        // use max - 1, leave one out
-        // nthread = omp_get_max_threads() - 1;
-    }
-
     if (parallel)
     {
-        // omp_set_num_threads(nthread);
-        cout << "Running in parallel with " << nthread << " threads." << endl;
+        thread_pool.start(nthread);
+        COUT << "Running in parallel with " << nthread << " threads." << endl;
     }
     else
     {
-        cout << "Running with single thread." << endl;
+        COUT << "Running with single thread." << endl;
     }
 
     size_t N = X.n_rows;
@@ -49,7 +29,8 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z,
     // number of total variables
     size_t p = X.n_cols;
 
-    cout << "size of x " << X.n_rows << " " << X.n_cols << endl;
+    COUT << "size of x " << X.n_rows << " " << X.n_cols << endl;
+    
     size_t N_test = Xtest.n_rows;
 
     // number of basis functions (1 in the case of the OG bcf)
@@ -60,7 +41,7 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z,
 
     // suppose first p_continuous variables are continuous, then categorical
 
-    cout << "mtry " << mtry << " " << p << endl;
+    COUT << "mtry " << mtry << " " << p << endl;
 
     assert(mtry <= p);
 
@@ -175,6 +156,8 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z,
 
         output_tree(i) = treess.str();
     }
+
+    thread_pool.stop();
 
     return Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,

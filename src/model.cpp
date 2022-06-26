@@ -2,7 +2,6 @@
 // Details of sufficient statistics calculation, likelihood of various models
 //////////////////////////////////////////////////////////////////////////////////////
 
-
 #include "tree.h"
 #include "model.h"
 #include <cfenv>
