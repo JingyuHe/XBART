@@ -63,6 +63,9 @@ public:
     std::vector<std::vector<std::vector<double>>> lambdas;
     std::vector<std::vector<std::vector<double>>> lambdas_separate;
 
+    // for continuous treatment XBCF
+    matrix<double> *Z_std;
+
     void update_sigma(double sigma)
     {
         this->sigma = sigma;
@@ -161,4 +164,16 @@ public:
     }
 };
 
+
+class NormalLinearState : public State
+{
+public:
+    NormalLinearState(matrix<double> *Z_std, const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, mtry, X_std, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
+    {
+        this->Z_std = Z_std;
+        this->sigma = sigma;
+        this->sigma2 = pow(sigma, 2);
+        this->parallel = parallel;
+    }
+};
 #endif

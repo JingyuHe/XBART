@@ -320,3 +320,23 @@ void get_rel_covariance(mat &cov, mat &X, std::vector<double> X_range, double th
     }
     return;
 }
+
+double sum_vec_yz(std::vector<double> &v, matrix<double> &z)
+{
+    double output = 0;
+    for (size_t i = 0; i < v.size(); i++)
+    {
+        output = output + v[i] * (z[0][i]);
+    }
+    return output;
+}
+
+double sum_vec_z_squared(matrix<double> &z, size_t n)
+{
+    double output = 0;
+    for (size_t i = 0; i < n; i++)
+    {
+        output = output + (z[0][i]) * (z[0][i]);
+    }
+    return output;
+}

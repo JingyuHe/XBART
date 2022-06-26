@@ -244,3 +244,92 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
 
     return;
 }
+
+void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalLinearModel *model, std::unique_ptr<X_struct> &x_struct)
+{
+
+    // if (state->parallel)
+    //     thread_pool.start();
+
+    // Residual for 0th tree
+    // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
+    model->ini_residual_std(state);
+
+    for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
+    {
+
+        if (verbose == true)
+        {
+            COUT << "--------------------------------" << endl;
+            COUT << "number of sweeps " << sweeps << endl;
+            COUT << "--------------------------------" << endl;
+        }
+
+        for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
+        {
+
+            if (verbose)
+            {
+                cout << "sweep " << sweeps << " tree " << tree_ind << endl;
+            }
+            // Draw Sigma
+
+            model->update_state(state, tree_ind, x_struct);
+
+            sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
+
+            if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
+            {
+                state->use_all = false;
+            }
+
+            // clear counts of splits for one tree
+            std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
+
+            // subtract old tree for sampling case
+            if (state->sample_weights)
+            {
+                state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
+            }
+
+            model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+
+            if (state->parallel)
+            {
+                // run parallel
+                // omp_set_max_active_levels(state->nthread);
+                // #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
+                // {
+                // #pragma omp sections
+                // {
+                // #pragma omp section
+                // {
+                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind);
+                // }
+                // }
+                // }
+            }
+            else
+            {
+                // single core
+                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind);
+            }
+
+            // update tau after sampling the tree
+            // model->update_tau(state, tree_ind, sweeps, trees);
+
+            state->update_split_counts(tree_ind);
+
+            // update partial residual for the next tree to fit
+            model->state_sweep(state, tree_ind, state->num_trees, x_struct);
+        }
+
+        if (model->sampling_tau)
+        {
+            model->update_tau_per_forest(state, sweeps, trees);
+        }
+    }
+    // thread_pool.stop();
+
+    return;
+}
