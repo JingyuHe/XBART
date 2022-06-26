@@ -247,12 +247,6 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
 
 void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalLinearModel *model, std::unique_ptr<X_struct> &x_struct)
 {
-
-    // if (state->parallel)
-    //     thread_pool.start();
-
-    // Residual for 0th tree
-    // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
     model->ini_residual_std(state);
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
@@ -296,18 +290,8 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
 
             if (state->parallel)
             {
-                // run parallel
-                // omp_set_max_active_levels(state->nthread);
-                // #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
-                // {
-                // #pragma omp sections
-                // {
-                // #pragma omp section
-                // {
                 trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind);
-                // }
-                // }
-                // }
+
             }
             else
             {

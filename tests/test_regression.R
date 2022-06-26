@@ -37,7 +37,7 @@ run_lightgbm <- FALSE # run lightgbm
 parl <- FALSE # parallel computing
 
 
-small_case <- FALSE # run simulation on small data set
+small_case <- TRUE # run simulation on small data set
 verbose <- FALSE # print the progress on screen
 
 
