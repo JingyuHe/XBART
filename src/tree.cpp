@@ -1565,7 +1565,6 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                     for (size_t j = 0; j < state->n_cutpoints; j++)
                     {
-
                         calcSuffStat_continuous(state, temp_suff_stat, xorder, candidate_index2, j, true, model, state->residual_std);
 
                         temp[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
