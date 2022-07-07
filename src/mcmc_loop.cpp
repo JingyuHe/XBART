@@ -251,7 +251,6 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {
-
         if (verbose == true)
         {
             COUT << "--------------------------------" << endl;
@@ -261,7 +260,6 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
 
         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
         {
-
             if (verbose)
             {
                 cout << "sweep " << sweeps << " tree " << tree_ind << endl;
@@ -290,9 +288,6 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
 
             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind);
 
-            // update tau after sampling the tree
-            // model->update_tau(state, tree_ind, sweeps, trees);
-
             state->update_split_counts(tree_ind);
 
             // update partial residual for the next tree to fit
@@ -304,7 +299,5 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
             model->update_tau_per_forest(state, sweeps, trees);
         }
     }
-    // thread_pool.stop();
-
     return;
 }

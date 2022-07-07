@@ -98,14 +98,11 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
 
     // define model
     NormalLinearModel *model = new NormalLinearModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
-    // cout << "after define model " << model->tau << " " << model->tau_mean << endl;
     model->setNoSplitPenality(no_split_penality);
 
     // State settings
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
     std::unique_ptr<State> state(new NormalLinearState(&Z_std, Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread, parallel)); // last input is nthread, need update
-
-    // state->set_Xcut(Xcutmat);
 
     // initialize X_struct
     std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
@@ -116,7 +113,6 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
     model->predict_std(Ztest_std, Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees2);
 
     // R Objects to Return
-    // Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum(p, 0);             // split counts
@@ -137,7 +133,6 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
     x_struct.reset();
 
     // print out tree structure, for usage of BART warm-start
-
     std::stringstream treess;
 
     Rcpp::StringVector output_tree(num_sweeps);
@@ -151,6 +146,7 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
 
         for (size_t t = 0; t < num_trees; t++)
         {
+            cout << "size of tree " << (*trees2)[i][t].treesize() << endl;
             treess << (*trees2)[i][t];
         }
 

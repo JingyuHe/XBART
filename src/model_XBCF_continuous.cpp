@@ -23,10 +23,7 @@ void NormalLinearModel::samplePars(std::unique_ptr<State> &state, std::vector<do
     std::normal_distribution<double> normal_samp(0.0, 1.0);
 
     // test result should be theta
-    theta_vector[0] = suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[1] / pow(state->sigma, 2)) + sqrt(1.0 / (1.0 / tau + suff_stat[1] / pow(state->sigma, 2))) * normal_samp(state->gen); // Rcpp::rnorm(1, 0, 1)[0];//* as_scalar(arma::randn(1,1));
-
-    // also update probability of leaf parameters
-    // prob_leaf = normal_density(theta_vector[0], suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), 1.0 / (1.0 / tau + suff_stat[2] / pow(state->sigma, 2)), true);
+    theta_vector[0] = suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[1] / pow(state->sigma, 2)) + sqrt(1.0 / (1.0 / tau + suff_stat[1] / pow(state->sigma, 2))) * normal_samp(state->gen);
 
     return;
 }
@@ -34,8 +31,6 @@ void NormalLinearModel::samplePars(std::unique_ptr<State> &state, std::vector<do
 void NormalLinearModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct)
 {
     // Draw Sigma
-    // state->residual_std_full = state->residual_std - state->predictions_std[tree_ind];
-
     // residual_std is only 1 dimensional for regression model
 
     std::vector<double> full_residual(state->n_y);
@@ -88,31 +83,30 @@ void NormalLinearModel::update_tau_per_forest(std::unique_ptr<State> &state, siz
 
 void NormalLinearModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
 {
-    // sum of y
+    // sum of partial residual * z (in y scale)
     suff_stat[0] = sum_vec_yz(state->residual_std[0], (*state->Z_std));
-    // number of observations in the node
+    // sum of z^2
     suff_stat[1] = sum_vec_z_squared((*state->Z_std), state->n_y);
-    // sum of y squared
-    suff_stat[2] = state->n_y;
-
     // number of observations in the node
+    suff_stat[2] = state->n_y;
     return;
 }
 
 void NormalLinearModel::updateNodeSuffStat(std::unique_ptr<State> &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
+    // sum of partial residual * z (in y scale)
     suff_stat[0] += (state->residual_std[0])[Xorder_std[split_var][row_ind]] * ((*state->Z_std))[0][Xorder_std[split_var][row_ind]];
+    // sum of z^2
     suff_stat[1] += pow(((*state->Z_std))[0][Xorder_std[split_var][row_ind]], 2);
+    // number of data points
     suff_stat[2] += 1;
     return;
 }
 
 void NormalLinearModel::calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side)
 {
-
     // in function split_xorder_std_categorical, for efficiency, the function only calculates suff stat of ONE child
     // this function calculate the other side based on parent and the other child
-
     if (compute_left_side)
     {
         rchild_suff_stat = parent_suff_stat - lchild_suff_stat;
@@ -166,40 +160,29 @@ double NormalLinearModel::likelihood(std::vector<double> &temp_suff_stat, std::v
     double nbtau;
     double yz_sum;
     double z_squared_sum;
-    // double y_squared_sum;
 
     if (no_split)
     {
-        // ntau = suff_stat_all[2] * tau;
-        // suff_one_side = y_sum;
-
+        // calculate likelihood for no-split option (early stop)
         nb = suff_stat_all[2];
         // nbtau = nb * tau;
         yz_sum = suff_stat_all[0];
         z_squared_sum = suff_stat_all[1];
-        // y_squared_sum = suff_stat_all[3];
     }
     else
     {
+        // calculate likelihood for regular split point
         if (left_side)
         {
             nb = N_left + 1;
-            // nbtau = nb * tau;
-            //  ntau = (N_left + 1) * tau;
             yz_sum = temp_suff_stat[0];
             z_squared_sum = temp_suff_stat[1];
-            // y_squared_sum = temp_suff_stat[3];
-            //  suff_one_side = temp_suff_stat[0];
         }
         else
         {
             nb = suff_stat_all[2] - N_left - 1;
-            // nbtau = nb * tau;
             yz_sum = suff_stat_all[0] - temp_suff_stat[0];
             z_squared_sum = suff_stat_all[1] - temp_suff_stat[1];
-            // y_squared_sum = suff_stat_all[3] - temp_suff_stat[3];
-            //  ntau = (suff_stat_all[2] - N_left - 1) * tau;
-            //  suff_one_side = y_sum - temp_suff_stat[0];
         }
     }
 
@@ -238,7 +221,7 @@ void NormalLinearModel::ini_residual_std(std::unique_ptr<State> &state)
 
 void NormalLinearModel::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees)
 {
-
+    // predict the output as a matrix
     matrix<double> output;
 
     // row : dimension of theta, column : number of trees
