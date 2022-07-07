@@ -2,7 +2,6 @@
 // Details of sufficient statistics calculation, likelihood of various models
 //////////////////////////////////////////////////////////////////////////////////////
 
-
 #include "tree.h"
 #include "model.h"
 #include <cfenv>
@@ -17,10 +16,9 @@
 
 void NormalModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
 {
-    // I have to pass matrix<double> &residual_std, size_t index_next_obs
-    // which allows more flexibility for multidimensional residual_std
-
     suffstats[0] += residual_std[0][index_next_obs];
+    suffstats[1] += pow(residual_std[0][index_next_obs], 2);
+    suffstats[2] += 1;
     return;
 }
 
