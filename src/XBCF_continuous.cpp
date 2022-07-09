@@ -30,7 +30,7 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
     size_t p = X.n_cols;
 
     COUT << "size of x " << X.n_rows << " " << X.n_cols << endl;
-    
+
     size_t N_test = Xtest.n_rows;
 
     // number of basis functions (1 in the case of the OG bcf)
@@ -64,6 +64,13 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
     std::vector<double> y_std(N);
     double y_mean = 0.0;
 
+    for (size_t i = 0; i < N; i++)
+    {
+        y_mean += Z[i] * y[i];
+    }
+    y_mean = y_mean / N;
+    cout << "y mean is " << y_mean << endl;
+
     Rcpp::NumericMatrix X_std(N, p);
     Rcpp::NumericMatrix Xtest_std(N_test, p);
 
@@ -76,7 +83,6 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
 
     ///////////////////////////////////////////////////////////////////
 
-    // double *ypointer = &y_std[0];
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
@@ -146,7 +152,7 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
 
         for (size_t t = 0; t < num_trees; t++)
         {
-            cout << "size of tree " << (*trees2)[i][t].treesize() << endl;
+            // cout << "size of tree " << (*trees2)[i][t].treesize() << endl;
             treess << (*trees2)[i][t];
         }
 

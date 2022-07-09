@@ -332,7 +332,7 @@ public:
 class NormalLinearModel : public Model
 {
 public:
-    size_t dim_suffstat = 3;
+    size_t dim_suffstat = 4;
 
     // model prior
     // prior on sigma
@@ -345,7 +345,7 @@ public:
     double tau_mean; // copy of the original value
     bool sampling_tau;
 
-    NormalLinearModel(double kap, double s, double tau, double alpha, double beta, bool sampling_tau, double tau_kap, double tau_s) : Model(1, 3)
+    NormalLinearModel(double kap, double s, double tau, double alpha, double beta, bool sampling_tau, double tau_kap, double tau_s) : Model(1, 4)
     {
         this->kap = kap;
         this->s = s;
@@ -360,7 +360,7 @@ public:
         this->sampling_tau = sampling_tau;
     }
 
-    NormalLinearModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 3)
+    NormalLinearModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 4)
     {
         this->kap = kap;
         this->s = s;
@@ -373,7 +373,7 @@ public:
         this->sampling_tau = true;
     }
 
-    NormalLinearModel() : Model(1, 3) {}
+    NormalLinearModel() : Model(1, 4) {}
 
     Model *clone() { return new NormalLinearModel(*this); }
 

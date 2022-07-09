@@ -14,7 +14,17 @@ void NormalLinearModel::incSuffStat(std::unique_ptr<State> &state, size_t index_
 {
     // I have to pass matrix<double> &residual_std, size_t index_next_obs
     // which allows more flexibility for multidimensional residual_std
-    suffstats[0] += state->residual_std[0][index_next_obs] * (*state->Z_std)[0][index_next_obs];
+    // suffstats[0] += state->residual_std[0][index_next_obs] * (*state->Z_std)[0][index_next_obs];
+    // suffstats[1] += pow((*state->Z_std)[0][index_next_obs], 2);
+
+    // sum z_i^2
+    suffstats[0] += pow((*state->Z_std)[0][index_next_obs], 2);
+    // sum r_i * z_i^2
+    suffstats[1] += pow((*state->Z_std)[0][index_next_obs], 2) * state->residual_std[0][index_next_obs];
+    // number of points
+    suffstats[2] += 1;
+    // sum r_i / z_i
+    suffstats[3] += state->residual_std[0][index_next_obs] / (*state->Z_std)[0][index_next_obs];
     return;
 }
 
@@ -23,7 +33,10 @@ void NormalLinearModel::samplePars(std::unique_ptr<State> &state, std::vector<do
     std::normal_distribution<double> normal_samp(0.0, 1.0);
 
     // test result should be theta
-    theta_vector[0] = suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[1] / pow(state->sigma, 2)) + sqrt(1.0 / (1.0 / tau + suff_stat[1] / pow(state->sigma, 2))) * normal_samp(state->gen);
+    // theta_vector[0] = suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[1] / pow(state->sigma, 2)) + sqrt(1.0 / (1.0 / tau + suff_stat[1] / pow(state->sigma, 2))) * normal_samp(state->gen);
+
+    double sigma2 = pow(state->sigma, 2);
+    theta_vector[0] = suff_stat[1] / sigma2 / (suff_stat[0] / sigma2 + 1.0 / tau) + sqrt(1.0 / (1.0 / tau + suff_stat[0] / sigma2)) * normal_samp(state->gen);
 
     return;
 }
@@ -83,23 +96,29 @@ void NormalLinearModel::update_tau_per_forest(std::unique_ptr<State> &state, siz
 
 void NormalLinearModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
 {
-    // sum of partial residual * z (in y scale)
-    suff_stat[0] = sum_vec_yz(state->residual_std[0], (*state->Z_std));
     // sum of z^2
-    suff_stat[1] = sum_vec_z_squared((*state->Z_std), state->n_y);
+    suff_stat[0] = sum_vec_z_squared((*state->Z_std), state->n_y);
+    // sum of partial residual * z^2
+    suff_stat[1] = sum_vec_yzsq(state->residual_std[0], (*state->Z_std));
     // number of observations in the node
     suff_stat[2] = state->n_y;
+    // sum r_i / z_i
+    suff_stat[3] = sum_vec_y_z(state->residual_std[0], (*state->Z_std));
     return;
 }
 
 void NormalLinearModel::updateNodeSuffStat(std::unique_ptr<State> &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
-    // sum of partial residual * z (in y scale)
-    suff_stat[0] += (state->residual_std[0])[Xorder_std[split_var][row_ind]] * ((*state->Z_std))[0][Xorder_std[split_var][row_ind]];
     // sum of z^2
-    suff_stat[1] += pow(((*state->Z_std))[0][Xorder_std[split_var][row_ind]], 2);
+    suff_stat[0] += pow(((*state->Z_std))[0][Xorder_std[split_var][row_ind]], 2);
+
+    // sum of partial residual * z^2 (in y scale)
+    suff_stat[1] += (state->residual_std[0])[Xorder_std[split_var][row_ind]] * pow(((*state->Z_std))[0][Xorder_std[split_var][row_ind]], 2);
+
     // number of data points
     suff_stat[2] += 1;
+
+    suff_stat[3] += (state->residual_std[0])[Xorder_std[split_var][row_ind]] / ((*state->Z_std))[0][Xorder_std[split_var][row_ind]];
     return;
 }
 
@@ -157,32 +176,41 @@ double NormalLinearModel::likelihood(std::vector<double> &temp_suff_stat, std::v
     /////////////////////////////////////////////////////////////////////////
 
     size_t nb;
-    double nbtau;
-    double yz_sum;
-    double z_squared_sum;
+    // double nbtau;
+    // double yz_sum;
+    // double z_squared_sum;
+
+    double s0; // sum z_i^2
+    double s1; // sum r_i * z_i^2
 
     if (no_split)
     {
         // calculate likelihood for no-split option (early stop)
+        s0 = suff_stat_all[0];
+        s1 = suff_stat_all[1];
         nb = suff_stat_all[2];
         // nbtau = nb * tau;
-        yz_sum = suff_stat_all[0];
-        z_squared_sum = suff_stat_all[1];
+        // yz_sum = suff_stat_all[0];
+        // z_squared_sum = suff_stat_all[1];
     }
     else
     {
         // calculate likelihood for regular split point
         if (left_side)
         {
+            s0 = temp_suff_stat[0];
+            s1 = temp_suff_stat[1];
             nb = N_left + 1;
-            yz_sum = temp_suff_stat[0];
-            z_squared_sum = temp_suff_stat[1];
+            // yz_sum = temp_suff_stat[0];
+            // z_squared_sum = temp_suff_stat[1];
         }
         else
         {
+            s0 = suff_stat_all[0] - temp_suff_stat[0];
+            s1 = suff_stat_all[1] - temp_suff_stat[1];
             nb = suff_stat_all[2] - N_left - 1;
-            yz_sum = suff_stat_all[0] - temp_suff_stat[0];
-            z_squared_sum = suff_stat_all[1] - temp_suff_stat[1];
+            // yz_sum = suff_stat_all[0] - temp_suff_stat[0];
+            // z_squared_sum = suff_stat_all[1] - temp_suff_stat[1];
         }
     }
 
@@ -191,8 +219,10 @@ double NormalLinearModel::likelihood(std::vector<double> &temp_suff_stat, std::v
     // return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * z_squared_sum / sigma2 + 0.5 * tau * pow(yz_sum, 2) / (sigma2 * (nbtau + sigma2));
 
     // return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) - 0.5 * log(1 + z_squared_sum/sigma2) + 0.5 * pow(yz_sum/sigma2, 2) * (1 + z_squared_sum/sigma2);
-    return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) - 0.5 * log(tau) - 0.5 * log(1.0 / tau + z_squared_sum / sigma2) + 0.5 * pow(yz_sum / sigma2, 2) / (1.0 / tau + z_squared_sum / sigma2);
+    // return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) - 0.5 * log(tau) - 0.5 * log(1.0 / tau + z_squared_sum / sigma2) + 0.5 * pow(yz_sum / sigma2, 2) / (1.0 / tau + z_squared_sum / sigma2);
     // return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) - 0.5 * log(1 + z_squared_sum/sigma2) + 0.5 * pow(yz_sum/sigma2, 2) * (1 + z_squared_sum/sigma2);
+
+    return 0.5 * log(1.0 / (1 + tau * s0 / sigma2)) - 0.5 * pow(s1 / sigma2, 2) / (s1 / sigma2 + 1.0 / tau);
 }
 
 // double NormalLinearModel::likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const

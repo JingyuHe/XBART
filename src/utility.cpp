@@ -336,7 +336,27 @@ double sum_vec_z_squared(matrix<double> &z, size_t n)
     double output = 0;
     for (size_t i = 0; i < n; i++)
     {
-        output = output + (z[0][i]) * (z[0][i]);
+        output = output + pow(z[0][i], 2);
+    }
+    return output;
+}
+
+double sum_vec_yzsq(std::vector<double> &v, matrix<double> &z)
+{
+    double output = 0;
+    for (size_t i = 0; i < v.size(); i++)
+    {
+        output = output + v[i] * pow(z[0][i], 2);
+    }
+    return output;
+}
+
+double sum_vec_y_z(std::vector<double> &v, matrix<double> &z)
+{
+    double output = 0;
+    for (size_t i = 0; i < v.size(); i++)
+    {
+        output = output + v[i] / z[0][i];
     }
     return output;
 }
