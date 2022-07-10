@@ -23,8 +23,6 @@ void NormalLinearModel::incSuffStat(std::unique_ptr<State> &state, size_t index_
     suffstats[1] += pow((*state->Z_std)[0][index_next_obs], 2) * state->residual_std[0][index_next_obs];
     // number of points
     suffstats[2] += 1;
-    // sum r_i / z_i
-    suffstats[3] += state->residual_std[0][index_next_obs] / (*state->Z_std)[0][index_next_obs];
     return;
 }
 
@@ -36,6 +34,8 @@ void NormalLinearModel::samplePars(std::unique_ptr<State> &state, std::vector<do
     // theta_vector[0] = suff_stat[0] / pow(state->sigma, 2) / (1.0 / tau + suff_stat[1] / pow(state->sigma, 2)) + sqrt(1.0 / (1.0 / tau + suff_stat[1] / pow(state->sigma, 2))) * normal_samp(state->gen);
 
     double sigma2 = pow(state->sigma, 2);
+    // theta_vector[0] = suff_stat[1] / sigma2 / (suff_stat[0] / sigma2 + 1.0 / tau) + sqrt(1.0 / (1.0 / tau + suff_stat[0] / sigma2)) * normal_samp(state->gen);
+
     theta_vector[0] = suff_stat[1] / sigma2 / (suff_stat[0] / sigma2 + 1.0 / tau) + sqrt(1.0 / (1.0 / tau + suff_stat[0] / sigma2)) * normal_samp(state->gen);
 
     return;
@@ -50,7 +50,7 @@ void NormalLinearModel::update_state(std::unique_ptr<State> &state, size_t tree_
 
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
-        full_residual[i] = state->residual_std[0][i] - ((*state->Z_std)[0][i]) * (*(x_struct->data_pointers[tree_ind][i]))[0];
+        full_residual[i] = ((*state->Z_std)[0][i]) * (state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0]);
     }
 
     std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(full_residual) + s));
@@ -102,8 +102,6 @@ void NormalLinearModel::initialize_root_suffstat(std::unique_ptr<State> &state, 
     suff_stat[1] = sum_vec_yzsq(state->residual_std[0], (*state->Z_std));
     // number of observations in the node
     suff_stat[2] = state->n_y;
-    // sum r_i / z_i
-    suff_stat[3] = sum_vec_y_z(state->residual_std[0], (*state->Z_std));
     return;
 }
 
@@ -117,8 +115,6 @@ void NormalLinearModel::updateNodeSuffStat(std::unique_ptr<State> &state, std::v
 
     // number of data points
     suff_stat[2] += 1;
-
-    suff_stat[3] += (state->residual_std[0])[Xorder_std[split_var][row_ind]] / ((*state->Z_std))[0][Xorder_std[split_var][row_ind]];
     return;
 }
 
@@ -151,7 +147,7 @@ void NormalLinearModel::state_sweep(std::unique_ptr<State> &state, size_t tree_i
 
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
-        state->residual_std[0][i] = state->residual_std[0][i] - (*state->Z_std)[0][i] * (*(x_struct->data_pointers[tree_ind][i]))[0] + (*state->Z_std)[0][i] * (*(x_struct->data_pointers[next_index][i]))[0];
+        state->residual_std[0][i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + (*(x_struct->data_pointers[next_index][i]))[0];
     }
     return;
 }
@@ -222,7 +218,7 @@ double NormalLinearModel::likelihood(std::vector<double> &temp_suff_stat, std::v
     // return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) - 0.5 * log(tau) - 0.5 * log(1.0 / tau + z_squared_sum / sigma2) + 0.5 * pow(yz_sum / sigma2, 2) / (1.0 / tau + z_squared_sum / sigma2);
     // return -0.5 * nb * log(2 * 3.141592653) - 0.5 * nb * log(sigma2) - 0.5 * log(1 + z_squared_sum/sigma2) + 0.5 * pow(yz_sum/sigma2, 2) * (1 + z_squared_sum/sigma2);
 
-    return 0.5 * log(1.0 / (1 + tau * s0 / sigma2)) - 0.5 * pow(s1 / sigma2, 2) / (s1 / sigma2 + 1.0 / tau);
+    return 0.5 * log(1.0 / (1.0 + tau * s0 / sigma2)) + 0.5 * pow(s1 / sigma2, 2) / (s0 / sigma2 + 1.0 / tau);
 }
 
 // double NormalLinearModel::likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const
@@ -244,7 +240,7 @@ void NormalLinearModel::ini_residual_std(std::unique_ptr<State> &state)
     double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
-        state->residual_std[0][i] = (*state->y_std)[i] - value * ((*state->Z_std)[0][i]);
+        state->residual_std[0][i] = (*state->y_std)[i] / ((*state->Z_std)[0][i]) - value;
     }
     return;
 }

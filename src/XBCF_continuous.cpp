@@ -66,7 +66,7 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
 
     for (size_t i = 0; i < N; i++)
     {
-        y_mean += Z[i] * y[i];
+        y_mean += y[i] / Z[i];
     }
     y_mean = y_mean / N;
     cout << "y mean is " << y_mean << endl;
@@ -152,7 +152,7 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
 
         for (size_t t = 0; t < num_trees; t++)
         {
-            // cout << "size of tree " << (*trees2)[i][t].treesize() << endl;
+            cout << "size of tree " << (*trees2)[i][t].treesize() << endl;
             treess << (*trees2)[i][t];
         }
 
