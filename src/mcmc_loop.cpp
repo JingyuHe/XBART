@@ -245,9 +245,9 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
     return;
 }
 
-void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalLinearModel *model, std::unique_ptr<X_struct> &x_struct)
+void mcmc_loop_XBCF_continuous(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, vector<vector<tree>> &trees_trt, double no_split_penalty, std::unique_ptr<State> &state, NormalLinearModel *model, std::unique_ptr<X_struct> &x_struct, std::unique_ptr<X_struct> &x_struct_trt)
 {
-    model->ini_residual_std(state);
+    model->ini_tau_mu_fit(state);
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {
@@ -258,12 +258,21 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
             COUT << "--------------------------------" << endl;
         }
 
+        // update prognostic trees
+        model->set_partial_residual(state, false);
+
+        // update treatment trees
+        model->set_partial_residual(state, true);
+
         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
         {
             if (verbose)
             {
                 cout << "sweep " << sweeps << " tree " << tree_ind << endl;
             }
+
+            // update full residuals
+            model->update_full_residuals(state);
 
             // Draw Sigma
             model->update_state(state, tree_ind, x_struct);
@@ -284,19 +293,24 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
                 state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
             }
 
-            model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+            // subtract old tree fit, turn it to partial fit
+            model->subtract_old_tree_fit(tree_ind, state->tau_fit, x_struct_trt);
 
-            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind);
+            model->initialize_root_suffstat(state, trees_trt[sweeps][tree_ind].suff_stat);
+
+            trees_trt[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind);
 
             state->update_split_counts(tree_ind);
 
             // update partial residual for the next tree to fit
             model->state_sweep(state, tree_ind, state->num_trees, x_struct);
+
+            model->update_split_counts(tree_ind, 1);
         }
 
         if (model->sampling_tau)
         {
-            model->update_tau_per_forest(state, sweeps, trees);
+            model->update_tau_per_forest(state, sweeps, trees_trt);
         }
     }
     return;

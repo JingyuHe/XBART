@@ -35,10 +35,10 @@ abline(0, 1, col = "red")
 plot(sin(5 * x1) + x2, pred / z, pch = 20)
 
 
-
 # XBART
 data = cbind(z, x)
 data <- as.matrix(data)
 time2 <- Sys.time()
 fit2 <- XBART(as.matrix(y), data, num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin, parallel = parallel, nthread = nthread)
-Sys.time() - time2
+time2 = Sys.time() - time2
+print(time2)

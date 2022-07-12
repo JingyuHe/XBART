@@ -319,8 +319,6 @@ public:
     void predict_std_standalone(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<vector<tree>>> &trees, std::vector<double> &output_vec, std::vector<size_t> &iteration, double weight);
 };
 
-
-
 //////////////////////////////////////////////////////////////////////////////////////
 //
 //
@@ -341,7 +339,7 @@ public:
     double tau_kap;
     double tau_s;
     // prior on leaf parameter
-    double tau; // might be updated if sampling tau
+    double tau;      // might be updated if sampling tau
     double tau_mean; // copy of the original value
     bool sampling_tau;
 
@@ -383,9 +381,9 @@ public:
 
     void update_state(std::unique_ptr<State> &state, size_t tree_ind, std::unique_ptr<X_struct> &x_struct);
 
-    void update_tau(std::unique_ptr<State> &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> & trees);
+    void update_tau(std::unique_ptr<State> &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> &trees);
 
-    void update_tau_per_forest(std::unique_ptr<State> &state, size_t sweeps, vector<vector<tree>> & trees);
+    void update_tau_per_forest(std::unique_ptr<State> &state, size_t sweeps, vector<vector<tree>> &trees);
 
     void initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat);
 
@@ -401,10 +399,13 @@ public:
 
     void ini_residual_std(std::unique_ptr<State> &state);
 
+    void ini_tau_mu_fit(std::unique_ptr<State> &state);
+
     void predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
+
+    void set_partial_residual(std::unique_ptr<State> &state, bool treatment_flag);
+
+    void update_full_residuals(std::unique_ptr<State> &state);
 };
-
-
-
 
 #endif
