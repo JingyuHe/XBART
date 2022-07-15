@@ -120,7 +120,6 @@ Rcpp::List XBART_cpp(mat y, mat X, size_t num_trees, size_t num_sweeps, size_t m
 
         for (size_t t = 0; t < num_trees; t++)
         {
-            cout << "size of tree " << (*trees2)[i][t].treesize() << endl;
             treess << (*trees2)[i][t];
         }
 

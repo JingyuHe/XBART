@@ -28,6 +28,10 @@ public:
     std::vector<double> split_count_current_tree;
     std::vector<double> mtry_weight_current_tree;
 
+    // for XBCF
+    matrix<double> split_count_all_tree_ps;
+    matrix<double> split_count_all_tree_trt;
+
     // mtry
     bool use_all = true;
     bool parallel = true;
@@ -81,7 +85,6 @@ public:
     // total fit of treatment forest
     std::vector<double> *tau_fit;
 
-
     State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread)
     {
 
@@ -101,6 +104,8 @@ public:
         // Splits
         ini_xinfo(this->split_count_all_tree, p, num_trees);
 
+        this->split_count_all_tree_ps.resize(0);
+        this->split_count_all_tree_trt.resize(0);
         this->split_count_current_tree = std::vector<double>(p, 0);
         this->mtry_weight_current_tree = std::vector<double>(p, 0);
         this->split_count_all = std::vector<double>(p, 0);
@@ -185,6 +190,25 @@ public:
         this->treatment_flag = false;
         this->mu_fit = new std::vector<double>(N, 0);
         this->tau_fit = new std::vector<double>(N, 0);
+
+        ini_xinfo(this->split_count_all_tree_ps, p, num_trees);
+        ini_xinfo(this->split_count_all_tree_trt, p, num_trees);
+    }
+
+    void update_split_counts(size_t tree_ind)
+    {
+        mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
+
+        if (this->treatment_flag)
+        {
+            split_count_all_tree_trt[tree_ind] = split_count_current_tree;
+        }
+        else
+        {
+            split_count_all_tree_ps[tree_ind] = split_count_current_tree;
+        }
+
+        return;
     }
 };
 #endif

@@ -395,17 +395,15 @@ public:
 
     double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const;
 
-    // double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const;
-
-    void ini_residual_std(std::unique_ptr<State> &state);
-
     void ini_tau_mu_fit(std::unique_ptr<State> &state);
 
-    void predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
+    void predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees_ps, vector<vector<tree>> &trees_trt);
 
-    void set_partial_residual(std::unique_ptr<State> &state, bool treatment_flag);
+    void set_forest_flag(std::unique_ptr<State> &state, bool treatment_flag);
 
     void update_full_residuals(std::unique_ptr<State> &state);
+
+    void subtract_old_tree_fit(size_t tree_ind, std::vector<double> &fit, std::unique_ptr<X_struct> &x_struct);
 };
 
 #endif
