@@ -10,6 +10,26 @@ using namespace std;
 using namespace chrono;
 using namespace arma;
 
+void tree_to_string(vector<vector<tree>> &trees, Rcpp::StringVector &output_tree, size_t num_sweeps, size_t num_trees, size_t p)
+{
+    std::stringstream treess;
+    for (size_t i = 0; i < num_sweeps; i++)
+    {
+        treess.precision(10);
+
+        treess.str(std::string());
+        treess << num_trees << " " << p << endl;
+
+        for (size_t t = 0; t < num_trees; t++)
+        {
+            treess << (trees)[i][t];
+        }
+
+        output_tree(i) = treess.str();
+    }
+    return;
+}
+
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat Xtest, arma::mat Ztest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, double tau_kap = 3, double tau_s = 0.5, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, double nthread = 0)
@@ -149,25 +169,12 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
     x_struct_trt.reset();
 
     // print out tree structure, for usage of BART warm-start
-    std::stringstream treess;
 
-    Rcpp::StringVector output_tree(num_sweeps);
+    Rcpp::StringVector output_tree_ps(num_sweeps);
+    Rcpp::StringVector output_tree_trt(num_sweeps);
 
-    for (size_t i = 0; i < num_sweeps; i++)
-    {
-        treess.precision(10);
-
-        treess.str(std::string());
-        treess << num_trees << " " << p << endl;
-
-        for (size_t t = 0; t < num_trees; t++)
-        {
-            cout << "size of tree " << (*trees_trt)[i][t].treesize() << endl;
-            treess << (*trees_trt)[i][t];
-        }
-
-        output_tree(i) = treess.str();
-    }
+    tree_to_string(*trees_trt, output_tree_trt, num_sweeps, num_trees, p);
+    tree_to_string(*trees_ps, output_tree_ps, num_sweeps, num_trees, p);
 
     thread_pool.stop();
 
@@ -177,5 +184,5 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p),
-        Rcpp::Named("treedraws") = output_tree);
+        Rcpp::Named("treedraws") = Rcpp::List::create(Rcpp::Named("treatment") = output_tree_trt, Rcpp::Named("Prognostic") = output_tree_ps));
 }

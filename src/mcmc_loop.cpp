@@ -258,6 +258,52 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
             COUT << "--------------------------------" << endl;
         }
 
+        // prognostic forest
+        model->set_treatmentflag(state, 0);
+
+        for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
+        {
+            if (verbose)
+            {
+                cout << "sweep " << sweeps << " tree " << tree_ind << endl;
+            }
+
+            // Draw Sigma
+            model->update_state(state, tree_ind, x_struct_ps);
+
+            sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
+
+            if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
+            {
+                state->use_all = false;
+            }
+
+            // clear counts of splits for one tree
+            std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
+
+            // subtract old tree for sampling case
+            if (state->sample_weights)
+            {
+                state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
+            }
+
+            // update tau_fit from full fit to partial fit
+            model->subtract_old_tree_fit(tree_ind, state, x_struct_ps);
+
+            // calculate partial residuals based on partial fit
+            model->update_partial_residuals(tree_ind, state, x_struct_ps);
+
+            model->initialize_root_suffstat(state, trees_ps[sweeps][tree_ind].suff_stat);
+
+            trees_ps[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct_ps->X_counts, x_struct_ps->X_num_unique, model, x_struct_ps, sweeps, tree_ind);
+
+            // update tau_fit from partial fit to full fit
+            model->add_new_tree_fit(tree_ind, state, x_struct_ps);
+
+            state->update_split_counts(tree_ind);
+        }
+
+        // treatment forest
         model->set_treatmentflag(state, 1);
 
         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
