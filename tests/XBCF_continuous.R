@@ -12,10 +12,10 @@ nthread <- 4
 
 x1 <- runif(n)
 x2 <- runif(n, -3, 3)
-z <- rnorm(n, 0, 2)
+z <- rnorm(n, 0, 2) + 2
 # z <- rep(1, 100)
 # y <- 10*x*(z==2)
-y <- (sin(5 * x1) + x2) * z
+y <- (sin(5 * x1) + x2) * z 
 x <- cbind(x1, x2)
 # XBART::start_profiler("profiler.out")
 time <- Sys.time()
@@ -26,6 +26,7 @@ print(time)
 pred <- rowMeans(fit$yhats_test)
 inds1 <- z < 1.1 & z > 0.9
 inds2 <- z > -1.1 & z < -0.9
+par(mfrow = c(2,2))
 plot(x1[inds1], pred[inds1], pch = 20, col = "green", xlim = c(min(x1), max(x1)))
 points(x1[inds2], pred[inds2], pch = 20, col = "blue")
 points(x1, (sin(5 * x1) + x2) * (1), col = "green")

@@ -10,6 +10,26 @@ using namespace std;
 using namespace chrono;
 using namespace arma;
 
+void tree_to_string(vector<vector<tree>> &trees, Rcpp::StringVector &output_tree, size_t num_sweeps, size_t num_trees, size_t p)
+{
+    std::stringstream treess;
+    for (size_t i = 0; i < num_sweeps; i++)
+    {
+        treess.precision(10);
+
+        treess.str(std::string());
+        treess << num_trees << " " << p << endl;
+
+        for (size_t t = 0; t < num_trees; t++)
+        {
+            treess << (trees)[i][t];
+        }
+
+        output_tree(i) = treess.str();
+    }
+    return;
+}
+
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat Xtest, arma::mat Ztest, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, double tau_kap = 3, double tau_s = 0.5, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, double nthread = 0)
@@ -95,14 +115,13 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
     matrix<double> sigma_draw_xinfo;
     ini_matrix(sigma_draw_xinfo, num_trees, num_sweeps);
 
-    // Create trees
-    // prognostic trees
+    // // Create trees
     vector<vector<tree>> *trees_ps = new vector<vector<tree>>(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++)
     {
         (*trees_ps)[i] = vector<tree>(num_trees);
     }
-    // treatment trees
+
     vector<vector<tree>> *trees_trt = new vector<vector<tree>>(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++)
     {
@@ -114,18 +133,18 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
     model->setNoSplitPenality(no_split_penality);
 
     // State settings
-    std::vector<double> initial_theta_ps(1, y_mean / (double)num_trees);
-    std::vector<double> initial_theta_trt(1, 0);
     std::unique_ptr<State> state(new NormalLinearState(&Z_std, Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread, parallel)); // last input is nthread, need update
 
-    // initialize X_struct for prognostic forest
+    // initialize X_struct
+    std::vector<double> initial_theta_ps(1, 0);
     std::unique_ptr<X_struct> x_struct_ps(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_ps, num_trees));
 
-    // initialize X_struct for treatment forest
+    std::vector<double> initial_theta_trt(1, y_mean / (double)num_trees);
     std::unique_ptr<X_struct> x_struct_trt(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_trt, num_trees));
 
     ////////////////////////////////////////////////////////////////
-    mcmc_loop_XBCF_continuous(Xorder_std, verbose, sigma_draw_xinfo, *trees_ps, *trees_trt, no_split_penality, state, model, x_struct_ps, x_struct_trt);
+    mcmc_loop_linear(Xorder_std, verbose, sigma_draw_xinfo, *trees_ps, *trees_trt, no_split_penality, state, model, x_struct_ps, x_struct_trt);
+
 
     model->predict_std(Ztest_std, Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees_ps, *trees_trt);
 
@@ -133,7 +152,8 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum(p, 0);             // split counts
-    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees_trt, true);
+    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees_ps, true);
+
 
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(yhats_test_xinfo, yhats_test);
@@ -151,24 +171,13 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
     x_struct_trt.reset();
 
     // print out tree structure, for usage of BART warm-start
-    std::stringstream treess;
 
-    Rcpp::StringVector output_tree(num_sweeps);
+    Rcpp::StringVector output_tree_ps(num_sweeps);
+    Rcpp::StringVector output_tree_trt(num_sweeps);
 
-    for (size_t i = 0; i < num_sweeps; i++)
-    {
-        treess.precision(10);
+    tree_to_string(*trees_trt, output_tree_trt, num_sweeps, num_trees, p);
+    tree_to_string(*trees_ps, output_tree_ps, num_sweeps, num_trees, p);
 
-        treess.str(std::string());
-        treess << num_trees << " " << p << endl;
-
-        for (size_t t = 0; t < num_trees; t++)
-        {
-            treess << (*trees_trt)[i][t];
-        }
-
-        output_tree(i) = treess.str();
-    }
 
     thread_pool.stop();
 
@@ -178,5 +187,5 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p),
-        Rcpp::Named("treedraws") = output_tree);
+        Rcpp::Named("treedraws") = Rcpp::List::create(Rcpp::Named("treatment") = output_tree_trt, Rcpp::Named("Prognostic") = output_tree_ps));
 }

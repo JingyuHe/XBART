@@ -69,6 +69,9 @@ public:
 
     // for continuous treatment XBCF
     matrix<double> *Z_std;
+    std::vector<double> *tau_fit;
+    std::vector<double> *mu_fit;
+    bool treatment_flag;
 
     void update_sigma(double sigma)
     {
@@ -187,28 +190,9 @@ public:
         this->sigma = sigma;
         this->sigma2 = pow(sigma, 2);
         this->parallel = parallel;
-        this->treatment_flag = false;
-        this->mu_fit = new std::vector<double>(N, 0);
-        this->tau_fit = new std::vector<double>(N, 0);
+        this->tau_fit = (new std::vector<double>(N, 0));
+        this->mu_fit = (new std::vector<double>(N, 0));
 
-        ini_xinfo(this->split_count_all_tree_ps, p, num_trees);
-        ini_xinfo(this->split_count_all_tree_trt, p, num_trees);
-    }
-
-    void update_split_counts(size_t tree_ind)
-    {
-        mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
-
-        if (this->treatment_flag)
-        {
-            split_count_all_tree_trt[tree_ind] = split_count_current_tree;
-        }
-        else
-        {
-            split_count_all_tree_ps[tree_ind] = split_count_current_tree;
-        }
-
-        return;
     }
 };
 #endif
