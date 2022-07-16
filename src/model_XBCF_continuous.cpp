@@ -21,6 +21,12 @@ void NormalLinearModel::incSuffStat(std::unique_ptr<State> &state, size_t index_
         // number of points
         suffstats[2] += 1;
     }
+    else
+    {
+        suffstats[0] += 1;
+        suffstats[1] += state->residual_std[0][index_next_obs];
+        suffstats[3] += 1;
+    }
     return;
 }
 
@@ -41,7 +47,7 @@ void NormalLinearModel::update_state(std::unique_ptr<State> &state, size_t tree_
 
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
-        full_residual[i] = (*state->y_std)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i];
+        full_residual[i] = (*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i];
     }
 
     std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(full_residual) + s));
@@ -87,25 +93,34 @@ void NormalLinearModel::update_tau_per_forest(std::unique_ptr<State> &state, siz
 
 void NormalLinearModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
 {
-    // sum of z^2
-    suff_stat[0] = sum_vec_z_squared((*state->Z_std), state->n_y);
-    // sum of partial residual * z^2
-    suff_stat[1] = sum_vec_yzsq(state->residual_std[0], (*state->Z_std));
-    // number of observations in the node
-    suff_stat[2] = state->n_y;
+    std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
+    for (size_t i = 0; i < state->n_y; i++)
+    {
+        incSuffStat(state, i, suff_stat);
+    }
     return;
 }
 
 void NormalLinearModel::updateNodeSuffStat(std::unique_ptr<State> &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
-    // sum of z^2
-    suff_stat[0] += pow(((*state->Z_std))[0][Xorder_std[split_var][row_ind]], 2);
+    if (state->treatment_flag)
+    {
+        // sum of z^2
+        suff_stat[0] += pow(((*state->Z_std))[0][Xorder_std[split_var][row_ind]], 2);
 
-    // sum of partial residual * z^2 (in y scale)
-    suff_stat[1] += (state->residual_std[0])[Xorder_std[split_var][row_ind]] * pow(((*state->Z_std))[0][Xorder_std[split_var][row_ind]], 2);
+        // sum of partial residual * z^2 (in y scale)
+        suff_stat[1] += (state->residual_std[0])[Xorder_std[split_var][row_ind]] * pow(((*state->Z_std))[0][Xorder_std[split_var][row_ind]], 2);
 
-    // number of data points
-    suff_stat[2] += 1;
+        // number of data points
+        suff_stat[2] += 1;
+    }
+    else
+    {
+        suff_stat[0] += 1;
+        suff_stat[1] += (state->residual_std[0])[Xorder_std[split_var][row_ind]];
+        suff_stat[2] += 1;
+    }
+
     return;
 }
 
@@ -177,11 +192,10 @@ double NormalLinearModel::likelihood(std::vector<double> &temp_suff_stat, std::v
 
 void NormalLinearModel::ini_residual_std(std::unique_ptr<State> &state)
 {
-    // initialize partial residual at (num_tree - 1) / num_tree * yhat
-    // double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
+    // initialize the vector of full residuals
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
-        state->residual_std[0][i] = (*state->y_std)[i] / ((*state->Z_std)[0][i]) - (*state->tau_fit)[i];
+        state->residual_std[0][i] = (*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i];
     }
     return;
 }
@@ -203,13 +217,12 @@ void NormalLinearModel::predict_std(matrix<double> &Ztestpointer, const double *
         {
             getThetaForObs_Outsample(output_trt, trees_trt[sweeps], data_ind, Xtestpointer, N_test, p);
 
-            getThetaForObs_Outsample(output_ps, trees_trt[sweeps], data_ind, Xtestpointer, N_test, p);
+            getThetaForObs_Outsample(output_ps, trees_ps[sweeps], data_ind, Xtestpointer, N_test, p);
 
             // take sum of predictions of each tree, as final prediction
             for (size_t i = 0; i < trees_trt[0].size(); i++)
             {
-                // yhats_test_xinfo[sweeps][data_ind] += output_ps[i][0] + output_trt[i][0] * (Ztestpointer[0][data_ind]);
-                yhats_test_xinfo[sweeps][data_ind] +=  output_trt[i][0] * (Ztestpointer[0][data_ind]);
+                yhats_test_xinfo[sweeps][data_ind] += output_ps[i][0] + output_trt[i][0] * (Ztestpointer[0][data_ind]);
             }
         }
     }
@@ -221,6 +234,7 @@ void NormalLinearModel::ini_tau_mu_fit(std::unique_ptr<State> &state)
     double value = state->ini_var_yhat;
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
+        (*state->mu_fit)[i] = 0;
         (*state->tau_fit)[i] = value;
     }
     return;
@@ -273,9 +287,23 @@ void NormalLinearModel::add_new_tree_fit(size_t tree_ind, std::unique_ptr<State>
 
 void NormalLinearModel::update_partial_residuals(size_t tree_ind, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct)
 {
-    for (size_t i = 0; i < (*state->tau_fit).size(); i++)
+    if (state->treatment_flag)
     {
-        (state->residual_std)[0][i] = (*state->y_std)[i] / ((*state->Z_std)[0][i]) - (*state->tau_fit)[i];
+        // treatment forest
+        // (y - mu - Z * tau) / Z
+        for (size_t i = 0; i < (*state->tau_fit).size(); i++)
+        {
+            (state->residual_std)[0][i] = ((*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i]) / ((*state->Z_std)[0][i]);
+        }
+    }
+    else
+    {
+        // prognostic forest
+        // (y - mu - Z * tau)
+        for (size_t i = 0; i < (*state->tau_fit).size(); i++)
+        {
+            (state->residual_std)[0][i] = ((*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i]);
+        }
     }
     return;
 }
