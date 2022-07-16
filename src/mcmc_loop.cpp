@@ -247,7 +247,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
 
 void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees_ps, vector<vector<tree>> &trees_trt, double no_split_penalty, std::unique_ptr<State> &state, NormalLinearModel *model, std::unique_ptr<X_struct> &x_struct_ps, std::unique_ptr<X_struct> &x_struct_trt)
 {
-    model->ini_residual_std(state);
+    model->ini_tau_mu_fit(state);
 
     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
     {
@@ -271,8 +271,10 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
             // Draw Sigma
             model->update_state(state, tree_ind, x_struct_ps);
 
-            sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
+            // Draw Sigma
+            model->update_state(state, tree_ind, x_struct_trt);
 
+            // sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
             if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
             {
                 state->use_all = false;
@@ -284,7 +286,7 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
             // subtract old tree for sampling case
             if (state->sample_weights)
             {
-                state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
+                state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree_trt[tree_ind];
             }
 
             // update tau_fit from full fit to partial fit
@@ -299,6 +301,7 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
 
             // update tau_fit from partial fit to full fit
             model->add_new_tree_fit(tree_ind, state, x_struct_ps);
+
 
             state->update_split_counts(tree_ind);
         }
@@ -346,6 +349,7 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
             model->add_new_tree_fit(tree_ind, state, x_struct_trt);
 
             state->update_split_counts(tree_ind);
+
         }
 
         if (model->sampling_tau)

@@ -145,6 +145,7 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
     ////////////////////////////////////////////////////////////////
     mcmc_loop_linear(Xorder_std, verbose, sigma_draw_xinfo, *trees_ps, *trees_trt, no_split_penality, state, model, x_struct_ps, x_struct_trt);
 
+
     model->predict_std(Ztest_std, Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees_ps, *trees_trt);
 
     // R Objects to Return
@@ -152,6 +153,7 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum(p, 0);             // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees_ps, true);
+
 
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(yhats_test_xinfo, yhats_test);
@@ -175,6 +177,7 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
 
     tree_to_string(*trees_trt, output_tree_trt, num_sweeps, num_trees, p);
     tree_to_string(*trees_ps, output_tree_ps, num_sweeps, num_trees, p);
+
 
     thread_pool.stop();
 

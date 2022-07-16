@@ -395,7 +395,7 @@ public:
 
     double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const;
 
-    // double likelihood_no_split(std::vector<double> &suff_stat, std::unique_ptr<State> &state) const;
+    void ini_tau_mu_fit(std::unique_ptr<State> &state);
 
     void ini_residual_std(std::unique_ptr<State> &state);
 
@@ -410,6 +410,7 @@ public:
     void add_new_tree_fit(size_t tree_ind, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct);
 
     void update_partial_residuals(size_t tree_ind, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct);
+
 };
 
 #endif

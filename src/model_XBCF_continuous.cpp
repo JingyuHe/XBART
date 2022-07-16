@@ -18,6 +18,7 @@ void NormalLinearModel::incSuffStat(std::unique_ptr<State> &state, size_t index_
         suffstats[0] += pow((*state->Z_std)[0][index_next_obs], 2);
         // sum r_i * z_i^2
         suffstats[1] += pow((*state->Z_std)[0][index_next_obs], 2) * state->residual_std[0][index_next_obs];
+
         // number of points
         suffstats[2] += 1;
     }
@@ -26,6 +27,7 @@ void NormalLinearModel::incSuffStat(std::unique_ptr<State> &state, size_t index_
         suffstats[0] += 1;
         suffstats[1] += state->residual_std[0][index_next_obs];
         suffstats[3] += 1;
+
     }
     return;
 }
@@ -35,6 +37,7 @@ void NormalLinearModel::samplePars(std::unique_ptr<State> &state, std::vector<do
     std::normal_distribution<double> normal_samp(0.0, 1.0);
 
     double sigma2 = pow(state->sigma, 2);
+
     theta_vector[0] = suff_stat[1] / sigma2 / (suff_stat[0] / sigma2 + 1.0 / tau) + sqrt(1.0 / (1.0 / tau + suff_stat[0] / sigma2)) * normal_samp(state->gen);
 
     return;
@@ -45,13 +48,15 @@ void NormalLinearModel::update_state(std::unique_ptr<State> &state, size_t tree_
     // Draw Sigma
     std::vector<double> full_residual(state->n_y);
 
-    for (size_t i = 0; i < state->residual_std[0].size(); i++)
+    for (size_t i = 0; i < state->n_y; i++)
     {
         full_residual[i] = (*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i];
+
     }
 
     std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(full_residual) + s));
     state->update_sigma(1.0 / sqrt(gamma_samp(state->gen)));
+
     return;
 }
 
@@ -157,6 +162,7 @@ void NormalLinearModel::calculateOtherSideSuffStat(std::vector<double> &parent_s
 double NormalLinearModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const
 {
     // likelihood equation,
+
     double sigma2 = state->sigma2;
 
     size_t nb;
@@ -196,8 +202,8 @@ void NormalLinearModel::ini_residual_std(std::unique_ptr<State> &state)
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
         state->residual_std[0][i] = (*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i];
+
     }
-    return;
 }
 
 void NormalLinearModel::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees_ps, vector<vector<tree>> &trees_trt)
@@ -221,6 +227,7 @@ void NormalLinearModel::predict_std(matrix<double> &Ztestpointer, const double *
 
             // take sum of predictions of each tree, as final prediction
             for (size_t i = 0; i < trees_trt[0].size(); i++)
+
             {
                 yhats_test_xinfo[sweeps][data_ind] += output_ps[i][0] + output_trt[i][0] * (Ztestpointer[0][data_ind]);
             }
@@ -304,6 +311,7 @@ void NormalLinearModel::update_partial_residuals(size_t tree_ind, std::unique_pt
         {
             (state->residual_std)[0][i] = ((*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i]);
         }
+
     }
     return;
 }
