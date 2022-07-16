@@ -16,8 +16,8 @@
 
 void NormalModel::incSuffStat(std::unique_ptr<State> &state, size_t index_next_obs, std::vector<double> &suffstats)
 {
-    suffstats[0] += residual_std[0][index_next_obs];
-    suffstats[1] += pow(residual_std[0][index_next_obs], 2);
+    suffstats[0] += state->residual_std[0][index_next_obs];
+    suffstats[1] += pow(state->residual_std[0][index_next_obs], 2);
     suffstats[2] += 1;
     return;
 }
