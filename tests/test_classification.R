@@ -91,7 +91,7 @@ cat("-----------------------------\n")
 
 
 tm2 <- proc.time()
-# fit.xgb <- xgboost(data = X_train, label = y_train, num_class = k, verbose = 0, max_depth = 4, subsample = 0.80, nrounds = 500, early_stopping_rounds = 2, eta = 0.1, params = list(objective = "multi:softprob"))
+fit.xgb <- xgboost(data = X_train, label = y_train, num_class = k, verbose = 0, max_depth = 4, subsample = 0.80, nrounds = 500, early_stopping_rounds = 2, eta = 0.1, params = list(objective = "multi:softprob"))
 
 tm2 <- proc.time() - tm2
 cat(paste("XGBoost runtime: ", round(tm2["elapsed"], 3), " seconds"), "\n")

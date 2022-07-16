@@ -14,7 +14,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////
 
-void NormalModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
+void NormalModel::incSuffStat(std::unique_ptr<State> &state, size_t index_next_obs, std::vector<double> &suffstats)
 {
     suffstats[0] += residual_std[0][index_next_obs];
     suffstats[1] += pow(residual_std[0][index_next_obs], 2);
@@ -100,13 +100,13 @@ void NormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::v
     return;
 }
 
-void NormalModel::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
+void NormalModel::updateNodeSuffStat(std::unique_ptr<State> &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
     // this function updates the sufficient statistics at each intermediate nodes when growing a new tree
     // sum of y
-    suff_stat[0] += residual_std[0][Xorder_std[split_var][row_ind]];
+    suff_stat[0] += state->residual_std[0][Xorder_std[split_var][row_ind]];
     // sum of y squared
-    suff_stat[1] += pow(residual_std[0][Xorder_std[split_var][row_ind]], 2);
+    suff_stat[1] += pow(state->residual_std[0][Xorder_std[split_var][row_ind]], 2);
     // number of data observations
     suff_stat[2] += 1;
     return;
@@ -280,12 +280,12 @@ void NormalModel::predict_whole_std(const double *Xtestpointer, size_t N_test, s
 //////////////////////////////////////////////////////////////////////////////////////
 
 // incSuffStat should take a state as its first argument
-void LogitModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
+void LogitModel::incSuffStat(std::unique_ptr<State> &state, size_t index_next_obs, std::vector<double> &suffstats)
 {
     suffstats[(*y_size_t)[index_next_obs]] += weight;
     for (size_t j = 0; j < dim_theta; ++j)
     {
-        suffstats[dim_residual + j] += weight * exp(residual_std[j][index_next_obs]);
+        suffstats[dim_residual + j] += weight * exp(state->residual_std[j][index_next_obs]);
         // suffstats[dim_residual + j] += (*phi)[index_next_obs] * exp(residual_std[j][index_next_obs]);
     }
 
@@ -414,15 +414,15 @@ void LogitModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::ve
     for (size_t i = 0; i < state->n_y; i++)
     {
         // from 0
-        incSuffStat(state->residual_std, i, suff_stat);
+        incSuffStat(state, i, suff_stat);
     }
 
     return;
 }
 
-void LogitModel::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
+void LogitModel::updateNodeSuffStat(std::unique_ptr<State> &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
-    incSuffStat(residual_std, Xorder_std[split_var][row_ind], suff_stat);
+    incSuffStat(state, Xorder_std[split_var][row_ind], suff_stat);
 
     return;
 }

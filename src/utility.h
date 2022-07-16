@@ -157,4 +157,12 @@ void dirichlet_distribution(std::vector<double> &prob, std::vector<double> &alph
 
 void get_rel_covariance(mat &cov, mat &X, std::vector<double> X_range, double theta, double tau);
 
+double sum_vec_yz(std::vector<double> &v, matrix<double> &z);
+
+double sum_vec_z_squared(matrix<double> &z, size_t n);
+
+double sum_vec_yzsq(std::vector<double> &v, matrix<double> &z);
+
+double sum_vec_y_z(std::vector<double> &v, matrix<double> &z);
+
 #endif
