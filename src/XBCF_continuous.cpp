@@ -129,7 +129,7 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
     }
 
     // define model
-    NormalLinearModel *model = new NormalLinearModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
+    XBCFContinuousModel *model = new XBCFContinuousModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
     model->setNoSplitPenality(no_split_penality);
 
     // State settings

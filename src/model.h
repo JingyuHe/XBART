@@ -327,7 +327,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////////////////
 
-class NormalLinearModel : public Model
+class XBCFContinuousModel : public Model
 {
 public:
     size_t dim_suffstat = 4;
@@ -343,7 +343,7 @@ public:
     double tau_mean; // copy of the original value
     bool sampling_tau;
 
-    NormalLinearModel(double kap, double s, double tau, double alpha, double beta, bool sampling_tau, double tau_kap, double tau_s) : Model(1, 4)
+    XBCFContinuousModel(double kap, double s, double tau, double alpha, double beta, bool sampling_tau, double tau_kap, double tau_s) : Model(1, 4)
     {
         this->kap = kap;
         this->s = s;
@@ -358,7 +358,7 @@ public:
         this->sampling_tau = sampling_tau;
     }
 
-    NormalLinearModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 4)
+    XBCFContinuousModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 4)
     {
         this->kap = kap;
         this->s = s;
@@ -371,9 +371,9 @@ public:
         this->sampling_tau = true;
     }
 
-    NormalLinearModel() : Model(1, 4) {}
+    XBCFContinuousModel() : Model(1, 4) {}
 
-    Model *clone() { return new NormalLinearModel(*this); }
+    Model *clone() { return new XBCFContinuousModel(*this); }
 
     void incSuffStat(std::unique_ptr<State> &state, size_t index_next_obs, std::vector<double> &suffstats);
 
@@ -399,8 +399,6 @@ public:
 
     void ini_residual_std(std::unique_ptr<State> &state);
 
-    void ini_tau_mu_fit(std::unique_ptr<State> &state);
-
     void predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees_ps, vector<vector<tree>> &trees_trt);
 
     void set_treatmentflag(std::unique_ptr<State> &state, bool value);
@@ -410,7 +408,6 @@ public:
     void add_new_tree_fit(size_t tree_ind, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct);
 
     void update_partial_residuals(size_t tree_ind, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct);
-
 };
 
 #endif

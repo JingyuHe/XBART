@@ -80,13 +80,6 @@ public:
         return;
     }
 
-    // XBCF with continuous treatment
-    // indicator of fitting treatment trees or prognostic trees
-    bool treatment_flag;
-    // total fit of prognostic forest
-    std::vector<double> *mu_fit;
-    // total fit of treatment forest
-    std::vector<double> *tau_fit;
 
     State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread)
     {

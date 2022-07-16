@@ -15,7 +15,7 @@ x2 <- runif(n, -3, 3)
 z <- rnorm(n, 0, 2) + 2
 # z <- rep(1, 100)
 # y <- 10*x*(z==2)
-y <- (sin(5 * x1) + x2) * z 
+y <- (sin(5 * x1) + x2) * z + cos(2 * x2 + x1)
 x <- cbind(x1, x2)
 # XBART::start_profiler("profiler.out")
 time <- Sys.time()
