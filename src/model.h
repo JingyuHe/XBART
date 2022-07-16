@@ -401,10 +401,18 @@ public:
 
     void ini_residual_std(std::unique_ptr<State> &state);
 
+    void ini_tau_mu_fit(std::unique_ptr<State> &state);
+
     void predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
+
+    void set_treatmentflag(std::unique_ptr<State> &state, bool value);
+
+
+    void subtract_old_tree_fit(size_t tree_ind, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct);
+
+    void add_new_tree_fit(size_t tree_ind, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct);
+    
+    void update_partial_residuals(size_t tree_ind, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct);
 };
-
-
-
 
 #endif

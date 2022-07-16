@@ -65,6 +65,9 @@ public:
 
     // for continuous treatment XBCF
     matrix<double> *Z_std;
+    std::vector<double> *tau_fit;
+    std::vector<double> *mu_fit;
+    bool treatment_flag;
 
     void update_sigma(double sigma)
     {
@@ -174,6 +177,8 @@ public:
         this->sigma = sigma;
         this->sigma2 = pow(sigma, 2);
         this->parallel = parallel;
+        this->tau_fit = (new std::vector<double>(N, 0));
+        this->mu_fit = (new std::vector<double>(N, 0));
     }
 };
 #endif

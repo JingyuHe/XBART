@@ -258,6 +258,8 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
             COUT << "--------------------------------" << endl;
         }
 
+        model->set_treatmentflag(state, 1);
+
         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
         {
             if (verbose)
@@ -284,9 +286,15 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
                 state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
             }
 
+            model->subtract_old_tree_fit(tree_ind, state, x_struct);
+
+            model->update_partial_residuals(tree_ind, state, x_struct);
+
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
             trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind);
+
+            model->add_new_tree_fit(tree_ind, state, x_struct);
 
             state->update_split_counts(tree_ind);
 

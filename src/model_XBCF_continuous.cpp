@@ -237,10 +237,10 @@ double NormalLinearModel::likelihood(std::vector<double> &temp_suff_stat, std::v
 void NormalLinearModel::ini_residual_std(std::unique_ptr<State> &state)
 {
     // initialize partial residual at (num_tree - 1) / num_tree * yhat
-    double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
+    // double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
-        state->residual_std[0][i] = (*state->y_std)[i] / ((*state->Z_std)[0][i]) - value;
+        state->residual_std[0][i] = (*state->y_std)[i] / ((*state->Z_std)[0][i]) - (*state->tau_fit)[i];
     }
     return;
 }
@@ -265,6 +265,49 @@ void NormalLinearModel::predict_std(matrix<double> &Ztestpointer, const double *
                 yhats_test_xinfo[sweeps][data_ind] += output[i][0] * (Ztestpointer[0][data_ind]);
             }
         }
+    }
+    return;
+}
+
+void NormalLinearModel::ini_tau_mu_fit(std::unique_ptr<State> &state)
+{
+    double value = state->ini_var_yhat;
+    for (size_t i = 0; i < state->residual_std[0].size(); i++)
+    {
+        (*state->tau_fit)[i] = value;
+    }
+    return;
+}
+
+void NormalLinearModel::set_treatmentflag(std::unique_ptr<State> &state, bool value)
+{
+    state->treatment_flag = value;
+    return;
+}
+
+void NormalLinearModel::subtract_old_tree_fit(size_t tree_ind, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct)
+{
+    for (size_t i = 0; i < (*state->tau_fit).size(); i++)
+    {
+        (*state->tau_fit)[i] -= (*(x_struct->data_pointers[tree_ind][i]))[0];
+    }
+    return;
+}
+
+void NormalLinearModel::add_new_tree_fit(size_t tree_ind, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct)
+{
+    for (size_t i = 0; i < (*state->tau_fit).size(); i++)
+    {
+        (*state->tau_fit)[i] += (*(x_struct->data_pointers[tree_ind][i]))[0];
+    }
+    return;
+}
+
+void NormalLinearModel::update_partial_residuals(size_t tree_ind, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct)
+{
+    for (size_t i = 0; i < (*state->tau_fit).size(); i++)
+    {
+        (state->residual_std)[0][i] =  (*state->y_std)[i] / ((*state->Z_std)[0][i]) - (*state->tau_fit)[i];
     }
     return;
 }
