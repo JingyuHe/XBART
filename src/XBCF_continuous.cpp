@@ -112,6 +112,11 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
     matrix<double> yhats_test_xinfo;
     ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
 
+    matrix<double> prognostic_xinfo;
+    ini_matrix(prognostic_xinfo, N_test, num_sweeps);
+    matrix<double> treatment_xinfo;
+    ini_matrix(treatment_xinfo, N_test, num_sweeps);
+
     matrix<double> sigma_draw_xinfo;
     ini_matrix(sigma_draw_xinfo, num_trees, num_sweeps);
 
@@ -145,18 +150,22 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
     ////////////////////////////////////////////////////////////////
     mcmc_loop_linear(Xorder_std, verbose, sigma_draw_xinfo, *trees_ps, *trees_trt, no_split_penality, state, model, x_struct_ps, x_struct_trt);
 
-
-    model->predict_std(Ztest_std, Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, *trees_ps, *trees_trt);
+    model->predict_std(Ztest_std, Xtestpointer, N_test, p, num_trees, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_ps, *trees_trt);
 
     // R Objects to Return
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
+    Rcpp::NumericMatrix prognostic(N_test, num_sweeps);
+    Rcpp::NumericMatrix treatment(N_test, num_sweeps);
+
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum(p, 0);             // split counts
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees_ps, true);
 
-
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(yhats_test_xinfo, yhats_test);
+    Matrix_to_NumericMatrix(prognostic_xinfo, prognostic);
+    Matrix_to_NumericMatrix(treatment_xinfo, treatment);
+
     Matrix_to_NumericMatrix(sigma_draw_xinfo, sigma_draw);
 
     for (size_t i = 0; i < p; i++)
@@ -178,12 +187,13 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X, arma::mat 
     tree_to_string(*trees_trt, output_tree_trt, num_sweeps, num_trees, p);
     tree_to_string(*trees_ps, output_tree_ps, num_sweeps, num_trees, p);
 
-
     thread_pool.stop();
 
     return Rcpp::List::create(
         // Rcpp::Named("yhats") = yhats,
         Rcpp::Named("yhats_test") = yhats_test,
+        Rcpp::Named("mu") = prognostic,
+        Rcpp::Named("tau") = treatment,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p),

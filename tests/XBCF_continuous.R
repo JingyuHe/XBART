@@ -19,7 +19,7 @@ y <- (sin(5 * x1) + x2) * z + cos(2 * x2 + x1)
 x <- cbind(x1, x2)
 # XBART::start_profiler("profiler.out")
 time <- Sys.time()
-fit <- XBART::XBCF_continuous(as.matrix(y), Z = as.matrix(z), X = as.matrix(x), Xtest = as.matrix(x), Ztest = as.matrix(z), parallel = parallel, num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin, nthread = nthread, sample_weights = FALSE)
+fit <- XBART::XBCF_continuous(as.matrix(y), Z = as.matrix(z), X = as.matrix(x), Xtest = as.matrix(x), Ztest = as.matrix(z), parallel = parallel, num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin, nthread = nthread, sample_weights = TRUE)
 time <- Sys.time() - time
 print(time)
 # XBART::stop_profiler()

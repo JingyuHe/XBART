@@ -28,7 +28,6 @@ void XBCFContinuousModel::incSuffStat(std::unique_ptr<State> &state, size_t inde
         suffstats[0] += 1;
         suffstats[1] += state->residual_std[0][index_next_obs];
         suffstats[3] += 1;
-
     }
     return;
 }
@@ -52,7 +51,6 @@ void XBCFContinuousModel::update_state(std::unique_ptr<State> &state, size_t tre
     for (size_t i = 0; i < state->n_y; i++)
     {
         full_residual[i] = (*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i];
-
     }
 
     std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(full_residual) + s));
@@ -203,11 +201,10 @@ void XBCFContinuousModel::ini_residual_std(std::unique_ptr<State> &state)
     for (size_t i = 0; i < state->residual_std[0].size(); i++)
     {
         state->residual_std[0][i] = (*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i];
-
     }
 }
 
-void XBCFContinuousModel::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees_ps, vector<vector<tree>> &trees_trt)
+void XBCFContinuousModel::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_ps, vector<vector<tree>> &trees_trt)
 {
     // predict the output as a matrix
     matrix<double> output_trt;
@@ -228,8 +225,9 @@ void XBCFContinuousModel::predict_std(matrix<double> &Ztestpointer, const double
 
             // take sum of predictions of each tree, as final prediction
             for (size_t i = 0; i < trees_trt[0].size(); i++)
-
             {
+                prognostic_xinfo[sweeps][data_ind] += output_ps[i][0];
+                treatment_xinfo[sweeps][data_ind] += output_trt[i][0];
                 yhats_test_xinfo[sweeps][data_ind] += output_ps[i][0] + output_trt[i][0] * (Ztestpointer[0][data_ind]);
             }
         }
@@ -312,7 +310,6 @@ void XBCFContinuousModel::update_partial_residuals(size_t tree_ind, std::unique_
         {
             (state->residual_std)[0][i] = ((*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i]);
         }
-
     }
     return;
 }
