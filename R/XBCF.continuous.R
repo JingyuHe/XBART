@@ -92,6 +92,8 @@ XBCF_continuous <- function(y, Z, X_ps, X_trt, Xtest_ps, Xtest_trt, Ztest, num_t
     check_positive_integer(Nmin, "Nmin")
     check_positive_integer(num_sweeps, "num_sweeps")
     check_positive_integer(num_cutpoints, "num_cutpoints")
+    check_positive_integer(num_trees_ps, "num_trees_ps")
+    check_positive_integer(num_trees_trt, "num_trees_trt")
 
     check_scalar(tau, "tau")
     check_scalar(no_split_penality, "no_split_penality")

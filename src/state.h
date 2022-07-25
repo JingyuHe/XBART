@@ -30,7 +30,12 @@ public:
 
     // for XBCF
     matrix<double> split_count_all_tree_ps;
+    std::vector<double> split_count_all_ps;
+    std::vector<double> mtry_weight_current_tree_ps;
+    
     matrix<double> split_count_all_tree_trt;
+    std::vector<double> split_count_all_trt;
+    std::vector<double> mtry_weight_current_tree_trt;
 
     // mtry
     bool use_all = true;
@@ -190,9 +195,12 @@ class NormalLinearState : public State
 public:
     NormalLinearState(matrix<double> *Z_std, const double *Xpointer_ps, const double *Xpointer_trt, matrix<size_t> &Xorder_std_ps, matrix<size_t> &Xorder_std_trt, size_t N, size_t p_ps, size_t p_trt, size_t num_trees_ps, size_t num_trees_trt, size_t p_categorical_ps, size_t p_categorical_trt, size_t p_continuous_ps, size_t p_continuous_trt, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry_ps, size_t mtry_trt, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel) : State(Xpointer_ps, Xorder_std_ps, N, p_ps, num_trees_ps, p_categorical_ps, p_continuous_ps, set_random_seed, random_seed, n_min, n_cutpoints, mtry_ps, Xpointer_ps, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
     {
-        ini_xinfo(this->split_count_all_tree_ps, p, num_trees);
-        ini_xinfo(this->split_count_all_tree_trt, p, num_trees);
-
+        ini_xinfo(this->split_count_all_tree_ps, p_ps, num_trees_ps);
+        ini_xinfo(this->split_count_all_tree_trt, p_trt, num_trees_trt);
+        this->split_count_all_ps = std::vector<double>(p_ps, 0);
+        this->mtry_weight_current_tree_ps = std::vector<double>(p_ps, 0);
+        this->split_count_all_trt = std::vector<double>(p_trt, 0);
+        this->mtry_weight_current_tree_trt = std::vector<double>(p_trt, 0);
         this->Z_std = Z_std;
         this->sigma = sigma;
         this->sigma2 = pow(sigma, 2);

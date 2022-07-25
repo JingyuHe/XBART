@@ -583,7 +583,6 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
             {
                 weight_samp[i] = weight_samp[i] / weight_sum;
             }
-
             // sample index of variables
             subset_vars = sample_int_ccrank(p, state->mtry, weight_samp, state->gen);
         }

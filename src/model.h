@@ -408,6 +408,8 @@ public:
     void add_new_tree_fit(size_t tree_ind, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct);
 
     void update_partial_residuals(size_t tree_ind, std::unique_ptr<State> &state, std::unique_ptr<X_struct> &x_struct);
+
+    void update_split_counts(std::unique_ptr<State> &state, size_t tree_ind);
 };
 
 #endif

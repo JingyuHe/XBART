@@ -330,3 +330,18 @@ void XBCFContinuousModel::update_partial_residuals(size_t tree_ind, std::unique_
     }
     return;
 }
+
+void XBCFContinuousModel::update_split_counts(std::unique_ptr<State> &state, size_t tree_ind)
+{
+    if (state->treatment_flag)
+    {
+        state->mtry_weight_current_tree_trt = state->mtry_weight_current_tree_trt + state->split_count_current_tree;
+        state->split_count_all_tree_trt[tree_ind] = state->split_count_current_tree;
+    }
+    else
+    {
+        state->mtry_weight_current_tree_ps = state->mtry_weight_current_tree_ps + state->split_count_current_tree;
+        state->split_count_all_tree_ps[tree_ind] = state->split_count_current_tree;
+    }
+    return;
+}

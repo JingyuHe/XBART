@@ -73,6 +73,14 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
                 resid[data_ind + sweeps * N + tree_ind * state->num_sweeps * N] = state->residual_std[0][data_ind];
             }
 
+            if (sweeps >= state->burnin)
+            {
+                for (size_t i = 0; i < state->split_count_all.size(); i++)
+                {
+                    state->split_count_all[i] += state->split_count_current_tree[i];
+                }
+            }
+
             // count number of splits at each variable
             state->update_split_counts(tree_ind);
 
@@ -143,6 +151,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind);
 
             state->update_split_counts(tree_ind);
+
             if (sweeps >= state->burnin)
             {
                 for (size_t i = 0; i < state->split_count_all.size(); i++)
@@ -271,22 +280,22 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std_ps, matrix<size_t> &Xorder_std_
             // Draw Sigma
             model->update_state(state, tree_ind, x_struct_ps);
 
-            // Draw Sigma
-            model->update_state(state, tree_ind, x_struct_trt);
+            sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
 
-            // sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
             if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
             {
                 state->use_all = false;
             }
 
             // clear counts of splits for one tree
+            state->split_count_current_tree.resize(state->p_ps);
             std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
 
             // subtract old tree for sampling case
             if (state->sample_weights)
             {
-                state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree_trt[tree_ind];
+                state->mtry_weight_current_tree_ps = state->mtry_weight_current_tree_ps - state->split_count_all_tree_ps[tree_ind];
+                state->mtry_weight_current_tree = state->mtry_weight_current_tree_ps;
             }
 
             // update tau_fit from full fit to partial fit
@@ -302,7 +311,15 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std_ps, matrix<size_t> &Xorder_std_
             // update tau_fit from partial fit to full fit
             model->add_new_tree_fit(tree_ind, state, x_struct_ps);
 
-            state->update_split_counts(tree_ind);
+            model->update_split_counts(state, tree_ind);
+
+            if (sweeps >= state->burnin)
+            {
+                for (size_t i = 0; i < state->split_count_all_ps.size(); i++)
+                {
+                    state->split_count_all_ps[i] += state->split_count_current_tree[i];
+                }
+            }
         }
 
         // treatment forest
@@ -318,7 +335,7 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std_ps, matrix<size_t> &Xorder_std_
             // Draw Sigma
             model->update_state(state, tree_ind, x_struct_trt);
 
-            sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
+            sigma_draw_xinfo[sweeps][tree_ind + state->num_trees_ps] = state->sigma;
 
             if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
             {
@@ -326,12 +343,14 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std_ps, matrix<size_t> &Xorder_std_
             }
 
             // clear counts of splits for one tree
+            state->split_count_current_tree.resize(state->p_trt);
             std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
 
             // subtract old tree for sampling case
             if (state->sample_weights)
             {
-                state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
+                state->mtry_weight_current_tree_trt = state->mtry_weight_current_tree_trt - state->split_count_all_tree_trt[tree_ind];
+                state->mtry_weight_current_tree = state->mtry_weight_current_tree_trt;
             }
 
             // update tau_fit from full fit to partial fit
@@ -347,8 +366,15 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std_ps, matrix<size_t> &Xorder_std_
             // update tau_fit from partial fit to full fit
             model->add_new_tree_fit(tree_ind, state, x_struct_trt);
 
-            state->update_split_counts(tree_ind);
+            model->update_split_counts(state, tree_ind);
 
+            if (sweeps >= state->burnin)
+            {
+                for (size_t i = 0; i < state->split_count_all_trt.size(); i++)
+                {
+                    state->split_count_all_trt[i] += state->split_count_current_tree[i];
+                }
+            }
         }
 
         if (model->sampling_tau)

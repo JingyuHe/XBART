@@ -150,7 +150,7 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::m
     ini_matrix(treatment_xinfo, N_test, num_sweeps);
 
     matrix<double> sigma_draw_xinfo;
-    ini_matrix(sigma_draw_xinfo, num_trees_ps, num_sweeps);
+    ini_matrix(sigma_draw_xinfo, num_trees_ps + num_trees_trt, num_sweeps);
 
     // // Create trees
     vector<vector<tree>> *trees_ps = new vector<vector<tree>>(num_sweeps);
@@ -189,8 +189,9 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::m
     Rcpp::NumericMatrix prognostic(N_test, num_sweeps);
     Rcpp::NumericMatrix treatment(N_test, num_sweeps);
 
-    Rcpp::NumericMatrix sigma_draw(num_trees_ps, num_sweeps); // save predictions of each tree
-    Rcpp::NumericVector split_count_sum(p, 0);             // split counts
+    Rcpp::NumericMatrix sigma_draw(num_trees_ps + num_trees_trt, num_sweeps); // save predictions of each tree
+    Rcpp::NumericVector split_count_sum_ps(p_ps, 0);                          // split counts
+    Rcpp::NumericVector split_count_sum_trt(p_trt, 0);
     Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees_ps, true);
 
     // copy from std vector to Rcpp Numeric Matrix objects
@@ -200,9 +201,14 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::m
 
     Matrix_to_NumericMatrix(sigma_draw_xinfo, sigma_draw);
 
-    for (size_t i = 0; i < p; i++)
+    for (size_t i = 0; i < p_ps; i++)
     {
-        split_count_sum(i) = (int)state->split_count_all[i];
+        split_count_sum_ps(i) = (int)state->split_count_all_ps[i];
+    }
+
+    for (size_t i = 0; i < p_trt; i++)
+    {
+        split_count_sum_trt(i) = (int)state->split_count_all_trt[i];
     }
 
     // clean memory
@@ -227,7 +233,8 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::m
         Rcpp::Named("mu") = prognostic,
         Rcpp::Named("tau") = treatment,
         Rcpp::Named("sigma") = sigma_draw,
-        Rcpp::Named("importance") = split_count_sum,
+        Rcpp::Named("importance_prognostic") = split_count_sum_ps,
+        Rcpp::Named("importance_treatment") = split_count_sum_trt,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p),
         Rcpp::Named("treedraws") = Rcpp::List::create(Rcpp::Named("treatment") = output_tree_trt, Rcpp::Named("Prognostic") = output_tree_ps));
 }
