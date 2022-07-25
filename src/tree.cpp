@@ -638,7 +638,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
     this->c = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
 
     size_t index_in_full = 0;
-    while ((state->Xorder_std)[split_var][index_in_full] != Xorder_std[split_var][split_point])
+    while ((*state->Xorder_std)[split_var][index_in_full] != Xorder_std[split_var][split_point])
     {
         index_in_full++;
     }
@@ -695,7 +695,7 @@ void tree::grow_from_root(std::unique_ptr<State> &state, matrix<size_t> &Xorder_
 void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state, std::vector<double> &theta_vector, double &entropy)
 {
     size_t N_Xorder = Xorder_std[0].size();
-    size_t dim_residual = state->residual_std.size();
+    size_t dim_residual = (*state->residual_std).size();
     size_t next_obs;
     double sum_fits;
     entropy = 0.0;
@@ -707,7 +707,7 @@ void calculate_entropy(matrix<size_t> &Xorder_std, std::unique_ptr<State> &state
         next_obs = Xorder_std[0][i];
         for (size_t j = 0; j < dim_residual; ++j)
         {
-            fits[j] = exp(state->residual_std[j][next_obs]) * theta_vector[j]; // f_j(x_i) = \prod lambdas
+            fits[j] = exp((*state->residual_std)[j][next_obs]) * theta_vector[j]; // f_j(x_i) = \prod lambdas
         }
         sum_fits = accumulate(fits.begin(), fits.end(), 0.0);
         for (size_t j = 0; j < dim_residual; ++j)
@@ -804,7 +804,7 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
             x_struct->data_pointers[tree_ind][Xorder_std[0][i]] = &this->theta_vector;
         }
         // update lambdas in state
-        state->lambdas[tree_ind].push_back(this->theta_vector);
+        (*state->lambdas)[tree_ind].push_back(this->theta_vector);
 
         // if (update_theta)
         // {
@@ -825,7 +825,7 @@ void tree::grow_from_root_entropy(std::unique_ptr<State> &state, matrix<size_t> 
     this->c = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
 
     size_t index_in_full = 0;
-    while ((state->Xorder_std)[split_var][index_in_full] != Xorder_std[split_var][split_point])
+    while ((*state->Xorder_std)[split_var][index_in_full] != Xorder_std[split_var][split_point])
     {
         index_in_full++;
     }
@@ -955,7 +955,7 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
             }
         }
 
-        state->lambdas_separate[tree_ind][j].push_back(this->theta_vector[j]);
+        (*state->lambdas_separate)[tree_ind][j].push_back(this->theta_vector[j]);
 
         this->l = 0;
         this->r = 0;
@@ -967,7 +967,7 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
     this->c = *(state->X_std + state->n_y * split_var + Xorder_std[split_var][split_point]);
 
     size_t index_in_full = 0;
-    while ((state->Xorder_std)[split_var][index_in_full] != Xorder_std[split_var][split_point])
+    while ((*state->Xorder_std)[split_var][index_in_full] != Xorder_std[split_var][split_point])
     {
         index_in_full++;
     }
@@ -989,7 +989,7 @@ void tree::grow_from_root_separate_tree(std::unique_ptr<State> &state, matrix<si
             x_struct->data_pointers_multinomial[j][tree_ind][Xorder_std[0][i]] = &this->theta_vector;
         }
 
-        state->lambdas_separate[tree_ind][j].push_back(this->theta_vector[j]);
+        (*state->lambdas_separate)[tree_ind][j].push_back(this->theta_vector[j]);
 
         return;
     }
@@ -1529,7 +1529,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                 for (size_t j = 0; j < N_Xorder - 1; j++)
                 {
-                    calcSuffStat_continuous(state, temp_suff_stat, xorder, candidate_index, j, false, model, state->residual_std);
+                    calcSuffStat_continuous(state, temp_suff_stat, xorder, candidate_index, j, false, model, (*state->residual_std));
 
                     loglike[(N_Xorder - 1) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, false, false, state);
                 }
@@ -1564,7 +1564,7 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                     for (size_t j = 0; j < state->n_cutpoints; j++)
                     {
-                        calcSuffStat_continuous(state, temp_suff_stat, xorder, candidate_index2, j, true, model, state->residual_std);
+                        calcSuffStat_continuous(state, temp_suff_stat, xorder, candidate_index2, j, true, model, (*state->residual_std));
 
                         temp[(state->n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
                     }

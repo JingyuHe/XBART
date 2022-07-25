@@ -38,6 +38,7 @@ lam <- matrix(0, n, k)
 lamt <- matrix(0, nt, k)
 
 
+set.seed(100)
 #####################
 # simulate data
 K <- matrix(rnorm(3 * p), p, 3)

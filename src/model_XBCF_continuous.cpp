@@ -18,7 +18,7 @@ void XBCFContinuousModel::incSuffStat(std::unique_ptr<State> &state, size_t inde
         // sum z_i^2
         suffstats[0] += pow((*state->Z_std)[0][index_next_obs], 2);
         // sum r_i * z_i^2
-        suffstats[1] += pow((*state->Z_std)[0][index_next_obs], 2) * state->residual_std[0][index_next_obs];
+        suffstats[1] += pow((*state->Z_std)[0][index_next_obs], 2) * (*state->residual_std)[0][index_next_obs];
         // number of points
         suffstats[2] += 1;
     }
@@ -26,7 +26,7 @@ void XBCFContinuousModel::incSuffStat(std::unique_ptr<State> &state, size_t inde
     {
         // prognostic forest
         suffstats[0] += 1;
-        suffstats[1] += state->residual_std[0][index_next_obs];
+        suffstats[1] += (*state->residual_std)[0][index_next_obs];
         suffstats[3] += 1;
     }
     return;
@@ -113,7 +113,7 @@ void XBCFContinuousModel::updateNodeSuffStat(std::unique_ptr<State> &state, std:
         suff_stat[0] += pow(((*state->Z_std))[0][Xorder_std[split_var][row_ind]], 2);
 
         // sum of partial residual * z^2 (in y scale)
-        suff_stat[1] += (state->residual_std[0])[Xorder_std[split_var][row_ind]] * pow(((*state->Z_std))[0][Xorder_std[split_var][row_ind]], 2);
+        suff_stat[1] += ((*state->residual_std)[0])[Xorder_std[split_var][row_ind]] * pow(((*state->Z_std))[0][Xorder_std[split_var][row_ind]], 2);
 
         // number of data points
         suff_stat[2] += 1;
@@ -121,7 +121,7 @@ void XBCFContinuousModel::updateNodeSuffStat(std::unique_ptr<State> &state, std:
     else
     {
         suff_stat[0] += 1;
-        suff_stat[1] += (state->residual_std[0])[Xorder_std[split_var][row_ind]];
+        suff_stat[1] += ((*state->residual_std)[0])[Xorder_std[split_var][row_ind]];
         suff_stat[2] += 1;
     }
 
@@ -151,9 +151,9 @@ void XBCFContinuousModel::calculateOtherSideSuffStat(std::vector<double> &parent
 //         next_index = 0;
 //     }
 
-//     for (size_t i = 0; i < state->residual_std[0].size(); i++)
+//     for (size_t i = 0; i < (*state->residual_std)[0].size(); i++)
 //     {
-//         state->residual_std[0][i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + (*(x_struct->data_pointers[next_index][i]))[0];
+//         (*state->residual_std)[0][i] = (*state->residual_std)[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0] + (*(x_struct->data_pointers[next_index][i]))[0];
 //     }
 //     return;
 // }
@@ -198,9 +198,9 @@ double XBCFContinuousModel::likelihood(std::vector<double> &temp_suff_stat, std:
 void XBCFContinuousModel::ini_residual_std(std::unique_ptr<State> &state)
 {
     // initialize the vector of full residuals
-    for (size_t i = 0; i < state->residual_std[0].size(); i++)
+    for (size_t i = 0; i < (*state->residual_std)[0].size(); i++)
     {
-        state->residual_std[0][i] = (*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i];
+        (*state->residual_std)[0][i] = (*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i];
     }
 }
 
@@ -238,7 +238,7 @@ void XBCFContinuousModel::predict_std(matrix<double> &Ztestpointer, const double
 void XBCFContinuousModel::ini_tau_mu_fit(std::unique_ptr<State> &state)
 {
     double value = state->ini_var_yhat;
-    for (size_t i = 0; i < state->residual_std[0].size(); i++)
+    for (size_t i = 0; i < (*state->residual_std)[0].size(); i++)
     {
         (*state->mu_fit)[i] = 0;
         (*state->tau_fit)[i] = value;
@@ -316,7 +316,7 @@ void XBCFContinuousModel::update_partial_residuals(size_t tree_ind, std::unique_
         // (y - mu - Z * tau) / Z
         for (size_t i = 0; i < (*state->tau_fit).size(); i++)
         {
-            (state->residual_std)[0][i] = ((*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i]) / ((*state->Z_std)[0][i]);
+            ((*state->residual_std))[0][i] = ((*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i]) / ((*state->Z_std)[0][i]);
         }
     }
     else
@@ -325,7 +325,7 @@ void XBCFContinuousModel::update_partial_residuals(size_t tree_ind, std::unique_
         // (y - mu - Z * tau)
         for (size_t i = 0; i < (*state->tau_fit).size(); i++)
         {
-            (state->residual_std)[0][i] = ((*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i]);
+            ((*state->residual_std))[0][i] = ((*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i]);
         }
     }
     return;

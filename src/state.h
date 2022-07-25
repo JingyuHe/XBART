@@ -14,7 +14,7 @@ class State
 {
 public:
     size_t dim_residual;         // residual size
-    matrix<double> residual_std; // a matrix to save all residuals
+    matrix<double> *residual_std; // a matrix to save all residuals
 
     // random number generators
     std::vector<double> prob;
@@ -58,7 +58,7 @@ public:
     bool sample_weights;
     double ini_var_yhat;
 
-    matrix<size_t> Xorder_std;
+    matrix<size_t> *Xorder_std;
 
     // residual standard deviation
     double sigma;
@@ -69,16 +69,16 @@ public:
 
     // Logit Model
     // lambdas
-    std::vector<std::vector<std::vector<double>>> lambdas;
-    std::vector<std::vector<std::vector<double>>> lambdas_separate;
+    std::vector<std::vector<std::vector<double>>> *lambdas;
+    std::vector<std::vector<std::vector<double>>> *lambdas_separate;
 
     // for continuous treatment XBCF
     matrix<double> *Z_std;
     std::vector<double> *tau_fit;
     std::vector<double> *mu_fit;
     bool treatment_flag;
-    matrix<size_t> Xorder_std_ps;
-    matrix<size_t> Xorder_std_trt;
+    matrix<size_t> *Xorder_std_ps;
+    matrix<size_t> *Xorder_std_trt;
     size_t p_ps;
     size_t p_trt;
     size_t p_categorical_ps;
@@ -102,7 +102,8 @@ public:
 
         // Init containers
         // initialize predictions_std at given value / number of trees
-        ini_matrix(this->residual_std, N, dim_residual);
+        this->residual_std = new matrix<double>();
+        ini_matrix((*this->residual_std), N, dim_residual);
 
         // Random
         this->prob = std::vector<double>(2, 0.5);
@@ -138,7 +139,7 @@ public:
         this->max_depth = max_depth;
         this->burnin = burnin;
         this->ini_var_yhat = ini_var_yhat;
-        this->Xorder_std = Xorder_std;
+        this->Xorder_std = &Xorder_std;
 
         this->nthread = nthread;
         return;
@@ -185,8 +186,10 @@ class LogitState : public State
 public:
     LogitState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, mtry, X_std, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
     {
-        ini_lambda(this->lambdas, num_trees, dim_residual);
-        ini_lambda_separate(this->lambdas_separate, num_trees, dim_residual);
+        this->lambdas = new std::vector<std::vector<std::vector<double>>>();
+        this->lambdas_separate = new std::vector<std::vector<std::vector<double>>>();
+        ini_lambda((*this->lambdas), num_trees, dim_residual);
+        ini_lambda_separate((*this->lambdas_separate), num_trees, dim_residual);
     }
 };
 
@@ -207,8 +210,8 @@ public:
         this->parallel = parallel;
         this->tau_fit = (new std::vector<double>(N, 0));
         this->mu_fit = (new std::vector<double>(N, 0));
-        this->Xorder_std_ps = Xorder_std_ps;
-        this->Xorder_std_trt = Xorder_std_trt;
+        this->Xorder_std_ps = &Xorder_std_ps;
+        this->Xorder_std_trt = &Xorder_std_trt;
         this->p_ps = p_ps;
         this->p_trt = p_trt;
         this->p_categorical_ps = p_categorical_ps;

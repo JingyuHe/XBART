@@ -16,8 +16,8 @@
 
 void NormalModel::incSuffStat(std::unique_ptr<State> &state, size_t index_next_obs, std::vector<double> &suffstats)
 {
-    suffstats[0] += state->residual_std[0][index_next_obs];
-    suffstats[1] += pow(state->residual_std[0][index_next_obs], 2);
+    suffstats[0] += (*state->residual_std)[0][index_next_obs];
+    suffstats[1] += pow((*state->residual_std)[0][index_next_obs], 2);
     suffstats[2] += 1;
     return;
 }
@@ -38,9 +38,9 @@ void NormalModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, s
 
     std::vector<double> full_residual(state->n_y);
 
-    for (size_t i = 0; i < state->residual_std[0].size(); i++)
+    for (size_t i = 0; i < (*state->residual_std)[0].size(); i++)
     {
-        full_residual[i] = state->residual_std[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
+        full_residual[i] = (*state->residual_std)[0][i] - (*(x_struct->data_pointers[tree_ind][i]))[0];
     }
 
     std::gamma_distribution<double> gamma_samp((state->n_y + kap) / 2.0, 2.0 / (sum_squared(full_residual) + s));
@@ -92,9 +92,9 @@ void NormalModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::v
 {
     // this function calculates sufficient statistics at the root node when growing a new tree
     // sum of y
-    suff_stat[0] = sum_vec(state->residual_std[0]);
+    suff_stat[0] = sum_vec((*state->residual_std)[0]);
     // sum of y squared
-    suff_stat[1] = sum_squared(state->residual_std[0]);
+    suff_stat[1] = sum_squared((*state->residual_std)[0]);
     // number of observations in the node
     suff_stat[2] = state->n_y;
     return;
@@ -104,9 +104,9 @@ void NormalModel::updateNodeSuffStat(std::unique_ptr<State> &state, std::vector<
 {
     // this function updates the sufficient statistics at each intermediate nodes when growing a new tree
     // sum of y
-    suff_stat[0] += state->residual_std[0][Xorder_std[split_var][row_ind]];
+    suff_stat[0] += (*state->residual_std)[0][Xorder_std[split_var][row_ind]];
     // sum of y squared
-    suff_stat[1] += pow(state->residual_std[0][Xorder_std[split_var][row_ind]], 2);
+    suff_stat[1] += pow((*state->residual_std)[0][Xorder_std[split_var][row_ind]], 2);
     // number of data observations
     suff_stat[2] += 1;
     return;
@@ -214,9 +214,9 @@ void NormalModel::ini_residual_std(std::unique_ptr<State> &state)
 {
     // initialize partial residual at (num_tree - 1) / num_tree * yhat
     double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
-    for (size_t i = 0; i < state->residual_std[0].size(); i++)
+    for (size_t i = 0; i < (*state->residual_std)[0].size(); i++)
     {
-        state->residual_std[0][i] = (*state->y_std)[i] - value;
+        (*state->residual_std)[0][i] = (*state->y_std)[i] - value;
     }
     return;
 }
@@ -285,7 +285,7 @@ void LogitModel::incSuffStat(std::unique_ptr<State> &state, size_t index_next_ob
     suffstats[(*y_size_t)[index_next_obs]] += weight;
     for (size_t j = 0; j < dim_theta; ++j)
     {
-        suffstats[dim_residual + j] += weight * exp(state->residual_std[j][index_next_obs]);
+        suffstats[dim_residual + j] += weight * exp((*state->residual_std)[j][index_next_obs]);
         // suffstats[dim_residual + j] += (*phi)[index_next_obs] * exp(residual_std[j][index_next_obs]);
     }
 
@@ -327,12 +327,12 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         y_i = (size_t)(*y_size_t)[i];
         for (size_t j = 0; j < dim_residual; ++j)
         {
-            sum_fits += exp(state->residual_std[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
+            sum_fits += exp((*state->residual_std)[j][i]) * (*(x_struct->data_pointers[tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
         }
         // Sample phi
         // (*phi)[i] = gammadist(state->gen) / (1.0 * sum_fits);
         // calculate logloss
-        prob = exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits; // logloss =  - log(p_j)
+        prob = exp((*state->residual_std)[y_i][i]) * (*(x_struct->data_pointers[tree_ind][i]))[y_i] / sum_fits; // logloss =  - log(p_j)
 
         logloss += -log(prob);
     }
@@ -356,9 +356,9 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
         double var_lambda = 0;
         for (size_t i = 0; i < state->num_trees; i++)
         {
-            for (size_t j = 0; j < state->lambdas[i].size(); j++)
+            for (size_t j = 0; j < (*state->lambdas)[i].size(); j++)
             {
-                mean_lambda += std::accumulate(state->lambdas[i][j].begin(), state->lambdas[i][j].end(), 0.0);
+                mean_lambda += std::accumulate((*state->lambdas)[i][j].begin(), (*state->lambdas)[i][j].end(), 0.0);
                 count_lambda += dim_residual;
             }
         }
@@ -366,12 +366,12 @@ void LogitModel::update_state(std::unique_ptr<State> &state, size_t tree_ind, st
 
         for (size_t i = 0; i < state->num_trees; i++)
         {
-            for (size_t j = 0; j < state->lambdas[i].size(); j++)
+            for (size_t j = 0; j < (*state->lambdas)[i].size(); j++)
             {
                 for (size_t k = 0; k < dim_residual; k++)
                 {
-                    // var_lambda += pow(state->lambdas[i][j][k] / max_lambda - mean_lambda, 2);
-                    var_lambda += pow(state->lambdas[i][j][k] / mean_lambda - 1, 2);
+                    // var_lambda += pow((*state->lambdas)[i][j][k] / max_lambda - mean_lambda, 2);
+                    var_lambda += pow((*state->lambdas)[i][j][k] / mean_lambda - 1, 2);
                 }
             }
         }
@@ -397,9 +397,9 @@ void LogitModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::ve
 
     /*
     // sum of y
-    suff_stat[0] = sum_vec(state->residual_std[0]);
+    suff_stat[0] = sum_vec((*state->residual_std)[0]);
     // sum of y squared
-    suff_stat[1] = sum_squared(state->residual_std[0]);
+    suff_stat[1] = sum_squared((*state->residual_std)[0]);
     // number of observations in the node
     suff_stat[2] = state->n_y;
     */
@@ -500,13 +500,13 @@ double LogitModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<d
 void LogitModel::ini_residual_std(std::unique_ptr<State> &state)
 {
     // double value = state->ini_var_yhat * ((double)state->num_trees - 1.0) / (double)state->num_trees;
-    for (size_t i = 0; i < state->residual_std[0].size(); i++)
+    for (size_t i = 0; i < (*state->residual_std)[0].size(); i++)
     {
         // init leaf pars are all 1, partial fits are all 1
         // save fits in log scale -> 0.0
         for (size_t j = 0; j < dim_theta; ++j)
         {
-            state->residual_std[j][i] = 0.0; // save resdiual_std as log(lamdas), start at 0.0.
+            (*state->residual_std)[j][i] = 0.0; // save resdiual_std as log(lamdas), start at 0.0.
         }
     }
     return;
@@ -720,12 +720,12 @@ void LogitModelSeparateTrees::update_state(std::unique_ptr<State> &state, size_t
         y_i = (size_t)(*y_size_t)[i];
         for (size_t j = 0; j < dim_residual; ++j)
         {
-            sum_fits += exp(state->residual_std[j][i]) * (*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
+            sum_fits += exp((*state->residual_std)[j][i]) * (*(x_struct->data_pointers_multinomial[j][tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
         }
         // Sample phi
         (*phi)[i] = gammadist(state->gen) / (1.0 * sum_fits);
         // calculate logloss
-        logloss += -log(exp(state->residual_std[y_i][i]) * (*(x_struct->data_pointers_multinomial[y_i][tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j)
+        logloss += -log(exp((*state->residual_std)[y_i][i]) * (*(x_struct->data_pointers_multinomial[y_i][tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j)
     }
     if (update_weight)
     {

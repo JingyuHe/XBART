@@ -6,7 +6,7 @@
 
 void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &resid)
 {
-    size_t N = state->residual_std[0].size();
+    size_t N = (*state->residual_std)[0].size();
 
     // initialize the matrix of residuals
     model->ini_residual_std(state);
@@ -68,9 +68,9 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             }
 
             // store residuals:
-            for (size_t data_ind = 0; data_ind < state->residual_std[0].size(); data_ind++)
+            for (size_t data_ind = 0; data_ind < (*state->residual_std)[0].size(); data_ind++)
             {
-                resid[data_ind + sweeps * N + tree_ind * state->num_sweeps * N] = state->residual_std[0][data_ind];
+                resid[data_ind + sweeps * N + tree_ind * state->num_sweeps * N] = (*state->residual_std)[0][data_ind];
             }
 
             if (sweeps >= state->burnin)
@@ -85,7 +85,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             state->update_split_counts(tree_ind);
 
             // update partial residual for the next tree to fit
-            model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
+            model->state_sweep(tree_ind, state->num_trees, (*state->residual_std), x_struct);
         }
 
         if (model->sampling_tau)
@@ -146,7 +146,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             }
 
             trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
-            state->lambdas[tree_ind].clear();
+            (*state->lambdas)[tree_ind].clear();
 
             trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind);
 
@@ -162,16 +162,16 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             // update partial fits for the next tree
             model->update_state(state, tree_ind, x_struct);
 
-            model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
+            model->state_sweep(tree_ind, state->num_trees, (*state->residual_std), x_struct);
 
             weight_samples[sweeps][tree_ind] = model->weight;
             tau_samples[sweeps][tree_ind] = model->tau_a;
 
-            for (size_t j = 0; j < state->lambdas[tree_ind].size(); j++)
+            for (size_t j = 0; j < (*state->lambdas)[tree_ind].size(); j++)
             {
-                for (size_t k = 0; k < state->lambdas[tree_ind][j].size(); k++)
+                for (size_t k = 0; k < (*state->lambdas)[tree_ind][j].size(); k++)
                 {
-                    lambda_samples.push_back(state->lambdas[tree_ind][j][k]);
+                    lambda_samples.push_back((*state->lambdas)[tree_ind][j][k]);
                 }
             }
         }
@@ -224,7 +224,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
             {
                 model->set_class_operating(class_ind);
 
-                state->lambdas_separate[tree_ind][class_ind].clear();
+                (*state->lambdas_separate)[tree_ind][class_ind].clear();
 
                 model->initialize_root_suffstat(state, trees[class_ind][sweeps][tree_ind].suff_stat);
 
@@ -245,7 +245,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
 
             model->update_state(state, tree_ind, x_struct);
 
-            model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
+            model->state_sweep(tree_ind, state->num_trees, (*state->residual_std), x_struct);
 
             weight_samples[sweeps][tree_ind] = model->weight;
         }
