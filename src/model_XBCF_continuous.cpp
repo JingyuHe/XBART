@@ -204,7 +204,7 @@ void XBCFContinuousModel::ini_residual_std(std::unique_ptr<State> &state)
     }
 }
 
-void XBCFContinuousModel::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_ps, vector<vector<tree>> &trees_trt)
+void XBCFContinuousModel::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer_ps, const double *Xtestpointer_trt, size_t N_test, size_t p_ps, size_t p_trt, size_t num_trees_ps, size_t num_trees_trt, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_ps, vector<vector<tree>> &trees_trt)
 {
     // predict the output as a matrix
     matrix<double> output_trt;
@@ -219,9 +219,9 @@ void XBCFContinuousModel::predict_std(matrix<double> &Ztestpointer, const double
     {
         for (size_t data_ind = 0; data_ind < N_test; data_ind++)
         {
-            getThetaForObs_Outsample(output_trt, trees_trt[sweeps], data_ind, Xtestpointer, N_test, p);
+            getThetaForObs_Outsample(output_trt, trees_trt[sweeps], data_ind, Xtestpointer_trt, N_test, p_trt);
 
-            getThetaForObs_Outsample(output_ps, trees_ps[sweeps], data_ind, Xtestpointer, N_test, p);
+            getThetaForObs_Outsample(output_ps, trees_ps[sweeps], data_ind, Xtestpointer_ps, N_test, p_ps);
 
             // take sum of predictions of each tree, as final prediction
             for (size_t i = 0; i < trees_trt[0].size(); i++)

@@ -1,17 +1,12 @@
-XBCF_continuous <- function(y, Z, X, X_ps, X_trt, Xtest, Xtest_ps, Xtest_trt, Ztest, num_trees, num_trees_ps, num_trees_trt, num_sweeps, max_depth = 250,
+XBCF_continuous <- function(y, Z, X_ps, X_trt, Xtest_ps, Xtest_trt, Ztest, num_trees_ps, num_trees_trt, num_sweeps, max_depth = 250,
     Nmin = 1, num_cutpoints = 100, alpha = 0.95, beta = 1.25, tau = NULL,
-    no_split_penality = NULL, burnin = 1L, mtry = NULL, mtry_ps = NULL, mtry_trt = NULL, p_categorical = 0L, p_categorical_ps = 0L, p_categorical_trt = 0L,
+    no_split_penality = NULL, burnin = 1L, mtry_ps = NULL, mtry_trt = NULL, p_categorical_ps = 0L, p_categorical_trt = 0L,
     kap = 16, s = 4, tau_kap = 3, tau_s = 0.5, verbose = FALSE, sampling_tau = TRUE, parallel = TRUE, random_seed = NULL,
     sample_weights_flag = TRUE, nthread = 0, ...) {
 
-    if (!("matrix" %in% class(X))) {
-        cat("Input X is not a matrix, try to convert type.\n")
-        X = as.matrix(X)
-    }
-
-    if (!("matrix" %in% class(Xtest))) {
-        cat("Input Xtest is not a matrix, try to convert type.\n")
-        Xtest = as.matrix(Xtest)
+    if (!("matrix" %in% class(X_ps))) {
+        cat("Input X_ps is not a matrix, try to convert type.\n")
+        X_ps = as.matrix(X_ps)
     }
 
     if (!("matrix" %in% class(y))) {
@@ -28,15 +23,15 @@ XBCF_continuous <- function(y, Z, X, X_ps, X_trt, Xtest, Xtest_ps, Xtest_trt, Zt
         stop("Length of Z must match length of y")
     }
 
-    if (dim(X)[1] != length(y)) {
+    if (dim(X_ps)[1] != length(y)) {
         stop("Length of X must match length of y")
     }
 
-    if (dim(Ztest)[1] != dim(Xtest)[1]) {
+    if (dim(Ztest)[1] != dim(Xtest_ps)[1]) {
         stop("Length of Ztest must match length of Xtest")
     }
 
-    if (dim(X)[2] != dim(Xtest)[2]) {
+    if (dim(X_ps)[2] != dim(Xtest_ps)[2]) {
         stop("Column of X must match columns of Xtest")
     }
 
@@ -65,16 +60,6 @@ XBCF_continuous <- function(y, Z, X, X_ps, X_trt, Xtest, Xtest_ps, Xtest_trt, Zt
         cat("tau = 1/num_trees, default value. \n")
     }
 
-    if (is.null(mtry)) {
-        mtry = dim(X)[2]
-        cat("mtry = p, use all variables. \n")
-    }
-
-    if (mtry > dim(X)[2]){
-        mtry = dim(X)[2]
-        cat("mtry cannot exceed p, set to mtry = p. \n")
-    }    
-    
     if (is.null(mtry_ps)) {
         mtry_ps = dim(X_ps)[2]
         cat("mtry_ps = p_ps, use all variables. \n")
@@ -95,19 +80,17 @@ XBCF_continuous <- function(y, Z, X, X_ps, X_trt, Xtest, Xtest_ps, Xtest_trt, Zt
         cat("mtry_trt cannot exceed p_trt, set to mtry_trt = p_trt. \n")
     }
 
-    if(p_categorical > dim(X)[2]){
-        p_categorical = dim(X)[2]
+    if(p_categorical_ps > dim(X_ps)[2]){
+        p_categorical_ps = dim(X_ps)[2]
         stop("p_categorical cannot exceed p")
     }
     # check input type
 
     check_non_negative_integer(burnin, "burnin")
-    check_non_negative_integer(p_categorical, "p_categorical")
 
     check_positive_integer(max_depth, "max_depth")
     check_positive_integer(Nmin, "Nmin")
     check_positive_integer(num_sweeps, "num_sweeps")
-    check_positive_integer(num_trees, "num_trees")
     check_positive_integer(num_cutpoints, "num_cutpoints")
 
     check_scalar(tau, "tau")
@@ -117,9 +100,8 @@ XBCF_continuous <- function(y, Z, X, X_ps, X_trt, Xtest, Xtest_ps, Xtest_trt, Zt
     check_scalar(kap, "kap")
     check_scalar(s, "s")
 
-    obj = XBCF_continuous_cpp(y, Z, X, X_ps, X_trt, Xtest, Xtest_ps, Xtest_trt, Ztest, num_trees, num_trees_ps, num_trees_trt, num_sweeps, max_depth,
-        Nmin, num_cutpoints, alpha, beta, tau, no_split_penality, burnin,
-        mtry, mtry_ps, mtry_trt, p_categorical, p_categorical_ps, p_categorical_trt, kap, s, tau_kap, tau_s, verbose, sampling_tau, parallel, set_random_seed,
+    obj = XBCF_continuous_cpp(y, Z, X_ps, X_trt, Xtest_ps, Xtest_trt, Ztest, num_trees_ps, num_trees_trt, num_sweeps, max_depth,
+        Nmin, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry_ps, mtry_trt, p_categorical_ps, p_categorical_trt, kap, s, tau_kap, tau_s, verbose, sampling_tau, parallel, set_random_seed,
         random_seed, sample_weights_flag, nthread)
 
     #tree_json = r_to_json(mean(y), obj$model$tree_pnt)

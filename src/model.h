@@ -399,7 +399,7 @@ public:
 
     void ini_residual_std(std::unique_ptr<State> &state);
 
-    void predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_ps, vector<vector<tree>> &trees_trt);
+    void predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer_ps, const double *Xtestpointer_trt, size_t N_test, size_t p_ps, size_t p_trt, size_t num_trees_ps, size_t num_trees_trt, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_ps, vector<vector<tree>> &trees_trt);
 
     void set_treatmentflag(std::unique_ptr<State> &state, bool value);
 
