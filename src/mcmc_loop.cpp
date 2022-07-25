@@ -245,7 +245,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
     return;
 }
 
-void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees_ps, vector<vector<tree>> &trees_trt, double no_split_penalty, std::unique_ptr<State> &state, XBCFContinuousModel *model, std::unique_ptr<X_struct> &x_struct_ps, std::unique_ptr<X_struct> &x_struct_trt)
+void mcmc_loop_linear(matrix<size_t> &Xorder_std_ps, matrix<size_t> &Xorder_std_trt, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees_ps, vector<vector<tree>> &trees_trt, double no_split_penalty, std::unique_ptr<State> &state, XBCFContinuousModel *model, std::unique_ptr<X_struct> &x_struct_ps, std::unique_ptr<X_struct> &x_struct_trt)
 {
     model->ini_tau_mu_fit(state);
 
@@ -261,7 +261,7 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
         // prognostic forest
         model->set_treatmentflag(state, 0);
 
-        for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
+        for (size_t tree_ind = 0; tree_ind < state->num_trees_ps; tree_ind++)
         {
             if (verbose)
             {
@@ -297,11 +297,10 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
 
             model->initialize_root_suffstat(state, trees_ps[sweeps][tree_ind].suff_stat);
 
-            trees_ps[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct_ps->X_counts, x_struct_ps->X_num_unique, model, x_struct_ps, sweeps, tree_ind);
+            trees_ps[sweeps][tree_ind].grow_from_root(state, Xorder_std_ps, x_struct_ps->X_counts, x_struct_ps->X_num_unique, model, x_struct_ps, sweeps, tree_ind);
 
             // update tau_fit from partial fit to full fit
             model->add_new_tree_fit(tree_ind, state, x_struct_ps);
-
 
             state->update_split_counts(tree_ind);
         }
@@ -309,7 +308,7 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
         // treatment forest
         model->set_treatmentflag(state, 1);
 
-        for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
+        for (size_t tree_ind = 0; tree_ind < state->num_trees_trt; tree_ind++)
         {
             if (verbose)
             {
@@ -343,7 +342,7 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
 
             model->initialize_root_suffstat(state, trees_trt[sweeps][tree_ind].suff_stat);
 
-            trees_trt[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct_trt->X_counts, x_struct_trt->X_num_unique, model, x_struct_trt, sweeps, tree_ind);
+            trees_trt[sweeps][tree_ind].grow_from_root(state, Xorder_std_trt, x_struct_trt->X_counts, x_struct_trt->X_num_unique, model, x_struct_trt, sweeps, tree_ind);
 
             // update tau_fit from partial fit to full fit
             model->add_new_tree_fit(tree_ind, state, x_struct_trt);

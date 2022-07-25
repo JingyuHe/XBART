@@ -249,6 +249,23 @@ void XBCFContinuousModel::ini_tau_mu_fit(std::unique_ptr<State> &state)
 void XBCFContinuousModel::set_treatmentflag(std::unique_ptr<State> &state, bool value)
 {
     state->treatment_flag = value;
+    if (value)
+    {
+        // if treatment forest
+        state->p = state->p_trt;
+        state->p_categorical = state->p_categorical_trt;
+        state->p_continuous = state->p_continuous_trt;
+        state->Xorder_std = state->Xorder_std_trt;
+        state->mtry = state->mtry_trt;
+    }
+    else
+    {
+        state->p = state->p_ps;
+        state->p_categorical = state->p_categorical_ps;
+        state->p_continuous = state->p_continuous_ps;
+        state->Xorder_std = state->Xorder_std_ps;
+        state->mtry = state->mtry_ps;
+    }
     return;
 }
 

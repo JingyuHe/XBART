@@ -19,7 +19,7 @@ y <- (sin(5 * x1) + x2) * z + cos(2 * x2 + x1)
 x <- cbind(x1, x2)
 # XBART::start_profiler("profiler.out")
 time <- Sys.time()
-fit <- XBART::XBCF_continuous(as.matrix(y), Z = as.matrix(z), X = as.matrix(x), Xtest = as.matrix(x), Ztest = as.matrix(z), parallel = parallel, num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin, nthread = nthread, sample_weights = TRUE)
+fit <- XBART::XBCF_continuous(as.matrix(y), Z = as.matrix(z), X = as.matrix(x), X_ps = as.matrix(x), X_trt = as.matrix(x), Xtest = as.matrix(x), Xtest_ps = as.matrix(x), Xtest_trt = as.matrix(x), Ztest = as.matrix(z), parallel = parallel, num_trees = num_trees, num_trees_ps = num_trees, num_trees_trt = num_trees, num_sweeps = num_sweeps, burnin = burnin, nthread = nthread, sample_weights = TRUE)
 time <- Sys.time() - time
 print(time)
 # XBART::stop_profiler()
@@ -36,10 +36,10 @@ abline(0, 1, col = "red")
 plot(sin(5 * x1) + x2, pred / z, pch = 20)
 
 
-# XBART
-data = cbind(z, x)
-data <- as.matrix(data)
-time2 <- Sys.time()
-fit2 <- XBART(as.matrix(y), data, num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin, parallel = parallel, nthread = nthread)
-time2 = Sys.time() - time2
-print(time2)
+# # XBART
+# data = cbind(z, x)
+# data <- as.matrix(data)
+# time2 <- Sys.time()
+# fit2 <- XBART(as.matrix(y), data, num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin, parallel = parallel, nthread = nthread)
+# time2 = Sys.time() - time2
+# print(time2)
