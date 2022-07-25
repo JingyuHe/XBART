@@ -204,7 +204,7 @@ void XBCFContinuousModel::ini_residual_std(std::unique_ptr<State> &state)
     }
 }
 
-void XBCFContinuousModel::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_ps, vector<vector<tree>> &trees_trt)
+void XBCFContinuousModel::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer_ps, const double *Xtestpointer_trt, size_t N_test, size_t p_ps, size_t p_trt, size_t num_trees_ps, size_t num_trees_trt, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_ps, vector<vector<tree>> &trees_trt)
 {
     // predict the output as a matrix
     matrix<double> output_trt;
@@ -219,9 +219,9 @@ void XBCFContinuousModel::predict_std(matrix<double> &Ztestpointer, const double
     {
         for (size_t data_ind = 0; data_ind < N_test; data_ind++)
         {
-            getThetaForObs_Outsample(output_trt, trees_trt[sweeps], data_ind, Xtestpointer, N_test, p);
+            getThetaForObs_Outsample(output_trt, trees_trt[sweeps], data_ind, Xtestpointer_trt, N_test, p_trt);
 
-            getThetaForObs_Outsample(output_ps, trees_ps[sweeps], data_ind, Xtestpointer, N_test, p);
+            getThetaForObs_Outsample(output_ps, trees_ps[sweeps], data_ind, Xtestpointer_ps, N_test, p_ps);
 
             // take sum of predictions of each tree, as final prediction
             for (size_t i = 0; i < trees_trt[0].size(); i++)
@@ -249,6 +249,23 @@ void XBCFContinuousModel::ini_tau_mu_fit(std::unique_ptr<State> &state)
 void XBCFContinuousModel::set_treatmentflag(std::unique_ptr<State> &state, bool value)
 {
     state->treatment_flag = value;
+    if (value)
+    {
+        // if treatment forest
+        state->p = state->p_trt;
+        state->p_categorical = state->p_categorical_trt;
+        state->p_continuous = state->p_continuous_trt;
+        state->Xorder_std = state->Xorder_std_trt;
+        state->mtry = state->mtry_trt;
+    }
+    else
+    {
+        state->p = state->p_ps;
+        state->p_categorical = state->p_categorical_ps;
+        state->p_continuous = state->p_continuous_ps;
+        state->Xorder_std = state->Xorder_std_ps;
+        state->mtry = state->mtry_ps;
+    }
     return;
 }
 
@@ -310,6 +327,21 @@ void XBCFContinuousModel::update_partial_residuals(size_t tree_ind, std::unique_
         {
             (state->residual_std)[0][i] = ((*state->y_std)[i] - (*state->mu_fit)[i] - ((*state->Z_std)[0][i]) * (*state->tau_fit)[i]);
         }
+    }
+    return;
+}
+
+void XBCFContinuousModel::update_split_counts(std::unique_ptr<State> &state, size_t tree_ind)
+{
+    if (state->treatment_flag)
+    {
+        state->mtry_weight_current_tree_trt = state->mtry_weight_current_tree_trt + state->split_count_current_tree;
+        state->split_count_all_tree_trt[tree_ind] = state->split_count_current_tree;
+    }
+    else
+    {
+        state->mtry_weight_current_tree_ps = state->mtry_weight_current_tree_ps + state->split_count_current_tree;
+        state->split_count_all_tree_ps[tree_ind] = state->split_count_current_tree;
     }
     return;
 }
