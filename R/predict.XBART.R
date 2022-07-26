@@ -1,8 +1,14 @@
 predict.XBART <- function(object, X, ...) {
     out <- json_to_r(object$tree_json)
-
     obj <- .Call(`_XBART_xbart_predict`, X, object$model_list$y_mean, out$model_list$tree_pnt) # object$tree_pnt
     obj <- as.matrix(obj$yhats)
+    return(obj)
+}
+
+predict.XBCF <- function(object, X_ps, X_trt, Z, ...) {
+    out_ps <- json_to_r(object$tree_json_ps)
+    out_trt <- json_to_r(object$tree_json_trt)
+    obj <- .Call("_XBART_xbcf_predict", X_ps, X_trt, Z, out_ps$model_list$tree_pnt, out_trt$model_list$tree_pnt)
     return(obj)
 }
 

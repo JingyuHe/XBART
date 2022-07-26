@@ -62,6 +62,82 @@ Rcpp::List xbart_predict(mat X, double y_mean, Rcpp::XPtr<std::vector<std::vecto
 }
 
 // [[Rcpp::export]]
+Rcpp::List xbcf_predict(mat X_ps, mat X_trt, mat Z, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_ps, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_trt)
+{
+    // size of data
+    size_t N = X_ps.n_rows;
+    size_t p_ps = X_ps.n_cols;
+    size_t p_trt = X_trt.n_cols;
+    size_t p_z = Z.n_cols;
+    assert(X_ps.n_rows == X_trt.n_rows);
+
+    // Init X_std matrix
+    Rcpp::NumericMatrix X_std_ps(N, p_ps);
+    Rcpp::NumericMatrix X_std_trt(N, p_trt);
+
+    matrix<double> Ztest_std;
+    ini_matrix(Ztest_std, N, p_z);
+
+    for (size_t i = 0; i < N; i++)
+    {
+        for (size_t j = 0; j < p_ps; j++)
+        {
+            X_std_ps(i, j) = X_ps(i, j);
+        }
+
+        for (size_t j = 0; j < p_trt; j++)
+        {
+            X_std_trt(i, j) = X_trt(i, j);
+        }
+
+        for (size_t j = 0; j < p_z; j++)
+        {
+            Ztest_std[j][i] = Z(i, j);
+        }
+    }
+    double *Xpointer_ps = &X_std_ps[0];
+    double *Xpointer_trt = &X_std_trt[0];
+
+    // Trees
+    std::vector<std::vector<tree>> *trees_ps = tree_ps;
+    std::vector<std::vector<tree>> *trees_trt = tree_trt;
+
+    // Result Container
+    size_t num_sweeps = (*trees_ps).size();
+    size_t num_trees_ps = (*trees_ps)[0].size();
+    size_t num_trees_trt = (*trees_trt)[0].size();
+
+    matrix<double> prognostic_xinfo;
+    ini_matrix(prognostic_xinfo, N, num_sweeps);
+
+    matrix<double> treatment_xinfo;
+    ini_matrix(treatment_xinfo, N, num_sweeps);
+
+    matrix<double> yhats_test_xinfo;
+    ini_xinfo(yhats_test_xinfo, N, num_sweeps);
+    XBCFContinuousModel *model = new XBCFContinuousModel();
+    // Predict
+
+    model->predict_std(Ztest_std, Xpointer_ps, Xpointer_trt, N, p_ps, p_trt, num_trees_ps, num_trees_trt, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_ps, *trees_trt);
+
+    // Convert back to Rcpp
+    Rcpp::NumericMatrix yhats(N, num_sweeps);
+    Rcpp::NumericMatrix prognostic(N, num_sweeps);
+    Rcpp::NumericMatrix treatment(N, num_sweeps);
+    for (size_t i = 0; i < N; i++)
+    {
+        for (size_t j = 0; j < num_sweeps; j++)
+        {
+            yhats(i, j) = yhats_test_xinfo[j][i];
+            prognostic(i, j) = prognostic_xinfo[j][i];
+            treatment(i, j) = treatment_xinfo[j][i];
+        }
+    }
+
+    return Rcpp::List::create(Rcpp::Named("mu") = prognostic, Rcpp::Named("tau") = treatment, Rcpp::Named("yhats") = yhats);
+}
+
+// [[Rcpp::export]]
 Rcpp::List xbart_predict_full(mat X, double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)
 {
 

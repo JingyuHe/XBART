@@ -237,7 +237,7 @@ void rcpp_to_std2(arma::mat &y, arma::mat &Z, arma::mat &X, arma::mat &Ztest, ar
     return;
 }
 
-void rcpp_to_std2(arma::mat &y, arma::mat &Z, arma::mat &X_ps, arma::mat &X_trt, arma::mat &Ztest, arma::mat &Xtest_ps, arma::mat &Xtest_trt, std::vector<double> &y_std, double &y_mean, matrix<double> &Z_std, Rcpp::NumericMatrix &X_std_ps, Rcpp::NumericMatrix &X_std_trt, matrix<double> &Ztest_std, Rcpp::NumericMatrix &Xtest_std_ps, Rcpp::NumericMatrix &Xtest_std_trt, matrix<size_t> &Xorder_std_ps, matrix<size_t> &Xorder_std_trt)
+void rcpp_to_std2(arma::mat &y, arma::mat &Z, arma::mat &X_ps, arma::mat &X_trt, std::vector<double> &y_std, double &y_mean, matrix<double> &Z_std, Rcpp::NumericMatrix &X_std_ps, Rcpp::NumericMatrix &X_std_trt, matrix<size_t> &Xorder_std_ps, matrix<size_t> &Xorder_std_trt)
 {
     // The goal of this function is to convert RCPP object to std objects
     // TODO: Refactor code so for loops are self contained functions
@@ -246,7 +246,6 @@ void rcpp_to_std2(arma::mat &y, arma::mat &Z, arma::mat &X_ps, arma::mat &X_trt,
     size_t N = X_ps.n_rows;
     size_t p_ps = X_ps.n_cols;
     size_t p_trt = X_trt.n_cols;
-    size_t N_test = Xtest_ps.n_rows;
     size_t p_z = Z.n_cols;
     // Create y_std
     for (size_t i = 0; i < N; i++)
@@ -278,31 +277,6 @@ void rcpp_to_std2(arma::mat &y, arma::mat &Z, arma::mat &X_ps, arma::mat &X_trt,
             X_std_trt(i, j) = X_trt(i, j);
         }
     }
-
-    // X_std_test
-    for (size_t i = 0; i < N_test; i++)
-    {
-        for (size_t j = 0; j < p_ps; j++)
-        {
-            Xtest_std_ps(i, j) = Xtest_ps(i, j);
-        }
-    }
-    for (size_t i = 0; i < N_test; i++)
-    {
-        for (size_t j = 0; j < p_trt; j++)
-        {
-            Xtest_std_trt(i, j) = Xtest_trt(i, j);
-        }
-    }
-    // Z_std_test
-    for (size_t i = 0; i < N_test; i++)
-    {
-        for (size_t j = 0; j < p_z; j++)
-        {
-            Ztest_std[j][i] = Ztest(i, j);
-        }
-    }
-
     // Create Xorder
     // Order
     arma::umat Xorder_ps(X_ps.n_rows, X_ps.n_cols);

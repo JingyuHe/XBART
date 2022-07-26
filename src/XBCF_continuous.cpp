@@ -32,7 +32,7 @@ void tree_to_string(vector<vector<tree>> &trees, Rcpp::StringVector &output_tree
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::mat X_trt, arma::mat Xtest_ps, arma::mat Xtest_trt, arma::mat Ztest, size_t num_trees_ps, size_t num_trees_trt, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry_ps = 0, size_t mtry_trt = 0, size_t p_categorical_ps = 0, size_t p_categorical_trt = 0, double kap = 16, double s = 4, double tau_kap = 3, double tau_s = 0.5, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, double nthread = 0)
+Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::mat X_trt, size_t num_trees_ps, size_t num_trees_trt, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry_ps = 0, size_t mtry_trt = 0, size_t p_categorical_ps = 0, size_t p_categorical_trt = 0, double kap = 16, double s = 4, double tau_kap = 3, double tau_s = 0.5, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, double nthread = 0)
 {
     if (parallel)
     {
@@ -47,21 +47,16 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::m
     size_t N = X_ps.n_rows;
 
     // number of total variables
-    size_t p = X_ps.n_cols;
     size_t p_ps = X_ps.n_cols;
     size_t p_trt = X_trt.n_cols;
 
     COUT << "size of X_ps " << X_ps.n_rows << " " << X_ps.n_cols << endl;
     COUT << "size of X_trt " << X_trt.n_rows << " " << X_trt.n_cols << endl;
 
-    size_t N_test = Xtest_ps.n_rows;
-
     // number of basis functions (1 in the case of the OG bcf)
     size_t p_z = Z.n_cols;
 
     // number of continuous variables
-    // size_t p_continuous = p - p_categorical;
-
     size_t p_continuous_ps = p_ps - p_categorical_ps;
     size_t p_continuous_trt = p_trt - p_categorical_trt;
 
@@ -91,10 +86,6 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::m
         COUT << "Sample " << mtry_trt << " out of " << p_trt << " variables when grow each treatment tree." << endl;
     }
 
-    // arma::umat Xorder(X.n_rows, X.n_cols);
-    // matrix<size_t> Xorder_std;
-    // ini_matrix(Xorder_std, N, p);
-
     arma::umat Xorder_ps(X_ps.n_rows, X_ps.n_cols);
     matrix<size_t> Xorder_std_ps;
     ini_matrix(Xorder_std_ps, N, p_ps);
@@ -113,41 +104,19 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::m
     y_mean = y_mean / N;
     cout << "y mean is " << y_mean << endl;
 
-    // Rcpp::NumericMatrix X_std(N, p);
     Rcpp::NumericMatrix X_std_ps(N, p_ps);
     Rcpp::NumericMatrix X_std_trt(N, p_trt);
 
-    // Rcpp::NumericMatrix Xtest_std(N_test, p);
-    Rcpp::NumericMatrix Xtest_std_ps(N_test, p_ps);
-    Rcpp::NumericMatrix Xtest_std_trt(N_test, p_trt);
-
     matrix<double> Z_std;
     ini_matrix(Z_std, N, p_z);
-    matrix<double> Ztest_std;
-    ini_matrix(Ztest_std, N_test, p_z);
 
-    rcpp_to_std2(y, Z, X_ps, X_trt, Ztest, Xtest_ps, Xtest_trt, y_std, y_mean, Z_std, X_std_ps, X_std_trt, Ztest_std, Xtest_std_ps, Xtest_std_trt, Xorder_std_ps, Xorder_std_trt);
+    rcpp_to_std2(y, Z, X_ps, X_trt, y_std, y_mean, Z_std, X_std_ps, X_std_trt, Xorder_std_ps, Xorder_std_trt);
 
     ///////////////////////////////////////////////////////////////////
 
-    // double *Xpointer = &X_std[0];
+
     double *Xpointer_ps = &X_std_ps[0];
     double *Xpointer_trt = &X_std_trt[0];
-    // double *Xtestpointer = &Xtest_std[0];
-    double *Xtestpointer_ps = &Xtest_std_ps[0];
-    double *Xtestpointer_trt = &Xtest_std_trt[0];
-
-    // matrix<double> yhats_xinfo;
-    // ini_matrix(yhats_xinfo, N, num_sweeps);
-
-    matrix<double> yhats_test_xinfo;
-    ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
-
-    matrix<double> prognostic_xinfo;
-    ini_matrix(prognostic_xinfo, N_test, num_sweeps);
-
-    matrix<double> treatment_xinfo;
-    ini_matrix(treatment_xinfo, N_test, num_sweeps);
 
     matrix<double> sigma_draw_xinfo;
     ini_matrix(sigma_draw_xinfo, num_trees_ps + num_trees_trt, num_sweeps);
@@ -182,23 +151,16 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::m
     ////////////////////////////////////////////////////////////////
     mcmc_loop_linear(Xorder_std_ps, Xorder_std_trt, verbose, sigma_draw_xinfo, *trees_ps, *trees_trt, no_split_penality, state, model, x_struct_ps, x_struct_trt);
 
-    model->predict_std(Ztest_std, Xtestpointer_ps, Xtestpointer_trt, N_test, p_ps, p_trt, num_trees_ps, num_trees_trt, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_ps, *trees_trt);
 
     // R Objects to Return
-    Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
-    Rcpp::NumericMatrix prognostic(N_test, num_sweeps);
-    Rcpp::NumericMatrix treatment(N_test, num_sweeps);
-
     Rcpp::NumericMatrix sigma_draw(num_trees_ps + num_trees_trt, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum_ps(p_ps, 0);                          // split counts
     Rcpp::NumericVector split_count_sum_trt(p_trt, 0);
-    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees_ps, true);
+    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt_ps(trees_ps, true);
+    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt_trt(trees_trt, true);
+    
 
     // copy from std vector to Rcpp Numeric Matrix objects
-    Matrix_to_NumericMatrix(yhats_test_xinfo, yhats_test);
-    Matrix_to_NumericMatrix(prognostic_xinfo, prognostic);
-    Matrix_to_NumericMatrix(treatment_xinfo, treatment);
-
     Matrix_to_NumericMatrix(sigma_draw_xinfo, sigma_draw);
 
     for (size_t i = 0; i < p_ps; i++)
@@ -228,13 +190,9 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::m
     thread_pool.stop();
 
     return Rcpp::List::create(
-        // Rcpp::Named("yhats") = yhats,
-        Rcpp::Named("yhats_test") = yhats_test,
-        Rcpp::Named("mu") = prognostic,
-        Rcpp::Named("tau") = treatment,
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance_prognostic") = split_count_sum_ps,
         Rcpp::Named("importance_treatment") = split_count_sum_trt,
-        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p),
+        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt_ps") = tree_pnt_ps, Rcpp::Named("tree_pnt_trt") = tree_pnt_trt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p_ps") = p_ps, Rcpp::Named("p_trt") = p_trt),
         Rcpp::Named("treedraws") = Rcpp::List::create(Rcpp::Named("treatment") = output_tree_trt, Rcpp::Named("Prognostic") = output_tree_ps));
 }
