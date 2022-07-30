@@ -4,7 +4,7 @@ set.seed(1324354676)
 n <- 10000
 
 
-num_trees <- 10
+num_trees <- 50
 num_sweeps <- 200
 burnin <- 20
 parallel <- TRUE
@@ -24,7 +24,7 @@ x_ps <- cbind(x, x3)
 x_trt <- x
 
 time <- Sys.time()
-fit <- XBART::XBCF.continuous(as.matrix(y), Z = as.matrix(z), X_ps = as.matrix(x_ps), X_trt = as.matrix(x_trt), parallel = parallel, num_trees_ps = num_trees, num_trees_trt = num_trees, mtry_ps = 2, mtry_trt = 2, num_sweeps = num_sweeps, burnin = burnin, nthread = nthread, sample_weights = TRUE)
+fit <- XBART::XBCF.continuous(as.matrix(y), Z = as.matrix(z), X_ps = as.matrix(x_ps), X_trt = as.matrix(x_trt), parallel = parallel, num_trees_ps = 20, num_trees_trt = 30, mtry_ps = 2, mtry_trt = 2, num_sweeps = num_sweeps, burnin = burnin, nthread = nthread, sample_weights = TRUE)
 time <- Sys.time() - time
 print(time)
 

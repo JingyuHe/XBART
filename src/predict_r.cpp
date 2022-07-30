@@ -107,6 +107,8 @@ Rcpp::List xbcf_predict(mat X_ps, mat X_trt, mat Z, Rcpp::XPtr<std::vector<std::
     size_t num_trees_ps = (*trees_ps)[0].size();
     size_t num_trees_trt = (*trees_trt)[0].size();
 
+    cout << "number of trees " << num_trees_ps << " " << num_trees_trt << endl;
+
     matrix<double> prognostic_xinfo;
     ini_matrix(prognostic_xinfo, N, num_sweeps);
 

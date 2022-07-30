@@ -226,10 +226,15 @@ void XBCFContinuousModel::predict_std(matrix<double> &Ztestpointer, const double
             // take sum of predictions of each tree, as final prediction
             for (size_t i = 0; i < trees_trt[0].size(); i++)
             {
-                prognostic_xinfo[sweeps][data_ind] += output_ps[i][0];
                 treatment_xinfo[sweeps][data_ind] += output_trt[i][0];
-                yhats_test_xinfo[sweeps][data_ind] += output_ps[i][0] + output_trt[i][0] * (Ztestpointer[0][data_ind]);
             }
+
+            for (size_t i = 0; i < trees_ps[0].size(); i++)
+            {
+                prognostic_xinfo[sweeps][data_ind] += output_ps[i][0];
+            }
+
+            yhats_test_xinfo[sweeps][data_ind] = prognostic_xinfo[sweeps][data_ind] + (Ztestpointer[0][data_ind]) * treatment_xinfo[sweeps][data_ind];
         }
     }
     return;
