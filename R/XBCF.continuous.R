@@ -95,8 +95,8 @@ XBCF.continuous <- function(y, Z, X_ps, X_trt, num_trees_ps, num_trees_trt, num_
         random_seed, sample_weights_flag, nthread
     )
 
-    obj$tree_json_trt <- r_to_json(mean(y), obj$model$tree_pnt_trt)
-    obj$tree_json_ps <- r_to_json(mean(y), obj$model$tree_pnt_ps)
+    # obj$tree_json_trt <- r_to_json(mean(y), obj$model$tree_pnt_trt)
+    # obj$tree_json_ps <- r_to_json(mean(y), obj$model$tree_pnt_ps)
 
     class(obj) <- "XBCF"
     return(obj)

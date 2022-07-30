@@ -5,6 +5,7 @@
 #include "mcmc_loop.h"
 #include "X_struct.h"
 #include "utility_rcpp.h"
+#include "json_io.h"
 
 using namespace std;
 using namespace chrono;
@@ -62,6 +63,7 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::m
 
     // suppose first p_continuous variables are continuous, then categorical
     assert(mtry_ps <= p_ps);
+
     assert(mtry_trt <= p_trt);
 
     assert(burnin <= num_sweeps);
@@ -114,24 +116,20 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::m
 
     ///////////////////////////////////////////////////////////////////
 
-
     double *Xpointer_ps = &X_std_ps[0];
     double *Xpointer_trt = &X_std_trt[0];
 
     matrix<double> sigma_draw_xinfo;
     ini_matrix(sigma_draw_xinfo, num_trees_ps + num_trees_trt, num_sweeps);
 
-    // // Create trees
-    vector<vector<tree>> *trees_ps = new vector<vector<tree>>(num_sweeps);
-    for (size_t i = 0; i < num_sweeps; i++)
-    {
-        (*trees_ps)[i] = vector<tree>(num_trees_ps);
-    }
+    // create trees
+    vector<vector<tree>> trees_ps(num_sweeps);
+    vector<vector<tree>> trees_trt(num_sweeps);
 
-    vector<vector<tree>> *trees_trt = new vector<vector<tree>>(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++)
     {
-        (*trees_trt)[i] = vector<tree>(num_trees_trt);
+        trees_ps[i].resize(num_trees_ps);
+        trees_trt[i].resize(num_trees_trt);
     }
 
     // define model
@@ -147,19 +145,18 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::m
 
     std::vector<double> initial_theta_trt(1, y_mean / (double)num_trees_trt);
     std::unique_ptr<X_struct> x_struct_trt(new X_struct(Xpointer_trt, &y_std, N, Xorder_std_trt, p_categorical_trt, p_continuous_trt, &initial_theta_trt, num_trees_trt));
-cout << "begin mcmc loop" << endl;
+    cout << "begin mcmc loop" << endl;
     ////////////////////////////////////////////////////////////////
-    mcmc_loop_linear(Xorder_std_ps, Xorder_std_trt, verbose, sigma_draw_xinfo, *trees_ps, *trees_trt, no_split_penality, state, model, x_struct_ps, x_struct_trt);
-cout << "finish mcmc loop " << endl;
+    mcmc_loop_linear(Xorder_std_ps, Xorder_std_trt, verbose, sigma_draw_xinfo, trees_ps, trees_trt, no_split_penality, state, model, x_struct_ps, x_struct_trt);
+    cout << "finish mcmc loop " << endl;
 
     // R Objects to Return
     Rcpp::NumericMatrix sigma_draw(num_trees_ps + num_trees_trt, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum_ps(p_ps, 0);                          // split counts
     Rcpp::NumericVector split_count_sum_trt(p_trt, 0);
-    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt_ps(trees_ps, true);
-    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt_trt(trees_trt, true);
-    
-
+    // Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt_ps(trees_ps, true);
+    // Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt_trt(trees_trt, true);
+    //
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(sigma_draw_xinfo, sigma_draw);
 
@@ -184,8 +181,15 @@ cout << "finish mcmc loop " << endl;
     Rcpp::StringVector output_tree_ps(num_sweeps);
     Rcpp::StringVector output_tree_trt(num_sweeps);
 
-    tree_to_string(*trees_trt, output_tree_trt, num_sweeps, num_trees_trt, p_trt);
-    tree_to_string(*trees_ps, output_tree_ps, num_sweeps, num_trees_ps, p_ps);
+    tree_to_string(trees_trt, output_tree_trt, num_sweeps, num_trees_trt, p_trt);
+    tree_to_string(trees_ps, output_tree_ps, num_sweeps, num_trees_ps, p_ps);
+
+    Rcpp::StringVector tree_json_trt(1);
+    Rcpp::StringVector tree_json_ps(1);
+    json j = get_forest_json(trees_trt, y_mean);
+    json j2 = get_forest_json(trees_ps, y_mean);
+    tree_json_trt[0] = j.dump(4);
+    tree_json_ps[0] = j2.dump(4);
 
     thread_pool.stop();
 
@@ -193,6 +197,9 @@ cout << "finish mcmc loop " << endl;
         Rcpp::Named("sigma") = sigma_draw,
         Rcpp::Named("importance_prognostic") = split_count_sum_ps,
         Rcpp::Named("importance_treatment") = split_count_sum_trt,
-        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt_ps") = tree_pnt_ps, Rcpp::Named("tree_pnt_trt") = tree_pnt_trt, Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p_ps") = p_ps, Rcpp::Named("p_trt") = p_trt),
-        Rcpp::Named("treedraws") = Rcpp::List::create(Rcpp::Named("treatment") = output_tree_trt, Rcpp::Named("Prognostic") = output_tree_ps));
+        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p_ps") = p_ps, Rcpp::Named("p_trt") = p_trt),
+        Rcpp::Named("tree_json_trt") = tree_json_trt,
+        Rcpp::Named("tree_json_ps") = tree_json_ps,
+        Rcpp::Named("tree_string_trt") = output_tree_trt,
+        Rcpp::Named("tree_string_ps") = output_tree_ps);
 }
