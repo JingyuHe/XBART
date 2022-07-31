@@ -5,10 +5,10 @@ predict.XBART <- function(object, X, ...) {
     return(obj)
 }
 
-predict.XBCF <- function(object, X_ps, X_trt, Z, ...) {
-    out_ps <- json_to_r(object$tree_json_ps)
-    out_trt <- json_to_r(object$tree_json_trt)
-    obj <- .Call("_XBART_xbcf_predict", X_ps, X_trt, Z, out_ps$model_list$tree_pnt, out_trt$model_list$tree_pnt)
+predict.XBCF <- function(object, X_con, X_mod, Z, ...) {
+    out_con <- json_to_r(object$tree_json_con)
+    out_mod <- json_to_r(object$tree_json_mod)
+    obj <- .Call("_XBART_xbcf_predict", X_con, X_mod, Z, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt)
     return(obj)
 }
 

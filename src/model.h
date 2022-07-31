@@ -336,40 +336,40 @@ public:
     // prior on sigma
     double kap;
     double s;
-    double tau_ps_kap;
-    double tau_ps_s;
-    double tau_trt_kap;
-    double tau_trt_s;
+    double tau_con_kap;
+    double tau_con_s;
+    double tau_mod_kap;
+    double tau_mod_s;
     // prior on leaf parameter
-    double tau_ps; // might be updated if sampling tau
-    double tau_trt;
-    double tau_ps_mean; // copy of the original value
-    double tau_trt_mean;
+    double tau_con; // might be updated if sampling tau
+    double tau_mod;
+    double tau_con_mean; // copy of the original value
+    double tau_mod_mean;
 
-    double alpha_ps;
-    double alpha_trt;
-    double beta_ps;
-    double beta_trt;
+    double alpha_con;
+    double alpha_mod;
+    double beta_con;
+    double beta_mod;
     bool sampling_tau;
 
-    XBCFContinuousModel(double kap, double s, double tau_ps, double tau_trt, double alpha_ps, double beta_ps, double alpha_trt, double beta_trt, bool sampling_tau, double tau_ps_kap, double tau_ps_s, double tau_trt_kap, double tau_trt_s) : Model(1, 4)
+    XBCFContinuousModel(double kap, double s, double tau_con, double tau_mod, double alpha_con, double beta_con, double alpha_mod, double beta_mod, bool sampling_tau, double tau_con_kap, double tau_con_s, double tau_mod_kap, double tau_mod_s) : Model(1, 4)
     {
         this->kap = kap;
         this->s = s;
-        this->tau_ps_kap = tau_ps_kap;
-        this->tau_ps_s = tau_ps_s;
-        this->tau_trt_kap = tau_trt_kap;
-        this->tau_trt_s = tau_trt_s;
-        this->tau_ps = tau_ps;
-        this->tau_trt = tau_trt;
-        this->tau_ps_mean = tau_ps;
-        this->tau_trt_mean = tau_trt;
-        this->alpha_ps = alpha_ps;
-        this->alpha_trt = alpha_trt;
-        this->beta_ps = beta_ps;
-        this->beta_trt = beta_trt;
-        this->alpha = alpha_ps;
-        this->beta = beta_ps;
+        this->tau_con_kap = tau_con_kap;
+        this->tau_con_s = tau_con_s;
+        this->tau_mod_kap = tau_mod_kap;
+        this->tau_mod_s = tau_mod_s;
+        this->tau_con = tau_con;
+        this->tau_mod = tau_mod;
+        this->tau_con_mean = tau_con;
+        this->tau_mod_mean = tau_mod;
+        this->alpha_con = alpha_con;
+        this->alpha_mod = alpha_mod;
+        this->beta_con = beta_con;
+        this->beta_mod = beta_mod;
+        this->alpha = alpha_con;
+        this->beta = beta_con;
         this->beta = beta;
         this->dim_residual = 1;
         this->class_operating = 0;
@@ -404,7 +404,7 @@ public:
 
     void ini_residual_std(std::unique_ptr<State> &state);
 
-    void predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer_ps, const double *Xtestpointer_trt, size_t N_test, size_t p_ps, size_t p_trt, size_t num_trees_ps, size_t num_trees_trt, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_ps, vector<vector<tree>> &trees_trt);
+    void predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer_con, const double *Xtestpointer_mod, size_t N_test, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod);
 
     void set_treatmentflag(std::unique_ptr<State> &state, bool value);
 

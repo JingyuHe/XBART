@@ -62,32 +62,32 @@ Rcpp::List xbart_predict(mat X, double y_mean, Rcpp::XPtr<std::vector<std::vecto
 }
 
 // [[Rcpp::export]]
-Rcpp::List xbcf_predict(mat X_ps, mat X_trt, mat Z, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_ps, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_trt)
+Rcpp::List xbcf_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod)
 {
     // size of data
-    size_t N = X_ps.n_rows;
-    size_t p_ps = X_ps.n_cols;
-    size_t p_trt = X_trt.n_cols;
+    size_t N = X_con.n_rows;
+    size_t p_con = X_con.n_cols;
+    size_t p_mod = X_mod.n_cols;
     size_t p_z = Z.n_cols;
-    assert(X_ps.n_rows == X_trt.n_rows);
+    assert(X_con.n_rows == X_mod.n_rows);
 
     // Init X_std matrix
-    Rcpp::NumericMatrix X_std_ps(N, p_ps);
-    Rcpp::NumericMatrix X_std_trt(N, p_trt);
+    Rcpp::NumericMatrix X_std_con(N, p_con);
+    Rcpp::NumericMatrix X_std_mod(N, p_mod);
 
     matrix<double> Ztest_std;
     ini_matrix(Ztest_std, N, p_z);
 
     for (size_t i = 0; i < N; i++)
     {
-        for (size_t j = 0; j < p_ps; j++)
+        for (size_t j = 0; j < p_con; j++)
         {
-            X_std_ps(i, j) = X_ps(i, j);
+            X_std_con(i, j) = X_con(i, j);
         }
 
-        for (size_t j = 0; j < p_trt; j++)
+        for (size_t j = 0; j < p_mod; j++)
         {
-            X_std_trt(i, j) = X_trt(i, j);
+            X_std_mod(i, j) = X_mod(i, j);
         }
 
         for (size_t j = 0; j < p_z; j++)
@@ -95,19 +95,19 @@ Rcpp::List xbcf_predict(mat X_ps, mat X_trt, mat Z, Rcpp::XPtr<std::vector<std::
             Ztest_std[j][i] = Z(i, j);
         }
     }
-    double *Xpointer_ps = &X_std_ps[0];
-    double *Xpointer_trt = &X_std_trt[0];
+    double *Xpointer_con = &X_std_con[0];
+    double *Xpointer_mod = &X_std_mod[0];
 
     // Trees
-    std::vector<std::vector<tree>> *trees_ps = tree_ps;
-    std::vector<std::vector<tree>> *trees_trt = tree_trt;
+    std::vector<std::vector<tree>> *trees_con = tree_con;
+    std::vector<std::vector<tree>> *trees_mod = tree_mod;
 
     // Result Container
-    size_t num_sweeps = (*trees_ps).size();
-    size_t num_trees_ps = (*trees_ps)[0].size();
-    size_t num_trees_trt = (*trees_trt)[0].size();
+    size_t num_sweeps = (*trees_con).size();
+    size_t num_trees_con = (*trees_con)[0].size();
+    size_t num_trees_mod = (*trees_mod)[0].size();
 
-    cout << "number of trees " << num_trees_ps << " " << num_trees_trt << endl;
+    cout << "number of trees " << num_trees_con << " " << num_trees_mod << endl;
 
     matrix<double> prognostic_xinfo;
     ini_matrix(prognostic_xinfo, N, num_sweeps);
@@ -120,7 +120,7 @@ Rcpp::List xbcf_predict(mat X_ps, mat X_trt, mat Z, Rcpp::XPtr<std::vector<std::
     XBCFContinuousModel *model = new XBCFContinuousModel();
     // Predict
 
-    model->predict_std(Ztest_std, Xpointer_ps, Xpointer_trt, N, p_ps, p_trt, num_trees_ps, num_trees_trt, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_ps, *trees_trt);
+    model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
 
     // Convert back to Rcpp
     Rcpp::NumericMatrix yhats(N, num_sweeps);

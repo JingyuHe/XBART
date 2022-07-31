@@ -9,16 +9,16 @@ XBART_multinomial_cpp <- function(y, num_class, X, num_trees, num_sweeps, max_de
     .Call(`_XBART_XBART_multinomial_cpp`, y, num_class, X, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penality, burnin, mtry, p_categorical, verbose, parallel, set_random_seed, random_seed, sample_weights, separate_tree, weight, update_weight, update_tau, nthread, hmult, heps)
 }
 
-XBCF_continuous_cpp <- function(y, Z, X_ps, X_trt, num_trees_ps, num_trees_trt, num_sweeps, max_depth, n_min, num_cutpoints, alpha_ps, beta_ps, alpha_trt, beta_trt, tau_ps, tau_trt, no_split_penality, burnin = 1L, mtry_ps = 0L, mtry_trt = 0L, p_categorical_ps = 0L, p_categorical_trt = 0L, kap = 16, s = 4, tau_ps_kap = 3, tau_ps_s = 0.5, tau_trt_kap = 3, tau_trt_s = 0.5, verbose = FALSE, sampling_tau = TRUE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights = TRUE, nthread = 0) {
-    .Call(`_XBART_XBCF_continuous_cpp`, y, Z, X_ps, X_trt, num_trees_ps, num_trees_trt, num_sweeps, max_depth, n_min, num_cutpoints, alpha_ps, beta_ps, alpha_trt, beta_trt, tau_ps, tau_trt, no_split_penality, burnin, mtry_ps, mtry_trt, p_categorical_ps, p_categorical_trt, kap, s, tau_ps_kap, tau_ps_s, tau_trt_kap, tau_trt_s, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights, nthread)
+XBCF_continuous_cpp <- function(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth, n_min, num_cutpoints, alpha_con, beta_con, alpha_mod, beta_mod, tau_con, tau_mod, no_split_penality, burnin = 1L, mtry_con = 0L, mtry_mod = 0L, p_categorical_con = 0L, p_categorical_mod = 0L, kap = 16, s = 4, tau_con_kap = 3, tau_con_s = 0.5, tau_mod_kap = 3, tau_mod_s = 0.5, verbose = FALSE, sampling_tau = TRUE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights = TRUE, nthread = 0) {
+    .Call(`_XBART_XBCF_continuous_cpp`, y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth, n_min, num_cutpoints, alpha_con, beta_con, alpha_mod, beta_mod, tau_con, tau_mod, no_split_penality, burnin, mtry_con, mtry_mod, p_categorical_con, p_categorical_mod, kap, s, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights, nthread)
 }
 
 xbart_predict <- function(X, y_mean, tree_pnt) {
     .Call(`_XBART_xbart_predict`, X, y_mean, tree_pnt)
 }
 
-xbcf_predict <- function(X_ps, X_trt, Z, tree_ps, tree_trt) {
-    .Call(`_XBART_xbcf_predict`, X_ps, X_trt, Z, tree_ps, tree_trt)
+xbcf_predict <- function(X_con, X_mod, Z, tree_con, tree_mod) {
+    .Call(`_XBART_xbcf_predict`, X_con, X_mod, Z, tree_con, tree_mod)
 }
 
 xbart_predict_full <- function(X, y_mean, tree_pnt) {

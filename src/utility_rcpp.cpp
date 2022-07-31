@@ -237,15 +237,15 @@ void rcpp_to_std2(arma::mat &y, arma::mat &Z, arma::mat &X, arma::mat &Ztest, ar
     return;
 }
 
-void rcpp_to_std2(arma::mat &y, arma::mat &Z, arma::mat &X_ps, arma::mat &X_trt, std::vector<double> &y_std, double &y_mean, matrix<double> &Z_std, Rcpp::NumericMatrix &X_std_ps, Rcpp::NumericMatrix &X_std_trt, matrix<size_t> &Xorder_std_ps, matrix<size_t> &Xorder_std_trt)
+void rcpp_to_std2(arma::mat &y, arma::mat &Z, arma::mat &X_con, arma::mat &X_mod, std::vector<double> &y_std, double &y_mean, matrix<double> &Z_std, Rcpp::NumericMatrix &X_std_con, Rcpp::NumericMatrix &X_std_mod, matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod)
 {
     // The goal of this function is to convert RCPP object to std objects
     // TODO: Refactor code so for loops are self contained functions
     // TODO: Why RCPP and not std?
     // TODO: inefficient Need Replacement?
-    size_t N = X_ps.n_rows;
-    size_t p_ps = X_ps.n_cols;
-    size_t p_trt = X_trt.n_cols;
+    size_t N = X_con.n_rows;
+    size_t p_con = X_con.n_cols;
+    size_t p_mod = X_mod.n_cols;
     size_t p_z = Z.n_cols;
     // Create y_std
     for (size_t i = 0; i < N; i++)
@@ -265,51 +265,51 @@ void rcpp_to_std2(arma::mat &y, arma::mat &Z, arma::mat &X_ps, arma::mat &X_trt,
     // X_std
     for (size_t i = 0; i < N; i++)
     {
-        for (size_t j = 0; j < p_ps; j++)
+        for (size_t j = 0; j < p_con; j++)
         {
-            X_std_ps(i, j) = X_ps(i, j);
+            X_std_con(i, j) = X_con(i, j);
         }
     }
     for (size_t i = 0; i < N; i++)
     {
-        for (size_t j = 0; j < p_trt; j++)
+        for (size_t j = 0; j < p_mod; j++)
         {
-            X_std_trt(i, j) = X_trt(i, j);
+            X_std_mod(i, j) = X_mod(i, j);
         }
     }
     // Create Xorder
     // Order
-    arma::umat Xorder_ps(X_ps.n_rows, X_ps.n_cols);
+    arma::umat Xorder_con(X_con.n_rows, X_con.n_cols);
     // #pragma omp parallel for schedule(dynamic, 1) shared(X, Xorder)
-    for (size_t i = 0; i < X_ps.n_cols; i++)
+    for (size_t i = 0; i < X_con.n_cols; i++)
     {
-        Xorder_ps.col(i) = arma::sort_index(X_ps.col(i));
+        Xorder_con.col(i) = arma::sort_index(X_con.col(i));
     }
     // Create
     // #pragma omp parallel for collapse(2)
     for (size_t i = 0; i < N; i++)
     {
-        for (size_t j = 0; j < p_ps; j++)
+        for (size_t j = 0; j < p_con; j++)
         {
-            Xorder_std_ps[j][i] = Xorder_ps(i, j);
+            Xorder_std_con[j][i] = Xorder_con(i, j);
         }
     }
 
     // Create Xorder
     // Order
-    arma::umat Xorder_trt(X_trt.n_rows, X_trt.n_cols);
+    arma::umat Xorder_mod(X_mod.n_rows, X_mod.n_cols);
     // #pragma omp parallel for schedule(dynamic, 1) shared(X, Xorder)
-    for (size_t i = 0; i < X_trt.n_cols; i++)
+    for (size_t i = 0; i < X_mod.n_cols; i++)
     {
-        Xorder_trt.col(i) = arma::sort_index(X_trt.col(i));
+        Xorder_mod.col(i) = arma::sort_index(X_mod.col(i));
     }
     // Create
     // #pragma omp parallel for collapse(2)
     for (size_t i = 0; i < N; i++)
     {
-        for (size_t j = 0; j < p_trt; j++)
+        for (size_t j = 0; j < p_mod; j++)
         {
-            Xorder_std_trt[j][i] = Xorder_trt(i, j);
+            Xorder_std_mod[j][i] = Xorder_mod(i, j);
         }
     }
     return;

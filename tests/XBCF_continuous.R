@@ -20,18 +20,18 @@ x <- cbind(x1, x2)
 x3 <- rnorm(n)
 
 # different X matrix for prognostic and treatment trees
-x_ps <- cbind(x, x3)
-x_trt <- x
+x_con <- cbind(x, x3)
+x_mod <- x
 
 time <- Sys.time()
-fit <- XBART::XBCF.continuous(as.matrix(y), Z = as.matrix(z), X_ps = as.matrix(x_ps), X_trt = as.matrix(x_trt), parallel = parallel, num_trees_ps = 20, num_trees_trt = 30, mtry_ps = 2, mtry_trt = 2, num_sweeps = num_sweeps, burnin = burnin, nthread = nthread, sample_weights = TRUE)
+fit <- XBART::XBCF.continuous(as.matrix(y), Z = as.matrix(z), X_con = as.matrix(x_con), X_mod = as.matrix(x_mod), parallel = parallel, num_trees_con = 20, num_trees_mod = 30, mtry_con = 2, mtry_mod = 2, num_sweeps = num_sweeps, burnin = burnin, nthread = nthread, sample_weights = TRUE)
 time <- Sys.time() - time
 print(time)
 
 # predict function return three terms
 # mu, tau and yhats
 # yhats = mu + z * tau
-pred <- predict(fit, X_ps = as.matrix(x_ps), X_trt = as.matrix(x_trt), Z = as.matrix(z))
+pred <- predict(fit, X_con = as.matrix(x_con), X_mod = as.matrix(x_mod), Z = as.matrix(z))
 
 pred <- rowMeans(pred$yhats)
 

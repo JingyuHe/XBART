@@ -86,39 +86,39 @@ BEGIN_RCPP
 END_RCPP
 }
 // XBCF_continuous_cpp
-Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::mat X_trt, size_t num_trees_ps, size_t num_trees_trt, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha_ps, double beta_ps, double alpha_trt, double beta_trt, double tau_ps, double tau_trt, double no_split_penality, size_t burnin, size_t mtry_ps, size_t mtry_trt, size_t p_categorical_ps, size_t p_categorical_trt, double kap, double s, double tau_ps_kap, double tau_ps_s, double tau_trt_kap, double tau_trt_s, bool verbose, bool sampling_tau, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights, double nthread);
-RcppExport SEXP _XBART_XBCF_continuous_cpp(SEXP ySEXP, SEXP ZSEXP, SEXP X_psSEXP, SEXP X_trtSEXP, SEXP num_trees_psSEXP, SEXP num_trees_trtSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alpha_psSEXP, SEXP beta_psSEXP, SEXP alpha_trtSEXP, SEXP beta_trtSEXP, SEXP tau_psSEXP, SEXP tau_trtSEXP, SEXP no_split_penalitySEXP, SEXP burninSEXP, SEXP mtry_psSEXP, SEXP mtry_trtSEXP, SEXP p_categorical_psSEXP, SEXP p_categorical_trtSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP tau_ps_kapSEXP, SEXP tau_ps_sSEXP, SEXP tau_trt_kapSEXP, SEXP tau_trt_sSEXP, SEXP verboseSEXP, SEXP sampling_tauSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weightsSEXP, SEXP nthreadSEXP) {
+Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mod, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha_con, double beta_con, double alpha_mod, double beta_mod, double tau_con, double tau_mod, double no_split_penality, size_t burnin, size_t mtry_con, size_t mtry_mod, size_t p_categorical_con, size_t p_categorical_mod, double kap, double s, double tau_con_kap, double tau_con_s, double tau_mod_kap, double tau_mod_s, bool verbose, bool sampling_tau, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights, double nthread);
+RcppExport SEXP _XBART_XBCF_continuous_cpp(SEXP ySEXP, SEXP ZSEXP, SEXP X_conSEXP, SEXP X_modSEXP, SEXP num_trees_conSEXP, SEXP num_trees_modSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alpha_conSEXP, SEXP beta_conSEXP, SEXP alpha_modSEXP, SEXP beta_modSEXP, SEXP tau_conSEXP, SEXP tau_modSEXP, SEXP no_split_penalitySEXP, SEXP burninSEXP, SEXP mtry_conSEXP, SEXP mtry_modSEXP, SEXP p_categorical_conSEXP, SEXP p_categorical_modSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP tau_con_kapSEXP, SEXP tau_con_sSEXP, SEXP tau_mod_kapSEXP, SEXP tau_mod_sSEXP, SEXP verboseSEXP, SEXP sampling_tauSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weightsSEXP, SEXP nthreadSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Z(ZSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X_ps(X_psSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type X_trt(X_trtSEXP);
-    Rcpp::traits::input_parameter< size_t >::type num_trees_ps(num_trees_psSEXP);
-    Rcpp::traits::input_parameter< size_t >::type num_trees_trt(num_trees_trtSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X_con(X_conSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type X_mod(X_modSEXP);
+    Rcpp::traits::input_parameter< size_t >::type num_trees_con(num_trees_conSEXP);
+    Rcpp::traits::input_parameter< size_t >::type num_trees_mod(num_trees_modSEXP);
     Rcpp::traits::input_parameter< size_t >::type num_sweeps(num_sweepsSEXP);
     Rcpp::traits::input_parameter< size_t >::type max_depth(max_depthSEXP);
     Rcpp::traits::input_parameter< size_t >::type n_min(n_minSEXP);
     Rcpp::traits::input_parameter< size_t >::type num_cutpoints(num_cutpointsSEXP);
-    Rcpp::traits::input_parameter< double >::type alpha_ps(alpha_psSEXP);
-    Rcpp::traits::input_parameter< double >::type beta_ps(beta_psSEXP);
-    Rcpp::traits::input_parameter< double >::type alpha_trt(alpha_trtSEXP);
-    Rcpp::traits::input_parameter< double >::type beta_trt(beta_trtSEXP);
-    Rcpp::traits::input_parameter< double >::type tau_ps(tau_psSEXP);
-    Rcpp::traits::input_parameter< double >::type tau_trt(tau_trtSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha_con(alpha_conSEXP);
+    Rcpp::traits::input_parameter< double >::type beta_con(beta_conSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha_mod(alpha_modSEXP);
+    Rcpp::traits::input_parameter< double >::type beta_mod(beta_modSEXP);
+    Rcpp::traits::input_parameter< double >::type tau_con(tau_conSEXP);
+    Rcpp::traits::input_parameter< double >::type tau_mod(tau_modSEXP);
     Rcpp::traits::input_parameter< double >::type no_split_penality(no_split_penalitySEXP);
     Rcpp::traits::input_parameter< size_t >::type burnin(burninSEXP);
-    Rcpp::traits::input_parameter< size_t >::type mtry_ps(mtry_psSEXP);
-    Rcpp::traits::input_parameter< size_t >::type mtry_trt(mtry_trtSEXP);
-    Rcpp::traits::input_parameter< size_t >::type p_categorical_ps(p_categorical_psSEXP);
-    Rcpp::traits::input_parameter< size_t >::type p_categorical_trt(p_categorical_trtSEXP);
+    Rcpp::traits::input_parameter< size_t >::type mtry_con(mtry_conSEXP);
+    Rcpp::traits::input_parameter< size_t >::type mtry_mod(mtry_modSEXP);
+    Rcpp::traits::input_parameter< size_t >::type p_categorical_con(p_categorical_conSEXP);
+    Rcpp::traits::input_parameter< size_t >::type p_categorical_mod(p_categorical_modSEXP);
     Rcpp::traits::input_parameter< double >::type kap(kapSEXP);
     Rcpp::traits::input_parameter< double >::type s(sSEXP);
-    Rcpp::traits::input_parameter< double >::type tau_ps_kap(tau_ps_kapSEXP);
-    Rcpp::traits::input_parameter< double >::type tau_ps_s(tau_ps_sSEXP);
-    Rcpp::traits::input_parameter< double >::type tau_trt_kap(tau_trt_kapSEXP);
-    Rcpp::traits::input_parameter< double >::type tau_trt_s(tau_trt_sSEXP);
+    Rcpp::traits::input_parameter< double >::type tau_con_kap(tau_con_kapSEXP);
+    Rcpp::traits::input_parameter< double >::type tau_con_s(tau_con_sSEXP);
+    Rcpp::traits::input_parameter< double >::type tau_mod_kap(tau_mod_kapSEXP);
+    Rcpp::traits::input_parameter< double >::type tau_mod_s(tau_mod_sSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< bool >::type sampling_tau(sampling_tauSEXP);
     Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
@@ -126,7 +126,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< size_t >::type random_seed(random_seedSEXP);
     Rcpp::traits::input_parameter< bool >::type sample_weights(sample_weightsSEXP);
     Rcpp::traits::input_parameter< double >::type nthread(nthreadSEXP);
-    rcpp_result_gen = Rcpp::wrap(XBCF_continuous_cpp(y, Z, X_ps, X_trt, num_trees_ps, num_trees_trt, num_sweeps, max_depth, n_min, num_cutpoints, alpha_ps, beta_ps, alpha_trt, beta_trt, tau_ps, tau_trt, no_split_penality, burnin, mtry_ps, mtry_trt, p_categorical_ps, p_categorical_trt, kap, s, tau_ps_kap, tau_ps_s, tau_trt_kap, tau_trt_s, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights, nthread));
+    rcpp_result_gen = Rcpp::wrap(XBCF_continuous_cpp(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth, n_min, num_cutpoints, alpha_con, beta_con, alpha_mod, beta_mod, tau_con, tau_mod, no_split_penality, burnin, mtry_con, mtry_mod, p_categorical_con, p_categorical_mod, kap, s, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights, nthread));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -144,17 +144,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // xbcf_predict
-Rcpp::List xbcf_predict(mat X_ps, mat X_trt, mat Z, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_ps, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_trt);
-RcppExport SEXP _XBART_xbcf_predict(SEXP X_psSEXP, SEXP X_trtSEXP, SEXP ZSEXP, SEXP tree_psSEXP, SEXP tree_trtSEXP) {
+Rcpp::List xbcf_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod);
+RcppExport SEXP _XBART_xbcf_predict(SEXP X_conSEXP, SEXP X_modSEXP, SEXP ZSEXP, SEXP tree_conSEXP, SEXP tree_modSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< mat >::type X_ps(X_psSEXP);
-    Rcpp::traits::input_parameter< mat >::type X_trt(X_trtSEXP);
+    Rcpp::traits::input_parameter< mat >::type X_con(X_conSEXP);
+    Rcpp::traits::input_parameter< mat >::type X_mod(X_modSEXP);
     Rcpp::traits::input_parameter< mat >::type Z(ZSEXP);
-    Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_ps(tree_psSEXP);
-    Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_trt(tree_trtSEXP);
-    rcpp_result_gen = Rcpp::wrap(xbcf_predict(X_ps, X_trt, Z, tree_ps, tree_trt));
+    Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_con(tree_conSEXP);
+    Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_mod(tree_modSEXP);
+    rcpp_result_gen = Rcpp::wrap(xbcf_predict(X_con, X_mod, Z, tree_con, tree_mod));
     return rcpp_result_gen;
 END_RCPP
 }

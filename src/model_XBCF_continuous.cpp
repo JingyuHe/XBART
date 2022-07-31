@@ -40,11 +40,11 @@ void XBCFContinuousModel::samplePars(std::unique_ptr<State> &state, std::vector<
 
     if (state->treatment_flag)
     {
-        tau_use = tau_trt;
+        tau_use = tau_mod;
     }
     else
     {
-        tau_use = tau_ps;
+        tau_use = tau_con;
     }
 
     double sigma2 = pow(state->sigma, 2);
@@ -80,9 +80,9 @@ void XBCFContinuousModel::update_tau(std::unique_ptr<State> &state, size_t tree_
         sum_squared = sum_squared + pow(leaf_nodes[i]->theta_vector[0], 2);
     }
 
-    double kap = (state->treatment_flag) ? this->tau_trt_kap : this->tau_ps_kap;
+    double kap = (state->treatment_flag) ? this->tau_mod_kap : this->tau_con_kap;
 
-    double s = (state->treatment_flag) ? this->tau_trt_s * this->tau_trt_mean : this->tau_ps_s * this->tau_ps_mean;
+    double s = (state->treatment_flag) ? this->tau_mod_s * this->tau_mod_mean : this->tau_con_s * this->tau_con_mean;
 
     std::gamma_distribution<double> gamma_samp((leaf_nodes.size() + kap) / 2.0, 2.0 / (sum_squared + s));
 
@@ -90,11 +90,11 @@ void XBCFContinuousModel::update_tau(std::unique_ptr<State> &state, size_t tree_
 
     if (state->treatment_flag)
     {
-        this->tau_trt = tau_sample;
+        this->tau_mod = tau_sample;
     }
     else
     {
-        this->tau_ps = tau_sample;
+        this->tau_con = tau_sample;
     }
 
     return;
@@ -113,20 +113,20 @@ void XBCFContinuousModel::update_tau_per_forest(std::unique_ptr<State> &state, s
         sum_squared = sum_squared + pow(leaf_nodes[i]->theta_vector[0], 2);
     };
 
-    double kap = (state->treatment_flag) ? this->tau_trt_kap : this->tau_ps_kap;
+    double kap = (state->treatment_flag) ? this->tau_mod_kap : this->tau_con_kap;
 
-    double s = (state->treatment_flag) ? this->tau_trt_s * this->tau_trt_mean : this->tau_ps_s * this->tau_ps_mean;
+    double s = (state->treatment_flag) ? this->tau_mod_s * this->tau_mod_mean : this->tau_con_s * this->tau_con_mean;
 
     std::gamma_distribution<double> gamma_samp((leaf_nodes.size() + kap) / 2.0, 2.0 / (sum_squared + s));
     double tau_sample = 1.0 / gamma_samp(state->gen);
 
     if (state->treatment_flag)
     {
-        this->tau_trt = tau_sample;
+        this->tau_mod = tau_sample;
     }
     else
     {
-        this->tau_ps = tau_sample;
+        this->tau_con = tau_sample;
     }
     return;
 }
@@ -232,11 +232,11 @@ double XBCFContinuousModel::likelihood(std::vector<double> &temp_suff_stat, std:
 
     if (state->treatment_flag)
     {
-        tau_use = tau_trt;
+        tau_use = tau_mod;
     }
     else
     {
-        tau_use = tau_ps;
+        tau_use = tau_con;
     }
 
     return 0.5 * log(1.0 / (1.0 + tau_use * s0 / sigma2)) + 0.5 * pow(s1 / sigma2, 2) / (s0 / sigma2 + 1.0 / tau_use);
@@ -251,34 +251,34 @@ void XBCFContinuousModel::ini_residual_std(std::unique_ptr<State> &state)
     }
 }
 
-void XBCFContinuousModel::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer_ps, const double *Xtestpointer_trt, size_t N_test, size_t p_ps, size_t p_trt, size_t num_trees_ps, size_t num_trees_trt, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_ps, vector<vector<tree>> &trees_trt)
+void XBCFContinuousModel::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer_con, const double *Xtestpointer_mod, size_t N_test, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod)
 {
     // predict the output as a matrix
-    matrix<double> output_trt;
+    matrix<double> output_mod;
 
     // row : dimension of theta, column : number of trees
-    ini_matrix(output_trt, this->dim_theta, trees_trt[0].size());
+    ini_matrix(output_mod, this->dim_theta, trees_mod[0].size());
 
-    matrix<double> output_ps;
-    ini_matrix(output_ps, this->dim_theta, trees_ps[0].size());
+    matrix<double> output_con;
+    ini_matrix(output_con, this->dim_theta, trees_con[0].size());
 
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
         for (size_t data_ind = 0; data_ind < N_test; data_ind++)
         {
-            getThetaForObs_Outsample(output_trt, trees_trt[sweeps], data_ind, Xtestpointer_trt, N_test, p_trt);
+            getThetaForObs_Outsample(output_mod, trees_mod[sweeps], data_ind, Xtestpointer_mod, N_test, p_mod);
 
-            getThetaForObs_Outsample(output_ps, trees_ps[sweeps], data_ind, Xtestpointer_ps, N_test, p_ps);
+            getThetaForObs_Outsample(output_con, trees_con[sweeps], data_ind, Xtestpointer_con, N_test, p_con);
 
             // take sum of predictions of each tree, as final prediction
-            for (size_t i = 0; i < trees_trt[0].size(); i++)
+            for (size_t i = 0; i < trees_mod[0].size(); i++)
             {
-                treatment_xinfo[sweeps][data_ind] += output_trt[i][0];
+                treatment_xinfo[sweeps][data_ind] += output_mod[i][0];
             }
 
-            for (size_t i = 0; i < trees_ps[0].size(); i++)
+            for (size_t i = 0; i < trees_con[0].size(); i++)
             {
-                prognostic_xinfo[sweeps][data_ind] += output_ps[i][0];
+                prognostic_xinfo[sweeps][data_ind] += output_con[i][0];
             }
 
             yhats_test_xinfo[sweeps][data_ind] = prognostic_xinfo[sweeps][data_ind] + (Ztestpointer[0][data_ind]) * treatment_xinfo[sweeps][data_ind];
@@ -304,23 +304,23 @@ void XBCFContinuousModel::set_treatmentflag(std::unique_ptr<State> &state, bool 
     if (value)
     {
         // if treatment forest
-        state->p = state->p_trt;
-        state->p_categorical = state->p_categorical_trt;
-        state->p_continuous = state->p_continuous_trt;
-        state->Xorder_std = state->Xorder_std_trt;
-        state->mtry = state->mtry_trt;
-        this->alpha = this->alpha_trt;
-        this->beta = this->beta_trt;
+        state->p = state->p_mod;
+        state->p_categorical = state->p_categorical_mod;
+        state->p_continuous = state->p_continuous_mod;
+        state->Xorder_std = state->Xorder_std_mod;
+        state->mtry = state->mtry_mod;
+        this->alpha = this->alpha_mod;
+        this->beta = this->beta_mod;
     }
     else
     {
-        state->p = state->p_ps;
-        state->p_categorical = state->p_categorical_ps;
-        state->p_continuous = state->p_continuous_ps;
-        state->Xorder_std = state->Xorder_std_ps;
-        state->mtry = state->mtry_ps;
-        this->alpha = this->alpha_ps;
-        this->beta = this->beta_ps;
+        state->p = state->p_con;
+        state->p_categorical = state->p_categorical_con;
+        state->p_continuous = state->p_continuous_con;
+        state->Xorder_std = state->Xorder_std_con;
+        state->mtry = state->mtry_con;
+        this->alpha = this->alpha_con;
+        this->beta = this->beta_con;
     }
     return;
 }
@@ -391,13 +391,13 @@ void XBCFContinuousModel::update_split_counts(std::unique_ptr<State> &state, siz
 {
     if (state->treatment_flag)
     {
-        state->mtry_weight_current_tree_trt = state->mtry_weight_current_tree_trt + state->split_count_current_tree;
-        state->split_count_all_tree_trt[tree_ind] = state->split_count_current_tree;
+        state->mtry_weight_current_tree_mod = state->mtry_weight_current_tree_mod + state->split_count_current_tree;
+        state->split_count_all_tree_mod[tree_ind] = state->split_count_current_tree;
     }
     else
     {
-        state->mtry_weight_current_tree_ps = state->mtry_weight_current_tree_ps + state->split_count_current_tree;
-        state->split_count_all_tree_ps[tree_ind] = state->split_count_current_tree;
+        state->mtry_weight_current_tree_con = state->mtry_weight_current_tree_con + state->split_count_current_tree;
+        state->split_count_all_tree_con[tree_ind] = state->split_count_current_tree;
     }
     return;
 }
