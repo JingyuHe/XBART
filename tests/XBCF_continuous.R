@@ -24,7 +24,7 @@ x_con <- cbind(x, x3)
 x_mod <- x
 
 time <- Sys.time()
-fit <- XBART::XBCF.continuous(as.matrix(y), Z = as.matrix(z), X_con = as.matrix(x_con), X_mod = as.matrix(x_mod), parallel = parallel, num_trees_con = 20, num_trees_mod = 30, mtry_con = 2, mtry_mod = 2, num_sweeps = num_sweeps, burnin = burnin, nthread = nthread, sample_weights = TRUE)
+fit <- XBART::XBCF.continuous(as.matrix(y), Z = as.matrix(z), X_con = as.matrix(x_con), X_mod = as.matrix(x_mod), parallel = parallel, num_trees_con = 20, num_trees_mod = 10, mtry_con = 2, mtry_mod = 2, num_sweeps = num_sweeps, burnin = burnin, nthread = nthread, sample_weights = TRUE, verbose = FALSE)
 time <- Sys.time() - time
 print(time)
 
