@@ -145,10 +145,9 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::m
 
     std::vector<double> initial_theta_trt(1, y_mean / (double)num_trees_trt);
     std::unique_ptr<X_struct> x_struct_trt(new X_struct(Xpointer_trt, &y_std, N, Xorder_std_trt, p_categorical_trt, p_continuous_trt, &initial_theta_trt, num_trees_trt));
-    cout << "begin mcmc loop" << endl;
+
     ////////////////////////////////////////////////////////////////
     mcmc_loop_linear(Xorder_std_ps, Xorder_std_trt, verbose, sigma_draw_xinfo, trees_ps, trees_trt, no_split_penality, state, model, x_struct_ps, x_struct_trt);
-    cout << "finish mcmc loop " << endl;
 
     // R Objects to Return
     Rcpp::NumericMatrix sigma_draw(num_trees_ps + num_trees_trt, num_sweeps); // save predictions of each tree

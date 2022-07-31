@@ -43,7 +43,7 @@ XBCF.continuous <- function(y, Z, X_ps, X_trt, num_trees_ps, num_trees_trt, num_
     }
 
     if (is.null(tau)) {
-        tau <- 1 / num_trees
+        tau <- 1 / num_trees_ps
         cat("tau = 1/num_trees, default value. \n")
     }
 
