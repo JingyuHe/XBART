@@ -336,39 +336,44 @@ public:
     // prior on sigma
     double kap;
     double s;
-    double tau_kap;
-    double tau_s;
+    double tau_ps_kap;
+    double tau_ps_s;
+    double tau_trt_kap;
+    double tau_trt_s;
     // prior on leaf parameter
-    double tau;      // might be updated if sampling tau
-    double tau_mean; // copy of the original value
+    double tau_ps; // might be updated if sampling tau
+    double tau_trt;
+    double tau_ps_mean; // copy of the original value
+    double tau_trt_mean;
+
+    double alpha_ps;
+    double alpha_trt;
+    double beta_ps;
+    double beta_trt;
     bool sampling_tau;
 
-    XBCFContinuousModel(double kap, double s, double tau, double alpha, double beta, bool sampling_tau, double tau_kap, double tau_s) : Model(1, 4)
+    XBCFContinuousModel(double kap, double s, double tau_ps, double tau_trt, double alpha_ps, double beta_ps, double alpha_trt, double beta_trt, bool sampling_tau, double tau_ps_kap, double tau_ps_s, double tau_trt_kap, double tau_trt_s) : Model(1, 4)
     {
         this->kap = kap;
         this->s = s;
-        this->tau_kap = tau_kap;
-        this->tau_s = tau_s;
-        this->tau = tau;
-        this->tau_mean = tau;
-        this->alpha = alpha;
+        this->tau_ps_kap = tau_ps_kap;
+        this->tau_ps_s = tau_ps_s;
+        this->tau_trt_kap = tau_trt_kap;
+        this->tau_trt_s = tau_trt_s;
+        this->tau_ps = tau_ps;
+        this->tau_trt = tau_trt;
+        this->tau_ps_mean = tau_ps;
+        this->tau_trt_mean = tau_trt;
+        this->alpha_ps = alpha_ps;
+        this->alpha_trt = alpha_trt;
+        this->beta_ps = beta_ps;
+        this->beta_trt = beta_trt;
+        this->alpha = alpha_ps;
+        this->beta = beta_ps;
         this->beta = beta;
         this->dim_residual = 1;
         this->class_operating = 0;
         this->sampling_tau = sampling_tau;
-    }
-
-    XBCFContinuousModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 4)
-    {
-        this->kap = kap;
-        this->s = s;
-        this->tau = tau;
-        this->tau_mean = tau;
-        this->alpha = alpha;
-        this->beta = beta;
-        this->dim_residual = 1;
-        this->class_operating = 0;
-        this->sampling_tau = true;
     }
 
     XBCFContinuousModel() : Model(1, 4) {}

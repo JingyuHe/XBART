@@ -36,9 +36,20 @@ void XBCFContinuousModel::samplePars(std::unique_ptr<State> &state, std::vector<
 {
     std::normal_distribution<double> normal_samp(0.0, 1.0);
 
+    double tau_use;
+
+    if (state->treatment_flag)
+    {
+        tau_use = tau_trt;
+    }
+    else
+    {
+        tau_use = tau_ps;
+    }
+
     double sigma2 = pow(state->sigma, 2);
 
-    theta_vector[0] = suff_stat[1] / sigma2 / (suff_stat[0] / sigma2 + 1.0 / tau) + sqrt(1.0 / (1.0 / tau + suff_stat[0] / sigma2)) * normal_samp(state->gen);
+    theta_vector[0] = suff_stat[1] / sigma2 / (suff_stat[0] / sigma2 + 1.0 / tau_use) + sqrt(1.0 / (1.0 / tau_use + suff_stat[0] / sigma2)) * normal_samp(state->gen);
 
     return;
 }
@@ -68,11 +79,24 @@ void XBCFContinuousModel::update_tau(std::unique_ptr<State> &state, size_t tree_
     {
         sum_squared = sum_squared + pow(leaf_nodes[i]->theta_vector[0], 2);
     }
-    double kap = this->tau_kap;
-    double s = this->tau_s * this->tau_mean;
+
+    double kap = (state->treatment_flag) ? this->tau_trt_kap : this->tau_ps_kap;
+
+    double s = (state->treatment_flag) ? this->tau_trt_s * this->tau_trt_mean : this->tau_ps_s * this->tau_ps_mean;
 
     std::gamma_distribution<double> gamma_samp((leaf_nodes.size() + kap) / 2.0, 2.0 / (sum_squared + s));
-    this->tau = 1.0 / gamma_samp(state->gen);
+
+    double tau_sample = 1.0 / gamma_samp(state->gen);
+
+    if (state->treatment_flag)
+    {
+        this->tau_trt = tau_sample;
+    }
+    else
+    {
+        this->tau_ps = tau_sample;
+    }
+
     return;
 };
 
@@ -88,10 +112,22 @@ void XBCFContinuousModel::update_tau_per_forest(std::unique_ptr<State> &state, s
     {
         sum_squared = sum_squared + pow(leaf_nodes[i]->theta_vector[0], 2);
     };
-    double kap = this->tau_kap;
-    double s = this->tau_s * this->tau_mean;
+
+    double kap = (state->treatment_flag) ? this->tau_trt_kap : this->tau_ps_kap;
+
+    double s = (state->treatment_flag) ? this->tau_trt_s * this->tau_trt_mean : this->tau_ps_s * this->tau_ps_mean;
+
     std::gamma_distribution<double> gamma_samp((leaf_nodes.size() + kap) / 2.0, 2.0 / (sum_squared + s));
-    this->tau = 1.0 / gamma_samp(state->gen);
+    double tau_sample = 1.0 / gamma_samp(state->gen);
+
+    if (state->treatment_flag)
+    {
+        this->tau_trt = tau_sample;
+    }
+    else
+    {
+        this->tau_ps = tau_sample;
+    }
     return;
 }
 
@@ -192,7 +228,18 @@ double XBCFContinuousModel::likelihood(std::vector<double> &temp_suff_stat, std:
         }
     }
 
-    return 0.5 * log(1.0 / (1.0 + tau * s0 / sigma2)) + 0.5 * pow(s1 / sigma2, 2) / (s0 / sigma2 + 1.0 / tau);
+    double tau_use;
+
+    if (state->treatment_flag)
+    {
+        tau_use = tau_trt;
+    }
+    else
+    {
+        tau_use = tau_ps;
+    }
+
+    return 0.5 * log(1.0 / (1.0 + tau_use * s0 / sigma2)) + 0.5 * pow(s1 / sigma2, 2) / (s0 / sigma2 + 1.0 / tau_use);
 }
 
 void XBCFContinuousModel::ini_residual_std(std::unique_ptr<State> &state)
@@ -262,6 +309,8 @@ void XBCFContinuousModel::set_treatmentflag(std::unique_ptr<State> &state, bool 
         state->p_continuous = state->p_continuous_trt;
         state->Xorder_std = state->Xorder_std_trt;
         state->mtry = state->mtry_trt;
+        this->alpha = this->alpha_trt;
+        this->beta = this->beta_trt;
     }
     else
     {
@@ -270,6 +319,8 @@ void XBCFContinuousModel::set_treatmentflag(std::unique_ptr<State> &state, bool 
         state->p_continuous = state->p_continuous_ps;
         state->Xorder_std = state->Xorder_std_ps;
         state->mtry = state->mtry_ps;
+        this->alpha = this->alpha_ps;
+        this->beta = this->beta_ps;
     }
     return;
 }

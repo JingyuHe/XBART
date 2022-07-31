@@ -1,7 +1,7 @@
 XBCF.continuous <- function(y, Z, X_ps, X_trt, num_trees_ps, num_trees_trt, num_sweeps, max_depth = 250,
-                            Nmin = 1, num_cutpoints = 100, alpha = 0.95, beta = 1.25, tau = NULL,
+                            Nmin = 1, num_cutpoints = 100, alpha_ps = 0.95, beta_ps = 1.25, alpha_trt = 0.95, beta_trt = 1.25, tau_ps = NULL, tau_trt = NULL,
                             no_split_penality = NULL, burnin = 1L, mtry_ps = NULL, mtry_trt = NULL, p_categorical_ps = 0L, p_categorical_trt = 0L,
-                            kap = 16, s = 4, tau_kap = 3, tau_s = 0.5, verbose = FALSE, sampling_tau = TRUE, parallel = TRUE, random_seed = NULL,
+                            kap = 16, s = 4, tau_ps_kap = 3, tau_ps_s = 0.5, tau_trt_kap = 3, tau_trt_s = 0.5, verbose = FALSE, sampling_tau = TRUE, parallel = TRUE, random_seed = NULL,
                             sample_weights_flag = TRUE, nthread = 0, ...) {
     if (!("matrix" %in% class(X_ps))) {
         cat("Input X_ps is not a matrix, try to convert type.\n")
@@ -42,9 +42,14 @@ XBCF.continuous <- function(y, Z, X_ps, X_trt, num_trees_ps, num_trees_trt, num_
         no_split_penality <- log(num_cutpoints)
     }
 
-    if (is.null(tau)) {
-        tau <- 1 / num_trees_ps
-        cat("tau = 1/num_trees, default value. \n")
+    if (is.null(tau_ps)) {
+        tau_ps <- 1 / num_trees_ps
+        cat("tau_ps = 1/num_trees_ps, default value. \n")
+    }
+
+    if (is.null(tau_trt)) {
+        tau_trt <- 1 / num_trees_trt
+        cat("tau_trt = 1/num_trees_trt, default value. \n")
     }
 
     if (is.null(mtry_ps)) {
@@ -82,21 +87,17 @@ XBCF.continuous <- function(y, Z, X_ps, X_trt, num_trees_ps, num_trees_trt, num_
     check_positive_integer(num_trees_ps, "num_trees_ps")
     check_positive_integer(num_trees_trt, "num_trees_trt")
 
-    check_scalar(tau, "tau")
+    check_scalar(tau_ps, "tau_ps")
+    check_scalar(tau_trt, "tau_trt")
     check_scalar(no_split_penality, "no_split_penality")
-    check_scalar(alpha, "alpha")
-    check_scalar(beta, "beta")
+    check_scalar(alpha_ps, "alpha_ps")
+    check_scalar(beta_ps, "beta_ps")
+    check_scalar(alpha_trt, "alpha_trt")
+    check_scalar(beta_trt, "beta_trt")
     check_scalar(kap, "kap")
     check_scalar(s, "s")
 
-    obj <- XBCF_continuous_cpp(
-        y, Z, X_ps, X_trt, num_trees_ps, num_trees_trt, num_sweeps, max_depth,
-        Nmin, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry_ps, mtry_trt, p_categorical_ps, p_categorical_trt, kap, s, tau_kap, tau_s, verbose, sampling_tau, parallel, set_random_seed,
-        random_seed, sample_weights_flag, nthread
-    )
-
-    # obj$tree_json_trt <- r_to_json(mean(y), obj$model$tree_pnt_trt)
-    # obj$tree_json_ps <- r_to_json(mean(y), obj$model$tree_pnt_ps)
+    obj <- XBCF_continuous_cpp(y, Z, X_ps, X_trt, num_trees_ps, num_trees_trt, num_sweeps, max_depth, Nmin, num_cutpoints, alpha_ps, beta_ps, alpha_trt, beta_trt, tau_ps, tau_trt, no_split_penality, burnin, mtry_ps, mtry_trt, p_categorical_ps, p_categorical_trt, kap, s, tau_ps_kap, tau_ps_s, tau_trt_kap, tau_trt_s, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights_flag, nthread)
 
     class(obj) <- "XBCF"
     return(obj)

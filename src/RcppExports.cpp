@@ -86,8 +86,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // XBCF_continuous_cpp
-Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::mat X_trt, size_t num_trees_ps, size_t num_trees_trt, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin, size_t mtry_ps, size_t mtry_trt, size_t p_categorical_ps, size_t p_categorical_trt, double kap, double s, double tau_kap, double tau_s, bool verbose, bool sampling_tau, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights, double nthread);
-RcppExport SEXP _XBART_XBCF_continuous_cpp(SEXP ySEXP, SEXP ZSEXP, SEXP X_psSEXP, SEXP X_trtSEXP, SEXP num_trees_psSEXP, SEXP num_trees_trtSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP no_split_penalitySEXP, SEXP burninSEXP, SEXP mtry_psSEXP, SEXP mtry_trtSEXP, SEXP p_categorical_psSEXP, SEXP p_categorical_trtSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP tau_kapSEXP, SEXP tau_sSEXP, SEXP verboseSEXP, SEXP sampling_tauSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weightsSEXP, SEXP nthreadSEXP) {
+Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_ps, arma::mat X_trt, size_t num_trees_ps, size_t num_trees_trt, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha_ps, double beta_ps, double alpha_trt, double beta_trt, double tau_ps, double tau_trt, double no_split_penality, size_t burnin, size_t mtry_ps, size_t mtry_trt, size_t p_categorical_ps, size_t p_categorical_trt, double kap, double s, double tau_ps_kap, double tau_ps_s, double tau_trt_kap, double tau_trt_s, bool verbose, bool sampling_tau, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights, double nthread);
+RcppExport SEXP _XBART_XBCF_continuous_cpp(SEXP ySEXP, SEXP ZSEXP, SEXP X_psSEXP, SEXP X_trtSEXP, SEXP num_trees_psSEXP, SEXP num_trees_trtSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alpha_psSEXP, SEXP beta_psSEXP, SEXP alpha_trtSEXP, SEXP beta_trtSEXP, SEXP tau_psSEXP, SEXP tau_trtSEXP, SEXP no_split_penalitySEXP, SEXP burninSEXP, SEXP mtry_psSEXP, SEXP mtry_trtSEXP, SEXP p_categorical_psSEXP, SEXP p_categorical_trtSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP tau_ps_kapSEXP, SEXP tau_ps_sSEXP, SEXP tau_trt_kapSEXP, SEXP tau_trt_sSEXP, SEXP verboseSEXP, SEXP sampling_tauSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weightsSEXP, SEXP nthreadSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -101,9 +101,12 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< size_t >::type max_depth(max_depthSEXP);
     Rcpp::traits::input_parameter< size_t >::type n_min(n_minSEXP);
     Rcpp::traits::input_parameter< size_t >::type num_cutpoints(num_cutpointsSEXP);
-    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha_ps(alpha_psSEXP);
+    Rcpp::traits::input_parameter< double >::type beta_ps(beta_psSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha_trt(alpha_trtSEXP);
+    Rcpp::traits::input_parameter< double >::type beta_trt(beta_trtSEXP);
+    Rcpp::traits::input_parameter< double >::type tau_ps(tau_psSEXP);
+    Rcpp::traits::input_parameter< double >::type tau_trt(tau_trtSEXP);
     Rcpp::traits::input_parameter< double >::type no_split_penality(no_split_penalitySEXP);
     Rcpp::traits::input_parameter< size_t >::type burnin(burninSEXP);
     Rcpp::traits::input_parameter< size_t >::type mtry_ps(mtry_psSEXP);
@@ -112,8 +115,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< size_t >::type p_categorical_trt(p_categorical_trtSEXP);
     Rcpp::traits::input_parameter< double >::type kap(kapSEXP);
     Rcpp::traits::input_parameter< double >::type s(sSEXP);
-    Rcpp::traits::input_parameter< double >::type tau_kap(tau_kapSEXP);
-    Rcpp::traits::input_parameter< double >::type tau_s(tau_sSEXP);
+    Rcpp::traits::input_parameter< double >::type tau_ps_kap(tau_ps_kapSEXP);
+    Rcpp::traits::input_parameter< double >::type tau_ps_s(tau_ps_sSEXP);
+    Rcpp::traits::input_parameter< double >::type tau_trt_kap(tau_trt_kapSEXP);
+    Rcpp::traits::input_parameter< double >::type tau_trt_s(tau_trt_sSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< bool >::type sampling_tau(sampling_tauSEXP);
     Rcpp::traits::input_parameter< bool >::type parallel(parallelSEXP);
@@ -121,7 +126,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< size_t >::type random_seed(random_seedSEXP);
     Rcpp::traits::input_parameter< bool >::type sample_weights(sample_weightsSEXP);
     Rcpp::traits::input_parameter< double >::type nthread(nthreadSEXP);
-    rcpp_result_gen = Rcpp::wrap(XBCF_continuous_cpp(y, Z, X_ps, X_trt, num_trees_ps, num_trees_trt, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau, no_split_penality, burnin, mtry_ps, mtry_trt, p_categorical_ps, p_categorical_trt, kap, s, tau_kap, tau_s, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights, nthread));
+    rcpp_result_gen = Rcpp::wrap(XBCF_continuous_cpp(y, Z, X_ps, X_trt, num_trees_ps, num_trees_trt, num_sweeps, max_depth, n_min, num_cutpoints, alpha_ps, beta_ps, alpha_trt, beta_trt, tau_ps, tau_trt, no_split_penality, burnin, mtry_ps, mtry_trt, p_categorical_ps, p_categorical_trt, kap, s, tau_ps_kap, tau_ps_s, tau_trt_kap, tau_trt_s, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights, nthread));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -262,7 +267,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_XBART_XBART_cpp", (DL_FUNC) &_XBART_XBART_cpp, 25},
     {"_XBART_XBART_multinomial_cpp", (DL_FUNC) &_XBART_XBART_multinomial_cpp, 28},
-    {"_XBART_XBCF_continuous_cpp", (DL_FUNC) &_XBART_XBCF_continuous_cpp, 30},
+    {"_XBART_XBCF_continuous_cpp", (DL_FUNC) &_XBART_XBCF_continuous_cpp, 35},
     {"_XBART_xbart_predict", (DL_FUNC) &_XBART_xbart_predict, 3},
     {"_XBART_xbcf_predict", (DL_FUNC) &_XBART_xbcf_predict, 5},
     {"_XBART_xbart_predict_full", (DL_FUNC) &_XBART_xbart_predict_full, 3},
