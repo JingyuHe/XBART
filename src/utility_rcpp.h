@@ -5,6 +5,7 @@
 #include "Rcpp.h"
 #include <armadillo>
 #include "X_struct.h"
+#include "tree.h"
 
 using namespace arma;
 
@@ -21,5 +22,7 @@ void rcpp_to_std2(arma::mat &y, arma::mat &Z, arma::mat &X, arma::mat &Ztest, ar
 void rcpp_to_std2(arma::mat &y, arma::mat &Z, arma::mat &X_con, arma::mat &X_mod, std::vector<double> &y_std, double &y_mean, matrix<double> &Z_std, Rcpp::NumericMatrix &X_std_con, Rcpp::NumericMatrix &X_std_mod, matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod);
 
 void Matrix_to_NumericMatrix(matrix<double> &a, Rcpp::NumericMatrix &b);
+
+void tree_to_string(vector<vector<tree>> &trees, Rcpp::StringVector &output_tree, size_t num_sweeps, size_t num_trees, size_t p);
 
 #endif

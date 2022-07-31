@@ -11,26 +11,6 @@ using namespace std;
 using namespace chrono;
 using namespace arma;
 
-void tree_to_string(vector<vector<tree>> &trees, Rcpp::StringVector &output_tree, size_t num_sweeps, size_t num_trees, size_t p)
-{
-    std::stringstream treess;
-    for (size_t i = 0; i < num_sweeps; i++)
-    {
-        treess.precision(10);
-
-        treess.str(std::string());
-        treess << num_trees << " " << p << endl;
-
-        for (size_t t = 0; t < num_trees; t++)
-        {
-            treess << (trees)[i][t];
-        }
-
-        output_tree(i) = treess.str();
-    }
-    return;
-}
-
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mod, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha_con, double beta_con, double alpha_mod, double beta_mod, double tau_con, double tau_mod, double no_split_penality, size_t burnin = 1, size_t mtry_con = 0, size_t mtry_mod = 0, size_t p_categorical_con = 0, size_t p_categorical_mod = 0, double kap = 16, double s = 4, double tau_con_kap = 3, double tau_con_s = 0.5, double tau_mod_kap = 3, double tau_mod_s = 0.5, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, double nthread = 0)
@@ -97,6 +77,7 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::
     ini_matrix(Xorder_std_mod, N, p_mod);
 
     std::vector<double> y_std(N);
+    
     double y_mean = 0.0;
 
     for (size_t i = 0; i < N; i++)
@@ -104,7 +85,6 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::
         y_mean += y[i] / Z[i];
     }
     y_mean = y_mean / N;
-    cout << "y mean is " << y_mean << endl;
 
     Rcpp::NumericMatrix X_std_con(N, p_con);
     Rcpp::NumericMatrix X_std_mod(N, p_mod);
@@ -137,46 +117,37 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::
     model->setNoSplitPenality(no_split_penality);
 
     // State settings
-    std::unique_ptr<State> state(new NormalLinearState(&Z_std, Xpointer_con, Xpointer_mod, Xorder_std_con, Xorder_std_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, p_categorical_con, p_categorical_mod, p_continuous_con, p_continuous_mod, set_random_seed, random_seed, n_min, num_cutpoints, mtry_con, mtry_mod, Xpointer_con, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread, parallel)); // last input is nthread, need update
+    NormalLinearState state(&Z_std, Xpointer_con, Xpointer_mod, Xorder_std_con, Xorder_std_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, p_categorical_con, p_categorical_mod, p_continuous_con, p_continuous_mod, set_random_seed, random_seed, n_min, num_cutpoints, mtry_con, mtry_mod, Xpointer_con, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread, parallel);
 
     // initialize X_struct
     std::vector<double> initial_theta_con(1, 0);
-    std::unique_ptr<X_struct> x_struct_con(new X_struct(Xpointer_con, &y_std, N, Xorder_std_con, p_categorical_con, p_continuous_con, &initial_theta_con, num_trees_con));
+    X_struct x_struct_con(Xpointer_con, &y_std, N, Xorder_std_con, p_categorical_con, p_continuous_con, &initial_theta_con, num_trees_con);
 
     std::vector<double> initial_theta_mod(1, y_mean / (double)num_trees_mod);
-    std::unique_ptr<X_struct> x_struct_mod(new X_struct(Xpointer_mod, &y_std, N, Xorder_std_mod, p_categorical_mod, p_continuous_mod, &initial_theta_mod, num_trees_mod));
+    X_struct x_struct_mod(Xpointer_mod, &y_std, N, Xorder_std_mod, p_categorical_mod, p_continuous_mod, &initial_theta_mod, num_trees_mod);
 
     ////////////////////////////////////////////////////////////////
     mcmc_loop_linear(Xorder_std_con, Xorder_std_mod, verbose, sigma_draw_xinfo, trees_con, trees_mod, no_split_penality, state, model, x_struct_con, x_struct_mod);
 
     // R Objects to Return
     Rcpp::NumericMatrix sigma_draw(num_trees_con + num_trees_mod, num_sweeps); // save predictions of each tree
-    Rcpp::NumericVector split_count_sum_con(p_con, 0);                          // split counts
+    Rcpp::NumericVector split_count_sum_con(p_con, 0);                         // split counts
     Rcpp::NumericVector split_count_sum_mod(p_mod, 0);
-    // Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt_con(trees_con, true);
-    // Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt_mod(trees_mod, true);
-    //
+    
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(sigma_draw_xinfo, sigma_draw);
 
     for (size_t i = 0; i < p_con; i++)
     {
-        split_count_sum_con(i) = (int)state->split_count_all_con[i];
+        split_count_sum_con(i) = (int)(*state.split_count_all_con)[i];
     }
 
     for (size_t i = 0; i < p_mod; i++)
     {
-        split_count_sum_mod(i) = (int)state->split_count_all_mod[i];
+        split_count_sum_mod(i) = (int)(*state.split_count_all_mod)[i];
     }
 
-    // clean memory
-    // delete model;
-    state.reset();
-    x_struct_con.reset();
-    x_struct_mod.reset();
-
     // print out tree structure, for usage of BART warm-start
-
     Rcpp::StringVector output_tree_con(num_sweeps);
     Rcpp::StringVector output_tree_mod(num_sweeps);
 

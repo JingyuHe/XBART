@@ -314,3 +314,23 @@ void rcpp_to_std2(arma::mat &y, arma::mat &Z, arma::mat &X_con, arma::mat &X_mod
     }
     return;
 }
+
+void tree_to_string(vector<vector<tree>> &trees, Rcpp::StringVector &output_tree, size_t num_sweeps, size_t num_trees, size_t p)
+{
+    std::stringstream treess;
+    for (size_t i = 0; i < num_sweeps; i++)
+    {
+        treess.precision(10);
+
+        treess.str(std::string());
+        treess << num_trees << " " << p << endl;
+
+        for (size_t t = 0; t < num_trees; t++)
+        {
+            treess << (trees)[i][t];
+        }
+
+        output_tree(i) = treess.str();
+    }
+    return;
+}

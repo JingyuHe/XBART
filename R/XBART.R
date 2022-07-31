@@ -105,8 +105,8 @@ XBART <- function(y, X, num_trees, num_sweeps, max_depth = 250, Nmin = 1, num_cu
         random_seed, sample_weights, nthread
     )
 
-    tree_json <- r_to_json(mean(y), obj$model$tree_pnt)
-    obj$tree_json <- tree_json
+    # tree_json <- r_to_json(mean(y), obj$model$tree_pnt)
+    # obj$tree_json <- tree_json
 
     class(obj) <- "XBART"
     return(obj)

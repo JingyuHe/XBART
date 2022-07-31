@@ -74,13 +74,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
     matrix<double> yhats_train_xinfo;
     ini_matrix(yhats_train_xinfo, N, num_sweeps);
 
-    // // Create trees
-    // vector<vector<tree>> *trees2 = new vector<vector<tree>>(num_sweeps);
-    // for (size_t i = 0; i < num_sweeps; i++)
-    // {
-    //     (*trees2)[i] = vector<tree>(num_trees);
-    // }
-
     // State settings
     // Logit doesn't need an inherited state class at the moment
     // (see comments in the public declarations of LogitModel)
@@ -88,10 +81,10 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
     // (y_size_t definitely belongs there, phi probably does)
 
     std::vector<double> initial_theta(num_class, 1);
-    std::unique_ptr<State> state(new LogitState(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, num_class, nthread));
+    LogitState state(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, num_class, nthread);
 
     // initialize X_struct
-    std::unique_ptr<X_struct> x_struct(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees));
+    X_struct x_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees);
 
     std::vector<std::vector<double>> weight_samples;
     ini_matrix(weight_samples, num_trees, num_sweeps);
@@ -201,7 +194,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
     }
     for (size_t i = 0; i < p; i++)
     {
-        split_count_sum(i) = (size_t)state->split_count_all[i];
+        split_count_sum(i) = (size_t)(*state.split_count_all)[i];
     }
 
     std::stringstream treess;
@@ -251,9 +244,6 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
             output_tree.push_back(treess.str());
         }
     }
-    // clean memory
-    state.reset();
-    x_struct.reset();
 
     // stop parallel computing
     thread_pool.stop();
@@ -268,6 +258,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("depth") = depth_rcpp,
         Rcpp::Named("treedraws") = output_tree,
+        Rcpp::Named("separate_tree") = separate_tree,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p, Rcpp::Named("num_class") = num_class,
                                                        Rcpp::Named("num_sweeps") = num_sweeps, Rcpp::Named("num_trees") = num_trees));
 

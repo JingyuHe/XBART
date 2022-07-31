@@ -11,14 +11,14 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 // normal regression model
-void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &resid);
+void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, State&state, NormalModel *model, X_struct &x_struct, std::vector<double> &resid);
 
 // classification, all classes share the same tree structure
-void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &tau_samples);
+void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penality, State&state, LogitModel *model, X_struct &x_struct, std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &tau_samples);
 
 // classification, each class has its own tree structure
-void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModelSeparateTrees *model, std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &weight_samples);
+void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, State&state, LogitModelSeparateTrees *model, X_struct &x_struct, std::vector<std::vector<double>> &weight_samples);
 
 // XBCF for continuous treatment
-void mcmc_loop_linear(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod, double no_split_penalty, std::unique_ptr<State> &state, XBCFContinuousModel *model, std::unique_ptr<X_struct> &x_struct_con, std::unique_ptr<X_struct> &x_struct_mod);
+void mcmc_loop_linear(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod, double no_split_penalty, State&state, XBCFContinuousModel *model, X_struct &x_struct_con, X_struct &x_struct_mod);
 

@@ -107,7 +107,7 @@ Rcpp::List xbcf_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::vector<std:
     size_t num_trees_con = (*trees_con)[0].size();
     size_t num_trees_mod = (*trees_mod)[0].size();
 
-    cout << "number of trees " << num_trees_con << " " << num_trees_mod << endl;
+    COUT << "number of trees " << num_trees_con << " " << num_trees_mod << endl;
 
     matrix<double> prognostic_xinfo;
     ini_matrix(prognostic_xinfo, N, num_sweeps);
@@ -236,10 +236,10 @@ Rcpp::List gp_predict(mat y, mat X, mat Xtest, Rcpp::XPtr<std::vector<std::vecto
     // initialize X_struct
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
 
-    std::unique_ptr<gp_struct> x_struct(new gp_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, sigma_std, num_trees));
-    std::unique_ptr<gp_struct> xtest_struct(new gp_struct(Xtestpointer, &y_std, N_test, Xtestorder_std, p_categorical, p_continuous, &initial_theta, sigma_std, num_trees));
-    x_struct->n_y = N;
-    xtest_struct->n_y = N_test;
+    gp_struct x_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, sigma_std, num_trees);
+    gp_struct xtest_struct(Xtestpointer, &y_std, N_test, Xtestorder_std, p_categorical, p_continuous, &initial_theta, sigma_std, num_trees);
+    x_struct.n_y = N;
+    xtest_struct.n_y = N_test;
 
     matrix<double> yhats_test_xinfo;
     ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
@@ -265,15 +265,15 @@ Rcpp::List gp_predict(mat y, mat X, mat Xtest, Rcpp::XPtr<std::vector<std::vecto
             }
         }
     }
-    x_struct->set_resid(residuals);
+    x_struct.set_resid(residuals);
 
     // mcmc loop
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
         {
-            (*trees)[sweeps][tree_ind].gp_predict_from_root(Xorder_std, x_struct, x_struct->X_counts, x_struct->X_num_unique,
-                                                            Xtestorder_std, xtest_struct, xtest_struct->X_counts, xtest_struct->X_num_unique,
+            (*trees)[sweeps][tree_ind].gp_predict_from_root(Xorder_std, x_struct, x_struct.X_counts, x_struct.X_num_unique,
+                                                            Xtestorder_std, xtest_struct, xtest_struct.X_counts, xtest_struct.X_num_unique,
                                                             yhats_test_xinfo, active_var, p_categorical, sweeps, tree_ind, theta, tau);
         }
     }

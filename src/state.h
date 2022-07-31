@@ -13,8 +13,9 @@
 class State
 {
 public:
-    size_t dim_residual;         // residual size
+    size_t dim_residual;          // residual size
     matrix<double> *residual_std; // a matrix to save all residuals
+    matrix<size_t> *Xorder_std;
 
     // random number generators
     std::vector<double> prob;
@@ -23,19 +24,19 @@ public:
     std::discrete_distribution<> d;
 
     // Splits
-    matrix<double> split_count_all_tree;
-    std::vector<double> split_count_all;
-    std::vector<double> split_count_current_tree;
-    std::vector<double> mtry_weight_current_tree;
+    matrix<double> *split_count_all_tree;
+    std::vector<double> *split_count_all;
+    std::vector<double> *split_count_current_tree;
+    std::vector<double> *mtry_weight_current_tree;
 
     // for XBCF
-    matrix<double> split_count_all_tree_con;
-    std::vector<double> split_count_all_con;
-    std::vector<double> mtry_weight_current_tree_con;
-    
-    matrix<double> split_count_all_tree_mod;
-    std::vector<double> split_count_all_mod;
-    std::vector<double> mtry_weight_current_tree_mod;
+    matrix<double> *split_count_all_tree_con;
+    std::vector<double> *split_count_all_con;
+    std::vector<double> *mtry_weight_current_tree_con;
+
+    matrix<double> *split_count_all_tree_mod;
+    std::vector<double> *split_count_all_mod;
+    std::vector<double> *mtry_weight_current_tree_mod;
 
     // mtry
     bool use_all = true;
@@ -57,8 +58,6 @@ public:
     size_t burnin;
     bool sample_weights;
     double ini_var_yhat;
-
-    matrix<size_t> *Xorder_std;
 
     // residual standard deviation
     double sigma;
@@ -115,15 +114,12 @@ public:
         this->d = std::discrete_distribution<>(prob.begin(), prob.end());
 
         // Splits
-        ini_xinfo(this->split_count_all_tree, p, num_trees);
-
-        this->split_count_all_tree_con.resize(0);
-        this->split_count_all_tree_mod.resize(0);
-        this->split_count_current_tree = std::vector<double>(p, 0);
-        this->mtry_weight_current_tree = std::vector<double>(p, 0);
-        this->split_count_all = std::vector<double>(p, 0);
+        this->split_count_all_tree = new matrix<double>();
+        ini_xinfo((*this->split_count_all_tree), p, num_trees);
+        this->split_count_current_tree = new std::vector<double>(p, 0);
+        this->mtry_weight_current_tree = new std::vector<double>(p, 0);
+        this->split_count_all = new std::vector<double>(p, 0);
         this->sigma = sigma;
-
         this->n_min = n_min;
         this->n_cutpoints = n_cutpoints;
         this->p_categorical = p_categorical;
@@ -140,15 +136,21 @@ public:
         this->burnin = burnin;
         this->ini_var_yhat = ini_var_yhat;
         this->Xorder_std = &Xorder_std;
-
         this->nthread = nthread;
+
+        this->split_count_all_tree_con = NULL;
+        this->split_count_all_tree_mod = NULL;
+        this->split_count_all_con = NULL;
+        this->split_count_all_mod = NULL;
+        this->mtry_weight_current_tree_con = NULL;
+        this->mtry_weight_current_tree_mod = NULL;
         return;
     }
 
     void update_split_counts(size_t tree_ind)
     {
-        mtry_weight_current_tree = mtry_weight_current_tree + split_count_current_tree;
-        split_count_all_tree[tree_ind] = split_count_current_tree;
+        (*mtry_weight_current_tree) = (*mtry_weight_current_tree) + (*split_count_current_tree);
+        (*split_count_all_tree)[tree_ind] = (*split_count_current_tree);
         return;
     }
 };
@@ -198,12 +200,14 @@ class NormalLinearState : public State
 public:
     NormalLinearState(matrix<double> *Z_std, const double *Xpointer_con, const double *Xpointer_mod, matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, size_t N, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t p_categorical_con, size_t p_categorical_mod, size_t p_continuous_con, size_t p_continuous_mod, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry_con, size_t mtry_mod, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel) : State(Xpointer_con, Xorder_std_con, N, p_con, num_trees_con, p_categorical_con, p_continuous_con, set_random_seed, random_seed, n_min, n_cutpoints, mtry_con, Xpointer_con, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
     {
-        ini_xinfo(this->split_count_all_tree_con, p_con, num_trees_con);
-        ini_xinfo(this->split_count_all_tree_mod, p_mod, num_trees_mod);
-        this->split_count_all_con = std::vector<double>(p_con, 0);
-        this->mtry_weight_current_tree_con = std::vector<double>(p_con, 0);
-        this->split_count_all_mod = std::vector<double>(p_mod, 0);
-        this->mtry_weight_current_tree_mod = std::vector<double>(p_mod, 0);
+        this->split_count_all_tree_con = new matrix<double>();
+        this->split_count_all_tree_mod = new matrix<double>();
+        ini_xinfo((*this->split_count_all_tree_con), p_con, num_trees_con);
+        ini_xinfo((*this->split_count_all_tree_mod), p_mod, num_trees_mod);
+        this->split_count_all_con = new std::vector<double>(p_con, 0);
+        this->mtry_weight_current_tree_con = new std::vector<double>(p_con, 0);
+        this->split_count_all_mod = new std::vector<double>(p_mod, 0);
+        this->mtry_weight_current_tree_mod = new std::vector<double>(p_mod, 0);
         this->Z_std = Z_std;
         this->sigma = sigma;
         this->sigma2 = pow(sigma, 2);
