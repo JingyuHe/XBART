@@ -10,7 +10,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////
 
-void XBCFContinuousModel::incSuffStat(State&state, size_t index_next_obs, std::vector<double> &suffstats)
+void XBCFContinuousModel::incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats)
 {
     if (state.treatment_flag)
     {
@@ -32,7 +32,7 @@ void XBCFContinuousModel::incSuffStat(State&state, size_t index_next_obs, std::v
     return;
 }
 
-void XBCFContinuousModel::samplePars(State&state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
+void XBCFContinuousModel::samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
 {
     std::normal_distribution<double> normal_samp(0.0, 1.0);
 
@@ -54,7 +54,7 @@ void XBCFContinuousModel::samplePars(State&state, std::vector<double> &suff_stat
     return;
 }
 
-void XBCFContinuousModel::update_state(State&state, size_t tree_ind, X_struct &x_struct)
+void XBCFContinuousModel::update_state(State &state, size_t tree_ind, X_struct &x_struct)
 {
     // Draw Sigma
     std::vector<double> full_residual(state.n_y);
@@ -70,7 +70,7 @@ void XBCFContinuousModel::update_state(State&state, size_t tree_ind, X_struct &x
     return;
 }
 
-void XBCFContinuousModel::update_tau(State&state, size_t tree_ind, size_t sweeps, vector<vector<tree>> &trees)
+void XBCFContinuousModel::update_tau(State &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> &trees)
 {
     std::vector<tree *> leaf_nodes;
     trees[sweeps][tree_ind].getbots(leaf_nodes);
@@ -100,7 +100,7 @@ void XBCFContinuousModel::update_tau(State&state, size_t tree_ind, size_t sweeps
     return;
 };
 
-void XBCFContinuousModel::update_tau_per_forest(State&state, size_t sweeps, vector<vector<tree>> &trees)
+void XBCFContinuousModel::update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> &trees)
 {
     std::vector<tree *> leaf_nodes;
     for (size_t tree_ind = 0; tree_ind < state.num_trees; tree_ind++)
@@ -131,7 +131,7 @@ void XBCFContinuousModel::update_tau_per_forest(State&state, size_t sweeps, vect
     return;
 }
 
-void XBCFContinuousModel::initialize_root_suffstat(State&state, std::vector<double> &suff_stat)
+void XBCFContinuousModel::initialize_root_suffstat(State &state, std::vector<double> &suff_stat)
 {
     std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
     for (size_t i = 0; i < state.n_y; i++)
@@ -141,7 +141,7 @@ void XBCFContinuousModel::initialize_root_suffstat(State&state, std::vector<doub
     return;
 }
 
-void XBCFContinuousModel::updateNodeSuffStat(State&state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
+void XBCFContinuousModel::updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
     if (state.treatment_flag)
     {
@@ -194,7 +194,7 @@ void XBCFContinuousModel::calculateOtherSideSuffStat(std::vector<double> &parent
 //     return;
 // }
 
-double XBCFContinuousModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State&state) const
+double XBCFContinuousModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State &state) const
 {
     // likelihood equation,
 
@@ -242,7 +242,7 @@ double XBCFContinuousModel::likelihood(std::vector<double> &temp_suff_stat, std:
     return 0.5 * log(1.0 / (1.0 + tau_use * s0 / sigma2)) + 0.5 * pow(s1 / sigma2, 2) / (s0 / sigma2 + 1.0 / tau_use);
 }
 
-void XBCFContinuousModel::ini_residual_std(State&state)
+void XBCFContinuousModel::ini_residual_std(State &state)
 {
     // initialize the vector of full residuals
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
@@ -287,7 +287,7 @@ void XBCFContinuousModel::predict_std(matrix<double> &Ztestpointer, const double
     return;
 }
 
-void XBCFContinuousModel::ini_tau_mu_fit(State&state)
+void XBCFContinuousModel::ini_tau_mu_fit(State &state)
 {
     double value = state.ini_var_yhat;
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
@@ -298,7 +298,7 @@ void XBCFContinuousModel::ini_tau_mu_fit(State&state)
     return;
 }
 
-void XBCFContinuousModel::set_treatmentflag(State&state, bool value)
+void XBCFContinuousModel::set_treatmentflag(State &state, bool value)
 {
     state.treatment_flag = value;
     if (value)
@@ -327,7 +327,7 @@ void XBCFContinuousModel::set_treatmentflag(State&state, bool value)
     return;
 }
 
-void XBCFContinuousModel::subtract_old_tree_fit(size_t tree_ind, State&state, X_struct &x_struct)
+void XBCFContinuousModel::subtract_old_tree_fit(size_t tree_ind, State &state, X_struct &x_struct)
 {
     if (state.treatment_flag)
     {
@@ -346,7 +346,7 @@ void XBCFContinuousModel::subtract_old_tree_fit(size_t tree_ind, State&state, X_
     return;
 }
 
-void XBCFContinuousModel::add_new_tree_fit(size_t tree_ind, State&state, X_struct &x_struct)
+void XBCFContinuousModel::add_new_tree_fit(size_t tree_ind, State &state, X_struct &x_struct)
 {
 
     if (state.treatment_flag)
@@ -366,7 +366,7 @@ void XBCFContinuousModel::add_new_tree_fit(size_t tree_ind, State&state, X_struc
     return;
 }
 
-void XBCFContinuousModel::update_partial_residuals(size_t tree_ind, State&state, X_struct &x_struct)
+void XBCFContinuousModel::update_partial_residuals(size_t tree_ind, State &state, X_struct &x_struct)
 {
     if (state.treatment_flag)
     {
@@ -389,7 +389,7 @@ void XBCFContinuousModel::update_partial_residuals(size_t tree_ind, State&state,
     return;
 }
 
-void XBCFContinuousModel::update_split_counts(State&state, size_t tree_ind)
+void XBCFContinuousModel::update_split_counts(State &state, size_t tree_ind)
 {
     if (state.treatment_flag)
     {

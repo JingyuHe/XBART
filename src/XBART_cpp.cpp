@@ -74,7 +74,7 @@ Rcpp::List XBART_cpp(mat y, mat X, size_t num_trees, size_t num_sweeps, size_t m
 
     // define model
     NormalModel *model = new NormalModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
-    
+
     model->setNoSplitPenality(no_split_penality);
 
     // State settings

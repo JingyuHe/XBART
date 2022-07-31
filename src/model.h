@@ -25,18 +25,6 @@ public:
 
     size_t class_operating;
 
-    /////////////////////////////////////
-    //
-    //  suff_stat_model and suff_stat_total
-    //  are useless for NormalModel now
-    //  They are still here because CLT class depends on them
-    //  Delelte them later
-    //
-    /////////////////////////////////////
-    std::vector<double> suff_stat_model;
-
-    std::vector<double> suff_stat_total;
-
     double no_split_penality;
 
     // tree prior
@@ -51,25 +39,25 @@ public:
     };
 
     // Abstract functions
-    virtual void incSuffStat(State&state, size_t index_next_obs, std::vector<double> &suffstats) { return; };
+    virtual void incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats) { return; };
 
-    virtual void samplePars(State&state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf) { return; };
+    virtual void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf) { return; };
 
-    virtual void update_state(State&state, size_t tree_ind, X_struct &x_struct) { return; };
+    virtual void update_state(State &state, size_t tree_ind, X_struct &x_struct) { return; };
 
-    virtual void initialize_root_suffstat(State&state, std::vector<double> &suff_stat) { return; };
+    virtual void initialize_root_suffstat(State &state, std::vector<double> &suff_stat) { return; };
 
-    virtual void updateNodeSuffStat(State&state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind) { return; };
+    virtual void updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind) { return; };
 
     virtual void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side) { return; };
 
     virtual void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, X_struct &x_struct) const { return; };
 
-    virtual double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State&state) const { return 0.0; };
+    virtual double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State &state) const { return 0.0; };
 
     // virtual double likelihood_no_split(std::vector<double> &suff_stat, State&state) const { return 0.0; };
 
-    virtual void ini_residual_std(State&state) { return; };
+    virtual void ini_residual_std(State &state) { return; };
 
     // virtual double predictFromTheta(const std::vector<double> &theta_vector) const { return 0.0; };
 
@@ -156,29 +144,29 @@ public:
 
     Model *clone() { return new NormalModel(*this); }
 
-    void incSuffStat(State&state, size_t index_next_obs, std::vector<double> &suffstats);
+    void incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats);
 
-    void samplePars(State&state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
+    void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
-    void update_state(State&state, size_t tree_ind, X_struct &x_struct);
+    void update_state(State &state, size_t tree_ind, X_struct &x_struct);
 
-    void update_tau(State&state, size_t tree_ind, size_t sweeps, vector<vector<tree>> &trees);
+    void update_tau(State &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> &trees);
 
-    void update_tau_per_forest(State&state, size_t sweeps, vector<vector<tree>> &trees);
+    void update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> &trees);
 
-    void initialize_root_suffstat(State&state, std::vector<double> &suff_stat);
+    void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
 
-    void updateNodeSuffStat(State&state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
+    void updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
 
     void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side);
 
     void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, X_struct &x_struct) const;
 
-    double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State&state) const;
+    double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State &state) const;
 
     // double likelihood_no_split(std::vector<double> &suff_stat, State&state) const;
 
-    void ini_residual_std(State&state);
+    void ini_residual_std(State &state);
 
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
 
@@ -245,23 +233,23 @@ public:
 
     Model *clone() { return new LogitModel(*this); }
 
-    void incSuffStat(State&state, size_t index_next_obs, std::vector<double> &suffstats);
+    void incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats);
 
-    void samplePars(State&state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
+    void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
-    void update_state(State&state, size_t tree_ind, X_struct &x_struct);
+    void update_state(State &state, size_t tree_ind, X_struct &x_struct);
 
-    void initialize_root_suffstat(State&state, std::vector<double> &suff_stat);
+    void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
 
-    void updateNodeSuffStat(State&state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
+    void updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
 
     void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side);
 
     void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, X_struct &x_struct) const;
 
-    double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State&state) const;
+    double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State &state) const;
 
-    void ini_residual_std(State&state);
+    void ini_residual_std(State &state);
 
     using Model::predict_std;
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees, std::vector<double> &output_vec);
@@ -306,13 +294,13 @@ public:
 
     Model *clone() { return new LogitModelSeparateTrees(*this); }
 
-    void samplePars(State&state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
+    void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
-    void update_state(State&state, size_t tree_ind, X_struct &x_struct);
+    void update_state(State &state, size_t tree_ind, X_struct &x_struct);
 
     void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, X_struct &x_struct) const;
 
-    double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State&state) const;
+    double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State &state) const;
 
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<vector<tree>>> &trees, std::vector<double> &output_vec);
 
@@ -370,7 +358,6 @@ public:
         this->beta_mod = beta_mod;
         this->alpha = alpha_con;
         this->beta = beta_con;
-        this->beta = beta;
         this->dim_residual = 1;
         this->class_operating = 0;
         this->sampling_tau = sampling_tau;
@@ -380,41 +367,41 @@ public:
 
     Model *clone() { return new XBCFContinuousModel(*this); }
 
-    void incSuffStat(State&state, size_t index_next_obs, std::vector<double> &suffstats);
+    void incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats);
 
-    void samplePars(State&state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
+    void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
-    void update_state(State&state, size_t tree_ind, X_struct &x_struct);
+    void update_state(State &state, size_t tree_ind, X_struct &x_struct);
 
-    void update_tau(State&state, size_t tree_ind, size_t sweeps, vector<vector<tree>> &trees);
+    void update_tau(State &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> &trees);
 
-    void update_tau_per_forest(State&state, size_t sweeps, vector<vector<tree>> &trees);
+    void update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> &trees);
 
-    void initialize_root_suffstat(State&state, std::vector<double> &suff_stat);
+    void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
 
-    void updateNodeSuffStat(State&state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
+    void updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
 
     void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side);
 
     // void state_sweep(State&state, size_t tree_ind, size_t M, X_struct &x_struct) const;
 
-    double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State&state) const;
+    double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State &state) const;
 
-    void ini_tau_mu_fit(State&state);
+    void ini_tau_mu_fit(State &state);
 
-    void ini_residual_std(State&state);
+    void ini_residual_std(State &state);
 
     void predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer_con, const double *Xtestpointer_mod, size_t N_test, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod);
 
-    void set_treatmentflag(State&state, bool value);
+    void set_treatmentflag(State &state, bool value);
 
-    void subtract_old_tree_fit(size_t tree_ind, State&state, X_struct &x_struct);
+    void subtract_old_tree_fit(size_t tree_ind, State &state, X_struct &x_struct);
 
-    void add_new_tree_fit(size_t tree_ind, State&state, X_struct &x_struct);
+    void add_new_tree_fit(size_t tree_ind, State &state, X_struct &x_struct);
 
-    void update_partial_residuals(size_t tree_ind, State&state, X_struct &x_struct);
+    void update_partial_residuals(size_t tree_ind, State &state, X_struct &x_struct);
 
-    void update_split_counts(State&state, size_t tree_ind);
+    void update_split_counts(State &state, size_t tree_ind);
 };
 
 #endif

@@ -2,7 +2,6 @@
 // sample index, draw from multinomial distribution with given probabilities
 //////////////////////////////////////////////////////////////////////////////////////
 
-
 #include "sample_int_crank.h"
 
 void check_args(size_t n, size_t size, const std::vector<double> &prob)

@@ -77,7 +77,7 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::
     ini_matrix(Xorder_std_mod, N, p_mod);
 
     std::vector<double> y_std(N);
-    
+
     double y_mean = 0.0;
 
     for (size_t i = 0; i < N; i++)
@@ -133,7 +133,7 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::
     Rcpp::NumericMatrix sigma_draw(num_trees_con + num_trees_mod, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum_con(p_con, 0);                         // split counts
     Rcpp::NumericVector split_count_sum_mod(p_mod, 0);
-    
+
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(sigma_draw_xinfo, sigma_draw);
 
