@@ -321,6 +321,11 @@ void mcmc_loop_linear(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std
                 }
             }
         }
+        
+        if (model->sampling_tau)
+        {
+            model->update_tau_per_forest(state, sweeps, trees_con);
+        }
 
         // treatment forest
         model->set_treatmentflag(state, 1);

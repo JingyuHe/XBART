@@ -133,6 +133,7 @@ void XBCFContinuousModel::update_tau_per_forest(State &state, size_t sweeps, vec
 
 void XBCFContinuousModel::initialize_root_suffstat(State &state, std::vector<double> &suff_stat)
 {
+    suff_stat.resize(4);
     std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
     for (size_t i = 0; i < state.n_y; i++)
     {

@@ -19,6 +19,8 @@ y <- (sin(5 * x1) + x2) * z + cos(2 * x2 + x1)
 x <- cbind(x1, x2)
 x3 <- rnorm(n)
 
+tret = (sin(5 * x1) + x2)
+
 # different X matrix for prognostic and treatment trees
 x_con <- cbind(x, x3)
 x_mod <- x
@@ -32,8 +34,10 @@ print(time)
 # mu, tau and yhats
 # yhats = mu + z * tau
 pred <- predict(fit, X_con = as.matrix(x_con), X_mod = as.matrix(x_mod), Z = as.matrix(z))
-
+tau_hat = pred$tau
 pred <- rowMeans(pred$yhats)
+
+print(mean((tau_hat - tret)^2))
 
 inds1 <- z < 1.1 & z > 0.9
 inds2 <- z > -1.1 & z < -0.9
