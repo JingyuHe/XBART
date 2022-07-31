@@ -8,8 +8,7 @@
   A stochastic hill climbing algorithm for Bayesian additive regression trees model. 
 }
 \details{
-  This section should provide a more detailed overview of how to use the
-  package, including the most important functions.
+  This pacakge contains the XBART algorithm for both regression and classification tasks. Furthermore, it fits XBCF causal forest model with continuous treatment effects. It also implements the Gaussian extrapolation algorithm for prediction if the testing data is out of the range of the training.
 }
 \author{
 Jingyu He, Saar Yalov, P. Richard Hahn and Meijiang Wang
@@ -21,6 +20,6 @@ Maintainer: Jingyu He <jingyuhe@cityu.edu.hk>
 }
 \keyword{ package }
 \seealso{
-  XBART
+  XBART, XBART.mutlinomial, XBCF.continuous
 }
 
