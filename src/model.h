@@ -38,6 +38,8 @@ public:
         this->dim_suffstat = dim_suff;
     };
 
+    virtual ~Model() = default;
+
     // Abstract functions
     virtual void incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats) { return; };
 

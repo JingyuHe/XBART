@@ -1926,8 +1926,6 @@ void split_xorder_std_continuous_simplified(gp_struct &x_struct, matrix<size_t> 
     // without model, state, don't update suff stats
 
     size_t N_Xorder = Xorder_std[0].size();
-    size_t N_Xorder_left = Xorder_left_std[0].size();
-    size_t N_Xorder_right = Xorder_right_std[0].size();
 
     double cutvalue = *(x_struct.X_std + x_struct.n_y * split_var + Xorder_std[split_var][split_point]);
 
@@ -2274,7 +2272,6 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
     // output should have dimension (dim_theta, num_trees)
 
     tree::tree_p bn; // pointer to bottom node
-    double d;
 
     for (size_t i = 0; i < tree.size(); i++)
     {

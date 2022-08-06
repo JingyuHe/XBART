@@ -21,7 +21,7 @@ Rcpp::List XBART_cpp(mat y, mat X, size_t num_trees, size_t num_sweeps, size_t m
     {
         thread_pool.start(nthread);
     }
-
+    
     size_t N = X.n_rows;
 
     // number of total variables

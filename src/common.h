@@ -60,9 +60,7 @@ using std::endl;
 // #define assert Rcpp::Rassert
 
 // log(2*pi)
-#define LTPI 1.83787706640934536
-// pi
-#define PI 3.141592653
+#define LTPI log(2.0 * M_PI);
 
 // #include "rn.h" // Removed
 

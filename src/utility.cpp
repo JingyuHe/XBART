@@ -240,7 +240,7 @@ double normal_density(double y, double mean, double var, bool take_log)
     // density of normal distribution
     double output = 0.0;
 
-    output = -0.5 * log(2.0 * PI * var) - pow(y - mean, 2) / 2.0 / var;
+    output = -0.5 * log(2.0 * M_PI * var) - pow(y - mean, 2) / 2.0 / var;
     if (!take_log)
     {
         output = exp(output);
