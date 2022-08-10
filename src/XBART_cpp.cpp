@@ -83,7 +83,7 @@ Rcpp::List XBART_cpp(mat y, mat X, size_t num_trees, size_t num_sweeps, size_t m
 
     // initialize X_struct
     X_struct x_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees);
-
+    
     ////////////////////////////////////////////////////////////////
     std::vector<double> resid(N * num_sweeps * num_trees);
 

@@ -1586,7 +1586,6 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
     // loglike_start is an index to offset
     // consider loglikelihood start from loglike_start
-
     for (size_t var_i = 0; var_i < subset_vars.size(); var_i++)
     {
 
@@ -1594,6 +1593,7 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
         if ((i >= state.p_continuous) && (X_num_unique[i - state.p_continuous] > 1))
         {
+            // if this is a categorical variable, and it still has cutpoints
             std::vector<double> temp_suff_stat(model->dim_suffstat);
             std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
             size_t start, end, end2, n1, temp;
@@ -1624,6 +1624,9 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                     n1 = n1 + X_counts[j];
 
                     loglike[loglike_start + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, false, false, state);
+
+                    // adjust for the difference of number of cutpoints between continuous variable and categorical variables
+                    loglike[loglike_start + j] += log(state.n_cutpoints) - log(x_struct.X_num_cutpoints[i - state.p_continuous]);
                 }
             }
         }
@@ -1640,6 +1643,7 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
             loglike_size += 1;
         }
     }
+
     if (loglike_size > 0)
     {
         loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike_size) + log(model->getNoSplitPenality());

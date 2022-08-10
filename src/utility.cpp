@@ -171,21 +171,26 @@ double sq_vec_diff_sizet(std::vector<size_t> &v1, std::vector<size_t> &v2)
     return output;
 }
 
-void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, // std::vector<size_t> &X_values,
-                         std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique, size_t &p_categorical, size_t &p_continuous)
+void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique, std::vector<size_t> &X_num_cutpoints, size_t &p_categorical, size_t &p_continuous)
 {
+    // count categorical variables, how many cutpoints
     size_t N = Xorder_std[0].size();
     size_t p = Xorder_std.size();
     double current_value = 0.0;
     size_t count_unique = 0;
-    // size_t N_unique;
     variable_ind[0] = 0;
-
     total_points = 0;
+
+    X_counts.resize(0);
+    X_values.resize(0);
+    X_num_unique.resize(p_categorical);
+    X_num_cutpoints.resize(p_categorical);
+
     for (size_t i = p_continuous; i < p; i++)
     {
         // only loop over categorical variables
-        // suppose p = (p_continuous, p_categorical)
+        // suppose X = (X_continuous, X_categorical)
+        // p = p_continuous + p_categorical
         // index starts from p_continuous
         X_counts.push_back(1);
         current_value = *(Xpointer + i * N + Xorder_std[i][0]);
@@ -194,12 +199,15 @@ void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, // 
 
         for (size_t j = 1; j < N; j++)
         {
+            // loop over all data
             if (*(Xpointer + i * N + Xorder_std[i][j]) == current_value)
             {
+                // still the same X value
                 X_counts[total_points]++;
             }
             else
             {
+                // find one more unique value, move forward
                 current_value = *(Xpointer + i * N + Xorder_std[i][j]);
                 X_values.push_back(current_value);
                 X_counts.push_back(1);
@@ -208,7 +216,11 @@ void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, // 
             }
         }
         variable_ind[i + 1 - p_continuous] = count_unique + variable_ind[i - p_continuous];
+
+        // number of unique values for each categorical X
         X_num_unique[i - p_continuous] = count_unique;
+        // number of possible cutpoints is 1 less than total number of unique values
+        X_num_cutpoints[i - p_continuous] = count_unique - 1;
         total_points++;
     }
     return;

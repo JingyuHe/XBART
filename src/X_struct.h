@@ -6,7 +6,7 @@
 struct X_struct
 {
 public:
-    // Vector pointers
+    // Vector pointers, it s a N by num_trees matrix of pointers, each points to corresponding leaf parameter vector
     matrix<std::vector<double> *> data_pointers;
     // copy of data_pointers object, for MH update
     matrix<std::vector<double> *> data_pointers_copy;
@@ -16,6 +16,7 @@ public:
     std::vector<size_t> X_counts;
     std::vector<size_t> variable_ind;
     std::vector<size_t> X_num_unique;
+    std::vector<size_t> X_num_cutpoints;
     const double *X_std;              // pointer to original data
     const std::vector<double> *y_std; // pointer to y data
     size_t n_y;                       // number of total data points in root node
@@ -30,7 +31,7 @@ public:
 
         init_tree_pointers_multinomial(initial_theta, N, num_trees);
 
-        unique_value_count2(X_std, Xorder_std, X_values, X_counts, variable_ind, N, X_num_unique, p_categorical, p_continuous);
+        unique_value_count2(X_std, Xorder_std, X_values, X_counts, variable_ind, N, X_num_unique, X_num_cutpoints, p_categorical, p_continuous);
 
         this->X_std = X_std;
         this->y_std = y_std;

@@ -139,7 +139,7 @@ double sq_vec_diff(std::vector<double> &v1, std::vector<double> &v2);
 
 double sq_vec_diff_sizet(std::vector<size_t> &v1, std::vector<size_t> &v2);
 
-void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique, size_t &p_categorical, size_t &p_continuous);
+void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique, std::vector<size_t> &X_num_cutpoints, size_t &p_categorical, size_t &p_continuous);
 
 void get_X_range(const double *Xpointer, std::vector<std::vector<size_t>> &Xorder_std, std::vector<std::vector<double>> &X_range, size_t &n_y);
 
