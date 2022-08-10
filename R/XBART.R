@@ -1,5 +1,5 @@
 #' XBART main function of XBART regression.
-#' 
+#'
 #' @param y A vector of outcome variable of length n, expected to be continuous.
 #' @param X A matrix of input for the tree of size n by p. Column order matters: continuous features should all go before categorical. The number of categorical variables is p_categorical_con.
 #' @param num_trees Integer, number of trees in the prognostic forest.
@@ -24,7 +24,7 @@
 #' @param nthread Integer, number of threads to use if run in parallel.
 #' @param random_seed Integer, random seed for replication.
 #' @param sample_weights Bool, if TRUE, the weight to sample \eqn{X} variables at each tree will be sampled.
-#' 
+#'
 #' @return A list contains fitted trees as well as parameter draws at each sweep.
 #' @export
 
@@ -62,8 +62,8 @@ XBART <- function(y, X, num_trees, num_sweeps, max_depth = 250, Nmin = 1, num_cu
     }
 
     if (is.null(tau)) {
-        tau <- 1 / num_trees
-        cat("tau = 1/num_trees, default value. \n")
+        tau <- var(y) / num_trees
+        cat("tau = var(y)/num_trees, default value. \n")
     }
 
     if (is.null(mtry)) {

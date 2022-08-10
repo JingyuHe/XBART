@@ -71,7 +71,9 @@ XBCF.continuous(
 
 \item{beta_mod}{Scalar, BART prior parameter for treatment forest. The default value is 1.25.}
 
-\item{tau_con}{Scalar, prior parameter for treatment forest. The default value is 1 / num_trees_mod.}
+\item{tau_con}{Scalar, prior parameter for prognostic forest. The default value is 0.6 * var(y) / num_trees_con.}
+
+\item{tau_mod}{Scalar, prior parameter for treatment forest. The default value is 0.1 * var(y) / num_trees_mod.}
 
 \item{no_split_penality}{Weight of no-split option. The default value is log(num_cutpoints), or you can take any other number in log scale.}
 
@@ -113,5 +115,5 @@ XBCF.continuous(
 A list contains fitted trees as well as parameter draws at each sweep.
 }
 \description{
-XBCF causal forest for continuous treatment variable.
+This function fits XBCF causal forest model with continuous treatment variable. In sepecific, the model is \eqn{y = \tau(X_{con}) + \mu(X_{mod}) \times z + \epsilon, \quad \epsilon\sim N(0, \sigma^2)}. Where the \eqn{\tau(X_{con})} and \eqn{\mu(X_{mod})} are two XBART forest called prognostic and treatment forest respectively.
 }

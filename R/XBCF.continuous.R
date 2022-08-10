@@ -1,5 +1,5 @@
 #' XBCF causal forest for continuous treatment variable.
-#' @description This function fits XBCF causal forest model with continuous treatment variable. In sepecific, the model is \eqn{y = \tau(X_{con}) + \mu(X_{mod}) \times z + \epsilon, \quad \epsilon\sim N(0, \sigma^2)}. Where the \eqn{\tau(X_{con})} and \eqn{\mu(X_{mod})} are two XBART forest called prognostic and treatment forest respectively. 
+#' @description This function fits XBCF causal forest model with continuous treatment variable. In sepecific, the model is \eqn{y = \tau(X_{con}) + \mu(X_{mod}) \times z + \epsilon, \quad \epsilon\sim N(0, \sigma^2)}. Where the \eqn{\tau(X_{con})} and \eqn{\mu(X_{mod})} are two XBART forest called prognostic and treatment forest respectively.
 #' @param y A vector of outcome variable of length n, expected to be continuous.
 #' @param Z A vector of treatment variable of length n, expected to be continuous.
 #' @param X_con A matrix of input for the prognostic forest of size n by p_con. Column order matters: continuous features should all go before categorical. The number of categorical variables is p_categorical_con.
@@ -14,8 +14,8 @@
 #' @param beta_con Scalar, BART prior parameter for prognostic forest. The default value is 1.25.
 #' @param alpha_mod Scalar, BART prior parameter for treatment forest. The default value is 0.95.
 #' @param beta_mod Scalar, BART prior parameter for treatment forest. The default value is 1.25.
-#' @param tau_con Scalar, prior parameter for prognostic forest. The default value is 1 / num_trees_con.
-#' @param tau_con Scalar, prior parameter for treatment forest. The default value is 1 / num_trees_mod.
+#' @param tau_con Scalar, prior parameter for prognostic forest. The default value is 0.6 * var(y) / num_trees_con.
+#' @param tau_mod Scalar, prior parameter for treatment forest. The default value is 0.1 * var(y) / num_trees_mod.
 #' @param no_split_penality Weight of no-split option. The default value is log(num_cutpoints), or you can take any other number in log scale.
 #' @param burnin Integer, number of burnin sweeps.
 #' @param mtry_con Integer, number of X variables to sample at each split of the prognostic forest.
@@ -34,7 +34,7 @@
 #' @param nthread Integer, number of threads to use if run in parallel.
 #' @param random_seed Integer, random seed for replication.
 #' @param sample_weights Bool, if TRUE, the weight to sample \eqn{X} variables at each tree will be sampled.
-#' 
+#'
 #' @return A list contains fitted trees as well as parameter draws at each sweep.
 #' @export
 
@@ -80,13 +80,13 @@ XBCF.continuous <- function(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, nu
     }
 
     if (is.null(tau_con)) {
-        tau_con <- 1 / num_trees_con
-        cat("tau_con = 1/num_trees_con, default value. \n")
+        tau_con <- 0.6 * var(y) / num_trees_con
+        cat("tau_con = 0.6*var(y)/num_trees_con, default value. \n")
     }
 
     if (is.null(tau_mod)) {
-        tau_mod <- 1 / num_trees_mod
-        cat("tau_mod = 1/num_trees_mod, default value. \n")
+        tau_mod <- 0.1 * var(y) / num_trees_mod
+        cat("tau_mod = 0.1*var(y)/num_trees_mod, default value. \n")
     }
 
     if (is.null(mtry_con)) {
