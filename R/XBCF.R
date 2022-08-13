@@ -33,7 +33,7 @@
 #' @param verbose Bool flag for printing fitting process on the screen or not.
 #' @param parallel Bool flag for fitting in parallel or not.
 #' @param random_seed Seed for random number generator.
-#' @param sample_weights_flag Bool flag for sampling variable importance or not.
+#' @param sample_weights Bool flag for sampling variable importance or not.
 #' @param a_scaling Bool, if True, update a. 
 #' @param b_scaling Bool, if True, update b0 and b1.
 #' 
@@ -56,7 +56,7 @@ XBCF <- function(y, z, x_con, x_mod = x_con, pihat = NULL,
                 kap_mod = 16, s_mod = 4,
                 trt_scale = FALSE,
                 verbose = FALSE, parallel = TRUE,
-                random_seed = NULL, sample_weights_flag = TRUE,
+                random_seed = NULL, sample_weights = TRUE,
                 a_scaling = TRUE, b_scaling = TRUE) {
 
     #index = order(z, decreasing=TRUE)
@@ -209,7 +209,7 @@ XBCF <- function(y, z, x_con, x_mod = x_con, pihat = NULL,
                          kap_mod, s_mod,
                          trt_scale,
                          verbose, parallel, set_random_seed,
-                         random_seed, sample_weights_flag,
+                         random_seed, sample_weights,
                          a_scaling, b_scaling)
     class(obj) = "XBCF"
 

@@ -11,33 +11,33 @@
 
 // adds residual to suff stats for normalmodel (updates the suff stats by adding new values to the old ones)
 // called from calcSuffStat_categorical, calcSuffStat_continuous in tree.cpp
-void xbcfModel::incSuffStat(std::unique_ptr<State> &state, size_t index_next_obs, std::vector<double> &suffstats)
+void xbcfModel::incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats)
 {
-  if (state->fl == 0)
+  if (state.fl == 0)
   {
-    if (state->z[index_next_obs] == 1)
+    if (state.z[index_next_obs] == 1)
     {
-      // old: suffstats[1] += state->residual_std[0][index_next_obs];
-      suffstats[1] += ((*state->y_std)[index_next_obs] - state->a * state->mu_fit[index_next_obs] - state->b_vec[1] * state->tau_fit[index_next_obs]) / state->a;
+      // old: suffstats[1] += state.residual_std[0][index_next_obs];
+      suffstats[1] += ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[1] * (*state.tau_fit)[index_next_obs]) / state.a;
       suffstats[3] += 1;
     }
     else
     {
-      suffstats[0] += ((*state->y_std)[index_next_obs] - state->a * state->mu_fit[index_next_obs] - state->b_vec[0] * state->tau_fit[index_next_obs]) / state->a;
+      suffstats[0] += ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[0] * (*state.tau_fit)[index_next_obs]) / state.a;
       suffstats[2] += 1;
     }
   }
   else
   {
-    if (state->z[index_next_obs] == 1)
+    if (state.z[index_next_obs] == 1)
     {
-      // old: suffstats[1] += state->residual_std[0][index_next_obs];
-      suffstats[1] += ((*state->y_std)[index_next_obs] - state->a * state->mu_fit[index_next_obs] - state->b_vec[1] * state->tau_fit[index_next_obs]) / state->b_vec[1];
+      // old: suffstats[1] += state.residual_std[0][index_next_obs];
+      suffstats[1] += ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[1] * (*state.tau_fit)[index_next_obs]) / state.b_vec[1];
       suffstats[3] += 1;
     }
     else
     {
-      suffstats[0] += ((*state->y_std)[index_next_obs] - state->a * state->mu_fit[index_next_obs] - state->b_vec[0] * state->tau_fit[index_next_obs]) / state->b_vec[0];
+      suffstats[0] += ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[0] * (*state.tau_fit)[index_next_obs]) / state.b_vec[0];
       suffstats[2] += 1;
     }
   }
@@ -47,21 +47,21 @@ void xbcfModel::incSuffStat(std::unique_ptr<State> &state, size_t index_next_obs
 
 // samples leaf parameter
 // called from GFR in tree.cpp
-void xbcfModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
+void xbcfModel::samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
 {
   std::normal_distribution<double> normal_samp(0.0, 1.0);
   double s0 = 0;
   double s1 = 0;
 
-  if (state->fl == 0)
+  if (state.fl == 0)
   {
-    s0 = state->sigma_vec[0] / fabs(state->a);
-    s1 = state->sigma_vec[1] / fabs(state->a);
+    s0 = state.sigma_vec[0] / fabs(state.a);
+    s1 = state.sigma_vec[1] / fabs(state.a);
   }
   else
   {
-    s0 = state->sigma_vec[0] / fabs(state->b_vec[0]);
-    s1 = state->sigma_vec[1] / fabs(state->b_vec[1]);
+    s0 = state.sigma_vec[0] / fabs(state.b_vec[0]);
+    s1 = state.sigma_vec[1] / fabs(state.b_vec[1]);
   }
   // step 1 (control group)
   double denominator0 = 1.0 / tau + suff_stat[2] / pow(s0, 2);
@@ -74,7 +74,7 @@ void xbcfModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &s
   double v1 = 1.0 / denominator1;
 
   // sample leaf parameter
-  theta_vector[0] = m1 + sqrt(v1) * normal_samp(state->gen);
+  theta_vector[0] = m1 + sqrt(v1) * normal_samp(state.gen);
 
   // also update probability of leaf parameters
   prob_leaf = 1.0;
@@ -83,34 +83,37 @@ void xbcfModel::samplePars(std::unique_ptr<State> &state, std::vector<double> &s
 
 // updates sigmas (new)
 // called from mcmc_loop_xbcf in xbcf_mcmc_loop.cpp
-void xbcfModel::draw_sigma(std::unique_ptr<State> &state, size_t ind)
+void xbcfModel::draw_sigma(State &state, size_t ind)
 {
   // computing both sigmas here due to structural complexity of splitting them
-  std::gamma_distribution<double> gamma_samp1((state->n_trt + kap) / 2.0, 2.0 / (sum_squared(state->full_residual_trt) + s));
-  std::gamma_distribution<double> gamma_samp0((state->n_y - state->n_trt + kap) / 2.0, 2.0 / (sum_squared(state->full_residual_ctrl) + s));
+  std::gamma_distribution<double> gamma_samp1((state.n_trt + kap) / 2.0, 2.0 / (sum_squared(state.full_residual_trt) + s));
+  std::gamma_distribution<double> gamma_samp0((state.n_y - state.n_trt + kap) / 2.0, 2.0 / (sum_squared(state.full_residual_ctrl) + s));
 
   // then we choose only one of them based on the group we are updating for
   double sigma;
-  if(ind == 0) {
-    sigma = 1.0 / sqrt(gamma_samp0(state->gen));
-  } else {
-    sigma = 1.0 / sqrt(gamma_samp1(state->gen));
+  if (ind == 0)
+  {
+    sigma = 1.0 / sqrt(gamma_samp0(state.gen));
+  }
+  else
+  {
+    sigma = 1.0 / sqrt(gamma_samp1(state.gen));
   }
 
   // update the corresponding value in the state object
-  state->update_sigma(sigma, ind);
+  state.update_sigma(sigma, ind);
   return;
 }
 
 // initializes root suffstats
 // called from mcmc_loop_xbcf in xbcf_mcmc_loop.cpp
-void xbcfModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vector<double> &suff_stat)
+void xbcfModel::initialize_root_suffstat(State &state, std::vector<double> &suff_stat)
 {
   suff_stat.resize(4);
 
   std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
 
-  for (size_t i = 0; i < state->n_y; i++)
+  for (size_t i = 0; i < state.n_y; i++)
   {
     incSuffStat(state, i, suff_stat);
   }
@@ -121,7 +124,7 @@ void xbcfModel::initialize_root_suffstat(std::unique_ptr<State> &state, std::vec
 // updates node suffstats for the split
 // called from split_xorder_std_continuous, split_xorder_std_categorical in tree.cpp
 // it is executed after suffstats for the node has been initialized by suff_stats_ini [defined in tree.h]
-void xbcfModel::updateNodeSuffStat(std::vector<double> &suff_stat, std::unique_ptr<State> &state, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
+void xbcfModel::updateNodeSuffStat(std::vector<double> &suff_stat, State &state, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
 
   incSuffStat(state, Xorder_std[split_var][row_ind], suff_stat);
@@ -150,18 +153,18 @@ void xbcfModel::calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat
 
 // updates partial residual for the next tree to fit
 // called from mcmc_loop_xbcf in xbcf_mcmc_loop.cpp
-void xbcfModel::state_sweep(size_t tree_ind, std::vector<double> &fit, std::unique_ptr<X_struct> &x_struct) const
+void xbcfModel::state_sweep(size_t tree_ind, std::vector<double> &fit, X_struct &x_struct) const
 {
   for (size_t i = 0; i < fit.size(); i++)
   {
-    fit[i] += (*(x_struct->data_pointers[tree_ind][i]))[0];
+    fit[i] += (*(x_struct.data_pointers[tree_ind][i]))[0];
   }
   return;
 }
 
 // computes likelihood of a split
 // called from GFR, calculate_loglikelihood_continuous, calculate_loglikelihood_categorical, calculate_loglikelihood_nosplit in tree.cpp
-double xbcfModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, std::unique_ptr<State> &state) const
+double xbcfModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State &state) const
 {
   // helper variables
   double s0 = 0;
@@ -169,15 +172,15 @@ double xbcfModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<do
   double denominator;   // the denominator (1 + tau * precision_squared) is the same for both terms
   double s_psi_squared; // (residual * precision_squared)^2
 
-  if (state->fl == 0)
+  if (state.fl == 0)
   {
-    s0 = state->sigma_vec[0] / fabs(state->a);
-    s1 = state->sigma_vec[1] / fabs(state->a);
+    s0 = state.sigma_vec[0] / fabs(state.a);
+    s1 = state.sigma_vec[1] / fabs(state.a);
   }
   else
   {
-    s0 = state->sigma_vec[0] / fabs(state->b_vec[0]);
-    s1 = state->sigma_vec[1] / fabs(state->b_vec[1]);
+    s0 = state.sigma_vec[0] / fabs(state.b_vec[0]);
+    s1 = state.sigma_vec[1] / fabs(state.b_vec[1]);
   }
 
   if (no_split)
@@ -228,7 +231,7 @@ void xbcfModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p,
 
 // updates parameter a
 // called from mcmc_loop_xbcf in xbcf_mcmc_loop.cpp
-void xbcfModel::update_a_value(std::unique_ptr<State> &state)
+void xbcfModel::update_a_value(State &state)
 {
   std::normal_distribution<double> normal_samp(0.0, 1.0);
 
@@ -238,48 +241,48 @@ void xbcfModel::update_a_value(std::unique_ptr<State> &state)
   double muressum_trt = 0;
 
   // compute the residual y-b*tau(x) using state's objects y_std, tau_fit and b_vec
-  for (size_t i = 0; i < state->n_y; i++)
+  for (size_t i = 0; i < state.n_y; i++)
   {
-    if (state->z[i] == 1)
+    if (state.z[i] == 1)
     {
-      state->residual[i] = (*state->y_std)[i] - state->tau_fit[i] * state->b_vec[1];
+      state.residual[i] = (*state.y_std)[i] - (*state.tau_fit)[i] * state.b_vec[1];
     }
     else
     {
-      state->residual[i] = (*state->y_std)[i] - state->tau_fit[i] * state->b_vec[0];
+      state.residual[i] = (*state.y_std)[i] - (*state.tau_fit)[i] * state.b_vec[0];
     }
   }
 
-  for (size_t i = 0; i < state->n_y; i++)
+  for (size_t i = 0; i < state.n_y; i++)
   {
-    if (state->z[i] == 1)
+    if (state.z[i] == 1)
     {
-      mu2sum_trt += state->mu_fit[i] * state->mu_fit[i];
-      muressum_trt += state->mu_fit[i] * state->residual[i];
+      mu2sum_trt += (*state.mu_fit)[i] * (*state.mu_fit)[i];
+      muressum_trt += (*state.mu_fit)[i] * state.residual[i];
     }
     else
     {
-      mu2sum_ctrl += state->mu_fit[i] * state->mu_fit[i];
-      muressum_ctrl += state->mu_fit[i] * state->residual[i];
+      mu2sum_ctrl += (*state.mu_fit)[i] * (*state.mu_fit)[i];
+      muressum_ctrl += (*state.mu_fit)[i] * state.residual[i];
     }
   }
 
   // update parameters
-  double v0 = 1 / (1.0 + mu2sum_ctrl / pow(state->sigma_vec[0], 2));
-  double m0 = v0 * (muressum_ctrl) / pow(state->sigma_vec[0], 2);
+  double v0 = 1 / (1.0 + mu2sum_ctrl / pow(state.sigma_vec[0], 2));
+  double m0 = v0 * (muressum_ctrl) / pow(state.sigma_vec[0], 2);
 
-  double v1 = 1 / (1.0 / v0 + mu2sum_trt / pow(state->sigma_vec[1], 2));
-  double m1 = v1 * (m0 / v0 + (muressum_trt) / pow(state->sigma_vec[1], 2));
+  double v1 = 1 / (1.0 / v0 + mu2sum_trt / pow(state.sigma_vec[1], 2));
+  double m1 = v1 * (m0 / v0 + (muressum_trt) / pow(state.sigma_vec[1], 2));
 
   // sample a
-  state->a = m1 + sqrt(v1) * normal_samp(state->gen);
+  state.a = m1 + sqrt(v1) * normal_samp(state.gen);
 
   return;
 }
 
 // updates parameters b0, b1
 // called from mcmc_loop_xbcf in xbcf_mcmc_loop.cpp
-void xbcfModel::update_b_values(std::unique_ptr<State> &state)
+void xbcfModel::update_b_values(State &state)
 {
   std::normal_distribution<double> normal_samp(0.0, 1.0);
 
@@ -289,71 +292,72 @@ void xbcfModel::update_b_values(std::unique_ptr<State> &state)
   double tauressum_trt = 0;
 
   // compute the residual y-a*mu(x) using state's objects y_std, mu_fit and a
-  for (size_t i = 0; i < state->n_y; i++)
+  for (size_t i = 0; i < state.n_y; i++)
   {
-    state->residual[i] = (*state->y_std)[i] - state->a * state->mu_fit[i];
+    state.residual[i] = (*state.y_std)[i] - state.a * (*state.mu_fit)[i];
   }
 
-  for (size_t i = 0; i < state->n_y; i++)
+  for (size_t i = 0; i < state.n_y; i++)
   {
-    if (state->z[i] == 1)
+    if (state.z[i] == 1)
     {
-      tau2sum_trt += state->tau_fit[i] * state->tau_fit[i];
-      tauressum_trt += state->tau_fit[i] * state->residual[i];
+      tau2sum_trt += (*state.tau_fit)[i] * (*state.tau_fit)[i];
+      tauressum_trt += (*state.tau_fit)[i] * state.residual[i];
     }
     else
     {
-      tau2sum_ctrl += state->tau_fit[i] * state->tau_fit[i];
-      tauressum_ctrl += state->tau_fit[i] * state->residual[i];
+      tau2sum_ctrl += (*state.tau_fit)[i] * (*state.tau_fit)[i];
+      tauressum_ctrl += (*state.tau_fit)[i] * state.residual[i];
     }
   }
 
   // update parameters
-  double v0 = 1 / (2 + tau2sum_ctrl / pow(state->sigma_vec[0], 2));
-  double v1 = 1 / (2 + tau2sum_trt / pow(state->sigma_vec[1], 2));
+  double v0 = 1 / (2 + tau2sum_ctrl / pow(state.sigma_vec[0], 2));
+  double v1 = 1 / (2 + tau2sum_trt / pow(state.sigma_vec[1], 2));
 
-  double m0 = v0 * (tauressum_ctrl) / pow(state->sigma_vec[0], 2);
-  double m1 = v1 * (tauressum_trt) / pow(state->sigma_vec[1], 2);
+  double m0 = v0 * (tauressum_ctrl) / pow(state.sigma_vec[0], 2);
+  double m1 = v1 * (tauressum_trt) / pow(state.sigma_vec[1], 2);
 
   // sample b0, b1
-  double b0 = m0 + sqrt(v0) * normal_samp(state->gen);
-  double b1 = m1 + sqrt(v1) * normal_samp(state->gen);
+  double b0 = m0 + sqrt(v0) * normal_samp(state.gen);
+  double b1 = m1 + sqrt(v1) * normal_samp(state.gen);
 
-  state->b_vec[1] = b1;
-  state->b_vec[0] = b0;
+  state.b_vec[1] = b1;
+  state.b_vec[0] = b0;
 
   return;
 }
 
 // subtracts old tree contribution from the fit
 // called from mcmc_loop_xbcf in xbcf_mcmc_loop.cpp
-void xbcfModel::subtract_old_tree_fit(size_t tree_ind, std::vector<double> &fit, std::unique_ptr<X_struct> &x_struct)
+void xbcfModel::subtract_old_tree_fit(size_t tree_ind, std::vector<double> &fit, X_struct &x_struct)
 {
   for (size_t i = 0; i < fit.size(); i++)
   {
-    fit[i] -= (*(x_struct->data_pointers[tree_ind][i]))[0];
+    fit[i] -= (*(x_struct.data_pointers[tree_ind][i]))[0];
   }
   return;
 }
 
 // sets unique term parameters in the state object depending on the term being updated
 // called from mcmc_loop_xbcf in xbcf_mcmc_loop.cpp
-void xbcfModel::set_state_status(std::unique_ptr<State> &state, size_t value, const double *X, matrix<size_t> &Xorder)
+void xbcfModel::set_state_status(State &state, size_t value, const double *X, matrix<size_t> &Xorder)
 {
-  state->fl = value; // value can only be 0 or 1 (to alternate between arms)
-  state->iniSplitStorage(state->fl);
-  state->adjustMtry(state->fl);
-  state->X_std = X;
-  state->Xorder_std = Xorder;
-  if(value == 0)
+  state.fl = value; // value can only be 0 or 1 (to alternate between arms)
+  state.iniSplitStorage(state.fl);
+  state.adjustMtry(state.fl);
+  state.X_std = X;
+  state.Xorder_std = &Xorder;
+  if (value == 0)
   {
-    state->p = state->p_pr;
-    state->p_categorical = state->p_categorical_pr;
-    state->p_continuous = state->p_continuous_pr;
-  } else {
-    state->p = state->p_trt;
-    state->p_categorical = state->p_categorical_trt;
-    state->p_continuous = state->p_continuous_trt;
+    state.p = state.p_pr;
+    state.p_categorical = state.p_categorical_pr;
+    state.p_continuous = state.p_continuous_pr;
   }
-
+  else
+  {
+    state.p = state.p_trt;
+    state.p_categorical = state.p_categorical_trt;
+    state.p_continuous = state.p_continuous_trt;
+  }
 }

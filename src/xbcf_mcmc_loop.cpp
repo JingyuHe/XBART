@@ -17,23 +17,22 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std,
                     vector<vector<tree>> &trees_ps,
                     vector<vector<tree>> &trees_trt,
                     double no_split_penality,
-                    std::unique_ptr<State> &state,
-                    //std::unique_ptr<State> &state_trt,
+                    State &state,
                     xbcfModel *model_ps,
                     xbcfModel *model_trt,
-                    std::unique_ptr<X_struct> &x_struct_ps,
-                    std::unique_ptr<X_struct> &x_struct_trt,
+                    X_struct &x_struct_ps,
+                    X_struct &x_struct_trt,
                     bool a_scaling,
                     bool b_scaling)
 {
-  //cout << "size of Xorder std " << Xorder_std.size() << endl;
-  //cout << "size of Xorder tau " << Xorder_tau_std.size() << endl;
-  if (state->parallel)
+  // cout << "size of Xorder std " << Xorder_std.size() << endl;
+  // cout << "size of Xorder tau " << Xorder_tau_std.size() << endl;
+  if (state.parallel)
     thread_pool.start();
 
-  for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
+  for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
   {
-    //cout << "sweep: " << sweeps << endl;
+    // cout << "sweep: " << sweeps << endl;
     if (verbose == true)
     {
       COUT << "--------------------------------" << endl;
@@ -44,36 +43,36 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std,
     model_ps->set_state_status(state, 0, X_std, Xorder_std);
 
     ////////////// Prognostic term loop
-    for (size_t tree_ind = 0; tree_ind < state->num_trees_vec[0]; tree_ind++)
+    for (size_t tree_ind = 0; tree_ind < state.num_trees_con; tree_ind++)
     {
-      state->update_residuals(); // update residuals
+      state.update_residuals();       // update residuals
       model_ps->draw_sigma(state, 0); // draw sigmas (and update them in the state obj)
 
       // store sigma draws
-      sigma0_draw_xinfo[sweeps][tree_ind] = state->sigma_vec[0]; // storing sigmas
-      sigma1_draw_xinfo[sweeps][tree_ind] = state->sigma_vec[1]; // storing sigmas
+      sigma0_draw_xinfo[sweeps][tree_ind] = state.sigma_vec[0]; // storing sigmas
+      sigma1_draw_xinfo[sweeps][tree_ind] = state.sigma_vec[1]; // storing sigmas
 
-      if (state->use_all && (sweeps > state->burnin) && (state->mtry_pr != state->p_pr))
+      if (state.use_all && (sweeps > state.burnin) && (state.mtry_pr != state.p_pr))
       {
-        state->use_all = false;
+        state.use_all = false;
       }
 
-      std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0); // clear counts of splits for one tree
+      std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0); // clear counts of splits for one tree
 
-      if (state->sample_weights_flag)
+      if (state.sample_weights)
       {
-        state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree_pr[tree_ind]; // subtract old tree for sampling case
+        (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) - state.split_count_all_tree_pr[tree_ind]; // subtract old tree for sampling case
       }
 
-      model_ps->subtract_old_tree_fit(tree_ind, state->mu_fit, x_struct_ps); // for GFR we will need partial mu_fit -- thus take out the old fitted values
+      model_ps->subtract_old_tree_fit(tree_ind, (*state.mu_fit), x_struct_ps); // for GFR we will need partial mu_fit -- thus take out the old fitted values
 
       model_ps->initialize_root_suffstat(state, trees_ps[sweeps][tree_ind].suff_stat); // initialize suff stat using partial fit
-      //GFR
-      trees_ps[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct_ps->X_counts, x_struct_ps->X_num_unique, model_ps, x_struct_ps, sweeps, tree_ind, true, false, true);
+      // GFR
+      trees_ps[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct_ps.X_counts, x_struct_ps.X_num_unique, model_ps, x_struct_ps, sweeps, tree_ind);
 
-      model_ps->state_sweep(tree_ind, state->mu_fit, x_struct_ps); // update total mu_fit by adding just fitted values
+      model_ps->state_sweep(tree_ind, (*state.mu_fit), x_struct_ps); // update total mu_fit by adding just fitted values
 
-      state->update_split_counts(tree_ind, 0); // update split counts for mu
+      state.update_split_counts(tree_ind, 0); // update split counts for mu
       if (sweeps != 0)
       {
         if (a_scaling) // in case b_scaling on, we update b0 and b1
@@ -90,36 +89,36 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std,
     model_ps->set_state_status(state, 1, X_tau_std, Xorder_tau_std);
 
     ////////////// Treatment term loop
-    for (size_t tree_ind = 0; tree_ind < state->num_trees_vec[1]; tree_ind++)
+    for (size_t tree_ind = 0; tree_ind < state.num_trees_mod; tree_ind++)
     {
-      state->update_residuals(); // update residuals
+      state.update_residuals();        // update residuals
       model_trt->draw_sigma(state, 1); // draw sigmas (and update them in the state obj)
 
       // store sigma draws
-      sigma0_draw_xinfo[sweeps][state->num_trees_vec[0]+tree_ind] = state->sigma_vec[0]; // storing sigmas
-      sigma1_draw_xinfo[sweeps][state->num_trees_vec[0]+tree_ind] = state->sigma_vec[1]; // storing sigmas
+      sigma0_draw_xinfo[sweeps][state.num_trees_con + tree_ind] = state.sigma_vec[0]; // storing sigmas
+      sigma1_draw_xinfo[sweeps][state.num_trees_con + tree_ind] = state.sigma_vec[1]; // storing sigmas
 
-      if (state->use_all && (sweeps > state->burnin) && (state->mtry_trt != state->p_trt))
+      if (state.use_all && (sweeps > state.burnin) && (state.mtry_trt != state.p_trt))
       {
-        state->use_all = false;
+        state.use_all = false;
       }
 
-      std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0); // clear counts of splits for one tree
+      std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0); // clear counts of splits for one tree
 
-      if (state->sample_weights_flag)
+      if (state.sample_weights)
       {
-        state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree_trt[tree_ind]; // subtract old tree for sampling case
+        (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) - state.split_count_all_tree_trt[tree_ind]; // subtract old tree for sampling case
       }
 
-      model_trt->subtract_old_tree_fit(tree_ind, state->tau_fit, x_struct_trt); // for GFR we will need partial tau_fit -- thus take out the old fitted values
+      model_trt->subtract_old_tree_fit(tree_ind, (*state.tau_fit), x_struct_trt); // for GFR we will need partial tau_fit -- thus take out the old fitted values
 
       model_trt->initialize_root_suffstat(state, trees_trt[sweeps][tree_ind].suff_stat); // initialize suff stat using partial fit
       // GFR
-      trees_trt[sweeps][tree_ind].grow_from_root(state, Xorder_tau_std, x_struct_trt->X_counts, x_struct_trt->X_num_unique, model_trt, x_struct_trt, sweeps, tree_ind, true, false, true);
+      trees_trt[sweeps][tree_ind].grow_from_root(state, Xorder_tau_std, x_struct_trt.X_counts, x_struct_trt.X_num_unique, model_trt, x_struct_trt, sweeps, tree_ind);
 
-      model_trt->state_sweep(tree_ind, state->tau_fit, x_struct_trt); // update total tau_fit by adding just fitted values
+      model_trt->state_sweep(tree_ind, (*state.tau_fit), x_struct_trt); // update total tau_fit by adding just fitted values
 
-      state->update_split_counts(tree_ind, 1); // update split counts for tau
+      state.update_split_counts(tree_ind, 1); // update split counts for tau
       if (sweeps != 0)
       {
         if (a_scaling) // in case b_scaling on, we update b0 and b1
@@ -134,37 +133,37 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std,
     }
 
     // store draws for b0, b1 and a, although they are updated per tree, we save results per forest (sweep)
-    b_xinfo[0][sweeps] = state->b_vec[0];
-    b_xinfo[1][sweeps] = state->b_vec[1];
-    a_xinfo[0][sweeps] = state->a;
+    b_xinfo[0][sweeps] = state.b_vec[0];
+    b_xinfo[1][sweeps] = state.b_vec[1];
+    a_xinfo[0][sweeps] = state.a;
   }
 
   // print out all residuals, total fits, etc
 
   // for(size_t kk = 0; kk < 50; kk ++ ){
-  //   cout << kk << "  " << state->mu_fit[kk] << "  " << state->tau_fit[kk] << endl;
+  //   cout << kk << "  " << (*state.mu_fit)[kk] << "  " << (*state.tau_fit)[kk] << endl;
   // }
 
   tree::tree_p bn;
 
-  // cout << "number of trees " << state->num_trees_vec[0] << endl;
+  // cout << "number of trees " << state.num_trees_con << endl;
 
   std::vector<double> fit_ps(50);
   std::vector<double> fit_trt(50);
 
   for (size_t data_ind = 0; data_ind < 50; data_ind++)
   {
-    for (size_t tree_ind = 0; tree_ind < state->num_trees_vec[0]; tree_ind++)
+    for (size_t tree_ind = 0; tree_ind < state.num_trees_con; tree_ind++)
     {
-      fit_ps[data_ind] += (*(x_struct_ps->data_pointers[tree_ind][data_ind]))[0];
+      fit_ps[data_ind] += (*(x_struct_ps.data_pointers[tree_ind][data_ind]))[0];
     }
   }
 
   for (size_t data_ind = 0; data_ind < 50; data_ind++)
   {
-    for (size_t tree_ind = 0; tree_ind < state->num_trees_vec[1]; tree_ind++)
+    for (size_t tree_ind = 0; tree_ind < state.num_trees_mod; tree_ind++)
     {
-      fit_trt[data_ind] += (*(x_struct_trt->data_pointers[tree_ind][data_ind]))[0];
+      fit_trt[data_ind] += (*(x_struct_trt.data_pointers[tree_ind][data_ind]))[0];
     }
   }
 
@@ -173,19 +172,19 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std,
 
   for (size_t i = 0; i < 50; i++)
   {
-    for (size_t tree_ind = 0; tree_ind < state->num_trees_vec[0]; tree_ind++)
+    for (size_t tree_ind = 0; tree_ind < state.num_trees_con; tree_ind++)
     {
       // loop over observations
       // tree search
-      bn = trees_ps[state->num_sweeps - 1][tree_ind].search_bottom_std(X_std, i, state->p, state->n_y);
+      bn = trees_ps[state.num_sweeps - 1][tree_ind].search_bottom_std(X_std, i, state.p, state.n_y);
       fit_ps2[i] += bn->theta_vector[0];
     }
 
-    for (size_t tree_ind = 0; tree_ind < state->num_trees_vec[1]; tree_ind++)
+    for (size_t tree_ind = 0; tree_ind < state.num_trees_mod; tree_ind++)
     {
       // loop over observations
       // tree search
-      bn = trees_trt[state->num_sweeps - 1][tree_ind].search_bottom_std(X_tau_std, i, state->p, state->n_y);
+      bn = trees_trt[state.num_sweeps - 1][tree_ind].search_bottom_std(X_tau_std, i, state.p, state.n_y);
       fit_trt2[i] += bn->theta_vector[0];
     }
   }
@@ -198,8 +197,8 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std,
 
   // cout << "++++++++++++++++++++++++++" << endl;
   // cout << "print mu trees " << endl;
-  // for(size_t i = 0; i < state->num_trees_vec[0]; i ++){
-  //   cout << trees_ps[state->num_sweeps - 1][i] << endl;
+  // for(size_t i = 0; i < state.num_trees_con; i ++){
+  //   cout << trees_ps[state.num_sweeps - 1][i] << endl;
   // }
 
   thread_pool.stop();

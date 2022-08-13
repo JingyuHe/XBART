@@ -85,16 +85,16 @@ public:
 //         double current_value = 0.0;
 //         size_t count_unique = 0;
 //         size_t N_unique;
-//         state->variable_ind[0] = 0;
+//         state.variable_ind[0] = 0;
 
-//         for (size_t i = state->p_continuous; i < p; i++)
+//         for (size_t i = state.p_continuous; i < p; i++)
 //         {
 //             // only loop over categorical variables
 //             // suppose p = (p_continuous, p_categorical)
 //             // index starts from p_continuous
 //             this->X_counts.push_back(1);
 //             current_value = *(Xpointer + i * N + this->Xorder_std[i][0]);
-//             state->X_values.push_back(current_value);
+//             state.X_values.push_back(current_value);
 //             count_unique = 1;
 
 //             for (size_t j = 1; j < N; j++)
@@ -106,14 +106,14 @@ public:
 //                 else
 //                 {
 //                     current_value = *(Xpointer + i * N + this->Xorder_std[i][j]);
-//                     state->X_values.push_back(current_value);
+//                     state.X_values.push_back(current_value);
 //                     this->X_counts.push_back(1);
 //                     count_unique++;
 //                     total_points++;
 //                 }
 //             }
-//             state->variable_ind[i + 1 - state->p_continuous] = count_unique + state->variable_ind[i - state->p_continuous];
-//             this->X_num_unique[i - state->p_continuous] = count_unique;
+//             state.variable_ind[i + 1 - state.p_continuous] = count_unique + state.variable_ind[i - state.p_continuous];
+//             this->X_num_unique[i - state.p_continuous] = count_unique;
 //             total_points++;
 //         }
 //         return;

@@ -1,7 +1,6 @@
 #include <ctime>
 #include <RcppArmadillo.h>
 #include "tree.h"
-#include "forest.h"
 #include <chrono>
 #include "mcmc_loop.h"
 #include "X_struct.h"
@@ -47,7 +46,7 @@ void rcpp_to_std2(arma::mat y, arma::mat X, arma::mat Xtest, std::vector<double>
         }
     }
 
-    //X_std_test
+    // X_std_test
     for (size_t i = 0; i < N_test; i++)
     {
         for (size_t j = 0; j < p; j++)
@@ -195,7 +194,7 @@ void rcpp_to_std2(arma::mat X, arma::mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp
         }
     }
 
-    //X_std_test
+    // X_std_test
     for (size_t i = 0; i < N_test; i++)
     {
         for (size_t j = 0; j < p; j++)
@@ -238,24 +237,24 @@ void rcpp_to_std2(arma::mat X, arma::mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z,             // responses vec y, covariates mat x, treatment assignment vec z
-                    size_t num_sweeps, size_t burnin = 1,                               // burnin is the # of burn-in sweeps
-                    size_t max_depth = 1, size_t n_min = 5,                             // n_min is the minimum node size
-                    size_t num_cutpoints = 1,                                           // # of adaptive cutpoints considered at each split for cont variables
-                    double no_split_penality = 0.001,                                   // penalty for not splitting
-                    size_t mtry_pr = 0, size_t mtry_trt = 0,                            // mtry is the # of variables considered at each split
-                    size_t p_categorical_pr = 0,                                        // # of categorical regressors
-                    size_t p_categorical_trt = 0,                                       // # of categorical regressors
-                    size_t num_trees_pr = 200,                                          // --- Prognostic term parameters start here
-                    double alpha_pr = 0.95, double beta_pr = 2, double tau_pr = 0.5,    // BART prior parameters
-                    double kap_pr = 16, double s_pr = 4,                                // prior parameters of sigma
-                    bool pr_scale = false,                                              // use half-Cauchy prior
-                    size_t num_trees_trt = 50,                                          // --- Treatment term parameters start here
-                    double alpha_trt = 0.25, double beta_trt = 3, double tau_trt = 0.5, // BART priot parameters
-                    double kap_trt = 16, double s_trt = 4,                              // prior parameters of sigma
-                    bool trt_scale = false,                                             // use half-Normal prior
-                    bool verbose = false, bool parallel = true,                         // optional parameters
-                    bool set_random_seed = false, size_t random_seed = 0,
-                    bool sample_weights_flag = true, bool a_scaling = true, bool b_scaling = true)
+                             size_t num_sweeps, size_t burnin = 1,                               // burnin is the # of burn-in sweeps
+                             size_t max_depth = 1, size_t n_min = 5,                             // n_min is the minimum node size
+                             size_t num_cutpoints = 1,                                           // # of adaptive cutpoints considered at each split for cont variables
+                             double no_split_penality = 0.001,                                   // penalty for not splitting
+                             size_t mtry_pr = 0, size_t mtry_trt = 0,                            // mtry is the # of variables considered at each split
+                             size_t p_categorical_pr = 0,                                        // # of categorical regressors
+                             size_t p_categorical_trt = 0,                                       // # of categorical regressors
+                             size_t num_trees_pr = 200,                                          // --- Prognostic term parameters start here
+                             double alpha_pr = 0.95, double beta_pr = 2, double tau_pr = 0.5,    // BART prior parameters
+                             double kap_pr = 16, double s_pr = 4,                                // prior parameters of sigma
+                             bool pr_scale = false,                                              // use half-Cauchy prior
+                             size_t num_trees_trt = 50,                                          // --- Treatment term parameters start here
+                             double alpha_trt = 0.25, double beta_trt = 3, double tau_trt = 0.5, // BART priot parameters
+                             double kap_trt = 16, double s_trt = 4,                              // prior parameters of sigma
+                             bool trt_scale = false,                                             // use half-Normal prior
+                             bool verbose = false, bool parallel = true,                         // optional parameters
+                             bool set_random_seed = false, size_t random_seed = 0,
+                             bool sample_weights = true, bool a_scaling = true, bool b_scaling = true)
 {
 
     auto start = system_clock::now();
@@ -402,21 +401,21 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::ma
     model_trt->setNoSplitPenality(no_split_penality);
 
     // State settings for the prognostic term
-    std::unique_ptr<State> state(new xbcfState(Xpointer, Xorder_std, N, n_trt, p_pr, p_trt, num_trees, p_categorical_pr, p_categorical_trt, p_continuous_pr, p_continuous_trt, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry_pr, mtry_trt, Xpointer, num_sweeps, sample_weights_flag, &y_std, b, z_std, sigma_vec, b_vec, max_depth, y_mean, burnin, model_trt->dim_residual));
+    xbcfState state(Xpointer, Xorder_std, N, n_trt, p_pr, p_trt, num_trees_pr, num_trees_trt, p_categorical_pr, p_categorical_trt, p_continuous_pr, p_continuous_trt, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry_pr, mtry_trt, Xpointer, num_sweeps, sample_weights, &y_std, b, z_std, sigma_vec, b_vec, max_depth, y_mean, burnin, model_trt->dim_residual);
 
     // initialize X_struct for the prognostic term
     std::vector<double> initial_theta_pr(1, y_mean / (double)num_trees_pr);
-    std::unique_ptr<X_struct> x_struct_pr(new X_struct(Xpointer, &y_std, N, Xorder_std, p_categorical_pr, p_continuous_pr, &initial_theta_pr, num_trees_pr));
+    X_struct x_struct_pr(Xpointer, &y_std, N, Xorder_std, p_categorical_pr, p_continuous_pr, &initial_theta_pr, num_trees_pr);
 
     // initialize X_struct for the treatment term
     std::vector<double> initial_theta_trt(1, 0);
-    std::unique_ptr<X_struct> x_struct_trt(new X_struct(Xpointer_tau, &y_std, N, Xorder_tau_std, p_categorical_trt, p_continuous_trt, &initial_theta_trt, num_trees_trt));
+    X_struct x_struct_trt(Xpointer_tau, &y_std, N, Xorder_tau_std, p_categorical_trt, p_continuous_trt, &initial_theta_trt, num_trees_trt);
 
     // mcmc_loop returns tauhat [N x sweeps] matrix
     mcmc_loop_xbcf(Xorder_std, Xorder_tau_std, Xpointer, Xpointer_tau, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, b_xinfo, a_xinfo, *trees_pr, *trees_trt, no_split_penality,
                    state, model_pr, model_trt, x_struct_pr, x_struct_trt, a_scaling, b_scaling);
 
-    //predict tauhats and muhats
+    // predict tauhats and muhats
     model_trt->predict_std(Xpointer_tau, N, p_trt, num_sweeps, tauhats_xinfo, *trees_trt);
     model_pr->predict_std(Xpointer, N, p_pr, num_sweeps, muhats_xinfo, *trees_pr);
 
@@ -489,9 +488,6 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::ma
     // clean memory
     delete model_pr;
     delete model_trt;
-    state.reset();
-    x_struct_pr.reset();
-    x_struct_trt.reset();
 
     // R Objects to Return
     return Rcpp::List::create(
@@ -526,7 +522,7 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::ma
                                                          Rcpp::Named("tau_trt") = tau_trt,
                                                          Rcpp::Named("p_categorical_trt") = p_categorical_trt,
                                                          Rcpp::Named("num_trees_trt") = num_trees_trt),
-        Rcpp::Named("input_var_count") = Rcpp::List::create(Rcpp::Named("x_con") = p_pr-1,
+        Rcpp::Named("input_var_count") = Rcpp::List::create(Rcpp::Named("x_con") = p_pr - 1,
                                                             Rcpp::Named("x_mod") = p_trt)
 
     );

@@ -94,7 +94,7 @@ public:
     // total residual vector
     std::vector<double> residual;
     // residual for treated group, length n_trt
-    std::vector<double> full_residual_trt; //(state->n_trt);               // residual for the treated group
+    std::vector<double> full_residual_trt; //(state.n_trt);               // residual for the treated group
     // residual for control group, length n_y - n_trt
     std::vector<double> full_residual_ctrl;
     matrix<double> split_count_all_tree_pr;  // TODO: move to xbcfState
@@ -125,12 +125,12 @@ public:
         {
             if (this->z[i] == 1)
             {
-                (*this->full_residual_trt)[index_trt] = (*this->y_std)[i] - this->a * (*this->mu_fit)[i] - this->b_vec[1] * (*this->tau_fit)[i];
+                this->full_residual_trt[index_trt] = (*(this->y_std))[i] - (this->a) * (*(this->mu_fit))[i] - (this->b_vec)[1] * (*(this->tau_fit))[i];
                 index_trt++;
             }
             else
             {
-                (*this->full_residual_ctrl)[index_ctrl] = (*this->y_std)[i] - this->a * (*this->mu_fit)[i] - this->b_vec[0] * (*this->tau_fit)[i];
+                this->full_residual_ctrl[index_ctrl] = (*this->y_std)[i] - (this->a) * (*this->mu_fit)[i] - (this->b_vec)[0] * (*this->tau_fit)[i];
                 index_ctrl++;
             }
         }
@@ -210,7 +210,7 @@ public:
     }
 
     //  TODO: update the constructor / get rid of it (if all new vars can be moved to xbcfState constructor)
-    State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p_pr, size_t p_trt, std::vector<size_t> num_trees_vec, size_t p_categorical_pr, size_t p_categorical_trt, size_t p_continuous_pr, size_t p_continuous_trt, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry_pr, size_t mtry_trt, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual)
+    State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p_pr, size_t p_trt, size_t num_trees_con, size_t num_trees_mod, size_t p_categorical_pr, size_t p_categorical_trt, size_t p_continuous_pr, size_t p_continuous_trt, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry_pr, size_t mtry_trt, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual)
     {
 
         // Init containers
@@ -223,7 +223,8 @@ public:
         // this->residual_std_full = std::vector<double>(N);
 
         // Warning! ini_matrix(matrix, N, p).
-        ini_matrix(this->residual_std, N, dim_residual);
+        this->residual_std = new matrix<double>();
+        ini_matrix((*this->residual_std), N, dim_residual);
 
         // Random
         this->prob = std::vector<double>(2, 0.5);
@@ -235,8 +236,8 @@ public:
         this->d = std::discrete_distribution<>(prob.begin(), prob.end());
 
         // Splits
-        ini_xinfo(this->split_count_all_tree_pr, p_pr, num_trees_vec[0]);
-        ini_xinfo(this->split_count_all_tree_trt, p_trt, num_trees_vec[1]);
+        ini_xinfo(this->split_count_all_tree_pr, p_pr, num_trees_con);
+        ini_xinfo(this->split_count_all_tree_trt, p_trt, num_trees_mod);
 
         this->n_min = n_min;
         this->n_cutpoints = n_cutpoints;
@@ -251,19 +252,20 @@ public:
         this->p_pr = p_categorical_pr + p_continuous_pr;
         this->p_trt = p_categorical_trt + p_continuous_trt;
         this->n_y = N;
-        this->num_trees_vec = num_trees_vec; // stays the same even for vector
+        this->num_trees_con = num_trees_con;
+        this->num_trees_mod = num_trees_mod;
         this->num_sweeps = num_sweeps;
-        this->sample_weights_flag = sample_weights_flag;
+        this->sample_weights = sample_weights;
         this->y_std = y_std;
         this->max_depth = max_depth;
         this->burnin = burnin;
         this->ini_var_yhat = ini_var_yhat;
-        this->Xorder_std = Xorder_std;
+        this->Xorder_std = &Xorder_std;
 
         // those are for XBCF, initialize at a length 1 vector
-        this->residual = new std::vector<double>(1, 0);
-        this->full_residual_ctrl = new std::vector<double>(1, 0);
-        this->full_residual_trt = new std::vector<double>(1, 0);
+        this->residual = std::vector<double>(1, 0);
+        this->full_residual_ctrl = std::vector<double>(1, 0);
+        this->full_residual_trt = std::vector<double>(1, 0);
         return;
     }
 
@@ -278,11 +280,11 @@ public:
         (*mtry_weight_current_tree) = (*mtry_weight_current_tree) + (*split_count_current_tree);
         if (flag == 0)
         {
-            (*split_count_all_tree_pr)[tree_ind] = (*split_count_current_tree);
+            (split_count_all_tree_pr)[tree_ind] = (*split_count_current_tree);
         }
         else
         {
-            (*split_count_all_tree_trt)[tree_ind] = (*split_count_current_tree);
+            (split_count_all_tree_trt)[tree_ind] = (*split_count_current_tree);
         }
         return;
     }
@@ -391,18 +393,19 @@ public:
 class xbcfState : public State
 {
 public:
-    xbcfState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t n_trt, size_t p, size_t p_tau, std::vector<size_t> num_trees_vec, size_t p_categorical_pr, size_t p_categorical_trt, size_t p_continuous_pr, size_t p_continuous_trt, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry_pr, size_t mtry_trt, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std, N, p, p_tau, num_trees_vec, p_categorical_pr, p_categorical_trt, p_continuous_pr, p_continuous_trt, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry_pr, mtry_trt, X_std, num_sweeps, sample_weights_flag, y_std, b_std, z, sigma_vec, b_vec, max_depth, ini_var_yhat, burnin, dim_residual)
+    xbcfState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t n_trt, size_t p, size_t p_tau, size_t num_trees_con, size_t num_trees_mod, size_t p_categorical_pr, size_t p_categorical_trt, size_t p_continuous_pr, size_t p_continuous_trt, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry_pr, size_t mtry_trt, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std, N, p, p_tau, num_trees_con, num_trees_mod, p_categorical_pr, p_categorical_trt, p_continuous_pr, p_continuous_trt, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry_pr, mtry_trt, X_std, num_sweeps, sample_weights, y_std, b_std, z, sigma_vec, b_vec, max_depth, ini_var_yhat, burnin, dim_residual)
     {
         this->sigma_vec = sigma_vec;
         this->b_vec = b_vec;
         this->n_trt = n_trt;
-        this->num_trees_vec = num_trees_vec;
+        this->num_trees_con = num_trees_con;
+        this->num_trees_mod = num_trees_mod;
         this->b_std = b_std;
         this->z = z;
         this->a = 1; // initialize a at 1 for now
 
-        this->mu_fit = std::vector<double>(N, 0);
-        this->tau_fit = std::vector<double>(N, 0);
+        this->mu_fit = new std::vector<double>(N, 0);
+        this->tau_fit = new std::vector<double>(N, 0);
 
         // those are for XBCF, initialize at a length 1 vector
         this->residual = std::vector<double>(N, 0);
