@@ -48,8 +48,8 @@ predict.XBCF <- function(model, x_con, x_mod=x_con, pihat=NULL, burnin=NULL) {
 
     x_con <- cbind(pihat, x_con)
 
-    obj1 = .Call(`_XBCF_predict`, x_con, model$model_list$tree_pnt_pr)
-    obj2 = .Call(`_XBCF_predict`, x_mod, model$model_list$tree_pnt_trt)
+    obj1 = .Call(`_XBART_xbart_predict`, x_con, model$model_list$tree_pnt_pr)
+    obj2 = .Call(`_XBART_xbart_predict`, x_mod, model$model_list$tree_pnt_trt)
 
     sweeps <- ncol(model$tauhats)
     if(is.null(burnin)) {
@@ -95,7 +95,7 @@ predictTauDraws <- function(model, x_mod, burnin = NULL) {
         ' columns; trying to predict on x_con with ', ncol(x_mod),' columns.'))
     }
 
-    obj = .Call(`_XBCF_predict`, x_mod, model$model_list$tree_pnt_trt)
+    obj = .Call(`_XBART_xbart_predict`, x_mod, model$model_list$tree_pnt_trt)
 
     sweeps <- model$model_params$num_sweeps
     if(is.null(burnin)) {
@@ -137,7 +137,7 @@ predictTaus <- function(model, x_mod, burnin = NULL) {
         ' columns; trying to predict on x_con with ', ncol(x_mod),' columns.'))
     }
 
-    obj = .Call(`_XBCF_predict`, x_mod, model$model_list$tree_pnt_trt)
+    obj = .Call(`_XBART_xbart_predict`, x_mod, model$model_list$tree_pnt_trt)
 
     sweeps <- model$model_params$num_sweeps
     if(is.null(burnin)) {
@@ -201,7 +201,7 @@ predictMuDraws <- function(model, x_con, pihat=NULL, burnin = NULL) {
 
     x_con <- cbind(pihat, x_con)
 
-    obj = .Call(`_XBCF_predict`, x_con, model$model_list$tree_pnt_pr)
+    obj = .Call(`_XBART_xbart_predict`, x_con, model$model_list$tree_pnt_pr)
 
     sweeps <- model$model_params$num_sweeps
     if(is.null(burnin)) {
@@ -263,7 +263,7 @@ predictMus <- function(model, x_con, pihat = NULL, burnin = NULL) {
 
     x_con <- cbind(pihat, x_con)
 
-    obj = .Call(`_XBCF_predict`, x_con, model$model_list$tree_pnt_pr)
+    obj = .Call(`_XBART_xbart_predict`, x_con, model$model_list$tree_pnt_pr)
 
     sweeps <- model$model_params$num_sweeps
     if(is.null(burnin)) {

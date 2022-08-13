@@ -2,6 +2,7 @@
 // Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #include "XBART_types.h"
+#include <RcppArmadillo.h>
 #include <Rcpp.h>
 
 using namespace Rcpp;
@@ -308,10 +309,6 @@ BEGIN_RCPP
 END_RCPP
 }
 
-RcppExport SEXP _XBCF_json_to_r(SEXP);
-RcppExport SEXP _XBCF_predict(SEXP, SEXP);
-RcppExport SEXP _XBCF_r_to_json(SEXP, SEXP);
-
 static const R_CallMethodDef CallEntries[] = {
     {"_XBART_XBART_cpp", (DL_FUNC) &_XBART_XBART_cpp, 25},
     {"_XBART_XBART_multinomial_cpp", (DL_FUNC) &_XBART_XBART_multinomial_cpp, 28},
@@ -327,9 +324,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART_json_to_r", (DL_FUNC) &_XBART_json_to_r, 1},
     {"_XBART_r_to_json_3D", (DL_FUNC) &_XBART_r_to_json_3D, 1},
     {"_XBART_json_to_r_3D", (DL_FUNC) &_XBART_json_to_r_3D, 1},
-    {"_XBCF_json_to_r",                                (DL_FUNC) &_XBCF_json_to_r,                                1},
-    {"_XBCF_predict",                                  (DL_FUNC) &_XBCF_predict,                                  2},
-    {"_XBCF_r_to_json",                                (DL_FUNC) &_XBCF_r_to_json,                                2},
     {NULL, NULL, 0}
 };
 
