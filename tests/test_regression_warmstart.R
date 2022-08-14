@@ -137,14 +137,12 @@ fit_bart2 <- wbart_ini(treedraws = fit$treedraws, x, y, x.test = xtest, numcut =
 
 pred_bart_ini <- colMeans(predict(fit_bart2, xtest))
 
-xbart_rmse <- sqrt(mean((fhat.1 - ftest)^2))
+xbart_rmse <- sqrt(mean((pred - ftest)^2))
 bart_rmse <- sqrt(mean((pred_bart - ftest)^2))
 bart_ini_rmse <- sqrt(mean((pred_bart_ini - ftest)^2))
 
-xbart_rmse
-bart_rmse
-bart_ini_rmse
 
+cat("RMSE of XBART: ", xbart_rmse, " BART: ", bart_rmse, " warm-start BART: ", bart_ini_rmse, "\n")
 
 
 #######################################################################
