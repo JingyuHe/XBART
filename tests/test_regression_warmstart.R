@@ -15,8 +15,8 @@ get_XBART_params <- function(y) {
         n_min = 1, # minimal node size
         alpha = 0.95, # BART prior parameter
         beta = 1.25, # BART prior parameter
-        mtry = 10, # number of variables sampled in each split
-        burnin = 15,
+        mtry = 25, # number of variables sampled in each split
+        burnin = 25,
         no_split_penality = "Auto"
     ) # burnin of MCMC sample
     num_tress <- XBART_params$num_trees
@@ -87,10 +87,10 @@ if (new_data) {
     }
 
     f <- function(x) {
-        sin(rowSums(x[, 3:4]^2)) + sin(rowSums(x[, 1:2]^2)) + (x[, 15] + x[, 14])^2 * (x[, 1] + x[, 2]^2) / (3 + x[, 3] + x[, 14]^2)
+        # sin(rowSums(x[, 3:4]^2)) + sin(rowSums(x[, 1:2]^2)) + (x[, 15] + x[, 14])^2 * (x[, 1] + x[, 2]^2) / (3 + x[, 3] + x[, 14]^2)
         # rowSums(x[,1:30]^2)
         # pmax(x[,1]*x[,2], abs(x[,3])*(x[,10]>x[,15])+abs(x[,4])*(x[,10]<=x[,15]))
-        #
+        5 * sin(3 * x[, 1]) + 2 * x[, 2]^2 + 3 * x[, 3] * x[, 4]
     }
 
     # to test if ties cause a crash in continuous variables
@@ -122,22 +122,21 @@ time_XBART <- round(time[3], 3)
 ################################
 # predict on testing set
 pred <- predict(fit, xtest)
-pred <- rowMeans(pred[, params$burnin:params$num_sweeps])
-
+fhat_xbart <- rowMeans(pred[, params$burnin:params$num_sweeps])
 
 
 #######################################################################
 # # bart with default initialization
-fit_bart <- wbart(x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, ndpost = 200, nskip = 0)
+fit_bart <- wbart(x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, ndpost = 2500, nskip = 0)
 pred_bart <- colMeans(predict(fit_bart, xtest))
 
 #######################################################################
 # bart with XBART initialization
-fit_bart2 <- wbart_ini(treedraws = fit$treedraws, x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 100, sigest = mean(fit$sigma))
+fit_bart2 <- wbart_ini(treedraws = fit$treedraws, x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 200, sigest = mean(fit$sigma))
 
 pred_bart_ini <- colMeans(predict(fit_bart2, xtest))
 
-xbart_rmse <- sqrt(mean((pred - ftest)^2))
+xbart_rmse <- sqrt(mean((fhat_xbart - ftest)^2))
 bart_rmse <- sqrt(mean((pred_bart - ftest)^2))
 bart_ini_rmse <- sqrt(mean((pred_bart_ini - ftest)^2))
 
@@ -152,24 +151,18 @@ cat("RMSE of XBART: ", xbart_rmse, " BART: ", bart_rmse, " warm-start BART: ", b
 # coverage of the real average
 draw_BART_XBART <- c()
 
-for (i in 15:50) {
+for (i in params$burnin:params$num_sweeps) {
     # bart with XBART initialization
     cat("------------- i ", i, "\n")
-    set.seed(1)
+
     fit_bart2 <- wbart_ini(treedraws = fit$treedraws[i], x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 100)
 
     draw_BART_XBART <- rbind(draw_BART_XBART, fit_bart2$yhat.test)
 }
 
-i <- 20
-set.seed(1)
-fit_bart2 <- wbart_ini(treedraws = fit$treedraws[i], x, y, x.test = xtest, numcut = params$num_cutpoints, ntree = params$num_trees, nskip = 0, ndpost = 100)
-plot(fit_bart2$yhat.test[1, ])
-
-
 # #######################################################################
 # # print
-xbart_rmse <- sqrt(mean((fhat.1 - ftest)^2))
+xbart_rmse <- sqrt(mean((fhat_xbart - ftest)^2))
 bart_rmse <- sqrt(mean((pred_bart - ftest)^2))
 bart_ini_rmse <- sqrt(mean((colMeans(draw_BART_XBART) - ftest)^2))
 
@@ -185,8 +178,8 @@ coverage <- c(0, 0, 0)
 length <- matrix(0, nt, 3)
 
 for (i in 1:nt) {
-    lower <- quantile(fit$yhats_test[i, 15:50], 0.025)
-    higher <- quantile(fit$yhats_test[i, 15:50], 0.975)
+    lower <- quantile(pred[i, params$burnin:params$num_sweeps], 0.025)
+    higher <- quantile(pred[i, params$burnin:params$num_sweeps], 0.975)
     if (ftest[i] < higher && ftest[i] > lower) {
         coverage[1] <- coverage[1] + 1
     }
@@ -207,5 +200,7 @@ for (i in 1:nt) {
     length[i, 3] <- higher - lower
 }
 
-coverage / nt
-colMeans(length)
+results = rbind(coverage / nt, colMeans(length))
+colnames(results) = c("XBART", "BART", "warmstart BART")
+rownames(results) <- c("Coverage", "Interval Length")
+print(results)

@@ -100,13 +100,12 @@ if (separate_tree) {
 tm <- proc.time()
 fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, num_trees = num_trees, num_sweeps = num_sweeps, p_categorical = p_cat, separate_tree = separate_tree, parallel = FALSE)
 
-
 #######################################################################
 # initialize BART at XBART trees
 # the warm start bart only draws 100 samples, without burnin, thinning = 1
 # note that the warm start BART can achieve great performance with small number of posterior samples
 
-fit2 <- mlbart_ini(fit$treedraws, x.train = X_train, y.train = y_train, num_class = k, x.test = X_test, type = tree_type, ntree = num_trees, ndpost = 100, nskip = 0, keepevery = 1)
+fit2 <- mlbart_ini(fit$treedraws[1], x.train = X_train, y.train = y_train, num_class = k, x.test = X_test, type = tree_type, ntree = num_trees, ndpost = 100, nskip = 0, keepevery = 1)
 tm <- proc.time() - tm
 
 cat(paste("XBART + warm start runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")

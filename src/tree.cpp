@@ -455,8 +455,9 @@ std::ostream &operator<<(std::ostream &os, const tree &t)
     os << nds.size() << std::endl;
     for (size_t i = 0; i < nds.size(); i++)
     {
+        os << nds[i]->nid() << " ";
         os << nds[i]->getv() << " ";
-        os << nds[i]->getc() << " ";
+        os << nds[i]->getc();
         //   os << nds[i]->theta_vector[0] << std::endl;
         for (size_t kk = 0; kk < nds[i]->theta_vector.size(); kk++)
         {
