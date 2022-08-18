@@ -80,6 +80,8 @@ void arma_to_std(const arma::mat &matrix_in, std::vector<double> &vector_out)
 {
     size_t dim = matrix_in.n_rows;
 
+    cout << "size " << matrix_in.n_rows << " " << matrix_in.n_cols << endl;
+
     for (size_t i = 0; i < dim; i++)
     {
         vector_out[i] = matrix_in(i, 0);
@@ -256,7 +258,8 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::ma
                              bool set_random_seed = false, size_t random_seed = 0,
                              bool sample_weights = true, bool a_scaling = true, bool b_scaling = true)
 {
-
+    // cout << y << endl;
+    cout << X << endl;
     auto start = system_clock::now();
 
     size_t N = X.n_rows;
@@ -312,15 +315,22 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::ma
     Rcpp::NumericMatrix X_std(N, p_pr);
     Rcpp::NumericMatrix X_tau_std(N, p_trt);
     // Rcpp::NumericMatrix Xtest_std(N_test, p);
-
+    cout << "fine 0" << endl;
     //    rcpp_to_std2(y, X, Xtest, y_std, y_mean, X_std, Xtest_std, Xorder_std);
     arma_to_std(y, y_std);
+    cout << "1" << endl;
     arma_to_std(z, z_std);
+    cout << "2" << endl;
     arma_to_rcpp(X, X_std);
+    cout << "3" << endl;
     arma_to_std_ordered(X, Xorder_std);
+    cout << "4" << endl;
     arma_to_rcpp(X_tau, X_tau_std);
+    cout << "5" << endl;
     arma_to_std_ordered(X_tau, Xorder_tau_std);
+    cout << "6" << endl;
     y_mean = compute_mean(y_std);
+    cout << "fine 0.1" << endl;
     ///////////////////////////////////////////////////////////////////
     std::vector<double> sigma_vec(2); // vector of sigma0, sigma1
     sigma_vec[0] = 1.0;
@@ -336,7 +346,7 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::ma
     std::vector<size_t> num_trees(2); // vector of tree number for each of mu and tau
     num_trees[0] = num_trees_pr;
     num_trees[1] = num_trees_trt;
-
+    cout << "fine 0.2" << endl;
     size_t n_trt = 0; // number of treated individuals TODO: remove from here and from constructor as well
 
     // assuming we have presorted data (treated individuals first, then control group)
@@ -353,14 +363,14 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::ma
     double *Xpointer = &X_std[0];
     double *Xpointer_tau = &X_tau_std[0];
     // double *Xtestpointer = &Xtest_std[0];
-
+    cout << "fine 0.3" << endl;
     matrix<double> tauhats_xinfo;
     ini_matrix(tauhats_xinfo, N, num_sweeps);
     matrix<double> muhats_xinfo;
     ini_matrix(muhats_xinfo, N, num_sweeps);
     // matrix<double> total_fit;
     // ini_matrix(total_fit, N, num_sweeps);
-
+    cout << "fine 1" << endl;
     matrix<double> sigma0_draw_xinfo;
     ini_matrix(sigma0_draw_xinfo, num_trees_trt + num_trees_pr, num_sweeps);
 
@@ -399,7 +409,7 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::ma
     // define the model for the treatment term
     xbcfModel *model_trt = new xbcfModel(kap_trt, s_trt, tau_trt, alpha_trt, beta_trt);
     model_trt->setNoSplitPenality(no_split_penality);
-
+    cout << "fine 2" << endl;
     // State settings for the prognostic term
     xbcfState state(Xpointer, Xorder_std, N, n_trt, p_pr, p_trt, num_trees_pr, num_trees_trt, p_categorical_pr, p_categorical_trt, p_continuous_pr, p_continuous_trt, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry_pr, mtry_trt, Xpointer, num_sweeps, sample_weights, &y_std, b, z_std, sigma_vec, b_vec, max_depth, y_mean, burnin, model_trt->dim_residual);
 
@@ -410,7 +420,7 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::ma
     // initialize X_struct for the treatment term
     std::vector<double> initial_theta_trt(1, 0);
     X_struct x_struct_trt(Xpointer_tau, &y_std, N, Xorder_tau_std, p_categorical_trt, p_continuous_trt, &initial_theta_trt, num_trees_trt);
-
+    cout << "fine 3" << endl;
     // mcmc_loop returns tauhat [N x sweeps] matrix
     mcmc_loop_xbcf(Xorder_std, Xorder_tau_std, Xpointer, Xpointer_tau, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, b_xinfo, a_xinfo, *trees_pr, *trees_trt, no_split_penality,
                    state, model_pr, model_trt, x_struct_pr, x_struct_trt, a_scaling, b_scaling);
