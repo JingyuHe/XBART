@@ -59,9 +59,6 @@ using std::endl;
 // #define err Rcpp::Rerr
 // #define assert Rcpp::Rassert
 
-// log(2*pi)
-#define LTPI log(2.0 * M_PI);
-
 // #include "rn.h" // Removed
 
 std::ostream &operator<<(std::ostream &out, const std::vector<double> &v);

@@ -133,6 +133,8 @@ pred <- rowMeans(pred[, params$burnin:params$num_sweeps])
 xbart_rmse = sqrt(mean((pred - ftest) ^ 2))
 print(paste("rmse of fit xbart: ", round(xbart_rmse, digits = 4)))
 
+plot(ftest, pred)
+abline(0,1)
 
 # predict with Gaussian process extrapolation for out-of-range data points
 gp_pred <- predict_gp(fit, as.matrix(y), as.matrix(x), as.matrix(xtest))
