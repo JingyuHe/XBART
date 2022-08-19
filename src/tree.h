@@ -31,10 +31,9 @@ void calcSuffStat_continuous(State &state, std::vector<double> &temp_suff_stat, 
 // info contained in a node, used by input operator
 struct node_info
 {
-    std::size_t id;      // node id
-    std::size_t v;       // variable
-    double c;            // cut point // different from BART
-    std::size_t c_index; // index of cutpoint in the design matrix, leave it blank, just for XBCF
+    std::size_t id; // node id
+    std::size_t v;  // variable
+    double c;       // cut point // different from BART
     std::vector<double> theta_vector;
 };
 
@@ -83,8 +82,6 @@ public:
     void setv(size_t v) { this->v = v; }
 
     void setc(double c) { this->c = c; }
-
-    void setc_index(size_t c_index) { this->c_index = c_index; }
 
     void settau(double tau_prior, double tau_post)
     {
