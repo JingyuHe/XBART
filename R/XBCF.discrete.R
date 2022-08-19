@@ -193,6 +193,8 @@ XBCF.discrete <- function(y, z, x_con, x_mod = x_con, pihat = NULL,
         no_split_penality <- log(num_cutpoints)
     }
 
+    print(y)
+
     obj <- XBCF_discrete_cpp(
         y, x_con, x_mod, z,
         num_sweeps, burnin,

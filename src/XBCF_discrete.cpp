@@ -1,13 +1,16 @@
 #include <ctime>
-#include <RcppArmadillo.h>
+// #include <RcppArmadillo.h>
+#include "Rcpp.h"
 #include "tree.h"
 #include <chrono>
 #include "mcmc_loop.h"
 #include "X_struct.h"
+#include "utility_rcpp.h"
 #include "xbcf_mcmc_loop.h"
 
 using namespace std;
 using namespace chrono;
+using namespace arma;
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //
@@ -17,7 +20,7 @@ using namespace chrono;
 //                                                                    //
 ////////////////////////////////////////////////////////////////////////
 
-void rcpp_to_std2(arma::mat y, arma::mat X, arma::mat Xtest, std::vector<double> &y_std, double &y_mean, Rcpp::NumericMatrix &X_std, Rcpp::NumericMatrix &Xtest_std, matrix<size_t> &Xorder_std)
+void rcpp_to_std2(mat y, mat X, mat Xtest, std::vector<double> &y_std, double &y_mean, Rcpp::NumericMatrix &X_std, Rcpp::NumericMatrix &Xtest_std, matrix<size_t> &Xorder_std)
 {
     // The goal of this function is to convert RCPP object to std objects
 
@@ -238,7 +241,7 @@ void rcpp_to_std2(arma::mat X, arma::mat Xtest, Rcpp::NumericMatrix &X_std, Rcpp
 //                     num_trees,
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::mat z,             // responses vec y, covariates mat x, treatment assignment vec z
+Rcpp::List XBCF_discrete_cpp(mat y, mat X, mat X_tau, mat z,             // responses vec y, covariates mat x, treatment assignment vec z
                              size_t num_sweeps, size_t burnin = 1,                               // burnin is the # of burn-in sweeps
                              size_t max_depth = 1, size_t n_min = 5,                             // n_min is the minimum node size
                              size_t num_cutpoints = 1,                                           // # of adaptive cutpoints considered at each split for cont variables
@@ -258,8 +261,6 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::ma
                              bool set_random_seed = false, size_t random_seed = 0,
                              bool sample_weights = true, bool a_scaling = true, bool b_scaling = true)
 {
-    // cout << y << endl;
-    cout << X << endl;
     auto start = system_clock::now();
 
     size_t N = X.n_rows;
@@ -315,22 +316,16 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::ma
     Rcpp::NumericMatrix X_std(N, p_pr);
     Rcpp::NumericMatrix X_tau_std(N, p_trt);
     // Rcpp::NumericMatrix Xtest_std(N_test, p);
-    cout << "fine 0" << endl;
     //    rcpp_to_std2(y, X, Xtest, y_std, y_mean, X_std, Xtest_std, Xorder_std);
     arma_to_std(y, y_std);
-    cout << "1" << endl;
     arma_to_std(z, z_std);
-    cout << "2" << endl;
     arma_to_rcpp(X, X_std);
-    cout << "3" << endl;
     arma_to_std_ordered(X, Xorder_std);
-    cout << "4" << endl;
     arma_to_rcpp(X_tau, X_tau_std);
-    cout << "5" << endl;
     arma_to_std_ordered(X_tau, Xorder_tau_std);
-    cout << "6" << endl;
+
     y_mean = compute_mean(y_std);
-    cout << "fine 0.1" << endl;
+
     ///////////////////////////////////////////////////////////////////
     std::vector<double> sigma_vec(2); // vector of sigma0, sigma1
     sigma_vec[0] = 1.0;
@@ -409,7 +404,7 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::ma
     // define the model for the treatment term
     xbcfModel *model_trt = new xbcfModel(kap_trt, s_trt, tau_trt, alpha_trt, beta_trt);
     model_trt->setNoSplitPenality(no_split_penality);
-    cout << "fine 2" << endl;
+
     // State settings for the prognostic term
     xbcfState state(Xpointer, Xorder_std, N, n_trt, p_pr, p_trt, num_trees_pr, num_trees_trt, p_categorical_pr, p_categorical_trt, p_continuous_pr, p_continuous_trt, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry_pr, mtry_trt, Xpointer, num_sweeps, sample_weights, &y_std, b, z_std, sigma_vec, b_vec, max_depth, y_mean, burnin, model_trt->dim_residual);
 
@@ -420,7 +415,7 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat X, arma::mat X_tau, arma::ma
     // initialize X_struct for the treatment term
     std::vector<double> initial_theta_trt(1, 0);
     X_struct x_struct_trt(Xpointer_tau, &y_std, N, Xorder_tau_std, p_categorical_trt, p_continuous_trt, &initial_theta_trt, num_trees_trt);
-    cout << "fine 3" << endl;
+
     // mcmc_loop returns tauhat [N x sweeps] matrix
     mcmc_loop_xbcf(Xorder_std, Xorder_tau_std, Xpointer, Xpointer_tau, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, b_xinfo, a_xinfo, *trees_pr, *trees_trt, no_split_penality,
                    state, model_pr, model_trt, x_struct_pr, x_struct_trt, a_scaling, b_scaling);
