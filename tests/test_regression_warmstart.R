@@ -10,7 +10,7 @@
 # set parameters of XBART
 get_XBART_params <- function(y) {
     XBART_params <- list(
-        num_trees = 30, # number of trees
+        num_trees = 50, # number of trees
         num_sweeps = 50, # number of sweeps (samples of the forest)
         n_min = 1, # minimal node size
         alpha = 0.95, # BART prior parameter
@@ -121,8 +121,10 @@ time_XBART <- round(time[3], 3)
 
 ################################
 # predict on testing set
+
 pred <- predict(fit, xtest)
 fhat_xbart <- rowMeans(pred[, params$burnin:params$num_sweeps])
+
 
 
 #######################################################################
@@ -137,6 +139,7 @@ fit_bart2 <- wbart_ini(treedraws = fit$treedraws, x, y, x.test = xtest, numcut =
 pred_bart_ini <- colMeans(predict(fit_bart2, xtest))
 
 xbart_rmse <- sqrt(mean((fhat_xbart - ftest)^2))
+
 bart_rmse <- sqrt(mean((pred_bart - ftest)^2))
 bart_ini_rmse <- sqrt(mean((pred_bart_ini - ftest)^2))
 
