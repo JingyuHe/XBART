@@ -113,9 +113,9 @@ public:
     size_t p_trt;                     // total number of variables for tau          TODO: move to xbcfState
     size_t mtry_pr;                   // TODO: move to xbcfState
     size_t mtry_trt;                  // TODO: move to xbcfState
+    matrix<size_t> *Xorder_std_pr;
+    matrix<size_t> *Xorder_std_trt;
 
-
-    
     void update_residuals()
     {
         size_t index_trt = 0;  // index of the current observation in the treatment group
@@ -210,7 +210,7 @@ public:
     }
 
     //  TODO: update the constructor / get rid of it (if all new vars can be moved to xbcfState constructor)
-    State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p_pr, size_t p_trt, size_t num_trees_con, size_t num_trees_mod, size_t p_categorical_pr, size_t p_categorical_trt, size_t p_continuous_pr, size_t p_continuous_trt, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry_pr, size_t mtry_trt, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual)
+    State(const double *Xpointer, matrix<size_t> &Xorder_std_pr, matrix<size_t> &Xorder_std_trt, size_t N, size_t p_pr, size_t p_trt, size_t num_trees_con, size_t num_trees_mod, size_t p_categorical_pr, size_t p_categorical_trt, size_t p_continuous_pr, size_t p_continuous_trt, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry_pr, size_t mtry_trt, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual)
     {
 
         // Init containers
@@ -260,7 +260,8 @@ public:
         this->max_depth = max_depth;
         this->burnin = burnin;
         this->ini_var_yhat = ini_var_yhat;
-        this->Xorder_std = &Xorder_std;
+        this->Xorder_std_pr = &Xorder_std_pr;
+        this->Xorder_std_trt = &Xorder_std_trt;
 
         // those are for XBCF, initialize at a length 1 vector
         this->residual = std::vector<double>(1, 0);
@@ -393,7 +394,7 @@ public:
 class xbcfState : public State
 {
 public:
-    xbcfState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t n_trt, size_t p, size_t p_tau, size_t num_trees_con, size_t num_trees_mod, size_t p_categorical_pr, size_t p_categorical_trt, size_t p_continuous_pr, size_t p_continuous_trt, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry_pr, size_t mtry_trt, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std, N, p, p_tau, num_trees_con, num_trees_mod, p_categorical_pr, p_categorical_trt, p_continuous_pr, p_continuous_trt, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry_pr, mtry_trt, X_std, num_sweeps, sample_weights, y_std, b_std, z, sigma_vec, b_vec, max_depth, ini_var_yhat, burnin, dim_residual)
+    xbcfState(const double *Xpointer, matrix<size_t> &Xorder_std_pr, matrix<size_t> &Xorder_std_trt, size_t N, size_t n_trt, size_t p, size_t p_tau, size_t num_trees_con, size_t num_trees_mod, size_t p_categorical_pr, size_t p_categorical_trt, size_t p_continuous_pr, size_t p_continuous_trt, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry_pr, size_t mtry_trt, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std_pr, Xorder_std_trt, N, p, p_tau, num_trees_con, num_trees_mod, p_categorical_pr, p_categorical_trt, p_continuous_pr, p_continuous_trt, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry_pr, mtry_trt, X_std, num_sweeps, sample_weights, y_std, b_std, z, sigma_vec, b_vec, max_depth, ini_var_yhat, burnin, dim_residual)
     {
         this->sigma_vec = sigma_vec;
         this->b_vec = b_vec;

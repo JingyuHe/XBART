@@ -30,6 +30,24 @@ pi <- pnorm(-0.5 + mu(x) - x[, 2] + 0. * x[, 4], 0, 3)
 # hist(pi,100)
 z <- rbinom(n, 1, pi)
 
+# x1 = rnorm(n)
+# x2 = rnorm(n)
+# x3 = rnorm(n)
+# x4 = rnorm(n)
+# x5 = rnorm(n)
+
+# x = cbind(x1, x2, x3, x4, x5)
+
+# tau <- 2 + 0.5 * x[, 4] * (2 * x[, 5] - 1)
+# mu <- function(x) {
+#   lev <- c(-0.5, 0.75, 0)
+#   result <- 1 + x[, 1] * (2 * x[, 2] - 2 * (1 - x[, 2])) + x[, 3]
+#   return(result)
+# }
+# pi <- pnorm(-0.5 + mu(x) - x[, 2] + 0. * x[, 4], 0, 3)
+# z <- rbinom(n, 1, pi)
+
+
 # generate outcome variable
 Ey <- mu(x) + tau * z
 sig <- 0.25 * sd(Ey)
@@ -52,7 +70,8 @@ x1 <- cbind(pihat, x)
 
 # run XBCF
 t1 <- proc.time()
-xbcf.fit <- XBCF.discrete(y = y, z = z, x_con = x, x_mod = x, pihat = pihat, pcat_con = 5, pcat_mod = 5)
+# xbcf.fit <- XBCF::XBCF(y = y, z = z, x_con = x, x_mod = x, pihat = pihat, pcat_con = 5, pcat_mod = 5, num_sweeps = 60, burnin = 30)
+xbcf.fit <- XBART::XBCF(y = y, Z = z, X_con = x, X_mod = x, pihat = pihat, p_categorical_con = 5, p_catgorical_mod = 5, num_sweeps = 60, burnin = 30)
 t1 <- proc.time() - t1
 
 # get treatment individual-level estimates

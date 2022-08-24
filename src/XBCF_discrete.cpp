@@ -341,7 +341,7 @@ Rcpp::List XBCF_discrete_cpp(mat y, mat X, mat X_tau, mat z,             // resp
     std::vector<size_t> num_trees(2); // vector of tree number for each of mu and tau
     num_trees[0] = num_trees_pr;
     num_trees[1] = num_trees_trt;
-    cout << "fine 0.2" << endl;
+
     size_t n_trt = 0; // number of treated individuals TODO: remove from here and from constructor as well
 
     // assuming we have presorted data (treated individuals first, then control group)
@@ -358,14 +358,14 @@ Rcpp::List XBCF_discrete_cpp(mat y, mat X, mat X_tau, mat z,             // resp
     double *Xpointer = &X_std[0];
     double *Xpointer_tau = &X_tau_std[0];
     // double *Xtestpointer = &Xtest_std[0];
-    cout << "fine 0.3" << endl;
+
     matrix<double> tauhats_xinfo;
     ini_matrix(tauhats_xinfo, N, num_sweeps);
     matrix<double> muhats_xinfo;
     ini_matrix(muhats_xinfo, N, num_sweeps);
     // matrix<double> total_fit;
     // ini_matrix(total_fit, N, num_sweeps);
-    cout << "fine 1" << endl;
+    
     matrix<double> sigma0_draw_xinfo;
     ini_matrix(sigma0_draw_xinfo, num_trees_trt + num_trees_pr, num_sweeps);
 
@@ -385,17 +385,17 @@ Rcpp::List XBCF_discrete_cpp(mat y, mat X, mat X_tau, mat z,             // resp
     ini_matrix(b_xinfo, num_sweeps, 2);
 
     // // Create trees
-    vector<vector<tree>> *trees_pr = new vector<vector<tree>>(num_sweeps);
+    vector<vector<tree>> trees_pr(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++)
     {
-        (*trees_pr)[i] = vector<tree>(num_trees_pr);
+        trees_pr[i].resize(num_trees_pr);
     }
 
     // // Create trees
-    vector<vector<tree>> *trees_trt = new vector<vector<tree>>(num_sweeps);
+    vector<vector<tree>> trees_trt(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++)
     {
-        (*trees_trt)[i] = vector<tree>(num_trees_trt);
+        trees_trt[i].resize(num_trees_trt);
     }
     // define the model for the prognostic term
     xbcfModel *model_pr = new xbcfModel(kap_pr, s_pr, tau_pr, alpha_pr, beta_pr);
@@ -406,7 +406,7 @@ Rcpp::List XBCF_discrete_cpp(mat y, mat X, mat X_tau, mat z,             // resp
     model_trt->setNoSplitPenality(no_split_penality);
 
     // State settings for the prognostic term
-    xbcfState state(Xpointer, Xorder_std, N, n_trt, p_pr, p_trt, num_trees_pr, num_trees_trt, p_categorical_pr, p_categorical_trt, p_continuous_pr, p_continuous_trt, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry_pr, mtry_trt, Xpointer, num_sweeps, sample_weights, &y_std, b, z_std, sigma_vec, b_vec, max_depth, y_mean, burnin, model_trt->dim_residual);
+    xbcfState state(Xpointer, Xorder_std, Xorder_tau_std, N, n_trt, p_pr, p_trt, num_trees_pr, num_trees_trt, p_categorical_pr, p_categorical_trt, p_continuous_pr, p_continuous_trt, set_random_seed, random_seed, n_min, num_cutpoints, parallel, mtry_pr, mtry_trt, Xpointer, num_sweeps, sample_weights, &y_std, b, z_std, sigma_vec, b_vec, max_depth, y_mean, burnin, model_trt->dim_residual);
 
     // initialize X_struct for the prognostic term
     std::vector<double> initial_theta_pr(1, y_mean / (double)num_trees_pr);
@@ -417,12 +417,11 @@ Rcpp::List XBCF_discrete_cpp(mat y, mat X, mat X_tau, mat z,             // resp
     X_struct x_struct_trt(Xpointer_tau, &y_std, N, Xorder_tau_std, p_categorical_trt, p_continuous_trt, &initial_theta_trt, num_trees_trt);
 
     // mcmc_loop returns tauhat [N x sweeps] matrix
-    mcmc_loop_xbcf(Xorder_std, Xorder_tau_std, Xpointer, Xpointer_tau, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, b_xinfo, a_xinfo, *trees_pr, *trees_trt, no_split_penality,
-                   state, model_pr, model_trt, x_struct_pr, x_struct_trt, a_scaling, b_scaling);
+    mcmc_loop_xbcf(Xorder_std, Xorder_tau_std, Xpointer, Xpointer_tau, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, b_xinfo, a_xinfo, trees_pr, trees_trt, no_split_penality, state, model_pr, model_trt, x_struct_pr, x_struct_trt, a_scaling, b_scaling);
 
     // predict tauhats and muhats
-    model_trt->predict_std(Xpointer_tau, N, p_trt, num_sweeps, tauhats_xinfo, *trees_trt);
-    model_pr->predict_std(Xpointer, N, p_pr, num_sweeps, muhats_xinfo, *trees_pr);
+    model_trt->predict_std(Xpointer_tau, N, p_trt, num_sweeps, tauhats_xinfo, trees_trt);
+    model_pr->predict_std(Xpointer, N, p_pr, num_sweeps, muhats_xinfo, trees_pr);
 
     // R Objects to Return
     Rcpp::NumericMatrix tauhats(N, num_sweeps);
@@ -434,8 +433,8 @@ Rcpp::List XBCF_discrete_cpp(mat y, mat X, mat X_tau, mat z,             // resp
     // Rcpp::NumericMatrix b1_draws(num_trees_trt, num_sweeps);
     Rcpp::NumericMatrix b_draws(num_sweeps, 2);
     Rcpp::NumericMatrix a_draws(num_sweeps, 1);
-    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt_pr(trees_pr, true);
-    Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt_trt(trees_trt, true);
+    // Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt_pr(trees_pr, true);
+    // Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt_trt(trees_trt, true);
 
     std_to_rcpp(tauhats_xinfo, tauhats);
     std_to_rcpp(muhats_xinfo, muhats);
@@ -478,17 +477,19 @@ Rcpp::List XBCF_discrete_cpp(mat y, mat X, mat X_tau, mat z,             // resp
 
         for (size_t t = 0; t < num_trees_pr; t++)
         {
-            treess_pr << (*trees_pr)[i][t];
+            treess_pr << (trees_pr)[i][t];
         }
 
         for (size_t t = 0; t < num_trees_trt; t++)
         {
-            treess_trt << (*trees_trt)[i][t];
+            treess_trt << (trees_trt)[i][t];
         }
 
         output_tree_pr(i) = treess_pr.str();
         output_tree_trt(i) = treess_trt.str();
     }
+
+    cout << (trees_pr)[0][0] << endl;
 
     // clean memory
     delete model_pr;
@@ -502,9 +503,9 @@ Rcpp::List XBCF_discrete_cpp(mat y, mat X, mat X_tau, mat z,             // resp
         Rcpp::Named("sigma1_draws") = sigma1_draws,
         Rcpp::Named("b_draws") = b_draws,
         Rcpp::Named("a_draws") = a_draws,
-        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt_pr") = tree_pnt_pr,
-                                                       Rcpp::Named("tree_pnt_trt") = tree_pnt_trt,
-                                                       Rcpp::Named("y_mean") = y_mean),
+        // Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt_pr") = tree_pnt_pr,
+                                                    //    Rcpp::Named("tree_pnt_trt") = tree_pnt_trt,
+                                                    //    Rcpp::Named("y_mean") = y_mean),
         Rcpp::Named("treedraws_pr") = output_tree_pr,
         Rcpp::Named("treedraws_trt") = output_tree_trt,
         Rcpp::Named("sdy_use") = NULL,

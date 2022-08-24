@@ -353,11 +353,17 @@ void xbcfModel::set_state_status(State &state, size_t value, const double *X, ma
     state.p = state.p_pr;
     state.p_categorical = state.p_categorical_pr;
     state.p_continuous = state.p_continuous_pr;
+    state.Xorder_std = state.Xorder_std_pr;
+    state.mtry = state.mtry_pr;
+    state.num_trees = state.num_trees_con;
   }
   else
   {
     state.p = state.p_trt;
     state.p_categorical = state.p_categorical_trt;
     state.p_continuous = state.p_continuous_trt;
+    state.Xorder_std = state.Xorder_std_trt;
+    state.mtry = state.mtry_trt;
+    state.num_trees = state.num_trees_mod;
   }
 }

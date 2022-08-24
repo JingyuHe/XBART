@@ -25,14 +25,11 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std,
                     bool a_scaling,
                     bool b_scaling)
 {
-  // cout << "size of Xorder std " << Xorder_std.size() << endl;
-  // cout << "size of Xorder tau " << Xorder_tau_std.size() << endl;
   if (state.parallel)
     thread_pool.start();
 
   for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
   {
-    // cout << "sweep: " << sweeps << endl;
     if (verbose == true)
     {
       COUT << "--------------------------------" << endl;
@@ -45,6 +42,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std,
     ////////////// Prognostic term loop
     for (size_t tree_ind = 0; tree_ind < state.num_trees_con; tree_ind++)
     {
+      cout << "sweeps " << sweeps << " " << tree_ind << endl;
       state.update_residuals();       // update residuals
       model_ps->draw_sigma(state, 0); // draw sigmas (and update them in the state obj)
 
@@ -57,6 +55,7 @@ void mcmc_loop_xbcf(matrix<size_t> &Xorder_std, matrix<size_t> &Xorder_tau_std,
         state.use_all = false;
       }
 
+      (*state.split_count_current_tree).resize(state.p_con);
       std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0); // clear counts of splits for one tree
 
       if (state.sample_weights)
