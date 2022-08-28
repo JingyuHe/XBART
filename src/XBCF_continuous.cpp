@@ -125,10 +125,10 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::
 
     std::vector<double> initial_theta_mod(1, y_mean / (double)num_trees_mod);
     X_struct x_struct_mod(Xpointer_mod, &y_std, N, Xorder_std_mod, p_categorical_mod, p_continuous_mod, &initial_theta_mod, num_trees_mod);
-
+    cout << "ok 1" << endl;
     ////////////////////////////////////////////////////////////////
     mcmc_loop_linear(Xorder_std_con, Xorder_std_mod, verbose, sigma_draw_xinfo, trees_con, trees_mod, no_split_penality, state, model, x_struct_con, x_struct_mod);
-
+    cout << "ok 2" << endl;
     // R Objects to Return
     Rcpp::NumericMatrix sigma_draw(num_trees_con + num_trees_mod, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum_con(p_con, 0);                         // split counts

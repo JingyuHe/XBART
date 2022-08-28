@@ -32,10 +32,12 @@ public:
     // for XBCF
     matrix<double> *split_count_all_tree_con;
     std::vector<double> *split_count_all_con;
+    std::vector<double> *split_count_current_tree_con;
     std::vector<double> *mtry_weight_current_tree_con;
 
     matrix<double> *split_count_all_tree_mod;
     std::vector<double> *split_count_all_mod;
+    std::vector<double> *split_count_current_tree_mod;
     std::vector<double> *mtry_weight_current_tree_mod;
 
     // mtry
@@ -88,6 +90,8 @@ public:
     size_t mtry_mod;
     size_t num_trees_con;
     size_t num_trees_mod;
+    const double *X_std_con;
+    const double *X_std_mod;
 
     void update_sigma(double sigma)
     {
@@ -114,6 +118,7 @@ public:
         this->d = std::discrete_distribution<>(prob.begin(), prob.end());
 
         // Splits
+        this->X_std = Xpointer;
         this->split_count_all_tree = new matrix<double>();
         ini_xinfo((*this->split_count_all_tree), p, num_trees);
         this->split_count_current_tree = new std::vector<double>(p, 0);
@@ -205,9 +210,11 @@ public:
         ini_xinfo((*this->split_count_all_tree_con), p_con, num_trees_con);
         ini_xinfo((*this->split_count_all_tree_mod), p_mod, num_trees_mod);
         this->split_count_all_con = new std::vector<double>(p_con, 0);
-        this->mtry_weight_current_tree_con = new std::vector<double>(p_con, 0);
         this->split_count_all_mod = new std::vector<double>(p_mod, 0);
+        this->mtry_weight_current_tree_con = new std::vector<double>(p_con, 0);
         this->mtry_weight_current_tree_mod = new std::vector<double>(p_mod, 0);
+        this->split_count_current_tree_con = new std::vector<double>(p_con, 0);
+        this->split_count_current_tree_mod = new std::vector<double>(p_mod, 0);
         this->Z_std = Z_std;
         this->sigma = sigma;
         this->sigma2 = pow(sigma, 2);
@@ -226,6 +233,11 @@ public:
         this->mtry_mod = mtry_mod;
         this->num_trees_con = num_trees_con;
         this->num_trees_mod = num_trees_mod;
+        this->X_std_con = Xpointer_con;
+        this->X_std_mod = Xpointer_mod;
+
+        cout << " p "
+             << " " << p_con << " " << p_mod << endl;
     }
 };
 #endif

@@ -313,6 +313,11 @@ void XBCFContinuousModel::set_treatmentflag(State &state, bool value)
         state.num_trees = state.num_trees_mod;
         this->alpha = this->alpha_mod;
         this->beta = this->beta_mod;
+        state.X_std = state.X_std_mod;
+        state.split_count_all_tree = state.split_count_all_tree_mod;
+        state.split_count_all = state.split_count_all_mod;
+        state.split_count_current_tree = state.split_count_current_tree_mod;
+        state.mtry_weight_current_tree = state.mtry_weight_current_tree_mod;
     }
     else
     {
@@ -324,6 +329,11 @@ void XBCFContinuousModel::set_treatmentflag(State &state, bool value)
         state.num_trees = state.num_trees_con;
         this->alpha = this->alpha_con;
         this->beta = this->beta_con;
+        state.X_std = state.X_std_con;
+        state.split_count_all_tree = state.split_count_all_tree_con;
+        state.split_count_all = state.split_count_all_con;
+        state.split_count_current_tree = state.split_count_current_tree_con;
+        state.mtry_weight_current_tree = state.mtry_weight_current_tree_con;
     }
     return;
 }
