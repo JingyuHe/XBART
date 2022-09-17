@@ -311,82 +311,99 @@ void LogitModel::samplePars(State &state, std::vector<double> &suff_stat, std::v
     return;
 }
 
-void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct)
+void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double>& var_lambda, size_t &count_lambda)
 {
 
-    // Calculate logloss
-    size_t y_i;
-    double sum_fits;
-    logloss = 0; // reset logloss
-    double prob = 0.0;
-    std::gamma_distribution<double> gammadist(weight, 1.0);
 
-    for (size_t i = 0; i < state.n_y; i++)
-    {
-        sum_fits = 0;
-        y_i = (size_t)(*y_size_t)[i];
-        for (size_t j = 0; j < dim_residual; ++j)
-        {
-            sum_fits += exp((*state.residual_std)[j][i]) * (*(x_struct.data_pointers[tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
-        }
-        // Sample phi
-        // (*phi)[i] = gammadist(state.gen) / (1.0 * sum_fits);
-        // calculate logloss
-        prob = exp((*state.residual_std)[y_i][i]) * (*(x_struct.data_pointers[tree_ind][i]))[y_i] / sum_fits; // logloss =  - log(p_j)
-
-        logloss += -log(prob);
-    }
     // sample weight based on logloss
     if (update_weight)
     {
+        // Calculate logloss
+        size_t y_i;
+        double sum_fits;
+        logloss = 0; // reset logloss
+        double prob = 0.0;
+        std::gamma_distribution<double> gammadist(weight, 1.0);
+
+        for (size_t i = 0; i < state.n_y; i++)
+        {
+            sum_fits = 0;
+            y_i = (size_t)(*y_size_t)[i];
+            for (size_t j = 0; j < dim_residual; ++j)
+            {
+                sum_fits += exp((*state.residual_std)[j][i]) * (*(x_struct.data_pointers[tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
+            }
+            // Sample phi
+            // (*phi)[i] = gammadist(state.gen) / (1.0 * sum_fits);
+            // calculate logloss
+            prob = exp((*state.residual_std)[y_i][i]) * (*(x_struct.data_pointers[tree_ind][i]))[y_i] / sum_fits; // logloss =  - log(p_j)
+
+            logloss += -log(prob);
+        }
 
         std::gamma_distribution<> d(10.0, 1.0);
         weight = d(state.gen) / (10.0 * logloss / (double)state.n_y + 1.0); // it's like shift p down by
+        
+        if (std::isnan(weight))
+        {
+            COUT << "weight is nan" << endl;
+        }
     }
-    if (std::isnan(weight))
-    {
-        COUT << "weight is nan" << endl;
-    }
+
+
 
     // Sample tau_a
     if (update_tau)
     {
-        size_t count_lambda = 0;
-        double mean_lambda = 0;
-        double var_lambda = 0;
-        for (size_t i = 0; i < state.num_trees; i++)
+        // mean = ( mean * N + new_data ) / new_N
+        mean_lambda = mean_lambda * count_lambda;
+        count_lambda += (*state.lambdas)[tree_ind].size() * dim_residual;
+
+        // get sum of all leaf parameters in that tree.
+        for (size_t i = 0; i < (*state.lambdas)[tree_ind].size(); i++)
         {
-            for (size_t j = 0; j < (*state.lambdas)[i].size(); j++)
-            {
-                mean_lambda += std::accumulate((*state.lambdas)[i][j].begin(), (*state.lambdas)[i][j].end(), 0.0);
-                count_lambda += dim_residual;
-            }
+            mean_lambda += std::accumulate((*state.lambdas)[tree_ind][i].begin(), (*state.lambdas)[tree_ind][i].end(), 0.0);
         }
         mean_lambda = mean_lambda / count_lambda;
 
-        for (size_t i = 0; i < state.num_trees; i++)
+        // variance is updated partially
+        // var_lambda[tree_ind] = 0;
+        for (size_t i = 0; i < (*state.lambdas)[tree_ind].size(); i++)
         {
-            for (size_t j = 0; j < (*state.lambdas)[i].size(); j++)
+            for (size_t j = 0; j < dim_residual; j++)
             {
-                for (size_t k = 0; k < dim_residual; k++)
-                {
-                    // var_lambda += pow((*state.lambdas)[i][j][k] / max_lambda - mean_lambda, 2);
-                    var_lambda += pow((*state.lambdas)[i][j][k] / mean_lambda - 1, 2);
-                }
+                // var_lambda += pow((*state.lambdas)[i][j][k] / max_lambda - mean_lambda, 2);
+                var_lambda[tree_ind] += pow((*state.lambdas)[tree_ind][i][j] - mean_lambda, 2);
+       
             }
         }
-        var_lambda = var_lambda / count_lambda;
+        double sqrt_lambda = sqrt( std::accumulate(var_lambda.begin(), var_lambda.end(), 0.0) / (count_lambda - 1) );
 
-        // std::normal_distribution<> norm(mean_lambda, sqrt(var_lambda));
-        std::normal_distribution<> norm(1, sqrt(var_lambda));
+        std::normal_distribution<> norm(0, 1);
         tau_a = 0;
         while (tau_a <= 0)
         {
-            tau_a = norm(state.gen) * tau_b;
+            tau_a = tau_b * mean_lambda + norm(state.gen) * tau_b * sqrt_lambda ;
         }
 
-        // std::gamma_distribution<> d(10.0 *logloss / (double)state.n_y , 1.0);
-        // tau_a = d(state.gen) ; // it's like shift p down by
+        // remove lambdas of the next tree
+        size_t next_index = tree_ind + 1;
+        if (next_index == state.num_trees)
+        {
+            next_index = 0;
+        }
+
+        // mean = ( mean * N - old_data ) / new_N
+        mean_lambda = mean_lambda * count_lambda;
+        count_lambda -= (*state.lambdas)[next_index].size() * dim_residual;
+        
+        // get sum of all leaf parameters in that tree.
+        for (size_t i = 0; i < (*state.lambdas)[next_index].size(); i++)
+        {
+            mean_lambda -= std::accumulate((*state.lambdas)[next_index][i].begin(), (*state.lambdas)[next_index][i].end(), 0.0);
+        }
+        mean_lambda = mean_lambda / count_lambda;
+        var_lambda[next_index] = 0;
     }
 
     return;

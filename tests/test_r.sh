@@ -5,4 +5,4 @@ R CMD REMOVE XBART
 R CMD INSTALL XBART
 cd XBART/tests/
 echo Testing R
-Rscript test_regression.R
+Rscript test_classification.R

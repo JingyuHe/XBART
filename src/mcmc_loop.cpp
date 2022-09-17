@@ -101,6 +101,11 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 {
     // Residual for 0th tree
     model->ini_residual_std(state);
+    
+    // keep track of mean of leaf parameters
+    double mean_lambda = 1;
+    size_t count_lambda = (state.num_trees - 1) * model->dim_residual; // less the lambdas in the first tree
+    std::vector<double> var_lambda(state.num_trees, 0.0);
 
     for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
     {
@@ -136,14 +141,6 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             }
 
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
-            for (size_t k = 0; k < trees[sweeps][tree_ind].suff_stat.size(); k++)
-            {
-                if (std::isnan(trees[sweeps][tree_ind].suff_stat[k]))
-                {
-                    COUT << "unidentified error: suffstat " << k << " initialized as nan" << endl;
-                    exit(1);
-                }
-            }
 
             trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
             (*state.lambdas)[tree_ind].clear();
@@ -160,7 +157,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                 }
             }
             // update partial fits for the next tree
-            model->update_state(state, tree_ind, x_struct);
+            model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
 
             model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
 
