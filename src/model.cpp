@@ -381,10 +381,14 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
 
         std::normal_distribution<> norm(0, 1);
         tau_a = 0;
+        size_t count_tau_a = 0;
         while (tau_a <= 0)
         {
             tau_a = tau_b * mean_lambda + norm(state.gen) * tau_b * sqrt_lambda ;
+            count_tau_a += 1;
         }
+        // cout << "tau_a mean = " << mean_lambda << ", sqrt = " << sqrt_lambda << ", attempts = " << count_tau_a << endl;
+
 
         // remove lambdas of the next tree
         size_t next_index = tree_ind + 1;
