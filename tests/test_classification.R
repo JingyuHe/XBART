@@ -79,7 +79,9 @@ num_sweeps <- 20
 burnin <- 5
 num_trees <- 20
 tm <- proc.time()
-fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, num_trees = num_trees, num_sweeps = num_sweeps, p_categorical = p_cat, separate_tree = FALSE, parallel = TRUE, nthread = 8)
+fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, 
+    num_trees = num_trees, num_sweeps = num_sweeps, p_categorical = p_cat, 
+    separate_tree = FALSE, parallel = TRUE, nthread = 8, update_tau = TRUE)
 
 tm <- proc.time() - tm
 cat(paste("XBART runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
@@ -92,8 +94,12 @@ cat("-----------------------------\n")
 
 
 tm2 <- proc.time()
-fit.xgb <- xgboost(data = X_train, label = y_train, num_class = k, verbose = 0, max_depth = 4, subsample = 0.80, nrounds = 500, early_stopping_rounds = 2, eta = 0.1, params = list(objective = "multi:softprob"))
-
+# fit.xgb <- xgboost(data = X_train, label = y_train, num_class = k, verbose = 0, max_depth = 4, subsample = 0.80, nrounds = 500, early_stopping_rounds = 2, eta = 0.1, params = list(objective = "multi:softprob"))
+fit.xgb <- xgboost(data = as.matrix(X_train), label = matrix(y_train),
+                       num_class=k, verbose = 0,
+                       nrounds=500,
+                       early_stopping_rounds = 50,
+                       params=list(objective="multi:softprob", eval_metric='mlogloss'))
 tm2 <- proc.time() - tm2
 cat(paste("XGBoost runtime: ", round(tm2["elapsed"], 3), " seconds"), "\n")
 phat.xgb <- predict(fit.xgb, X_test)
