@@ -373,18 +373,20 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
             for (size_t j = 0; j < dim_residual; j++)
             {
                 // var_lambda += pow((*state.lambdas)[i][j][k] / max_lambda - mean_lambda, 2);
-                var_lambda[tree_ind] += pow((*state.lambdas)[tree_ind][i][j] - mean_lambda, 2);
-       
+                // var_lambda[tree_ind] += pow((*state.lambdas)[tree_ind][i][j] - mean_lambda, 2);
+                var_lambda[tree_ind] += pow((*state.lambdas)[tree_ind][i][j] / mean_lambda - 1, 2);
             }
         }
         double sqrt_lambda = sqrt( std::accumulate(var_lambda.begin(), var_lambda.end(), 0.0) / (count_lambda - 1) );
 
-        std::normal_distribution<> norm(0, 1);
+        // std::normal_distribution<> norm(0, 1);
+        std::normal_distribution<> norm(1, sqrt_lambda);
         tau_a = 0;
         size_t count_tau_a = 0;
         while (tau_a <= 0)
         {
-            tau_a = tau_b * mean_lambda + norm(state.gen) * tau_b * sqrt_lambda ;
+            // tau_a = tau_b * mean_lambda + norm(state.gen) * tau_b * sqrt_lambda ;
+            tau_a = norm(state.gen) * tau_b;
             count_tau_a += 1;
         }
         // cout << "tau_a mean = " << mean_lambda << ", sqrt = " << sqrt_lambda << ", attempts = " << count_tau_a << endl;
