@@ -21,3 +21,7 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
 
 // XBCF for continuous treatment
 void mcmc_loop_xbcf_continuous(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod, double no_split_penalty, State &state, XBCFContinuousModel *model, X_struct &x_struct_con, X_struct &x_struct_mod);
+
+// XBCF for discrete treatment
+void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod, double no_split_penalty, State &state, XBCFDiscreteModel *model, X_struct &x_struct_con, X_struct &x_struct_mod);
+

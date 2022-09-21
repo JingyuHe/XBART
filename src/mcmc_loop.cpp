@@ -389,3 +389,142 @@ void mcmc_loop_xbcf_continuous(matrix<size_t> &Xorder_std_con, matrix<size_t> &X
     }
     return;
 }
+
+
+
+void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod, double no_split_penalty, State &state, XBCFDiscreteModel *model, X_struct &x_struct_con, X_struct &x_struct_mod)
+{
+    model->ini_tau_mu_fit(state);
+
+    for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
+    {
+        if (verbose == true)
+        {
+            COUT << "--------------------------------" << endl;
+            COUT << "number of sweeps " << sweeps << endl;
+            COUT << "--------------------------------" << endl;
+        }
+
+        // prognostic forest
+        model->set_treatmentflag(state, 0);
+
+        for (size_t tree_ind = 0; tree_ind < state.num_trees_con; tree_ind++)
+        {
+            if (verbose)
+            {
+                COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
+            }
+
+            // Draw Sigma
+            model->update_state(state, tree_ind, x_struct_con);
+
+            sigma_draw_xinfo[sweeps][tree_ind] = state.sigma;
+
+            if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
+            {
+                state.use_all = false;
+            }
+
+            // clear counts of splits for one tree
+            (*state.split_count_current_tree).resize(state.p_con);
+            std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0);
+
+            // subtract old tree for sampling case
+            if (state.sample_weights)
+            {
+                (*state.mtry_weight_current_tree_con) = (*state.mtry_weight_current_tree_con) - (*state.split_count_all_tree_con)[tree_ind];
+                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree_con);
+            }
+
+            // update tau_fit from full fit to partial fit
+            model->subtract_old_tree_fit(tree_ind, state, x_struct_con);
+
+            // calculate partial residuals based on partial fit
+            model->update_partial_residuals(tree_ind, state, x_struct_con);
+
+            model->initialize_root_suffstat(state, trees_con[sweeps][tree_ind].suff_stat);
+
+            trees_con[sweeps][tree_ind].grow_from_root(state, Xorder_std_con, x_struct_con.X_counts, x_struct_con.X_num_unique, model, x_struct_con, sweeps, tree_ind);
+
+            // update tau_fit from partial fit to full fit
+            model->add_new_tree_fit(tree_ind, state, x_struct_con);
+
+            model->update_split_counts(state, tree_ind);
+
+            if (sweeps >= state.burnin)
+            {
+                for (size_t i = 0; i < (*state.split_count_all_con).size(); i++)
+                {
+                    (*state.split_count_all_con)[i] += (*state.split_count_current_tree)[i];
+                }
+            }
+        }
+        
+        if (model->sampling_tau)
+        {
+            model->update_tau_per_forest(state, sweeps, trees_con);
+        }
+
+        // treatment forest
+        model->set_treatmentflag(state, 1);
+
+        for (size_t tree_ind = 0; tree_ind < state.num_trees_mod; tree_ind++)
+        {
+            if (verbose)
+            {
+                COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
+            }
+
+            // Draw Sigma
+            model->update_state(state, tree_ind, x_struct_mod);
+
+            sigma_draw_xinfo[sweeps][tree_ind + state.num_trees_con] = state.sigma;
+
+            if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
+            {
+                state.use_all = false;
+            }
+
+            // clear counts of splits for one tree
+            (*state.split_count_current_tree).resize(state.p_mod);
+            std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0);
+
+            // subtract old tree for sampling case
+            if (state.sample_weights)
+            {
+                (*state.mtry_weight_current_tree_mod) = (*state.mtry_weight_current_tree_mod) - (*state.split_count_all_tree_mod)[tree_ind];
+                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree_mod);
+            }
+
+            // update tau_fit from full fit to partial fit
+            model->subtract_old_tree_fit(tree_ind, state, x_struct_mod);
+
+            // calculate partial residuals based on partial fit
+            model->update_partial_residuals(tree_ind, state, x_struct_mod);
+
+            model->initialize_root_suffstat(state, trees_mod[sweeps][tree_ind].suff_stat);
+
+            trees_mod[sweeps][tree_ind].grow_from_root(state, Xorder_std_mod, x_struct_mod.X_counts, x_struct_mod.X_num_unique, model, x_struct_mod, sweeps, tree_ind);
+
+            // update tau_fit from partial fit to full fit
+            model->add_new_tree_fit(tree_ind, state, x_struct_mod);
+
+            model->update_split_counts(state, tree_ind);
+
+            if (sweeps >= state.burnin)
+            {
+                for (size_t i = 0; i < (*state.split_count_all_mod).size(); i++)
+                {
+                    (*state.split_count_all_mod)[i] += (*state.split_count_current_tree)[i];
+                }
+            }
+        }
+
+        if (model->sampling_tau)
+        {
+            model->update_tau_per_forest(state, sweeps, trees_mod);
+        }
+    }
+    return;
+}
+

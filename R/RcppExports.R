@@ -9,16 +9,12 @@ XBART_multinomial_cpp <- function(y, num_class, X, num_trees, num_sweeps, max_de
     .Call(`_XBART_XBART_multinomial_cpp`, y, num_class, X, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penality, burnin, mtry, p_categorical, verbose, parallel, set_random_seed, random_seed, sample_weights, separate_tree, weight, update_weight, update_tau, nthread, hmult, heps)
 }
 
-XBCF_cpp <- function(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth, n_min, num_cutpoints, alpha_con, beta_con, alpha_mod, beta_mod, tau_con, tau_mod, no_split_penality, burnin = 1L, mtry_con = 0L, mtry_mod = 0L, p_categorical_con = 0L, p_categorical_mod = 0L, kap = 16, s = 4, tau_con_kap = 3, tau_con_s = 0.5, tau_mod_kap = 3, tau_mod_s = 0.5, pr_scale = FALSE, trt_scale = FALSE, a_scaling = TRUE, b_scaling = TRUE, verbose = FALSE, sampling_tau = TRUE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights = TRUE, nthread = 0) {
-    .Call(`_XBART_XBCF_cpp`, y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth, n_min, num_cutpoints, alpha_con, beta_con, alpha_mod, beta_mod, tau_con, tau_mod, no_split_penality, burnin, mtry_con, mtry_mod, p_categorical_con, p_categorical_mod, kap, s, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s, pr_scale, trt_scale, a_scaling, b_scaling, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights, nthread)
-}
-
 XBCF_continuous_cpp <- function(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth, n_min, num_cutpoints, alpha_con, beta_con, alpha_mod, beta_mod, tau_con, tau_mod, no_split_penality, burnin = 1L, mtry_con = 0L, mtry_mod = 0L, p_categorical_con = 0L, p_categorical_mod = 0L, kap = 16, s = 4, tau_con_kap = 3, tau_con_s = 0.5, tau_mod_kap = 3, tau_mod_s = 0.5, verbose = FALSE, sampling_tau = TRUE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights = TRUE, nthread = 0) {
     .Call(`_XBART_XBCF_continuous_cpp`, y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth, n_min, num_cutpoints, alpha_con, beta_con, alpha_mod, beta_mod, tau_con, tau_mod, no_split_penality, burnin, mtry_con, mtry_mod, p_categorical_con, p_categorical_mod, kap, s, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights, nthread)
 }
 
-XBCF_discrete_cpp <- function(y, X, X_tau, z, num_sweeps, burnin = 1L, max_depth = 1L, n_min = 5L, num_cutpoints = 1L, no_split_penality = 0.001, mtry_pr = 0L, mtry_trt = 0L, p_categorical_pr = 0L, p_categorical_trt = 0L, num_trees_pr = 200L, alpha_pr = 0.95, beta_pr = 2, tau_pr = 0.5, kap_pr = 16, s_pr = 4, pr_scale = FALSE, num_trees_trt = 50L, alpha_trt = 0.25, beta_trt = 3, tau_trt = 0.5, kap_trt = 16, s_trt = 4, trt_scale = FALSE, verbose = FALSE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights = TRUE, a_scaling = TRUE, b_scaling = TRUE) {
-    .Call(`_XBART_XBCF_discrete_cpp`, y, X, X_tau, z, num_sweeps, burnin, max_depth, n_min, num_cutpoints, no_split_penality, mtry_pr, mtry_trt, p_categorical_pr, p_categorical_trt, num_trees_pr, alpha_pr, beta_pr, tau_pr, kap_pr, s_pr, pr_scale, num_trees_trt, alpha_trt, beta_trt, tau_trt, kap_trt, s_trt, trt_scale, verbose, parallel, set_random_seed, random_seed, sample_weights, a_scaling, b_scaling)
+XBCF_discrete_cpp <- function(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth, n_min, num_cutpoints, alpha_con, beta_con, alpha_mod, beta_mod, tau_con, tau_mod, no_split_penality, burnin = 1L, mtry_con = 0L, mtry_mod = 0L, p_categorical_con = 0L, p_categorical_mod = 0L, kap = 16, s = 4, tau_con_kap = 3, tau_con_s = 0.5, tau_mod_kap = 3, tau_mod_s = 0.5, pr_scale = FALSE, trt_scale = FALSE, a_scaling = TRUE, b_scaling = TRUE, verbose = FALSE, sampling_tau = TRUE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights = TRUE, nthread = 0) {
+    .Call(`_XBART_XBCF_discrete_cpp`, y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth, n_min, num_cutpoints, alpha_con, beta_con, alpha_mod, beta_mod, tau_con, tau_mod, no_split_penality, burnin, mtry_con, mtry_mod, p_categorical_con, p_categorical_mod, kap, s, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s, pr_scale, trt_scale, a_scaling, b_scaling, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights, nthread)
 }
 
 xbart_predict <- function(X, y_mean, tree_pnt) {
@@ -59,5 +55,9 @@ r_to_json_3D <- function(tree_pnt) {
 
 json_to_r_3D <- function(json_string_r) {
     .Call(`_XBART_json_to_r_3D`, json_string_r)
+}
+
+XBCF_cpp <- function(y, X, X_tau, z, num_sweeps, burnin = 1L, max_depth = 1L, n_min = 5L, num_cutpoints = 1L, no_split_penality = 0.001, mtry_pr = 0L, mtry_trt = 0L, p_categorical_pr = 0L, p_categorical_trt = 0L, num_trees_pr = 200L, alpha_pr = 0.95, beta_pr = 2, tau_pr = 0.5, kap_pr = 16, s_pr = 4, pr_scale = FALSE, num_trees_trt = 50L, alpha_trt = 0.25, beta_trt = 3, tau_trt = 0.5, kap_trt = 16, s_trt = 4, trt_scale = FALSE, verbose = FALSE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights = TRUE, a_scaling = TRUE, b_scaling = TRUE) {
+    .Call(`_XBART_XBCF_cpp`, y, X, X_tau, z, num_sweeps, burnin, max_depth, n_min, num_cutpoints, no_split_penality, mtry_pr, mtry_trt, p_categorical_pr, p_categorical_trt, num_trees_pr, alpha_pr, beta_pr, tau_pr, kap_pr, s_pr, pr_scale, num_trees_trt, alpha_trt, beta_trt, tau_trt, kap_trt, s_trt, trt_scale, verbose, parallel, set_random_seed, random_seed, sample_weights, a_scaling, b_scaling)
 }
 
