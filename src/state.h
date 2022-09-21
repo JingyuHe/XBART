@@ -176,6 +176,7 @@ class LogitState : public State
 
     void ini_lambda(std::vector<std::vector<std::vector<double>>> &lambdas, size_t num_trees, size_t dim_residual)
     {
+        // TODO: the two lambda structure can be merged, change this to lambda_separate structure
         // each tree has different number of theta vectors, each is of the size dim_residual (num classes)
         lambdas.resize(num_trees);
         for (size_t i = 0; i < num_trees; i++)
@@ -193,6 +194,9 @@ class LogitState : public State
         for (size_t i = 0; i < num_trees; i++)
         {
             lambdas[i].resize(dim_residual);
+            for(size_t j = 0; j < dim_residual; j++){
+                lambdas[i][j].push_back(1);
+            }
         }
     }
 

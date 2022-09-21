@@ -728,34 +728,83 @@ void LogitModelSeparateTrees::samplePars(State &state, std::vector<double> &suff
     return;
 }
 
-void LogitModelSeparateTrees::update_state(State &state, size_t tree_ind, X_struct &x_struct)
+void LogitModelSeparateTrees::update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double>& var_lambda, size_t &count_lambda)
 {
     // Draw weight
-    // Calculate logloss
-    size_t y_i;
-    double sum_fits;
-    logloss = 0; // reset logloss
-    std::gamma_distribution<double> gammadist(weight, 1.0);
-
-    for (size_t i = 0; i < state.n_y; i++)
-    {
-        sum_fits = 0;
-        y_i = (size_t)(*y_size_t)[i];
-        for (size_t j = 0; j < dim_residual; ++j)
-        {
-            sum_fits += exp((*state.residual_std)[j][i]) * (*(x_struct.data_pointers_multinomial[j][tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
-        }
-        // Sample phi
-        (*phi)[i] = gammadist(state.gen) / (1.0 * sum_fits);
-        // calculate logloss
-        logloss += -log(exp((*state.residual_std)[y_i][i]) * (*(x_struct.data_pointers_multinomial[y_i][tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j)
-    }
     if (update_weight)
     {
+        size_t y_i;
+        double sum_fits;
+        logloss = 0; // reset logloss
+        std::gamma_distribution<double> gammadist(weight, 1.0);
+
+        for (size_t i = 0; i < state.n_y; i++)
+        {
+            sum_fits = 0;
+            y_i = (size_t)(*y_size_t)[i];
+            for (size_t j = 0; j < dim_residual; ++j)
+            {
+                sum_fits += exp((*state.residual_std)[j][i]) * (*(x_struct.data_pointers_multinomial[j][tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
+            }
+            // Sample phi
+            (*phi)[i] = gammadist(state.gen) / (1.0 * sum_fits);
+            // calculate logloss
+            logloss += -log(exp((*state.residual_std)[y_i][i]) * (*(x_struct.data_pointers_multinomial[y_i][tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j)
+        }
+
         std::gamma_distribution<> d(state.n_y, 1);
         weight = d(state.gen) / (hmult * logloss + heps * (double)state.n_y) + 1;
     }
-    return;
+     // Sample tau_a
+    if (update_tau)
+    {
+        // mean = ( mean * N + new_data ) / new_N
+        mean_lambda = mean_lambda * count_lambda;
+
+        // get sum of all leaf parameters in that tree.
+        for (size_t i = 0; i < (*state.lambdas_separate)[tree_ind].size(); i++)
+        {
+            mean_lambda += std::accumulate((*state.lambdas_separate)[tree_ind][i].begin(), (*state.lambdas_separate)[tree_ind][i].end(), 0.0);
+            count_lambda += (*state.lambdas_separate)[tree_ind][i].size();
+        }
+        mean_lambda = mean_lambda / count_lambda;
+
+        // variance is updated partially
+        // var_lambda[tree_ind] = 0;
+        for (size_t i = 0; i < (*state.lambdas_separate)[tree_ind].size(); i++)
+        {
+            for (size_t j = 0; j < (*state.lambdas_separate)[tree_ind][i].size(); j++)
+            {
+                var_lambda[tree_ind] += pow((*state.lambdas_separate)[tree_ind][i][j] / mean_lambda - 1, 2);
+            }
+        }
+        double sqrt_lambda = sqrt( std::accumulate(var_lambda.begin(), var_lambda.end(), 0.0) / (count_lambda - 1) );
+
+        // std::normal_distribution<> norm(0, 1);
+        std::normal_distribution<> norm(1, sqrt_lambda);
+        tau_a = 0;
+        while (tau_a <= 0)
+        {
+            // tau_a = tau_b * mean_lambda + norm(state.gen) * tau_b * sqrt_lambda ;
+            tau_a = norm(state.gen) * tau_b;
+        }
+        // remove lambdas of the next tree
+        size_t next_index = tree_ind + 1;
+        if (next_index == state.num_trees)
+        {
+            next_index = 0;
+        }
+
+        // mean = ( mean * N - old_data ) / new_N
+        mean_lambda = mean_lambda * count_lambda;
+        for (size_t i = 0; i < (*state.lambdas_separate)[tree_ind].size(); i++)
+        {
+            mean_lambda -= std::accumulate((*state.lambdas_separate)[tree_ind][i].begin(), (*state.lambdas_separate)[tree_ind][i].end(), 0.0);
+            count_lambda -= (*state.lambdas_separate)[tree_ind][i].size();
+        }
+        mean_lambda = mean_lambda / count_lambda;
+        var_lambda[next_index] = 0;
+    }
 }
 
 void LogitModelSeparateTrees::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, X_struct &x_struct) const

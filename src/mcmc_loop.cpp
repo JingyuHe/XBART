@@ -175,7 +175,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
     }
 }
 
-void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, State &state, LogitModelSeparateTrees *model, X_struct &x_struct, std::vector<std::vector<double>> &weight_samples)
+void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, State &state, LogitModelSeparateTrees *model, X_struct &x_struct, std::vector<std::vector<double>> &weight_samples, std::vector<std::vector<double>> &tau_samples)
 {
 
     // Residual for 0th tree
@@ -183,6 +183,11 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
     size_t p = Xorder_std.size();
     std::vector<size_t> subset_vars(p);
     std::vector<double> weight_samp(p);
+
+     // keep track of mean of leaf parameters
+    double mean_lambda = 1;
+    size_t count_lambda = (state.num_trees - 1) * model->dim_residual; // less the lambdas in the first tree
+    std::vector<double> var_lambda(state.num_trees, 0.0);
 
     for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
     {
@@ -240,11 +245,13 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
                 }
             }
 
-            model->update_state(state, tree_ind, x_struct);
+            model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
 
             model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
 
             weight_samples[sweeps][tree_ind] = model->weight;
+            tau_samples[sweeps][tree_ind] = model->tau_a;
+
         }
     }
 

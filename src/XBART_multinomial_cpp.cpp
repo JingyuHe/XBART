@@ -140,7 +140,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
 
         model->setNoSplitPenality(no_split_penality);
 
-        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penality, state, model, x_struct, weight_samples);
+        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penality, state, model, x_struct, weight_samples, tau_samples);
 
         model->predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees3, output_train);
 
