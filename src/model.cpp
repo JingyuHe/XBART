@@ -341,14 +341,15 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
     // sample weight based on logloss
     if (update_weight)
     {
+        weight = 1 / logloss;
         
-        std::gamma_distribution<> d(10.0, 1.0);
-        weight = d(state.gen) / (10.0 * logloss * state.n_y/ (double)state.n_y + 1.0); // it's like shift p down by
+        // std::gamma_distribution<> d(10.0, 1.0);
+        // weight = d(state.gen) / (10.0 * logloss * state.n_y/ (double)state.n_y + 1.0); // it's like shift p down by
         
-        if (std::isnan(weight))
-        {
-            COUT << "weight is nan" << endl;
-        }
+        // if (std::isnan(weight))
+        // {
+        //     COUT << "weight is nan" << endl;
+        // }
     }
 
 
