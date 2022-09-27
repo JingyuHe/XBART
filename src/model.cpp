@@ -314,35 +314,36 @@ void LogitModel::samplePars(State &state, std::vector<double> &suff_stat, std::v
 void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double>& var_lambda, size_t &count_lambda)
 {
 
+    // Calculate logloss
+    size_t y_i;
+    double sum_fits;
+    logloss = 0; // reset logloss
+    double prob = 0.0;
+    std::gamma_distribution<double> gammadist(weight, 1.0);
+
+    for (size_t i = 0; i < state.n_y; i++)
+    {
+        sum_fits = 0;
+        y_i = (size_t)(*y_size_t)[i];
+        for (size_t j = 0; j < dim_residual; ++j)
+        {
+            sum_fits += exp((*state.residual_std)[j][i]) * (*(x_struct.data_pointers[tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
+        }
+        // Sample phi
+        // (*phi)[i] = gammadist(state.gen) / (1.0 * sum_fits);
+        // calculate logloss
+        prob = exp((*state.residual_std)[y_i][i]) * (*(x_struct.data_pointers[tree_ind][i]))[y_i] / sum_fits; // logloss =  - log(p_j)
+
+        logloss += -log(prob);
+    }
+    logloss = logloss / state.n_y;
 
     // sample weight based on logloss
     if (update_weight)
     {
-        // Calculate logloss
-        size_t y_i;
-        double sum_fits;
-        logloss = 0; // reset logloss
-        double prob = 0.0;
-        std::gamma_distribution<double> gammadist(weight, 1.0);
-
-        for (size_t i = 0; i < state.n_y; i++)
-        {
-            sum_fits = 0;
-            y_i = (size_t)(*y_size_t)[i];
-            for (size_t j = 0; j < dim_residual; ++j)
-            {
-                sum_fits += exp((*state.residual_std)[j][i]) * (*(x_struct.data_pointers[tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
-            }
-            // Sample phi
-            // (*phi)[i] = gammadist(state.gen) / (1.0 * sum_fits);
-            // calculate logloss
-            prob = exp((*state.residual_std)[y_i][i]) * (*(x_struct.data_pointers[tree_ind][i]))[y_i] / sum_fits; // logloss =  - log(p_j)
-
-            logloss += -log(prob);
-        }
-
+        
         std::gamma_distribution<> d(10.0, 1.0);
-        weight = d(state.gen) / (10.0 * logloss / (double)state.n_y + 1.0); // it's like shift p down by
+        weight = d(state.gen) / (10.0 * logloss * state.n_y/ (double)state.n_y + 1.0); // it's like shift p down by
         
         if (std::isnan(weight))
         {
@@ -730,30 +731,33 @@ void LogitModelSeparateTrees::samplePars(State &state, std::vector<double> &suff
 
 void LogitModelSeparateTrees::update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double>& var_lambda, size_t &count_lambda)
 {
+    
+    size_t y_i;
+    double sum_fits;
+    logloss = 0; // reset logloss
+    std::gamma_distribution<double> gammadist(weight, 1.0);
+
+    for (size_t i = 0; i < state.n_y; i++)
+    {
+        sum_fits = 0;
+        y_i = (size_t)(*y_size_t)[i];
+        for (size_t j = 0; j < dim_residual; ++j)
+        {
+            sum_fits += exp((*state.residual_std)[j][i]) * (*(x_struct.data_pointers_multinomial[j][tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
+        }
+        // Sample phi
+        (*phi)[i] = gammadist(state.gen) / (1.0 * sum_fits);
+        // calculate logloss
+        logloss += -log(exp((*state.residual_std)[y_i][i]) * (*(x_struct.data_pointers_multinomial[y_i][tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j)
+    }
+
+    logloss = logloss / state.n_y;
+
     // Draw weight
     if (update_weight)
     {
-        size_t y_i;
-        double sum_fits;
-        logloss = 0; // reset logloss
-        std::gamma_distribution<double> gammadist(weight, 1.0);
-
-        for (size_t i = 0; i < state.n_y; i++)
-        {
-            sum_fits = 0;
-            y_i = (size_t)(*y_size_t)[i];
-            for (size_t j = 0; j < dim_residual; ++j)
-            {
-                sum_fits += exp((*state.residual_std)[j][i]) * (*(x_struct.data_pointers_multinomial[j][tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
-            }
-            // Sample phi
-            (*phi)[i] = gammadist(state.gen) / (1.0 * sum_fits);
-            // calculate logloss
-            logloss += -log(exp((*state.residual_std)[y_i][i]) * (*(x_struct.data_pointers_multinomial[y_i][tree_ind][i]))[y_i] / sum_fits); // logloss =  - log(p_j)
-        }
-
         std::gamma_distribution<> d(state.n_y, 1);
-        weight = d(state.gen) / (hmult * logloss + heps * (double)state.n_y) + 1;
+        weight = d(state.gen) / (hmult * logloss * state.n_y + heps * (double)state.n_y) + 1;
     }
      // Sample tau_a
     if (update_tau)

@@ -97,7 +97,8 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
     return;
 }
 
-void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty, State &state, LogitModel *model, X_struct &x_struct, std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &tau_samples)
+void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty, State &state, LogitModel *model, X_struct &x_struct, 
+std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &tau_samples, std::vector<std::vector<double>> &logloss)
 {
     // Residual for 0th tree
     model->ini_residual_std(state);
@@ -120,10 +121,10 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
         for (size_t tree_ind = 0; tree_ind < state.num_trees; tree_ind++)
         {
 
-            if (verbose)
-            {
-                COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
-            }
+            // if (verbose)
+            // {
+            //     COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
+            // }
             // Draw latents -- do last?
 
             if (state.use_all && (sweeps >= state.burnin)) // && (state.mtry != state.p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
@@ -159,10 +160,16 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             // update partial fits for the next tree
             model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
 
+            if (verbose)
+            {
+                COUT << " tree " << tree_ind << " logloss " << model->logloss << endl;
+            }
+
             model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
 
             weight_samples[sweeps][tree_ind] = model->weight;
             tau_samples[sweeps][tree_ind] = model->tau_a;
+            logloss[sweeps][tree_ind] = model->logloss;
 
             for (size_t j = 0; j < (*state.lambdas)[tree_ind].size(); j++)
             {
@@ -175,7 +182,9 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
     }
 }
 
-void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, State &state, LogitModelSeparateTrees *model, X_struct &x_struct, std::vector<std::vector<double>> &weight_samples, std::vector<std::vector<double>> &tau_samples)
+void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, State &state, 
+LogitModelSeparateTrees *model, X_struct &x_struct, 
+std::vector<std::vector<double>> &weight_samples, std::vector<std::vector<double>> &tau_samples, std::vector<std::vector<double>> &logloss)
 {
 
     // Residual for 0th tree
@@ -202,10 +211,10 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
         for (size_t tree_ind = 0; tree_ind < state.num_trees; tree_ind++)
         {
 
-            if (verbose)
-            {
-                COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
-            }
+            // if (verbose)
+            // {
+            //     COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
+            // }
             // Draw latents -- do last?
 
             if (state.use_all && (sweeps >= state.burnin)) // && (state.mtry != state.p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
@@ -247,10 +256,16 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
 
             model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
 
+            if (verbose)
+            {
+                COUT << " tree " << tree_ind << " logloss " << model->logloss << endl;
+            }
+
             model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
 
             weight_samples[sweeps][tree_ind] = model->weight;
             tau_samples[sweeps][tree_ind] = model->tau_a;
+            logloss[sweeps][tree_ind] = model->logloss;
 
         }
     }

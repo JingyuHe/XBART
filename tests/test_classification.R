@@ -72,16 +72,20 @@ pr <- exp(s * lamt)
 pr <- t(scale(t(pr), center = FALSE, scale = rowSums(pr)))
 y_test <- sapply(1:nt, function(j) sample(0:(k - 1), 1, prob = pr[j, ]))
 
+X_test = X_train
+y_test = y_train
 
 #####################
 # parameters of XBART
-num_sweeps <- 20
-burnin <- 5
-num_trees <- 20
+num_sweeps <- 10
+burnin <- 1
+num_trees <- 100
 tm <- proc.time()
 fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, 
-    num_trees = num_trees, num_sweeps = num_sweeps, p_categorical = p_cat, 
-    separate_tree = TRUE, parallel = TRUE, nthread = 8, update_tau = TRUE)
+    num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin,
+    p_categorical = p_cat, 
+    verbose = T, separate_tree = F, parallel = TRUE, nthread = 8, 
+    update_tau = T, update_weight = F, weight = 10)
 
 tm <- proc.time() - tm
 cat(paste("XBART runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
@@ -92,14 +96,20 @@ prob <- pred$prob # prediction of probability in each class
 cat(paste("XBART classification accuracy: ", round(mean(y_test == yhat), 3)), "\n")
 cat("-----------------------------\n")
 
+# diagnosis plots
+par(mfrow = c(2, 2))
+plot(as.vector(fit$weight))
+plot(as.vector(fit$tau_a))
+plot(as.vector(fit$logloss))
+
 
 tm2 <- proc.time()
 # fit.xgb <- xgboost(data = X_train, label = y_train, num_class = k, verbose = 0, max_depth = 4, subsample = 0.80, nrounds = 500, early_stopping_rounds = 2, eta = 0.1, params = list(objective = "multi:softprob"))
 fit.xgb <- xgboost(data = as.matrix(X_train), label = matrix(y_train),
-                       num_class=k, verbose = 0,
+                       num_class=k, verbose = 1,
                        nrounds=500,
                        early_stopping_rounds = 50,
-                       params=list(objective="multi:softprob", eval_metric='mlogloss'))
+                       params=list(objective="multi:softprob"))
 tm2 <- proc.time() - tm2
 cat(paste("XGBoost runtime: ", round(tm2["elapsed"], 3), " seconds"), "\n")
 phat.xgb <- predict(fit.xgb, X_test)
@@ -125,8 +135,9 @@ cat("Variable importance by XBART", fit$importance, "\n")
 cat("-----------------------------\n")
 
 
+
 # diagnosis plots
-par(mfrow = c(1, 2))
+par(mfrow = c(2, 2))
 plot(as.vector(fit$weight))
 plot(as.vector(fit$tau_a))
-summary(as.vector(fit$weight))
+plot(as.vector(fit$logloss))
