@@ -239,6 +239,8 @@ public:
 
     void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
+    void copy_initialization(State &state, X_struct &x_struct, vector<vector<tree>> &trees, size_t sweeps, size_t tree_ind, matrix<size_t> &Xorder_std);
+
     void update_state(State &state, size_t tree_ind, X_struct &x_struct);
 
     void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);

@@ -86,6 +86,8 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
     // initialize X_struct
     X_struct x_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees);
 
+    cout << "number of data " << N << " " << x_struct.n_y << endl;
+
     std::vector<std::vector<double>> weight_samples;
     ini_matrix(weight_samples, num_trees, num_sweeps);
     std::vector<std::vector<double>> tau_samples;
