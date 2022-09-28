@@ -27,7 +27,7 @@ predict.XBART <- function(object, X, ...) {
 #' @export
 
 
-predict.XBCF <- function(object, X_con, X_mod, Z, ...) {
+predict.XBCFcontinuous <- function(object, X_con, X_mod, Z, ...) {
     out_con <- json_to_r(object$tree_json_con)
     out_mod <- json_to_r(object$tree_json_mod)
     obj <- .Call("_XBART_xbcf_predict", X_con, X_mod, Z, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt)
