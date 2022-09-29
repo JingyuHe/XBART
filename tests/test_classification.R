@@ -81,11 +81,15 @@ num_sweeps <- 40
 burnin <- 20
 num_trees <- 50
 tm <- proc.time()
+<<<<<<< HEAD
 fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, 
     num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin,
     p_categorical = p_cat, 
     verbose = T, separate_tree = F, parallel = TRUE, nthread = 8, 
     update_tau = T, update_weight = T, weight = 1)
+=======
+fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, num_trees = num_trees, num_sweeps = num_sweeps, p_categorical = p_cat, separate_tree = FALSE, parallel = TRUE, nthread = 8)
+>>>>>>> master
 
 tm <- proc.time() - tm
 cat(paste("XBART runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
