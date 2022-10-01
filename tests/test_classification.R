@@ -98,16 +98,18 @@ cat("-----------------------------\n")
 
 # diagnosis plots
 par(mfrow = c(2, 2))
-plot(as.vector(fit$weight))
-plot(as.vector(fit$tau_a))
-plot(as.vector(fit$logloss))
+plot(as.vector(fit$weight), ylab = 'weight')
+plot(as.vector(fit$tau_a), ylab = 'tau_a')
+plot(as.vector(fit$logloss), ylab = 'logloss')
+plot(rowSums(fit$tree_size), ylab = 'tree size per sweep')
+# plot(as.vector(t(diff(t(fit$tree_size))))) # tree size compare to the replaced one
 
 
 tm2 <- proc.time()
 # fit.xgb <- xgboost(data = X_train, label = y_train, num_class = k, verbose = 0, max_depth = 4, subsample = 0.80, nrounds = 500, early_stopping_rounds = 2, eta = 0.1, params = list(objective = "multi:softprob"))
 fit.xgb <- xgboost(data = as.matrix(X_train), label = matrix(y_train),
                        num_class=k, verbose = 1,
-                       nrounds=500,
+                       nrounds=200,
                        early_stopping_rounds = 50,
                        params=list(objective="multi:softprob"))
 tm2 <- proc.time() - tm2
@@ -132,12 +134,9 @@ cat(paste("XBART classification accuracy: ", round(mean(y_test == yhat), 3)), "\
 cat(paste("XGBoost classification accuracy: ", round(mean(yhat.xgb == y_test), 3)), "\n")
 cat("-----------------------------\n")
 cat("Variable importance by XBART", fit$importance, "\n")
+cat("Summary tree size: \n")
+print(summary(as.vector(fit$tree_size)))
+cat("Tree size by sweeps: \n")
+print(rowSums(fit$tree_size))
 cat("-----------------------------\n")
 
-
-
-# diagnosis plots
-par(mfrow = c(2, 2))
-plot(as.vector(fit$weight))
-plot(as.vector(fit$tau_a))
-plot(as.vector(fit$logloss))

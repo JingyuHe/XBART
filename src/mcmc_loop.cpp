@@ -98,7 +98,8 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
 }
 
 void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty, State &state, LogitModel *model, X_struct &x_struct, 
-std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &tau_samples, std::vector<std::vector<double>> &logloss)
+std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &tau_samples, std::vector<std::vector<double>> &logloss,
+std::vector<std::vector<double>> &tree_size)
 {
     // Residual for 0th tree
     model->ini_residual_std(state);
@@ -184,16 +185,17 @@ std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_sa
             // update partial fits for the next tree
             model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
 
-            if (verbose)
-            {
-                COUT << " tree " << tree_ind << " logloss " << model->logloss << endl;
-            }
-
             model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
 
             weight_samples[sweeps][tree_ind] = model->weight;
             tau_samples[sweeps][tree_ind] = model->tau_a;
             logloss[sweeps][tree_ind] = model->logloss;
+            tree_size[sweeps][tree_ind] = trees[sweeps][tree_ind].treesize();
+
+            if (verbose)
+            {
+                COUT << " tree " << tree_ind << " logloss " << model->logloss << " tree size " << tree_size[sweeps][tree_ind] << endl;
+            }
 
             for (size_t j = 0; j < (*state.lambdas)[tree_ind].size(); j++)
             {
@@ -208,7 +210,8 @@ std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_sa
 
 void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, State &state, 
 LogitModelSeparateTrees *model, X_struct &x_struct, 
-std::vector<std::vector<double>> &weight_samples, std::vector<std::vector<double>> &tau_samples, std::vector<std::vector<double>> &logloss)
+std::vector<std::vector<double>> &weight_samples, std::vector<std::vector<double>> &tau_samples, 
+std::vector<std::vector<double>> &logloss, std::vector<std::vector<double>> &tree_size)
 {
 
     // Residual for 0th tree
@@ -255,6 +258,8 @@ std::vector<std::vector<double>> &weight_samples, std::vector<std::vector<double
                 (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) - (*state.split_count_all_tree)[tree_ind];
             }
 
+            tree_size[sweeps][tree_ind] = 0;  // init
+
             for (size_t class_ind = 0; class_ind < model->dim_residual; class_ind++)
             {
                 model->set_class_operating(class_ind);
@@ -266,6 +271,8 @@ std::vector<std::vector<double>> &weight_samples, std::vector<std::vector<double
                 trees[class_ind][sweeps][tree_ind].theta_vector.resize(model->dim_residual);
 
                 trees[class_ind][sweeps][tree_ind].grow_from_root_separate_tree(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind);
+            
+                tree_size[sweeps][tree_ind] += trees[class_ind][sweeps][tree_ind].treesize();
             }
 
             state.update_split_counts(tree_ind);
@@ -280,16 +287,18 @@ std::vector<std::vector<double>> &weight_samples, std::vector<std::vector<double
 
             model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
 
+            weight_samples[sweeps][tree_ind] = model->weight;
+            tau_samples[sweeps][tree_ind] = model->tau_a;
+            logloss[sweeps][tree_ind] = model->logloss;
+
             if (verbose)
             {
-                COUT << " tree " << tree_ind << " logloss " << model->logloss << endl;
+                COUT << " tree " << tree_ind << " logloss " << model->logloss << " total tree size " << tree_size[sweeps][tree_ind] << endl;
             }
 
             model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
 
-            weight_samples[sweeps][tree_ind] = model->weight;
-            tau_samples[sweeps][tree_ind] = model->tau_a;
-            logloss[sweeps][tree_ind] = model->logloss;
+            
 
         }
     }

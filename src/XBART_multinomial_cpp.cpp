@@ -94,6 +94,8 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
     ini_matrix(tau_samples, num_trees, num_sweeps);
     std::vector<std::vector<double>> logloss;
     ini_matrix(logloss, num_trees, num_sweeps);
+    std::vector<std::vector<double>> tree_size;
+    ini_matrix(tree_size, num_trees, num_sweeps);
     std::vector<double> lambda_samples;
 
     // output is in 3 dim, stacked as a vector, number of sweeps * observations * number of classes
@@ -123,7 +125,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
         LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau, hmult, heps);
         model->setNoSplitPenality(no_split_penality);
 
-        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, weight_samples, lambda_samples, tau_samples, logloss);
+        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penality, state, model, x_struct, weight_samples, lambda_samples, tau_samples, logloss, tree_size);
 
         model->predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees2, output_train);
 
@@ -144,7 +146,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
 
         model->setNoSplitPenality(no_split_penality);
 
-        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penality, state, model, x_struct, weight_samples, tau_samples, logloss);
+        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penality, state, model, x_struct, weight_samples, tau_samples, logloss, tree_size);
 
         model->predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees3, output_train);
 
@@ -167,6 +169,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
     Rcpp::NumericMatrix weight_sample_rcpp(num_trees, num_sweeps);
     Rcpp::NumericMatrix tau_sample_rcpp(num_trees, num_sweeps);
     Rcpp::NumericMatrix logloss_rcpp(num_trees, num_sweeps);
+    Rcpp::NumericMatrix tree_size_rcpp(num_trees, num_sweeps);
     Rcpp::NumericMatrix depth_rcpp(num_trees, num_sweeps);
 
     for (size_t i = 0; i < num_trees; i++)
@@ -188,6 +191,13 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
         for (size_t j = 0; j < num_sweeps; j++)
         {
             logloss_rcpp(i, j) = logloss[j][i];
+        }
+    }
+    for (size_t i = 0; i < num_trees; i++)
+    {
+        for (size_t j = 0; j < num_sweeps; j++)
+        {
+            tree_size_rcpp(i, j) = tree_size[j][i];
         }
     }
     for (size_t i = 0; i < num_trees; i++)
@@ -267,6 +277,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
         Rcpp::Named("weight") = weight_sample_rcpp,
         Rcpp::Named("tau_a") = tau_sample_rcpp,
         Rcpp::Named("logloss") = logloss_rcpp,
+        Rcpp::Named("tree_size") = tree_size_rcpp,
         Rcpp::Named("lambda") = lambda_samples_rcpp,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("depth") = depth_rcpp,
