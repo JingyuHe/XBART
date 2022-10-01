@@ -194,7 +194,7 @@ std::vector<std::vector<double>> &tree_size)
 
             if (verbose)
             {
-                COUT << " tree " << tree_ind << " logloss " << model->logloss << " tree size " << tree_size[sweeps][tree_ind] << endl;
+                COUT << " tree " << tree_ind << " logloss " << model->logloss <<  endl;
             }
 
             for (size_t j = 0; j < (*state.lambdas)[tree_ind].size(); j++)
@@ -293,7 +293,7 @@ std::vector<std::vector<double>> &logloss, std::vector<std::vector<double>> &tre
 
             if (verbose)
             {
-                COUT << " tree " << tree_ind << " logloss " << model->logloss << " total tree size " << tree_size[sweeps][tree_ind] << endl;
+                COUT << " tree " << tree_ind << " logloss " << model->logloss << endl;
             }
 
             model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
