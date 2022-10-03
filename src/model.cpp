@@ -332,6 +332,15 @@ void LogitModel::samplePars(State &state, std::vector<double> &suff_stat, std::v
 void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double>& var_lambda, size_t &count_lambda)
 {
 
+    // update residuals
+    for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
+    {
+        for (size_t j = 0; j < dim_theta; ++j)
+        {
+            (*state.residual_std)[j][i] = (*state.residual_std)[j][i] + log((*(x_struct.data_pointers[tree_ind][i]))[j]); 
+        }
+    }
+
     // Calculate logloss
     size_t y_i;
     double sum_fits;
@@ -345,7 +354,7 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
         y_i = (size_t)(*y_size_t)[i];
         for (size_t j = 0; j < dim_residual; ++j)
         {
-            sum_fits += exp((*state.residual_std)[j][i]) * (*(x_struct.data_pointers[tree_ind][i]))[j]; // f_j(x_i) = \prod lambdas
+            sum_fits += exp((*state.residual_std)[j][i]);
         }
         // Sample phi
         // (*phi)[i] = gammadist(state.gen) / (1.0 * sum_fits);
@@ -502,11 +511,8 @@ void LogitModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual
     {
         for (size_t j = 0; j < dim_theta; ++j)
         {
-            residual_std[j][i] = residual_std[j][i] + log((*(x_struct.data_pointers[tree_ind][i]))[j]) - log((*(x_struct.data_pointers[next_index][i]))[j]);
-            if (std::isnan(exp(residual_std[j][i])))
-            {
-                COUT << "residual is nan, log(resid) = " << residual_std[j][i] << ", old_pointer = " << (*(x_struct.data_pointers[next_index][i]))[j] << ", new = " << (*(x_struct.data_pointers[tree_ind][i]))[j] << endl;
-            }
+            residual_std[j][i] = residual_std[j][i] - log((*(x_struct.data_pointers[next_index][i]))[j]);
+            // residual_std[j][i] = residual_std[j][i] + log((*(x_struct.data_pointers[tree_ind][i]))[j]) - log((*(x_struct.data_pointers[next_index][i]))[j]);
         }
     }
 

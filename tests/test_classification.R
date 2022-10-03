@@ -108,8 +108,8 @@ plot(rowSums(fit$tree_size), ylab = 'tree size per sweep')
 tm2 <- proc.time()
 # fit.xgb <- xgboost(data = X_train, label = y_train, num_class = k, verbose = 0, max_depth = 4, subsample = 0.80, nrounds = 500, early_stopping_rounds = 2, eta = 0.1, params = list(objective = "multi:softprob"))
 fit.xgb <- xgboost(data = as.matrix(X_train), label = matrix(y_train),
-                       num_class=k, verbose = 1,
-                       nrounds=200,
+                       num_class=k, verbose = 0,
+                       nrounds=50,
                        early_stopping_rounds = 50,
                        params=list(objective="multi:softprob"))
 tm2 <- proc.time() - tm2
