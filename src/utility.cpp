@@ -179,7 +179,7 @@ void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, std
     double current_value = 0.0;
     size_t count_unique = 0;
     variable_ind[0] = 0;
-    total_points = 0;
+    size_t count_points = 0;
 
     X_counts.resize(0);
     X_values.resize(0);
@@ -203,7 +203,7 @@ void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, std
             if (*(Xpointer + i * N + Xorder_std[i][j]) == current_value)
             {
                 // still the same X value
-                X_counts[total_points]++;
+                X_counts[count_points]++;
             }
             else
             {
@@ -212,7 +212,7 @@ void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, std
                 X_values.push_back(current_value);
                 X_counts.push_back(1);
                 count_unique++;
-                total_points++;
+                count_points++;
             }
         }
         variable_ind[i + 1 - p_continuous] = count_unique + variable_ind[i - p_continuous];
@@ -221,7 +221,7 @@ void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, std
         X_num_unique[i - p_continuous] = count_unique;
         // number of possible cutpoints is 1 less than total number of unique values
         X_num_cutpoints[i - p_continuous] = count_unique - 1;
-        total_points++;
+        count_points++;
     }
     return;
 }
