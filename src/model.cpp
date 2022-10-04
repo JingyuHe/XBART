@@ -340,6 +340,12 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
             (*state.residual_std)[j][i] = (*state.residual_std)[j][i] + log((*(x_struct.data_pointers[tree_ind][i]))[j]); 
         }
     }
+    
+    // track accuracy of each group
+    std::fill(acc_gp.begin(), acc_gp.end(), 0.0);
+    std::vector<double> count_gp(dim_residual, 0.0);
+    size_t yhat = 0;
+    double max_resid = -INFINITY;
 
     // Calculate logloss
     size_t y_i;
@@ -352,10 +358,19 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
     {
         sum_fits = 0;
         y_i = (size_t)(*y_size_t)[i];
+        yhat = 0;
+        max_resid = -INFINITY;
         for (size_t j = 0; j < dim_residual; ++j)
         {
             sum_fits += exp((*state.residual_std)[j][i]);
+            if ((*state.residual_std)[j][i] > max_resid){
+                yhat = j;
+                max_resid = (*state.residual_std)[j][i];
+            }
         }
+
+        count_gp[y_i] += 1;
+        if (yhat == y_i) {acc_gp[y_i] += 1;}
         // Sample phi
         // (*phi)[i] = gammadist(state.gen) / (1.0 * sum_fits);
         // calculate logloss
@@ -363,7 +378,12 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
 
         logloss += -log(prob);
     }
+
     logloss = logloss / state.n_y;
+
+    // calculate accuracy per group
+    accuracy = std::accumulate(acc_gp.begin(), acc_gp.end(), 0.0) / std::accumulate(count_gp.begin(), count_gp.end(), 0.0);
+    for (size_t i = 0; i < dim_residual; i++) {acc_gp[i] = acc_gp[i] / count_gp[i];}
 
     // sample weight based on logloss
     if (update_weight)

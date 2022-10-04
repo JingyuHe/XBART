@@ -194,7 +194,11 @@ std::vector<std::vector<double>> &tree_size)
 
             if (verbose)
             {
-                COUT << " tree " << tree_ind << " logloss " << model->logloss <<  endl;
+                COUT << ", new size = " << trees[sweeps][tree_ind].treesize() << endl;
+                COUT << " logloss " << model->logloss << " acc " << model->accuracy << endl;
+                size_t next_tree = tree_ind + 1 >= state.num_trees ? 0 : tree_ind + 1;
+                if (sweeps > 0) 
+                    COUT << "tree " << tree_ind << " old size = " << trees[sweeps - 1][next_tree].treesize();
             }
 
             for (size_t j = 0; j < (*state.lambdas)[tree_ind].size(); j++)

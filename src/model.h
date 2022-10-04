@@ -209,8 +209,9 @@ public:
     std::vector<double> *phi;
 
     bool update_weight, update_tau; // option to update tau_a
-    double weight, logloss;         // pseudo replicates of observations
+    double weight, logloss, accuracy;         // pseudo replicates of observations
     double hmult, heps;             // weight ~ Gamma(n, hmult * entropy + heps);
+    std::vector<double> acc_gp; // track accuracy per group
 
     LogitModel(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, double hmult, double heps) : Model(num_classes, 2 * num_classes)
     {
@@ -229,6 +230,8 @@ public:
         this->hmult = hmult;
         this->heps = heps;
         this->logloss = 0;
+        this->accuracy = 0;
+        this->acc_gp.resize(dim_residual);
     }
 
     LogitModel() : Model(2, 4) {}
