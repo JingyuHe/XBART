@@ -813,6 +813,8 @@ void tree::grow_from_root_entropy(State &state, matrix<size_t> &Xorder_std, std:
         }
         // update lambdas in state
         (*state.lambdas)[tree_ind].push_back(this->theta_vector);
+        // cout << "suff stat " << this->suff_stat << endl;
+        // cout << "theta " << this->theta_vector << endl;
 
         // if (update_theta)
         // {
@@ -831,6 +833,8 @@ void tree::grow_from_root_entropy(State &state, matrix<size_t> &Xorder_std, std:
     // If GROW FROM ROOT MODE
     this->v = split_var;
     this->c = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
+
+    // cout << "cut varialbe " << this->v << " cutpoint " << this->c << endl;
 
     size_t index_in_full = 0;
     while ((*state.Xorder_std)[split_var][index_in_full] != Xorder_std[split_var][split_point])
@@ -874,7 +878,11 @@ void tree::grow_from_root_entropy(State &state, matrix<size_t> &Xorder_std, std:
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
 
+    // cout << "left suff " << this->l->suff_stat << endl;
+
     this->l->grow_from_root_entropy(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind);
+
+    // cout << "right suff " << this->r->suff_stat << endl;
 
     this->r->grow_from_root_entropy(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind);
 
@@ -1065,21 +1073,32 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
 
     const double *temp_pointer = state.X_std + state.n_y * split_var;
 
+    // TODO: this version yield negative suffstat on the other side sometime.
+    // for (size_t j = 0; j < N_Xorder; j++)
+    // {
+    //     if (compute_left_side)
+    //     {
+    //         if (*(temp_pointer + Xorder_std[split_var][j]) <= cutvalue)
+    //         {
+    //             model->updateNodeSuffStat(state, current_node->l->suff_stat, Xorder_std, split_var, j);
+    //         }
+    //     }
+    //     else
+    //     {
+    //         if (*(temp_pointer + Xorder_std[split_var][j]) > cutvalue)
+    //         {
+    //             model->updateNodeSuffStat(state, current_node->r->suff_stat, Xorder_std, split_var, j);
+    //         }
+    //     }
+    // }
+
     for (size_t j = 0; j < N_Xorder; j++)
     {
-        if (compute_left_side)
+        if (*(temp_pointer + Xorder_std[split_var][j]) <= cutvalue)
         {
-            if (*(temp_pointer + Xorder_std[split_var][j]) <= cutvalue)
-            {
-                model->updateNodeSuffStat(state, current_node->l->suff_stat, Xorder_std, split_var, j);
-            }
-        }
-        else
-        {
-            if (*(temp_pointer + Xorder_std[split_var][j]) > cutvalue)
-            {
-                model->updateNodeSuffStat(state, current_node->r->suff_stat, Xorder_std, split_var, j);
-            }
+            model->updateNodeSuffStat(state, current_node->l->suff_stat, Xorder_std, split_var, j);
+        } else {
+            model->updateNodeSuffStat(state, current_node->r->suff_stat, Xorder_std, split_var, j);
         }
     }
 
@@ -1125,7 +1144,7 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
     if (thread_pool.is_active())
         thread_pool.wait();
 
-    model->calculateOtherSideSuffStat(current_node->suff_stat, current_node->l->suff_stat, current_node->r->suff_stat, N_Xorder, N_Xorder_left, N_Xorder_right, compute_left_side);
+    // model->calculateOtherSideSuffStat(current_node->suff_stat, current_node->l->suff_stat, current_node->r->suff_stat, N_Xorder, N_Xorder_left, N_Xorder_right, compute_left_side);
 
     return;
 }
@@ -1178,6 +1197,7 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
                     else
                     {
                         // go to right side
+                        model->updateNodeSuffStat(state, current_node->r->suff_stat, Xorder_std, split_var, j);
                         Xorder_right_std[i][right_ix] = Xorder_std[i][j];
                         right_ix = right_ix + 1;
                     }
@@ -1189,6 +1209,7 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
                 {
                     if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
                     {
+                        model->updateNodeSuffStat(state, current_node->l->suff_stat, Xorder_std, split_var, j);
                         Xorder_left_std[i][left_ix] = Xorder_std[i][j];
                         left_ix = left_ix + 1;
                     }
@@ -1261,7 +1282,7 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
         }
     }
 
-    model->calculateOtherSideSuffStat(current_node->suff_stat, current_node->l->suff_stat, current_node->r->suff_stat, N_Xorder, N_Xorder_left, N_Xorder_right, compute_left_side);
+    // model->calculateOtherSideSuffStat(current_node->suff_stat, current_node->l->suff_stat, current_node->r->suff_stat, N_Xorder, N_Xorder_left, N_Xorder_right, compute_left_side);
 
     // update X_num_unique
 
@@ -1355,6 +1376,8 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         // if a variable is not selected, take exp will becomes 0
         loglike[ii] = exp(loglike[ii] - loglike_max);
     }
+
+    // cout << "loglike " << loglike << endl;
 
     // sampling cutpoints
     if (N <= state.n_cutpoints + 1 + 2 * state.n_min)

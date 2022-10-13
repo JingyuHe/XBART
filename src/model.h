@@ -189,15 +189,36 @@ private:
     double LogitLIL(const vector<double> &suffstats) const
     {
 
-        size_t c = dim_residual;
+        // size_t c = dim_residual;
 
         double ret = 0;
+        // double z1, z2, n, sy, minz;
+        double logz1, logz2, n, sy, numrt, logminz;
 
-        for (size_t j = 0; j < c; j++)
+        for (size_t j = 0; j < dim_residual; j++)
         {
-            ret += -(tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]); // - lgamma(suffstats[j] +1);
+            // ret += -(tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]); // - lgamma(suffstats[j] +1);
+            n = suffstats[j];
+            sy = suffstats[dim_residual + j];
+
+            logz1 = loggignorm(-c + n, 2*d, 2*sy);
+            logz2 = loggignorm(c + n, 0, 2*(d + sy));
+
+            logminz = logz1 < logz2 ? logz1 : logz2;
+            if (logz1 - logminz > 100) {
+                numrt = logz1; // approximate log(exp(x) + 1) = x
+            } else if (logz2 - logminz > 100)
+            { 
+                numrt = logz2;
+            } else {
+                numrt = log(exp(logz1 - logminz) + exp(logz2 - logminz)) + logminz;
+            }
+            ret += numrt - log(2) - logz3;
+            // ret += log((z1 + z2) / 2 / z3);
+            // cout <<" n = " << n << " sy = " << sy << " logz1 = " << logz1 << " logz2 = " << logz2 << " numrt = " << numrt << " ret = " << ret << endl;
         }
         return ret;
+
     }
 
 public:
@@ -212,6 +233,8 @@ public:
     double weight, logloss, accuracy;         // pseudo replicates of observations
     double hmult, heps;             // weight ~ Gamma(n, hmult * entropy + heps);
     std::vector<double> acc_gp; // track accuracy per group
+
+    double c, d, z3, logz3; // param for mixture prior, c = m / tau_a^2 + 0.5; d = m / tau_a^2; m = num_trees = tau_b
 
     LogitModel(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, double hmult, double heps) : Model(num_classes, 2 * num_classes)
     {
@@ -232,6 +255,12 @@ public:
         this->logloss = 0;
         this->accuracy = 0;
         this->acc_gp.resize(dim_residual);
+
+        this->c = tau_b / pow(tau_a, 2) + 0.5;
+        this->d = tau_b / pow(tau_a, 2);
+        this->z3 = exp(lgamma(this->c) - this->c * log(this->d));
+        this->logz3 = lgamma(this->c) - this->c * log(this->d);
+        cout << "c = " << c << " d = " << d << " z3 = " << z3 << " logz3 " << logz3 << endl;
     }
 
     LogitModel() : Model(2, 4) {}

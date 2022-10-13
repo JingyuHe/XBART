@@ -77,15 +77,15 @@ y_test = y_train
 
 #####################
 # parameters of XBART
-num_sweeps <- 20
-burnin <- 5
-num_trees <- 20
+num_sweeps <- 100
+burnin <- 10
+num_trees <- 5
 tm <- proc.time()
 fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, 
     num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin,
-    p_categorical = p_cat, 
-    verbose = T, separate_tree = F, parallel = TRUE, nthread = 8, 
-    update_tau = T, update_weight = T, weight = 1)
+    p_categorical = p_cat, tau_a = 3.5/sqrt(2), tau_b = num_trees,
+    verbose = T, parallel = F,
+    separate_tree = F, update_tau = F, update_weight = F)
 
 tm <- proc.time() - tm
 cat(paste("XBART runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
@@ -120,9 +120,9 @@ yhat.xgb <- max.col(phat.xgb) - 1
 
 
 spr <- split(pred$prob, row(pred$prob))
-logloss <- sum(mapply(function(x, y) -log(x[y]), spr, y_test + 1, SIMPLIFY = TRUE))
+logloss <- sum(mapply(function(x, y) -log(x[y]), spr, y_test + 1, SIMPLIFY = TRUE)) / nt
 spr <- split(phat.xgb, row(phat.xgb))
-logloss.xgb <- sum(mapply(function(x, y) -log(x[y]), spr, y_test + 1, SIMPLIFY = TRUE))
+logloss.xgb <- sum(mapply(function(x, y) -log(x[y]), spr, y_test + 1, SIMPLIFY = TRUE)) / nt
 
 cat(paste("XBART logloss : ", round(logloss, 3)), "\n")
 cat(paste("XGBoost logloss : ", round(logloss.xgb, 3)), "\n")
