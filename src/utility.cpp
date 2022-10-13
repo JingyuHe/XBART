@@ -612,7 +612,7 @@ double gignorm(double eta, double chi, double psi)
         ret = exp(lgamma(-eta) - eta * log(2 / chi));
     }else if ((chi>0)&&(psi>0)){
         double sq = sqrt(chi*psi);
-        double bessel_k = cyl_bessel_k(eta, sq);
+        double bessel_k = boost::math::cyl_bessel_k(eta, sq);
         // cout << "eta = " << eta << " sqrt(chi*psi) = " << sqrt(chi*psi) << " bessel_k = " << bessel_k;
         double lbessel_k;
         if (eta > 0) {lbessel_k = gsl_sf_bessel_lnKnu(eta, sqrt(chi*psi));}
@@ -635,7 +635,7 @@ double loggignorm(double eta, double chi, double psi)
     }else if ((chi>0)&&(psi>0)){
         // cout << "eta = " << eta << " sqrt(chi*psi) = " << sqrt(chi*psi) << " bessel_k = " << bessel_k;
         double sq = sqrt(chi*psi);
-        double lbessel_k = eta > 0 ? gsl_sf_bessel_lnKnu(eta, sq) : log(cyl_bessel_k(eta, sq));
+        double lbessel_k = eta > 0 ? gsl_sf_bessel_lnKnu(eta, sq) : log(boost::math::cyl_bessel_k(eta, sq));
         // ret = exp(log(2*bessel_k) - (eta / 2) * log(psi / chi));
         ret = (log(2) + lbessel_k - (eta / 2) * log(psi / chi));
         // cout << " lnKnu = " << lbessel_k <<  " exp(lKn) = " << exp(lbessel_k) << " log(ret) = " << log(2) + lbessel_k - (eta / 2) * log(psi / chi) << " ret = " << ret << endl;
