@@ -77,7 +77,7 @@ y_test = y_train
 
 #####################
 # parameters of XBART
-num_sweeps <- 100
+num_sweeps <- 20
 burnin <- 10
 num_trees <- 5
 tm <- proc.time()
