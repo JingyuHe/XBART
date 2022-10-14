@@ -83,7 +83,7 @@ num_trees <- 5
 tm <- proc.time()
 fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, 
     num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin,
-    p_categorical = p_cat, tau_a = 3.5/sqrt(2), tau_b = num_trees,
+    p_categorical = p_cat, tau_a = 1, tau_b = 1,
     verbose = T, parallel = F,
     separate_tree = F, update_tau = F, update_weight = F)
 

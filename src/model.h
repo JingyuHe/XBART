@@ -256,8 +256,10 @@ public:
         this->accuracy = 0;
         this->acc_gp.resize(dim_residual);
 
-        this->c = tau_b / pow(tau_a, 2) + 0.5;
-        this->d = tau_b / pow(tau_a, 2);
+        // this->c = tau_b / pow(tau_a, 2) + 0.5;
+        // this->d = tau_b / pow(tau_a, 2);
+        this->c = tau_a;
+        this->d = tau_b;
         this->z3 = exp(lgamma(this->c) - this->c * log(this->d));
         this->logz3 = lgamma(this->c) - this->c * log(this->d);
         cout << "c = " << c << " d = " << d << " z3 = " << z3 << " logz3 " << logz3 << endl;

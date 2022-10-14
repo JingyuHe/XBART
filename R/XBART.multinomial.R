@@ -39,7 +39,7 @@
 
 
 
-XBART.multinomial <- function(y, num_class, X, num_trees = 20, num_sweeps = 20, max_depth = 20, Nmin = NULL, num_cutpoints = NULL, alpha = 0.95, beta = 1.25, tau_a = 1, tau_b = NULL, no_split_penality = NULL, burnin = 5, mtry = NULL, p_categorical = 0L, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights = TRUE, separate_tree = FALSE, weight = 1, update_weight = TRUE, update_tau = TRUE, nthread = 0, hmult = 1, heps = 0.1, ...) {
+XBART.multinomial <- function(y, num_class, X, num_trees = 20, num_sweeps = 20, max_depth = 20, Nmin = NULL, num_cutpoints = NULL, alpha = 0.95, beta = 1.25, tau_a = 1, tau_b = 1, no_split_penality = NULL, burnin = 5, mtry = NULL, p_categorical = 0L, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights = TRUE, separate_tree = FALSE, weight = 1, update_weight = TRUE, update_tau = TRUE, nthread = 0, hmult = 1, heps = 0.1, ...) {
     require(GIGrvg)
     if (!("matrix" %in% class(X))) {
         cat("Input X is not a matrix, try to convert type.\n")
@@ -59,10 +59,6 @@ XBART.multinomial <- function(y, num_class, X, num_trees = 20, num_sweeps = 20, 
     if (is.null(num_cutpoints)) {
         # cat("num_cutpoints = ", 20, " by default. \n")
         num_cutpoints <- 20
-    }
-
-    if (is.null(tau_b)){
-        tau_b <- num_trees
     }
 
     # TODO: Transform y back to original label after training?
