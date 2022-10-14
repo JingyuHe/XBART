@@ -69,13 +69,16 @@ Linux is already shipped with all necessary compilers. Since you are using Linux
 
 If you can't in stall it on Mac becase of an error message says 'gsl/gsl_sf_bessel.h' not found. Try following steps.
 1, Open a terminal, run ```brew install gsl```.
+
 2, Check if gsl is installed in the following directory: /opt/homebrew/Cellar/gsl/2.7.1 (if not, it should be somewhere similar, try searching for gsl).
+
 3, In terminal, type 
 ```
 cd ~/.R
 open Makevars
 ```
 (If you don’t have the Makevars file, create one by ```touch Makevars```)
+
 4, in the file, paste in:
 ```
 LDFLAGS+=-L/opt/homebrew/Cellar/gsl/2.7.1/lib
