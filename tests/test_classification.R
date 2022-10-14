@@ -77,8 +77,8 @@ y_test = y_train
 
 #####################
 # parameters of XBART
-num_sweeps <- 20
-burnin <- 10
+num_sweeps <- 4
+burnin <- 2
 num_trees <- 5
 tm <- proc.time()
 fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, 

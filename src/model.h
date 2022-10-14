@@ -217,6 +217,10 @@ private:
             // ret += log((z1 + z2) / 2 / z3);
             // cout <<" n = " << n << " sy = " << sy << " logz1 = " << logz1 << " logz2 = " << logz2 << " numrt = " << numrt << " ret = " << ret << endl;
         }
+        if (isnan(ret) | isinf(abs(ret)) ){
+            cout << "likliehood " << ret << endl;
+            exit(1);
+        }
         return ret;
 
     }

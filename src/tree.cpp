@@ -813,8 +813,19 @@ void tree::grow_from_root_entropy(State &state, matrix<size_t> &Xorder_std, std:
         }
         // update lambdas in state
         (*state.lambdas)[tree_ind].push_back(this->theta_vector);
+
         // cout << "suff stat " << this->suff_stat << endl;
         // cout << "theta " << this->theta_vector << endl;
+
+        for (auto i: this->theta_vector)
+        { 
+            if (isinf(i) | isnan(i))
+            {
+                cout << "suff stat " << this->suff_stat << endl;
+                cout << "theta " << this->theta_vector << endl;
+                exit(1);
+            }
+        }
 
         // if (update_theta)
         // {

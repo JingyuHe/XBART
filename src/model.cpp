@@ -286,7 +286,7 @@ void LogitModel::incSuffStat(State &state, size_t index_next_obs, std::vector<do
     for (size_t j = 0; j < dim_theta; ++j)
     {
         // suffstats[dim_residual + j] += weight * exp((*state.residual_std)[j][index_next_obs]);
-        suffstats[dim_residual + j] += (*phi)[index_next_obs] * exp((*state.residual_std)[j][index_next_obs]);
+        suffstats[dim_residual + j] +=  exp((*phi)[index_next_obs] + (*state.residual_std)[j][index_next_obs]);
     }
 
     return;
@@ -378,18 +378,19 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
         count_gp[y_i] += 1;
         if (yhat == y_i) {acc_gp[y_i] += 1;}
         // Sample phi
-        (*phi)[i] = gammadist(state.gen) / (1.0 * sum_fits);
+        (*phi)[i] = log(gammadist(state.gen)) - log(1.0 * sum_fits);
         // calculate logloss
         prob = exp((*state.residual_std)[y_i][i]) / sum_fits; // logloss =  - log(p_j)
 
         logloss += -log(prob);
     }
 
-    // std::vector<double> phi_samples(10);
-    // for (size_t i = 0; i < 10; i++){
-    //     phi_samples[i] = (*phi)[i];
+    // std::vector<double> resid_samples(dim_residual);
+    // for (size_t i = 0; i < dim_residual; i++){
+    //     resid_samples[i] = exp((*state.residual_std)[i][0]);
     // }
-    // cout << "phi samples " << phi_samples << endl;
+    // cout << " " << endl;
+    // cout << "phi = " << exp((*phi)[0]) << " residuals " << resid_samples << endl;
 
     logloss = logloss / state.n_y;
 
