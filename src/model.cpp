@@ -286,7 +286,7 @@ void LogitModel::incSuffStat(State &state, size_t index_next_obs, std::vector<do
     for (size_t j = 0; j < dim_theta; ++j)
     {
         // suffstats[dim_residual + j] += weight * exp((*state.residual_std)[j][index_next_obs]);
-        suffstats[dim_residual + j] +=  exp((*phi)[index_next_obs] + (*state.residual_std)[j][index_next_obs]);
+        suffstats[dim_residual + j] +=  weight * exp((*phi)[index_next_obs] + (*state.residual_std)[j][index_next_obs]);
     }
 
     return;
@@ -399,18 +399,18 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
     for (size_t i = 0; i < dim_residual; i++) {acc_gp[i] = acc_gp[i] / count_gp[i];}
 
     // // sample weight based on logloss
-    // if (update_weight)
-    // {
-    //     // weight = 1 / logloss;
+    if (update_weight)
+    {
+        // weight = 1 / logloss;
         
-    //     std::gamma_distribution<> d(10.0, 1.0);
-    //     weight = d(state.gen) / (10.0 * logloss * state.n_y/ (double)state.n_y + 1.0); // it's like shift p down by
+        std::gamma_distribution<> d(10.0, 1.0);
+        weight = d(state.gen) / (10.0 * logloss * state.n_y/ (double)state.n_y + 1.0); // it's like shift p down by
         
-    //     if (std::isnan(weight))
-    //     {
-    //         COUT << "weight is nan" << endl;
-    //     }
-    // }
+        if (std::isnan(weight))
+        {
+            COUT << "weight is nan" << endl;
+        }
+    }
 
 
 

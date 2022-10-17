@@ -85,7 +85,7 @@ fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train,
     num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin,
     p_categorical = p_cat, tau_a = 1, tau_b = 1,
     verbose = T, parallel = F,
-    separate_tree = F, update_tau = F, update_weight = F)
+    separate_tree = F, update_tau = F, update_weight = T)
 
 tm <- proc.time() - tm
 cat(paste("XBART runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
@@ -94,6 +94,9 @@ pred <- predict(fit, X_test, burnin = burnin)
 yhat <- pred$label # prediction of classes
 prob <- pred$prob # prediction of probability in each class
 cat(paste("XBART classification accuracy: ", round(mean(y_test == yhat), 3)), "\n")
+cat("-----------------------------\n")
+cat("Weight:\n")
+print(summary(as.vector(fit$weight)))
 cat("-----------------------------\n")
 
 # diagnosis plots
