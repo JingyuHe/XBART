@@ -1,5 +1,5 @@
 #' XBART main function of XBART classification.
-#' 
+#'
 #' @param y A vector of outcome variable of length n, expected to be discrete.
 #' @param num_class Integer, number of different unique classes for the classification task.
 #' @param X A matrix of input for the tree of size n by p. Column order matters: continuous features should all go before categorical. The number of categorical variables is p_categorical_con.
@@ -12,7 +12,7 @@
 #' @param beta Scalar, BART prior parameter for trees. The default value is 1.25.
 #' @param tau_a Scalar, prior of the leaf mean.
 #' @param tau_b Scalar, prior of the leaf mean.
-#' @param no_split_penalty Extra weight of no-split option (in log). The default value is 0, or you can take any other number in log scale.
+#' @param no_split_penalty Extra weight of no-split option. The default value is 1, or you can take any other number greater than 0.
 #' @param burnin Integer, number of burnin sweeps.
 #' @param mtry Integer, number of X variables to sample at each split of the tree.
 #' @param p_categorical Integer, number of categorical variables in X, note that all categorical variables should be put after continuous variables. Default value is 0.
@@ -32,7 +32,7 @@
 #' @param hmult Prior of the replicate factor.
 #' @param heps Prior of the replicate factor
 #' @param ... optional parameters to be passed to the low level function XBART
-#' 
+#'
 #' @details XBART draws multiple samples of the forests (sweeps), each forest is an ensemble of trees. The final prediction is taking sum of trees in each forest, and average across different sweeps (with- out burnin sweeps). This function fits trees for multinomial classification tasks. Note that users have option to fit different tree structure for different classes, or let all classes share the same tree structure.
 #' @return A list contains fitted trees as well as parameter draws at each sweep.
 #' @export
@@ -91,7 +91,9 @@ XBART.multinomial <- function(y, num_class, X, num_trees = 20, num_sweeps = 20, 
     }
 
     if (is.null(no_split_penalty) || no_split_penalty == "Auto") {
-        no_split_penalty <- 0
+        no_split_penalty <- log(1)
+    } else {
+        no_split_penalty <- log(no_split_penalty)
     }
 
     if (is.null(mtry)) {
