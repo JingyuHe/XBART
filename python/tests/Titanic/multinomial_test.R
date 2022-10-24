@@ -16,7 +16,7 @@ fit = XBART.multinomial(y=matrix(train_fe$Survived), num_class=2,
 						num_sweeps=num_sweeps, max_depth=250, 
 						Nmin=1, num_cutpoints=250, alpha=0.95 ,
 						beta=1.25, tau=1/num_trees,
-            			no_split_penality = 0.5, burnin = burnin) 
+            			no_split_penalty = 0.5, burnin = burnin) 
 
 a = apply(fit$yhats_test[burnin:num_sweeps,,], c(2,3), median)
 pred = apply(a,1,which.max)-1

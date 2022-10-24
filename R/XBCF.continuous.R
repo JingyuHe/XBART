@@ -16,7 +16,7 @@
 #' @param beta_mod Scalar, BART prior parameter for treatment forest. The default value is 1.25.
 #' @param tau_con Scalar, prior parameter for prognostic forest. The default value is 0.6 * var(y) / num_trees_con.
 #' @param tau_mod Scalar, prior parameter for treatment forest. The default value is 0.1 * var(y) / num_trees_mod.
-#' @param no_split_penalty Weight of no-split option. The default value is log(num_cutpoints), or you can take any other number in log scale.
+#' @param no_split_penalty Extra weight of no-split option on log scale. The default value is 0, or you can take any other number in log scale.
 #' @param burnin Integer, number of burnin sweeps.
 #' @param mtry_con Integer, number of X variables to sample at each split of the prognostic forest.
 #' @param mtry_mod Integer, number of X variables to sample at each split of the treatment forest.

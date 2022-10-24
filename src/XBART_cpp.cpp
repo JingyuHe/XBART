@@ -15,7 +15,7 @@ using namespace arma;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBART_cpp(mat y, mat X, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penality, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, double tau_kap = 3, double tau_s = 0.5, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, double nthread = 0)
+Rcpp::List XBART_cpp(mat y, mat X, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penalty, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, double kap = 16, double s = 4, double tau_kap = 3, double tau_s = 0.5, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, double nthread = 0)
 {
     if (parallel)
     {
@@ -75,7 +75,7 @@ Rcpp::List XBART_cpp(mat y, mat X, size_t num_trees, size_t num_sweeps, size_t m
     // define model
     NormalModel *model = new NormalModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
 
-    model->setNoSplitPenality(no_split_penality);
+    model->setNoSplitPenality(no_split_penalty);
 
     // State settings
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
@@ -87,7 +87,7 @@ Rcpp::List XBART_cpp(mat y, mat X, size_t num_trees, size_t num_sweeps, size_t m
     ////////////////////////////////////////////////////////////////
     std::vector<double> resid(N * num_sweeps * num_trees);
 
-    mcmc_loop(Xorder_std, verbose, sigma_draw_xinfo, trees, no_split_penality, state, model, x_struct, resid);
+    mcmc_loop(Xorder_std, verbose, sigma_draw_xinfo, trees, no_split_penalty, state, model, x_struct, resid);
 
     // R Objects to Return
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree

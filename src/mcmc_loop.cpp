@@ -207,7 +207,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
     }
 }
 
-void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, State &state, LogitModelSeparateTrees *model, X_struct &x_struct, std::vector<std::vector<double>> &weight_samples)
+void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penalty, State &state, LogitModelSeparateTrees *model, X_struct &x_struct, std::vector<std::vector<double>> &weight_samples)
 {
 
     // Residual for 0th tree
