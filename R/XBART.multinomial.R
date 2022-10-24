@@ -12,7 +12,7 @@
 #' @param beta Scalar, BART prior parameter for trees. The default value is 1.25.
 #' @param tau_a Scalar, prior of the leaf mean.
 #' @param tau_b Scalar, prior of the leaf mean.
-#' @param no_split_penalty Weight of no-split option. The default value is log(num_cutpoints), or you can take any other number in log scale.
+#' @param no_split_penalty Extra weight of no-split option (in log). The default value is 0, or you can take any other number in log scale.
 #' @param burnin Integer, number of burnin sweeps.
 #' @param mtry Integer, number of X variables to sample at each split of the tree.
 #' @param p_categorical Integer, number of categorical variables in X, note that all categorical variables should be put after continuous variables. Default value is 0.
@@ -91,7 +91,7 @@ XBART.multinomial <- function(y, num_class, X, num_trees = 20, num_sweeps = 20, 
     }
 
     if (is.null(no_split_penalty) || no_split_penalty == "Auto") {
-        no_split_penalty <- log(num_cutpoints)
+        no_split_penalty <- 0
     }
 
     if (is.null(mtry)) {
