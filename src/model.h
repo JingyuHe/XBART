@@ -25,7 +25,7 @@ public:
 
     size_t class_operating;
 
-    double no_split_penality;
+    double no_split_penalty;
 
     // tree prior
     double alpha;
@@ -79,12 +79,12 @@ public:
     void setDimSuffStat(size_t dim_suff) { dim_suffstat = dim_suff; };
 
     // penality
-    double getNoSplitPenality()
+    double getNoSplitPenalty()
     {
-        return no_split_penality;
+        return no_split_penalty;
         ;
     };
-    void setNoSplitPenality(double pen) { this->no_split_penality = pen; };
+    void setNoSplitPenality(double pen) { this->no_split_penalty = pen; };
 
     virtual size_t get_class_operating() { return class_operating; };
 

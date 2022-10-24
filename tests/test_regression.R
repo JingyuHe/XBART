@@ -15,7 +15,7 @@ get_XBART_params <- function(y) {
         beta = 1.25, # BART prior parameter
         mtry = 10, # number of variables sampled in each split
         burnin = 15,
-        no_split_penality = "Auto"
+        no_split_penalty = "Auto"
     ) # burnin of MCMC sample
     num_tress <- XBART_params$num_trees
     XBART_params$max_depth <- 250
@@ -120,7 +120,7 @@ nthread = 8
 
 params <- get_XBART_params(y)
 time <- proc.time()
-fit <- XBART(as.matrix(y), as.matrix(x), p_categorical = dcat, params$num_trees, params$num_sweeps, params$max_depth, params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1, mtry = params$mtry, verbose = verbose, num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100, no_split_penality = params$no_split_penality, nthread = nthread)
+fit <- XBART(as.matrix(y), as.matrix(x), p_categorical = dcat, params$num_trees, params$num_sweeps, params$max_depth, params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1, mtry = params$mtry, verbose = verbose, num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100, no_split_penalty = params$no_split_penalty, nthread = nthread)
 time <- proc.time() - time
 cat("Running time ", time[3], " seconds.\n")
 

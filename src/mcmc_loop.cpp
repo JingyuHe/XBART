@@ -212,7 +212,7 @@ std::vector<std::vector<double>> &tree_size)
     }
 }
 
-void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, State &state, 
+void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penalty, State &state, 
 LogitModelSeparateTrees *model, X_struct &x_struct, 
 std::vector<std::vector<double>> &weight_samples, std::vector<std::vector<double>> &tau_samples, 
 std::vector<std::vector<double>> &logloss, std::vector<std::vector<double>> &tree_size)
