@@ -117,7 +117,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 
             if (verbose)
             {
-                COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
+                COUT << "sweep " << sweeps << " tree " << tree_ind << " ";
             }
             // Draw latents -- do last?
 
@@ -172,6 +172,11 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             {
                 // all other cases, grow directly
                 trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind);
+
+                if(verbose)
+                {
+                    COUT << "fitted tree size " << trees[sweeps][tree_ind].treesize() << endl;
+                }
 
                 state.update_split_counts(tree_ind);
 
