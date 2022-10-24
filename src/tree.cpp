@@ -346,7 +346,7 @@ void tree::cp(tree_p n, tree_cp o)
     n->theta_vector = o->theta_vector;
     n->suff_stat = o->suff_stat;
     n->num_cutpoint_candidates = o->num_cutpoint_candidates;
-    
+
     if (o->l)
     { // if o has children
         n->l = new tree;
@@ -1633,8 +1633,15 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
                     loglike[loglike_start + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, false, false, state);
 
-                    // adjust for the difference of number of cutpoints between continuous variable and categorical variables
-                    loglike[loglike_start + j] += log(state.n_cutpoints) - log(x_struct.X_num_cutpoints[i - state.p_continuous]);
+                    // adjust for categorical splits by number of cutpoints avaiable
+                    loglike[loglike_start + j] += - log(X_num_unique[i - state.p_continuous] - 1);
+
+                    if (state.p_continuous > 0)
+                    {
+                        // adjust for the difference of number of cutpoints between continuous variable and categorical variables
+                        loglike[loglike_start + j] += log(state.n_cutpoints);
+
+                    }
                 }
             }
         }
