@@ -16,7 +16,7 @@
 #' @param beta_mod Scalar, BART prior parameter for treatment forest. The default value is 1.25.
 #' @param tau_con Scalar, prior parameter for prognostic forest. The default value is 0.6 * var(y) / num_trees_con.
 #' @param tau_mod Scalar, prior parameter for treatment forest. The default value is 0.1 * var(y) / num_trees_mod.
-#' @param no_split_penalty Extra weight of no-split option on log scale. The default value is 0, or you can take any other number in log scale.
+#' @param no_split_penalty Extra weight of no-split option. The default value is 1, or you can take any other number greater than 0.
 #' @param burnin Integer, number of burnin sweeps.
 #' @param mtry_con Integer, number of X variables to sample at each split of the prognostic forest.
 #' @param mtry_mod Integer, number of X variables to sample at each split of the treatment forest.
@@ -76,7 +76,9 @@ XBCF.continuous <- function(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, nu
     }
 
     if (is.null(no_split_penalty) || no_split_penalty == "Auto") {
-        no_split_penalty <- log(num_cutpoints)
+        no_split_penalty <- log(1)
+    } else {
+        no_split_penalty <- log(no_split_penalty)
     }
 
     if (is.null(tau_con)) {
