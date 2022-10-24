@@ -1668,7 +1668,12 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                     loglike[loglike_start + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, false, false, state);
 
                     // adjust for the difference of number of cutpoints between continuous variable and categorical variables
-                    loglike[loglike_start + j] += log(state.n_cutpoints) - log(x_struct.X_num_cutpoints[i - state.p_continuous]);
+                    loglike[loglike_start + j] += - log(x_struct.X_num_unique[i - state.p_continuous]);
+
+                    if(state.p_continuous > 0)
+                    {
+                        loglike[loglike_start + j] += log(state.n_cutpoints);
+                    }
                 }
             }
         }
