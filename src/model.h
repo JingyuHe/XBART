@@ -495,8 +495,10 @@ public:
     void update_partial_residuals(size_t tree_ind, State &state, X_struct &x_struct);
 
     void update_split_counts(State &state, size_t tree_ind);
+
+    void update_a(State &state);
+
+    void update_b(State &state);
 };
-
-
 
 #endif

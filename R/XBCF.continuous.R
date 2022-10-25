@@ -3,7 +3,7 @@
 #' @param y A vector of outcome variable of length n, expected to be continuous.
 #' @param Z A vector of treatment variable of length n, expected to be continuous.
 #' @param X_con A matrix of input for the prognostic forest of size n by p_con. Column order matters: continuous features should all go before categorical. The number of categorical variables is p_categorical_con.
-#' @param X_mod A matrix of input for the treatment forest of size n by p_con. Column order matters: continuous features should all go before categorical. The number of categorical variables is p_categorical_mod.
+#' @param X_mod A matrix of input for the treatment forest of size n by p_mod. Column order matters: continuous features should all go before categorical. The number of categorical variables is p_categorical_mod.
 #' @param num_trees_con Integer, number of trees in the prognostic forest.
 #' @param num_trees_mod Integer, number of trees in the treatment forest.
 #' @param num_sweeps Integer, number of sweeps to fit for both forests.

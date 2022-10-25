@@ -321,7 +321,7 @@ void mcmc_loop_xbcf_continuous(matrix<size_t> &Xorder_std_con, matrix<size_t> &X
                 }
             }
         }
-        
+
         if (model->sampling_tau)
         {
             model->update_tau_per_forest(state, sweeps, trees_con);
@@ -390,9 +390,7 @@ void mcmc_loop_xbcf_continuous(matrix<size_t> &Xorder_std_con, matrix<size_t> &X
     return;
 }
 
-
-
-void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod, double no_split_penalty, State &state, XBCFDiscreteModel *model, X_struct &x_struct_con, X_struct &x_struct_mod)
+void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, bool verbose, matrix<double> &sigma0_draw_xinfo, matrix<double> &sigma1_draw_xinfo, matrix<double> &a_xinfo, matrix<double> &b_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod, double no_split_penalty, State &state, XBCFDiscreteModel *model, X_struct &x_struct_con, X_struct &x_struct_mod)
 {
     model->ini_tau_mu_fit(state);
 
@@ -418,7 +416,7 @@ void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xor
             // Draw Sigma
             model->update_state(state, tree_ind, x_struct_con);
 
-            sigma_draw_xinfo[sweeps][tree_ind] = state.sigma;
+            sigma0_draw_xinfo[sweeps][tree_ind] = state.sigma;
 
             if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
             {
@@ -458,8 +456,20 @@ void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xor
                     (*state.split_count_all_con)[i] += (*state.split_count_current_tree)[i];
                 }
             }
+
+            if (sweeps != 0)
+            {
+                if (state.a_scaling)
+                {
+                    model->update_a(state);
+                }
+                if (state.b_scaling)
+                {
+                    model->update_b(state);
+                }
+            }
         }
-        
+
         if (model->sampling_tau)
         {
             model->update_tau_per_forest(state, sweeps, trees_con);
@@ -478,7 +488,7 @@ void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xor
             // Draw Sigma
             model->update_state(state, tree_ind, x_struct_mod);
 
-            sigma_draw_xinfo[sweeps][tree_ind + state.num_trees_con] = state.sigma;
+            sigma1_draw_xinfo[sweeps][tree_ind + state.num_trees_con] = state.sigma;
 
             if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
             {
@@ -527,4 +537,3 @@ void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xor
     }
     return;
 }
-

@@ -15,19 +15,34 @@ void XBCFDiscreteModel::incSuffStat(State &state, size_t index_next_obs, std::ve
     if (state.treatment_flag)
     {
         // treatment forest
-        // sum z_i^2
-        suffstats[0] += pow((*state.Z_std)[0][index_next_obs], 2);
-        // sum r_i * z_i^2
-        suffstats[1] += pow((*state.Z_std)[0][index_next_obs], 2) * (*state.residual_std)[0][index_next_obs];
-        // number of points
-        suffstats[2] += 1;
+        if ((*state.Z_std)[0][index_next_obs] == 1)
+        {
+            // if treated
+            suffstats[1] += ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[1] * (*state.tau_fit)[index_next_obs]) / state.b_vec[1];
+            suffstats[3] += 1;
+        }
+        else
+        {
+            // if control group
+            suffstats[0] += ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[0] * (*state.tau_fit)[index_next_obs]) / state.b_vec[0];
+            suffstats[2] += 1;
+        }
     }
     else
     {
         // prognostic forest
-        suffstats[0] += 1;
-        suffstats[1] += (*state.residual_std)[0][index_next_obs];
-        suffstats[3] += 1;
+        if ((*state.Z_std)[0][index_next_obs] == 1)
+        {
+            // if treated
+            suffstats[1] += ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[1] * (*state.tau_fit)[index_next_obs]) / state.a;
+            suffstats[3] += 1;
+        }
+        else
+        {
+            // if control group
+            suffstats[0] += ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[0] * (*state.tau_fit)[index_next_obs]) / state.a;
+            suffstats[2] += 1;
+        }
     }
     return;
 }
@@ -57,16 +72,43 @@ void XBCFDiscreteModel::samplePars(State &state, std::vector<double> &suff_stat,
 void XBCFDiscreteModel::update_state(State &state, size_t tree_ind, X_struct &x_struct)
 {
     // Draw Sigma
-    std::vector<double> full_residual(state.n_y);
+    std::vector<double> full_residual_trt(state.N_trt);
+    std::vector<double> full_residual_ctrl(state.N_ctrl);
+
+    // index
+    size_t index_trt = 0;
+    size_t index_ctrl = 0;
 
     for (size_t i = 0; i < state.n_y; i++)
     {
-        full_residual[i] = (*state.y_std)[i] - (*state.mu_fit)[i] - ((*state.Z_std)[0][i]) * (*state.tau_fit)[i];
+        // full_residual[i] = (*state.y_std)[i] - (*state.mu_fit)[i] - ((*state.Z_std)[0][i]) * (*state.tau_fit)[i];
+
+        if ((*state.Z_std)[0][i] == 1)
+        {
+            // if treated
+            full_residual_trt[index_trt] = (*state.y_std)[i] - state.a * (*state.mu_fit)[i] - state.b_vec[1] * (*state.tau_fit)[i];
+            index_trt++;
+        }
+        else
+        {
+            // if control group
+            full_residual_ctrl[index_ctrl] = (*state.y_std)[i] - state.a * (*state.mu_fit)[i] - state.b_vec[0] * (*state.tau_fit)[i];
+            index_ctrl++;
+        }
     }
 
-    std::gamma_distribution<double> gamma_samp((state.n_y + kap) / 2.0, 2.0 / (sum_squared(full_residual) + s));
-    state.update_sigma(1.0 / sqrt(gamma_samp(state.gen)));
+    std::gamma_distribution<double> gamma_samp1((state.N_trt + kap) / 2.0, 2.0 / (sum_squared(full_residual_trt) + s));
 
+    std::gamma_distribution<double> gamma_samp0((state.N_ctrl + kap) / 2.0, 2.0 / (sum_squared(full_residual_ctrl) + s));
+
+    if (state.treatment_flag)
+    {
+        state.update_sigma(1.0 / sqrt(gamma_samp1(state.gen)));
+    }
+    else
+    {
+        state.update_sigma(1.0 / sqrt(gamma_samp0(state.gen)));
+    }
     return;
 }
 
@@ -402,5 +444,105 @@ void XBCFDiscreteModel::update_split_counts(State &state, size_t tree_ind)
         (*state.mtry_weight_current_tree_con) = (*state.mtry_weight_current_tree_con) + (*state.split_count_current_tree);
         (*state.split_count_all_tree_con)[tree_ind] = (*state.split_count_current_tree);
     }
+    return;
+}
+
+void XBCFDiscreteModel::update_a(State &state)
+{
+    // update parameter a, y = a * mu + b_z * tau
+
+    std::normal_distribution<double> normal_samp(0.0, 1.0);
+
+    double mu2sum_ctrl = 0;
+    double mu2sum_trt = 0;
+    double muressum_ctrl = 0;
+    double muressum_trt = 0;
+
+    // compute the residual y - b * tau(x)
+
+    for (size_t i = 0; i < state.n_y; i++)
+    {
+        if ((*state.Z_std)[0][i] == 1)
+        {
+            // if treated
+            state.residual[i] = (*state.y_std)[i] - (*state.tau_fit)[i] * state.b_vec[1];
+        }
+        else
+        {
+            state.residual[i] = (*state.y_std)[i] - (*state.tau_fit)[i] * state.b_vec[0];
+        }
+    }
+
+    for (size_t i = 0; i < state.n_y; i++)
+    {
+        if ((*state.Z_std)[0][i] == 1)
+        {
+            // if treated
+            mu2sum_trt += pow((*state.mu_fit)[i], 2);
+            muressum_trt += (*state.mu_fit)[i] * state.residual[i];
+        }
+        else
+        {
+            mu2sum_ctrl += pow((*state.mu_fit)[i], 2);
+            muressum_ctrl += (*state.mu_fit)[i] * state.residual[i];
+        }
+    }
+
+    // update parameters
+    double v0 = 1.0 / (1.0 + mu2sum_ctrl / pow(state.sigma_vec[0], 2));
+    double m0 = v0 * (muressum_ctrl) / pow(state.sigma_vec[0], 2);
+    double v1 = 1 / (1.0 / v0 + mu2sum_trt / pow(state.sigma_vec[1], 2));
+    double m1 = v1 * (m0 / v0 + (muressum_trt) / pow(state.sigma_vec[1], 2));
+
+    state.a = m1 + sqrt(v1) * normal_samp(state.gen);
+
+    return;
+}
+
+void XBCFDiscreteModel::update_b(State &state)
+{
+    // update b0 and b1 for XBCF discrete treatment
+
+    std::normal_distribution<double> normal_samp(0.0, 1.0);
+
+    double tau2sum_ctrl = 0;
+    double tau2sum_trt = 0;
+    double tauressum_ctrl = 0;
+    double tauressum_trt = 0;
+
+    // compute the residual y-a*mu(x) using state's objects y_std, mu_fit and a
+    for (size_t i = 0; i < state.n_y; i++)
+    {
+        state.residual[i] = (*state.y_std)[i] - state.a * (*state.mu_fit)[i];
+    }
+
+    for (size_t i = 0; i < state.n_y; i++)
+    {
+        if ((*state.Z_std)[0][i] == 1)
+        {
+            tau2sum_trt += pow((*state.tau_fit)[i], 2);
+            tauressum_trt += (*state.tau_fit)[i] * state.residual[i];
+        }
+        else
+        {
+            tau2sum_ctrl += pow((*state.tau_fit)[i], 2);
+            tauressum_ctrl += (*state.tau_fit)[i] * state.residual[i];
+        }
+    }
+
+    // update parameters
+    double v0 = 1.0 / (2.0 + tau2sum_ctrl / pow(state.sigma_vec[0], 2));
+    double v1 = 1.0 / (2.0 + tau2sum_trt / pow(state.sigma_vec[1], 2));
+
+    double m0 = v0 * (tauressum_ctrl) / pow(state.sigma_vec[0], 2);
+    double m1 = v1 * (tauressum_trt) / pow(state.sigma_vec[1], 2);
+
+    // sample b0, b1
+    double b0 = m0 + sqrt(v0) * normal_samp(state.gen);
+    double b1 = m1 + sqrt(v1) * normal_samp(state.gen);
+
+    state.b_vec[1] = b1;
+    state.b_vec[0] = b0;
+
     return;
 }

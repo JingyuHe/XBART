@@ -28,6 +28,8 @@
 #' @param tau_con_s Scalar, parameter of the inverse gamma prior on tau_con. Default value is 0.5.
 #' @param tau_mod_kap Scalar, parameter of the inverse gamma prior on tau_mod. Default value is 3.
 #' @param tau_mod_s Scalar, parameter of the inverse gamma prior on tau_mod. Default value is 0.5.
+#' @param a_scaling Bool, if TRUE, update the scaling constant of mu(x), a.
+#' @param b_scaling Bool, if TRUE, update the scaling constant of tau(x), b_1 and b_0.
 #' @param verbose Bool, whether to print fitting process on the screen or not.
 #' @param update_tau Bool. If TRUE, update the prior of leaf mean.
 #' @param paralll Bool, whether to run in parallel on multiple CPU threads.
