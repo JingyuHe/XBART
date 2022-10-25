@@ -98,7 +98,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
 }
 
 void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty, State &state, LogitModel *model, X_struct &x_struct, 
-std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &tau_samples, std::vector<std::vector<double>> &logloss,
+std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &phi_samples, std::vector<std::vector<double>> &logloss,
 std::vector<std::vector<double>> &tree_size)
 {
     // Residual for 0th tree
@@ -188,17 +188,17 @@ std::vector<std::vector<double>> &tree_size)
             model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
 
             weight_samples[sweeps][tree_ind] = model->weight;
-            tau_samples[sweeps][tree_ind] = model->tau_a;
+            phi_samples[sweeps][tree_ind] = exp((*model->phi)[0]);
             logloss[sweeps][tree_ind] = model->logloss;
             tree_size[sweeps][tree_ind] = trees[sweeps][tree_ind].treesize();
 
             if (verbose)
             {
-                COUT << ", new size = " << trees[sweeps][tree_ind].treesize() << endl;
-                COUT << " logloss " << model->logloss << " acc " << model->accuracy << endl;
-                size_t next_tree = tree_ind + 1 >= state.num_trees ? 0 : tree_ind + 1;
                 if (sweeps > 0) 
-                    COUT << "tree " << tree_ind << " old size = " << trees[sweeps - 1][next_tree].treesize();
+                {
+                    COUT << "tree " << tree_ind << " old size = " << trees[sweeps - 1][tree_ind].treesize() << ", new size = " << trees[sweeps][tree_ind].treesize() << endl;
+                    COUT << " logloss " << model->logloss << " acc " << model->accuracy << endl;
+                }
             }
 
             for (size_t j = 0; j < (*state.lambdas)[tree_ind].size(); j++)

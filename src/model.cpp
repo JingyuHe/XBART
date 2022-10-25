@@ -337,7 +337,6 @@ void LogitModel::samplePars(State &state, std::vector<double> &suff_stat, std::v
 
 void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double>& var_lambda, size_t &count_lambda)
 {
-
     // update residuals
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
     {
@@ -346,6 +345,15 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
             (*state.residual_std)[j][i] = (*state.residual_std)[j][i] + log((*(x_struct.data_pointers[tree_ind][i]))[j]); 
         }
     }
+
+
+    // // check residauls
+    // std::vector<double> residual_sample(dim_residual);
+    // for (size_t j = 0; j < dim_residual; j++)
+    // {
+    //     residual_sample[j] = exp((*phi)[0] + (*state.residual_std)[j][0]);
+    // }
+    // cout << "phi " << (*phi)[0] << " exp(phi) " << exp((*phi)[0]) << " residuals " << residual_sample << endl;
     
     // track accuracy of each group
     std::fill(acc_gp.begin(), acc_gp.end(), 0.0);

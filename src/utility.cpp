@@ -394,11 +394,34 @@ double drawlambdafromR(size_t n, double sy, double c, double d, std::mt19937& ge
         Function f("rgig");
         NumericVector ret_r = f(1, eta, chi, psi);
         ret = ret_r(0);
+        // if (ret > 1000)
+        // {   
+        //     cout << "pi " << _pi << " logz1 " << logz1 << " logz2 " << logz2 << " z1 " << exp(logz1) << " z2" << exp(logz2) << endl;
+        //     cout << "gig " << " eta " << eta << " chi " << chi << " psi " << psi << " ret " << ret << endl;
+        // }
     } else { 
         // draw from gig(c+r, 0, 2*(d+s)) or equivalently gamma(c+r, d+s)
+
+        double eta = c + n; 
+        double chi = 0;
+        double psi = 2*(d+sy);
+        Function f("rgig");
+        NumericVector ret_r = f(1, eta, chi, psi);
+        ret = ret_r(0);
+        // if (ret > 1000)
+        // {   
+        //     cout << "pi " << _pi << " logz1 " << logz1 << " logz2 " << logz2 << " z1 " << exp(logz1) << " z2" << exp(logz2) << endl;
+        //     cout << "gamma " << " eta " << eta << " chi " << chi << " psi " << psi << " ret " << ret << endl;
+        // }
+
         // cout << "draw from gamma" << endl;
-        std::gamma_distribution gammadist(c+n, d+sy);  
-        ret = gammadist(gen);
+        // std::gamma_distribution gammadist(c+n, d+sy);  
+        // ret = gammadist(gen);
+        // if (ret > 1000)
+        // {
+        //     cout << "pi " << _pi << " logz1 " << logz1 << " logz2 " << logz2 << " z1 " << exp(logz1) << " z2" << exp(logz2) << endl;
+        //     cout << "gamma dist " << " c+n " << c+n << " d+sy " << d+sy << " ret " << ret << endl;
+        // }
     }
     return ret;
 }

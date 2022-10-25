@@ -77,15 +77,15 @@ y_test = y_train
 
 #####################
 # parameters of XBART
-num_sweeps <- 4
+num_sweeps <- 5
 burnin <- 2
-num_trees <- 5
+num_trees <- 20
 tm <- proc.time()
 fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, 
     num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin,
-    p_categorical = p_cat, tau_a = 1, tau_b = 1,
+    p_categorical = p_cat, tau_a = 3.5, tau_b = 3,
     verbose = T, parallel = F,
-    separate_tree = F, update_tau = F, update_weight = T)
+    separate_tree = F, update_tau = F, update_weight = F)
 
 tm <- proc.time() - tm
 cat(paste("XBART runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
@@ -95,14 +95,14 @@ yhat <- pred$label # prediction of classes
 prob <- pred$prob # prediction of probability in each class
 cat(paste("XBART classification accuracy: ", round(mean(y_test == yhat), 3)), "\n")
 cat("-----------------------------\n")
-cat("Weight:\n")
-print(summary(as.vector(fit$weight)))
+cat("Phi samples for the first observation:\n")
+print(summary(as.vector(fit$phi)))
 cat("-----------------------------\n")
 
 # diagnosis plots
 par(mfrow = c(2, 2))
 plot(as.vector(fit$weight), ylab = 'weight')
-plot(as.vector(fit$tau_a), ylab = 'tau_a')
+plot(as.vector(fit$phi), ylab = 'phi')
 plot(as.vector(fit$logloss), ylab = 'logloss')
 plot(rowSums(fit$tree_size), ylab = 'tree size per sweep')
 # plot(as.vector(t(diff(t(fit$tree_size))))) # tree size compare to the replaced one
