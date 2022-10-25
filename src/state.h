@@ -430,30 +430,14 @@ public:
         this->b_scaling = b_scaling;
         this->N_trt = N_trt;
         this->N_ctrl = N_ctrl;
-    }
-};
-
-class xbcfState : public State
-{
-public:
-    xbcfState(const double *Xpointer, matrix<size_t> &Xorder_std_pr, matrix<size_t> &Xorder_std_trt, size_t N, size_t n_trt, size_t p, size_t p_tau, size_t num_trees_con, size_t num_trees_mod, size_t p_categorical_pr, size_t p_categorical_trt, size_t p_continuous_pr, size_t p_continuous_trt, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, bool parallel, size_t mtry_pr, size_t mtry_trt, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, std::vector<double> b_std, std::vector<size_t> z, std::vector<double> sigma_vec, std::vector<double> b_vec, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual) : State(Xpointer, Xorder_std_pr, Xorder_std_trt, N, p, p_tau, num_trees_con, num_trees_mod, p_categorical_pr, p_categorical_trt, p_continuous_pr, p_continuous_trt, set_random_seed, random_seed, n_min, n_cutpoints, parallel, mtry_pr, mtry_trt, X_std, num_sweeps, sample_weights, y_std, b_std, z, sigma_vec, b_vec, max_depth, ini_var_yhat, burnin, dim_residual)
-    {
-        this->sigma_vec = sigma_vec;
-        this->b_vec = b_vec;
-        this->n_trt = n_trt;
-        this->num_trees_con = num_trees_con;
-        this->num_trees_mod = num_trees_mod;
-        this->b_std = b_std;
-        this->z = z;
-        this->a = 1; // initialize a at 1 for now
-
-        this->mu_fit = new std::vector<double>(N, 0);
-        this->tau_fit = new std::vector<double>(N, 0);
-
-        // those are for XBCF, initialize at a length 1 vector
-        this->residual = std::vector<double>(N, 0);
-        this->full_residual_ctrl = std::vector<double>(N - n_trt, 0);
-        this->full_residual_trt = std::vector<double>(n_trt, 0);
+        this->a = 1.0;
+        this->b_vec.resize(2);
+        this->b_vec[0] = -0.5;
+        this->b_vec[1] = 0.5;
+        this->sigma_vec.resize(2);
+        this->sigma_vec[0] = 1;
+        this->sigma_vec[1] = 1;
+        this->residual.resize(n_y);
     }
 };
 

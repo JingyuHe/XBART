@@ -81,8 +81,6 @@ void XBCFDiscreteModel::update_state(State &state, size_t tree_ind, X_struct &x_
 
     for (size_t i = 0; i < state.n_y; i++)
     {
-        // full_residual[i] = (*state.y_std)[i] - (*state.mu_fit)[i] - ((*state.Z_std)[0][i]) * (*state.tau_fit)[i];
-
         if ((*state.Z_std)[0][i] == 1)
         {
             // if treated
@@ -96,7 +94,7 @@ void XBCFDiscreteModel::update_state(State &state, size_t tree_ind, X_struct &x_
             index_ctrl++;
         }
     }
-
+    
     std::gamma_distribution<double> gamma_samp1((state.N_trt + kap) / 2.0, 2.0 / (sum_squared(full_residual_trt) + s));
 
     std::gamma_distribution<double> gamma_samp0((state.N_ctrl + kap) / 2.0, 2.0 / (sum_squared(full_residual_ctrl) + s));
@@ -472,7 +470,6 @@ void XBCFDiscreteModel::update_a(State &state)
             state.residual[i] = (*state.y_std)[i] - (*state.tau_fit)[i] * state.b_vec[0];
         }
     }
-
     for (size_t i = 0; i < state.n_y; i++)
     {
         if ((*state.Z_std)[0][i] == 1)
@@ -487,7 +484,6 @@ void XBCFDiscreteModel::update_a(State &state)
             muressum_ctrl += (*state.mu_fit)[i] * state.residual[i];
         }
     }
-
     // update parameters
     double v0 = 1.0 / (1.0 + mu2sum_ctrl / pow(state.sigma_vec[0], 2));
     double m0 = v0 * (muressum_ctrl) / pow(state.sigma_vec[0], 2);

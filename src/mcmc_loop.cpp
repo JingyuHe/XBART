@@ -443,6 +443,7 @@ void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xor
             model->initialize_root_suffstat(state, trees_con[sweeps][tree_ind].suff_stat);
 
             trees_con[sweeps][tree_ind].grow_from_root(state, Xorder_std_con, x_struct_con.X_counts, x_struct_con.X_num_unique, model, x_struct_con, sweeps, tree_ind);
+            cout << "tree size " << trees_con[sweeps][tree_ind].treesize() << endl;
 
             // update tau_fit from partial fit to full fit
             model->add_new_tree_fit(tree_ind, state, x_struct_con);
