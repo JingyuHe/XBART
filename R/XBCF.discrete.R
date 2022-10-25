@@ -1,7 +1,7 @@
 #' XBCF causal forest for continuous treatment variable.
 #' @description This function fits XBCF causal forest model with continuous treatment variable. In sepecific, the model is \eqn{y = \tau(X_{con}) + \mu(X_{mod}) \times z + \epsilon, \quad \epsilon\sim N(0, \sigma^2)}. Where the \eqn{\tau(X_{con})} and \eqn{\mu(X_{mod})} are two XBART forest called prognostic and treatment forest respectively.
 #' @param y A vector of outcome variable of length n, expected to be continuous.
-#' @param Z A vector of treatment variable of length n, expected to be continuous.
+#' @param Z A vector of treatment variable of length n, expected to be binary 0 or 1.
 #' @param X_con A matrix of input for the prognostic forest of size n by p_con. Column order matters: continuous features should all go before categorical. The number of categorical variables is p_categorical_con.
 #' @param X_mod A matrix of input for the treatment forest of size n by p_con. Column order matters: continuous features should all go before categorical. The number of categorical variables is p_categorical_mod.
 #' @param num_trees_con Integer, number of trees in the prognostic forest.
@@ -61,6 +61,10 @@ XBCF.discrete <- function(y, Z, X_con, X_mod, pihat = NULL, num_trees_con = 30, 
         stop("Length of Z must match length of y")
     }
 
+    if (dim(Z)[2] > 1 || length(unique(Z)) != 2) {
+        stop("Z should be a column vector of 0 / 1 values")
+    }
+
     if (dim(X_con)[1] != length(y)) {
         stop("Length of X must match length of y")
     }
@@ -77,7 +81,7 @@ XBCF.discrete <- function(y, Z, X_con, X_mod, pihat = NULL, num_trees_con = 30, 
         pihat <- as.matrix(pihat)
     }
 
-    X_con = cbind(pihat, X_con)
+    X_con <- cbind(pihat, X_con)
 
     if (is.null(random_seed)) {
         set_random_seed <- FALSE

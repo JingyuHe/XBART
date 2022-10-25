@@ -62,9 +62,35 @@ void XBCFDiscreteModel::samplePars(State &state, std::vector<double> &suff_stat,
         tau_use = tau_con;
     }
 
-    double sigma2 = pow(state.sigma, 2);
+    double s0 = 0;
+    double s1 = 0;
 
-    theta_vector[0] = suff_stat[1] / sigma2 / (suff_stat[0] / sigma2 + 1.0 / tau_use) + sqrt(1.0 / (1.0 / tau_use + suff_stat[0] / sigma2)) * normal_samp(state.gen);
+    if (state.treatment_flag)
+    {
+        s0 = state.sigma_vec[0] / fabs(state.b_vec[0]);
+        s1 = state.sigma_vec[1] / fabs(state.b_vec[1]);
+    }
+    else
+    {
+        s0 = state.sigma_vec[0] / fabs(state.a);
+        s1 = state.sigma_vec[1] / fabs(state.a);
+    }
+
+    // step 1 (control group)
+    double denominator0 = 1.0 / tau_use + suff_stat[2] / pow(s0, 2);
+    double m0 = (suff_stat[0] / pow(s0, 2)) / denominator0;
+    double v0 = 1.0 / denominator0;
+
+    // step 2 (treatment group)
+    double denominator1 = (1.0 / v0 + suff_stat[3] / pow(s1, 2));
+    double m1 = (1.0 / v0) * m0 / denominator1 + suff_stat[1] / pow(s1, 2) / denominator1;
+    double v1 = 1.0 / denominator1;
+
+    // sample leaf parameter
+    theta_vector[0] = m1 + sqrt(v1) * normal_samp(state.gen);
+
+    // also update probability of leaf parameters
+    prob_leaf = 1.0;
 
     return;
 }
@@ -94,7 +120,7 @@ void XBCFDiscreteModel::update_state(State &state, size_t tree_ind, X_struct &x_
             index_ctrl++;
         }
     }
-    
+
     std::gamma_distribution<double> gamma_samp1((state.N_trt + kap) / 2.0, 2.0 / (sum_squared(full_residual_trt) + s));
 
     std::gamma_distribution<double> gamma_samp0((state.N_ctrl + kap) / 2.0, 2.0 / (sum_squared(full_residual_ctrl) + s));
@@ -184,23 +210,8 @@ void XBCFDiscreteModel::initialize_root_suffstat(State &state, std::vector<doubl
 
 void XBCFDiscreteModel::updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
-    if (state.treatment_flag)
-    {
-        // sum of z^2
-        suff_stat[0] += pow(((*state.Z_std))[0][Xorder_std[split_var][row_ind]], 2);
 
-        // sum of partial residual * z^2 (in y scale)
-        suff_stat[1] += ((*state.residual_std)[0])[Xorder_std[split_var][row_ind]] * pow(((*state.Z_std))[0][Xorder_std[split_var][row_ind]], 2);
-
-        // number of data points
-        suff_stat[2] += 1;
-    }
-    else
-    {
-        suff_stat[0] += 1;
-        suff_stat[1] += ((*state.residual_std)[0])[Xorder_std[split_var][row_ind]];
-        suff_stat[2] += 1;
-    }
+    incSuffStat(state, Xorder_std[split_var][row_ind], suff_stat);
 
     return;
 }
@@ -237,37 +248,7 @@ void XBCFDiscreteModel::calculateOtherSideSuffStat(std::vector<double> &parent_s
 
 double XBCFDiscreteModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State &state) const
 {
-    // likelihood equation,
-
-    double sigma2 = state.sigma2;
-
-    size_t nb;
-    double s0; // sum z_i^2
-    double s1; // sum r_i * z_i^2
-
-    if (no_split)
-    {
-        // calculate likelihood for no-split option (early stop)
-        s0 = suff_stat_all[0];
-        s1 = suff_stat_all[1];
-        nb = suff_stat_all[2];
-    }
-    else
-    {
-        // calculate likelihood for regular split point
-        if (left_side)
-        {
-            s0 = temp_suff_stat[0];
-            s1 = temp_suff_stat[1];
-            nb = N_left + 1;
-        }
-        else
-        {
-            s0 = suff_stat_all[0] - temp_suff_stat[0];
-            s1 = suff_stat_all[1] - temp_suff_stat[1];
-            nb = suff_stat_all[2] - N_left - 1;
-        }
-    }
+    // likelihood equation for XBCF with discrete binary treatment variable Z
 
     double tau_use;
 
@@ -280,7 +261,42 @@ double XBCFDiscreteModel::likelihood(std::vector<double> &temp_suff_stat, std::v
         tau_use = tau_con;
     }
 
-    return 0.5 * log(1.0 / (1.0 + tau_use * s0 / sigma2)) + 0.5 * pow(s1 / sigma2, 2) / (s0 / sigma2 + 1.0 / tau_use);
+    double s0 = 0;
+    double s1 = 0;
+    double denominator;   // the denominator (1 + tau * precision_squared) is the same for both terms
+    double s_psi_squared; // (residual * precision_squared)^2
+
+    if (state.treatment_flag)
+    {
+        // if this is treatment forest
+        s0 = state.sigma_vec[0] / fabs(state.b_vec[0]);
+        s1 = state.sigma_vec[1] / fabs(state.b_vec[1]);
+    }
+    else
+    {
+        s0 = state.sigma_vec[0] / fabs(state.a);
+        s1 = state.sigma_vec[1] / fabs(state.a);
+    }
+
+    if (no_split)
+    {
+        denominator = 1 + (suff_stat_all[2] / pow(s0, 2) + suff_stat_all[3] / pow(s1, 2)) * tau_use;
+        s_psi_squared = suff_stat_all[0] / pow(s0, 2) + suff_stat_all[1] / pow(s1, 2);
+    }
+    else
+    {
+        if (left_side)
+        {
+            denominator = 1 + (temp_suff_stat[2] / pow(s0, 2) + temp_suff_stat[3] / pow(s1, 2)) * tau_use;
+            s_psi_squared = temp_suff_stat[0] / pow(s0, 2) + temp_suff_stat[1] / pow(s1, 2);
+        }
+        else
+        {
+            denominator = 1 + ((suff_stat_all[2] - temp_suff_stat[2]) / pow(s0, 2) + (suff_stat_all[3] - temp_suff_stat[3]) / pow(s1, 2)) * tau_use;
+            s_psi_squared = (suff_stat_all[0] - temp_suff_stat[0]) / pow(s0, 2) + (suff_stat_all[1] - temp_suff_stat[1]) / pow(s1, 2);
+        }
+    }
+    return 0.5 * log(1 / denominator) + 0.5 * pow(s_psi_squared, 2) * tau_use / denominator;
 }
 
 void XBCFDiscreteModel::ini_residual_std(State &state)
@@ -288,8 +304,16 @@ void XBCFDiscreteModel::ini_residual_std(State &state)
     // initialize the vector of full residuals
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
     {
-        (*state.residual_std)[0][i] = (*state.y_std)[i] - (*state.mu_fit)[i] - ((*state.Z_std)[0][i]) * (*state.tau_fit)[i];
+        if ((*state.Z_std)[0][i] == 1)
+        {
+            (*state.residual_std)[0][i] = (*state.y_std)[i] - (state.a) * (*state.mu_fit)[i] - (state.b_vec[1]) * (*state.tau_fit)[i];
+        }
+        else
+        {
+            (*state.residual_std)[0][i] = (*state.y_std)[i] - (state.a) * (*state.mu_fit)[i] - (state.b_vec[0]) * (*state.tau_fit)[i];
+        }
     }
+    return;
 }
 
 void XBCFDiscreteModel::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer_con, const double *Xtestpointer_mod, size_t N_test, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod)
@@ -322,7 +346,15 @@ void XBCFDiscreteModel::predict_std(matrix<double> &Ztestpointer, const double *
                 prognostic_xinfo[sweeps][data_ind] += output_con[i][0];
             }
 
-            yhats_test_xinfo[sweeps][data_ind] = prognostic_xinfo[sweeps][data_ind] + (Ztestpointer[0][data_ind]) * treatment_xinfo[sweeps][data_ind];
+            if (Ztestpointer[0][data_ind] == 1)
+            {
+                // yhats_test_xinfo[sweeps][data_ind] = (state.a) * prognostic_xinfo[sweeps][data_ind] + (state.b_vec[1]) * treatment_xinfo[sweeps][data_ind];
+            }
+            else
+            {
+                // yhats_test_xinfo[sweeps][data_ind] = (state.a) * prognostic_xinfo[sweeps][data_ind] + (state.b_vec[0]) * treatment_xinfo[sweeps][data_ind];
+            }
+            yhats_test_xinfo[sweeps][data_ind] = prognostic_xinfo[sweeps][data_ind] + treatment_xinfo[sweeps][data_ind];
         }
     }
     return;
