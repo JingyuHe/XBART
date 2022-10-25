@@ -470,12 +470,12 @@ double drawnodelambda(size_t n, double sy, double c, double d, std::mt19937& gen
         if ((psi == 0)&&(eta < 0)&&(chi > 0)) 
         {
             // cout << "case 1" << endl;
-            std::gamma_distribution gammadist(-eta, chi/2);  // if psi == 0, its a inverse gamma distribution invGamma(-eta, chi/2)
+            std::gamma_distribution gammadist(-eta, 2/chi);  // if psi == 0, its a inverse gamma distribution invGamma(-eta, chi/2)
             return 1 / gammadist(gen);
         } else if ((chi == 0)&&(eta > 0)&&(psi > 0)) 
         {
             // cout << "case 2" << endl;
-            std::gamma_distribution gammadist(eta, psi/2);  // if chi == 0, it's Gamma(eta, psi/2)
+            std::gamma_distribution gammadist(eta, 2/psi);  // if chi == 0, it's Gamma(eta, psi/2)
             return gammadist(gen);
         } else if ((lambda < 1)&&(lambda >= 0)&&(beta <= sqrt(1-lambda)*2/3)) {
             // cout << "case 3" << endl;
@@ -591,7 +591,7 @@ double drawnodelambda(size_t n, double sy, double c, double d, std::mt19937& gen
             if (eta < 0) 
             {
                 // cout << "case 5" << endl;
-                std::gamma_distribution gammadist(-eta, chi/2);  // if psi == 0, its a inverse gamma distribution invGamma(-eta, chi/2)
+                std::gamma_distribution gammadist(-eta, 2/chi);  // if psi == 0, its a inverse gamma distribution invGamma(-eta, chi/2)
                 ret = 1 / gammadist(gen);
                 ret = exp(logu2 - logu1);
                 cout << "case 5 invGamma eta " << eta << " ret " << ret << endl;
@@ -609,7 +609,7 @@ double drawnodelambda(size_t n, double sy, double c, double d, std::mt19937& gen
                 return ret; 
             }
         } else if ((eta < 0) && (psi < 1)) {
-            std::gamma_distribution gammadist(-eta, chi/2);  // if psi == 0, its a inverse gamma distribution invGamma(-eta, chi/2)
+            std::gamma_distribution gammadist(-eta, 2/chi);  // if psi == 0, its a inverse gamma distribution invGamma(-eta, chi/2)
             ret = 1 / gammadist(gen);
             cout << "Warning psi is too small, treat as inverse gamma distribution, return " << ret << endl;
             return ret;
