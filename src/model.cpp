@@ -386,7 +386,9 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
         count_gp[y_i] += 1;
         if (yhat == y_i) {acc_gp[y_i] += 1;}
         // Sample phi
-        (*phi)[i] = log(gammadist(state.gen)) - log(1.0 * sum_fits);
+        if (update_phi) {
+            (*phi)[i] = log(gammadist(state.gen)) - log(1.0 * sum_fits);
+        }
         // calculate logloss
         prob = exp((*state.residual_std)[y_i][i]) / sum_fits; // logloss =  - log(p_j)
 

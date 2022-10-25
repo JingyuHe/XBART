@@ -14,7 +14,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // XBART_cpp
 Rcpp::List XBART_cpp(mat y, mat X, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau, double no_split_penalty, size_t burnin, size_t mtry, size_t p_categorical, double kap, double s, double tau_kap, double tau_s, bool verbose, bool sampling_tau, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights, double nthread);
-RcppExport SEXP _XBART_XBART_cpp(SEXP ySEXP, SEXP XSEXP, SEXP num_treesSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP no_split_penalitySEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP tau_kapSEXP, SEXP tau_sSEXP, SEXP verboseSEXP, SEXP sampling_tauSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weightsSEXP, SEXP nthreadSEXP) {
+RcppExport SEXP _XBART_XBART_cpp(SEXP ySEXP, SEXP XSEXP, SEXP num_treesSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tauSEXP, SEXP no_split_penaltySEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP tau_kapSEXP, SEXP tau_sSEXP, SEXP verboseSEXP, SEXP sampling_tauSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weightsSEXP, SEXP nthreadSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -28,7 +28,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< double >::type no_split_penalty(no_split_penalitySEXP);
+    Rcpp::traits::input_parameter< double >::type no_split_penalty(no_split_penaltySEXP);
     Rcpp::traits::input_parameter< size_t >::type burnin(burninSEXP);
     Rcpp::traits::input_parameter< size_t >::type mtry(mtrySEXP);
     Rcpp::traits::input_parameter< size_t >::type p_categorical(p_categoricalSEXP);
@@ -48,8 +48,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // XBART_multinomial_cpp
-Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penalty, size_t burnin, size_t mtry, size_t p_categorical, bool verbose, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights, bool separate_tree, double weight, bool update_weight, bool update_tau, double nthread, double hmult, double heps);
-RcppExport SEXP _XBART_XBART_multinomial_cpp(SEXP ySEXP, SEXP num_classSEXP, SEXP XSEXP, SEXP num_treesSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tau_aSEXP, SEXP tau_bSEXP, SEXP no_split_penalitySEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP verboseSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weightsSEXP, SEXP separate_treeSEXP, SEXP weightSEXP, SEXP update_weightSEXP, SEXP update_tauSEXP, SEXP nthreadSEXP, SEXP hmultSEXP, SEXP hepsSEXP) {
+Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penalty, size_t burnin, size_t mtry, size_t p_categorical, bool verbose, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights, bool separate_tree, double weight, bool update_weight, bool update_tau, bool update_phi, double nthread, double hmult, double heps);
+RcppExport SEXP _XBART_XBART_multinomial_cpp(SEXP ySEXP, SEXP num_classSEXP, SEXP XSEXP, SEXP num_treesSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tau_aSEXP, SEXP tau_bSEXP, SEXP no_split_penaltySEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP verboseSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weightsSEXP, SEXP separate_treeSEXP, SEXP weightSEXP, SEXP update_weightSEXP, SEXP update_tauSEXP, SEXP update_phiSEXP, SEXP nthreadSEXP, SEXP hmultSEXP, SEXP hepsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -65,7 +65,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
     Rcpp::traits::input_parameter< double >::type tau_a(tau_aSEXP);
     Rcpp::traits::input_parameter< double >::type tau_b(tau_bSEXP);
-    Rcpp::traits::input_parameter< double >::type no_split_penalty(no_split_penalitySEXP);
+    Rcpp::traits::input_parameter< double >::type no_split_penalty(no_split_penaltySEXP);
     Rcpp::traits::input_parameter< size_t >::type burnin(burninSEXP);
     Rcpp::traits::input_parameter< size_t >::type mtry(mtrySEXP);
     Rcpp::traits::input_parameter< size_t >::type p_categorical(p_categoricalSEXP);
@@ -78,16 +78,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type weight(weightSEXP);
     Rcpp::traits::input_parameter< bool >::type update_weight(update_weightSEXP);
     Rcpp::traits::input_parameter< bool >::type update_tau(update_tauSEXP);
+    Rcpp::traits::input_parameter< bool >::type update_phi(update_phiSEXP);
     Rcpp::traits::input_parameter< double >::type nthread(nthreadSEXP);
     Rcpp::traits::input_parameter< double >::type hmult(hmultSEXP);
     Rcpp::traits::input_parameter< double >::type heps(hepsSEXP);
-    rcpp_result_gen = Rcpp::wrap(XBART_multinomial_cpp(y, num_class, X, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penalty, burnin, mtry, p_categorical, verbose, parallel, set_random_seed, random_seed, sample_weights, separate_tree, weight, update_weight, update_tau, nthread, hmult, heps));
+    rcpp_result_gen = Rcpp::wrap(XBART_multinomial_cpp(y, num_class, X, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penalty, burnin, mtry, p_categorical, verbose, parallel, set_random_seed, random_seed, sample_weights, separate_tree, weight, update_weight, update_tau, update_phi, nthread, hmult, heps));
     return rcpp_result_gen;
 END_RCPP
 }
 // XBCF_continuous_cpp
 Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mod, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha_con, double beta_con, double alpha_mod, double beta_mod, double tau_con, double tau_mod, double no_split_penalty, size_t burnin, size_t mtry_con, size_t mtry_mod, size_t p_categorical_con, size_t p_categorical_mod, double kap, double s, double tau_con_kap, double tau_con_s, double tau_mod_kap, double tau_mod_s, bool verbose, bool sampling_tau, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights, double nthread);
-RcppExport SEXP _XBART_XBCF_continuous_cpp(SEXP ySEXP, SEXP ZSEXP, SEXP X_conSEXP, SEXP X_modSEXP, SEXP num_trees_conSEXP, SEXP num_trees_modSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alpha_conSEXP, SEXP beta_conSEXP, SEXP alpha_modSEXP, SEXP beta_modSEXP, SEXP tau_conSEXP, SEXP tau_modSEXP, SEXP no_split_penalitySEXP, SEXP burninSEXP, SEXP mtry_conSEXP, SEXP mtry_modSEXP, SEXP p_categorical_conSEXP, SEXP p_categorical_modSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP tau_con_kapSEXP, SEXP tau_con_sSEXP, SEXP tau_mod_kapSEXP, SEXP tau_mod_sSEXP, SEXP verboseSEXP, SEXP sampling_tauSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weightsSEXP, SEXP nthreadSEXP) {
+RcppExport SEXP _XBART_XBCF_continuous_cpp(SEXP ySEXP, SEXP ZSEXP, SEXP X_conSEXP, SEXP X_modSEXP, SEXP num_trees_conSEXP, SEXP num_trees_modSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alpha_conSEXP, SEXP beta_conSEXP, SEXP alpha_modSEXP, SEXP beta_modSEXP, SEXP tau_conSEXP, SEXP tau_modSEXP, SEXP no_split_penaltySEXP, SEXP burninSEXP, SEXP mtry_conSEXP, SEXP mtry_modSEXP, SEXP p_categorical_conSEXP, SEXP p_categorical_modSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP tau_con_kapSEXP, SEXP tau_con_sSEXP, SEXP tau_mod_kapSEXP, SEXP tau_mod_sSEXP, SEXP verboseSEXP, SEXP sampling_tauSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weightsSEXP, SEXP nthreadSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -107,7 +108,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type beta_mod(beta_modSEXP);
     Rcpp::traits::input_parameter< double >::type tau_con(tau_conSEXP);
     Rcpp::traits::input_parameter< double >::type tau_mod(tau_modSEXP);
-    Rcpp::traits::input_parameter< double >::type no_split_penalty(no_split_penalitySEXP);
+    Rcpp::traits::input_parameter< double >::type no_split_penalty(no_split_penaltySEXP);
     Rcpp::traits::input_parameter< size_t >::type burnin(burninSEXP);
     Rcpp::traits::input_parameter< size_t >::type mtry_con(mtry_conSEXP);
     Rcpp::traits::input_parameter< size_t >::type mtry_mod(mtry_modSEXP);
@@ -266,7 +267,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_XBART_XBART_cpp", (DL_FUNC) &_XBART_XBART_cpp, 25},
-    {"_XBART_XBART_multinomial_cpp", (DL_FUNC) &_XBART_XBART_multinomial_cpp, 28},
+    {"_XBART_XBART_multinomial_cpp", (DL_FUNC) &_XBART_XBART_multinomial_cpp, 29},
     {"_XBART_XBCF_continuous_cpp", (DL_FUNC) &_XBART_XBCF_continuous_cpp, 35},
     {"_XBART_xbart_predict", (DL_FUNC) &_XBART_xbart_predict, 3},
     {"_XBART_xbcf_predict", (DL_FUNC) &_XBART_xbcf_predict, 5},

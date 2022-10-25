@@ -233,14 +233,14 @@ public:
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
     std::vector<double> *phi;
 
-    bool update_weight, update_tau; // option to update tau_a
+    bool update_weight, update_tau, update_phi; // option to update tau_a
     double weight, logloss, accuracy;         // pseudo replicates of observations
     double hmult, heps;             // weight ~ Gamma(n, hmult * entropy + heps);
     std::vector<double> acc_gp; // track accuracy per group
 
     double c, d, z3, logz3; // param for mixture prior, c = m / tau_a^2 + 0.5; d = m / tau_a^2; m = num_trees = tau_b
 
-    LogitModel(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, double hmult, double heps) : Model(num_classes, 2 * num_classes)
+    LogitModel(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, bool update_phi, double hmult, double heps) : Model(num_classes, 2 * num_classes)
     {
         this->y_size_t = y_size_t;
         this->phi = phi;
@@ -253,6 +253,7 @@ public:
 
         this->update_weight = update_weight;
         this->update_tau = update_tau;
+        this->update_phi = update_phi;
         this->weight = weight;
         this->hmult = hmult;
         this->heps = heps;
@@ -330,7 +331,7 @@ private:
     }
 
 public:
-    LogitModelSeparateTrees(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, update_weight, update_tau, 1, 0.1) {}
+    LogitModelSeparateTrees(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, bool update_phi) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, update_weight, update_tau, update_phi, 1, 0.1) {}
 
     LogitModelSeparateTrees() : LogitModel() {}
 
