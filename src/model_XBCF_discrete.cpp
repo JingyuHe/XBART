@@ -95,7 +95,7 @@ void XBCFDiscreteModel::samplePars(State &state, std::vector<double> &suff_stat,
     return;
 }
 
-void XBCFDiscreteModel::update_state(State &state, size_t tree_ind, X_struct &x_struct)
+void XBCFDiscreteModel::update_state(State &state, size_t tree_ind, X_struct &x_struct, size_t ind)
 {
     // Draw Sigma
     std::vector<double> full_residual_trt(state.N_trt);
@@ -125,14 +125,19 @@ void XBCFDiscreteModel::update_state(State &state, size_t tree_ind, X_struct &x_
 
     std::gamma_distribution<double> gamma_samp0((state.N_ctrl + kap) / 2.0, 2.0 / (sum_squared(full_residual_ctrl) + s));
 
-    if (state.treatment_flag)
+    double sigma;
+
+    if (ind == 0)
     {
-        state.update_sigma(1.0 / sqrt(gamma_samp1(state.gen)));
+        sigma = 1.0 / sqrt(gamma_samp0(state.gen));
     }
     else
     {
-        state.update_sigma(1.0 / sqrt(gamma_samp0(state.gen)));
+        sigma = 1.0 / sqrt(gamma_samp1(state.gen));
     }
+
+    state.update_sigma(sigma, ind);
+
     return;
 }
 
@@ -231,21 +236,6 @@ void XBCFDiscreteModel::calculateOtherSideSuffStat(std::vector<double> &parent_s
     return;
 }
 
-// void XBCFDiscreteModel::state_sweep(State&state, size_t tree_ind, size_t M, X_struct &x_struct) const
-// {
-//     size_t next_index = tree_ind + 1;
-//     if (next_index == M)
-//     {
-//         next_index = 0;
-//     }
-
-//     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
-//     {
-//         (*state.residual_std)[0][i] = (*state.residual_std)[0][i] - (*(x_struct.data_pointers[tree_ind][i]))[0] + (*(x_struct.data_pointers[next_index][i]))[0];
-//     }
-//     return;
-// }
-
 double XBCFDiscreteModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State &state) const
 {
     // likelihood equation for XBCF with discrete binary treatment variable Z
@@ -302,16 +292,12 @@ double XBCFDiscreteModel::likelihood(std::vector<double> &temp_suff_stat, std::v
 void XBCFDiscreteModel::ini_residual_std(State &state)
 {
     // initialize the vector of full residuals
+    double b_value;
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
     {
-        if ((*state.Z_std)[0][i] == 1)
-        {
-            (*state.residual_std)[0][i] = (*state.y_std)[i] - (state.a) * (*state.mu_fit)[i] - (state.b_vec[1]) * (*state.tau_fit)[i];
-        }
-        else
-        {
-            (*state.residual_std)[0][i] = (*state.y_std)[i] - (state.a) * (*state.mu_fit)[i] - (state.b_vec[0]) * (*state.tau_fit)[i];
-        }
+        b_value = ((*state.Z_std)[0][i] == 1) ? state.b_vec[1] : state.b_vec[0];
+
+        (*state.residual_std)[0][i] = (*state.y_std)[i] - (state.a) * (*state.mu_fit)[i] - b_value * (*state.tau_fit)[i];
     }
     return;
 }
@@ -444,19 +430,33 @@ void XBCFDiscreteModel::update_partial_residuals(size_t tree_ind, State &state, 
     if (state.treatment_flag)
     {
         // treatment forest
-        // (y - mu - Z * tau) / Z
+        // (y - a * mu - b * tau) / b
         for (size_t i = 0; i < (*state.tau_fit).size(); i++)
         {
-            ((*state.residual_std))[0][i] = ((*state.y_std)[i] - (*state.mu_fit)[i] - ((*state.Z_std)[0][i]) * (*state.tau_fit)[i]) / ((*state.Z_std)[0][i]);
+            if ((*state.Z_std)[0][i] == 1)
+            {
+                ((*state.residual_std))[0][i] = ((*state.y_std)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[1]) * (*state.tau_fit)[i]) / (state.b_vec[1]);
+            }
+            else
+            {
+                ((*state.residual_std))[0][i] = ((*state.y_std)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[0]) * (*state.tau_fit)[i]) / (state.b_vec[0]);
+            }
         }
     }
     else
     {
         // prognostic forest
-        // (y - mu - Z * tau)
+        // (y - a * mu - b * tau) / a
         for (size_t i = 0; i < (*state.tau_fit).size(); i++)
         {
-            ((*state.residual_std))[0][i] = ((*state.y_std)[i] - (*state.mu_fit)[i] - ((*state.Z_std)[0][i]) * (*state.tau_fit)[i]);
+            if ((*state.Z_std)[0][i] == 1)
+            {
+                ((*state.residual_std))[0][i] = ((*state.y_std)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[1]) * (*state.tau_fit)[i]) / (state.a);
+            }
+            else
+            {
+                ((*state.residual_std))[0][i] = ((*state.y_std)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[0]) * (*state.tau_fit)[i]) / (state.a);
+            }
         }
     }
     return;
@@ -495,11 +495,11 @@ void XBCFDiscreteModel::update_a(State &state)
         if ((*state.Z_std)[0][i] == 1)
         {
             // if treated
-            state.residual[i] = (*state.y_std)[i] - (*state.tau_fit)[i] * state.b_vec[1];
+            (*state.residual_std)[0][i] = (*state.y_std)[i] - (*state.tau_fit)[i] * state.b_vec[1];
         }
         else
         {
-            state.residual[i] = (*state.y_std)[i] - (*state.tau_fit)[i] * state.b_vec[0];
+            (*state.residual_std)[0][i] = (*state.y_std)[i] - (*state.tau_fit)[i] * state.b_vec[0];
         }
     }
     for (size_t i = 0; i < state.n_y; i++)
@@ -508,12 +508,12 @@ void XBCFDiscreteModel::update_a(State &state)
         {
             // if treated
             mu2sum_trt += pow((*state.mu_fit)[i], 2);
-            muressum_trt += (*state.mu_fit)[i] * state.residual[i];
+            muressum_trt += (*state.mu_fit)[i] * (*state.residual_std)[0][i];
         }
         else
         {
             mu2sum_ctrl += pow((*state.mu_fit)[i], 2);
-            muressum_ctrl += (*state.mu_fit)[i] * state.residual[i];
+            muressum_ctrl += (*state.mu_fit)[i] * (*state.residual_std)[0][i];
         }
     }
     // update parameters
@@ -541,7 +541,7 @@ void XBCFDiscreteModel::update_b(State &state)
     // compute the residual y-a*mu(x) using state's objects y_std, mu_fit and a
     for (size_t i = 0; i < state.n_y; i++)
     {
-        state.residual[i] = (*state.y_std)[i] - state.a * (*state.mu_fit)[i];
+        (*state.residual_std)[0][i] = (*state.y_std)[i] - state.a * (*state.mu_fit)[i];
     }
 
     for (size_t i = 0; i < state.n_y; i++)
@@ -549,12 +549,12 @@ void XBCFDiscreteModel::update_b(State &state)
         if ((*state.Z_std)[0][i] == 1)
         {
             tau2sum_trt += pow((*state.tau_fit)[i], 2);
-            tauressum_trt += (*state.tau_fit)[i] * state.residual[i];
+            tauressum_trt += (*state.tau_fit)[i] * (*state.residual_std)[0][i];
         }
         else
         {
             tau2sum_ctrl += pow((*state.tau_fit)[i], 2);
-            tauressum_ctrl += (*state.tau_fit)[i] * state.residual[i];
+            tauressum_ctrl += (*state.tau_fit)[i] * (*state.residual_std)[0][i];
         }
     }
 

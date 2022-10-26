@@ -85,7 +85,7 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::ma
 
     for (size_t i = 0; i < N; i++)
     {
-        y_mean += y[i] / Z[i];
+        y_mean += y[i];
 
         // count number of treated and control data
         if (Z[i] == 1)

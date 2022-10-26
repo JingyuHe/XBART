@@ -394,6 +394,8 @@ void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xor
 {
     model->ini_tau_mu_fit(state);
 
+    cout << Xorder_std_con.size() << " " << Xorder_std_mod.size() << endl;
+
     for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
     {
         if (verbose == true)
@@ -414,9 +416,11 @@ void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xor
             }
 
             // Draw Sigma
-            model->update_state(state, tree_ind, x_struct_con);
+            model->update_state(state, tree_ind, x_struct_con, 0);
 
-            sigma0_draw_xinfo[sweeps][tree_ind] = state.sigma;
+            sigma0_draw_xinfo[sweeps][tree_ind] = state.sigma_vec[0];
+
+            cout << state.sigma_vec << endl;
 
             if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
             {
@@ -487,9 +491,11 @@ void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xor
             }
 
             // Draw Sigma
-            model->update_state(state, tree_ind, x_struct_mod);
+            model->update_state(state, tree_ind, x_struct_mod, 1);
 
-            sigma1_draw_xinfo[sweeps][tree_ind + state.num_trees_con] = state.sigma;
+            sigma1_draw_xinfo[sweeps][tree_ind + state.num_trees_con] = state.sigma_vec[1];
+
+            cout << state.sigma_vec << endl;
 
             if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
             {
@@ -529,12 +535,28 @@ void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xor
                     (*state.split_count_all_mod)[i] += (*state.split_count_current_tree)[i];
                 }
             }
+
+            if (sweeps != 0)
+            {
+                if (state.a_scaling)
+                {
+                    model->update_a(state);
+                }
+                if (state.b_scaling)
+                {
+                    model->update_b(state);
+                }
+            }
         }
 
         if (model->sampling_tau)
         {
             model->update_tau_per_forest(state, sweeps, trees_mod);
         }
+
+        b_xinfo[0][sweeps] = state.b_vec[0];
+        b_xinfo[1][sweeps] = state.b_vec[1];
+        a_xinfo[0][sweeps] = state.a;
     }
     return;
 }

@@ -91,8 +91,6 @@ public:
 
     // for discrete treatment XBCF
     size_t fl; // flag for likelihood function to alternate between mu loop and tau loop calculations  TODO: move to xbcfState
-    // total residual vector
-    std::vector<double> residual;
     // residual for treated group, length n_trt
     std::vector<double> full_residual_trt; //(state.n_trt);               // residual for the treated group
     // residual for control group, length n_y - n_trt
@@ -268,7 +266,6 @@ public:
         this->Xorder_std_trt = &Xorder_std_trt;
 
         // those are for XBCF, initialize at a length 1 vector
-        this->residual = std::vector<double>(1, 0);
         this->full_residual_ctrl = std::vector<double>(1, 0);
         this->full_residual_trt = std::vector<double>(1, 0);
         return;
@@ -437,7 +434,6 @@ public:
         this->sigma_vec.resize(2);
         this->sigma_vec[0] = 1;
         this->sigma_vec[1] = 1;
-        this->residual.resize(n_y);
     }
 };
 
