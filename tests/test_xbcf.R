@@ -65,13 +65,16 @@ x <- cbind(x[, 1], x[, 6], x[, -c(1, 6)])
 # add pihat to the prognostic term matrix
 x1 <- cbind(pihat, x)
 
+x_con = x
+x_mod = x
+
 
 #### 2. XBCF
 
 # run XBCF
 t1 <- proc.time()
-xbcf.fit <- XBCF::XBCF(y = y, z = z, x_con = x, x_mod = x, pihat = pihat, pcat_con = 5, pcat_mod = 5, num_sweeps = 60, burnin = 30)
-xbcf.fit <- XBART::XBCF.discrete(y = y, Z = z, X_con = x, X_mod = x, pihat = pihat, p_categorical_con = 5, p_categorical_mod = 5, num_sweeps = 1, burnin = 0, verbose = TRUE, sampling_tau = FALSE, num_trees_con = 5, num_trees_mod = 5, a_scaling = FALSE, b_scaling = FALSE)
+xbcf.fit <- XBCF::XBCF(y = y, z = z, x_con = x_con, x_mod = x_mod, pihat = pihat, pcat_con = 5, pcat_mod = 5, num_sweeps = 60, burnin = 30)
+xbcf.fit <- XBART::XBCF.discrete(y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat, p_categorical_con = 5, p_categorical_mod = 5, num_sweeps = 1, burnin = 0, verbose = TRUE, sampling_tau = FALSE, num_trees_con = 5, num_trees_mod = 5, a_scaling = FALSE, b_scaling = FALSE)
 
 t1 <- proc.time() - t1
 
