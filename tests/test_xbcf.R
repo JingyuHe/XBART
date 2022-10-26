@@ -70,9 +70,8 @@ x1 <- cbind(pihat, x)
 
 # run XBCF
 t1 <- proc.time()
-# xbcf.fit <- XBCF::XBCF(y = y, z = z, x_con = x, x_mod = x, pihat = pihat, pcat_con = 5, pcat_mod = 5, num_sweeps = 60, burnin = 30)
-# xbcf.fit <- XBART::XBCF(y = y, z = z, x_con = x, x_mod = x, pihat = pihat, pcat_con = 5, pcat_mod = 5, num_sweeps = 60, burnin = 30)
-xbcf.fit <- XBART::XBCF.discrete(y = y, Z = z, X_con = x, X_mod = x, pihat = pihat, p_categorical_con = 5, p_catgorical_mod = 5, num_sweeps = 1, burnin = 0, verbose = TRUE, sampling_tau = FALSE, num_trees_con = 30, num_trees_mod = 30, a_scaling = FALSE, b_scaling = FALSE)
+xbcf.fit <- XBCF::XBCF(y = y, z = z, x_con = x, x_mod = x, pihat = pihat, pcat_con = 5, pcat_mod = 5, num_sweeps = 60, burnin = 30)
+xbcf.fit <- XBART::XBCF.discrete(y = y, Z = z, X_con = x, X_mod = x, pihat = pihat, p_categorical_con = 5, p_categorical_mod = 5, num_sweeps = 1, burnin = 0, verbose = TRUE, sampling_tau = FALSE, num_trees_con = 5, num_trees_mod = 5, a_scaling = FALSE, b_scaling = FALSE)
 
 t1 <- proc.time() - t1
 

@@ -548,10 +548,10 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
 
     bool no_split = false;
     // tau is prior VARIANCE, do not take squares
-    cout << "ok 1" << endl;
+
     // draw leaf parameter theta
     model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
-    cout << "ok 2" << endl;
+
     if (N_Xorder <= state.n_min)
         no_split = true;
 
@@ -559,7 +559,7 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
         no_split = true;
 
     std::vector<size_t> subset_vars(p);
-    cout << "ok 3" << endl;
+
     if (state.use_all)
     {
         // use all variables
@@ -570,7 +570,6 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
         // sample variables to use, like random forest
         if (state.sample_weights)
         {
-            cout << "ok 4" << endl;
             std::vector<double> weight_samp(p);
             double weight_sum;
 
@@ -587,7 +586,6 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
             }
             // sample index of variables
             subset_vars = sample_int_ccrank(p, state.mtry, weight_samp, state.gen);
-            cout << "ok 5" << endl;
         }
         else
         {
@@ -597,14 +595,10 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
     }
     if (!no_split)
     {
-        cout << "ok 6" << endl;
         BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this);
-        cout << "ok 7" << endl;
     }
 
-    cout << "ok 8" << endl;
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
-    cout << "ok 9" << endl;
 
     // If our current split is same as parent, exit
     if (!no_split)
@@ -638,10 +632,9 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
 
         this->l = 0;
         this->r = 0;
+
         return;
     }
-
-    cout << "ok 10 " << endl;
 
     this->v = split_var;
     this->c = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
@@ -1360,7 +1353,6 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
     // sampling cutpoints
     if (N <= state.n_cutpoints + 1 + 2 * state.n_min)
     {
-        cout << "small size" << endl;
         // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
 
         // if number of observations is smaller than Ncutpoints, all data are splitpoint candidates
@@ -1453,7 +1445,6 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
     }
     else
     {
-        cout << "not small size" << endl;
         // use adaptive number of cutpoints
 
         std::vector<size_t> candidate_index(state.n_cutpoints);

@@ -76,6 +76,8 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::ma
     matrix<size_t> Xorder_std_mod;
     ini_matrix(Xorder_std_mod, N, p_mod);
 
+    cout << "size of Xorder con and mode " << Xorder_std_con.size() << " " << Xorder_std_con[0].size() << " " << Xorder_std_mod.size() << " " << Xorder_std_mod[0].size() << endl;
+
     std::vector<double> y_std(N);
 
     double y_mean = 0.0;
@@ -148,6 +150,16 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::ma
     std::vector<double> initial_theta_mod(1, y_mean / (double)num_trees_mod);
     X_struct x_struct_mod(Xpointer_mod, &y_std, N, Xorder_std_mod, p_categorical_mod, p_continuous_mod, &initial_theta_mod, num_trees_mod);
 
+    cout << Xorder_std_mod[0] << endl;
+
+    cout << "inputs to mcmc loop " << endl;
+    cout << x_struct_con.X_values << endl;
+    cout << x_struct_con.X_num_unique << endl;
+
+    cout << " -------- " << endl;
+    cout << x_struct_mod.X_values << endl;
+    cout << x_struct_mod.X_num_unique << endl;
+
     ////////////////////////////////////////////////////////////////
     mcmc_loop_xbcf_discrete(Xorder_std_con, Xorder_std_mod, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, a_xinfo, b_xinfo, trees_con, trees_mod, no_split_penality, state, model, x_struct_con, x_struct_mod);
 
@@ -161,6 +173,7 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::ma
     Rcpp::NumericMatrix b_draw(num_sweeps, 2);
 
     Rcpp::NumericVector split_count_sum_con(p_con, 0);                         // split counts
+
     Rcpp::NumericVector split_count_sum_mod(p_mod, 0);
 
     // copy from std vector to Rcpp Numeric Matrix objects

@@ -126,6 +126,14 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::
     std::vector<double> initial_theta_mod(1, y_mean / (double)num_trees_mod);
     X_struct x_struct_mod(Xpointer_mod, &y_std, N, Xorder_std_mod, p_categorical_mod, p_continuous_mod, &initial_theta_mod, num_trees_mod);
 
+    cout << "inputs to mcmc loop " << endl;
+    cout << x_struct_con.X_values << endl;
+    cout << x_struct_con.X_num_unique << endl;
+
+    cout << " -------- " << endl;
+    cout << x_struct_mod.X_values << endl;
+    cout << x_struct_mod.X_num_unique << endl;
+    
     ////////////////////////////////////////////////////////////////
     mcmc_loop_xbcf_continuous(Xorder_std_con, Xorder_std_mod, verbose, sigma_draw_xinfo, trees_con, trees_mod, no_split_penality, state, model, x_struct_con, x_struct_mod);
 
