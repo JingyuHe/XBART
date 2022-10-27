@@ -6800,7 +6800,7 @@ SWIGINTERN PyObject *_wrap_XBARTcpp_no_split_penality_set(PyObject *SWIGUNUSEDPA
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcpp_no_split_penality_set" "', argument " "2"" of type '" "double""'");
   } 
   arg2 = static_cast< double >(val2);
-  if (arg1) (arg1)->no_split_penalty = arg2;
+  if (arg1) (arg1)->no_split_penality = arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -6823,7 +6823,7 @@ SWIGINTERN PyObject *_wrap_XBARTcpp_no_split_penality_get(PyObject *SWIGUNUSEDPA
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_no_split_penality_get" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
   arg1 = reinterpret_cast< XBARTcpp * >(argp1);
-  result = (double) ((arg1)->no_split_penalty);
+  result = (double) ((arg1)->no_split_penality);
   resultobj = SWIG_From_double(static_cast< double >(result));
   return resultobj;
 fail:

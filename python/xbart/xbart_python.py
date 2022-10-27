@@ -64,7 +64,7 @@ class XBART(object):
 		"Multinomial" : Classes encoded as integers
 		"Probit": Classification problems (encode Y \in{ -1,1})
 
-	no_split_penalty: double
+	no_split_penality: double
 		Weight of no-split option. The default value in the normal model is log(num_cutpoints). 
 		Values should be considered in log scale.
 	sample_weights: bool (True)
@@ -78,7 +78,7 @@ class XBART(object):
                 burnin: int = 15, mtry = "auto", max_depth: int = 250,
                 kap: float = 16.0, s: float = 4.0, tau_kap: float = 3, tau_s: float = 0.5, verbose: bool = False, 
 				sampling_tau: bool = True, parallel: bool = False, nthread: int = 0, seed = "auto",
-				no_split_penalty = "auto", sample_weights: bool = True):
+				no_split_penality = "auto", sample_weights: bool = True):
 
 		assert num_sweeps > burnin, "num_sweep must be greater than burnin"
 
@@ -102,7 +102,7 @@ class XBART(object):
 			("parallel",parallel),
 			("nthread", nthread),
 			("seed",seed),
-			("no_split_penalty",no_split_penalty),
+			("no_split_penality",no_split_penality),
 			("sample_weights",sample_weights)
 		])
 		self.__convert_params_check_types(**self.params)
@@ -169,19 +169,19 @@ class XBART(object):
 
 	def __update_mtry_tau_penality(self,x):
 		'''
-		Handle mtry, tau, and no_split_penalty defaults
+		Handle mtry, tau, and no_split_penality defaults
 		'''
 		if self.params["mtry"] == "auto":
 			self.params["mtry"] = self.num_columns 
 		if self.params["tau"]  == "auto":
 			self.params["tau"] = float(1/self.params["num_trees"])
 		
-		if self.params["no_split_penalty"] == "auto":
+		if self.params["no_split_penality"] == "auto":
 			from math import log
 			# if self.params["model_num"] == 0:
-			self.params["no_split_penalty"] = log(self.params["num_cutpoints"])
+			self.params["no_split_penality"] = log(self.params["num_cutpoints"])
 			# else:
-			# 	self.params["no_split_penalty"] = 0.0
+			# 	self.params["no_split_penality"] = 0.0
 
 	def __update_random_seed(self):
 		if self.params["seed"] == "auto":
@@ -214,7 +214,7 @@ class XBART(object):
 			("parallel", False),
 			("nthread", 0),
 			("seed", 0),
-			("no_split_penalty", 0.0),
+			("no_split_penality", 0.0),
 			("sample_weights",True)
 		])
 
@@ -239,7 +239,7 @@ class XBART(object):
 			("parallel",bool),
 			("nthread", int),
 			("seed",int),
-			("no_split_penalty",float),
+			("no_split_penality",float),
 			("sample_weights",bool)
 		])
 
@@ -247,7 +247,7 @@ class XBART(object):
 			default_value = DEFAULT_PARAMS[param]
 			new_value = params.get(param,default_value)
 
-			if (param in ["mtry","tau","seed","no_split_penalty"]) and new_value == "auto":
+			if (param in ["mtry","tau","seed","no_split_penality"]) and new_value == "auto":
 					continue
 
 			try:

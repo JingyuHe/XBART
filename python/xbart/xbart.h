@@ -62,7 +62,7 @@ public:
 			 size_t burnin, size_t mtry,
 			 double kap, double s, double tau_kap, double tau_s, 
 			 bool verbose, bool sampling_tau, bool parallel, size_t nthread,
-			 int seed, double no_split_penalty, bool sample_weights);
+			 int seed, double no_split_penality, bool sample_weights);
 
 	void _fit(int n, int d, double *a, int n_y, double *a_y, size_t p_cat);
 	void _predict(int n, int d, double *a); //,int size, double *arr);
@@ -76,7 +76,7 @@ public:
 	void compute_Xorder(size_t n, size_t d, const vec_d &x_std_flat, matrix<size_t> &Xorder_std);
 	size_t seed;
 	bool seed_flag;
-	double no_split_penalty;
+	double no_split_penality;
 
 	std::string _to_json(void);
 

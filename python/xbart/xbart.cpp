@@ -26,7 +26,7 @@ XBARTcpp::XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
 				   size_t burnin, size_t mtry,
 				   double kap, double s, double tau_kap, double tau_s,
 				   bool verbose, bool sampling_tau, bool parallel, size_t nthread,
-				   int seed, double no_split_penalty, bool sample_weights)
+				   int seed, double no_split_penality, bool sample_weights)
 {
 	this->params.num_trees = num_trees;
 	this->params.num_sweeps = num_sweeps;
@@ -47,7 +47,7 @@ XBARTcpp::XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
 	this->params.parallel = parallel;
 	this->params.nthread = nthread;
 	this->trees = vector<vector<tree>>(num_sweeps);
-	this->no_split_penalty = no_split_penalty;
+	this->no_split_penality = no_split_penality;
 	this->params.sample_weights = sample_weights;
 
 	// handling seed
@@ -73,7 +73,7 @@ XBARTcpp::XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
 	// NORMAL
 	// define model
 	this->model = new NormalModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
-	this->model->setNoSplitPenality(no_split_penalty);
+	this->model->setNoSplitPenality(no_split_penality);
 
 	//}
 
@@ -422,7 +422,7 @@ void XBARTcpp::_fit(int n, int p, double *a, int n_y, double *a_y, size_t p_cat)
 	// define model
 	// NormalModel *model = new NormalModel(this->params.kap, this->params.s, this->params.tau, this->params.alpha, this->params.beta,
 	// 	this->params.sampling_tau, this->params.tau_kap, this->params.tau_s);
-	// model->setNoSplitPenality(this->no_split_penalty);
+	// model->setNoSplitPenality(this->no_split_penality);
 
 	// // //State settings
 	std::vector<double> initial_theta(1, y_mean / (double)this->params.num_trees);
@@ -436,7 +436,7 @@ void XBARTcpp::_fit(int n, int p, double *a, int n_y, double *a_y, size_t p_cat)
 
 	this->resid.resize(n * this->params.num_sweeps * this->params.num_trees);
 
-	mcmc_loop(Xorder_std, this->params.verbose, sigma_draw_xinfo, this->trees, this->no_split_penalty, state, this->model, x_struct, this->resid);
+	mcmc_loop(Xorder_std, this->params.verbose, sigma_draw_xinfo, this->trees, this->no_split_penality, state, this->model, x_struct, this->resid);
 
 	this->mtry_weight_current_tree = (*state.mtry_weight_current_tree);
 
@@ -459,7 +459,7 @@ void XBARTcpp::_fit(int n, int p, double *a, int n_y, double *a_y, size_t p_cat)
 //   for(size_t i=0; i<n; ++i) y_size_t[i] = (size_t)y_std[i];
 //   LogitModel *model = new LogitModel(this->num_classes, tau_a, tau_b, this->params.alpha,
 //                                      this->params.beta, &y_size_t, &phi);
-//   model->setNoSplitPenality(no_split_penalty);
+//   model->setNoSplitPenality(no_split_penality);
 
 //   //data
 //   std::vector<double> initial_theta(this->num_classes, 1);
@@ -473,7 +473,7 @@ void XBARTcpp::_fit(int n, int p, double *a, int n_y, double *a_y, size_t p_cat)
 //   ini_matrix(phi_samples, n, this->params.N_sweeps * this->params.M);
 
 //   // fit
-//   mcmc_loop_multinomial(Xorder_std,this->params.verbose, this->trees, this->no_split_penalty,
+//   mcmc_loop_multinomial(Xorder_std,this->params.verbose, this->trees, this->no_split_penality,
 //                         state, model, x_struct, phi_samples);
 //   this->mtry_weight_current_tree = (*state.mtry_weight_current_tree);
 
@@ -485,7 +485,7 @@ void XBARTcpp::_fit(int n, int p, double *a, int n_y, double *a_y, size_t p_cat)
 //     // define model
 //     ProbitClass *model = new ProbitClass(this->params.kap, this->params.s, this->params.tau,
 //                                           this->params.alpha, this->params.beta,y_std);
-//     model->setNoSplitPenality(no_split_penalty);
+//     model->setNoSplitPenality(no_split_penality);
 
 //     // // //State settings
 //     std::vector<double> initial_theta(1, y_mean / (double)this->params.M);
@@ -497,7 +497,7 @@ void XBARTcpp::_fit(int n, int p, double *a, int n_y, double *a_y, size_t p_cat)
 //     // initialize X_struct
 //     X_struct &x_struct(new X_struct(Xpointer, &y_std, n, Xorder_std, p_cat, d-p_cat, &initial_theta, this->params.M));
 
-//     mcmc_loop_probit(Xorder_std, this->params.verbose, sigma_draw_xinfo, this->trees, this->no_split_penalty,
+//     mcmc_loop_probit(Xorder_std, this->params.verbose, sigma_draw_xinfo, this->trees, this->no_split_penality,
 //     state, model,x_struct);
 
 //     this->mtry_weight_current_tree = (*state.mtry_weight_current_tree);
