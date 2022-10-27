@@ -282,7 +282,7 @@ void NormalModel::predict_whole_std(const double *Xtestpointer, size_t N_test, s
 // incSuffStat should take a state as its first argument
 void LogitModel::incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats)
 {
-    suffstats[(*y_size_t)[index_next_obs]] += 1; //weight;
+    suffstats[(*y_size_t)[index_next_obs]] += weight;
     for (size_t j = 0; j < dim_theta; ++j)
     {
         // suffstats[dim_residual + j] += weight * exp((*state.residual_std)[j][index_next_obs]);
