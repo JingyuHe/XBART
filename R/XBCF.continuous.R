@@ -3,7 +3,7 @@
 #' @param y A vector of outcome variable of length n, expected to be continuous.
 #' @param Z A vector of treatment variable of length n, expected to be continuous.
 #' @param X_con A matrix of input for the prognostic forest of size n by p_con. Column order matters: continuous features should all go before categorical. The number of categorical variables is p_categorical_con.
-#' @param X_mod A matrix of input for the treatment forest of size n by p_mod. Column order matters: continuous features should all go before categorical. The number of categorical variables is p_categorical_mod.
+#' @param X_mod A matrix of input for the treatment forest of size n by p_con. Column order matters: continuous features should all go before categorical. The number of categorical variables is p_categorical_mod.
 #' @param num_trees_con Integer, number of trees in the prognostic forest.
 #' @param num_trees_mod Integer, number of trees in the treatment forest.
 #' @param num_sweeps Integer, number of sweeps to fit for both forests.
@@ -136,6 +136,6 @@ XBCF.continuous <- function(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, nu
 
     obj <- XBCF_continuous_cpp(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth, Nmin, num_cutpoints, alpha_con, beta_con, alpha_mod, beta_mod, tau_con, tau_mod, no_split_penalty, burnin, mtry_con, mtry_mod, p_categorical_con, p_categorical_mod, kap, s, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s, verbose, update_tau, parallel, set_random_seed, random_seed, sample_weights, nthread)
 
-    class(obj) <- "XBCFcontinuous"
+    class(obj) <- "XBCF"
     return(obj)
 }
