@@ -66,7 +66,7 @@ x <- cbind(x[, 1], x[, 6], x[, -c(1, 6)])
 x1 <- cbind(pihat, x)
 
 x_con = x
-x_mod = x
+x_mod <- x
 
 
 #### 2. XBCF
@@ -74,18 +74,32 @@ x_mod = x
 # run XBCF
 t1 <- proc.time()
 xbcf.fit <- XBCF::XBCF(y = y, z = z, x_con = x_con, x_mod = x_mod, pihat = pihat, pcat_con = 5, pcat_mod = 5, num_sweeps = 60, burnin = 30)
-xbcf.fit <- XBART::XBCF.discrete(y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat, p_categorical_con = 5, p_categorical_mod = 5, num_sweeps = 1, burnin = 0, verbose = TRUE, sampling_tau = FALSE, num_trees_con = 5, num_trees_mod = 5, a_scaling = FALSE, b_scaling = FALSE)
-
 t1 <- proc.time() - t1
-
 # get treatment individual-level estimates
 tauhats <- getTaus(xbcf.fit)
 
-# main model parameters can be retrieved below
-# print(xbcf.fit$model_params)
-
 # compare results to inference
+par(mfrow = c(1, 2))
 plot(tau, tauhats)
 abline(0, 1)
 print(paste0("xbcf RMSE: ", sqrt(mean((tauhats - tau)^2))))
 print(paste0("xbcf runtime: ", round(as.list(t1)$elapsed, 2), " seconds"))
+
+
+t2 = proc.time()
+xbcf.fit <- XBART::XBCF.discrete(y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat, p_categorical_con = 5, p_categorical_mod = 5, num_sweeps = 60, burnin = 30, verbose = TRUE, sampling_tau = FALSE, num_trees_con = 5, num_trees_mod = 5, a_scaling = FALSE, b_scaling = FALSE)
+t2 = proc.time() - t2
+
+pred <- predict(xbcf.fit, X_con = x_con, X_mod = x_mod, Z = z)
+tauhats2 = pred$tau[, 30:60]
+tauhats2 = rowMeans(tauhats2)
+
+plot(tau, tauhats2)
+abline(0, 1)
+print(paste0("xbcf binary RMSE: ", sqrt(mean((tauhats2 - tau)^2))))
+print(paste0("xbcf binary runtime: ", round(as.list(t2)$elapsed, 2), " seconds"))
+
+
+
+# main model parameters can be retrieved below
+# print(xbcf.fit$model_params)

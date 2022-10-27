@@ -29,15 +29,6 @@ public:
     std::vector<double> *split_count_current_tree;
     std::vector<double> *mtry_weight_current_tree;
 
-    // for XBCF
-    matrix<double> *split_count_all_tree_con;
-    std::vector<double> *split_count_all_con;
-    std::vector<double> *mtry_weight_current_tree_con;
-
-    matrix<double> *split_count_all_tree_mod;
-    std::vector<double> *split_count_all_mod;
-    std::vector<double> *mtry_weight_current_tree_mod;
-
     // mtry
     bool use_all = true;
     bool parallel = true;
@@ -72,6 +63,15 @@ public:
     std::vector<std::vector<std::vector<double>>> *lambdas_separate;
 
     // for continuous treatment XBCF
+    matrix<double> *split_count_all_tree_con;
+    std::vector<double> *split_count_all_con;
+    std::vector<double> *mtry_weight_current_tree_con;
+    matrix<double> *split_count_all_tree_mod;
+    std::vector<double> *split_count_all_mod;
+    std::vector<double> *mtry_weight_current_tree_mod;
+    const double *X_std_con; // pointer to original data
+    const double *X_std_mod; // pointer to original data
+
     matrix<double> *Z_std;
     std::vector<double> *tau_fit;
     std::vector<double> *mu_fit;
@@ -89,10 +89,10 @@ public:
     size_t num_trees_con;
     size_t num_trees_mod;
 
-    // for binary treatment XBCF
-    std::vector<double> b_vec;        // scaling parameters for tau (b0,b1)     TODO: move to xbcfState
-    double a;                         // scaling parameter for mu               TODO: move to xbcfState
-    std::vector<double> sigma_vec;    // residual standard deviations           TODO: move to xbcfState
+    // extra variables for binary treatment XBCF
+    std::vector<double> b_vec;     // scaling parameters for tau (b0,b1)     TODO: move to xbcfState
+    double a;                      // scaling parameter for mu               TODO: move to xbcfState
+    std::vector<double> sigma_vec; // residual standard deviations           TODO: move to xbcfState
     bool a_scaling;
     bool b_scaling;
     size_t N_trt;
@@ -111,7 +111,6 @@ public:
         this->sigma_vec[ind] = sigma; // sigma for the "ind" group
         return;
     }
-
 
     State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread)
     {
@@ -214,8 +213,10 @@ public:
 class XBCFcontinuousState : public State
 {
 public:
-    XBCFcontinuousState(matrix<double> *Z_std, const double *Xpointer_con, const double *Xpointer_mod, matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, size_t N, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t p_categorical_con, size_t p_categorical_mod, size_t p_continuous_con, size_t p_continuous_mod, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry_con, size_t mtry_mod, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel) : State(Xpointer_con, Xorder_std_con, N, p_con, num_trees_con, p_categorical_con, p_continuous_con, set_random_seed, random_seed, n_min, n_cutpoints, mtry_con, Xpointer_con, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
+    XBCFcontinuousState(matrix<double> *Z_std, const double *Xpointer_con, const double *Xpointer_mod, matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, size_t N, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t p_categorical_con, size_t p_categorical_mod, size_t p_continuous_con, size_t p_continuous_mod, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry_con, size_t mtry_mod, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel) : State(Xpointer_con, Xorder_std_con, N, p_con, num_trees_con, p_categorical_con, p_continuous_con, set_random_seed, random_seed, n_min, n_cutpoints, mtry_con, Xpointer_con, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
     {
+        this->X_std_con = Xpointer_con;
+        this->X_std_mod = Xpointer_mod;
         this->split_count_all_tree_con = new matrix<double>();
         this->split_count_all_tree_mod = new matrix<double>();
         ini_xinfo((*this->split_count_all_tree_con), p_con, num_trees_con);
@@ -248,8 +249,10 @@ public:
 class XBCFdiscreteState : public State
 {
 public:
-    XBCFdiscreteState(matrix<double> *Z_std, const double *Xpointer_con, const double *Xpointer_mod, matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, size_t N, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t p_categorical_con, size_t p_categorical_mod, size_t p_continuous_con, size_t p_continuous_mod, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry_con, size_t mtry_mod, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel, bool a_scaling, bool b_scaling, size_t N_trt, size_t N_ctrl) : State(Xpointer_con, Xorder_std_con, N, p_con, num_trees_con, p_categorical_con, p_continuous_con, set_random_seed, random_seed, n_min, n_cutpoints, mtry_con, Xpointer_con, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
+    XBCFdiscreteState(matrix<double> *Z_std, const double *Xpointer_con, const double *Xpointer_mod, matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, size_t N, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t p_categorical_con, size_t p_categorical_mod, size_t p_continuous_con, size_t p_continuous_mod, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry_con, size_t mtry_mod, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel, bool a_scaling, bool b_scaling, size_t N_trt, size_t N_ctrl) : State(Xpointer_con, Xorder_std_con, N, p_con, num_trees_con, p_categorical_con, p_continuous_con, set_random_seed, random_seed, n_min, n_cutpoints, mtry_con, Xpointer_con, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
     {
+        this->X_std_con = Xpointer_con;
+        this->X_std_mod = Xpointer_mod;
         this->split_count_all_tree_con = new matrix<double>();
         this->split_count_all_tree_mod = new matrix<double>();
         ini_xinfo((*this->split_count_all_tree_con), p_con, num_trees_con);

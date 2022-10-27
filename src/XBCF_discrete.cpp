@@ -141,7 +141,7 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::ma
     model->setNoSplitPenality(no_split_penality);
 
     // State settings
-    XBCFdiscreteState state(&Z_std, Xpointer_con, Xpointer_mod, Xorder_std_con, Xorder_std_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, p_categorical_con, p_categorical_mod, p_continuous_con, p_continuous_mod, set_random_seed, random_seed, n_min, num_cutpoints, mtry_con, mtry_mod, Xpointer_con, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread, parallel, a_scaling, b_scaling, N_trt, N_ctrl);
+    XBCFdiscreteState state(&Z_std, Xpointer_con, Xpointer_mod, Xorder_std_con, Xorder_std_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, p_categorical_con, p_categorical_mod, p_continuous_con, p_continuous_mod, set_random_seed, random_seed, n_min, num_cutpoints, mtry_con, mtry_mod, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread, parallel, a_scaling, b_scaling, N_trt, N_ctrl);
 
     // initialize X_struct
     std::vector<double> initial_theta_con(1, 0);
@@ -149,16 +149,6 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::ma
 
     std::vector<double> initial_theta_mod(1, y_mean / (double)num_trees_mod);
     X_struct x_struct_mod(Xpointer_mod, &y_std, N, Xorder_std_mod, p_categorical_mod, p_continuous_mod, &initial_theta_mod, num_trees_mod);
-
-    cout << Xorder_std_mod[0] << endl;
-
-    cout << "inputs to mcmc loop " << endl;
-    cout << x_struct_con.X_values << endl;
-    cout << x_struct_con.X_num_unique << endl;
-
-    cout << " -------- " << endl;
-    cout << x_struct_mod.X_values << endl;
-    cout << x_struct_mod.X_num_unique << endl;
 
     ////////////////////////////////////////////////////////////////
     mcmc_loop_xbcf_discrete(Xorder_std_con, Xorder_std_mod, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, a_xinfo, b_xinfo, trees_con, trees_mod, no_split_penality, state, model, x_struct_con, x_struct_mod);

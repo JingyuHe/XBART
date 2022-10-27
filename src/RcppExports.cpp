@@ -192,9 +192,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// xbcf_predict
-Rcpp::List xbcf_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod);
-RcppExport SEXP _XBART_xbcf_predict(SEXP X_conSEXP, SEXP X_modSEXP, SEXP ZSEXP, SEXP tree_conSEXP, SEXP tree_modSEXP) {
+// XBCF_continuous_predict
+Rcpp::List XBCF_continuous_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod);
+RcppExport SEXP _XBART_XBCF_continuous_predict(SEXP X_conSEXP, SEXP X_modSEXP, SEXP ZSEXP, SEXP tree_conSEXP, SEXP tree_modSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -203,7 +203,22 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< mat >::type Z(ZSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_con(tree_conSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_mod(tree_modSEXP);
-    rcpp_result_gen = Rcpp::wrap(xbcf_predict(X_con, X_mod, Z, tree_con, tree_mod));
+    rcpp_result_gen = Rcpp::wrap(XBCF_continuous_predict(X_con, X_mod, Z, tree_con, tree_mod));
+    return rcpp_result_gen;
+END_RCPP
+}
+// XBCF_discrete_predict
+Rcpp::List XBCF_discrete_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod);
+RcppExport SEXP _XBART_XBCF_discrete_predict(SEXP X_conSEXP, SEXP X_modSEXP, SEXP ZSEXP, SEXP tree_conSEXP, SEXP tree_modSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< mat >::type X_con(X_conSEXP);
+    Rcpp::traits::input_parameter< mat >::type X_mod(X_modSEXP);
+    Rcpp::traits::input_parameter< mat >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_con(tree_conSEXP);
+    Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_mod(tree_modSEXP);
+    rcpp_result_gen = Rcpp::wrap(XBCF_discrete_predict(X_con, X_mod, Z, tree_con, tree_mod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -319,7 +334,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART_XBCF_continuous_cpp", (DL_FUNC) &_XBART_XBCF_continuous_cpp, 35},
     {"_XBART_XBCF_discrete_cpp", (DL_FUNC) &_XBART_XBCF_discrete_cpp, 39},
     {"_XBART_xbart_predict", (DL_FUNC) &_XBART_xbart_predict, 3},
-    {"_XBART_xbcf_predict", (DL_FUNC) &_XBART_xbcf_predict, 5},
+    {"_XBART_XBCF_continuous_predict", (DL_FUNC) &_XBART_XBCF_continuous_predict, 5},
+    {"_XBART_XBCF_discrete_predict", (DL_FUNC) &_XBART_XBCF_discrete_predict, 5},
     {"_XBART_xbart_predict_full", (DL_FUNC) &_XBART_xbart_predict_full, 3},
     {"_XBART_gp_predict", (DL_FUNC) &_XBART_gp_predict, 9},
     {"_XBART_xbart_multinomial_predict", (DL_FUNC) &_XBART_xbart_multinomial_predict, 4},
