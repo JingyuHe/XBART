@@ -21,16 +21,41 @@ predict.XBART <- function(object, X, ...) {
 #' @param X_con A matrix of input testing data for the prognostic forest.
 #' @param X_mod A matrix of input testing data for the treatment forest.
 #' @param Z A vector of input testing data for the treatment variable.
-#' 
+#'
 #' @details XBCF draws multiple samples of the forests (sweeps), each forest is an ensemble of trees. The final prediction returns predicted prognostic term, treatment effect and the final outcome \eqn{Y}
 #' @return A list containing predicted prognostic term, treatment effect and final outcome \eqn{Y}.
 #' @export
 
 
-predict.XBCF <- function(object, X_con, X_mod, Z, ...) {
+predict.XBCFcontinuous <- function(object, X_con, X_mod, Z, ...) {
+    X_con <- as.matrix(X_con)
+    X_mod <- as.matrix(X_mod)
+    Z <- as.matrix(Z)
     out_con <- json_to_r(object$tree_json_con)
     out_mod <- json_to_r(object$tree_json_mod)
-    obj <- .Call("_XBART_xbcf_predict", X_con, X_mod, Z, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt)
+    obj <- .Call("_XBART_XBCF_continuous_predict", X_con, X_mod, Z, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt)
+    return(obj)
+}
+
+#' Predicting new observations using fitted XBCF binary treatment model.
+#' @description This function predicts testing data given fitted XBCF continuous treatment model.
+#' @param object Fitted \eqn{object} returned from XBART function.
+#' @param X_con A matrix of input testing data for the prognostic forest.
+#' @param X_mod A matrix of input testing data for the treatment forest.
+#' @param Z A vector of input testing data for the treatment variable.
+#'
+#' @details XBCF draws multiple samples of the forests (sweeps), each forest is an ensemble of trees. The final prediction returns predicted prognostic term, treatment effect and the final outcome \eqn{Y}
+#' @return A list containing predicted prognostic term, treatment effect and final outcome \eqn{Y}.
+#' @export
+
+
+predict.XBCFdiscrete <- function(object, X_con, X_mod, Z, ...) {
+    X_con <- as.matrix(X_con)
+    X_mod <- as.matrix(X_mod)
+    Z <- as.matrix(Z)
+    out_con <- json_to_r(object$tree_json_con)
+    out_mod <- json_to_r(object$tree_json_mod)
+    obj <- .Call("_XBART_XBCF_discrete_predict", X_con, X_mod, Z, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt)
     return(obj)
 }
 
