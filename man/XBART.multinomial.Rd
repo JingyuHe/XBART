@@ -17,7 +17,7 @@ XBART.multinomial(
   beta = 1.25,
   tau_a = 1,
   tau_b = 1,
-  no_split_penality = NULL,
+  no_split_penalty = NULL,
   burnin = 5,
   mtry = NULL,
   p_categorical = 0L,
@@ -60,7 +60,7 @@ XBART.multinomial(
 
 \item{tau_b}{Scalar, prior of the leaf mean.}
 
-\item{no_split_penality}{Weight of no-split option. The default value is log(num_cutpoints), or you can take any other number in log scale.}
+\item{no_split_penalty}{Weight of no-split option. The default value is log(num_cutpoints), or you can take any other number in log scale.}
 
 \item{burnin}{Integer, number of burnin sweeps.}
 

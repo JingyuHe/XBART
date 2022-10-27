@@ -10,14 +10,14 @@
 # set parameters of XBART
 get_XBART_params <- function(y) {
     XBART_params <- list(
-        num_trees = 50, # number of trees
+        num_trees = 30, # number of trees
         num_sweeps = 50, # number of sweeps (samples of the forest)
         n_min = 1, # minimal node size
         alpha = 0.95, # BART prior parameter
         beta = 1.25, # BART prior parameter
         mtry = 25, # number of variables sampled in each split
         burnin = 25,
-        no_split_penality = "Auto"
+        no_split_penalty = "Auto"
     ) # burnin of MCMC sample
     num_tress <- XBART_params$num_trees
     XBART_params$max_depth <- 250
@@ -115,16 +115,14 @@ time <- proc.time()
 nthread <- 4
 
 # XBART
-fit <- XBART(as.matrix(y), as.matrix(x), p_categorical = dcat, params$num_trees, params$num_sweeps, params$max_depth, params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1, mtry = params$mtry, verbose = verbose, num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100, no_split_penality = params$no_split_penality, nthread = nthread)
+fit <- XBART(as.matrix(y), as.matrix(x), p_categorical = dcat, params$num_trees, params$num_sweeps, params$max_depth, params$n_min, alpha = params$alpha, beta = params$beta, tau = params$tau, s = 1, kap = 1, mtry = params$mtry, verbose = verbose, num_cutpoints = params$num_cutpoints, parallel = parl, random_seed = 100, no_split_penalty = params$no_split_penalty, nthread = nthread)
 time <- proc.time() - time
 time_XBART <- round(time[3], 3)
 
 ################################
 # predict on testing set
-
 pred <- predict(fit, xtest)
 fhat_xbart <- rowMeans(pred[, params$burnin:params$num_sweeps])
-
 
 
 #######################################################################
@@ -139,7 +137,6 @@ fit_bart2 <- wbart_ini(treedraws = fit$treedraws, x, y, x.test = xtest, numcut =
 pred_bart_ini <- colMeans(predict(fit_bart2, xtest))
 
 xbart_rmse <- sqrt(mean((fhat_xbart - ftest)^2))
-
 bart_rmse <- sqrt(mean((pred_bart - ftest)^2))
 bart_ini_rmse <- sqrt(mean((pred_bart_ini - ftest)^2))
 

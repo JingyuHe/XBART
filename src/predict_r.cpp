@@ -429,8 +429,9 @@ Rcpp::List xbart_multinomial_predict_separatetrees(mat X, double y_mean, size_t 
 
     // Result Container
     matrix<double> yhats_test_xinfo;
-    size_t N_sweeps = (*trees).size();
-    size_t N_trees = (*trees)[0].size();
+    size_t N_classes = (*trees).size();
+    size_t N_sweeps = (*trees)[0].size();
+    size_t N_trees = (*trees)[0][0].size();
     ini_xinfo(yhats_test_xinfo, N, N_sweeps);
 
     std::vector<double> output_vec(N_sweeps * N * num_class);

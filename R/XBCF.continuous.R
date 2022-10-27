@@ -16,7 +16,7 @@
 #' @param beta_mod Scalar, BART prior parameter for treatment forest. The default value is 1.25.
 #' @param tau_con Scalar, prior parameter for prognostic forest. The default value is 0.6 * var(y) / num_trees_con.
 #' @param tau_mod Scalar, prior parameter for treatment forest. The default value is 0.1 * var(y) / num_trees_mod.
-#' @param no_split_penality Weight of no-split option. The default value is log(num_cutpoints), or you can take any other number in log scale.
+#' @param no_split_penalty Extra weight of no-split option. The default value is 1, or you can take any other number greater than 0.
 #' @param burnin Integer, number of burnin sweeps.
 #' @param mtry_con Integer, number of X variables to sample at each split of the prognostic forest.
 #' @param mtry_mod Integer, number of X variables to sample at each split of the treatment forest.
@@ -39,7 +39,7 @@
 #' @export
 
 
-XBCF.continuous <- function(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth = 250, Nmin = 1, num_cutpoints = 100, alpha_con = 0.95, beta_con = 1.25, alpha_mod = 0.95, beta_mod = 1.25, tau_con = NULL, tau_mod = NULL, no_split_penality = NULL, burnin = 1L, mtry_con = NULL, mtry_mod = NULL, p_categorical_con = 0L, p_categorical_mod = 0L, kap = 16, s = 4, tau_con_kap = 3, tau_con_s = 0.5, tau_mod_kap = 3, tau_mod_s = 0.5, verbose = FALSE, update_tau = TRUE, parallel = TRUE, random_seed = NULL, sample_weights = TRUE, nthread = 0, ...) {
+XBCF.continuous <- function(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth = 250, Nmin = 1, num_cutpoints = 100, alpha_con = 0.95, beta_con = 1.25, alpha_mod = 0.95, beta_mod = 1.25, tau_con = NULL, tau_mod = NULL, no_split_penalty = NULL, burnin = 1L, mtry_con = NULL, mtry_mod = NULL, p_categorical_con = 0L, p_categorical_mod = 0L, kap = 16, s = 4, tau_con_kap = 3, tau_con_s = 0.5, tau_mod_kap = 3, tau_mod_s = 0.5, verbose = FALSE, update_tau = TRUE, parallel = TRUE, random_seed = NULL, sample_weights = TRUE, nthread = 0, ...) {
     if (!("matrix" %in% class(X_con))) {
         cat("Input X_con is not a matrix, try to convert type.\n")
         X_con <- as.matrix(X_con)
@@ -75,8 +75,10 @@ XBCF.continuous <- function(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, nu
         stop("Burnin samples should be smaller than number of sweeps.\n")
     }
 
-    if (is.null(no_split_penality) || no_split_penality == "Auto") {
-        no_split_penality <- log(num_cutpoints)
+    if (is.null(no_split_penalty) || no_split_penalty == "Auto") {
+        no_split_penalty <- log(1)
+    } else {
+        no_split_penalty <- log(no_split_penalty)
     }
 
     if (is.null(tau_con)) {
@@ -126,7 +128,7 @@ XBCF.continuous <- function(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, nu
 
     check_scalar(tau_con, "tau_con")
     check_scalar(tau_mod, "tau_mod")
-    check_scalar(no_split_penality, "no_split_penality")
+    check_scalar(no_split_penalty, "no_split_penalty")
     check_scalar(alpha_con, "alpha_con")
     check_scalar(beta_con, "beta_con")
     check_scalar(alpha_mod, "alpha_mod")
@@ -134,7 +136,7 @@ XBCF.continuous <- function(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, nu
     check_scalar(kap, "kap")
     check_scalar(s, "s")
 
-    obj <- XBCF_continuous_cpp(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth, Nmin, num_cutpoints, alpha_con, beta_con, alpha_mod, beta_mod, tau_con, tau_mod, no_split_penality, burnin, mtry_con, mtry_mod, p_categorical_con, p_categorical_mod, kap, s, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s, verbose, update_tau, parallel, set_random_seed, random_seed, sample_weights, nthread)
+    obj <- XBCF_continuous_cpp(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth, Nmin, num_cutpoints, alpha_con, beta_con, alpha_mod, beta_mod, tau_con, tau_mod, no_split_penalty, burnin, mtry_con, mtry_mod, p_categorical_con, p_categorical_mod, kap, s, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s, verbose, update_tau, parallel, set_random_seed, random_seed, sample_weights, nthread)
 
     class(obj) <- "XBCFcontinuous"
     return(obj)

@@ -15,7 +15,7 @@ XBART(
   alpha = 0.95,
   beta = 1.25,
   tau = NULL,
-  no_split_penality = NULL,
+  no_split_penalty = NULL,
   burnin = 1L,
   mtry = NULL,
   p_categorical = 0L,
@@ -53,7 +53,7 @@ XBART(
 
 \item{tau}{Scalar, prior parameter for the trees. The default value is 1 / num_trees.}
 
-\item{no_split_penality}{Weight of no-split option. The default value is log(num_cutpoints), or you can take any other number in log scale.}
+\item{no_split_penalty}{Weight of no-split option. The default value is log(num_cutpoints), or you can take any other number in log scale.}
 
 \item{burnin}{Integer, number of burnin sweeps.}
 

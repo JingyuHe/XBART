@@ -25,7 +25,7 @@ public:
 
     size_t class_operating;
 
-    double no_split_penality;
+    double no_split_penalty;
 
     // tree prior
     double alpha;
@@ -79,12 +79,12 @@ public:
     void setDimSuffStat(size_t dim_suff) { dim_suffstat = dim_suff; };
 
     // penality
-    double getNoSplitPenality()
+    double getNoSplitPenalty()
     {
-        return no_split_penality;
+        return no_split_penalty;
         ;
     };
-    void setNoSplitPenality(double pen) { this->no_split_penality = pen; };
+    void setNoSplitPenality(double pen) { this->no_split_penalty = pen; };
 
     virtual size_t get_class_operating() { return class_operating; };
 
@@ -238,6 +238,8 @@ public:
     void incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats);
 
     void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
+
+    void copy_initialization(State &state, X_struct &x_struct, vector<vector<tree>> &trees, size_t sweeps, size_t tree_ind, matrix<size_t> &Xorder_std);
 
     void update_state(State &state, size_t tree_ind, X_struct &x_struct);
 

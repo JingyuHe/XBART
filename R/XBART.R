@@ -10,7 +10,7 @@
 #' @param alpha Scalar, BART prior parameter for trees. The default value is 0.95.
 #' @param beta Scalar, BART prior parameter for trees. The default value is 1.25.
 #' @param tau Scalar, prior parameter for the trees. The default value is 1 / num_trees.
-#' @param no_split_penality Weight of no-split option. The default value is log(num_cutpoints), or you can take any other number in log scale.
+#' @param no_split_penalty Extra weight of no-split option. The default value is 1, or you can take any other number greater than 0.
 #' @param burnin Integer, number of burnin sweeps.
 #' @param mtry Integer, number of X variables to sample at each split of the tree.
 #' @param p_categorical Integer, number of categorical variables in X, note that all categorical variables should be put after continuous variables. Default value is 0.
@@ -30,7 +30,7 @@
 
 
 
-XBART <- function(y, X, num_trees, num_sweeps, max_depth = 250, Nmin = 1, num_cutpoints = 100, alpha = 0.95, beta = 1.25, tau = NULL, no_split_penality = NULL, burnin = 1L, mtry = NULL, p_categorical = 0L, kap = 16, s = 4, tau_kap = 3, tau_s = 0.5, verbose = FALSE, update_tau = TRUE, parallel = TRUE, random_seed = NULL, sample_weights = TRUE, nthread = 0, ...) {
+XBART <- function(y, X, num_trees, num_sweeps, max_depth = 250, Nmin = 1, num_cutpoints = 100, alpha = 0.95, beta = 1.25, tau = NULL, no_split_penalty = NULL, burnin = 1L, mtry = NULL, p_categorical = 0L, kap = 16, s = 4, tau_kap = 3, tau_s = 0.5, verbose = FALSE, update_tau = TRUE, parallel = TRUE, random_seed = NULL, sample_weights = TRUE, nthread = 0, ...) {
     if (!inherits(X, "matrix")) {
         warning("Input X is not a matrix, try to convert type.\n")
         X <- as.matrix(X)
@@ -57,10 +57,12 @@ XBART <- function(y, X, num_trees, num_sweeps, max_depth = 250, Nmin = 1, num_cu
         stop("Burnin samples should be smaller than number of sweeps.\n")
     }
 
-    if (is.null(no_split_penality) || no_split_penality == "Auto") {
-        no_split_penality <- log(num_cutpoints)
+    if (is.null(no_split_penalty) || no_split_penalty == "Auto") {
+        no_split_penalty <- log(1)
+    } else {
+        no_split_penalty <- log(no_split_penalty)
     }
-
+    
     if (is.null(tau)) {
         tau <- var(y) / num_trees
         cat("tau = var(y)/num_trees, default value. \n")
@@ -92,7 +94,7 @@ XBART <- function(y, X, num_trees, num_sweeps, max_depth = 250, Nmin = 1, num_cu
     check_positive_integer(num_cutpoints, "num_cutpoints")
 
     check_scalar(tau, "tau")
-    check_scalar(no_split_penality, "no_split_penality")
+    check_scalar(no_split_penalty, "no_split_penalty")
     check_scalar(alpha, "alpha")
     check_scalar(beta, "beta")
     check_scalar(kap, "kap")
@@ -100,7 +102,7 @@ XBART <- function(y, X, num_trees, num_sweeps, max_depth = 250, Nmin = 1, num_cu
 
     obj <- XBART_cpp(
         y, X, num_trees, num_sweeps, max_depth,
-        Nmin, num_cutpoints, alpha, beta, tau, no_split_penality, burnin,
+        Nmin, num_cutpoints, alpha, beta, tau, no_split_penalty, burnin,
         mtry, p_categorical, kap, s, tau_kap, tau_s, verbose, update_tau, parallel, set_random_seed,
         random_seed, sample_weights, nthread
     )

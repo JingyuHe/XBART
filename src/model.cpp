@@ -194,7 +194,7 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
     }
 
     // note that LTPI = log(2 * pi), defined in common.h
-    return - 0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
+    return -0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
 }
 
 // double NormalModel::likelihood_no_split(std::vector<double> &suff_stat, State&state) const
@@ -289,6 +289,24 @@ void LogitModel::incSuffStat(State &state, size_t index_next_obs, std::vector<do
         // suffstats[dim_residual + j] += (*phi)[index_next_obs] * exp(residual_std[j][index_next_obs]);
     }
 
+    return;
+}
+
+void LogitModel::copy_initialization(State &state, X_struct &x_struct, vector<vector<tree>> &trees, size_t sweeps, size_t tree_ind, matrix<size_t> &Xorder_std)
+{
+    tree::tree_p bn; // pointer to bottom node
+
+    // if this is other trees in the first sweep, copy directly from the first tree
+    trees[sweeps][tree_ind].cp(&(trees[sweeps][tree_ind]), &(trees[0][0]));
+
+    // copy all other objects for fitted values
+    (*state.lambdas)[tree_ind] = (*state.lambdas)[0];
+    // update data_pointers
+    for (size_t i = 0; i < Xorder_std[0].size(); i++)
+    {
+        bn = trees[sweeps][tree_ind].search_bottom_std(x_struct.X_std, i, state.p, x_struct.n_y);
+        x_struct.data_pointers[tree_ind][i] = &bn->theta_vector;
+    }
     return;
 }
 
