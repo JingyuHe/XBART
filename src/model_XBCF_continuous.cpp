@@ -311,7 +311,6 @@ void XBCFContinuousModel::set_treatmentflag(State &state, bool value)
         state.Xorder_std = state.Xorder_std_mod;
         state.mtry = state.mtry_mod;
         state.num_trees = state.num_trees_mod;
-        state.X_std = state.X_std_mod;
         this->alpha = this->alpha_mod;
         this->beta = this->beta_mod;
         state.X_std = state.X_std_mod;
@@ -328,7 +327,6 @@ void XBCFContinuousModel::set_treatmentflag(State &state, bool value)
         state.Xorder_std = state.Xorder_std_con;
         state.mtry = state.mtry_con;
         state.num_trees = state.num_trees_con;
-        state.X_std = state.X_std_con;
         this->alpha = this->alpha_con;
         this->beta = this->beta_con;
         state.X_std = state.X_std_con;

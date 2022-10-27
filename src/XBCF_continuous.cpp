@@ -117,7 +117,7 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::
     model->setNoSplitPenality(no_split_penalty);
 
     // State settings
-    XBCFcontinuousState state(&Z_std, Xpointer_con, Xpointer_mod, Xorder_std_con, Xorder_std_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, p_categorical_con, p_categorical_mod, p_continuous_con, p_continuous_mod, set_random_seed, random_seed, n_min, num_cutpoints, mtry_con, mtry_mod, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread, parallel);
+    NormalLinearState state(&Z_std, Xpointer_con, Xpointer_mod, Xorder_std_con, Xorder_std_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, p_categorical_con, p_categorical_mod, p_continuous_con, p_continuous_mod, set_random_seed, random_seed, n_min, num_cutpoints, mtry_con, mtry_mod, Xpointer_con, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread, parallel);
 
     // initialize X_struct
     std::vector<double> initial_theta_con(1, 0);
@@ -125,10 +125,10 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::
 
     std::vector<double> initial_theta_mod(1, y_mean / (double)num_trees_mod);
     X_struct x_struct_mod(Xpointer_mod, &y_std, N, Xorder_std_mod, p_categorical_mod, p_continuous_mod, &initial_theta_mod, num_trees_mod);
-
+    cout << "ok 1" << endl;
     ////////////////////////////////////////////////////////////////
-    mcmc_loop_xbcf_continuous(Xorder_std_con, Xorder_std_mod, verbose, sigma_draw_xinfo, trees_con, trees_mod, no_split_penality, state, model, x_struct_con, x_struct_mod);
-
+    mcmc_loop_linear(Xorder_std_con, Xorder_std_mod, verbose, sigma_draw_xinfo, trees_con, trees_mod, no_split_penalty, state, model, x_struct_con, x_struct_mod);
+    cout << "ok 2" << endl;
     // R Objects to Return
     Rcpp::NumericMatrix sigma_draw(num_trees_con + num_trees_mod, num_sweeps); // save predictions of each tree
     Rcpp::NumericVector split_count_sum_con(p_con, 0);                         // split counts
