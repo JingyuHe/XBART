@@ -600,6 +600,7 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
             subset_vars = sample_int_ccrank(p, state.mtry, (*state.mtry_weight_current_tree), state.gen);
         }
     }
+
     if (!no_split)
     {
         BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this);
@@ -639,6 +640,7 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
 
         this->l = 0;
         this->r = 0;
+
         return;
     }
 
@@ -646,6 +648,7 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
     this->c = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
 
     size_t index_in_full = 0;
+
     while ((*state.Xorder_std)[split_var][index_in_full] != Xorder_std[split_var][split_point])
     {
         index_in_full++;
@@ -674,6 +677,7 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
 
     matrix<size_t> Xorder_left_std;
     matrix<size_t> Xorder_right_std;
+
     ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
     ini_xinfo_sizet(Xorder_right_std, N_Xorder - split_point - 1, p);
 
@@ -692,7 +696,7 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
     {
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
-
+    
     this->l->grow_from_root(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind);
 
     this->r->grow_from_root(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind);
@@ -1359,7 +1363,6 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
     // sampling cutpoints
     if (N <= state.n_cutpoints + 1 + 2 * state.n_min)
     {
-
         // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
 
         // if number of observations is smaller than Ncutpoints, all data are splitpoint candidates
