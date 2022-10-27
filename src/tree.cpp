@@ -330,22 +330,15 @@ void tree::cp(tree_p n, tree_cp o)
         COUT << "cp:error node has children\n";
         return;
     }
-    n->N = o->N;
-    n->ID = o->ID;
-    n->depth = o->depth;
+
     n->v = o->v;
-    n->c_index = o->c_index;
     n->c = o->c;
-    n->tau_prior = o->tau_prior;
-    n->tau_post = o->tau_post;
     n->prob_split = o->prob_split;
     n->prob_leaf = o->prob_leaf;
+    n->drawn_ind = o->drawn_ind;
     n->loglike_node = o->loglike_node;
     n->tree_like = o->tree_like;
-    n->drawn_ind = o->drawn_ind;
     n->theta_vector = o->theta_vector;
-    n->suff_stat = o->suff_stat;
-    n->num_cutpoint_candidates = o->num_cutpoint_candidates;
 
     if (o->l)
     { // if o has children
@@ -1633,15 +1626,8 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
                     loglike[loglike_start + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, false, false, state);
 
-                    // adjust for categorical splits by number of cutpoints avaiable
-                    loglike[loglike_start + j] += - log(X_num_unique[i - state.p_continuous] - 1);
-
-                    if (state.p_continuous > 0)
-                    {
-                        // adjust for the difference of number of cutpoints between continuous variable and categorical variables
-                        loglike[loglike_start + j] += log(state.n_cutpoints);
-
-                    }
+                    // adjust for the difference of number of cutpoints between continuous variable and categorical variables
+                    loglike[loglike_start + j] += log(state.n_cutpoints) - log(x_struct.X_num_cutpoints[i - state.p_continuous]);
                 }
             }
         }
@@ -1661,7 +1647,7 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
 
     if (loglike_size > 0)
     {
-        loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike_size) + model->getNoSplitPenalty();
+        loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike_size) + log(model->getNoSplitPenality());
         // !!Note loglike_size shouldn't get minus 1 when it count non zero of loglike.
     }
     else
@@ -1669,7 +1655,7 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
         loglike[loglike.size() - 1] = 1;
     }
 
-    // loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + log(model->getNoSplitPenalty());
+    // loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + log(model->getNoSplitPenality());
 
     //  then adjust according to number of variables and split points
 
@@ -1687,7 +1673,7 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
     //
     ////////////////////////////////////////////////////////////////
 
-    // loglike[loglike.size() - 1] += log(state.p) + log(2.0) + model->getNoSplitPenalty();
+    // loglike[loglike.size() - 1] += log(state.p) + log(2.0) + model->getNoSplitPenality();
 
     ////////////////////////////////////////////////////////////////
     // The loop below might be useful when test different weights

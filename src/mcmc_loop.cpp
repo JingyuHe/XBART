@@ -117,7 +117,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 
             if (verbose)
             {
-                COUT << "sweep " << sweeps << " tree " << tree_ind << " ";
+                COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
             }
             // Draw latents -- do last?
 
@@ -148,44 +148,15 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
             (*state.lambdas)[tree_ind].clear();
 
-            if (sweeps == 0 && tree_ind == 0)
+            trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind);
+
+            state.update_split_counts(tree_ind);
+
+            if (sweeps >= state.burnin)
             {
-                // if this is the first tree in the first sweep, adjust it leaf parameter
-                trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind);
-
-                std::vector<tree *> leaf_nodes;
-                trees[sweeps][tree_ind].getbots(leaf_nodes);
-
-                for (size_t tt = 0; tt < leaf_nodes.size(); tt++)
+                for (size_t i = 0; i < (*state.split_count_all).size(); i++)
                 {
-                    for (size_t kk = 0; kk < (leaf_nodes[tt]->theta_vector).size(); kk++)
-                    {
-                        (leaf_nodes[tt]->theta_vector)[kk] = pow(leaf_nodes[tt]->theta_vector[kk], 1.0 / state.num_trees);
-                    }
-                }
-            }
-            else if (sweeps == 0 && tree_ind != 0)
-            {
-                model->copy_initialization(state, x_struct, trees, sweeps, tree_ind, Xorder_std);
-            }
-            else
-            {
-                // all other cases, grow directly
-                trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind);
-
-                if(verbose)
-                {
-                    COUT << "fitted tree size " << trees[sweeps][tree_ind].treesize() << endl;
-                }
-
-                state.update_split_counts(tree_ind);
-
-                if (sweeps >= state.burnin)
-                {
-                    for (size_t i = 0; i < (*state.split_count_all).size(); i++)
-                    {
-                        (*state.split_count_all)[i] += (*state.split_count_current_tree)[i];
-                    }
+                    (*state.split_count_all)[i] += (*state.split_count_current_tree)[i];
                 }
             }
             // update partial fits for the next tree
