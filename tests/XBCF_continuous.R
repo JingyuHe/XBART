@@ -18,15 +18,17 @@ z <- rnorm(n, 0, 2) + 2
 y <- (sin(5 * x1) + x2) * z + cos(2 * x2 + x1)
 x <- cbind(x1, x2)
 x3 <- rnorm(n)
+x4 <- rbinom(n, 1, 0.2)
+x5 <- sample(1:3, n, replace = TRUE, prob = c(0.1, 0.6, 0.3))
 
 tret = (sin(5 * x1) + x2)
 
 # different X matrix for prognostic and treatment trees
-x_con <- cbind(x, x3)
-x_mod <- x
+x_con <- cbind(x, x3, x4, x5)
+x_mod <- cbind(x, x4, x5)
 
 time <- Sys.time()
-fit <- XBART::XBCF.continuous(as.matrix(y), Z = as.matrix(z), X_con = as.matrix(x_con), X_mod = as.matrix(x_mod), parallel = parallel, num_trees_con = 20, num_trees_mod = 10, mtry_con = 2, mtry_mod = 2, num_sweeps = num_sweeps, burnin = burnin, nthread = nthread, sample_weights = TRUE, verbose = FALSE)
+fit <- XBART::XBCF.continuous(as.matrix(y), Z = as.matrix(z), X_con = as.matrix(x_con), X_mod = as.matrix(x_mod), parallel = parallel, num_trees_con = 20, num_trees_mod = 10, mtry_con = 2, mtry_mod = 2, num_sweeps = num_sweeps, burnin = burnin, nthread = nthread, sample_weights = TRUE, verbose = FALSE, p_categorical_con = 2, p_categorical_mod = 2)
 time <- Sys.time() - time
 print(time)
 
