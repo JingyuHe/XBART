@@ -60,6 +60,9 @@ predict.XBCFdiscrete <- function(object, X_con, X_mod, Z, pihat=NULL, ...) {
     out_con <- json_to_r(object$tree_json_con)
     out_mod <- json_to_r(object$tree_json_mod)
     obj <- .Call("_XBART_XBCF_discrete_predict", X_con, X_mod, Z, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt)
+    obj$tau <- obj$tau * (object$b[,2] - object$b[,1])
+    obj$mu <- obj$mu * object$a[,1]
+    obj$y <- Z[,1] * obj$tau + obj$mu
     return(obj)
 }
 
