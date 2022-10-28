@@ -235,7 +235,8 @@ public:
 
     bool update_weight, update_tau, update_phi; // option to update tau_a
     double weight, logloss, accuracy;         // pseudo replicates of observations
-    double hmult, heps;             // weight ~ Gamma(n, hmult * entropy + heps);
+    double weight_latent;       // latent weight for random walk sampling, weight = |weight_latent - 1| + 1
+    double hmult, heps;         // weight ~ Gamma(n, hmult * entropy + heps);
     std::vector<double> acc_gp; // track accuracy per group
 
     double c, d, z3, logz3; // param for mixture prior, c = m / tau_a^2 + 0.5; d = m / tau_a^2; m = num_trees = tau_b
@@ -255,6 +256,7 @@ public:
         this->update_tau = update_tau;
         this->update_phi = update_phi;
         this->weight = weight;
+        this->weight_latent = 1;
         this->hmult = hmult;
         this->heps = heps;
         this->logloss = 0;
@@ -277,6 +279,8 @@ public:
     void incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats);
 
     void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
+
+    double w_likelihood(State &state, double weight, double logloss);
 
     void update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double>& var_lambda, size_t &count_lambda);
     

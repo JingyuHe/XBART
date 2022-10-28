@@ -8,7 +8,7 @@ k <- 3
 p <- k
 p_add <- 0
 p_cat <- 0
-acc_level <- 0.5
+acc_level <- 0.9
 x <- matrix(rnorm(n.all * (p + p_add)), n.all, (p + p_add))
 
 
@@ -54,7 +54,7 @@ y_test <- y.all[-(1:n.train)] - 1
 num_class <- max(y_train) + 1
 
 # num_sweeps = ceiling(200/log(n))
-num_sweeps <- 20
+num_sweeps <- 200
 burnin <- 3
 num_trees <- 50
 max_depth <- 10
@@ -63,14 +63,30 @@ tm <- proc.time()
 fit <- XBART.multinomial(
     y = matrix(y_train), num_class = k, X = X_train,
     num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth,
-    num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat,
-    verbose = FALSE, separate_tree = FALSE, updte_tau = FALSE
+    num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 3.5^2 + 0.5), tau_b = (num_trees * 2 / 3.5^2), verbose = FALSE, separate_tree = FALSE, updte_tau = FALSE, update_weight = TRUE, update_phi = FALSE, a = 0.25
 )
 tm <- proc.time() - tm
 cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
 pred = predict(fit, X_test, burnin = burnin)
 phat <- apply(pred$yhats[burnin:num_sweeps, , ], c(2, 3), mean)
 yhat <- pred$label
+
+
+tm <- proc.time()
+fit2 <- XBART.multinomial(
+    y = matrix(y_train), num_class = k, X = X_train,
+    num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth,
+    num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 3.5^2 + 0.5), tau_b = (num_trees * 2 / 3.5^2),
+    verbose = FALSE, separate_tree = FALSE, updte_tau = FALSE, update_weight = FALSE, update_phi = FALSE
+)
+tm <- proc.time() - tm
+cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
+pred2 = predict(fit2, X_test, burnin = burnin)
+phat2 <- apply(pred2$yhats[burnin:num_sweeps, , ], c(2, 3), mean)
+yhat2 <- pred2$label
+
+hist(fit$weight)
+
 
 spr.xbart <- split(phat, row(phat))
 logloss <- sum(mapply(function(x, y) -log(x[y]), spr.xbart, y_test + 1, SIMPLIFY = TRUE))
@@ -105,5 +121,6 @@ cat(paste("xbart logloss : ", round(logloss, 3)), "\n")
 cat(paste("\n", "xbart runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
 cat(paste("xgboost runtime: ", round(tm2["elapsed"], 3), " seconds"), "\n")
 
-cat(paste("xbart classification accuracy: ", round(mean(y_test == yhat), 3)), "\n")
+cat(paste("xbart classification (random walk) accuracy: ", round(mean(y_test == yhat), 3)), "\n")
+cat(paste("xbart classification accuracy: ", round(mean(y_test == yhat2), 3)), "\n")
 cat(paste("xgboost classification accuracy: ", round(mean(yhat.xgb == y_test), 3)), "\n")
