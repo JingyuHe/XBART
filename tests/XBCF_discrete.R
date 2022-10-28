@@ -85,6 +85,9 @@ abline(0, 1)
 print(paste0("xbcf RMSE: ", sqrt(mean((tauhats - tau)^2))))
 print(paste0("xbcf runtime: ", round(as.list(t1)$elapsed, 2), " seconds"))
 
+meany <- mean(y)
+sdy <- sd(y)
+y <- (y - meany)/sdy
 
 t2 = proc.time()
 xbcf.fit <- XBART::XBCF.discrete(y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat, p_categorical_con = 5, p_categorical_mod = 5, num_sweeps = 60, burnin = 30)
@@ -92,7 +95,7 @@ t2 = proc.time() - t2
 
 pred <- predict(xbcf.fit, X_con = x_con, X_mod = x_mod, Z = z)
 tauhats2 = pred$tau[, 30:60]
-tauhats2 = rowMeans(tauhats2)
+tauhats2 = rowMeans(tauhats2)*sdy
 
 plot(tau, tauhats2)
 abline(0, 1)
