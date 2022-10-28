@@ -154,7 +154,20 @@ XBCF.discrete <- function(y, Z, X_con, X_mod, pihat = NULL, num_trees_con = 30, 
     check_scalar(kap, "kap")
     check_scalar(s, "s")
 
+    # center the outcome variable
+    meany <- mean(y)
+    sdy <- sd(y)
+    if(sdy == 0) {
+        stop('y is a constant variable; sdy = 0')
+    } else {
+        y <- (y - meany) / sdy
+    }
+
     obj <- XBCF_discrete_cpp(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth, Nmin, num_cutpoints, alpha_con, beta_con, alpha_mod, beta_mod, tau_con, tau_mod, no_split_penality, burnin, mtry_con, mtry_mod, p_categorical_con, p_categorical_mod, kap, s, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s, pr_scale, trt_scale, a_scaling, b_scaling, verbose, update_tau, parallel, set_random_seed, random_seed, sample_weights, nthread)
+
+    # store mean and sd in the model object (for predictions)
+    obj$meany <- meany
+    obj$sdy <- sdy
 
     class(obj) <- "XBCFdiscrete"
     return(obj)

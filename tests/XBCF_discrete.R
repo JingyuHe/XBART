@@ -2,6 +2,7 @@
 library(XBART)
 library(dbarts)
 
+
 #### 1. DATA GENERATION PROCESS
 n <- 5000 # number of observations
 # set seed here
@@ -71,7 +72,7 @@ x_mod <- x
 
 #### 2. XBCF
 
-# run XBCF
+# run XBCF (XBCF repo)
 t1 <- proc.time()
 xbcf.fit <- XBCF::XBCF(y = y, z = z, x_con = x_con, x_mod = x_mod, pihat = pihat, pcat_con = 5, pcat_mod = 5, num_sweeps = 60, burnin = 30)
 t1 <- proc.time() - t1
@@ -85,23 +86,19 @@ abline(0, 1)
 print(paste0("xbcf RMSE: ", sqrt(mean((tauhats - tau)^2))))
 print(paste0("xbcf runtime: ", round(as.list(t1)$elapsed, 2), " seconds"))
 
-meany <- mean(y)
-sdy <- sd(y)
-y <- (y - meany)/sdy
-
+# run XBCF (XBART repo)
 t2 = proc.time()
 xbcf.fit <- XBART::XBCF.discrete(y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat, p_categorical_con = 5, p_categorical_mod = 5, num_sweeps = 60, burnin = 30)
 t2 = proc.time() - t2
 
-pred <- predict(xbcf.fit, X_con = x_con, X_mod = x_mod, Z = z)
+pred <- predict(xbcf.fit, X_con = x_con, X_mod = x_mod, Z = z, pihat = pihat)
 tauhats2 = pred$tau[, 30:60]
-tauhats2 = rowMeans(tauhats2)*sdy
+tauhats2 = rowMeans(tauhats2)
 
 plot(tau, tauhats2)
 abline(0, 1)
 print(paste0("xbcf binary RMSE: ", sqrt(mean((tauhats2 - tau)^2))))
 print(paste0("xbcf binary runtime: ", round(as.list(t2)$elapsed, 2), " seconds"))
-
 
 
 # main model parameters can be retrieved below
