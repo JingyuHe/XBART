@@ -283,7 +283,9 @@ public:
     double w_likelihood(State &state, double weight, double logloss);
 
     void update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double>& var_lambda, size_t &count_lambda);
-    
+
+    void update_weights(State &state, X_struct &x_struct, double &mean_lambda, std::vector<double> &var_lambda, size_t &count_lambda);
+
     void copy_initialization(State &state, X_struct &x_struct, vector<vector<tree>> &trees, size_t sweeps, size_t tree_ind, matrix<size_t> &Xorder_std);
 
     void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
