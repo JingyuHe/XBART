@@ -256,7 +256,7 @@ public:
         this->update_tau = update_tau;
         this->update_phi = update_phi;
         this->weight = weight;
-        this->weight_latent = 1;
+        this->weight_latent = weight;
         this->hmult = hmult;
         this->heps = heps;
         this->logloss = 0;

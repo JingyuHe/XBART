@@ -8,7 +8,7 @@ k <- 3
 p <- k
 p_add <- 0
 p_cat <- 0
-acc_level <- 0.9
+acc_level <- 0.99
 x <- matrix(rnorm(n.all * (p + p_add)), n.all, (p + p_add))
 
 
@@ -54,8 +54,8 @@ y_test <- y.all[-(1:n.train)] - 1
 num_class <- max(y_train) + 1
 
 # num_sweeps = ceiling(200/log(n))
-num_sweeps <- 200
-burnin <- 3
+num_sweeps <- 50
+burnin <- 20
 num_trees <- 50
 max_depth <- 10
 mtry <- (p + p_add) / 2 # round((p + p_cat)/3)
@@ -63,7 +63,7 @@ tm <- proc.time()
 fit <- XBART.multinomial(
     y = matrix(y_train), num_class = k, X = X_train,
     num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth,
-    num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 3.5^2 + 0.5), tau_b = (num_trees * 2 / 3.5^2), verbose = FALSE, separate_tree = FALSE, updte_tau = FALSE, update_weight = TRUE, update_phi = FALSE, a = 0.25, weight_exponent = 6
+    num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 3.5^2 + 0.5), tau_b = (num_trees * 2 / 3.5^2), verbose = TRUE, separate_tree = FALSE, updte_tau = FALSE, update_weight = TRUE, update_phi = FALSE, a = 0.4, weight_exponent = 6, no_split_penalty = 0.5, beta = 2, weight = 3
 )
 tm <- proc.time() - tm
 cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
@@ -71,12 +71,17 @@ pred = predict(fit, X_test, burnin = burnin)
 phat <- apply(pred$yhats[burnin:num_sweeps, , ], c(2, 3), mean)
 yhat <- pred$label
 
+par(mfrow = c(1, 2))
+hist(fit$weight)
+plot(c(fit$weight))
+
+
 
 tm <- proc.time()
 fit2 <- XBART.multinomial(
     y = matrix(y_train), num_class = k, X = X_train,
     num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth,
-    num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 3.5^2 + 0.5), tau_b = (num_trees * 2 / 3.5^2),
+    num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 3.5^2 + 0.5), tau_b = (num_trees * 2 / 3.5^2), no_split_penalty = 0.5, beta = 2,
     verbose = FALSE, separate_tree = FALSE, updte_tau = FALSE, update_weight = FALSE, update_phi = FALSE
 )
 tm <- proc.time() - tm
@@ -85,7 +90,6 @@ pred2 = predict(fit2, X_test, burnin = burnin)
 phat2 <- apply(pred2$yhats[burnin:num_sweeps, , ], c(2, 3), mean)
 yhat2 <- pred2$label
 
-hist(fit$weight)
 
 
 spr.xbart <- split(phat, row(phat))

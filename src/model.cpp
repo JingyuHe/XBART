@@ -422,8 +422,8 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
 
     // weight = 1 / logloss;
 
-    std::gamma_distribution<> d(10.0, 1.0);
-    weight = d(state.gen) / (10.0 * logloss * state.n_y / (double)state.n_y + 1.0); // it's like shift p down by
+    // std::gamma_distribution<> d(10.0, 1.0);
+    // weight = d(state.gen) / (10.0 * logloss * state.n_y / (double)state.n_y + 1.0); // it's like shift p down by
 
     if (std::isnan(weight))
     {
@@ -432,57 +432,67 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
     if (update_weight)
     {
         // sampling weight by random walk
-        std::normal_distribution<> dd(0, 1);
+        std::normal_distribution<> dd(0, 0.05);
         double weight_latent_proposal = weight_latent + dd(state.gen);
-        double weight_proposal = fabs(weight_latent_proposal - 1) + 1;
+
+        double weight_proposal = fabs(weight_latent_proposal - 1.0) + 1.0;
+
+        // cout << weight_latent_proposal << " " << fabs(weight_latent_proposal - 1.0) << " " << weight_proposal << endl;
 
         // notice that logloss is negative, multiply by -1 to convert to likelihood
-        // double value1 = w_likelihood(state, weight, logloss, a);
+        double value1 = w_likelihood(state, weight, logloss);
 
-        // double value2 = w_likelihood(state, weight_proposal, logloss, a);
+        double value2 = w_likelihood(state, weight_proposal, logloss);
+        // this is in log scale
+        double ratio = value2 - value1 + normal_density(weight_latent_proposal, 0, 4, true) - normal_density(weight_latent, 0, 4, true);
+        
+        ratio = std::min(1.0, exp(ratio));
 
-        // double value2 = state.n_y * (std::lgamma(weight_proposal + dim_residual * a + 1) - (dim_residual - 1) * std::lgamma(a + 1) - std::lgamma(weight_proposal + a + 1)) - weight_proposal * logloss;
-
-        // double ratio = std::min(1.0, value2 / value1);
-
-        std::vector<double> www(state.weight_exponent);
-
-        for (size_t iii = 0; iii < www.size(); iii++)
+        std::uniform_real_distribution<> dis(0.0, 1.0);
+        if (dis(state.gen) < ratio)
         {
-            www[iii] = w_likelihood(state, pow(2, iii), logloss);
+            // accept
+            weight = weight_proposal;
+            weight_latent = weight_latent_proposal;
+
+            // cout << "accept weight " << weight << endl;
+        }else{
+            // cout << "reject weight " << weight << endl;
         }
 
-        // normalize and taking exponents
-        temp = *std::max_element(www.begin(), www.end());
+        // sampling on a grid
+        // std::vector<double> www(state.weight_exponent);
 
-        temp_sum = 0;
-
-        for (size_t iii = 0; iii < www.size(); iii++)
-        {
-            www[iii] = exp(www[iii] - temp);
-            temp_sum += www[iii];
-        }
-
-        for (size_t iii = 0; iii < www.size(); iii++)
-        {
-            www[iii] = www[iii] / temp_sum;
-        }
-
-        std::discrete_distribution<size_t> d(www.begin(), www.end());
-
-        weight = pow(2, (double)d(state.gen));
-
-        // // this is in log scale
-        // double ratio = value2 - value1;
-        // ratio = std::min(1.0, exp(ratio));
-
-        // std::uniform_real_distribution<> dis(0.0, 1.0);
-        // if (dis(state.gen) < ratio)
+        // for (size_t iii = 0; iii < www.size(); iii++)
         // {
-        //     // accept
-        //     weight = weight_proposal;
-        //     weight_latent = weight_latent_proposal;
+        //     www[iii] = w_likelihood(state, pow(2, iii), logloss);
         // }
+
+        // // normalize and taking exponents
+        // temp = *std::max_element(www.begin(), www.end());
+
+        // temp_sum = 0;
+
+        // for (size_t iii = 0; iii < www.size(); iii++)
+        // {
+        //     www[iii] = exp(www[iii] - temp);
+        //     temp_sum += www[iii];
+        // }
+
+        // for (size_t iii = 0; iii < www.size(); iii++)
+        // {
+        //     www[iii] = www[iii] / temp_sum;
+        // }
+
+        // cout << www << endl;
+
+        // std::discrete_distribution<size_t> d(www.begin(), www.end());
+
+        // weight = pow(2, (double)d(state.gen));
+
+
+
+        // cout << "weight " << weight << endl;
     }
 
     // Sample tau_a
@@ -549,7 +559,7 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
 
 double LogitModel::w_likelihood(State &state, double weight, double logloss)
 {
-    double output = state.n_y * (std::lgamma(weight + dim_residual * state.a + 1) - (dim_residual - 1) * std::lgamma(state.a + 1) - std::lgamma(weight + state.a + 1)) - weight * logloss;
+    double output = state.n_y * (std::lgamma(weight + dim_residual * state.a + 1) - std::lgamma(weight + state.a + 1) - weight * logloss);
 
     return output;
 }
