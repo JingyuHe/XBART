@@ -368,6 +368,7 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
     std::gamma_distribution<double> gammadist(1.0, 1.0);
 
     double temp;
+    double temp_sum;
 
     for (size_t i = 0; i < state.n_y; i++)
     {
@@ -454,9 +455,17 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
         // normalize and taking exponents
         temp = *std::max_element(www.begin(), www.end());
 
-        for (size_t iii = 0; iii < 4; iii++)
+        temp_sum = 0;
+
+        for (size_t iii = 0; iii < www.size(); iii++)
         {
             www[iii] = exp(www[iii] - temp);
+            temp_sum += www[iii];
+        }
+
+        for (size_t iii = 0; iii < www.size(); iii++)
+        {
+            www[iii] = www[iii] / temp_sum;
         }
 
         std::discrete_distribution<size_t> d(www.begin(), www.end());
