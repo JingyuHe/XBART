@@ -98,6 +98,9 @@ public:
     size_t N_trt;
     size_t N_ctrl;
 
+    double a;
+    size_t weight_exponent;
+
     void update_sigma(double sigma)
     {
         this->sigma = sigma;
@@ -187,8 +190,15 @@ class LogitState : public State
 
     void ini_lambda(std::vector<std::vector<std::vector<double>>> &lambdas, size_t num_trees, size_t dim_residual)
     {
+        // TODO: the two lambda structure can be merged, change this to lambda_separate structure
         // each tree has different number of theta vectors, each is of the size dim_residual (num classes)
         lambdas.resize(num_trees);
+        for (size_t i = 0; i < num_trees; i++)
+        {
+            lambdas[i].resize(1);
+            lambdas[i][0].resize(dim_residual);
+            std::fill(lambdas[i][0].begin(), lambdas[i][0].end(), 1.0);
+        }
     }
 
     void ini_lambda_separate(std::vector<std::vector<std::vector<double>>> &lambdas, size_t num_trees, size_t dim_residual)
@@ -198,12 +208,17 @@ class LogitState : public State
         for (size_t i = 0; i < num_trees; i++)
         {
             lambdas[i].resize(dim_residual);
+            for(size_t j = 0; j < dim_residual; j++){
+                lambdas[i][j].push_back(1);
+            }
         }
     }
 
 public:
-    LogitState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, mtry, X_std, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
+    LogitState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, double a, size_t weight_exponent) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, mtry, X_std, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
     {
+        this->a = a;
+        this->weight_exponent = weight_exponent;
         this->lambdas = new std::vector<std::vector<std::vector<double>>>();
         this->lambdas_separate = new std::vector<std::vector<std::vector<double>>>();
         ini_lambda((*this->lambdas), num_trees, dim_residual);

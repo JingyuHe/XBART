@@ -72,14 +72,22 @@ pr <- exp(s * lamt)
 pr <- t(scale(t(pr), center = FALSE, scale = rowSums(pr)))
 y_test <- sapply(1:nt, function(j) sample(0:(k - 1), 1, prob = pr[j, ]))
 
+X_test = X_train
+y_test = y_train
 
 #####################
 # parameters of XBART
-num_sweeps <- 20
-burnin <- 5
+num_sweeps <- 5
+burnin <- 2
 num_trees <- 20
 tm <- proc.time()
-fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, num_trees = num_trees, num_sweeps = num_sweeps, p_categorical = p_cat, separate_tree = TRUE, parallel = TRUE, nthread = 8)
+
+fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, 
+    num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin,
+    p_categorical = p_cat, tau_a = 3.5, tau_b = 3,
+    verbose = T, parallel = F,
+    separate_tree = F, update_tau = F, update_weight = T, update_phi = T)
+
 
 tm <- proc.time() - tm
 cat(paste("XBART runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
@@ -89,11 +97,26 @@ yhat <- pred$label # prediction of classes
 prob <- pred$prob # prediction of probability in each class
 cat(paste("XBART classification accuracy: ", round(mean(y_test == yhat), 3)), "\n")
 cat("-----------------------------\n")
+cat("Phi samples for the first observation:\n")
+print(summary(as.vector(fit$phi)))
+cat("-----------------------------\n")
+
+# diagnosis plots
+par(mfrow = c(2, 2))
+plot(as.vector(fit$weight), ylab = 'weight')
+plot(as.vector(fit$phi), ylab = 'phi')
+plot(as.vector(fit$logloss), ylab = 'logloss')
+plot(rowSums(fit$tree_size), ylab = 'tree size per sweep')
+# plot(as.vector(t(diff(t(fit$tree_size))))) # tree size compare to the replaced one
 
 
 tm2 <- proc.time()
-fit.xgb <- xgboost(data = X_train, label = y_train, num_class = k, verbose = 0, max_depth = 4, subsample = 0.80, nrounds = 500, early_stopping_rounds = 2, eta = 0.1, params = list(objective = "multi:softprob"))
-
+# fit.xgb <- xgboost(data = X_train, label = y_train, num_class = k, verbose = 0, max_depth = 4, subsample = 0.80, nrounds = 500, early_stopping_rounds = 2, eta = 0.1, params = list(objective = "multi:softprob"))
+fit.xgb <- xgboost(data = as.matrix(X_train), label = matrix(y_train),
+                       num_class=k, verbose = 0,
+                       nrounds=50,
+                       early_stopping_rounds = 50,
+                       params=list(objective="multi:softprob"))
 tm2 <- proc.time() - tm2
 cat(paste("XGBoost runtime: ", round(tm2["elapsed"], 3), " seconds"), "\n")
 phat.xgb <- predict(fit.xgb, X_test)
@@ -102,9 +125,9 @@ yhat.xgb <- max.col(phat.xgb) - 1
 
 
 spr <- split(pred$prob, row(pred$prob))
-logloss <- sum(mapply(function(x, y) -log(x[y]), spr, y_test + 1, SIMPLIFY = TRUE))
+logloss <- sum(mapply(function(x, y) -log(x[y]), spr, y_test + 1, SIMPLIFY = TRUE)) / nt
 spr <- split(phat.xgb, row(phat.xgb))
-logloss.xgb <- sum(mapply(function(x, y) -log(x[y]), spr, y_test + 1, SIMPLIFY = TRUE))
+logloss.xgb <- sum(mapply(function(x, y) -log(x[y]), spr, y_test + 1, SIMPLIFY = TRUE)) / nt
 
 cat(paste("XBART logloss : ", round(logloss, 3)), "\n")
 cat(paste("XGBoost logloss : ", round(logloss.xgb, 3)), "\n")
@@ -116,11 +139,9 @@ cat(paste("XBART classification accuracy: ", round(mean(y_test == yhat), 3)), "\
 cat(paste("XGBoost classification accuracy: ", round(mean(yhat.xgb == y_test), 3)), "\n")
 cat("-----------------------------\n")
 cat("Variable importance by XBART", fit$importance, "\n")
+cat("Summary tree size: \n")
+print(summary(as.vector(fit$tree_size)))
+cat("Tree size by sweeps: \n")
+print(rowSums(fit$tree_size))
 cat("-----------------------------\n")
 
-
-# diagnosis plots
-par(mfrow = c(1, 2))
-plot(as.vector(fit$weight))
-plot(as.vector(fit$tau_a))
-summary(as.vector(fit$weight))

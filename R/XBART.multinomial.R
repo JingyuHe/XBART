@@ -1,5 +1,5 @@
 #' XBART main function of XBART classification.
-#' 
+#'
 #' @param y A vector of outcome variable of length n, expected to be discrete.
 #' @param num_class Integer, number of different unique classes for the classification task.
 #' @param X A matrix of input for the tree of size n by p. Column order matters: continuous features should all go before categorical. The number of categorical variables is p_categorical_con.
@@ -12,7 +12,7 @@
 #' @param beta Scalar, BART prior parameter for trees. The default value is 1.25.
 #' @param tau_a Scalar, prior of the leaf mean.
 #' @param tau_b Scalar, prior of the leaf mean.
-#' @param no_split_penalty Weight of no-split option. The default value is log(num_cutpoints), or you can take any other number in log scale.
+#' @param no_split_penalty Extra weight of no-split option. The default value is 1, or you can take any other number greater than 0.
 #' @param burnin Integer, number of burnin sweeps.
 #' @param mtry Integer, number of X variables to sample at each split of the tree.
 #' @param p_categorical Integer, number of categorical variables in X, note that all categorical variables should be put after continuous variables. Default value is 0.
@@ -29,17 +29,20 @@
 #' @param weight Replicate factor of the Poisson observations. The default value is 1.
 #' @param update_weight Bool, if TRUE, sample the replicate factor to reflect the data entropy.
 #' @param update_tau Bool, if TRUE, update the prior of leaf mean.
+#' @param update_phi Bool, update phi.
 #' @param hmult Prior of the replicate factor.
 #' @param heps Prior of the replicate factor
+#' @param a Prior for sampling weights
 #' @param ... optional parameters to be passed to the low level function XBART
-#' 
+#'
 #' @details XBART draws multiple samples of the forests (sweeps), each forest is an ensemble of trees. The final prediction is taking sum of trees in each forest, and average across different sweeps (with- out burnin sweeps). This function fits trees for multinomial classification tasks. Note that users have option to fit different tree structure for different classes, or let all classes share the same tree structure.
 #' @return A list contains fitted trees as well as parameter draws at each sweep.
 #' @export
 
 
 
-XBART.multinomial <- function(y, num_class, X, num_trees = 20, num_sweeps = 20, max_depth = 20, Nmin = NULL, num_cutpoints = NULL, alpha = 0.95, beta = 1.25, tau_a = 1, tau_b = 1, no_split_penalty = NULL, burnin = 5, mtry = NULL, p_categorical = 0L, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights = TRUE, separate_tree = FALSE, weight = 1, update_weight = TRUE, update_tau = TRUE, nthread = 0, hmult = 1, heps = 0.1, ...) {
+XBART.multinomial <- function(y, num_class, X, num_trees = 20, num_sweeps = 20, max_depth = 20, Nmin = NULL, num_cutpoints = NULL, alpha = 0.95, beta = 1.25, tau_a = 1, tau_b = 1, no_split_penalty = NULL, burnin = 5, mtry = NULL, p_categorical = 0L, verbose = FALSE, parallel = TRUE, random_seed = NULL, sample_weights = TRUE, separate_tree = FALSE, weight = 1, update_weight = TRUE, update_tau = TRUE, update_phi = TRUE, nthread = 0, hmult = 1, heps = 0.1, a = 0.0001, weight_exponent = 3, MH_step = 0.5, ...) {
+    require(GIGrvg)
     if (!("matrix" %in% class(X))) {
         cat("Input X is not a matrix, try to convert type.\n")
         X <- as.matrix(X)
@@ -90,7 +93,9 @@ XBART.multinomial <- function(y, num_class, X, num_trees = 20, num_sweeps = 20, 
     }
 
     if (is.null(no_split_penalty) || no_split_penalty == "Auto") {
-        no_split_penalty <- log(num_cutpoints)
+        no_split_penalty <- log(1)
+    } else {
+        no_split_penalty <- log(no_split_penalty)
     }
 
     if (is.null(mtry)) {
@@ -136,7 +141,9 @@ XBART.multinomial <- function(y, num_class, X, num_trees = 20, num_sweeps = 20, 
     check_scalar(alpha, "alpha")
     check_scalar(beta, "beta")
 
-    obj <- XBART_multinomial_cpp(y, num_class, X, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penalty, burnin, mtry, p_categorical, verbose, parallel, set_random_seed, random_seed, sample_weights, separate_tree, weight, update_weight, update_tau, nthread, hmult, heps)
+    weight_exponent = weight_exponent + 1
+
+    obj <- XBART_multinomial_cpp(y, num_class, X, num_trees, num_sweeps, max_depth, Nmin, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penalty, burnin, mtry, p_categorical, verbose, parallel, set_random_seed, random_seed, sample_weights, separate_tree, weight, update_weight, update_tau, update_phi, nthread, hmult, heps, a, weight_exponent, MH_step)
 
     class(obj) <- "XBARTmultinomial"
 

@@ -1,5 +1,7 @@
 #ifndef GUARD_utility_h
 #define GUARD_utility_h
+#define BOOST_MATH_OVERFLOW_ERROR_POLICY errno_on_error
+
 
 #include "common.h"
 
@@ -14,8 +16,10 @@ extern ThreadPool thread_pool;
 #include <math.h>
 #include <numeric>
 #include <armadillo>
+#include <boost/math/special_functions/bessel.hpp>
 
 using namespace arma;
+using namespace boost::math;
 
 template <typename T>
 void ini_matrix(matrix<T> &matrix, size_t N, size_t p)
@@ -164,5 +168,15 @@ double sum_vec_z_squared(matrix<double> &z, size_t n);
 double sum_vec_yzsq(std::vector<double> &v, matrix<double> &z);
 
 double sum_vec_y_z(std::vector<double> &v, matrix<double> &z);
+
+double drawlambdafromR(size_t n, double sy, double c, double d, std::mt19937& gen);
+
+double drawnodelambda(size_t n, double sy, double c, double d, std::mt19937& gen);
+
+double gignorm(double eta, double chi, double psi);
+
+double loggignorm(double eta, double chi, double psi) ;
+
+double lgigkernel(double x, double eta, double chi, double psi);
 
 #endif

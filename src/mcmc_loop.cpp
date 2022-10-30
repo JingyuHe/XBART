@@ -97,10 +97,17 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
     return;
 }
 
-void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty, State &state, LogitModel *model, X_struct &x_struct, std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &tau_samples)
+void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty, State &state, LogitModel *model, X_struct &x_struct,
+                           std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &phi_samples, std::vector<std::vector<double>> &logloss,
+                           std::vector<std::vector<double>> &tree_size)
 {
     // Residual for 0th tree
     model->ini_residual_std(state);
+
+    // keep track of mean of leaf parameters
+    double mean_lambda = 1;
+    size_t count_lambda = (state.num_trees - 1) * model->dim_residual; // less the lambdas in the first tree
+    std::vector<double> var_lambda(state.num_trees, 0.0);
 
     for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
     {
@@ -115,10 +122,10 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
         for (size_t tree_ind = 0; tree_ind < state.num_trees; tree_ind++)
         {
 
-            if (verbose)
-            {
-                COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
-            }
+            // if (verbose)
+            // {
+            //     COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
+            // }
             // Draw latents -- do last?
 
             if (state.use_all && (sweeps >= state.burnin)) // && (state.mtry != state.p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
@@ -136,14 +143,6 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             }
 
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
-            for (size_t k = 0; k < trees[sweeps][tree_ind].suff_stat.size(); k++)
-            {
-                if (std::isnan(trees[sweeps][tree_ind].suff_stat[k]))
-                {
-                    COUT << "unidentified error: suffstat " << k << " initialized as nan" << endl;
-                    exit(1);
-                }
-            }
 
             trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
             (*state.lambdas)[tree_ind].clear();
@@ -160,12 +159,23 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                 }
             }
             // update partial fits for the next tree
-            model->update_state(state, tree_ind, x_struct);
+            model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
 
             model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
 
             weight_samples[sweeps][tree_ind] = model->weight;
-            tau_samples[sweeps][tree_ind] = model->tau_a;
+            phi_samples[sweeps][tree_ind] = exp((*model->phi)[0]);
+            logloss[sweeps][tree_ind] = model->logloss;
+            tree_size[sweeps][tree_ind] = trees[sweeps][tree_ind].treesize();
+
+            if (verbose)
+            {
+                if (sweeps > 0)
+                {
+                    COUT << "tree " << tree_ind << " old size = " << trees[sweeps - 1][tree_ind].treesize() << ", new size = " << trees[sweeps][tree_ind].treesize() << endl;
+                    COUT << " logloss " << model->logloss << " acc " << model->accuracy << endl;
+                }
+            }
 
             for (size_t j = 0; j < (*state.lambdas)[tree_ind].size(); j++)
             {
@@ -175,10 +185,14 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                 }
             }
         }
+        model->update_weights(state, x_struct, mean_lambda, var_lambda, count_lambda);
     }
 }
 
-void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penalty, State &state, LogitModelSeparateTrees *model, X_struct &x_struct, std::vector<std::vector<double>> &weight_samples)
+void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penalty, State &state,
+                                           LogitModelSeparateTrees *model, X_struct &x_struct,
+                                           std::vector<std::vector<double>> &weight_samples, std::vector<std::vector<double>> &tau_samples,
+                                           std::vector<std::vector<double>> &logloss, std::vector<std::vector<double>> &tree_size)
 {
 
     // Residual for 0th tree
@@ -186,6 +200,11 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
     size_t p = Xorder_std.size();
     std::vector<size_t> subset_vars(p);
     std::vector<double> weight_samp(p);
+
+    // keep track of mean of leaf parameters
+    double mean_lambda = 1;
+    size_t count_lambda = (state.num_trees - 1) * model->dim_residual; // less the lambdas in the first tree
+    std::vector<double> var_lambda(state.num_trees, 0.0);
 
     for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
     {
@@ -200,10 +219,10 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
         for (size_t tree_ind = 0; tree_ind < state.num_trees; tree_ind++)
         {
 
-            if (verbose)
-            {
-                COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
-            }
+            // if (verbose)
+            // {
+            //     COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
+            // }
             // Draw latents -- do last?
 
             if (state.use_all && (sweeps >= state.burnin)) // && (state.mtry != state.p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
@@ -220,6 +239,8 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
                 (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) - (*state.split_count_all_tree)[tree_ind];
             }
 
+            tree_size[sweeps][tree_ind] = 0; // init
+
             for (size_t class_ind = 0; class_ind < model->dim_residual; class_ind++)
             {
                 model->set_class_operating(class_ind);
@@ -231,6 +252,8 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
                 trees[class_ind][sweeps][tree_ind].theta_vector.resize(model->dim_residual);
 
                 trees[class_ind][sweeps][tree_ind].grow_from_root_separate_tree(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind);
+
+                tree_size[sweeps][tree_ind] += trees[class_ind][sweeps][tree_ind].treesize();
             }
 
             state.update_split_counts(tree_ind);
@@ -243,11 +266,18 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
                 }
             }
 
-            model->update_state(state, tree_ind, x_struct);
-
-            model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
+            model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
 
             weight_samples[sweeps][tree_ind] = model->weight;
+            tau_samples[sweeps][tree_ind] = model->tau_a;
+            logloss[sweeps][tree_ind] = model->logloss;
+
+            if (verbose)
+            {
+                COUT << " tree " << tree_ind << " logloss " << model->logloss << endl;
+            }
+
+            model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
         }
     }
 
