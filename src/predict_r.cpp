@@ -62,7 +62,85 @@ Rcpp::List xbart_predict(mat X, double y_mean, Rcpp::XPtr<std::vector<std::vecto
 }
 
 // [[Rcpp::export]]
-Rcpp::List xbcf_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod)
+Rcpp::List XBCF_continuous_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod)
+{
+    // size of data
+    size_t N = X_con.n_rows;
+    size_t p_con = X_con.n_cols;
+    size_t p_mod = X_mod.n_cols;
+    size_t p_z = Z.n_cols;
+    assert(X_con.n_rows == X_mod.n_rows);
+
+    // Init X_std matrix
+    Rcpp::NumericMatrix X_std_con(N, p_con);
+    Rcpp::NumericMatrix X_std_mod(N, p_mod);
+
+    matrix<double> Ztest_std;
+    ini_matrix(Ztest_std, N, p_z);
+
+    for (size_t i = 0; i < N; i++)
+    {
+        for (size_t j = 0; j < p_con; j++)
+        {
+            X_std_con(i, j) = X_con(i, j);
+        }
+
+        for (size_t j = 0; j < p_mod; j++)
+        {
+            X_std_mod(i, j) = X_mod(i, j);
+        }
+
+        for (size_t j = 0; j < p_z; j++)
+        {
+            Ztest_std[j][i] = Z(i, j);
+        }
+    }
+    double *Xpointer_con = &X_std_con[0];
+    double *Xpointer_mod = &X_std_mod[0];
+
+    // Trees
+    std::vector<std::vector<tree>> *trees_con = tree_con;
+    std::vector<std::vector<tree>> *trees_mod = tree_mod;
+
+    // Result Container
+    size_t num_sweeps = (*trees_con).size();
+    size_t num_trees_con = (*trees_con)[0].size();
+    size_t num_trees_mod = (*trees_mod)[0].size();
+
+    COUT << "number of trees " << num_trees_con << " " << num_trees_mod << endl;
+
+    matrix<double> prognostic_xinfo;
+    ini_matrix(prognostic_xinfo, N, num_sweeps);
+
+    matrix<double> treatment_xinfo;
+    ini_matrix(treatment_xinfo, N, num_sweeps);
+
+    matrix<double> yhats_test_xinfo;
+    ini_xinfo(yhats_test_xinfo, N, num_sweeps);
+    XBCFContinuousModel *model = new XBCFContinuousModel();
+    // Predict
+
+    model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
+
+    // Convert back to Rcpp
+    Rcpp::NumericMatrix yhats(N, num_sweeps);
+    Rcpp::NumericMatrix prognostic(N, num_sweeps);
+    Rcpp::NumericMatrix treatment(N, num_sweeps);
+    for (size_t i = 0; i < N; i++)
+    {
+        for (size_t j = 0; j < num_sweeps; j++)
+        {
+            yhats(i, j) = yhats_test_xinfo[j][i];
+            prognostic(i, j) = prognostic_xinfo[j][i];
+            treatment(i, j) = treatment_xinfo[j][i];
+        }
+    }
+
+    return Rcpp::List::create(Rcpp::Named("mu") = prognostic, Rcpp::Named("tau") = treatment, Rcpp::Named("yhats") = yhats);
+}
+
+// [[Rcpp::export]]
+Rcpp::List XBCF_discrete_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod)
 {
     // size of data
     size_t N = X_con.n_rows;
@@ -351,9 +429,8 @@ Rcpp::List xbart_multinomial_predict_separatetrees(mat X, double y_mean, size_t 
 
     // Result Container
     matrix<double> yhats_test_xinfo;
-    size_t N_classes = (*trees).size();
-    size_t N_sweeps = (*trees)[0].size();
-    size_t N_trees = (*trees)[0][0].size();
+    size_t N_sweeps = (*trees).size();
+    size_t N_trees = (*trees)[0].size();
     ini_xinfo(yhats_test_xinfo, N, N_sweeps);
 
     std::vector<double> output_vec(N_sweeps * N * num_class);
