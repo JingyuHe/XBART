@@ -78,13 +78,13 @@ public:
 
     void setDimSuffStat(size_t dim_suff) { dim_suffstat = dim_suff; };
 
-    // penality
+    // penalty
     double getNoSplitPenalty()
     {
         return no_split_penalty;
         ;
     };
-    void setNoSplitPenality(double pen) { this->no_split_penalty = pen; };
+    void setNoSplitPenalty(double pen) { this->no_split_penalty = pen; };
 
     virtual size_t get_class_operating() { return class_operating; };
 

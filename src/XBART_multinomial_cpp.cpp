@@ -119,7 +119,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
         }
 
         LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau, update_phi, hmult, heps, MH_step);
-        model->setNoSplitPenality(no_split_penalty);
+        model->setNoSplitPenalty(no_split_penalty);
 
         mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penalty, state, model, x_struct, weight_samples, lambda_samples, phi_samples, logloss, tree_size);
 
@@ -140,7 +140,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
 
         LogitModelSeparateTrees *model = new LogitModelSeparateTrees(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau, update_phi, MH_step);
 
-        model->setNoSplitPenality(no_split_penalty);
+        model->setNoSplitPenalty(no_split_penalty);
 
         mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penalty, state, model, x_struct, weight_samples, phi_samples, logloss, tree_size);
 

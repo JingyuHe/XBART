@@ -61,6 +61,7 @@ public:
     // lambdas
     std::vector<std::vector<std::vector<double>>> *lambdas;
     std::vector<std::vector<std::vector<double>>> *lambdas_separate;
+    size_t weight_exponent;
 
     // for continuous treatment XBCF
     matrix<double> *split_count_all_tree_con;
@@ -91,6 +92,7 @@ public:
 
     // extra variables for binary treatment XBCF
     std::vector<double> b_vec;     // scaling parameters for tau (b0,b1)     TODO: move to xbcfState
+    // a is also used for logit model
     double a;                      // scaling parameter for mu               TODO: move to xbcfState
     std::vector<double> sigma_vec; // residual standard deviations           TODO: move to xbcfState
     bool a_scaling;
@@ -98,8 +100,6 @@ public:
     size_t N_trt;
     size_t N_ctrl;
 
-    double a;
-    size_t weight_exponent;
 
     void update_sigma(double sigma)
     {

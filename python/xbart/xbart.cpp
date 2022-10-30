@@ -73,7 +73,7 @@ XBARTcpp::XBARTcpp(size_t num_trees, size_t num_sweeps, size_t max_depth,
 	// NORMAL
 	// define model
 	this->model = new NormalModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
-	this->model->setNoSplitPenality(no_split_penalty);
+	this->model->setNoSplitPenalty(no_split_penalty);
 
 	//}
 
@@ -422,7 +422,7 @@ void XBARTcpp::_fit(int n, int p, double *a, int n_y, double *a_y, size_t p_cat)
 	// define model
 	// NormalModel *model = new NormalModel(this->params.kap, this->params.s, this->params.tau, this->params.alpha, this->params.beta,
 	// 	this->params.sampling_tau, this->params.tau_kap, this->params.tau_s);
-	// model->setNoSplitPenality(this->no_split_penalty);
+	// model->setNoSplitPenalty(this->no_split_penalty);
 
 	// // //State settings
 	std::vector<double> initial_theta(1, y_mean / (double)this->params.num_trees);
@@ -459,7 +459,7 @@ void XBARTcpp::_fit(int n, int p, double *a, int n_y, double *a_y, size_t p_cat)
 //   for(size_t i=0; i<n; ++i) y_size_t[i] = (size_t)y_std[i];
 //   LogitModel *model = new LogitModel(this->num_classes, tau_a, tau_b, this->params.alpha,
 //                                      this->params.beta, &y_size_t, &phi);
-//   model->setNoSplitPenality(no_split_penalty);
+//   model->setNoSplitPenalty(no_split_penalty);
 
 //   //data
 //   std::vector<double> initial_theta(this->num_classes, 1);
@@ -485,7 +485,7 @@ void XBARTcpp::_fit(int n, int p, double *a, int n_y, double *a_y, size_t p_cat)
 //     // define model
 //     ProbitClass *model = new ProbitClass(this->params.kap, this->params.s, this->params.tau,
 //                                           this->params.alpha, this->params.beta,y_std);
-//     model->setNoSplitPenality(no_split_penalty);
+//     model->setNoSplitPenalty(no_split_penalty);
 
 //     // // //State settings
 //     std::vector<double> initial_theta(1, y_mean / (double)this->params.M);
