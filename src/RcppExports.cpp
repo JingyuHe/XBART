@@ -48,8 +48,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // XBART_multinomial_cpp
-Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penalty, size_t burnin, size_t mtry, size_t p_categorical, bool verbose, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights, bool separate_tree, double weight, bool update_weight, bool update_tau, bool update_phi, double nthread, double hmult, double heps, double a, size_t weight_exponent);
-RcppExport SEXP _XBART_XBART_multinomial_cpp(SEXP ySEXP, SEXP num_classSEXP, SEXP XSEXP, SEXP num_treesSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tau_aSEXP, SEXP tau_bSEXP, SEXP no_split_penaltySEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP verboseSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weightsSEXP, SEXP separate_treeSEXP, SEXP weightSEXP, SEXP update_weightSEXP, SEXP update_tauSEXP, SEXP update_phiSEXP, SEXP nthreadSEXP, SEXP hmultSEXP, SEXP hepsSEXP, SEXP aSEXP, SEXP weight_exponentSEXP) {
+Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penalty, size_t burnin, size_t mtry, size_t p_categorical, bool verbose, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights, bool separate_tree, double weight, bool update_weight, bool update_tau, bool update_phi, double nthread, double hmult, double heps, double a, size_t weight_exponent, double MH_step);
+RcppExport SEXP _XBART_XBART_multinomial_cpp(SEXP ySEXP, SEXP num_classSEXP, SEXP XSEXP, SEXP num_treesSEXP, SEXP num_sweepsSEXP, SEXP max_depthSEXP, SEXP n_minSEXP, SEXP num_cutpointsSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP tau_aSEXP, SEXP tau_bSEXP, SEXP no_split_penaltySEXP, SEXP burninSEXP, SEXP mtrySEXP, SEXP p_categoricalSEXP, SEXP verboseSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weightsSEXP, SEXP separate_treeSEXP, SEXP weightSEXP, SEXP update_weightSEXP, SEXP update_tauSEXP, SEXP update_phiSEXP, SEXP nthreadSEXP, SEXP hmultSEXP, SEXP hepsSEXP, SEXP aSEXP, SEXP weight_exponentSEXP, SEXP MH_stepSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -84,7 +84,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type heps(hepsSEXP);
     Rcpp::traits::input_parameter< double >::type a(aSEXP);
     Rcpp::traits::input_parameter< size_t >::type weight_exponent(weight_exponentSEXP);
-    rcpp_result_gen = Rcpp::wrap(XBART_multinomial_cpp(y, num_class, X, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penalty, burnin, mtry, p_categorical, verbose, parallel, set_random_seed, random_seed, sample_weights, separate_tree, weight, update_weight, update_tau, update_phi, nthread, hmult, heps, a, weight_exponent));
+    Rcpp::traits::input_parameter< double >::type MH_step(MH_stepSEXP);
+    rcpp_result_gen = Rcpp::wrap(XBART_multinomial_cpp(y, num_class, X, num_trees, num_sweeps, max_depth, n_min, num_cutpoints, alpha, beta, tau_a, tau_b, no_split_penalty, burnin, mtry, p_categorical, verbose, parallel, set_random_seed, random_seed, sample_weights, separate_tree, weight, update_weight, update_tau, update_phi, nthread, hmult, heps, a, weight_exponent, MH_step));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -269,7 +270,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_XBART_XBART_cpp", (DL_FUNC) &_XBART_XBART_cpp, 25},
-    {"_XBART_XBART_multinomial_cpp", (DL_FUNC) &_XBART_XBART_multinomial_cpp, 31},
+    {"_XBART_XBART_multinomial_cpp", (DL_FUNC) &_XBART_XBART_multinomial_cpp, 32},
     {"_XBART_XBCF_continuous_cpp", (DL_FUNC) &_XBART_XBCF_continuous_cpp, 35},
     {"_XBART_xbart_predict", (DL_FUNC) &_XBART_xbart_predict, 3},
     {"_XBART_xbcf_predict", (DL_FUNC) &_XBART_xbcf_predict, 5},

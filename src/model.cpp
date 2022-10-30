@@ -609,7 +609,9 @@ void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_l
     if (update_weight)
     {
         // sampling weight by random walk
-        std::normal_distribution<> dd(0, 1);
+        // MH_step is standard deviation
+        std::normal_distribution<> dd(0, MH_step);
+
         double weight_latent_proposal = weight_latent + dd(state.gen);
 
         double weight_proposal = fabs(weight_latent_proposal - 1.0) + 1.0;
