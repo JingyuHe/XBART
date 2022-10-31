@@ -108,6 +108,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
     double mean_lambda = 1;
     size_t count_lambda = (state.num_trees - 1) * model->dim_residual; // less the lambdas in the first tree
     std::vector<double> var_lambda(state.num_trees, 0.0);
+    size_t ttl_tree_size = 0;
 
     for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
     {
@@ -118,6 +119,8 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             COUT << "number of sweeps " << sweeps << endl;
             COUT << "--------------------------------" << endl;
         }
+
+        ttl_tree_size = 0;
 
         for (size_t tree_ind = 0; tree_ind < state.num_trees; tree_ind++)
         {
@@ -148,6 +151,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             (*state.lambdas)[tree_ind].clear();
 
             trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind);
+            ttl_tree_size += trees[sweeps][tree_ind].treesize();
 
             state.update_split_counts(tree_ind);
 
@@ -168,14 +172,14 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             logloss[sweeps][tree_ind] = model->logloss;
             tree_size[sweeps][tree_ind] = trees[sweeps][tree_ind].treesize();
 
-            if (verbose)
-            {
-                if (sweeps > 0)
-                {
-                    COUT << "tree " << tree_ind << " old size = " << trees[sweeps - 1][tree_ind].treesize() << ", new size = " << trees[sweeps][tree_ind].treesize() << endl;
-                    COUT << " logloss " << model->logloss << " acc " << model->accuracy << endl;
-                }
-            }
+            // if (verbose)
+            // {
+            //     if (sweeps > 0)
+            //     {
+            //         COUT << "tree " << tree_ind << " old size = " << trees[sweeps - 1][tree_ind].treesize() << ", new size = " << trees[sweeps][tree_ind].treesize() << endl;
+            //         COUT << " logloss " << model->logloss << " acc " << model->accuracy << endl;
+            //     }
+            // }
 
             for (size_t j = 0; j < (*state.lambdas)[tree_ind].size(); j++)
             {
@@ -186,6 +190,12 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             }
         }
         model->update_weights(state, x_struct, mean_lambda, var_lambda, count_lambda);
+
+        if (verbose)
+        {
+            COUT << "total tree size " << ttl_tree_size << " logloss " << model->logloss << " acc " << model->accuracy << endl;
+            
+        }
     }
 }
 

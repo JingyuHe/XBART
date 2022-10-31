@@ -86,7 +86,7 @@ fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train,
     num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin,
     p_categorical = p_cat, tau_a = 3.5, tau_b = 3,
     verbose = T, parallel = F,
-    separate_tree = F, update_tau = F, update_weight = T, update_phi = T)
+    separate_tree = F, update_tau = F, update_weight = T, update_phi = F, a = 0.1)
 
 
 tm <- proc.time() - tm
@@ -106,7 +106,7 @@ par(mfrow = c(2, 2))
 plot(as.vector(fit$weight), ylab = 'weight')
 plot(as.vector(fit$phi), ylab = 'phi')
 plot(as.vector(fit$logloss), ylab = 'logloss')
-plot(rowSums(fit$tree_size), ylab = 'tree size per sweep')
+plot(colSums(fit$tree_size), ylab = 'tree size per sweep')
 # plot(as.vector(t(diff(t(fit$tree_size))))) # tree size compare to the replaced one
 
 
@@ -142,6 +142,6 @@ cat("Variable importance by XBART", fit$importance, "\n")
 cat("Summary tree size: \n")
 print(summary(as.vector(fit$tree_size)))
 cat("Tree size by sweeps: \n")
-print(rowSums(fit$tree_size))
+print(colSums(fit$tree_size))
 cat("-----------------------------\n")
 
