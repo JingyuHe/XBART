@@ -330,23 +330,16 @@ void tree::cp(tree_p n, tree_cp o)
         COUT << "cp:error node has children\n";
         return;
     }
-    n->N = o->N;
-    n->ID = o->ID;
-    n->depth = o->depth;
+
     n->v = o->v;
-    n->c_index = o->c_index;
     n->c = o->c;
-    n->tau_prior = o->tau_prior;
-    n->tau_post = o->tau_post;
     n->prob_split = o->prob_split;
     n->prob_leaf = o->prob_leaf;
+    n->drawn_ind = o->drawn_ind;
     n->loglike_node = o->loglike_node;
     n->tree_like = o->tree_like;
-    n->drawn_ind = o->drawn_ind;
     n->theta_vector = o->theta_vector;
-    n->suff_stat = o->suff_stat;
-    n->num_cutpoint_candidates = o->num_cutpoint_candidates;
-    
+
     if (o->l)
     { // if o has children
         n->l = new tree;

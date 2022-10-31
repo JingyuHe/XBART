@@ -194,7 +194,7 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
     }
 
     // note that LTPI = log(2 * pi), defined in common.h
-    return -0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
+    return - 0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
 }
 
 // double NormalModel::likelihood_no_split(std::vector<double> &suff_stat, State&state) const
@@ -286,27 +286,9 @@ void LogitModel::incSuffStat(State &state, size_t index_next_obs, std::vector<do
     for (size_t j = 0; j < dim_theta; ++j)
     {
         // suffstats[dim_residual + j] += weight * exp((*state.residual_std)[j][index_next_obs]);
-        suffstats[dim_residual + j] +=  weight * exp((*phi)[index_next_obs] + (*state.residual_std)[j][index_next_obs]);
+        suffstats[dim_residual + j] += weight * exp((*phi)[index_next_obs] + (*state.residual_std)[j][index_next_obs]);
     }
 
-    return;
-}
-
-void LogitModel::copy_initialization(State &state, X_struct &x_struct, vector<vector<tree>> &trees, size_t sweeps, size_t tree_ind, matrix<size_t> &Xorder_std)
-{
-    tree::tree_p bn; // pointer to bottom node
-
-    // if this is other trees in the first sweep, copy directly from the first tree
-    trees[sweeps][tree_ind].cp(&(trees[sweeps][tree_ind]), &(trees[0][0]));
-
-    // copy all other objects for fitted values
-    (*state.lambdas)[tree_ind] = (*state.lambdas)[0];
-    // update data_pointers
-    for (size_t i = 0; i < Xorder_std[0].size(); i++)
-    {
-        bn = trees[sweeps][tree_ind].search_bottom_std(x_struct.X_std, i, state.p, x_struct.n_y);
-        x_struct.data_pointers[tree_ind][i] = &bn->theta_vector;
-    }
     return;
 }
 
@@ -335,17 +317,16 @@ void LogitModel::samplePars(State &state, std::vector<double> &suff_stat, std::v
     return;
 }
 
-void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double>& var_lambda, size_t &count_lambda)
+void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double> &var_lambda, size_t &count_lambda)
 {
     // update residuals
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
     {
         for (size_t j = 0; j < dim_theta; ++j)
         {
-            (*state.residual_std)[j][i] = (*state.residual_std)[j][i] + log((*(x_struct.data_pointers[tree_ind][i]))[j]); 
+            (*state.residual_std)[j][i] = (*state.residual_std)[j][i] + log((*(x_struct.data_pointers[tree_ind][i]))[j]);
         }
     }
-
 
     // // check residauls
     // std::vector<double> residual_sample(dim_residual);
@@ -354,7 +335,7 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
     //     residual_sample[j] = exp((*phi)[0] + (*state.residual_std)[j][0]);
     // }
     // cout << "phi " << (*phi)[0] << " exp(phi) " << exp((*phi)[0]) << " residuals " << residual_sample << endl;
-    
+
     // track accuracy of each group
     std::fill(acc_gp.begin(), acc_gp.end(), 0.0);
     std::vector<double> count_gp(dim_residual, 0.0);
@@ -368,6 +349,9 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
     double prob = 0.0;
     std::gamma_distribution<double> gammadist(1.0, 1.0);
 
+    double temp;
+    double temp_sum;
+
     for (size_t i = 0; i < state.n_y; i++)
     {
         sum_fits = 0;
@@ -377,16 +361,21 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
         for (size_t j = 0; j < dim_residual; ++j)
         {
             sum_fits += exp((*state.residual_std)[j][i]);
-            if ((*state.residual_std)[j][i] > max_resid){
+            if ((*state.residual_std)[j][i] > max_resid)
+            {
                 yhat = j;
                 max_resid = (*state.residual_std)[j][i];
             }
         }
 
         count_gp[y_i] += 1;
-        if (yhat == y_i) {acc_gp[y_i] += 1;}
+        if (yhat == y_i)
+        {
+            acc_gp[y_i] += 1;
+        }
         // Sample phi
-        if (update_phi) {
+        if (update_phi)
+        {
             (*phi)[i] = log(gammadist(state.gen)) - log(1.0 * sum_fits);
         }
         // calculate logloss
@@ -406,23 +395,83 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
 
     // calculate accuracy per group
     accuracy = std::accumulate(acc_gp.begin(), acc_gp.end(), 0.0) / std::accumulate(count_gp.begin(), count_gp.end(), 0.0);
-    for (size_t i = 0; i < dim_residual; i++) {acc_gp[i] = acc_gp[i] / count_gp[i];}
-
-    // // sample weight based on logloss
-    if (update_weight)
+    for (size_t i = 0; i < dim_residual; i++)
     {
-        // weight = 1 / logloss;
-        
-        std::gamma_distribution<> d(10.0, 1.0);
-        weight = d(state.gen) / (10.0 * logloss * state.n_y/ (double)state.n_y + 1.0); // it's like shift p down by
-        
-        if (std::isnan(weight))
-        {
-            COUT << "weight is nan" << endl;
-        }
+        acc_gp[i] = acc_gp[i] / count_gp[i];
     }
 
+    // // sample weight based on logloss
 
+    // weight = 1 / logloss;
+
+    // std::gamma_distribution<> d(10.0, 1.0);
+    // weight = d(state.gen) / (10.0 * logloss * state.n_y / (double)state.n_y + 1.0); // it's like shift p down by
+
+    // if (std::isnan(weight))
+    // {
+    //     COUT << "weight is nan" << endl;
+    // }
+    if (update_weight)
+    {
+        // // sampling weight by random walk
+        // std::normal_distribution<> dd(0, 0.05);
+        // double weight_latent_proposal = weight_latent + dd(state.gen);
+
+        // double weight_proposal = fabs(weight_latent_proposal - 1.0) + 1.0;
+
+        // // cout << weight_latent_proposal << " " << fabs(weight_latent_proposal - 1.0) << " " << weight_proposal << endl;
+
+        // // notice that logloss is negative, multiply by -1 to convert to likelihood
+        // double value1 = w_likelihood(state, weight, logloss);
+
+        // double value2 = w_likelihood(state, weight_proposal, logloss);
+        // // this is in log scale
+        // double ratio = value2 - value1 + normal_density(weight_latent_proposal, 0, 4, true) - normal_density(weight_latent, 0, 4, true);
+        
+        // ratio = std::min(1.0, exp(ratio));
+
+        // std::uniform_real_distribution<> dis(0.0, 1.0);
+        // if (dis(state.gen) < ratio)
+        // {
+        //     // accept
+        //     weight = weight_proposal;
+        //     weight_latent = weight_latent_proposal;
+
+        //     // cout << "accept weight " << weight << endl;
+        // }else{
+        //     // cout << "reject weight " << weight << endl;
+        // }
+
+        // sampling on a grid
+        // std::vector<double> www(state.weight_exponent);
+
+        // for (size_t iii = 0; iii < www.size(); iii++)
+        // {
+        //     www[iii] = w_likelihood(state, pow(2, iii), logloss);
+        // }
+
+        // // normalize and taking exponents
+        // temp = *std::max_element(www.begin(), www.end());
+
+        // temp_sum = 0;
+
+        // for (size_t iii = 0; iii < www.size(); iii++)
+        // {
+        //     www[iii] = exp(www[iii] - temp);
+        //     temp_sum += www[iii];
+        // }
+
+        // for (size_t iii = 0; iii < www.size(); iii++)
+        // {
+        //     www[iii] = www[iii] / temp_sum;
+        // }
+
+        // cout << www << endl;
+
+        // std::discrete_distribution<size_t> d(www.begin(), www.end());
+
+        // weight = pow(2, (double)d(state.gen));
+    }
 
     // Sample tau_a
     // if (update_tau)
@@ -463,7 +512,6 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
     //     }
     //     // cout << "tau_a mean = " << mean_lambda << ", sqrt = " << sqrt_lambda << ", attempts = " << count_tau_a << endl;
 
-
     //     // remove lambdas of the next tree
     //     size_t next_index = tree_ind + 1;
     //     if (next_index == state.num_trees)
@@ -474,7 +522,7 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
     //     // mean = ( mean * N - old_data ) / new_N
     //     mean_lambda = mean_lambda * count_lambda;
     //     count_lambda -= (*state.lambdas)[next_index].size() * dim_residual;
-        
+
     //     // get sum of all leaf parameters in that tree.
     //     for (size_t i = 0; i < (*state.lambdas)[next_index].size(); i++)
     //     {
@@ -485,6 +533,98 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
     // }
 
     return;
+}
+
+
+void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_lambda, std::vector<double> &var_lambda, size_t &count_lambda)
+{
+    // track accuracy of each group
+    std::fill(acc_gp.begin(), acc_gp.end(), 0.0);
+    std::vector<double> count_gp(dim_residual, 0.0);
+    size_t yhat = 0;
+    double max_resid = -INFINITY;
+
+    // Calculate logloss
+    size_t y_i;
+    double sum_fits;
+    logloss = 0; // reset logloss
+    double prob = 0.0;
+    std::gamma_distribution<double> gammadist(1.0, 1.0);
+
+    double temp;
+    double temp_sum;
+
+    for (size_t i = 0; i < state.n_y; i++)
+    {
+        sum_fits = 0;
+        y_i = (size_t)(*y_size_t)[i];
+        yhat = 0;
+        max_resid = -INFINITY;
+        for (size_t j = 0; j < dim_residual; ++j)
+        {
+            sum_fits += exp((*state.residual_std)[j][i]);
+            if ((*state.residual_std)[j][i] > max_resid)
+            {
+                yhat = j;
+                max_resid = (*state.residual_std)[j][i];
+            }
+        }
+
+        count_gp[y_i] += 1;
+        if (yhat == y_i)
+        {
+            acc_gp[y_i] += 1;
+        }
+        // Sample phi
+        if (update_phi)
+        {
+            (*phi)[i] = log(gammadist(state.gen)) - log(1.0 * sum_fits);
+        }
+        // calculate logloss
+        prob = exp((*state.residual_std)[y_i][i]) / sum_fits; // logloss =  - log(p_j)
+
+        logloss += -log(prob);
+    }
+
+    logloss = logloss / state.n_y;
+
+    if (update_weight)
+    {
+        // sampling weight by random walk
+        // MH_step is standard deviation
+        std::normal_distribution<> dd(0, MH_step);
+
+        double weight_latent_proposal = weight_latent + dd(state.gen);
+
+        double weight_proposal = fabs(weight_latent_proposal - 1.0) + 1.0;
+
+        // notice that logloss is negative, multiply by -1 to convert to likelihood
+        double value1 = w_likelihood(state, weight, logloss);
+
+        double value2 = w_likelihood(state, weight_proposal, logloss);
+        // this is in log scale
+        double ratio = value2 - value1 + normal_density(weight_latent_proposal, 0, 4, true) - normal_density(weight_latent, 0, 4, true);
+        
+        ratio = std::min(1.0, exp(ratio));
+
+        std::uniform_real_distribution<> dis(0.0, 1.0);
+        if (dis(state.gen) < ratio)
+        {
+            // accept
+            weight = weight_proposal;
+            weight_latent = weight_latent_proposal;
+        }
+
+    }
+    return;
+}
+
+
+double LogitModel::w_likelihood(State &state, double weight, double logloss)
+{
+    double output = state.n_y * (std::lgamma(weight + dim_residual * state.a + 1) - std::lgamma(weight + state.a + 1) - weight * logloss);
+
+    return output;
 }
 
 void LogitModel::initialize_root_suffstat(State &state, std::vector<double> &suff_stat)
@@ -586,7 +726,8 @@ double LogitModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<d
         }
     }
     // TODO: check suff stat meets requirment, e.g integer
-    for (size_t i = 0; i < dim_residual; i++) local_suff_stat[i] = round(local_suff_stat[i]);
+    for (size_t i = 0; i < dim_residual; i++)
+        local_suff_stat[i] = round(local_suff_stat[i]);
 
     return (LogitLIL(local_suff_stat));
 }
@@ -799,9 +940,9 @@ void LogitModelSeparateTrees::samplePars(State &state, std::vector<double> &suff
     return;
 }
 
-void LogitModelSeparateTrees::update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double>& var_lambda, size_t &count_lambda)
+void LogitModelSeparateTrees::update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double> &var_lambda, size_t &count_lambda)
 {
-    
+
     size_t y_i;
     double sum_fits;
     logloss = 0; // reset logloss
@@ -829,7 +970,7 @@ void LogitModelSeparateTrees::update_state(State &state, size_t tree_ind, X_stru
         std::gamma_distribution<> d(state.n_y, 1);
         weight = d(state.gen) / (hmult * logloss * state.n_y + heps * (double)state.n_y) + 1;
     }
-     // Sample tau_a
+    // Sample tau_a
     if (update_tau)
     {
         // mean = ( mean * N + new_data ) / new_N
@@ -852,7 +993,7 @@ void LogitModelSeparateTrees::update_state(State &state, size_t tree_ind, X_stru
                 var_lambda[tree_ind] += pow((*state.lambdas_separate)[tree_ind][i][j] / mean_lambda - 1, 2);
             }
         }
-        double sqrt_lambda = sqrt( std::accumulate(var_lambda.begin(), var_lambda.end(), 0.0) / (count_lambda - 1) );
+        double sqrt_lambda = sqrt(std::accumulate(var_lambda.begin(), var_lambda.end(), 0.0) / (count_lambda - 1));
 
         // std::normal_distribution<> norm(0, 1);
         std::normal_distribution<> norm(1, sqrt_lambda);

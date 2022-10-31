@@ -78,13 +78,13 @@ public:
 
     void setDimSuffStat(size_t dim_suff) { dim_suffstat = dim_suff; };
 
-    // penality
+    // penalty
     double getNoSplitPenalty()
     {
         return no_split_penalty;
         ;
     };
-    void setNoSplitPenality(double pen) { this->no_split_penalty = pen; };
+    void setNoSplitPenalty(double pen) { this->no_split_penalty = pen; };
 
     virtual size_t get_class_operating() { return class_operating; };
 
@@ -235,12 +235,15 @@ public:
 
     bool update_weight, update_tau, update_phi; // option to update tau_a
     double weight, logloss, accuracy;         // pseudo replicates of observations
-    double hmult, heps;             // weight ~ Gamma(n, hmult * entropy + heps);
+    double weight_latent;       // latent weight for random walk sampling, weight = |weight_latent - 1| + 1
+    double hmult, heps;         // weight ~ Gamma(n, hmult * entropy + heps);
     std::vector<double> acc_gp; // track accuracy per group
 
     double c, d, z3, logz3; // param for mixture prior, c = m / tau_a^2 + 0.5; d = m / tau_a^2; m = num_trees = tau_b
 
-    LogitModel(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, bool update_phi, double hmult, double heps) : Model(num_classes, 2 * num_classes)
+    double MH_step;
+
+    LogitModel(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, bool update_phi, double hmult, double heps, double MH_step) : Model(num_classes, 2 * num_classes)
     {
         this->y_size_t = y_size_t;
         this->phi = phi;
@@ -255,11 +258,13 @@ public:
         this->update_tau = update_tau;
         this->update_phi = update_phi;
         this->weight = weight;
+        this->weight_latent = weight;
         this->hmult = hmult;
         this->heps = heps;
         this->logloss = 0;
         this->accuracy = 0;
         this->acc_gp.resize(dim_residual);
+        this->MH_step = MH_step;
 
         // this->c = tau_b / pow(tau_a, 2) + 0.5;
         // this->d = tau_b / pow(tau_a, 2);
@@ -278,8 +283,12 @@ public:
 
     void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
+    double w_likelihood(State &state, double weight, double logloss);
+
     void update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double>& var_lambda, size_t &count_lambda);
-    
+
+    void update_weights(State &state, X_struct &x_struct, double &mean_lambda, std::vector<double> &var_lambda, size_t &count_lambda);
+
     void copy_initialization(State &state, X_struct &x_struct, vector<vector<tree>> &trees, size_t sweeps, size_t tree_ind, matrix<size_t> &Xorder_std);
 
     void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
@@ -331,7 +340,7 @@ private:
     }
 
 public:
-    LogitModelSeparateTrees(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, bool update_phi) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, update_weight, update_tau, update_phi, 1, 0.1) {}
+    LogitModelSeparateTrees(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, bool update_phi, double MH_step) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, update_weight, update_tau, update_phi, 1, 0.1, MH_step) {}
 
     LogitModelSeparateTrees() : LogitModel() {}
 
@@ -445,6 +454,101 @@ public:
     void update_partial_residuals(size_t tree_ind, State &state, X_struct &x_struct);
 
     void update_split_counts(State &state, size_t tree_ind);
+};
+
+
+
+class XBCFDiscreteModel : public Model
+{
+public:
+    size_t dim_suffstat = 4;
+
+    // model prior
+    // prior on sigma
+    double kap;
+    double s;
+    double tau_con_kap;
+    double tau_con_s;
+    double tau_mod_kap;
+    double tau_mod_s;
+    // prior on leaf parameter
+    double tau_con; // might be updated if sampling tau
+    double tau_mod;
+    double tau_con_mean; // copy of the original value
+    double tau_mod_mean;
+
+    double alpha_con;
+    double alpha_mod;
+    double beta_con;
+    double beta_mod;
+    bool sampling_tau;
+
+    XBCFDiscreteModel(double kap, double s, double tau_con, double tau_mod, double alpha_con, double beta_con, double alpha_mod, double beta_mod, bool sampling_tau, double tau_con_kap, double tau_con_s, double tau_mod_kap, double tau_mod_s) : Model(1, 4)
+    {
+        this->kap = kap;
+        this->s = s;
+        this->tau_con_kap = tau_con_kap;
+        this->tau_con_s = tau_con_s;
+        this->tau_mod_kap = tau_mod_kap;
+        this->tau_mod_s = tau_mod_s;
+        this->tau_con = tau_con;
+        this->tau_mod = tau_mod;
+        this->tau_con_mean = tau_con;
+        this->tau_mod_mean = tau_mod;
+        this->alpha_con = alpha_con;
+        this->alpha_mod = alpha_mod;
+        this->beta_con = beta_con;
+        this->beta_mod = beta_mod;
+        this->alpha = alpha_con;
+        this->beta = beta_con;
+        this->dim_residual = 1;
+        this->class_operating = 0;
+        this->sampling_tau = sampling_tau;
+    }
+
+    XBCFDiscreteModel() : Model(1, 4) {}
+
+    Model *clone() { return new XBCFDiscreteModel(*this); }
+
+    void incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats);
+
+    void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
+
+    void update_state(State &state, size_t tree_ind, X_struct &x_struct, size_t ind);
+
+    void update_tau(State &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> &trees);
+
+    void update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> &trees);
+
+    void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
+
+    void updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
+
+    void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side);
+
+    // void state_sweep(State&state, size_t tree_ind, size_t M, X_struct &x_struct) const;
+
+    double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State &state) const;
+
+    void ini_tau_mu_fit(State &state);
+
+    void ini_residual_std(State &state);
+
+    void predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer_con, const double *Xtestpointer_mod, size_t N_test, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod);
+
+    void set_treatmentflag(State &state, bool value);
+
+    void subtract_old_tree_fit(size_t tree_ind, State &state, X_struct &x_struct);
+
+    void add_new_tree_fit(size_t tree_ind, State &state, X_struct &x_struct);
+
+    void update_partial_residuals(size_t tree_ind, State &state, X_struct &x_struct);
+
+    void update_split_counts(State &state, size_t tree_ind);
+
+    void update_a(State &state);
+
+    void update_b(State &state);
 };
 
 #endif

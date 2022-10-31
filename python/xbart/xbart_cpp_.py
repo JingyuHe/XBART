@@ -135,7 +135,7 @@ class XBARTcpp(object):
         return _xbart_cpp_.XBARTcpp_compute_Xorder(self, n, d, x_std_flat, Xorder_std)
     seed = property(_xbart_cpp_.XBARTcpp_seed_get, _xbart_cpp_.XBARTcpp_seed_set)
     seed_flag = property(_xbart_cpp_.XBARTcpp_seed_flag_get, _xbart_cpp_.XBARTcpp_seed_flag_set)
-    no_split_penalty = property(_xbart_cpp_.XBARTcpp_no_split_penality_get, _xbart_cpp_.XBARTcpp_no_split_penality_set)
+    no_split_penalty = property(_xbart_cpp_.XBARTcpp_no_split_penalty_get, _xbart_cpp_.XBARTcpp_no_split_penalty_set)
 
     def _to_json(self) -> "std::string":
         return _xbart_cpp_.XBARTcpp__to_json(self)

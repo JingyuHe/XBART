@@ -75,7 +75,7 @@ Rcpp::List XBART_cpp(mat y, mat X, size_t num_trees, size_t num_sweeps, size_t m
     // define model
     NormalModel *model = new NormalModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
 
-    model->setNoSplitPenality(no_split_penalty);
+    model->setNoSplitPenalty(no_split_penalty);
 
     // State settings
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
