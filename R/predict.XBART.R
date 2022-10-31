@@ -44,13 +44,14 @@ predict.XBCFcontinuous <- function(object, X_con, X_mod, Z, ...) {
 #' @param X_mod A matrix of input testing data for the treatment forest.
 #' @param Z A vector of input testing data for the treatment variable.
 #' @param pihat An array of propensity score estimates.
+#' @param burnin The number of burn-in iterations to discard from averaging (the default value is 0).
 #'
 #' @details XBCF draws multiple samples of the forests (sweeps), each forest is an ensemble of trees. The final prediction returns predicted prognostic term, treatment effect and the final outcome \eqn{Y}
 #' @return A list containing predicted prognostic term, treatment effect and final outcome \eqn{Y}.
 #' @export
 
 
-predict.XBCFdiscrete <- function(object, X_con, X_mod, Z, pihat=NULL, ...) {
+predict.XBCFdiscrete <- function(object, X_con, X_mod, Z, pihat=NULL, burnin = 0L, ...) {
 
     stopifnot("Propensity scores (pihat) must be provided by user for prediction."=!is.null(pihat))
 
@@ -61,19 +62,23 @@ predict.XBCFdiscrete <- function(object, X_con, X_mod, Z, pihat=NULL, ...) {
     out_mod <- json_to_r(object$tree_json_mod)
     obj <- .Call("_XBART_XBCF_discrete_predict", X_con, X_mod, Z, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt)
 
-    burnin <- 0
+    burnin <- burnin
     sweeps <- nrow(object$a)
-    mus <- matrix(NA, nrow(X_con), sweeps - burnin)
-    taus <- matrix(NA, nrow(X_mod), sweeps - burnin)
-    seq <- (burnin+1):sweeps
+    mus <- matrix(NA, nrow(X_con), sweeps)
+    taus <- matrix(NA, nrow(X_mod), sweeps)
+    seq <- c(1:sweeps)
     for (i in seq) {
-        taus[, i - burnin] = obj$tau[,i] * object$sdy * (object$b[i,2] - object$b[i,1])
-        mus[, i - burnin] = obj$mu[,i] * object$sdy * (object$a[i]) + object$meany
+        taus[, i] = obj$tau[,i] * object$sdy * (object$b[i,2] - object$b[i,1])
+        mus[, i] = obj$mu[,i] * object$sdy * (object$a[i]) + object$meany
     }
 
     obj$tau.adj <- taus
     obj$mu.adj <- mus
     obj$yhats.adj <- Z[,1] * obj$tau.adj + obj$mu.adj
+    obj$tau.adj.mean <- rowMeans(obj$tau.adj[,(burnin+1):sweeps])
+    obj$mu.adj.mean <- rowMeans(obj$mu.adj[,(burnin+1):sweeps])
+    obj$yhats.adj.mean <- rowMeans(obj$yhats.adj[,(burnin+1):sweeps])
+
     return(obj)
 }
 

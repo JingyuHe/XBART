@@ -79,10 +79,11 @@ for(i in c(1:reps)) {
   xbcf.fit.xb <- XBART::XBCF.discrete(y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat, p_categorical_con = 5, p_categorical_mod = 5, num_sweeps = 60, burnin = 30)
   t2 = proc.time() - t2
   
-  pred <- predict(xbcf.fit.xb, X_con = x_con, X_mod = x_mod, Z = z, pihat = pihat)
+  pred <- predict(xbcf.fit.xb, X_con = x_con, X_mod = x_mod, Z = z, pihat = pihat, burnin = 30)
   
-  taus2 <- pred$tau.adj
-  tauhats2 = rowMeans(taus2[,30:60])
+  # taus2 <- pred$tau.adj
+  # tauhats2 = rowMeans(taus2)
+  tauhats2 <- pred$tau.adj.mean
   
   
   plot(tau, tauhats2)
