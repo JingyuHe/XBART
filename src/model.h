@@ -195,6 +195,8 @@ private:
         // double z1, z2, n, sy, minz;
         double logz1, logz2, n, sy, numrt, logminz;
 
+        // count from 1! since we set the first class as baseline, lambda = 1 all the time
+        // so it is marginalized, do not make contribution to the marginal likelihood
         for (size_t j = 0; j < dim_residual; j++)
         {
             // ret += -(tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]); // - lgamma(suffstats[j] +1);
@@ -247,8 +249,6 @@ public:
 
     double MH_step;
 
-    double logloss_last_sweep;
-
     LogitModel(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, bool update_phi, double hmult, double heps, double MH_step) : Model(num_classes, 2 * num_classes)
     {
         this->y_size_t = y_size_t;
@@ -271,7 +271,6 @@ public:
         this->accuracy = 0;
         this->acc_gp.resize(dim_residual);
         this->MH_step = MH_step;
-        this->logloss_last_sweep = -1.10;
 
         // this->c = tau_b / pow(tau_a, 2) + 0.5;
         // this->d = tau_b / pow(tau_a, 2);

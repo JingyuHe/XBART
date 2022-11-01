@@ -121,11 +121,6 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 
         for (size_t tree_ind = 0; tree_ind < state.num_trees; tree_ind++)
         {
-
-            // if (verbose)
-            // {
-            //     COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
-            // }
             // Draw latents -- do last?
 
             if (state.use_all && (sweeps >= state.burnin)) // && (state.mtry != state.p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.

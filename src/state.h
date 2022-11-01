@@ -62,6 +62,7 @@ public:
     std::vector<std::vector<std::vector<double>>> *lambdas;
     std::vector<std::vector<std::vector<double>>> *lambdas_separate;
     size_t weight_exponent;
+    double logloss_last_sweep;
 
     // for continuous treatment XBCF
     matrix<double> *split_count_all_tree_con;
