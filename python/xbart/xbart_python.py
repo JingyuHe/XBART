@@ -167,7 +167,7 @@ class XBART(object):
 		assert p_cat <= self.num_columns, "p_cat must be <= number of columns"
 		assert self.params["mtry"] <= self.num_columns, "mtry must be <= number of columns"
 
-	def __update_mtry_tau_penality(self,x):
+	def __update_mtry_tau_penalty(self,x):
 		'''
 		Handle mtry, tau, and no_split_penalty defaults
 		'''
@@ -299,7 +299,7 @@ class XBART(object):
 		
 		# Update Values #
 		self.__update_fit_x_y(x,fit_x,y,fit_y)
-		self.__update_mtry_tau_penality(fit_x)
+		self.__update_mtry_tau_penalty(fit_x)
 		self.__check_params(p_cat)
 		self.__update_random_seed()
 
@@ -422,7 +422,7 @@ class XBART(object):
 		fit_y = y
 		
 		self.__update_fit_x_y(x,fit_x,y,fit_y)
-		self.__update_mtry_tau_penality(fit_x)
+		self.__update_mtry_tau_penalty(fit_x)
 		self.__check_params(p_cat)
 		# self.__update_random_seed()
 

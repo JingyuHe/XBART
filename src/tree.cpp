@@ -807,6 +807,19 @@ void tree::grow_from_root_entropy(State &state, matrix<size_t> &Xorder_std, std:
         // update lambdas in state
         (*state.lambdas)[tree_ind].push_back(this->theta_vector);
 
+        // cout << "suff stat " << this->suff_stat << endl;
+        // cout << "theta " << this->theta_vector << endl;
+
+        for (auto i: this->theta_vector)
+        { 
+            if (isinf(i) | isnan(i))
+            {
+                cout << "suff stat " << this->suff_stat << endl;
+                cout << "theta " << this->theta_vector << endl;
+                exit(1);
+            }
+        }
+
         // if (update_theta)
         // {
         //     model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
@@ -824,6 +837,8 @@ void tree::grow_from_root_entropy(State &state, matrix<size_t> &Xorder_std, std:
     // If GROW FROM ROOT MODE
     this->v = split_var;
     this->c = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
+
+    // cout << "cut varialbe " << this->v << " cutpoint " << this->c << endl;
 
     size_t index_in_full = 0;
     while ((*state.Xorder_std)[split_var][index_in_full] != Xorder_std[split_var][split_point])
@@ -867,7 +882,11 @@ void tree::grow_from_root_entropy(State &state, matrix<size_t> &Xorder_std, std:
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
 
+    // cout << "left suff " << this->l->suff_stat << endl;
+
     this->l->grow_from_root_entropy(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind);
+
+    // cout << "right suff " << this->r->suff_stat << endl;
 
     this->r->grow_from_root_entropy(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind);
 
@@ -1058,21 +1077,32 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
 
     const double *temp_pointer = state.X_std + state.n_y * split_var;
 
+    // TODO: this version yield negative suffstat on the other side sometime.
+    // for (size_t j = 0; j < N_Xorder; j++)
+    // {
+    //     if (compute_left_side)
+    //     {
+    //         if (*(temp_pointer + Xorder_std[split_var][j]) <= cutvalue)
+    //         {
+    //             model->updateNodeSuffStat(state, current_node->l->suff_stat, Xorder_std, split_var, j);
+    //         }
+    //     }
+    //     else
+    //     {
+    //         if (*(temp_pointer + Xorder_std[split_var][j]) > cutvalue)
+    //         {
+    //             model->updateNodeSuffStat(state, current_node->r->suff_stat, Xorder_std, split_var, j);
+    //         }
+    //     }
+    // }
+
     for (size_t j = 0; j < N_Xorder; j++)
     {
-        if (compute_left_side)
+        if (*(temp_pointer + Xorder_std[split_var][j]) <= cutvalue)
         {
-            if (*(temp_pointer + Xorder_std[split_var][j]) <= cutvalue)
-            {
-                model->updateNodeSuffStat(state, current_node->l->suff_stat, Xorder_std, split_var, j);
-            }
-        }
-        else
-        {
-            if (*(temp_pointer + Xorder_std[split_var][j]) > cutvalue)
-            {
-                model->updateNodeSuffStat(state, current_node->r->suff_stat, Xorder_std, split_var, j);
-            }
+            model->updateNodeSuffStat(state, current_node->l->suff_stat, Xorder_std, split_var, j);
+        } else {
+            model->updateNodeSuffStat(state, current_node->r->suff_stat, Xorder_std, split_var, j);
         }
     }
 
@@ -1118,7 +1148,7 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
     if (thread_pool.is_active())
         thread_pool.wait();
 
-    model->calculateOtherSideSuffStat(current_node->suff_stat, current_node->l->suff_stat, current_node->r->suff_stat, N_Xorder, N_Xorder_left, N_Xorder_right, compute_left_side);
+    // model->calculateOtherSideSuffStat(current_node->suff_stat, current_node->l->suff_stat, current_node->r->suff_stat, N_Xorder, N_Xorder_left, N_Xorder_right, compute_left_side);
 
     return;
 }
@@ -1171,6 +1201,7 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
                     else
                     {
                         // go to right side
+                        model->updateNodeSuffStat(state, current_node->r->suff_stat, Xorder_std, split_var, j);
                         Xorder_right_std[i][right_ix] = Xorder_std[i][j];
                         right_ix = right_ix + 1;
                     }
@@ -1182,6 +1213,7 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
                 {
                     if (*(temp_pointer + Xorder_std[i][j]) <= cutvalue)
                     {
+                        model->updateNodeSuffStat(state, current_node->l->suff_stat, Xorder_std, split_var, j);
                         Xorder_left_std[i][left_ix] = Xorder_std[i][j];
                         left_ix = left_ix + 1;
                     }
@@ -1254,7 +1286,7 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
         }
     }
 
-    model->calculateOtherSideSuffStat(current_node->suff_stat, current_node->l->suff_stat, current_node->r->suff_stat, N_Xorder, N_Xorder_left, N_Xorder_right, compute_left_side);
+    // model->calculateOtherSideSuffStat(current_node->suff_stat, current_node->l->suff_stat, current_node->r->suff_stat, N_Xorder, N_Xorder_left, N_Xorder_right, compute_left_side);
 
     // update X_num_unique
 
@@ -1348,6 +1380,8 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         // if a variable is not selected, take exp will becomes 0
         loglike[ii] = exp(loglike[ii] - loglike_max);
     }
+
+    // cout << "loglike " << loglike << endl;
 
     // sampling cutpoints
     if (N <= state.n_cutpoints + 1 + 2 * state.n_min)
@@ -1627,7 +1661,12 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                     loglike[loglike_start + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, false, false, state);
 
                     // adjust for the difference of number of cutpoints between continuous variable and categorical variables
-                    loglike[loglike_start + j] += log(state.n_cutpoints) - log(x_struct.X_num_cutpoints[i - state.p_continuous]);
+                    loglike[loglike_start + j] += - log(x_struct.X_num_unique[i - state.p_continuous]);
+
+                    if(state.p_continuous > 0)
+                    {
+                        loglike[loglike_start + j] += log(state.n_cutpoints);
+                    }
                 }
             }
         }
@@ -1647,7 +1686,7 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
 
     if (loglike_size > 0)
     {
-        loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike_size) + log(model->getNoSplitPenality());
+        loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike_size) + model->getNoSplitPenalty();
         // !!Note loglike_size shouldn't get minus 1 when it count non zero of loglike.
     }
     else
@@ -1655,7 +1694,7 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
         loglike[loglike.size() - 1] = 1;
     }
 
-    // loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + log(model->getNoSplitPenality());
+    // loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + log(model->getNoSplitPenalty());
 
     //  then adjust according to number of variables and split points
 
@@ -1673,7 +1712,7 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
     //
     ////////////////////////////////////////////////////////////////
 
-    // loglike[loglike.size() - 1] += log(state.p) + log(2.0) + model->getNoSplitPenality();
+    // loglike[loglike.size() - 1] += log(state.p) + log(2.0) + model->getNoSplitPenalty();
 
     ////////////////////////////////////////////////////////////////
     // The loop below might be useful when test different weights

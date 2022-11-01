@@ -6779,7 +6779,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTcpp_no_split_penality_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp_no_split_penalty_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   double arg2 ;
@@ -6789,15 +6789,15 @@ SWIGINTERN PyObject *_wrap_XBARTcpp_no_split_penality_set(PyObject *SWIGUNUSEDPA
   int ecode2 = 0 ;
   PyObject *swig_obj[2] ;
   
-  if (!SWIG_Python_UnpackTuple(args, "XBARTcpp_no_split_penality_set", 2, 2, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "XBARTcpp_no_split_penalty_set", 2, 2, swig_obj)) SWIG_fail;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_no_split_penality_set" "', argument " "1"" of type '" "XBARTcpp *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_no_split_penalty_set" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
   arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   ecode2 = SWIG_AsVal_double(swig_obj[1], &val2);
   if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcpp_no_split_penality_set" "', argument " "2"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "XBARTcpp_no_split_penalty_set" "', argument " "2"" of type '" "double""'");
   } 
   arg2 = static_cast< double >(val2);
   if (arg1) (arg1)->no_split_penalty = arg2;
@@ -6808,7 +6808,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_XBARTcpp_no_split_penality_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_XBARTcpp_no_split_penalty_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   XBARTcpp *arg1 = (XBARTcpp *) 0 ;
   void *argp1 = 0 ;
@@ -6820,7 +6820,7 @@ SWIGINTERN PyObject *_wrap_XBARTcpp_no_split_penality_get(PyObject *SWIGUNUSEDPA
   swig_obj[0] = args;
   res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_XBARTcpp, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_no_split_penality_get" "', argument " "1"" of type '" "XBARTcpp *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "XBARTcpp_no_split_penalty_get" "', argument " "1"" of type '" "XBARTcpp *""'"); 
   }
   arg1 = reinterpret_cast< XBARTcpp * >(argp1);
   result = (double) ((arg1)->no_split_penalty);
@@ -7303,8 +7303,8 @@ static PyMethodDef SwigMethods[] = {
 	 { "XBARTcpp_seed_get", _wrap_XBARTcpp_seed_get, METH_O, NULL},
 	 { "XBARTcpp_seed_flag_set", _wrap_XBARTcpp_seed_flag_set, METH_VARARGS, NULL},
 	 { "XBARTcpp_seed_flag_get", _wrap_XBARTcpp_seed_flag_get, METH_O, NULL},
-	 { "XBARTcpp_no_split_penality_set", _wrap_XBARTcpp_no_split_penality_set, METH_VARARGS, NULL},
-	 { "XBARTcpp_no_split_penality_get", _wrap_XBARTcpp_no_split_penality_get, METH_O, NULL},
+	 { "XBARTcpp_no_split_penalty_set", _wrap_XBARTcpp_no_split_penalty_set, METH_VARARGS, NULL},
+	 { "XBARTcpp_no_split_penalty_get", _wrap_XBARTcpp_no_split_penalty_get, METH_O, NULL},
 	 { "XBARTcpp__to_json", _wrap_XBARTcpp__to_json, METH_O, NULL},
 	 { "XBARTcpp_get_num_trees", _wrap_XBARTcpp_get_num_trees, METH_O, NULL},
 	 { "XBARTcpp_get_num_sweeps", _wrap_XBARTcpp_get_num_sweeps, METH_O, NULL},

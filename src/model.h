@@ -78,13 +78,13 @@ public:
 
     void setDimSuffStat(size_t dim_suff) { dim_suffstat = dim_suff; };
 
-    // penality
-    double getNoSplitPenality()
+    // penalty
+    double getNoSplitPenalty()
     {
         return no_split_penalty;
         ;
     };
-    void setNoSplitPenality(double pen) { this->no_split_penalty = pen; };
+    void setNoSplitPenalty(double pen) { this->no_split_penalty = pen; };
 
     virtual size_t get_class_operating() { return class_operating; };
 
@@ -189,13 +189,42 @@ private:
     double LogitLIL(const vector<double> &suffstats) const
     {
 
-        size_t c = dim_residual;
+        // size_t c = dim_residual;
 
         double ret = 0;
+        // double z1, z2, n, sy, minz;
+        double logz1, logz2, n, sy, numrt, logminz;
 
-        for (size_t j = 0; j < c; j++)
+        for (size_t j = 0; j < dim_residual; j++)
         {
-            ret += -(tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]); // - lgamma(suffstats[j] +1);
+            // ret += -(tau_a + suffstats[j]) * log(tau_b + suffstats[c + j]) + lgamma(tau_a + suffstats[j]); // - lgamma(suffstats[j] +1);
+            n = suffstats[j];
+            sy = suffstats[dim_residual + j];
+
+            logz1 = loggignorm(-c + n, 2 * d, 2 * sy);
+            logz2 = loggignorm(c + n, 0, 2 * (d + sy));
+
+            logminz = logz1 < logz2 ? logz1 : logz2;
+            if (logz1 - logminz > 100)
+            {
+                numrt = logz1; // approximate log(exp(x) + 1) = x
+            }
+            else if (logz2 - logminz > 100)
+            {
+                numrt = logz2;
+            }
+            else
+            {
+                numrt = log(exp(logz1 - logminz) + exp(logz2 - logminz)) + logminz;
+            }
+            ret += numrt - log(2) - logz3;
+            // ret += log((z1 + z2) / 2 / z3);
+            // cout <<" n = " << n << " sy = " << sy << " logz1 = " << logz1 << " logz2 = " << logz2 << " numrt = " << numrt << " ret = " << ret << endl;
+        }
+        if (isnan(ret) | isinf(abs(ret)))
+        {
+            cout << "likliehood " << ret << endl;
+            exit(1);
         }
         return ret;
     }
@@ -208,11 +237,19 @@ public:
     std::vector<size_t> *y_size_t; // a y vector indicating response categories in 0,1,2,...,c-1
     std::vector<double> *phi;
 
-    bool update_weight, update_tau; // option to update tau_a
-    double weight, logloss;         // pseudo replicates of observations
-    double hmult, heps;             // weight ~ Gamma(n, hmult * entropy + heps);
+    bool update_weight, update_tau, update_phi; // option to update tau_a
+    double weight, logloss, accuracy;           // pseudo replicates of observations
+    double weight_latent;                       // latent weight for random walk sampling, weight = |weight_latent - 1| + 1
+    double hmult, heps;                         // weight ~ Gamma(n, hmult * entropy + heps);
+    std::vector<double> acc_gp;                 // track accuracy per group
 
-    LogitModel(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, double hmult, double heps) : Model(num_classes, 2 * num_classes)
+    double c, d, z3, logz3; // param for mixture prior, c = m / tau_a^2 + 0.5; d = m / tau_a^2; m = num_trees = tau_b
+
+    double MH_step;
+
+    double logloss_last_sweep;
+
+    LogitModel(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, bool update_phi, double hmult, double heps, double MH_step) : Model(num_classes, 2 * num_classes)
     {
         this->y_size_t = y_size_t;
         this->phi = phi;
@@ -225,10 +262,24 @@ public:
 
         this->update_weight = update_weight;
         this->update_tau = update_tau;
+        this->update_phi = update_phi;
         this->weight = weight;
+        this->weight_latent = weight;
         this->hmult = hmult;
         this->heps = heps;
         this->logloss = 0;
+        this->accuracy = 0;
+        this->acc_gp.resize(dim_residual);
+        this->MH_step = MH_step;
+        this->logloss_last_sweep = -1.10;
+
+        // this->c = tau_b / pow(tau_a, 2) + 0.5;
+        // this->d = tau_b / pow(tau_a, 2);
+        this->c = tau_a;
+        this->d = tau_b;
+        this->z3 = exp(lgamma(this->c) - this->c * log(this->d));
+        this->logz3 = lgamma(this->c) - this->c * log(this->d);
+        cout << "c = " << c << " d = " << d << " z3 = " << z3 << " logz3 " << logz3 << endl;
     }
 
     LogitModel() : Model(2, 4) {}
@@ -239,7 +290,13 @@ public:
 
     void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
-    void update_state(State &state, size_t tree_ind, X_struct &x_struct);
+    double w_likelihood(State &state, double weight, double logloss);
+
+    void update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double> &var_lambda, size_t &count_lambda);
+
+    void update_weights(State &state, X_struct &x_struct, double &mean_lambda, std::vector<double> &var_lambda, size_t &count_lambda);
+
+    void copy_initialization(State &state, X_struct &x_struct, vector<vector<tree>> &trees, size_t sweeps, size_t tree_ind, matrix<size_t> &Xorder_std);
 
     void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
 
@@ -290,7 +347,7 @@ private:
     }
 
 public:
-    LogitModelSeparateTrees(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, update_weight, update_tau, 1, 0.1) {}
+    LogitModelSeparateTrees(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, bool update_phi, double MH_step) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, update_weight, update_tau, update_phi, 1, 0.1, MH_step) {}
 
     LogitModelSeparateTrees() : LogitModel() {}
 
@@ -298,7 +355,7 @@ public:
 
     void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
-    void update_state(State &state, size_t tree_ind, X_struct &x_struct);
+    void update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double> &var_lambda, size_t &count_lambda);
 
     void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, X_struct &x_struct) const;
 
@@ -405,8 +462,6 @@ public:
 
     void update_split_counts(State &state, size_t tree_ind);
 };
-
-
 
 class XBCFDiscreteModel : public Model
 {

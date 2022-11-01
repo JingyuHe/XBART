@@ -14,7 +14,7 @@ using namespace arma;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penalty, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, bool separate_tree = false, double weight = 1, bool update_weight = true, bool update_tau = true, double nthread = 0, double hmult = 1, double heps = 0.1)
+Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X, size_t num_trees, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha, double beta, double tau_a, double tau_b, double no_split_penalty, size_t burnin = 1, size_t mtry = 0, size_t p_categorical = 0, bool verbose = false, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, bool separate_tree = false, double weight = 1, bool update_weight = true, bool update_tau = true, bool update_phi = true, double nthread = 0, double hmult = 1, double heps = 0.1, double a = 0.0001, size_t weight_exponent = 4, double MH_step = 0.5)
 {
     if (parallel)
     {
@@ -81,15 +81,19 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
     // (y_size_t definitely belongs there, phi probably does)
 
     std::vector<double> initial_theta(num_class, 1);
-    LogitState state(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, num_class, nthread);
+    LogitState state(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, num_class, nthread, a, weight_exponent);
 
     // initialize X_struct
     X_struct x_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees);
 
     std::vector<std::vector<double>> weight_samples;
     ini_matrix(weight_samples, num_trees, num_sweeps);
-    std::vector<std::vector<double>> tau_samples;
-    ini_matrix(tau_samples, num_trees, num_sweeps);
+    std::vector<std::vector<double>> phi_samples;
+    ini_matrix(phi_samples, num_trees, num_sweeps);
+    std::vector<std::vector<double>> logloss;
+    ini_matrix(logloss, num_trees, num_sweeps);
+    std::vector<std::vector<double>> tree_size;
+    ini_matrix(tree_size, num_trees, num_sweeps);
     std::vector<double> lambda_samples;
 
     // output is in 3 dim, stacked as a vector, number of sweeps * observations * number of classes
@@ -105,9 +109,7 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
     // separate tree
     vector<vector<vector<tree>>> *trees3 = new vector<vector<vector<tree>>>(num_class);
 
-    std::vector<double> phi(N);
-    for (size_t i = 0; i < N; ++i)
-        phi[i] = 1;
+    std::vector<double> phi(N, 0);
 
     if (!separate_tree)
     {
@@ -116,10 +118,16 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
             (*trees2)[i] = vector<tree>(num_trees);
         }
 
-        LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau, hmult, heps);
-        model->setNoSplitPenality(no_split_penalty);
+        LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau, update_phi, hmult, heps, MH_step);
+        model->setNoSplitPenalty(no_split_penalty);
 
-        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penalty, state, model, x_struct, weight_samples, lambda_samples, tau_samples);
+        double exp_logloss = 1.0 / num_class;
+        double mu = -0.251 + 4.125 * exp_logloss - 15.09 * pow(exp_logloss, 2) + 14.90 * pow(exp_logloss, 3);
+
+        model->weight = exp(mu);
+        model->weight_latent = model->weight;
+
+        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penalty, state, model, x_struct, weight_samples, lambda_samples, phi_samples, logloss, tree_size);
 
         model->predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees2, output_train);
 
@@ -136,11 +144,11 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
             }
         }
 
-        LogitModelSeparateTrees *model = new LogitModelSeparateTrees(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau);
+        LogitModelSeparateTrees *model = new LogitModelSeparateTrees(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau, update_phi, MH_step);
 
-        model->setNoSplitPenality(no_split_penalty);
+        model->setNoSplitPenalty(no_split_penalty);
 
-        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penalty, state, model, x_struct, weight_samples);
+        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penalty, state, model, x_struct, weight_samples, phi_samples, logloss, tree_size);
 
         model->predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees3, output_train);
 
@@ -161,7 +169,9 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
     Rcpp::NumericVector split_count_sum(p); // split counts
     // Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt(trees2, true);
     Rcpp::NumericMatrix weight_sample_rcpp(num_trees, num_sweeps);
-    Rcpp::NumericMatrix tau_sample_rcpp(num_trees, num_sweeps);
+    Rcpp::NumericMatrix phi_sample_rcpp(num_trees, num_sweeps);
+    Rcpp::NumericMatrix logloss_rcpp(num_trees, num_sweeps);
+    Rcpp::NumericMatrix tree_size_rcpp(num_trees, num_sweeps);
     Rcpp::NumericMatrix depth_rcpp(num_trees, num_sweeps);
 
     for (size_t i = 0; i < num_trees; i++)
@@ -175,7 +185,21 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
     {
         for (size_t j = 0; j < num_sweeps; j++)
         {
-            tau_sample_rcpp(i, j) = tau_samples[j][i];
+            phi_sample_rcpp(i, j) = phi_samples[j][i];
+        }
+    }
+    for (size_t i = 0; i < num_trees; i++)
+    {
+        for (size_t j = 0; j < num_sweeps; j++)
+        {
+            logloss_rcpp(i, j) = logloss[j][i];
+        }
+    }
+    for (size_t i = 0; i < num_trees; i++)
+    {
+        for (size_t j = 0; j < num_sweeps; j++)
+        {
+            tree_size_rcpp(i, j) = tree_size[j][i];
         }
     }
     for (size_t i = 0; i < num_trees; i++)
@@ -253,7 +277,9 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y, size_t num_class, mat X,
         Rcpp::Named("num_class") = num_class,
         Rcpp::Named("yhats_train") = output_tr,
         Rcpp::Named("weight") = weight_sample_rcpp,
-        Rcpp::Named("tau_a") = tau_sample_rcpp,
+        Rcpp::Named("phi") = phi_sample_rcpp,
+        Rcpp::Named("logloss") = logloss_rcpp,
+        Rcpp::Named("tree_size") = tree_size_rcpp,
         Rcpp::Named("lambda") = lambda_samples_rcpp,
         Rcpp::Named("importance") = split_count_sum,
         Rcpp::Named("depth") = depth_rcpp,
