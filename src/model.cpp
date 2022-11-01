@@ -194,7 +194,7 @@ double NormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
     }
 
     // note that LTPI = log(2 * pi), defined in common.h
-    return - 0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
+    return -0.5 * nb * log(sigma2) + 0.5 * log(sigma2) - 0.5 * log(nbtau + sigma2) - 0.5 * y_squared_sum / sigma2 + 0.5 * tau * pow(y_sum, 2) / (sigma2 * (nbtau + sigma2));
 }
 
 // double NormalModel::likelihood_no_split(std::vector<double> &suff_stat, State&state) const
@@ -427,7 +427,7 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
         // double value2 = w_likelihood(state, weight_proposal, logloss);
         // // this is in log scale
         // double ratio = value2 - value1 + normal_density(weight_latent_proposal, 0, 4, true) - normal_density(weight_latent, 0, 4, true);
-        
+
         // ratio = std::min(1.0, exp(ratio));
 
         // std::uniform_real_distribution<> dis(0.0, 1.0);
@@ -535,7 +535,6 @@ void LogitModel::update_state(State &state, size_t tree_ind, X_struct &x_struct,
     return;
 }
 
-
 void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_lambda, std::vector<double> &var_lambda, size_t &count_lambda)
 {
     // track accuracy of each group
@@ -590,21 +589,36 @@ void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_l
 
     if (update_weight)
     {
+
+        double exp_logloss = exp(-1.0 * logloss);
+
+        double exp_logloss_last_sweep = exp(-1.0 * logloss_last_sweep);
+        double mu = -0.251 + 4.125 * exp_logloss - 15.09 * pow(exp_logloss, 2) + 14.90 * pow(exp_logloss, 3);
+        double mu_last_sweep = -0.251 + 4.125 * exp_logloss_last_sweep - 15.09 * pow(exp_logloss_last_sweep, 2) + 14.90 * pow(exp_logloss_last_sweep, 3);
+
         // sampling weight by random walk
         // MH_step is standard deviation
-        std::normal_distribution<> dd(0, MH_step);
+        std::normal_distribution<>
+            dd(0, MH_step);
 
-        double weight_latent_proposal = weight_latent + dd(state.gen);
+        double weight_latent_proposal = exp(mu + dd(state.gen)) + 1;
 
-        double weight_proposal = fabs(weight_latent_proposal - 1.0) + 1.0;
+        // double weight_proposal = fabs(weight_latent_proposal - 1.0) + 1.0;
+
+        double weight_proposal = weight_latent_proposal;
 
         // notice that logloss is negative, multiply by -1 to convert to likelihood
         double value1 = w_likelihood(state, weight, logloss);
 
         double value2 = w_likelihood(state, weight_proposal, logloss);
+
+        double value3 = normal_density(log(weight_latent - 1), mu, MH_step, true);
+
+        double value4 = normal_density(log(weight_latent_proposal - 1), mu_last_sweep, MH_step, true);
+
         // this is in log scale
-        double ratio = value2 - value1 + normal_density(weight_latent_proposal, 0, 4, true) - normal_density(weight_latent, 0, 4, true);
-        
+        double ratio = value2 - value1 + value3 - value4 + normal_density(log(weight_latent_proposal - 1), log(2), 0.5, true) - normal_density(log(weight_latent - 1), log(2), 0.5, true);
+
         ratio = std::min(1.0, exp(ratio));
 
         std::uniform_real_distribution<> dis(0.0, 1.0);
@@ -613,12 +627,11 @@ void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_l
             // accept
             weight = weight_proposal;
             weight_latent = weight_latent_proposal;
+            logloss_last_sweep = logloss;
         }
-
     }
     return;
 }
-
 
 double LogitModel::w_likelihood(State &state, double weight, double logloss)
 {

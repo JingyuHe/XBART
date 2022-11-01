@@ -201,28 +201,32 @@ private:
             n = suffstats[j];
             sy = suffstats[dim_residual + j];
 
-            logz1 = loggignorm(-c + n, 2*d, 2*sy);
-            logz2 = loggignorm(c + n, 0, 2*(d + sy));
+            logz1 = loggignorm(-c + n, 2 * d, 2 * sy);
+            logz2 = loggignorm(c + n, 0, 2 * (d + sy));
 
             logminz = logz1 < logz2 ? logz1 : logz2;
-            if (logz1 - logminz > 100) {
+            if (logz1 - logminz > 100)
+            {
                 numrt = logz1; // approximate log(exp(x) + 1) = x
-            } else if (logz2 - logminz > 100)
-            { 
+            }
+            else if (logz2 - logminz > 100)
+            {
                 numrt = logz2;
-            } else {
+            }
+            else
+            {
                 numrt = log(exp(logz1 - logminz) + exp(logz2 - logminz)) + logminz;
             }
             ret += numrt - log(2) - logz3;
             // ret += log((z1 + z2) / 2 / z3);
             // cout <<" n = " << n << " sy = " << sy << " logz1 = " << logz1 << " logz2 = " << logz2 << " numrt = " << numrt << " ret = " << ret << endl;
         }
-        if (isnan(ret) | isinf(abs(ret)) ){
+        if (isnan(ret) | isinf(abs(ret)))
+        {
             cout << "likliehood " << ret << endl;
             exit(1);
         }
         return ret;
-
     }
 
 public:
@@ -234,14 +238,16 @@ public:
     std::vector<double> *phi;
 
     bool update_weight, update_tau, update_phi; // option to update tau_a
-    double weight, logloss, accuracy;         // pseudo replicates of observations
-    double weight_latent;       // latent weight for random walk sampling, weight = |weight_latent - 1| + 1
-    double hmult, heps;         // weight ~ Gamma(n, hmult * entropy + heps);
-    std::vector<double> acc_gp; // track accuracy per group
+    double weight, logloss, accuracy;           // pseudo replicates of observations
+    double weight_latent;                       // latent weight for random walk sampling, weight = |weight_latent - 1| + 1
+    double hmult, heps;                         // weight ~ Gamma(n, hmult * entropy + heps);
+    std::vector<double> acc_gp;                 // track accuracy per group
 
     double c, d, z3, logz3; // param for mixture prior, c = m / tau_a^2 + 0.5; d = m / tau_a^2; m = num_trees = tau_b
 
     double MH_step;
+
+    double logloss_last_sweep;
 
     LogitModel(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, bool update_phi, double hmult, double heps, double MH_step) : Model(num_classes, 2 * num_classes)
     {
@@ -265,6 +271,7 @@ public:
         this->accuracy = 0;
         this->acc_gp.resize(dim_residual);
         this->MH_step = MH_step;
+        this->logloss_last_sweep = -1.10;
 
         // this->c = tau_b / pow(tau_a, 2) + 0.5;
         // this->d = tau_b / pow(tau_a, 2);
@@ -285,7 +292,7 @@ public:
 
     double w_likelihood(State &state, double weight, double logloss);
 
-    void update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double>& var_lambda, size_t &count_lambda);
+    void update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double> &var_lambda, size_t &count_lambda);
 
     void update_weights(State &state, X_struct &x_struct, double &mean_lambda, std::vector<double> &var_lambda, size_t &count_lambda);
 
@@ -348,7 +355,7 @@ public:
 
     void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
-    void update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double>& var_lambda, size_t &count_lambda);
+    void update_state(State &state, size_t tree_ind, X_struct &x_struct, double &mean_lambda, std::vector<double> &var_lambda, size_t &count_lambda);
 
     void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, X_struct &x_struct) const;
 
@@ -455,8 +462,6 @@ public:
 
     void update_split_counts(State &state, size_t tree_ind);
 };
-
-
 
 class XBCFDiscreteModel : public Model
 {

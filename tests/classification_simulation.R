@@ -8,7 +8,7 @@ k <- 3
 p <- k
 p_add <- 0
 p_cat <- 0
-acc_level <- 0.99
+acc_level <- 0.8
 x <- matrix(rnorm(n.all * (p + p_add)), n.all, (p + p_add))
 
 
@@ -63,7 +63,7 @@ tm <- proc.time()
 fit <- XBART.multinomial(
     y = matrix(y_train), num_class = k, X = X_train,
     num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth,
-    num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 3.5^2 + 0.5), tau_b = (num_trees * 2 / 3.5^2), verbose = TRUE, separate_tree = FALSE, updte_tau = FALSE, update_weight = TRUE, update_phi = FALSE, a = 2 / k, weight_exponent = 6, no_split_penalty = 0.5, beta = 2, weight = 10, MH_step = 0.5
+    num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 3.5^2 + 0.5), tau_b = (num_trees * 2 / 3.5^2), verbose = FALSE, separate_tree = FALSE, updte_tau = FALSE, update_weight = TRUE, update_phi = FALSE, a = 2 / k, weight_exponent = 6, no_split_penalty = 0.5, beta = 2, weight = 10, MH_step = 0.25
 )
 tm <- proc.time() - tm
 cat(paste("\n", "parallel xbart runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
