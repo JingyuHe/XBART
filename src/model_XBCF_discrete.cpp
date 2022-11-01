@@ -576,3 +576,4 @@ void XBCFDiscreteModel::update_b(State &state)
 
     return;
 }
+ 
