@@ -1,17 +1,17 @@
+//////////////////////////////////////////////////////////////////////////////////////
+// main function of the Bayesian backfitting algorithm
+//////////////////////////////////////////////////////////////////////////////////////
+
 #include "mcmc_loop.h"
-#include "omp.h"
 
-void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct)
+void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, State &state, NormalModel *model, X_struct &x_struct, std::vector<double> &resid)
 {
+    size_t N = (*state.residual_std)[0].size();
 
-    // if (state->parallel)
-    //     thread_pool.start();
-
-    // Residual for 0th tree
-    // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
+    // initialize the matrix of residuals
     model->ini_residual_std(state);
 
-    for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
+    for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
     {
 
         if (verbose == true)
@@ -21,188 +21,95 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             COUT << "--------------------------------" << endl;
         }
 
-        for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
+        for (size_t tree_ind = 0; tree_ind < state.num_trees; tree_ind++)
         {
 
             if (verbose)
             {
-                cout << "sweep " << sweeps << " tree " << tree_ind << endl;
+                COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
             }
-            // Draw Sigma
 
+            // draw Sigma
             model->update_state(state, tree_ind, x_struct);
 
-            sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
+            sigma_draw_xinfo[sweeps][tree_ind] = state.sigma;
 
-            if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
+            if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
             {
-                state->use_all = false;
+                state.use_all = false;
             }
 
             // clear counts of splits for one tree
-            std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
+            std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0);
 
             // subtract old tree for sampling case
-            if (state->sample_weights_flag)
+            if (state.sample_weights)
             {
-                state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
+                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) - (*state.split_count_all_tree)[tree_ind];
             }
 
+            // initialize sufficient statistics of the current tree to be updated
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
-            if (state->parallel)
+            if (state.parallel)
             {
-                // run parallel
-                // omp_set_max_active_levels(state->nthread);
-// #pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
-                // {
-// #pragma omp sections
-                    // {
-// #pragma omp section
-                        // {
-                            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-                        // }
-                    // }
-                // }
-            }
-            else
-            {
-                // single core
-                trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
+                trees[sweeps][tree_ind].settau(model->tau_prior, model->tau); // initiate tau
             }
 
-            // update tau after sampling the tree
-            // model->update_tau(state, tree_ind, sweeps, trees);
+            // main function to grow the tree from root
+            trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind);
 
-            state->update_split_counts(tree_ind);
+            // set id for bottom nodes
+            tree::npv bv;
+            trees[sweeps][tree_ind].getbots(bv); // get bottom nodes
+            for (size_t i = 0; i < bv.size(); i++)
+            {
+                bv[i]->setID(i + 1);
+            }
+
+            // store residuals:
+            for (size_t data_ind = 0; data_ind < (*state.residual_std)[0].size(); data_ind++)
+            {
+                resid[data_ind + sweeps * N + tree_ind * state.num_sweeps * N] = (*state.residual_std)[0][data_ind];
+            }
+
+            if (sweeps >= state.burnin)
+            {
+                for (size_t i = 0; i < (*state.split_count_all).size(); i++)
+                {
+                    (*state.split_count_all)[i] += (*state.split_count_current_tree)[i];
+                }
+            }
+
+            // count number of splits at each variable
+            state.update_split_counts(tree_ind);
 
             // update partial residual for the next tree to fit
-            model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
+            model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
         }
 
         if (model->sampling_tau)
         {
+            // update tau per sweep (after drawing a forest)
             model->update_tau_per_forest(state, sweeps, trees);
         }
     }
-    // thread_pool.stop();
-
     return;
 }
 
-// void predict_std_multinomial(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees,
-//                              size_t num_sweeps, matrix<double> &yhats_test_xinfo,
-//                              vector<vector<tree>> &trees)
-// {
-
-//     NormalModel *model = new NormalModel();
-//     matrix<double> predictions_test_std;
-//     ini_xinfo(predictions_test_std, N_test, num_trees);
-
-//     std::vector<double> yhat_test_std(N_test);
-//     row_sum(predictions_test_std, yhat_test_std);
-
-//     // // initialize predcitions and predictions_test
-//     // for (size_t ii = 0; ii < num_trees; ii++)
-//     // {
-//     //     std::fill(predictions_test_std[ii].begin(), predictions_test_std[ii].end(), y_mean / (double)num_trees);
-//     // }
-//     row_sum(predictions_test_std, yhat_test_std);
-
-//     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
-//     {
-//         for (size_t tree_ind = 0; tree_ind < num_trees; tree_ind++)
-//         {
-
-//             yhat_test_std = yhat_test_std - predictions_test_std[tree_ind];
-//             predict_from_tree(trees[sweeps][tree_ind], Xtestpointer, N_test, p, predictions_test_std[tree_ind], model);
-//             yhat_test_std = yhat_test_std + predictions_test_std[tree_ind];
-//         }
-//         yhats_test_xinfo[sweeps] = yhat_test_std;
-//     }
-
-//     delete model;
-//     return;
-// }
-
-void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, CLTClass *model, std::unique_ptr<X_struct> &x_struct)
+void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty, State &state, LogitModel *model, X_struct &x_struct,
+                           std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &phi_samples, std::vector<std::vector<double>> &logloss,
+                           std::vector<std::vector<double>> &tree_size)
 {
-    // if (state->parallel)
-    //     thread_pool.start();
-
-    // // Residual for 0th tree
-    // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
-    // model->ini_residual_std(state);
-
-    // for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
-    // {
-
-    //     if (verbose == true)
-    //     {
-    //         COUT << "--------------------------------" << endl;
-    //         COUT << "number of sweeps " << sweeps << endl;
-    //         COUT << "--------------------------------" << endl;
-    //     }
-
-    //     for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
-    //     {
-    //         std::cout << "Tree " << tree_ind << std::endl;
-    //         model->update_state(state, tree_ind, x_struct);
-    //         model->total_fit = state->yhat_std;
-
-    //         if ((sweeps > state->burnin) && (state->mtry < state->p))
-    //         {
-    //             state->use_all = false;
-    //         }
-
-    //         // clear counts of splits for one tree
-    //         std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
-
-    //         //COUT << state->split_count_current_tree << endl;
-
-    //         // subtract old tree for sampling case
-    //         if (state->sample_weights_flag)
-    //         {
-    //             state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
-    //         }
-
-    //         // set sufficient statistics at root node first
-    //         model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
-
-    //         trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-
-    //         state->update_split_counts(tree_ind);
-
-    //         // fit_new_std(trees[sweeps][tree_ind], Xpointer, N, p, predictions_std[tree_ind]);
-    //         // predict_from_datapointers(state->X_std, state->n_y, tree_ind, state->predictions_std[tree_ind], state->data_pointers, model);
-    //         predict_from_datapointers(tree_ind, model, state, x_struct);
-
-    //         // update residual, now it's residual of m trees
-    //         model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
-
-    //         state->yhat_std = state->yhat_std + state->predictions_std[tree_ind];
-
-    //         std::cout << "stuff stat" << model->suff_stat_total << std::endl;
-    //     }
-    //     // save predictions to output matrix
-    //     yhats_xinfo[sweeps] = state->yhat_std;
-    // }
-    // thread_pool.stop();
-    // delete model;
-}
-
-void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty,
-                           std::unique_ptr<State> &state, LogitModel *model, std::unique_ptr<X_struct> &x_struct,
-                           std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &tau_samples)
-{
-    // if (state->parallel)
-    //     thread_pool.start();
-
     // Residual for 0th tree
-    // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
     model->ini_residual_std(state);
 
-    for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
+    // keep track of mean of leaf parameters
+    double mean_lambda = 1;
+    size_t count_lambda = (state.num_trees - 1) * model->dim_residual; // less the lambdas in the first tree
+    std::vector<double> var_lambda(state.num_trees, 0.0);
+
+    for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
     {
 
         if (verbose == true)
@@ -212,110 +119,89 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             COUT << "--------------------------------" << endl;
         }
 
-        for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
+        for (size_t tree_ind = 0; tree_ind < state.num_trees; tree_ind++)
         {
-
-            if (verbose)
-            {
-                cout << "sweep " << sweeps << " tree " << tree_ind << endl;
-            }
             // Draw latents -- do last?
 
-            //Rcpp::Rcout << "Updating state";
-
-            if (state->use_all && (sweeps >= state->burnin)) // && (state->mtry != state->p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
+            if (state.use_all && (sweeps >= state.burnin)) // && (state.mtry != state.p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
             {
-                state->use_all = false;
+                state.use_all = false;
             }
 
             // clear counts of splits for one tree
-            std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
+            std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0);
 
             // subtract old tree for sampling case
-            if (state->sample_weights_flag)
+            if (state.sample_weights)
             {
-                state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
+                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) - (*state.split_count_all_tree)[tree_ind];
             }
 
             model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
-            for (size_t k = 0; k < trees[sweeps][tree_ind].suff_stat.size(); k++)
-            {
-                if (isnan(trees[sweeps][tree_ind].suff_stat[k]))
-                {
-                    cout << "unidentified error: suffstat " << k << " initialized as nan" << endl;
-                    exit(1);
-                }
-            }
 
             trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
-            state->lambdas[tree_ind].clear();
+            (*state.lambdas)[tree_ind].clear();
 
-            // set nthread based on number of observations * mtry
-            /*  double fake_p = (state->use_all) ? state->p : state->mtry;
-            if (state->n_y * fake_p < 1e5) { omp_set_num_threads( std::min(4, int(state->nthread)) ); }
-            else if (state->n_y * fake_p < 5e5 ) { omp_set_num_threads( std::min(6, int(state->nthread) ) ); }
-            else {omp_set_num_threads(state->nthread); }*/
+            trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind);
 
-            omp_set_max_active_levels(3);
-#pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
+            state.update_split_counts(tree_ind);
+
+            if (sweeps >= state.burnin)
             {
-#pragma omp sections
+                for (size_t i = 0; i < (*state.split_count_all).size(); i++)
                 {
-#pragma omp section
-                    {
-                        trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-                    }
-                }
-            }
-
-            state->update_split_counts(tree_ind);
-            if (sweeps >= state->burnin)
-            {
-                for (size_t i = 0; i < state->split_count_all.size(); i++)
-                {
-                    state->split_count_all[i] += state->split_count_current_tree[i];
+                    (*state.split_count_all)[i] += (*state.split_count_current_tree)[i];
                 }
             }
             // update partial fits for the next tree
-            model->update_state(state, tree_ind, x_struct);
+            model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
 
-            model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
+            model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
 
             weight_samples[sweeps][tree_ind] = model->weight;
-            tau_samples[sweeps][tree_ind] = model->tau_a;
+            phi_samples[sweeps][tree_ind] = exp((*model->phi)[0]);
+            logloss[sweeps][tree_ind] = model->logloss;
+            tree_size[sweeps][tree_ind] = trees[sweeps][tree_ind].treesize();
 
-            for (size_t j = 0; j < state->lambdas[tree_ind].size(); j++)
+            if (verbose)
             {
-                for (size_t k = 0; k < state->lambdas[tree_ind][j].size(); k++)
+                if (sweeps > 0)
                 {
-                    lambda_samples.push_back(state->lambdas[tree_ind][j][k]);
+                    COUT << "tree " << tree_ind << " old size = " << trees[sweeps - 1][tree_ind].treesize() << ", new size = " << trees[sweeps][tree_ind].treesize() << endl;
+                    COUT << " logloss " << model->logloss << " acc " << model->accuracy << endl;
+                }
+            }
+
+            for (size_t j = 0; j < (*state.lambdas)[tree_ind].size(); j++)
+            {
+                for (size_t k = 0; k < (*state.lambdas)[tree_ind][j].size(); k++)
+                {
+                    lambda_samples.push_back((*state.lambdas)[tree_ind][j][k]);
                 }
             }
         }
-
-        // if (sweeps <= state->burnin){
-        //     model->stop = false;
-        // }
-        // if (sweeps > state->burnin & model->stop){
-        //     state->num_sweeps = sweeps + 1;
-        //     break;
-        // }
+        model->update_weights(state, x_struct, mean_lambda, var_lambda, count_lambda);
     }
-    // thread_pool.stop();
 }
 
-void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModelSeparateTrees *model,
-                                           std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &weight_samples)
+void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penalty, State &state,
+                                           LogitModelSeparateTrees *model, X_struct &x_struct,
+                                           std::vector<std::vector<double>> &weight_samples, std::vector<std::vector<double>> &tau_samples,
+                                           std::vector<std::vector<double>> &logloss, std::vector<std::vector<double>> &tree_size)
 {
+
     // Residual for 0th tree
-    // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
     model->ini_residual_std(state);
     size_t p = Xorder_std.size();
     std::vector<size_t> subset_vars(p);
     std::vector<double> weight_samp(p);
-    // double weight_sum;
 
-    for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
+    // keep track of mean of leaf parameters
+    double mean_lambda = 1;
+    size_t count_lambda = (state.num_trees - 1) * model->dim_residual; // less the lambdas in the first tree
+    std::vector<double> var_lambda(state.num_trees, 0.0);
+
+    for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
     {
 
         if (verbose == true)
@@ -325,87 +211,79 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
             COUT << "--------------------------------" << endl;
         }
 
-        for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
+        for (size_t tree_ind = 0; tree_ind < state.num_trees; tree_ind++)
         {
 
-            if (verbose)
-            {
-                cout << "sweep " << sweeps << " tree " << tree_ind << endl;
-            }
+            // if (verbose)
+            // {
+            //     COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
+            // }
             // Draw latents -- do last?
 
-            //Rcpp::Rcout << "Updating state";
-
-            if (state->use_all && (sweeps >= state->burnin)) // && (state->mtry != state->p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
+            if (state.use_all && (sweeps >= state.burnin)) // && (state.mtry != state.p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
             {
-                state->use_all = false;
+                state.use_all = false;
             }
 
             // clear counts of splits for one tree
-            std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
+            std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0);
 
             // subtract old tree for sampling case
-            if (state->sample_weights_flag)
+            if (state.sample_weights)
             {
-                state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
+                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) - (*state.split_count_all_tree)[tree_ind];
             }
 
-            omp_set_max_active_levels(3);
-#pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
+            tree_size[sweeps][tree_ind] = 0; // init
+
+            for (size_t class_ind = 0; class_ind < model->dim_residual; class_ind++)
             {
-#pragma omp sections
+                model->set_class_operating(class_ind);
+
+                (*state.lambdas_separate)[tree_ind][class_ind].clear();
+
+                model->initialize_root_suffstat(state, trees[class_ind][sweeps][tree_ind].suff_stat);
+
+                trees[class_ind][sweeps][tree_ind].theta_vector.resize(model->dim_residual);
+
+                trees[class_ind][sweeps][tree_ind].grow_from_root_separate_tree(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind);
+
+                tree_size[sweeps][tree_ind] += trees[class_ind][sweeps][tree_ind].treesize();
+            }
+
+            state.update_split_counts(tree_ind);
+
+            if (sweeps >= state.burnin)
+            {
+                for (size_t i = 0; i < (*state.split_count_all).size(); i++)
                 {
-#pragma omp section
-                    {
-                        for (size_t class_ind = 0; class_ind < model->dim_residual; class_ind++)
-                        {
-                            // cout << "class_ind " << class_ind << endl;
-                            model->set_class_operating(class_ind);
-
-                            state->lambdas_separate[tree_ind][class_ind].clear();
-
-                            model->initialize_root_suffstat(state, trees[class_ind][sweeps][tree_ind].suff_stat);
-
-                            trees[class_ind][sweeps][tree_ind].theta_vector.resize(model->dim_residual);
-
-                            trees[class_ind][sweeps][tree_ind].grow_from_root_separate_tree(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-                        }
-                    }
+                    (*state.split_count_all)[i] += (*state.split_count_current_tree)[i];
                 }
             }
 
-            state->update_split_counts(tree_ind);
-
-            if (sweeps >= state->burnin)
-            {
-                for (size_t i = 0; i < state->split_count_all.size(); i++)
-                {
-                    state->split_count_all[i] += state->split_count_current_tree[i];
-                }
-            }
-
-            model->update_state(state, tree_ind, x_struct);
-
-            model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
+            model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
 
             weight_samples[sweeps][tree_ind] = model->weight;
+            tau_samples[sweeps][tree_ind] = model->tau_a;
+            logloss[sweeps][tree_ind] = model->logloss;
+
+            if (verbose)
+            {
+                COUT << " tree " << tree_ind << " logloss " << model->logloss << endl;
+            }
+
+            model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
         }
     }
 
     return;
 }
 
-void mcmc_loop_probit(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, ProbitClass *model, std::unique_ptr<X_struct> &x_struct)
+void mcmc_loop_xbcf_continuous(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod, double no_split_penalty, State &state, XBCFContinuousModel *model, X_struct &x_struct_con, X_struct &x_struct_mod)
 {
+    model->ini_tau_mu_fit(state);
 
-    // if (state->parallel)
-    // thread_pool.start();
-
-    // Residual for 0th tree
-    // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
-    model->ini_residual_std(state);
-
-    for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
+    for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
     {
         if (verbose == true)
         {
@@ -414,427 +292,289 @@ void mcmc_loop_probit(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &
             COUT << "--------------------------------" << endl;
         }
 
-        for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
+        // prognostic forest
+        model->set_treatmentflag(state, 0);
+
+        for (size_t tree_ind = 0; tree_ind < state.num_trees_con; tree_ind++)
         {
-
-            model->update_state(state, tree_ind, x_struct);
-
-            if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
+            if (verbose)
             {
-                state->use_all = false;
+                COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
+            }
+
+            // Draw Sigma
+            model->update_state(state, tree_ind, x_struct_con);
+
+            sigma_draw_xinfo[sweeps][tree_ind] = state.sigma;
+
+            if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
+            {
+                state.use_all = false;
             }
 
             // clear counts of splits for one tree
-            std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
+            (*state.split_count_current_tree).resize(state.p_con);
+            std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0);
 
             // subtract old tree for sampling case
-            if (state->sample_weights_flag)
+            if (state.sample_weights)
             {
-                state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
+                (*state.mtry_weight_current_tree_con) = (*state.mtry_weight_current_tree_con) - (*state.split_count_all_tree_con)[tree_ind];
+                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree_con);
             }
 
-            model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+            // update tau_fit from full fit to partial fit
+            model->subtract_old_tree_fit(tree_ind, state, x_struct_con);
 
-            omp_set_max_active_levels(3);
-#pragma omp parallel default(none) shared(trees, sweeps, state, Xorder_std, x_struct, model, tree_ind)
+            // calculate partial residuals based on partial fit
+            model->update_partial_residuals(tree_ind, state, x_struct_con);
+
+            model->initialize_root_suffstat(state, trees_con[sweeps][tree_ind].suff_stat);
+
+            trees_con[sweeps][tree_ind].grow_from_root(state, Xorder_std_con, x_struct_con.X_counts, x_struct_con.X_num_unique, model, x_struct_con, sweeps, tree_ind);
+
+            // update tau_fit from partial fit to full fit
+            model->add_new_tree_fit(tree_ind, state, x_struct_con);
+
+            model->update_split_counts(state, tree_ind);
+
+            if (sweeps >= state.burnin)
             {
-#pragma omp sections
+                for (size_t i = 0; i < (*state.split_count_all_con).size(); i++)
                 {
-#pragma omp section
-                    {
-                        trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-                    }
+                    (*state.split_count_all_con)[i] += (*state.split_count_current_tree)[i];
                 }
             }
-            state->update_split_counts(tree_ind);
+        }
 
-            // update partial residual for the next tree to fit
-            model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
+        if (model->sampling_tau)
+        {
+            model->update_tau_per_forest(state, sweeps, trees_con);
+        }
+
+        // treatment forest
+        model->set_treatmentflag(state, 1);
+
+        for (size_t tree_ind = 0; tree_ind < state.num_trees_mod; tree_ind++)
+        {
+            if (verbose)
+            {
+                COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
+            }
+
+            // Draw Sigma
+            model->update_state(state, tree_ind, x_struct_mod);
+
+            sigma_draw_xinfo[sweeps][tree_ind + state.num_trees_con] = state.sigma;
+
+            if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
+            {
+                state.use_all = false;
+            }
+
+            // clear counts of splits for one tree
+            (*state.split_count_current_tree).resize(state.p_mod);
+            std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0);
+
+            // subtract old tree for sampling case
+            if (state.sample_weights)
+            {
+                (*state.mtry_weight_current_tree_mod) = (*state.mtry_weight_current_tree_mod) - (*state.split_count_all_tree_mod)[tree_ind];
+                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree_mod);
+            }
+
+            // update tau_fit from full fit to partial fit
+            model->subtract_old_tree_fit(tree_ind, state, x_struct_mod);
+
+            // calculate partial residuals based on partial fit
+            model->update_partial_residuals(tree_ind, state, x_struct_mod);
+
+            model->initialize_root_suffstat(state, trees_mod[sweeps][tree_ind].suff_stat);
+
+            trees_mod[sweeps][tree_ind].grow_from_root(state, Xorder_std_mod, x_struct_mod.X_counts, x_struct_mod.X_num_unique, model, x_struct_mod, sweeps, tree_ind);
+
+            // update tau_fit from partial fit to full fit
+            model->add_new_tree_fit(tree_ind, state, x_struct_mod);
+
+            model->update_split_counts(state, tree_ind);
+
+            if (sweeps >= state.burnin)
+            {
+                for (size_t i = 0; i < (*state.split_count_all_mod).size(); i++)
+                {
+                    (*state.split_count_all_mod)[i] += (*state.split_count_current_tree)[i];
+                }
+            }
+        }
+
+        if (model->sampling_tau)
+        {
+            model->update_tau_per_forest(state, sweeps, trees_mod);
         }
     }
-
-    // thread_pool.stop();
+    return;
 }
 
-// void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &accept_count, std::vector<double> &MH_vector, std::vector<double> &P_ratio, std::vector<double> &Q_ratio, std::vector<double> &prior_ratio)
-// {
-
-//     if (state->parallel)
-//         thread_pool.start();
-
-//     // Residual for 0th tree
-//     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
-//     model->ini_residual_std(state);
-
-//     double MH_ratio = 0.0;
-//     double P_new;
-//     double P_old;
-//     double Q_new;
-//     double Q_old;
-//     double prior_new;
-//     double prior_old;
-
-//     std::uniform_real_distribution<> unif_dist(0, 1);
-
-//     tree temp_treetree = tree();
-
-//     std::vector<double> temp_vec_proposal(state->n_y);
-//     std::vector<double> temp_vec(state->n_y);
-//     std::vector<double> temp_vec2(state->n_y);
-//     std::vector<double> temp_vec3(state->n_y);
-//     std::vector<double> temp_vec4(state->n_y);
-
-//     bool accept_flag = true;
-
-//     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
-//     {
-
-//         if (verbose == true)
-//         {
-//             COUT << "--------------------------------" << endl;
-//             COUT << "number of sweeps " << sweeps << endl;
-//             COUT << "--------------------------------" << endl;
-//         }
-
-//         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
-//         {
-//             // Draw Sigma
-
-//             model->update_state(state, tree_ind, x_struct);
-
-//             sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
-
-//             if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
-//             {
-//                 state->use_all = false;
-//             }
-
-//             // clear counts of splits for one tree
-//             std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
-
-//             // subtract old tree for sampling case
-//             if (state->sample_weights_flag)
-//             {
-//                 state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
-//             }
-
-//             //         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//             //         // X_counts and X_num_unique should not be in state because they depend on node
-//             //         // but they are initialized in state object
-//             //         // so I'll pass x_struct->X_counts to root node, then create X_counts_left, X_counts_right for other nodes
-//             //         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//             if (sweeps < 10)
-//             {
-
-//                 // The first several sweeps are used as initialization
-//                 // state->data_pointers is calculated in this function
-//                 // trees[sweeps][tree_ind].tonull();
-
-//                 model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
-
-//                 trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-
-//                 // accept_count.push_back(0);
-//                 // MH_vector.push_back(0);
-//             }
-//             else
-//             {
-//                 //     // fit a proposal
-
-//                 /*
-
-//                     BE CAREFUL! Growing proposal update data_pointers in state object implictly
-//                     need to creat a backup, copy from the backup if the proposal is rejected
-
-//                 */
-
-//                 //             // set sufficient statistics at root node first
-//                 model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
-
-//                 trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-
-//                 //model->initialize_root_suffstat(state, trees[sweeps - 1][tree_ind].suff_stat);
-
-//                 //trees[sweeps - 1][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, false, true, false);
-
-//                 // Q_old = transition_prob(trees[sweeps - 1][tree_ind]);
-//                 // P_old = tree_likelihood(trees[sweeps - 1][tree_ind]);
-
-//                 // // // proposal
-//                 // Q_new = transition_prob(trees[sweeps][tree_ind]);
-//                 // P_new = tree_likelihood(trees[sweeps][tree_ind]);
-
-//                 // MH_ratio = P_new + Q_old - P_old - Q_new;
-
-//                 // cout << exp(MH_ratio) << endl;
-
-//                 // if (MH_ratio > 0)
-//                 // {
-//                 //     MH_ratio = 1;
-//                 // }
-//                 // else
-//                 // {
-//                 //     MH_ratio = exp(MH_ratio);
-//                 // }
-//                 // MH_vector.push_back(MH_ratio);
-
-//                 // Q_ratio.push_back(Q_old - Q_new);
-//                 // P_ratio.push_back(P_new - P_old);
-
-//                 // cout << "ratio is fine " << endl;
-
-//                 //if (unif_dist(state->gen) <= MH_ratio)
-//                 // if (true)
-//                 // {
-//                 //     // accept
-//                 //     // do nothing
-//                 //     // cout << "accept " << endl;
-//                 //     accept_flag = true;
-//                 //     accept_count.push_back(1);
-//                 // }
-//                 // else
-//                 // {
-//                 //     // reject
-//                 //     // cout << "reject " << endl;
-//                 //     accept_flag = false;
-//                 //     accept_count.push_back(0);
-
-//                 //     // // // keep the old tree
-
-//                 //     // predict_from_tree(trees[sweeps - 1][tree_ind], Xpointer, N, p, temp_vec2, model);
-
-//                 //     trees[sweeps][tree_ind].copy_only_root(&trees[sweeps - 1][tree_ind]);
-
-//                 //     // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec3, model);
-
-//                 //     // // update theta
-//                 //     /*
-//                 //         update_theta() not only update leaf parameters, but also state->data_pointers
-
-//                 //     */
-
-//                 //     // update_theta = true, update_split_prob = true
-//                 //     // resample leaf parameters
-
-//                 //     trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, true, false);
-
-//                 //     //                 // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec4, model);
-
-//                 //     // // keep the old tree, need to update state object properly
-//                 //     //                 // state->data_pointers[tree_ind] = state->data_pointers_copy[tree_ind];
-//                 //     x_struct->restore_data_pointers(tree_ind);
-//                 // }
-
-//                 // cout << "copy is ok" << endl;
-//             }
-
-//             // if (accept_flag)
-//             // {
-//                 state->update_split_counts(tree_ind);
-//             // }
-
-//             // update residual
-//             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
-//         }
-
-//         // after loop over all trees, backup the data_pointers matrix
-//         // data_pointers_copy save result of previous sweep
-//         // x_struct->data_pointers_copy = x_struct->data_pointers;
-//         // state->create_backup_data_pointers();
-
-//         // double average = accumulate(accept_count.end() - state->num_trees, accept_count.end(), 0.0) / state->num_trees;
-//         // double MH_average = accumulate(MH_vector.end() - state->num_trees, MH_vector.end(), 0.0) / state->num_trees;
-//         // // cout << "size of MH " << accept_count.size() << "  " << MH_vector.size() << endl;
-
-//         // cout << "percentage of proposal acceptance " << average << endl;
-//         // cout << "average MH ratio " << MH_average << endl;
-//     }
-//     thread_pool.stop();
-
-//     delete model;
-// }
-
-// void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &accept_count, std::vector<double> &MH_vector, std::vector<double> &P_ratio, std::vector<double> &Q_ratio, std::vector<double> &prior_ratio)
-// {
-
-//     if (state->parallel)
-//         thread_pool.start();
-
-//     // Residual for 0th tree
-//     // state->residual_std = *state->y_std - state->yhat_std + state->predictions_std[0];
-//     model->ini_residual_std(state);
-
-//     std::uniform_real_distribution<> unif_dist(0, 1);
-
-//     double MH_ratio = 0.0;
-//     double P_new;
-//     double P_old;
-//     double Q_new;
-//     double Q_old;
-//     double prior_new;
-//     double prior_old;
-//     double logdetA_new;
-//     double logdetA_old;
-//     double val_new;
-//     double val_old;
-//     double sign_new;
-//     double sign_old;
-
-//     bool accept_flag = true;
-
-//     for (size_t sweeps = 0; sweeps < state->num_sweeps; sweeps++)
-//     {
-
-//         if (verbose == true)
-//         {
-//             COUT << "--------------------------------" << endl;
-//             COUT << "number of sweeps " << sweeps << endl;
-//             COUT << "--------------------------------" << endl;
-//         }
-
-//         for (size_t tree_ind = 0; tree_ind < state->num_trees; tree_ind++)
-//         {
-//             // Draw Sigma
-
-//             model->update_state(state, tree_ind, x_struct);
-
-//             sigma_draw_xinfo[sweeps][tree_ind] = state->sigma;
-
-//             if (state->use_all && (sweeps > state->burnin) && (state->mtry != state->p))
-//             {
-//                 state->use_all = false;
-//             }
-
-//             // clear counts of splits for one tree
-//             std::fill(state->split_count_current_tree.begin(), state->split_count_current_tree.end(), 0.0);
-
-//             // subtract old tree for sampling case
-//             if (state->sample_weights_flag)
-//             {
-//                 state->mtry_weight_current_tree = state->mtry_weight_current_tree - state->split_count_all_tree[tree_ind];
-//             }
-
-//             if (sweeps < 10)
-//             {
-//                 model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
-
-//                 trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-//             }
-//             else
-//             {
-//                 // fit proposal
-//                 model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
-
-//                 trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, false, true);
-
-//                 // update old tree on new data
-//                 model->initialize_root_suffstat(state, trees[sweeps - 1][tree_ind].suff_stat);
-//                 // cout << "likelihood on old data " <<  transition_prob(trees[sweeps - 1][tree_ind]) << endl;
-//                 // update leaf node likelihood of old tree on new data
-//                 trees[sweeps - 1][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, false, true, false);
-//                 // cout << "likelihood on new  data " <<  transition_prob(trees[sweeps - 1][tree_ind]) << endl;
-
-//                 Q_old = transition_prob(trees[sweeps - 1][tree_ind]);
-//                 P_old = tree_likelihood(trees[sweeps - 1][tree_ind]);
-
-//                 // // proposal
-//                 Q_new = transition_prob(trees[sweeps][tree_ind]);
-//                 P_new = tree_likelihood(trees[sweeps][tree_ind]);
-
-//                 // cout << MH_ratio << endl;
-
-//                 // cout << "P_new " << P_new << " P_old " << P_old << " Q_new " << Q_new << " Q_old " << Q_old << endl;
-
-//                 // cout <<  P_new + Q_old - P_old - Q_new << endl;
-
-//                 determinant_precision(trees[sweeps][tree_ind], model->tau, state->sigma2, state, val_new, sign_new, logdetA_new);
-
-//                 determinant_precision(trees[sweeps - 1][tree_ind], model->tau, state->sigma2, state, val_old, sign_old, logdetA_old);
-
-//                 // cout << " ----- " << endl;
-
-//                 // cout << logdetA_old << "  " << logdetA_new << endl;
-//                 MH_ratio = P_new + Q_old - P_old - Q_new + logdetA_old - logdetA_new + val_old - val_new;
-
-//                 // MH_ratio = P_new - P_old;
-
-//                 // MH_ratio = 1;
-
-//                 // cout << P_new - P_old << "   " << logdetA_old - logdetA_new << "   " << Q_old - Q_new << "   " << val_old - val_new << "   " << MH_ratio << endl;
-
-//                 cout << MH_ratio << endl;
-
-//                 if (MH_ratio > 0)
-//                 {
-//                     MH_ratio = 1;
-//                 }
-//                 else
-//                 {
-//                     MH_ratio = exp(MH_ratio) * sign_old / sign_new;
-//                 }
-
-//                 MH_vector.push_back(MH_ratio);
-
-//                 Q_ratio.push_back(Q_old - Q_new);
-
-//                 P_ratio.push_back(P_new - P_old);
-
-//                 if (unif_dist(state->gen) <= MH_ratio)
-//                 {
-//                     // accept
-//                     // do nothing
-//                     cout << "accept " << endl;
-//                     accept_flag = true;
-//                     accept_count.push_back(1);
-//                 }
-//                 else
-//                 {
-//                     // reject
-//                     cout << "reject " << endl;
-//                     accept_flag = false;
-//                     accept_count.push_back(0);
-
-//                     // // // keep the old tree
-
-//                     // predict_from_tree(trees[sweeps - 1][tree_ind], Xpointer, N, p, temp_vec2, model);
-
-//                     trees[sweeps][tree_ind].copy_only_root(&trees[sweeps - 1][tree_ind]);
-
-//                     // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec3, model);
-
-//                     // // update theta
-//                     /*
-//                         update_theta() not only update leaf parameters, but also state->data_pointers
-
-//                     */
-
-//                     // update_theta = true, update_split_prob = true
-//                     // resample leaf parameters
-
-//                     trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, x_struct->X_counts, x_struct->X_num_unique, model, x_struct, sweeps, tree_ind, true, true, false);
-
-//                     //                 // predict_from_tree(trees[sweeps][tree_ind], Xpointer, N, p, temp_vec4, model);
-
-//                     // // keep the old tree, need to update state object properly
-//                     //                 // state->data_pointers[tree_ind] = state->data_pointers_copy[tree_ind];
-//                     x_struct->restore_data_pointers(tree_ind);
-//                 }
-//             }
-
-//             if (accept_flag)
-//             {
-//                 state->update_split_counts(tree_ind);
-//             }
-
-//             // update partial residual for the next tree to fit
-//             model->state_sweep(tree_ind, state->num_trees, state->residual_std, x_struct);
-//         }
-
-//         // create a backup of data_pointers for useage of the next sweep
-//         x_struct->create_backup_data_pointers();
-//     }
-//     thread_pool.stop();
-
-//     return;
-// }
+void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, bool verbose, matrix<double> &sigma0_draw_xinfo, matrix<double> &sigma1_draw_xinfo, matrix<double> &a_xinfo, matrix<double> &b_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod, double no_split_penalty, State &state, XBCFDiscreteModel *model, X_struct &x_struct_con, X_struct &x_struct_mod)
+{
+    model->ini_tau_mu_fit(state);
+
+    for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
+    {
+        if (verbose == true)
+        {
+            COUT << "--------------------------------" << endl;
+            COUT << "number of sweeps " << sweeps << endl;
+            COUT << "--------------------------------" << endl;
+        }
+
+        // prognostic forest
+        model->set_treatmentflag(state, 0);
+
+        for (size_t tree_ind = 0; tree_ind < state.num_trees_con; tree_ind++)
+        {
+            if (verbose)
+            {
+                COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
+            }
+
+            // Draw Sigma
+            model->update_state(state, tree_ind, x_struct_con, 0);
+
+            sigma0_draw_xinfo[sweeps][tree_ind] = state.sigma_vec[0];
+
+            if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
+            {
+                state.use_all = false;
+            }
+
+            // clear counts of splits for one tree
+            (*state.split_count_current_tree).resize(state.p_con);
+            std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0);
+
+            // subtract old tree for sampling case
+            if (state.sample_weights)
+            {
+                (*state.mtry_weight_current_tree_con) = (*state.mtry_weight_current_tree_con) - (*state.split_count_all_tree_con)[tree_ind];
+                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree_con);
+            }
+
+            // update tau_fit from full fit to partial fit
+            model->subtract_old_tree_fit(tree_ind, state, x_struct_con);
+
+            // calculate partial residuals based on partial fit
+            model->update_partial_residuals(tree_ind, state, x_struct_con);
+
+            model->initialize_root_suffstat(state, trees_con[sweeps][tree_ind].suff_stat);
+
+            trees_con[sweeps][tree_ind].grow_from_root(state, Xorder_std_con, x_struct_con.X_counts, x_struct_con.X_num_unique, model, x_struct_con, sweeps, tree_ind);
+
+            // update tau_fit from partial fit to full fit
+            model->add_new_tree_fit(tree_ind, state, x_struct_con);
+
+            model->update_split_counts(state, tree_ind);
+
+            if (sweeps >= state.burnin)
+            {
+                for (size_t i = 0; i < (*state.split_count_all_con).size(); i++)
+                {
+                    (*state.split_count_all_con)[i] += (*state.split_count_current_tree)[i];
+                }
+            }
+
+            if (sweeps != 0)
+            {
+                if (state.a_scaling)
+                {
+                    model->update_a(state);
+                }
+                if (state.b_scaling)
+                {
+                    model->update_b(state);
+                }
+            }
+        }
+
+        if (model->sampling_tau)
+        {
+            model->update_tau_per_forest(state, sweeps, trees_con);
+        }
+
+        // treatment forest
+        model->set_treatmentflag(state, 1);
+
+        for (size_t tree_ind = 0; tree_ind < state.num_trees_mod; tree_ind++)
+        {
+            if (verbose)
+            {
+                COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
+            }
+
+            // Draw Sigma
+            model->update_state(state, tree_ind, x_struct_mod, 1);
+
+            sigma1_draw_xinfo[sweeps][tree_ind + state.num_trees_con] = state.sigma_vec[1];
+
+            if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
+            {
+                state.use_all = false;
+            }
+
+            // clear counts of splits for one tree
+            (*state.split_count_current_tree).resize(state.p_mod);
+            std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0);
+
+            // subtract old tree for sampling case
+            if (state.sample_weights)
+            {
+                (*state.mtry_weight_current_tree_mod) = (*state.mtry_weight_current_tree_mod) - (*state.split_count_all_tree_mod)[tree_ind];
+                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree_mod);
+            }
+
+            // update tau_fit from full fit to partial fit
+            model->subtract_old_tree_fit(tree_ind, state, x_struct_mod);
+
+            // calculate partial residuals based on partial fit
+            model->update_partial_residuals(tree_ind, state, x_struct_mod);
+
+            model->initialize_root_suffstat(state, trees_mod[sweeps][tree_ind].suff_stat);
+
+            trees_mod[sweeps][tree_ind].grow_from_root(state, Xorder_std_mod, x_struct_mod.X_counts, x_struct_mod.X_num_unique, model, x_struct_mod, sweeps, tree_ind);
+
+            // update tau_fit from partial fit to full fit
+            model->add_new_tree_fit(tree_ind, state, x_struct_mod);
+
+            model->update_split_counts(state, tree_ind);
+
+            if (sweeps >= state.burnin)
+            {
+                for (size_t i = 0; i < (*state.split_count_all_mod).size(); i++)
+                {
+                    (*state.split_count_all_mod)[i] += (*state.split_count_current_tree)[i];
+                }
+            }
+
+            if (sweeps != 0)
+            {
+                if (state.a_scaling)
+                {
+                    model->update_a(state);
+                }
+                if (state.b_scaling)
+                {
+                    model->update_b(state);
+                }
+            }
+        }
+
+        if (model->sampling_tau)
+        {
+            model->update_tau_per_forest(state, sweeps, trees_mod);
+        }
+
+        b_xinfo[0][sweeps] = state.b_vec[0];
+        b_xinfo[1][sweeps] = state.b_vec[1];
+        a_xinfo[0][sweeps] = state.a;
+    }
+    return;
+}

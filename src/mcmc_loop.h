@@ -1,46 +1,30 @@
 #include <ctime>
 #include "tree.h"
-#include "forest.h"
 #include <chrono>
 #include "model.h"
-#include "node_data.h"
 #include "state.h"
 #include "cdf.h"
 #include "X_struct.h"
-//#include "MH.h"
 
-void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct);
+//////////////////////////////////////////////////////////////////////////////////////
+// main function of the Bayesian backfitting algorithm
+//////////////////////////////////////////////////////////////////////////////////////
 
-// void predict_std_multinomial(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
+// normal regression model
+void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, State &state, NormalModel *model, X_struct &x_struct, std::vector<double> &resid);
 
-void mcmc_loop_clt(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, CLTClass *model, std::unique_ptr<X_struct> &x_struct);
+// classification, all classes share the same tree structure
+void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty, State &state, LogitModel *model, X_struct &x_struct,
+std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &phi_samples, std::vector<std::vector<double>> &logloss,
+std::vector<std::vector<double>> &tree_size);
 
-void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModel *model,
-                            std::unique_ptr<X_struct> &x_struct, std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector< std::vector<double>> &tau_samples);
+// classification, each class has its own tree structure
+void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penalty, State &state,
+LogitModelSeparateTrees *model, X_struct &x_struct, std::vector<std::vector<double>> &weight_samples, std::vector<std::vector<double>> &tau_samples, std::vector<std::vector<double>> &logloss,
+std::vector<std::vector<double>> &tree_size);
 
-void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penality, std::unique_ptr<State> &state, LogitModelSeparateTrees *model,
-                                           std::unique_ptr<X_struct> &x_struct,  std::vector<std::vector<double>> &weight_samples);
+// XBCF for continuous treatment
+void mcmc_loop_xbcf_continuous(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod, double no_split_penalty, State &state, XBCFContinuousModel *model, X_struct &x_struct_con, X_struct &x_struct_mod);
 
-void mcmc_loop_probit(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, ProbitClass *model, std::unique_ptr<X_struct> &x_struct);
-
-//void mcmc_loop_MH(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, std::unique_ptr<State> &state, NormalModel *model, std::unique_ptr<X_struct> &x_struct, std::vector<double> &accept_count, std::vector<double> &MH_vector, std::vector<double> &P_ratio, std::vector<double> &Q_ratio, std::vector<double> &prior_ratio);
-
-void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
-                    bool verbose,
-                    matrix<double> &sigma_draw_xinfo,
-                    vector<vector<tree>> &mean_trees,
-                    std::unique_ptr<State> &mean_state,
-                    hskNormalModel *mean_model,
-                    std::unique_ptr<X_struct> &mean_x_struct,
-                    vector<vector<tree>> &var_trees,
-                    std::unique_ptr<State> &var_state,
-                    logNormalModel *var_model,
-                    std::unique_ptr<X_struct> &var_x_struct);
-
-void mcmc_loop_hsk_test(matrix<size_t> &Xorder_std,
-                        bool verbose,
-                        matrix<double> &sigma_draw_xinfo,
-                        vector<vector<tree>> &mean_trees,
-                        std::unique_ptr<State> &mean_state,
-                        hskNormalModel *mean_model,
-                        std::unique_ptr<X_struct> &mean_x_struct);
+// XBCF for discrete treatment
+void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, bool verbose, matrix<double> &sigma0_draw_xinfo, matrix<double> &sigma1_draw_xinfo, matrix<double> &a_xinfo, matrix<double> &b_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod, double no_split_penalty, State &state, XBCFDiscreteModel *model, X_struct &x_struct_con, X_struct &x_struct_mod);

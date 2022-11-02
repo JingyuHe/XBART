@@ -1,31 +1,17 @@
-predict.XBARTmultinomial <- function(model, X, iteration = NULL) {
+predict.XBARTmultinomial <- function(object, X, burnin = 0, ...) {
+    if (object$separate_tree) {
+        out <- json_to_r_3D(object$tree_json)
 
-    if (is.null(iteration)) {
-        cat("Predict with all iterations.", "\n")
-        iteration = 0:(model$model_list$num_sweeps - 1)
+        obj <- .Call(`_XBART_xbart_multinomial_predict_separatetrees`, X, object$model_list$y_mean, object$num_class, out$model_list$tree_pnt) # object$tree_pnt
     } else {
-        ## C++ counts from 0, subtract 1 to match the index
-        ## 1L means integer 1, rather than a float 1
-        iteration = iteration - 1L
+        out <- json_to_r(object$tree_json)
+
+        obj <- .Call(`_XBART_xbart_multinomial_predict`, X, object$model_list$y_mean, object$num_class, out$model_list$tree_pnt) # object$tree_pnt
     }
 
-    if (!is.integer(iteration)) {
-        stop("Iteration index has to be a vector of integers.")
-    }
-
-    # check whether iteration is out of bound
-    test = (iteration >= 0L) * (iteration <= model$model_list$num_sweeps)
-    if (sum(test) != length(iteration)) {
-        stop("Index of iteration is out of bound.")
-    }
-
-    if(model$separate_tree){
-        out = json_to_r_3D(model$tree_json)
-        obj = .Call(`_XBART_xbart_multinomial_predict_3D`, X, model$model_list$y_mean, model$num_class, out$model_list$tree_pnt, iteration) # model$tree_pnt
-    }else{
-        out = json_to_r(model$tree_json)
-        obj = .Call(`_XBART_xbart_multinomial_predict`, X, model$model_list$y_mean, model$num_class, out$model_list$tree_pnt, iteration) # model$tree_pnt
-    }   
+    num_sweeps <- dim(obj$yhats)[1]
+    obj$prob <- apply(obj$yhats[burnin:num_sweeps, , ], c(2, 3), mean)
+    obj$label <- apply(obj$prob, 1, which.max) - 1
 
     return(obj)
 }

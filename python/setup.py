@@ -7,8 +7,10 @@ import sys
 import platform 
 if sys.platform == "win32":
     compile_args = []
+    link_args = []
 else:
-    compile_args = ["-std=gnu++11", "-fpic",  "-g"]
+    compile_args = ["-std=c++17", "-fpic",  "-g"]
+    link_args = ["-larmadillo"]
 if sys.platform == "darwin":
     if 'MACOSX_DEPLOYMENT_TARGET' not in os.environ:
         current_system = LooseVersion(platform.mac_ver()[0])
@@ -22,14 +24,15 @@ XBART_cpp_module = Extension('_xbart_cpp_',
                              sources=['xbart/xbart_wrap.cxx', 'xbart/xbart.cpp',
                                       "src/utility.cpp", 'src/mcmc_loop.cpp',
                                       "src/sample_int_crank.cpp",
-                                      "src/common.cpp",   "src/forest.cpp",
+                                      "src/common.cpp",  
                                       "src/tree.cpp", "src/thread_pool.cpp",
                                       "src/cdf.cpp", "src/json_io.cpp","src/model.cpp"
                                       ],
                              language="c++",
                              include_dirs=[
                                  numpy.get_include(), '.', "src", "xbart"],
-                             extra_compile_args=compile_args
+                             extra_compile_args=compile_args,
+                             extra_link_args = link_args
                              )
 
 

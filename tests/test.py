@@ -15,7 +15,7 @@ class XBARTTesting1(unittest.TestCase):
 
 	def setUp(self):
 		self.params = {"num_trees":10,"num_sweeps":40,"num_cutpoints":10,
-						"max_depth_num":5,"burnin":1}
+						"max_depth":5,"burnin":1}
 		self.model = xbart.XBART(**self.params)
 		self.model_2 = xbart.XBART(**self.params)
 		n = 100
@@ -53,6 +53,7 @@ class XBARTTesting1(unittest.TestCase):
 		y_test = discrete_function(x_test)
 
 		return x,x_test,y,y_test,d
+
 	def test_fit_predict_discrete_2d(self):
 
 		x,x_test,y,y_test,d = self.make_data()
@@ -131,28 +132,28 @@ class XBARTTesting1(unittest.TestCase):
 		y_pred_json = model.predict(x_test,return_mean=False)
 		self.assertFalse(np.array_equal(y_pred_json,y_pred_json*0))
 
-	def test_probit(self):
-		x,x_test,y,y_test,d = self.make_data()
-		y = (y >0)*2-1 ; y_test = (y_test > 0)*2-1
-		model = xbart.XBART(model="Probit",**self.params)
-		model.fit(x,y,d-1)
-		y_pred = (model.predict(x_test) > 0)*1
-		y_bin = (y_test > 0 )*1
-		acc = np.mean(y_pred == y_bin)
-		print("Accuracy:" + str(acc))
-		self.assertTrue(acc > 0.6)
+	# def test_probit(self):
+	# 	x,x_test,y,y_test,d = self.make_data()
+	# 	y = (y >0)*2-1 ; y_test = (y_test > 0)*2-1
+	# 	model = xbart.XBART(model="Probit",**self.params)
+	# 	model.fit(x,y,d-1)
+	# 	y_pred = (model.predict(x_test) > 0)*1
+	# 	y_bin = (y_test > 0 )*1
+	# 	acc = np.mean(y_pred == y_bin)
+	# 	print("Accuracy:" + str(acc))
+	# 	self.assertTrue(acc > 0.6)
 
 
-	def test_multinomial(self):
-		x,x_test,y,y_test,d = self.make_data()
-		y = (y >0)*1 ; y_test = (y_test > 0)*1
-		model = xbart.XBART(model="Multinomial",**self.params,num_classes=2)
-		model.fit(x,y,d-1)
-		y_pred = (model.predict(x_test)[:,1] > 0)*1
-		y_bin = (y_test > 0 )*1
-		acc = np.mean(y_pred == y_bin)
-		print("Accuracy:" + str(acc))
-		self.assertTrue(acc > 0.6)
+	# def test_multinomial(self):
+	# 	x,x_test,y,y_test,d = self.make_data()
+	# 	y = (y >0)*1 ; y_test = (y_test > 0)*1
+	# 	model = xbart.XBART(model="Multinomial",**self.params,num_classes=2)
+	# 	model.fit(x,y,d-1)
+	# 	y_pred = (model.predict(x_test)[:,1] > 0)*1
+	# 	y_bin = (y_test > 0 )*1
+	# 	acc = np.mean(y_pred == y_bin)
+	# 	print("Accuracy:" + str(acc))
+	# 	self.assertTrue(acc > 0.6)
 
 	def test_dimension_mismatch_x_y(self):
 		with self.assertRaises(AssertionError):

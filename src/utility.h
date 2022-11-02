@@ -1,19 +1,25 @@
 #ifndef GUARD_utility_h
 #define GUARD_utility_h
+#define BOOST_MATH_OVERFLOW_ERROR_POLICY errno_on_error
+
 
 #include "common.h"
 
-// #include "thread_pool.h"
-// extern ThreadPool thread_pool;
+#include "thread_pool.h"
+extern ThreadPool thread_pool;
 
-#ifndef SWIG
+// #ifndef SWIG_FILE_WITH_INIT
 #include <algorithm>
 #include <functional>
 #include <iterator>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <numeric>
-#endif
+#include <armadillo>
+#include <boost/math/special_functions/bessel.hpp>
+
+using namespace arma;
+using namespace boost::math;
 
 template <typename T>
 void ini_matrix(matrix<T> &matrix, size_t N, size_t p)
@@ -124,7 +130,8 @@ std::vector<size_t> sort_indexes(const std::vector<T> &v)
 
     // sort indexes based on comparing values in v
     sort(idx.begin(), idx.end(),
-         [&v](size_t i1, size_t i2) {
+         [&v](size_t i1, size_t i2)
+         {
              // Compare index values by their respective v values
              return v[i1] < v[i2];
          });
@@ -136,7 +143,9 @@ double sq_vec_diff(std::vector<double> &v1, std::vector<double> &v2);
 
 double sq_vec_diff_sizet(std::vector<size_t> &v1, std::vector<size_t> &v2);
 
-void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique, size_t &p_categorical, size_t &p_continuous);
+void unique_value_count2(const double *Xpointer, matrix<size_t> &Xorder_std, std::vector<double> &X_values, std::vector<size_t> &X_counts, std::vector<size_t> &variable_ind, size_t &total_points, std::vector<size_t> &X_num_unique, std::vector<size_t> &X_num_cutpoints, size_t &p_categorical, size_t &p_continuous);
+
+void get_X_range(const double *Xpointer, std::vector<std::vector<size_t>> &Xorder_std, std::vector<std::vector<double>> &X_range, size_t &n_y);
 
 double normal_density(double y, double mean, double var, bool take_log);
 
@@ -149,5 +158,25 @@ double wrap(double x);
 void multinomial_distribution(const size_t size, std::vector<double> &prob, std::vector<double> &draws, std::mt19937 &gen);
 
 void dirichlet_distribution(std::vector<double> &prob, std::vector<double> &alpha, std::mt19937 &gen);
+
+void get_rel_covariance(mat &cov, mat &X, std::vector<double> X_range, double theta, double tau);
+
+double sum_vec_yz(std::vector<double> &v, matrix<double> &z);
+
+double sum_vec_z_squared(matrix<double> &z, size_t n);
+
+double sum_vec_yzsq(std::vector<double> &v, matrix<double> &z);
+
+double sum_vec_y_z(std::vector<double> &v, matrix<double> &z);
+
+double drawlambdafromR(size_t n, double sy, double c, double d, std::mt19937& gen);
+
+double drawnodelambda(size_t n, double sy, double c, double d, std::mt19937& gen);
+
+double gignorm(double eta, double chi, double psi);
+
+double loggignorm(double eta, double chi, double psi) ;
+
+double lgigkernel(double x, double eta, double chi, double psi);
 
 #endif

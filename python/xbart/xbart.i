@@ -23,6 +23,7 @@ import_array();
 %apply (int DIM1,double* IN_ARRAY1) {(int n,double *a)};
 %apply (int DIM1, double* ARGOUT_ARRAY1) {(int size, double *arr)};
 %apply (int DIM1,int DIM2,double* IN_ARRAY2) {(int n, int d,double *a)};
+%apply (int DIM1,int DIM2,double* IN_ARRAY2) {(int n_t, int d_t,double *a_t)};
 %apply (int DIM1,double* IN_ARRAY1) {(int n_y,double *a_y)};
 
 

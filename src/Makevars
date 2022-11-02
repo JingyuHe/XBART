@@ -3,10 +3,8 @@ CCACHE=ccache
 CC=$(CCACHE) gcc
 CXX=$(CCACHE) g++
 CXX1X=$(CCACHE) g++
-
 PKG_CPPFLAGS = -I../inst/include -I.
-PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CFLAGS) -fopenmp 
-PKG_CFLAGS = $(SHLIB_OPENMP_CFLAGS)
-PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) 
-CXX_STD = CXX11
-MAKEFLAGS = -j4
+PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) -lgsl
+# PKG_LIBS += $(shell ${R_HOME}/bin/Rscript -e "RcppParallel::RcppParallelLibs()")
+CXX_STD = CXX17
+MAKEFLAGS = -j8

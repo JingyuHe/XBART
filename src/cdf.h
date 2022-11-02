@@ -11,12 +11,7 @@
 #ifndef __CDF_H
 #define __CDF_H
 
-//const double PI = 3.1415926535;
-//const double SQRT2PI = 2.5066282746;
-//const double SQRT2 = 1.414214;
-
-
-#include"common.h"
+#include "common.h"
 
 double normCDF(const double x);
 double normCDFInv(const double x);
@@ -34,6 +29,5 @@ double fCDFInv(const double x, const double n1, const double n2); // not yet def
 double digamma(const double x);
 double trigamma(const double x);
 double trigammainv(const double y); // error up to 0.25
-
 
 #endif
