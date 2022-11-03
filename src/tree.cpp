@@ -400,6 +400,21 @@ json tree::to_json()
     return j;
 }
 
+size_t tree::get_max_depth()
+{
+    size_t output = 0;
+    std::vector<tree *> leaf_nodes;
+    this->getbots(leaf_nodes);
+    for (size_t i = 0; i < leaf_nodes.size();i++)
+    {
+        if(leaf_nodes[i]->getdepth() > output)
+        {
+            output = leaf_nodes[i]->getdepth();
+        }
+    }
+    return output;
+}
+
 void tree::from_json(json &j3, size_t dim_theta)
 {
     if (j3["left"].is_number())
@@ -810,8 +825,8 @@ void tree::grow_from_root_entropy(State &state, matrix<size_t> &Xorder_std, std:
         // cout << "suff stat " << this->suff_stat << endl;
         // cout << "theta " << this->theta_vector << endl;
 
-        for (auto i: this->theta_vector)
-        { 
+        for (auto i : this->theta_vector)
+        {
             if (isinf(i) | isnan(i))
             {
                 cout << "suff stat " << this->suff_stat << endl;
@@ -1101,7 +1116,9 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
         if (*(temp_pointer + Xorder_std[split_var][j]) <= cutvalue)
         {
             model->updateNodeSuffStat(state, current_node->l->suff_stat, Xorder_std, split_var, j);
-        } else {
+        }
+        else
+        {
             model->updateNodeSuffStat(state, current_node->r->suff_stat, Xorder_std, split_var, j);
         }
     }
@@ -1661,9 +1678,9 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                     loglike[loglike_start + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, false, false, state);
 
                     // adjust for the difference of number of cutpoints between continuous variable and categorical variables
-                    loglike[loglike_start + j] += - log(x_struct.X_num_unique[i - state.p_continuous]);
+                    loglike[loglike_start + j] += -log(x_struct.X_num_unique[i - state.p_continuous]);
 
-                    if(state.p_continuous > 0)
+                    if (state.p_continuous > 0)
                     {
                         loglike[loglike_start + j] += log(state.n_cutpoints);
                     }

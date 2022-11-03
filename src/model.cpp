@@ -599,30 +599,47 @@ void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_l
         logloss = logloss / state.n_y;
 
         double exp_logloss = exp(-1.0 * logloss);
-
         double exp_logloss_last_sweep = exp(-1.0 * state.logloss_last_sweep);
-        double mu = -0.251 + 4.125 * exp_logloss - 15.09 * pow(exp_logloss, 2) + 14.90 * pow(exp_logloss, 3);
-        double mu_last_sweep = -0.251 + 4.125 * exp_logloss_last_sweep - 15.09 * pow(exp_logloss_last_sweep, 2) + 14.90 * pow(exp_logloss_last_sweep, 3);
+        // double mu = -0.251 + 4.125 * exp_logloss - 15.09 * pow(exp_logloss, 2) + 14.90 * pow(exp_logloss, 3);
+        // double mu_last_sweep = -0.251 + 4.125 * exp_logloss_last_sweep - 15.09 * pow(exp_logloss_last_sweep, 2) + 14.90 * pow(exp_logloss_last_sweep, 3);
+
+        double weight_latent_proposal;
+        double weight_proposal;
+        double value1;
+        double value2;
+        double value3;
+        double value4;
+        double mu;
+        double mu_last_sweep;
+
+        if (exp_logloss <= 0.6)
+        {
+            mu = 1.5;
+        }
+        else
+        {
+            mu = 29.55 - 119.02 * exp_logloss + 152.95 * pow(exp_logloss, 2) - 60.98 * pow(exp_logloss, 3);
+        }
 
         // sampling weight by random walk
         // MH_step is standard deviation
         std::normal_distribution<>
             dd(0, MH_step);
 
-        double weight_latent_proposal = exp(mu + dd(state.gen)) + 1.0;
+        weight_latent_proposal = exp(mu + dd(state.gen)) + 1.0;
 
         // double weight_proposal = fabs(weight_latent_proposal - 1.0) + 1.0;
 
-        double weight_proposal = weight_latent_proposal < 10.0 ? weight_latent_proposal : 10.0;
+        weight_proposal = weight_latent_proposal < 10.0 ? weight_latent_proposal : 10.0;
+
+        value3 = normal_density(log(weight_latent - 1.0), mu, MH_step, true);
+
+        value4 = normal_density(log(weight_latent_proposal - 1.0), mu, MH_step, true);
 
         // notice that logloss is negative, multiply by -1 to convert to likelihood
-        double value1 = w_likelihood(state, weight, logloss);
+        value1 = w_likelihood(state, weight, logloss);
 
-        double value2 = w_likelihood(state, weight_proposal, logloss);
-
-        double value3 = normal_density(log(weight_latent - 1.0), mu, MH_step, true);
-
-        double value4 = normal_density(log(weight_latent_proposal - 1.0), mu, MH_step, true);
+        value2 = w_likelihood(state, weight_proposal, logloss);
 
         // this is in log scale
         double ratio = value2 - value1 + value3 - value4 + normal_density(log(weight_latent_proposal - 1.0), log(2.0), 0.5, true) - normal_density(log(weight_latent - 1.0), log(2.0), 0.5, true);

@@ -48,12 +48,12 @@ num_sweeps <- 25
 burnin <- 10
 num_trees <- 50
 max_depth <- 10
-mtry <- p 
+mtry <- p
 tm <- proc.time()
 fit <- XBART.multinomial(
     y = matrix(y_train), num_class = k, X = X_train,
     num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth,
-    num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 3.5^2 + 0.5), tau_b = (num_trees * 2 / 3.5^2), verbose = FALSE, separate_tree = FALSE, updte_tau = FALSE, update_weight = TRUE, update_phi = FALSE, a = 2 / k, weight_exponent = 6, no_split_penalty = 0.5, beta = 2, weight = 100, MH_step = 0.25, parallel = FALSE
+    num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 3.5^2 + 0.5), tau_b = (num_trees * 2 / 3.5^2), verbose = FALSE, separate_tree = FALSE, updte_tau = FALSE, update_weight = TRUE, update_phi = FALSE, a = 2 / k, weight_exponent = 6, no_split_penalty = 0.5, beta = 2, weight = 10, MH_step = 0.1, parallel = FALSE
 )
 tm <- proc.time() - tm
 cat(paste("XBART runtime (sampling weights): ", round(tm["elapsed"], 3), " seconds"), "\n")
@@ -74,7 +74,7 @@ tm2 <- proc.time()
 fit2 <- XBART.multinomial(
     y = matrix(y_train), num_class = k, X = X_train,
     num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth,
-    num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 3.5^2 + 0.5), tau_b = (num_trees * 2 / 3.5^2), verbose = FALSE, separate_tree = FALSE, updte_tau = FALSE, update_weight = FALSE, update_phi = FALSE, a = 2 / k, weight_exponent = 6, no_split_penalty = 0.5, beta = 2, weight = 25, MH_step = 0.25, parallel = FALSE
+    num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 3.5^2 + 0.5), tau_b = (num_trees * 2 / 3.5^2), verbose = FALSE, separate_tree = FALSE, updte_tau = FALSE, update_weight = FALSE, update_phi = FALSE, a = 2 / k, weight_exponent = 6, no_split_penalty = 0.5, beta = 2, weight = 2, MH_step = 0.25, parallel = FALSE
 )
 tm2 <- proc.time() - tm2
 cat(paste("XBART runtime: ", round(tm2["elapsed"], 3), " seconds"), "\n")
@@ -118,3 +118,22 @@ rownames(results) = c("Time", "LogLoss", "Accuracy")
 colnames(results) = c("XBART sampling weights", "XBART", "XGBoost")
 
 print(results)
+
+
+
+# require(GIGrvg)
+
+# num = 10000000
+
+# n = 50000
+# sy = 50000
+# c = 8
+# d = 8
+
+# eta <- -c + n
+# chi <- 2 * d
+# psi <- 2 * sy
+# t = proc.time()
+# a = XBART::test(eta, chi, psi, num)
+# t = proc.time() - t
+# t
