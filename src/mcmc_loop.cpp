@@ -169,7 +169,6 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                 {
                     COUT << " --- --- --- " << endl;
                     COUT << "tree " << tree_ind << " old size = " << trees[sweeps - 1][tree_ind].treesize() << ", new size = " << trees[sweeps][tree_ind].treesize() << endl;
-                    COUT << "tree " << tree_ind << " old depth = " << trees[sweeps - 1][tree_ind].get_max_depth() << ", new depth = " << trees[sweeps][tree_ind].get_max_depth() << endl; 
                     COUT << " logloss " << model->logloss << " acc " << model->accuracy << endl;
                 }
             }

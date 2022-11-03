@@ -8,7 +8,7 @@ k <- 3
 p <- k
 p_add <- 0
 p_cat <- 0
-acc_level <- 0.99
+acc_level <- 0.6
 x <- matrix(rnorm(n.all * (p + p_add)), n.all, (p + p_add))
 
 
