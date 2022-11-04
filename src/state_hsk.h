@@ -1,3 +1,5 @@
+/*
+
 #ifndef GUARD_fit_info_h
 #define GUARD_fit_info_h
 
@@ -220,3 +222,4 @@ class hskState : public State
 };
 
 #endif
+*/
