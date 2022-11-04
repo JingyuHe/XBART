@@ -1,5 +1,5 @@
 #include <ctime>
-#include <RcppArmadillo.h>
+// #include <RcppArmadillo.h>
 #include "tree.h"
 #include <chrono>
 #include "mcmc_loop.h"
@@ -47,6 +47,7 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     // COUT << "In source." << endl;
     // double var = ini_var;
     nthread = 0;
+
     if (parallel && (nthread == 0))
     {
         // if turn on parallel and do not sepicifiy number of threads
