@@ -92,7 +92,7 @@ public:
     size_t num_trees_mod;
 
     // extra variables for binary treatment XBCF
-    std::vector<double> b_vec;     // scaling parameters for tau (b0,b1)     TODO: move to xbcfState
+    std::vector<double> b_vec; // scaling parameters for tau (b0,b1)     TODO: move to xbcfState
     // a is also used for logit model
     double a;                      // scaling parameter for mu               TODO: move to xbcfState
     std::vector<double> sigma_vec; // residual standard deviations           TODO: move to xbcfState
@@ -100,7 +100,6 @@ public:
     bool b_scaling;
     size_t N_trt;
     size_t N_ctrl;
-
 
     void update_sigma(double sigma)
     {
@@ -115,7 +114,6 @@ public:
         this->sigma_vec[ind] = sigma; // sigma for the "ind" group
         return;
     }
-
 
     State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread)
     {
@@ -209,7 +207,8 @@ class LogitState : public State
         for (size_t i = 0; i < num_trees; i++)
         {
             lambdas[i].resize(dim_residual);
-            for(size_t j = 0; j < dim_residual; j++){
+            for (size_t j = 0; j < dim_residual; j++)
+            {
                 lambdas[i][j].push_back(1);
             }
         }
@@ -307,6 +306,32 @@ public:
         this->sigma_vec.resize(2);
         this->sigma_vec[0] = 1;
         this->sigma_vec[1] = 1;
+    }
+};
+
+class hskState : public State
+{
+    // for hskState we have residual_std of size 3xN
+    // residual[0] is the original residual we try to learn
+    // residual[1] is the precision vector
+    // residual[2] is the element-wise product of residual[0] and residual[1]
+
+private:
+    void ini_sigma(std::vector<double> &sigma, std::vector<double> &input)
+    {
+        sigma.resize(input.size());
+        for (size_t i = 0; i < input.size(); i++)
+        {
+            sigma[i] = input[i];
+        }
+    }
+
+public:
+    hskState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights_flag, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel, std::vector<double> &sigma_vec) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, mtry, X_std, num_sweeps, sample_weights_flag, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
+    {
+        // COUT << "hsk " <<ini_var_yhat << endl;
+        ini_sigma(this->sigma_vec, sigma_vec);
+        this->parallel = parallel;
     }
 };
 
