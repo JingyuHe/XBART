@@ -119,11 +119,11 @@ void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
             var_state.update_split_counts(tree_ind);
 
             // update partial residual for the next tree to fit
-            var_model->state_sweep(tree_ind, var_state.num_trees, *var_state.residual_std, var_state.var_fit, var_x_struct);
+            var_model->state_sweep(tree_ind, var_state.num_trees, *var_state.residual_std, *var_state.var_fit, var_x_struct);
         }
 
         // pass fitted values for sigmas to the mean model
-        // var_model->update_sigmas(mean_state.residual_std, var_state.var_fit);
+        // var_model->update_sigmas(mean_state.residual_std, *var_state.var_fit);
         var_model->update_sigmas(*mean_state.residual_std, var_state.num_trees, var_x_struct);
 
         // NK: currently the additional parameters are off, so we don't update them
@@ -280,11 +280,11 @@ void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
             var_state.update_split_counts(tree_ind);
 
             // update partial residual for the next tree to fit
-            var_model->state_sweep(tree_ind, var_state.num_trees, var_state.residual_std, var_state.var_fit, var_x_struct);
+            var_model->state_sweep(tree_ind, var_state.num_trees, var_state.residual_std, *var_state.var_fit, var_x_struct);
         }
 
         // pass fitted values for sigmas to the mean model
-        //var_model->update_sigmas(mean_state.residual_std, var_state.var_fit);
+        //var_model->update_sigmas(mean_state.residual_std, *var_state.var_fit);
         //var_model->update_sigmas(mean_state.residual_std, var_state.num_trees, var_x_struct);
 
         // NK: currently the additional parameters are off, so we don't update them

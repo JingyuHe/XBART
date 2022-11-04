@@ -101,7 +101,7 @@ public:
     size_t N_trt;
     size_t N_ctrl;
 
-    std::vector<double> var_fit; // for heteroskedastic XBART
+    std::vector<double> *var_fit; // for heteroskedastic XBART
 
     void update_sigma(double sigma)
     {
@@ -183,7 +183,7 @@ public:
         this->sigma = sigma;
         this->sigma2 = pow(sigma, 2);
         this->parallel = parallel;
-        this->var_fit = std::vector<double>(N, 0); // initialize fit at log(1)=0 for all observations
+        this->var_fit = new std::vector<double>(N, 0); // initialize fit at log(1)=0 for all observations
     }
 };
 
