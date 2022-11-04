@@ -140,7 +140,7 @@ double logNormalModel::likelihood(std::vector<double> &temp_suff_stat,
 void logNormalModel::state_sweep(size_t tree_ind,
                                  size_t M,
                                  matrix<double> &residual_std,
-                                 std::vector<double> &fit,
+                                 //std::vector<double> &fit,
                                  X_struct &x_struct) const
 {
     size_t next_index = tree_ind + 1;

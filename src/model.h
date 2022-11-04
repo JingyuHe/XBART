@@ -679,7 +679,7 @@ public:
 
     double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State &state) const;
 
-    void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, std::vector<double> &fit, X_struct &x_struct) const;
+    void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, /*std::vector<double> &fit,*/ X_struct &x_struct) const;
 
     // double likelihood_no_split(std::vector<double> &suff_stat, State &state) const;
 
