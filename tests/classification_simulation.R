@@ -1,14 +1,13 @@
 library(XBART)
 library(xgboost)
 
-n.train <- 5000
+n.train <- 3000
 n.test <- 1000
 n.all <- n.train + n.test
-k <- 3
-p <- k
-p_add <- 0
+p <- 5
+p_add <- 10
 p_cat <- 0
-acc_level <- 0.6
+acc_level <- 0.99
 x <- matrix(rnorm(n.all * (p + p_add)), n.all, (p + p_add))
 
 
@@ -44,18 +43,20 @@ y_test <- y.all[-(1:n.train)] - 1
 
 num_class <- max(y_train) + 1
 
-num_sweeps <- 25
-burnin <- 10
+num_sweeps <- 30
+burnin <- 2
 num_trees <- 50
-max_depth <- 10
-mtry <- p
+max_depth <- 25
+mtry <- p + p_add
+
 tm <- proc.time()
 fit <- XBART.multinomial(
-    y = matrix(y_train), num_class = k, X = X_train,
-    num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth,
-    num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 3.5^2 + 0.5), tau_b = (num_trees * 2 / 3.5^2), verbose = FALSE, separate_tree = FALSE, updte_tau = FALSE, update_weight = TRUE, update_phi = FALSE, a = 2 / k, weight_exponent = 6, no_split_penalty = 0.5, beta = 2, weight = 10, MH_step = 0.1, parallel = FALSE
+    y = matrix(y_train), num_class = num_class, X = X_train,
+    num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth, update_weight = TRUE,
+    num_cutpoints = 100, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 2.5^2 + 0.5), tau_b = (num_trees * 2 / 2.5^2), verbose = FALSE, separate_tree = FALSE, update_tau = FALSE, update_phi = FALSE, a = 1 / num_class, no_split_penalty = 0.5, alpha = 0.95, beta = 2, Nmin = 15 * num_class, weight = 2.5, MH_step = 0.05, parallel = FALSE
 )
 tm <- proc.time() - tm
+
 cat(paste("XBART runtime (sampling weights): ", round(tm["elapsed"], 3), " seconds"), "\n")
 pred <- predict(fit, X_test, burnin = burnin)
 phat <- apply(pred$yhats[burnin:num_sweeps, , ], c(2, 3), mean)
@@ -69,30 +70,30 @@ hist(fit$weight)
 plot(c(fit$weight))
 
 
-
-tm2 <- proc.time()
-fit2 <- XBART.multinomial(
-    y = matrix(y_train), num_class = k, X = X_train,
-    num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth,
-    num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 3.5^2 + 0.5), tau_b = (num_trees * 2 / 3.5^2), verbose = FALSE, separate_tree = FALSE, updte_tau = FALSE, update_weight = FALSE, update_phi = FALSE, a = 2 / k, weight_exponent = 6, no_split_penalty = 0.5, beta = 2, weight = 2, MH_step = 0.25, parallel = FALSE
-)
-tm2 <- proc.time() - tm2
-cat(paste("XBART runtime: ", round(tm2["elapsed"], 3), " seconds"), "\n")
-pred2 <- predict(fit2, X_test, burnin = burnin)
-phat2 <- apply(pred2$yhats[burnin:num_sweeps, , ], c(2, 3), mean)
-yhat2 <- pred2$label
-spr.xbart2 <- split(phat2, row(phat))
-logloss2 <- sum(mapply(function(x, y) -log(x[y]), spr.xbart2, y_test + 1, SIMPLIFY = TRUE))
-
+#
+# tm2 <- proc.time()
+# fit2 <- XBART.multinomial(
+#   y = matrix(y_train), num_class = k, X = X_train,
+#   num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth,
+#   num_cutpoints = NULL, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 2.5^2 + 0.5), tau_b = (num_trees * 2 / 2.5^2), verbose = FALSE, separate_tree = FALSE, update_tau = FALSE, update_weight = FALSE, update_phi = FALSE, a = 1 / k, no_split_penalty = 0.5, Nmin = 15*k, beta = 2, weight = 10, MH_step = 0.05, parallel = FALSE
+# )
+# tm2 <- proc.time() - tm2
+# cat(paste("XBART runtime: ", round(tm2["elapsed"], 3), " seconds"), "\n")
+# pred2 <- predict(fit2, X_test, burnin = burnin)
+# phat2 <- apply(pred2$yhats[burnin:num_sweeps, , ], c(2, 3), mean)
+# yhat2 <- pred2$label
+# spr.xbart2 <- split(phat2, row(phat))
+# logloss2 <- sum(mapply(function(x, y) -log(x[y]), spr.xbart2, y_test + 1, SIMPLIFY = TRUE))
+#
 
 tm3 <- proc.time()
 fit.xgb <- xgboost(
     data = X_train, label = y_train,
-    num_class = k,
+    num_class = num_class,
     verbose = 0,
-    max_depth = 4,
+    max_depth = 15,
     subsample = 0.80,
-    nrounds = 500,
+    nrounds = 150,
     early_stopping_rounds = 2,
     eta = 0.1,
     params = list(objective = "multi:softprob")
@@ -100,7 +101,7 @@ fit.xgb <- xgboost(
 tm3 <- proc.time() - tm3
 cat(paste("XGBoost runtime: ", round(tm3["elapsed"], 3), " seconds"), "\n")
 phat.xgb <- predict(fit.xgb, X_test)
-phat.xgb <- matrix(phat.xgb, ncol = k, byrow = TRUE)
+phat.xgb <- matrix(phat.xgb, ncol = num_class, byrow = TRUE)
 
 yhat.xgb <- max.col(phat.xgb) - 1
 
@@ -108,14 +109,14 @@ spr <- split(phat.xgb, row(phat.xgb))
 logloss.xgb <- sum(mapply(function(x, y) -log(x[y]), spr, y_test + 1, SIMPLIFY = TRUE))
 
 
-time <- c(tm["elapsed"], tm2["elapsed"], tm3["elapsed"])
-lloss <- c(logloss, logloss2, logloss.xgb)
-acc <- c(mean(y_test == yhat), mean(y_test == yhat2), mean(y_test == yhat.xgb))
+time <- c(tm["elapsed"], tm3["elapsed"])
+lloss <- c(logloss, logloss.xgb)
+acc <- c(mean(y_test == yhat), mean(y_test == yhat.xgb))
 
 results = rbind(time, lloss, acc)
 
 rownames(results) = c("Time", "LogLoss", "Accuracy")
-colnames(results) = c("XBART sampling weights", "XBART", "XGBoost")
+colnames(results) <- c("XBART sampling weights", "XGBoost")
 
 print(results)
 
