@@ -12,7 +12,9 @@ void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
                     vector<vector<tree>> &var_trees,
                     State &var_state,
                     logNormalModel *var_model,
-                    X_struct &var_x_struct)
+                    X_struct &var_x_struct,
+                    matrix<double> &res_m,
+                    matrix<double> &res_v)
 {
 
     mean_model->ini_residual_std(mean_state);
@@ -22,6 +24,10 @@ void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
     // NK: if not, we'll just pass num_sweeps as a aseparate variable
     for (size_t sweeps = 0; sweeps < mean_state.num_sweeps; sweeps++)
     {
+        for (size_t data_ind = 0; data_ind < mean_state.n_y; data_ind++)
+        {
+            res_m[sweeps][data_ind] = (*mean_state.residual_std)[0][data_ind];
+        }
 
         if (verbose == true)
         {
@@ -79,6 +85,11 @@ void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
 
         var_model->ini_residual_std(var_state, (*mean_state.residual_std), var_x_struct);
         //var_state.update_target(mean_state.log_res2);
+
+        for (size_t data_ind = 0; data_ind < var_state.n_y; data_ind++)
+        {
+            res_v[sweeps][data_ind] = (*var_state.residual_std)[0][data_ind];
+        }
 
         // NK: loop for the variance model forest
         for (size_t tree_ind = 0; tree_ind < var_state.num_trees; tree_ind++)

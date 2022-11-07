@@ -70,11 +70,14 @@ plot(y_hats,yp,ylab="y",cex.axis=1,cex.lab=1)
 abline(0,1)
 
 # predicted sigma2
-sig2_hats <- rowMeans(fit$sigma2hats_test[,burnin:num_sweeps])
+sig2_hats <- rowMeans(fit$sigma2hats_test[,36:46])
 plot(sig2_hats,sxp^2,ylab="var(y)",cex.axis=1,cex.lab=1)
 abline(0,1)
 
-
+r <- fit$res_mm
+colMeans(r)
+v <- fit$res_vm
+colMeans(v)
 # num_sweeps = 50
 # burnin = 20
 # fit.xb = XBART(y=matrix(y),X=x, Xtest=x,

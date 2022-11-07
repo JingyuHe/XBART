@@ -97,6 +97,11 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     double *Xpointer = &X_std[0];
     double *Xtestpointer = &Xtest_std[0];
 
+    matrix<double> res_m;
+    ini_matrix(res_m, N, num_sweeps);
+    matrix<double> res_v;
+    ini_matrix(res_v, N, num_sweeps);
+
     matrix<double> yhats_test_xinfo;
     ini_matrix(yhats_test_xinfo, N_test, num_sweeps);
 
@@ -166,7 +171,8 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     //COUT << "Running the model." << endl;
     ////////////////////////////////////////////////////////////////
     // mcmc loop
-    mcmc_loop_hsk(Xorder_std, verbose, sigma_draw_xinfo, *trees2_m, state_m, model_m, x_struct_m, *trees2_v, state_v, model_v, x_struct_v);
+    mcmc_loop_hsk(Xorder_std, verbose, sigma_draw_xinfo, *trees2_m, state_m, model_m, x_struct_m, *trees2_v, state_v, model_v, x_struct_v,
+                  res_m, res_v);
 
     //mcmc_loop_hsk_test(Xorder_std, verbose, sigma_draw_xinfo, *trees2_m, state_m, model_m, x_struct_m);
 
@@ -196,13 +202,20 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericMatrix sigma2_test(N_test, num_sweeps);
 
+    Rcpp::NumericMatrix res_mm(N, num_sweeps);
+    Rcpp::NumericMatrix res_vm(N, num_sweeps);
+
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(yhats_test_xinfo, yhats_test);
     Matrix_to_NumericMatrix(sigma2_test_xinfo, sigma2_test);
+    Matrix_to_NumericMatrix(res_m, res_mm);
+    Matrix_to_NumericMatrix(res_v, res_vm);
 
     // TODO: check outputs
     return Rcpp::List::create(
         Rcpp::Named("yhats_test") = yhats_test,
-        Rcpp::Named("sigma2hats_test") = sigma2_test
+        Rcpp::Named("sigma2hats_test") = sigma2_test,
+        Rcpp::Named("res_mm") = res_mm,
+        Rcpp::Named("res_vm") = res_vm
         );
 }
