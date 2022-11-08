@@ -135,6 +135,8 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     // COUT << "Objects init." << endl;
     // define the mean model
     hskNormalModel *model_m = new hskNormalModel(kap, s, tau_m, alpha, beta, sampling_tau, tau_kap, tau_s);
+
+//    NormalModel *model_m = new NormalModel(kap, s, tau_m, alpha, beta, sampling_tau, tau_kap, tau_s);
     // cout << "after define model " << model->tau << " " << model->tau_mean << endl;
     model_m->setNoSplitPenalty(no_split_penalty_m);
 
@@ -145,13 +147,14 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     model_v->setNoSplitPenalty(no_split_penalty_v);
 
     // State settings for the mean model
+ //   NormalState state_m(Xpointer, Xorder_std, N, p, num_trees_m, p_categorical, p_continuous, set_random_seed, random_seed, n_min_m, num_cutpoints_m, mtry, Xpointer, num_sweeps, sample_weights, &y_std, 1.0, max_depth_m, y_mean, burnin, model_m->dim_residual, nthread, parallel);
     std::vector<double> sigma_vec(N, ini_var); // initialize vector of heterogeneous sigmas
     hskState state_m(Xpointer, Xorder_std, N, p, num_trees_m,
                                                 p_categorical, p_continuous, set_random_seed,
                                                 random_seed, n_min_m, num_cutpoints_m,
                                                 mtry, Xpointer, num_sweeps, sample_weights,
                                                 &y_std, 1.0, max_depth_m, y_mean, burnin, model_m->dim_residual,
-                                                nthread, parallel, sigma_vec); //last input is nthread, need update
+                                                nthread, parallel, sigma_vec); //last input is nthread, need update*/
     // State settings for the variance model
     NormalState state_v(Xpointer, Xorder_std, N, p, num_trees_v,
                                                    p_categorical, p_continuous, set_random_seed,

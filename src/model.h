@@ -612,7 +612,7 @@ public:
 
     void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
 
-    void incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats);
+    void incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats);
 
     void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
@@ -620,7 +620,7 @@ public:
 
     //void update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> & trees);
 
-    void updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
+    void updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
 
     void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side);
 
@@ -669,9 +669,9 @@ public:
 
     void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
 
-    void updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
+    void updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
 
-    void incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats);
+    void incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats);
 
     void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 

@@ -34,31 +34,31 @@ void logNormalModel::initialize_root_suffstat(State &state,
     suff_stat[1] = 0;
     for (size_t i = 0; i < state.n_y; i++)
     {
-        incSuffStat((*state.residual_std), i, suff_stat);
+        incSuffStat(state, i, suff_stat);
         //COUT << (*state.residual_std)[0][i] << " <- res | exp_res -> " << exp((*state.residual_std)[0][i]) << endl;
     }
     return;
 }
 
-void logNormalModel::incSuffStat(matrix<double> &residual_std,
+void logNormalModel::incSuffStat(State &state,
                                  size_t index_next_obs,
                                  std::vector<double> &suffstats)
 {
     // I have to pass matrix<double> &residual_std, size_t index_next_obs
     // which allows more flexibility for multidimensional residual_std
 
-    suffstats[0] += exp(residual_std[0][index_next_obs]);
+    suffstats[0] += exp((*state.residual_std)[0][index_next_obs]);
     suffstats[1] += 1;
     return;
 }
 
-void logNormalModel::updateNodeSuffStat(std::vector<double> &suff_stat,
-                                        matrix<double> &residual_std,
+void logNormalModel::updateNodeSuffStat(State &state,
+                                        std::vector<double> &suff_stat,
                                         matrix<size_t> &Xorder_std,
                                         size_t &split_var,
                                         size_t row_ind)
 {
-    incSuffStat(residual_std, Xorder_std[split_var][row_ind], suff_stat);
+    incSuffStat(state, Xorder_std[split_var][row_ind], suff_stat);
     return;
 }
 

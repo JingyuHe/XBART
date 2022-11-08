@@ -51,12 +51,12 @@ void hskNormalModel::initialize_root_suffstat(State &state, std::vector<double> 
     return;
 }
 
-void hskNormalModel::incSuffStat(matrix<double> &residual_std, size_t index_next_obs, std::vector<double> &suffstats)
+void hskNormalModel::incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats)
 {
     // I have to pass matrix<double> &residual_std, size_t index_next_obs
     // which allows more flexibility for multidimensional residual_std
-    suffstats[0] += residual_std[2][index_next_obs]; // r/sigma^2
-    suffstats[1] += residual_std[1][index_next_obs]; // 1/sigma^2
+    suffstats[0] += (*state.residual_std)[2][index_next_obs]; // r/sigma^2
+    suffstats[1] += (*state.residual_std)[1][index_next_obs]; // 1/sigma^2
     //suffstats[2] += residual_std[0][index_next_obs]; // r
 
 }
@@ -76,9 +76,10 @@ void hskNormalModel::samplePars(State &state, std::vector<double> &suff_stat, st
     return;
 }
 
-void hskNormalModel::updateNodeSuffStat(std::vector<double> &suff_stat, matrix<double> &residual_std, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
+void hskNormalModel::updateNodeSuffStat(State &state,
+                                        std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
-    incSuffStat(residual_std, Xorder_std[split_var][row_ind], suff_stat);
+    incSuffStat(state, Xorder_std[split_var][row_ind], suff_stat);
     //COUT << "local node | ss0: " << suff_stat[0] << ", ss1:" << suff_stat[1] << endl;
     return;
 }

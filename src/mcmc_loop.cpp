@@ -30,9 +30,9 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             }
 
             // draw Sigma
-            model->update_state(state, tree_ind, x_struct);
+            //model->update_state(state, tree_ind, x_struct);
 
-            sigma_draw_xinfo[sweeps][tree_ind] = state.sigma;
+            //sigma_draw_xinfo[sweeps][tree_ind] = state.sigma;
 
             if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
             {
@@ -87,12 +87,12 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             // update partial residual for the next tree to fit
             model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
         }
-
+/*
         if (model->sampling_tau)
         {
             // update tau per sweep (after drawing a forest)
             model->update_tau_per_forest(state, sweeps, trees);
-        }
+        }*/
     }
     return;
 }

@@ -19,10 +19,11 @@ y = fx + sx*rnorm(n)
 np=1000
 xp = matrix(sort(runif(np*p)),ncol=p)
 fxp = 4*(xp[,1]^2)
-#fxp = 0 #constant mean
+#fxp = xp[,1] #constant mean
 sxp = .8*exp(2*xp[,1])
 #sxp = .5*xp[,1]
-yp = fxp + sxp*rnorm(n)
+#sxp = rep(.1,np)
+yp = fxp + sxp*rnorm(np)
 
 # #Now, let’s have a look at the simulated data:
 # plot(x,y,ylab="y",cex.axis=1,cex.lab=1)
@@ -66,7 +67,7 @@ fit = XBART.heterosk(y=matrix(y),X=x, Xtest=xp,
                      )
 # predicted ys
 y_hats <- rowMeans(fit$yhats_test[,burnin:num_sweeps])
-plot(y_hats,yp,ylab="y",cex.axis=1,cex.lab=1)
+plot(y_hats,fxp,ylab="y",cex.axis=1,cex.lab=1)
 abline(0,1)
 
 # predicted sigma2
@@ -78,21 +79,21 @@ r <- fit$res_mm
 colMeans(r)
 v <- fit$res_vm
 colMeans(v)
-# num_sweeps = 50
-# burnin = 20
-# fit.xb = XBART(y=matrix(y),X=x, Xtest=x,
-#              num_sweeps = num_sweeps,
-#              burnin = burnin,
-#              mtry = 1,
-#              p_categorical = 0,
-#              num_trees = 20,
-#              max_depth = 250,
-#              Nmin = 1,
-#              num_cutpoints = 20,
-#              verbose = TRUE,
-#              parallel = FALSE,
-#   )
-# 
-# y_hats <- rowMeans(fit.xb$yhats_test[,burnin:num_sweeps])
-# plot(y_hats,y,ylab="y",cex.axis=1,cex.lab=1)
-# abline(0,1)
+num_sweeps = 80
+burnin = 30
+fit.xb = XBART(y=matrix(y),X=x, Xtest=x,
+             num_sweeps = num_sweeps,
+             burnin = burnin,
+             mtry = 1,
+             p_categorical = 0,
+             num_trees = 20,
+             max_depth = 250,
+             Nmin = 1,
+             num_cutpoints = 20,
+             verbose = FALSE,
+             parallel = FALSE,
+  )
+pred <- predict(fit.xb, xp)
+y_hats <- rowMeans(pred[,burnin:num_sweeps])
+plot(y_hats,fxp,ylab="y",cex.axis=1,cex.lab=1)
+abline(0,1)
