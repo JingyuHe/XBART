@@ -137,6 +137,11 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                     model->copy_initialization(state, x_struct, trees, sweeps, tree_ind, sweeps-1, tree_ind, Xorder_std);
                     // split_count stays the same
 
+                    // update partial fits for the next tree
+                    model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
+                    
+                    model->state_sweep(tree_ind, latent_num_trees, (*state.residual_std), x_struct);
+
                 } else {
                     // clear counts of splits for one tree
                     std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0);
@@ -164,6 +169,11 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 
                     state.update_split_counts(tree_ind);
 
+                    // update partial fits for the next tree
+                    model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
+                    
+                    model->state_sweep(tree_ind, latent_num_trees, (*state.residual_std), x_struct);
+
                     if (trees[sweeps][tree_ind].treesize() >= large_tree_size){
                         large_trees += 1;
                         latent_num_trees += 1;
@@ -174,15 +184,6 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                     }
                 }
                 
-                // update partial fits for the next tree
-                model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
-                
-                model->state_sweep(tree_ind, latent_num_trees, (*state.residual_std), x_struct);
-
-                weight_samples[sweeps][tree_ind] = model->weight;
-                phi_samples[sweeps][tree_ind] = exp((*model->phi)[0]);
-                logloss[sweeps][tree_ind] = model->logloss;
-                tree_size[sweeps][tree_ind] = trees[sweeps][tree_ind].treesize();
 
                 if (verbose)
                 {
@@ -206,6 +207,11 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                 trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
                 std::fill(trees[sweeps][tree_ind].theta_vector.begin(), trees[sweeps][tree_ind].theta_vector.end(), 1.);
             }
+
+            weight_samples[sweeps][tree_ind] = model->weight;
+            phi_samples[sweeps][tree_ind] = exp((*model->phi)[0]);
+            logloss[sweeps][tree_ind] = model->logloss;
+            tree_size[sweeps][tree_ind] = trees[sweeps][tree_ind].treesize();
         }
         model->update_weights(state, x_struct, mean_lambda, var_lambda, count_lambda);
     }

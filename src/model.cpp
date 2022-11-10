@@ -564,6 +564,7 @@ void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_l
             y_i = (size_t)(*y_size_t)[i];
             for (size_t j = 0; j < dim_residual; ++j)
             {
+                // sum_fits += exp((*state.residual_std)[j][i] + log((*(x_struct.data_pointers[0][i]))[j]));
                 sum_fits += exp((*state.residual_std)[j][i]);
             }
 
@@ -573,12 +574,14 @@ void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_l
                 (*phi)[i] = log(gammadist(state.gen)) - log(1.0 * sum_fits);
             }
             // calculate logloss
+            // prob = exp((*state.residual_std)[y_i][i]  + log((*(x_struct.data_pointers[0][i]))[y_i])) / sum_fits; // logloss =  - log(p_j)
             prob = exp((*state.residual_std)[y_i][i]) / sum_fits; // logloss =  - log(p_j)
 
             logloss += -log(prob);
         }
 
         logloss = logloss / state.n_y;
+        cout << "logloss = " << logloss << endl;
 
         double exp_logloss = exp(-1.0 * logloss);
         double exp_logloss_last_sweep = exp(-1.0 * state.logloss_last_sweep);
@@ -608,6 +611,8 @@ void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_l
         std::normal_distribution<>
             dd(0, MH_step);
 
+        cout << "exp_logloss " << exp_logloss << ", mu = " << mu << ", MH_step = " << MH_step << endl;
+
         weight_latent_proposal = exp(mu + dd(state.gen)) + 1.0;
 
         // double weight_proposal = fabs(weight_latent_proposal - 1.0) + 1.0;
@@ -629,7 +634,7 @@ void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_l
         ratio = std::min(1.0, exp(ratio));
 
         std::uniform_real_distribution<> dis(0.0, 1.0);
-
+        cout << "ratio = " << ratio << " propose = " << weight_proposal << endl;
         if (dis(state.gen) < ratio)
         {
             // accept
