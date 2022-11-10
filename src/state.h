@@ -69,6 +69,8 @@ public:
     size_t weight_exponent;
     double logloss_last_sweep;
 
+    std::vector<double> *precision;
+
     // for continuous treatment XBCF
     matrix<double> *split_count_all_tree_con;
     std::vector<double> *split_count_all_con;
@@ -342,6 +344,7 @@ class hskState : public State
             //COUT << "hsk " <<ini_var_yhat << endl;
             ini_sigma(this->sigma_vec, sigma_vec);
             this->parallel = parallel;
+            this->precision = (new std::vector<double>(N, 1));
         }
 
 

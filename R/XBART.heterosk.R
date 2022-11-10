@@ -67,11 +67,15 @@ XBART.heterosk <- function(y,
     }
 
     if (is.null(no_split_penality_m) || no_split_penality_m == "Auto") {
-        no_split_penality_m = log(num_cutpoints_m)
+        no_split_penality_m <- log(1)
+    } else {
+        no_split_penality_m <- log(no_split_penality_m)
     }
 
     if (is.null(no_split_penality_v) || no_split_penality_v == "Auto") {
-        no_split_penality_v = log(num_cutpoints_v)
+        no_split_penality_v <- log(1)
+    } else {
+        no_split_penality_v <- log(no_split_penality_v)
     }
 
     if (is.null(tau_m)) {

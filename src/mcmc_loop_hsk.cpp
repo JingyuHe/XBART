@@ -278,7 +278,6 @@ void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
         //}
 
         var_model->ini_residual_std(var_state, (*mean_state.residual_std), var_x_struct);
-        //var_state.update_target(mean_state.log_res2);
 
         for (size_t data_ind = 0; data_ind < var_state.n_y; data_ind++)
         {
@@ -293,11 +292,6 @@ void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
             {
                 cout << "sweep " << sweeps << " tree " << tree_ind << endl;
             }
-            // Draw Sigma
-            // NK:(here we don't since sigma as a parameter is not a part of the model)
-            // model->update_state(state, tree_ind, x_struct);
-            // NK: and we don't need to store it
-            // sigma_draw_xinfo[sweeps][tree_ind] = state.sigma;
 
             if (var_state.use_all && (sweeps > var_state.burnin) && (var_state.mtry != var_state.p))
             {
@@ -318,24 +312,14 @@ void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
             // single core
             var_trees[sweeps][tree_ind].grow_from_root(var_state, Xorder_std, var_x_struct.X_counts, var_x_struct.X_num_unique, var_model, var_x_struct, sweeps, tree_ind);
 
-            // update tau after sampling the tree
-            // model->update_tau(state, tree_ind, sweeps, trees);
-
             var_state.update_split_counts(tree_ind);
 
             // update partial residual for the next tree to fit
             var_model->state_sweep(tree_ind, var_state.num_trees, (*var_state.residual_std), var_x_struct);
         }
-
+        var_model->update_state(var_state, var_state.num_trees, var_x_struct);
         // pass fitted values for sigmas to the mean model
-        //var_model->update_sigmas(mean_state.residual_std, var_state.var_fit);
-        var_model->update_sigmas((*mean_state.residual_std), var_state.num_trees, var_x_struct);
-
-        // NK: currently the additional parameters are off, so we don't update them
-        //if (var_model->sampling_tau)
-        //{
-        //    var_model->update_tau_per_forest(var_state, sweeps, trees);
-        //}
+        var_model->update_sigmas(mean_state, var_state.num_trees, var_x_struct);
 
     }
     // thread_pool.stop();

@@ -687,7 +687,7 @@ public:
 
     //new functions added
     //void update_sigmas(matrix<double> &mean_residual_std, std::vector<double> &fit);
-    void update_sigmas(matrix<double> &mean_residual_std, size_t M, X_struct &x_struct);
+    void update_sigmas(State &state, size_t M, X_struct &x_struct);
 
     //unused
     void update_state(State &state, size_t tree_ind, X_struct &x_struct);

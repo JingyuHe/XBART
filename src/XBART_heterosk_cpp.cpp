@@ -156,12 +156,12 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
                                                 &y_std, 1.0, max_depth_m, y_mean, burnin, model_m->dim_residual,
                                                 nthread, parallel, sigma_vec); //last input is nthread, need update*/
     // State settings for the variance model
-    NormalState state_v(Xpointer, Xorder_std, N, p, num_trees_v,
+    hskState state_v(Xpointer, Xorder_std, N, p, num_trees_v,
                                                    p_categorical, p_continuous, set_random_seed,
                                                    random_seed, n_min_v, num_cutpoints_v,
                                                    mtry, Xpointer, num_sweeps, sample_weights,
                                                    &y_std, 1.0, max_depth_v, y_mean, burnin, model_v->dim_residual,
-                                                   nthread, parallel); //last input is nthread, need update
+                                                   nthread, parallel, sigma_vec); //last input is nthread, need update
 
     // initialize X_struct
     std::vector<double> initial_theta_m(1, y_mean / (double)num_trees_m);
