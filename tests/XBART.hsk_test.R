@@ -8,7 +8,7 @@ p=1 #just one x
 x = matrix(sort(runif(n*p)),ncol=p) #iid uniform x values
 #x = matrix(sort(rbinom(n*p,1,0.5)),ncol=p)
 #fx = 4*(x[,1]^2) #quadratric function f
-fx = x[,1] #constant mean
+fx = rep(0,n) #constant mean
 sx = .8*exp(2*x[,1]) # exponential function s
 #sx = .5*x[,1]
 #sx = rep(.1,n)
@@ -19,7 +19,7 @@ y = fx + sx*rnorm(n)
 np=1000
 xp = matrix(sort(runif(np*p)),ncol=p)
 #fxp = 4*(xp[,1]^2)
-fxp = xp[,1] #constant mean
+fxp = rep(0,np) #constant mean
 sxp = .8*exp(2*xp[,1])
 #sxp = .5*xp[,1]
 #sxp = rep(.1,np)
