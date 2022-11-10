@@ -164,8 +164,10 @@ void logNormalModel::update_sigmas(State &state,
         {
             log_sigma2 += log((*(x_struct.data_pointers[j][i]))[0]);
         }
-        (*state.residual_std)[1][i] = exp(log_sigma2);
-        (*state.residual_std)[2][i] = (*state.residual_std)[0][i] * (*state.residual_std)[1][i];
+//        (*state.residual_std)[1][i] = exp(log_sigma2);
+        (*state.precision)[i] = exp(log_sigma2);
+//        (*state.residual_std)[2][i] = (*state.residual_std)[0][i] * (*state.residual_std)[1][i];
+        (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
     }
     return;
 }

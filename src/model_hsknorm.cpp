@@ -12,17 +12,16 @@
 
 void hskNormalModel::ini_residual_std(State &state)
 {
-    //COUT << "Residual dim: " << state.residual_std.size() << endl;
-
-    // initialize partial residual at (num_tree - 1) / num_tree * yhat
     double value = state.ini_var_yhat * ((double)state.num_trees - 1.0) / (double)state.num_trees;
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
     {
         (*state.residual_std)[0][i] = (*state.y_std)[i] - value;
         //COUT << (*state.residual_std)[0][i] << endl;
-        (*state.residual_std)[1][i] = double (1.0 / state.sigma_vec[i]);
+//        (*state.residual_std)[1][i] = double (1.0 / state.sigma_vec[i]);
+        (*state.precision)[i] = double (1.0 / state.sigma_vec[i]);
         //COUT << (*state.residual_std)[1][i] << endl;
-        (*state.residual_std)[2][i] = (*state.residual_std)[0][i] * (*state.residual_std)[1][i];
+//        (*state.residual_std)[2][i] = (*state.residual_std)[0][i] * (*state.residual_std)[1][i];
+        (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
     }
 
     return;
@@ -31,34 +30,16 @@ void hskNormalModel::ini_residual_std(State &state)
 void hskNormalModel::initialize_root_suffstat(State &state, std::vector<double> &suff_stat)
 {
     // sum of r/sig2
-    suff_stat[0] = sum_vec((*state.residual_std)[2]);
+    suff_stat[0] = sum_vec((*state.res_x_precision));
     // sum of 1/sig2
-    suff_stat[1] = sum_vec((*state.residual_std)[1]);
-    // sum of r
-    //suff_stat[2] = sum_vec((*state.residual_std)[0]);
-/*
-    COUT << "parent node | ss0: " << suff_stat[0] << ", ss1:" << suff_stat[1] << endl;
-    for (size_t i = 0; i < (*state.residual_std)[1].size(); i++)
-    {
-        if((*state.residual_std)[1][i] < 0) {
-            COUT << i << " <- i | res -> " << (*state.residual_std)[1][i] << endl;
-        }
-    }
-
-    if(suff_stat[1] < 0)
-        COUT << suff_stat[1] << "<- tmp ini root " << endl;
-*/
+    suff_stat[1] = sum_vec((*state.precision));
     return;
 }
 
 void hskNormalModel::incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats)
 {
-    // I have to pass matrix<double> &residual_std, size_t index_next_obs
-    // which allows more flexibility for multidimensional residual_std
-    suffstats[0] += (*state.residual_std)[2][index_next_obs]; // r/sigma^2
-    suffstats[1] += (*state.residual_std)[1][index_next_obs]; // 1/sigma^2
-    //suffstats[2] += residual_std[0][index_next_obs]; // r
-
+    suffstats[0] += (*state.res_x_precision)[index_next_obs]; // r/sigma^2
+    suffstats[1] += (*state.precision)[index_next_obs]; // 1/sigma^2
 }
 
 void hskNormalModel::samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
@@ -68,11 +49,6 @@ void hskNormalModel::samplePars(State &state, std::vector<double> &suff_stat, st
     // test result should be theta
     theta_vector[0] = suff_stat[0] / (1.0 / tau + suff_stat[1])
                     + sqrt(1.0 / (1.0 / tau + suff_stat[1])) * normal_samp(state.gen);
-/*    if(suff_stat[1] < 0) {
-        COUT << suff_stat[0] << " <- ss0 | ss1 -> " << suff_stat[1] << endl;
-        COUT << theta_vector[0] << endl;
-    }
-*/
     return;
 }
 
@@ -87,12 +63,6 @@ void hskNormalModel::updateNodeSuffStat(State &state,
 void hskNormalModel::calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side)
 {
 
-    // in function split_xorder_std_categorical, for efficiency, the function only calculates suff stat of ONE child
-    // this function calculate the other side based on parent and the other child
-    //if(rchild_suff_stat[1] < 0 || parent_suff_stat[1] < 0 || lchild_suff_stat[1] < 0) {
-    //    COUT << "right: " << rchild_suff_stat[1] << ", parent: " << parent_suff_stat[1] << ", left: " << lchild_suff_stat[1] << endl;
-    //}
-
     if (compute_left_side)
     {
         rchild_suff_stat = parent_suff_stat - lchild_suff_stat;
@@ -104,7 +74,7 @@ void hskNormalModel::calculateOtherSideSuffStat(std::vector<double> &parent_suff
     return;
 }
 
-void hskNormalModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, X_struct &x_struct) const
+void hskNormalModel::state_sweep(size_t tree_ind, size_t M, State &state, X_struct &x_struct) const
 {
     size_t next_index = tree_ind + 1;
     if (next_index == M)
@@ -112,14 +82,11 @@ void hskNormalModel::state_sweep(size_t tree_ind, size_t M, matrix<double> &resi
         next_index = 0;
     }
 
-    ////////////////////////////////////////////////////////
-    // Be care of line 151 in train_all.cpp, initial_theta
-    ////////////////////////////////////////////////////////
-
-    for (size_t i = 0; i < residual_std[0].size(); i++)
+    for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
     {
-        residual_std[0][i] = residual_std[0][i] - (*(x_struct.data_pointers[tree_ind][i]))[0] + (*(x_struct.data_pointers[next_index][i]))[0];
-        residual_std[2][i] = residual_std[0][i] * residual_std[1][i];
+        (*state.residual_std)[0][i] = (*state.residual_std)[0][i] - (*(x_struct.data_pointers[tree_ind][i]))[0] + (*(x_struct.data_pointers[next_index][i]))[0];
+//        (*state.residual_std)[2][i] = (*state.residual_std)[0][i] * (*state.residual_std)[1][i];
+        (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
     }
     return;
 }
@@ -147,9 +114,7 @@ double hskNormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vect
             prec= suff_stat_all[1] - temp_suff_stat[1];
         }
     }
-/*    if(temp_suff_stat[1] < 0 || suff_stat_all[1] < temp_suff_stat[1])
-        COUT << temp_suff_stat[1] << "<- tmp | all -> " << suff_stat_all[1] << endl;
-*/
+
     return log(1.0 / (1.0 + tau * prec)) + res2 / (1.0 / tau + prec);
 }
 

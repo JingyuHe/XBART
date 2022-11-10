@@ -70,6 +70,7 @@ public:
     double logloss_last_sweep;
 
     std::vector<double> *precision;
+    std::vector<double> *res_x_precision;
 
     // for continuous treatment XBCF
     matrix<double> *split_count_all_tree_con;
@@ -345,6 +346,7 @@ class hskState : public State
             ini_sigma(this->sigma_vec, sigma_vec);
             this->parallel = parallel;
             this->precision = (new std::vector<double>(N, 1));
+            this->res_x_precision = (new std::vector<double>(N, 0));
         }
 
 

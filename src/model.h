@@ -624,7 +624,7 @@ public:
 
     void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side);
 
-    void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, X_struct &x_struct) const;
+    void state_sweep(size_t tree_ind, size_t M, State &state, X_struct &x_struct) const;
 
     double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State &state) const;
 
@@ -679,7 +679,7 @@ public:
 
     double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State &state) const;
 
-    void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, /*std::vector<double> &fit,*/ X_struct &x_struct) const;
+    void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, X_struct &x_struct) const;
 
     // double likelihood_no_split(std::vector<double> &suff_stat, State &state) const;
 
