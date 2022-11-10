@@ -43,10 +43,10 @@ y_test <- y.all[-(1:n.train)] - 1
 
 num_class <- max(y_train) + 1
 
-num_sweeps <- 20
-burnin <- 5
-num_trees <- 5
-max_depth <- 25
+num_sweeps <- 2
+burnin <- 1
+num_trees <- 4
+max_depth <- 2
 mtry <- p + p_add
 
 
@@ -58,7 +58,7 @@ fit2 <- XBART.multinomial(
     num_cutpoints = 20, burnin = burnin, mtry = NULL, p_categorical = p_cat, 
     tau_a = (num_trees * 2 / 2.5^2 + 0.5), tau_b = (num_trees * 2 / 2.5^2), 
     verbose = T, separate_tree = FALSE, update_tau = FALSE, update_phi = FALSE, 
-    a = 1 / num_class, no_split_penalty = 0.5, alpha = 0.95, beta = 2, Nmin = 15 * num_class, weight = 2.5, MH_step = 0.05, parallel = T,
+    a = 1 / num_class, no_split_penalty = 0.5, alpha = 0.95, beta = 2, Nmin = 15 * num_class, weight = 2.5, MH_step = 0.05, parallel = F,
     tree_size = 10000
 )
 tm2 <- proc.time() - tm2
@@ -80,8 +80,8 @@ fit <- XBART.multinomial(
     num_cutpoints = 20, burnin = burnin, mtry = NULL, p_categorical = p_cat, 
     tau_a = (num_trees * 2 / 2.5^2 + 0.5), tau_b = (num_trees * 2 / 2.5^2), 
     verbose = T, separate_tree = FALSE, update_tau = FALSE, update_phi = FALSE, 
-    a = 1 / num_class, no_split_penalty = 0.5, alpha = 0.95, beta = 2, Nmin = 15 * num_class, weight = 2.5, MH_step = 0.05, parallel = T,
-    tree_size = 50, extra_trees = 100
+    a = 1 / num_class, no_split_penalty = 0.5, alpha = 0.95, beta = 2, Nmin = 15 * num_class, weight = 2.5, MH_step = 0.05, parallel = F,
+    tree_size = 3, extra_trees = 100
 )
 tm <- proc.time() - tm
 

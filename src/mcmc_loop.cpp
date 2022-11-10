@@ -136,7 +136,11 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                 {
                     // copy large tree
                     model->copy_initialization(state, x_struct, trees, sweeps, tree_ind, sweeps-1, tree_ind, Xorder_std);
-                    // split_count stays the same
+
+                    model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+
+                    trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind, true);
+                    
                 } else {
                     // clear counts of splits for one tree
                     std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0);
@@ -152,7 +156,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                     trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
                     (*state.lambdas)[tree_ind].clear();
 
-                    trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind);
+                    trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind, false);
 
                      if (sweeps >= state.burnin)
                     {
@@ -173,7 +177,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                         }
                     }
                 }
-                
+
                 // update partial fits for the next tree
                 model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
                 

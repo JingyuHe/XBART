@@ -651,11 +651,13 @@ void LogitModel::copy_initialization(State &state, X_struct &x_struct, vector<ve
     tree::tree_p bn; // pointer to bottom node
 
     // if this is other trees in the first sweep, copy directly from the first tree
+    cout << "cp " << endl;
     trees[sweeps][tree_ind].cp(&(trees[sweeps][tree_ind]), &(trees[from_sweep][from_tree]));
-
+    cout << "lambda " << endl;
     // copy all other objects for fitted values
     (*state.lambdas)[tree_ind] = (*state.lambdas)[from_tree];
     // update data_pointers
+    cout << "search " << endl;
     for (size_t i = 0; i < Xorder_std[0].size(); i++)
     {
         bn = trees[sweeps][tree_ind].search_bottom_std(x_struct.X_std, i, state.p, x_struct.n_y);
