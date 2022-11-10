@@ -7,8 +7,8 @@ p=1 #just one x
 # train data
 x = matrix(sort(runif(n*p)),ncol=p) #iid uniform x values
 #x = matrix(sort(rbinom(n*p,1,0.5)),ncol=p)
-fx = 4*(x[,1]^2) #quadratric function f
-#fx = x[,1] #constant mean
+#fx = 4*(x[,1]^2) #quadratric function f
+fx = x[,1] #constant mean
 sx = .8*exp(2*x[,1]) # exponential function s
 #sx = .5*x[,1]
 #sx = rep(.1,n)
@@ -18,8 +18,8 @@ y = fx + sx*rnorm(n)
 # ##test data (the p added to the variable names is for predict)
 np=1000
 xp = matrix(sort(runif(np*p)),ncol=p)
-fxp = 4*(xp[,1]^2)
-#fxp = xp[,1] #constant mean
+#fxp = 4*(xp[,1]^2)
+fxp = xp[,1] #constant mean
 sxp = .8*exp(2*xp[,1])
 #sxp = .5*xp[,1]
 #sxp = rep(.1,np)
@@ -71,7 +71,7 @@ plot(y_hats,fxp,ylab="y",cex.axis=1,cex.lab=1)
 abline(0,1)
 
 # predicted sigma2
-sig2_hats <- rowMeans(fit$sigma2hats_test[,36:46])
+sig2_hats <- rowMeans(fit$sigma2hats_test[,burnin:num_sweeps])
 plot(sig2_hats,sxp^2,ylab="var(y)",cex.axis=1,cex.lab=1)
 abline(0,1)
 

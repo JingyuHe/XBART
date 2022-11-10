@@ -17,7 +17,7 @@ void logNormalModel::ini_residual_std(State &state, matrix<double> &mean_residua
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
     {
         //COUT << mean_residual_std[0][i] << endl;
-        //COUT << 2*log(abs(mean_residual_std[0][i])) << " + " << log(mean_residual_std[1][i])<< "-" << log((*(x_struct.data_pointers[0][i]))[0]) << endl;
+        COUT << log(mean_residual_std[1][i])<< "-" << log((*(x_struct.data_pointers[0][i]))[0]) << endl;
         // put residual to the log scale
         (*state.residual_std)[0][i] = 2*log(abs(mean_residual_std[0][i])) + log(mean_residual_std[1][i]) - log((*(x_struct.data_pointers[0][i]))[0]);
         //COUT << (*state.residual_std)[0][i] - log((*(x_struct.data_pointers[0][i]))[0]) << endl;

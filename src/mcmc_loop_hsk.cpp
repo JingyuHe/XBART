@@ -1,6 +1,6 @@
 #include "mcmc_loop.h"
 #include "omp.h"
-
+/*
 // full heteroskedastic XBART (not crashing, but doesn't seem to transfer residuals correctly)
 void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
                     bool verbose,
@@ -148,7 +148,7 @@ void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
 
     return;
 }
-
+*/
 // partial heteroskedastic XBART for testing
 /*
 void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
@@ -240,7 +240,7 @@ void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
     return;
 }
 */
-/*
+
 // variance model only (testing)
 void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
                     bool verbose,
@@ -342,4 +342,3 @@ void mcmc_loop_hsk(matrix<size_t> &Xorder_std,
 
     return;
 }
-*/
