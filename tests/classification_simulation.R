@@ -45,7 +45,7 @@ num_class <- max(y_train) + 1
 
 num_sweeps <- 30
 burnin <- 2
-num_trees <- 50
+num_trees <- 2
 max_depth <- 25
 mtry <- p + p_add
 
@@ -53,7 +53,10 @@ tm <- proc.time()
 fit <- XBART.multinomial(
     y = matrix(y_train), num_class = num_class, X = X_train,
     num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth, update_weight = TRUE,
-    num_cutpoints = 100, burnin = burnin, mtry = mtry, p_categorical = p_cat, tau_a = (num_trees * 2 / 2.5^2 + 0.5), tau_b = (num_trees * 2 / 2.5^2), verbose = FALSE, separate_tree = FALSE, update_tau = FALSE, update_phi = FALSE, a = 1 / num_class, no_split_penalty = 0.5, alpha = 0.95, beta = 2, Nmin = 15 * num_class, weight = 2.5, MH_step = 0.05, parallel = FALSE
+    num_cutpoints = 20, burnin = burnin, mtry = NULL, p_categorical = p_cat, 
+    tau_a = (num_trees * 2 / 2.5^2 + 0.5), tau_b = (num_trees * 2 / 2.5^2), 
+    verbose = T, separate_tree = FALSE, update_tau = FALSE, update_phi = FALSE, 
+    a = 1 / num_class, no_split_penalty = 0.5, alpha = 0.95, beta = 2, Nmin = 15 * num_class, weight = 2.5, MH_step = 0.05, parallel = T
 )
 tm <- proc.time() - tm
 

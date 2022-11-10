@@ -30,8 +30,6 @@ XBART.multinomial(
   update_weight = TRUE,
   update_tau = TRUE,
   nthread = 0,
-  hmult = 1,
-  heps = 0.1,
   ...
 )
 }
@@ -83,10 +81,6 @@ XBART.multinomial(
 \item{update_tau}{Bool, if TRUE, update the prior of leaf mean.}
 
 \item{nthread}{Integer, number of threads to use if run in parallel.}
-
-\item{hmult}{Prior of the replicate factor.}
-
-\item{heps}{Prior of the replicate factor}
 
 \item{...}{optional parameters to be passed to the low level function XBART}
 

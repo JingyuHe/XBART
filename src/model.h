@@ -249,7 +249,7 @@ public:
 
     double MH_step;
 
-    LogitModel(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, bool update_phi, double hmult, double heps, double MH_step) : Model(num_classes, 2 * num_classes)
+    LogitModel(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, bool update_phi, double MH_step) : Model(num_classes, 2 * num_classes)
     {
         this->y_size_t = y_size_t;
         this->phi = phi;
@@ -265,8 +265,8 @@ public:
         this->update_phi = update_phi;
         this->weight = weight;
         this->weight_latent = weight;
-        this->hmult = hmult;
-        this->heps = heps;
+        this->hmult = 1;
+        this->heps = 0.1;
         this->logloss = 0;
         this->accuracy = 0;
         this->acc_gp.resize(dim_residual);
@@ -295,7 +295,7 @@ public:
 
     void update_weights(State &state, X_struct &x_struct, double &mean_lambda, std::vector<double> &var_lambda, size_t &count_lambda);
 
-    void copy_initialization(State &state, X_struct &x_struct, vector<vector<tree>> &trees, size_t sweeps, size_t tree_ind, matrix<size_t> &Xorder_std);
+    void copy_initialization(State &state, X_struct &x_struct, vector<vector<tree>> &trees, size_t sweeps, size_t tree_ind, size_t from_sweep, size_t from_tree, matrix<size_t> &Xorder_std);
 
     void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
 
@@ -346,7 +346,7 @@ private:
     }
 
 public:
-    LogitModelSeparateTrees(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, bool update_phi, double MH_step) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, update_weight, update_tau, update_phi, 1, 0.1, MH_step) {}
+    LogitModelSeparateTrees(size_t num_classes, double tau_a, double tau_b, double alpha, double beta, std::vector<size_t> *y_size_t, std::vector<double> *phi, double weight, bool update_weight, bool update_tau, bool update_phi, double MH_step) : LogitModel(num_classes, tau_a, tau_b, alpha, beta, y_size_t, phi, weight, update_weight, update_tau, update_phi, MH_step) {}
 
     LogitModelSeparateTrees() : LogitModel() {}
 

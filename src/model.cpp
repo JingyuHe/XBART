@@ -548,12 +548,6 @@ void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_l
 
     if (update_weight)
     {
-        // track accuracy of each group
-        std::fill(acc_gp.begin(), acc_gp.end(), 0.0);
-        std::vector<double> count_gp(dim_residual, 0.0);
-        size_t yhat = 0;
-        double max_resid = -INFINITY;
-
         // Calculate logloss
         size_t y_i;
         double sum_fits;
@@ -568,23 +562,11 @@ void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_l
         {
             sum_fits = 0;
             y_i = (size_t)(*y_size_t)[i];
-            yhat = 0;
-            max_resid = -INFINITY;
             for (size_t j = 0; j < dim_residual; ++j)
             {
                 sum_fits += exp((*state.residual_std)[j][i]);
-                if ((*state.residual_std)[j][i] > max_resid)
-                {
-                    yhat = j;
-                    max_resid = (*state.residual_std)[j][i];
-                }
             }
 
-            count_gp[y_i] += 1;
-            if (yhat == y_i)
-            {
-                acc_gp[y_i] += 1;
-            }
             // Sample phi
             if (update_phi)
             {
@@ -655,6 +637,24 @@ void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_l
             weight_latent = weight_latent_proposal;
             state.logloss_last_sweep = logloss;
         }
+    }
+    return;
+}
+
+void LogitModel::copy_initialization(State &state, X_struct &x_struct, vector<vector<tree>> &trees, size_t sweeps, size_t tree_ind, size_t from_sweep, size_t from_tree, matrix<size_t> &Xorder_std)
+{
+    tree::tree_p bn; // pointer to bottom node
+
+    // if this is other trees in the first sweep, copy directly from the first tree
+    trees[sweeps][tree_ind].cp(&(trees[sweeps][tree_ind]), &(trees[from_sweep][from_tree]));
+
+    // copy all other objects for fitted values
+    (*state.lambdas)[tree_ind] = (*state.lambdas)[from_tree];
+    // update data_pointers
+    for (size_t i = 0; i < Xorder_std[0].size(); i++)
+    {
+        bn = trees[sweeps][tree_ind].search_bottom_std(x_struct.X_std, i, state.p, x_struct.n_y);
+        x_struct.data_pointers[tree_ind][i] = &bn->theta_vector;
     }
     return;
 }
@@ -795,7 +795,7 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
 
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
-
+        // cout << "Sweeps " << sweeps << "-----------------------" << endl;
         for (size_t data_ind = 0; data_ind < N_test; data_ind++)
         {
 
@@ -803,6 +803,10 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
             {
                 // search leaf
                 bn = trees[sweeps][i].search_bottom_std(Xtestpointer, data_ind, p, N_test);
+                if (data_ind == 0)
+                {
+                    // cout << "tree " << i << " theta = " << bn->theta_vector << endl;
+                }
 
                 for (size_t k = 0; k < dim_residual; k++)
                 {
@@ -815,6 +819,16 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
             }
         }
     }
+
+    // cout << "output_vec = ";
+    // size_t sweeps= num_sweeps - 1;
+    // size_t data_ind = 0;
+
+    // for (size_t k = 0; k < dim_residual; k++)
+    // {
+    //     cout << " " << output_vec[sweeps + data_ind * num_sweeps + k * num_sweeps * N_test];
+    // }
+    // cout << endl;
 
     // normalizing probability
 

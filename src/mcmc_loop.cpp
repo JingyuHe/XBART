@@ -97,7 +97,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
     return;
 }
 
-void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty, State &state, LogitModel *model, X_struct &x_struct,
+void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double latent_num_trees, size_t large_tree_size, double no_split_penalty, State &state, LogitModel *model, X_struct &x_struct,
                            std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &phi_samples, std::vector<std::vector<double>> &logloss,
                            std::vector<std::vector<double>> &tree_size)
 {
@@ -108,6 +108,8 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
     double mean_lambda = 1;
     size_t count_lambda = (state.num_trees - 1) * model->dim_residual; // less the lambdas in the first tree
     std::vector<double> var_lambda(state.num_trees, 0.0);
+
+    size_t large_trees = 0;
 
     for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
     {
@@ -121,68 +123,93 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 
         for (size_t tree_ind = 0; tree_ind < state.num_trees; tree_ind++)
         {
-            // Draw latents -- do last?
-
-            if (state.use_all && (sweeps >= state.burnin)) // && (state.mtry != state.p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
+            if (tree_ind < latent_num_trees)
             {
-                state.use_all = false;
-            }
 
-            // clear counts of splits for one tree
-            std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0);
-
-            // subtract old tree for sampling case
-            if (state.sample_weights)
-            {
-                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) - (*state.split_count_all_tree)[tree_ind];
-            }
-
-            model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
-
-            trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
-            (*state.lambdas)[tree_ind].clear();
-
-            trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind);
-
-            state.update_split_counts(tree_ind);
-
-            if (sweeps >= state.burnin)
-            {
-                for (size_t i = 0; i < (*state.split_count_all).size(); i++)
+                if (state.use_all && (sweeps >= state.burnin)) // && (state.mtry != state.p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
                 {
-                    (*state.split_count_all)[i] += (*state.split_count_current_tree)[i];
+                    state.use_all = false;
                 }
-            }
-            // update partial fits for the next tree
-            model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
 
-            model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
-
-            weight_samples[sweeps][tree_ind] = model->weight;
-            phi_samples[sweeps][tree_ind] = exp((*model->phi)[0]);
-            logloss[sweeps][tree_ind] = model->logloss;
-            tree_size[sweeps][tree_ind] = trees[sweeps][tree_ind].treesize();
-
-            if (verbose)
-            {
-                if (sweeps > 0)
+                if ((sweeps > 0) && (trees[sweeps-1][tree_ind].treesize() >= large_tree_size))
                 {
-                    COUT << " --- --- --- " << endl;
-                    COUT << "tree " << tree_ind << " old size = " << trees[sweeps - 1][tree_ind].treesize() << ", new size = " << trees[sweeps][tree_ind].treesize() << endl;
-                    COUT << " logloss " << model->logloss << " acc " << model->accuracy << endl;
-                }
-            }
+                    // copy large tree
+                    model->copy_initialization(state, x_struct, trees, sweeps, tree_ind, sweeps-1, tree_ind, Xorder_std);
+                    // split_count stays the same
 
-            for (size_t j = 0; j < (*state.lambdas)[tree_ind].size(); j++)
-            {
-                for (size_t k = 0; k < (*state.lambdas)[tree_ind][j].size(); k++)
-                {
-                    lambda_samples.push_back((*state.lambdas)[tree_ind][j][k]);
+                } else {
+                    // clear counts of splits for one tree
+                    std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0);
+
+                    // subtract old tree for sampling case
+                    if (state.sample_weights)
+                    {
+                        (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) - (*state.split_count_all_tree)[tree_ind];
+                    }
+                    // grow new tree
+                    model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+
+                    trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
+                    (*state.lambdas)[tree_ind].clear();
+
+                    trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind);
+
+                     if (sweeps >= state.burnin)
+                    {
+                        for (size_t i = 0; i < (*state.split_count_all).size(); i++)
+                        {
+                            (*state.split_count_all)[i] += (*state.split_count_current_tree)[i];
+                        }
+                    }
+
+                    state.update_split_counts(tree_ind);
+
+                    if (trees[sweeps][tree_ind].treesize() >= large_tree_size){
+                        large_trees += 1;
+                        latent_num_trees += 1;
+                        if (latent_num_trees > state.num_trees){
+                            cout << "total number of trees exceeds memory" << endl;
+                            abort();
+                        }
+                    }
                 }
+                
+                // update partial fits for the next tree
+                model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
+                
+                model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
+
+                weight_samples[sweeps][tree_ind] = model->weight;
+                phi_samples[sweeps][tree_ind] = exp((*model->phi)[0]);
+                logloss[sweeps][tree_ind] = model->logloss;
+                tree_size[sweeps][tree_ind] = trees[sweeps][tree_ind].treesize();
+
+                if (verbose)
+                {
+                    if (sweeps > 0)
+                    {
+                        COUT << " --- --- --- " << endl;
+                        COUT << "tree " << tree_ind << " old size = " << trees[sweeps - 1][tree_ind].treesize() << ", new size = " << trees[sweeps][tree_ind].treesize() << endl;
+                        COUT << " logloss " << model->logloss << " acc " << model->accuracy << endl;
+                    }
+                }
+
+                for (size_t j = 0; j < (*state.lambdas)[tree_ind].size(); j++)
+                {
+                    for (size_t k = 0; k < (*state.lambdas)[tree_ind][j].size(); k++)
+                    {
+                        lambda_samples.push_back((*state.lambdas)[tree_ind][j][k]);
+                    }
+                }
+            } else {
+                // initialize theta
+                trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
+                std::fill(trees[sweeps][tree_ind].theta_vector.begin(), trees[sweeps][tree_ind].theta_vector.end(), 1.);
             }
         }
         model->update_weights(state, x_struct, mean_lambda, var_lambda, count_lambda);
     }
+    cout << "Total large trees = " << large_trees << endl;
 }
 
 void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penalty, State &state,
