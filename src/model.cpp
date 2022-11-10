@@ -581,7 +581,7 @@ void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_l
         }
 
         logloss = logloss / state.n_y;
-        cout << "logloss = " << logloss << endl;
+        // cout << "logloss = " << logloss << endl;
 
         double exp_logloss = exp(-1.0 * logloss);
         double exp_logloss_last_sweep = exp(-1.0 * state.logloss_last_sweep);
@@ -610,8 +610,6 @@ void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_l
         // MH_step is standard deviation
         std::normal_distribution<>
             dd(0, MH_step);
-
-        cout << "exp_logloss " << exp_logloss << ", mu = " << mu << ", MH_step = " << MH_step << endl;
 
         weight_latent_proposal = exp(mu + dd(state.gen)) + 1.0;
 
@@ -651,13 +649,13 @@ void LogitModel::copy_initialization(State &state, X_struct &x_struct, vector<ve
     tree::tree_p bn; // pointer to bottom node
 
     // if this is other trees in the first sweep, copy directly from the first tree
-    cout << "cp " << endl;
+    cout << "copy from sweep " << from_sweep << " from tree " << from_tree << " treesize " << trees[from_sweep][from_tree].treesize() << endl;
+    cout << "new tree addr " << &(trees[sweeps][tree_ind]) << ", old tree addr " << &(trees[from_sweep][from_tree]) << endl;
     trees[sweeps][tree_ind].cp(&(trees[sweeps][tree_ind]), &(trees[from_sweep][from_tree]));
-    cout << "lambda " << endl;
+    cout << "finish copy, old tree addr " << &(trees[from_sweep][from_tree]) << " size" << trees[from_sweep][from_tree].treesize() << endl;
     // copy all other objects for fitted values
     (*state.lambdas)[tree_ind] = (*state.lambdas)[from_tree];
     // update data_pointers
-    cout << "search " << endl;
     for (size_t i = 0; i < Xorder_std[0].size(); i++)
     {
         bn = trees[sweeps][tree_ind].search_bottom_std(x_struct.X_std, i, state.p, x_struct.n_y);

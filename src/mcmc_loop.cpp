@@ -127,21 +127,28 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             if (tree_ind < num_trees_last_sweep)
             {
 
-                if (state.use_all && (sweeps >= state.burnin)) // && (state.mtry != state.p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
-                {
-                    state.use_all = false;
-                }
+                trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
 
                 if ((sweeps > 0) && (trees[sweeps-1][tree_ind].treesize() >= large_tree_size))
                 {
                     // copy large tree
                     model->copy_initialization(state, x_struct, trees, sweeps, tree_ind, sweeps-1, tree_ind, Xorder_std);
+                    cout << "after copy, old tree size = " << trees[sweeps - 1][tree_ind].treesize() << endl;
 
                     model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
+                    cout << "after init root, old tree size = " << trees[sweeps - 1][tree_ind].treesize() << endl;
 
-                    trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind, true);
+
+                    trees[sweeps][tree_ind].update_theta(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind);
+                    cout << "after update_theta, old tree size = " << trees[sweeps - 1][tree_ind].treesize() << endl;
+
                     
                 } else {
+
+                    if (state.use_all && (sweeps >= state.burnin)) // && (state.mtry != state.p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
+                    {
+                        state.use_all = false;
+                    }
                     // clear counts of splits for one tree
                     std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0);
 
@@ -153,10 +160,10 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                     // grow new tree
                     model->initialize_root_suffstat(state, trees[sweeps][tree_ind].suff_stat);
 
-                    trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
+                    // trees[sweeps][tree_ind].theta_vector.resize(model->dim_residual);
                     (*state.lambdas)[tree_ind].clear();
 
-                    trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind, false);
+                    trees[sweeps][tree_ind].grow_from_root_entropy(state, Xorder_std, x_struct.X_counts, x_struct.X_num_unique, model, x_struct, sweeps, tree_ind);
 
                      if (sweeps >= state.burnin)
                     {
@@ -189,6 +196,10 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                     {
                         COUT << " --- --- --- " << endl;
                         COUT << "tree " << tree_ind << " old size = " << trees[sweeps - 1][tree_ind].treesize() << ", new size = " << trees[sweeps][tree_ind].treesize() << endl;
+                        COUT << " logloss " << model->logloss << " acc " << model->accuracy << endl;
+                    } else {
+                        COUT << " --- --- --- " << endl;
+                        COUT << "tree " << tree_ind << ", size = " << trees[sweeps][tree_ind].treesize() << endl;
                         COUT << " logloss " << model->logloss << " acc " << model->accuracy << endl;
                     }
                 }

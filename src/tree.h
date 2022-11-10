@@ -162,10 +162,12 @@ public:
 
     void grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, X_struct &x_struct, const size_t &sweeps, const size_t &tree_ind);
 
-    void grow_from_root_entropy(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, X_struct &x_struct, const size_t &sweeps, const size_t &tree_ind, const bool update_theta);
+    void grow_from_root_entropy(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, X_struct &x_struct, const size_t &sweeps, const size_t &tree_ind);
 
     void grow_from_root_separate_tree(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, X_struct &x_struct, const size_t &sweeps, const size_t &tree_ind);
 
+    void update_theta(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, X_struct &x_struct, const size_t &sweeps, const size_t &tree_ind);
+    
     void gp_predict_from_root(matrix<size_t> &Xorder_std, gp_struct &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique,
                               matrix<size_t> &Xtestorder_std, gp_struct &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique,
                               matrix<double> &yhats_test_xinfo, std::vector<bool> active_var, const size_t &p_categorical, const size_t &sweeps, const size_t &tree_ind, const double &theta, const double &tau);
