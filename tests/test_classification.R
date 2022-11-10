@@ -63,7 +63,7 @@ lamt[, 6] <- 2 * (X_test[, 1] + X_test[, 3] - X_test[, 5])
 
 #####################
 # vary s to make the problem harder s < 1 or easier s > 2
-s <- 10
+s <- 1
 pr <- exp(s * lam)
 pr <- t(scale(t(pr), center = FALSE, scale = rowSums(pr)))
 y_train <- sapply(1:n, function(j) sample(0:(k - 1), 1, prob = pr[j, ]))
@@ -72,23 +72,25 @@ pr <- exp(s * lamt)
 pr <- t(scale(t(pr), center = FALSE, scale = rowSums(pr)))
 y_test <- sapply(1:nt, function(j) sample(0:(k - 1), 1, prob = pr[j, ]))
 
-X_test = X_train
-y_test = y_train
 
 #####################
 # parameters of XBART
-num_sweeps <- 5
+num_sweeps <- 20
 burnin <- 2
 num_trees <- 20
+max_depth <- 25
+num_class <- k
+
 tm <- proc.time()
-
-fit <- XBART.multinomial(y = matrix(y_train), num_class = k, X = X_train, 
-    num_trees = num_trees, num_sweeps = num_sweeps, burnin = burnin,
-    p_categorical = p_cat, tau_a = 3.5, tau_b = 3,
-    verbose = T, parallel = T,
-    separate_tree = F, update_tau = F, update_weight = T, update_phi =F, tree_size = 100)
-
-
+fit <- XBART.multinomial(
+    y = matrix(y_train), num_class = num_class, X = X_train,
+    num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth, update_weight = TRUE,
+    num_cutpoints = 20, burnin = burnin, mtry = NULL, p_categorical = p_cat, 
+    tau_a = (num_trees * 2 / 2.5^2 + 0.5), tau_b = (num_trees * 2 / 2.5^2), 
+    verbose = T, separate_tree = FALSE, update_tau = FALSE, update_phi = FALSE, 
+    a = 1 / num_class, no_split_penalty = 0.5, alpha = 0.95, beta = 2, Nmin = 15 * num_class, weight = 2.5, MH_step = 0.05, parallel = T,
+    tree_size = 50
+)
 tm <- proc.time() - tm
 cat(paste("XBART runtime: ", round(tm["elapsed"], 3), " seconds"), "\n")
 # take average of all sweeps, discard burn-in
@@ -97,9 +99,10 @@ yhat <- pred$label # prediction of classes
 prob <- pred$prob # prediction of probability in each class
 cat(paste("XBART classification accuracy: ", round(mean(y_test == yhat), 3)), "\n")
 cat("-----------------------------\n")
-cat("Phi samples for the first observation:\n")
-print(summary(as.vector(fit$phi)))
-cat("-----------------------------\n")
+phat.train <- apply(fit$yhats_train[burnin:num_sweeps,,],c(2,3),mean)
+yhat.train <- max.col(phat.train)-1
+cat(paste("XBART Insample  accuracy: ", round(mean(y_train == yhat.train), 3)), "\n")
+
 
 # diagnosis plots
 par(mfrow = c(2, 2))

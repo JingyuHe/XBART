@@ -177,7 +177,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                 // update partial fits for the next tree
                 model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
                 
-                model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
+                model->state_sweep(tree_ind, latent_num_trees, (*state.residual_std), x_struct);
 
                 weight_samples[sweeps][tree_ind] = model->weight;
                 phi_samples[sweeps][tree_ind] = exp((*model->phi)[0]);
@@ -210,6 +210,19 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
         model->update_weights(state, x_struct, mean_lambda, var_lambda, count_lambda);
     }
     cout << "Total large trees = " << large_trees << endl;
+
+    //  cout << "dp = ";
+    // for (size_t j = 0; j < state.num_trees; j++)
+    // {
+    //     cout << " " << (*(x_struct.data_pointers[j][0])) << endl;;
+    // }
+    // cout << "resid = ";
+    // for (size_t j = 0; j < model->dim_residual; ++j)
+    // {
+    //     cout << " " << (*state.residual_std)[j][0] + log((*(x_struct.data_pointers[0][0]))[j]);
+    // }
+    // cout << endl;
+                
 }
 
 void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penalty, State &state,

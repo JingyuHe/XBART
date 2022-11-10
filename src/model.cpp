@@ -820,6 +820,12 @@ void LogitModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p
         }
     }
 
+    // for (size_t i = 0; i < trees[0].size(); i++)
+    // {
+    //     // search leaf
+    //     bn = trees[num_sweeps - 1][i].search_bottom_std(Xtestpointer, 0, p, N_test);
+    //     cout << "tree " << i << " theta = " << bn->theta_vector << endl;
+    // }
     // cout << "output_vec = ";
     // size_t sweeps= num_sweeps - 1;
     // size_t data_ind = 0;
