@@ -97,7 +97,7 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
     return;
 }
 
-void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double latent_num_trees, size_t large_tree_size, double no_split_penalty, State &state, LogitModel *model, X_struct &x_struct,
+void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, size_t latent_num_trees, size_t large_tree_size, double no_split_penalty, State &state, LogitModel *model, X_struct &x_struct,
                            std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &phi_samples, std::vector<std::vector<double>> &logloss,
                            std::vector<std::vector<double>> &tree_size)
 {
@@ -110,6 +110,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
     std::vector<double> var_lambda(state.num_trees, 0.0);
 
     size_t large_trees = 0;
+    size_t num_trees_last_sweep = latent_num_trees;
 
     for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
     {
@@ -123,7 +124,7 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 
         for (size_t tree_ind = 0; tree_ind < state.num_trees; tree_ind++)
         {
-            if (tree_ind < latent_num_trees)
+            if (tree_ind < num_trees_last_sweep)
             {
 
                 if (state.use_all && (sweeps >= state.burnin)) // && (state.mtry != state.p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
@@ -136,12 +137,6 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                     // copy large tree
                     model->copy_initialization(state, x_struct, trees, sweeps, tree_ind, sweeps-1, tree_ind, Xorder_std);
                     // split_count stays the same
-
-                    // update partial fits for the next tree
-                    model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
-                    
-                    model->state_sweep(tree_ind, latent_num_trees, (*state.residual_std), x_struct);
-
                 } else {
                     // clear counts of splits for one tree
                     std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0);
@@ -169,11 +164,6 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
 
                     state.update_split_counts(tree_ind);
 
-                    // update partial fits for the next tree
-                    model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
-                    
-                    model->state_sweep(tree_ind, latent_num_trees, (*state.residual_std), x_struct);
-
                     if (trees[sweeps][tree_ind].treesize() >= large_tree_size){
                         large_trees += 1;
                         latent_num_trees += 1;
@@ -184,6 +174,10 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
                     }
                 }
                 
+                // update partial fits for the next tree
+                model->update_state(state, tree_ind, x_struct, mean_lambda, var_lambda, count_lambda);
+                
+                model->state_sweep(tree_ind, num_trees_last_sweep, (*state.residual_std), x_struct);
 
                 if (verbose)
                 {
@@ -214,6 +208,10 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
             tree_size[sweeps][tree_ind] = trees[sweeps][tree_ind].treesize();
         }
         model->update_weights(state, x_struct, mean_lambda, var_lambda, count_lambda);
+
+        num_trees_last_sweep = latent_num_trees;
+
+        cout << "Total large trees = " << large_trees << " num trees " << latent_num_trees << endl;
     }
     cout << "Total large trees = " << large_trees << endl;
 

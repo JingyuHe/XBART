@@ -45,7 +45,7 @@ num_class <- max(y_train) + 1
 
 num_sweeps <- 20
 burnin <- 5
-num_trees <- 10
+num_trees <- 5
 max_depth <- 25
 mtry <- p + p_add
 
@@ -57,7 +57,7 @@ fit2 <- XBART.multinomial(
     num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth, update_weight = TRUE,
     num_cutpoints = 20, burnin = burnin, mtry = NULL, p_categorical = p_cat, 
     tau_a = (num_trees * 2 / 2.5^2 + 0.5), tau_b = (num_trees * 2 / 2.5^2), 
-    verbose = F, separate_tree = FALSE, update_tau = FALSE, update_phi = FALSE, 
+    verbose = T, separate_tree = FALSE, update_tau = FALSE, update_phi = FALSE, 
     a = 1 / num_class, no_split_penalty = 0.5, alpha = 0.95, beta = 2, Nmin = 15 * num_class, weight = 2.5, MH_step = 0.05, parallel = T,
     tree_size = 10000
 )
@@ -79,9 +79,9 @@ fit <- XBART.multinomial(
     num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth, update_weight = TRUE,
     num_cutpoints = 20, burnin = burnin, mtry = NULL, p_categorical = p_cat, 
     tau_a = (num_trees * 2 / 2.5^2 + 0.5), tau_b = (num_trees * 2 / 2.5^2), 
-    verbose = F, separate_tree = FALSE, update_tau = FALSE, update_phi = FALSE, 
+    verbose = T, separate_tree = FALSE, update_tau = FALSE, update_phi = FALSE, 
     a = 1 / num_class, no_split_penalty = 0.5, alpha = 0.95, beta = 2, Nmin = 15 * num_class, weight = 2.5, MH_step = 0.05, parallel = T,
-    tree_size = 50
+    tree_size = 50, extra_trees = 100
 )
 tm <- proc.time() - tm
 
@@ -100,9 +100,14 @@ cat(paste("XBART Insample accuracy (keep large trees) :", round(mean(y_train == 
 cat(paste("XBART Outsample accuracy (keep large trees) : ", round(mean(y_test == yhat), 3)), "\n")
 cat(paste("XBART accuracy: (not keeping trees)" , round(mean(y_test == yhat2), 3)), "\n")
 
-par(mfrow = c(1, 2))
-plot(as.vector(fit2$weight))
-plot(as.vector(fit$weight))
+print("weight (not keep trees):")
+print(fit2$weight[1,])
+
+print("weight (keep trees):")
+print(fit$weight[1,])
+# par(mfrow = c(1, 2))
+# plot(as.vector(fit2$weight))
+# plot(as.vector(fit$weight))
 # 
 # tm3 <- proc.time()
 # fit.xgb <- xgboost(

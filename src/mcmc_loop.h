@@ -14,7 +14,7 @@
 void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, State &state, NormalModel *model, X_struct &x_struct, std::vector<double> &resid);
 
 // classification, all classes share the same tree structure
-void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double latent_num_trees, size_t large_tree_size, double no_split_penalty, State &state, LogitModel *model, X_struct &x_struct, 
+void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, size_t latent_num_trees, size_t large_tree_size, double no_split_penalty, State &state, LogitModel *model, X_struct &x_struct, 
 std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &phi_samples, std::vector<std::vector<double>> &logloss,
 std::vector<std::vector<double>> &tree_size);
 

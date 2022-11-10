@@ -564,8 +564,8 @@ void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_l
             y_i = (size_t)(*y_size_t)[i];
             for (size_t j = 0; j < dim_residual; ++j)
             {
-                // sum_fits += exp((*state.residual_std)[j][i] + log((*(x_struct.data_pointers[0][i]))[j]));
-                sum_fits += exp((*state.residual_std)[j][i]);
+                sum_fits += exp((*state.residual_std)[j][i] + log((*(x_struct.data_pointers[0][i]))[j]));
+                // sum_fits += exp((*state.residual_std)[j][i]);
             }
 
             // Sample phi
@@ -574,8 +574,8 @@ void LogitModel::update_weights(State &state, X_struct &x_struct, double &mean_l
                 (*phi)[i] = log(gammadist(state.gen)) - log(1.0 * sum_fits);
             }
             // calculate logloss
-            // prob = exp((*state.residual_std)[y_i][i]  + log((*(x_struct.data_pointers[0][i]))[y_i])) / sum_fits; // logloss =  - log(p_j)
-            prob = exp((*state.residual_std)[y_i][i]) / sum_fits; // logloss =  - log(p_j)
+            prob = exp((*state.residual_std)[y_i][i]  + log((*(x_struct.data_pointers[0][i]))[y_i])) / sum_fits; // logloss =  - log(p_j)
+            // prob = exp((*state.residual_std)[y_i][i]) / sum_fits; // logloss =  - log(p_j)
 
             logloss += -log(prob);
         }
