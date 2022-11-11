@@ -43,10 +43,10 @@ y_test <- y.all[-(1:n.train)] - 1
 
 num_class <- max(y_train) + 1
 
-num_sweeps <- 2
-burnin <- 1
-num_trees <- 4
-max_depth <- 2
+num_sweeps <- 20
+burnin <- 3
+num_trees <- 15
+max_depth <- 25
 mtry <- p + p_add
 
 
@@ -55,7 +55,7 @@ tm2 <- proc.time()
 fit2 <- XBART.multinomial(
     y = matrix(y_train), num_class = num_class, X = X_train,
     num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth, update_weight = TRUE,
-    num_cutpoints = 20, burnin = burnin, mtry = NULL, p_categorical = p_cat, 
+    num_cutpoints = 40, burnin = burnin, mtry = NULL, p_categorical = p_cat, 
     tau_a = (num_trees * 2 / 2.5^2 + 0.5), tau_b = (num_trees * 2 / 2.5^2), 
     verbose = T, separate_tree = FALSE, update_tau = FALSE, update_phi = FALSE, 
     a = 1 / num_class, no_split_penalty = 0.5, alpha = 0.95, beta = 2, Nmin = 15 * num_class, weight = 2.5, MH_step = 0.05, parallel = F,
@@ -77,11 +77,11 @@ tm <- proc.time()
 fit <- XBART.multinomial(
     y = matrix(y_train), num_class = num_class, X = X_train,
     num_trees = num_trees, num_sweeps = num_sweeps, max_depth = max_depth, update_weight = TRUE,
-    num_cutpoints = 20, burnin = burnin, mtry = NULL, p_categorical = p_cat, 
+    num_cutpoints = 40, burnin = burnin, mtry = NULL, p_categorical = p_cat, 
     tau_a = (num_trees * 2 / 2.5^2 + 0.5), tau_b = (num_trees * 2 / 2.5^2), 
     verbose = T, separate_tree = FALSE, update_tau = FALSE, update_phi = FALSE, 
     a = 1 / num_class, no_split_penalty = 0.5, alpha = 0.95, beta = 2, Nmin = 15 * num_class, weight = 2.5, MH_step = 0.05, parallel = F,
-    tree_size = 3, extra_trees = 100
+    tree_size = 50, extra_trees = 100
 )
 tm <- proc.time() - tm
 
@@ -105,40 +105,37 @@ print(fit2$weight[1,])
 
 print("weight (keep trees):")
 print(fit$weight[1,])
-# par(mfrow = c(1, 2))
-# plot(as.vector(fit2$weight))
-# plot(as.vector(fit$weight))
-# 
-# tm3 <- proc.time()
-# fit.xgb <- xgboost(
-#     data = X_train, label = y_train,
-#     num_class = num_class,
-#     verbose = 0,
-#     max_depth = 15,
-#     subsample = 0.80,
-#     nrounds = 150,
-#     early_stopping_rounds = 2,
-#     eta = 0.1,
-#     params = list(objective = "multi:softprob")
-# )
-# tm3 <- proc.time() - tm3
-# cat(paste("XGBoost runtime: ", round(tm3["elapsed"], 3), " seconds"), "\n")
-# phat.xgb <- predict(fit.xgb, X_test)
-# phat.xgb <- matrix(phat.xgb, ncol = num_class, byrow = TRUE)
-# 
-# yhat.xgb <- max.col(phat.xgb) - 1
-# 
-# spr <- split(phat.xgb, row(phat.xgb))
-# logloss.xgb <- sum(mapply(function(x, y) -log(x[y]), spr, y_test + 1, SIMPLIFY = TRUE))
-# 
-# 
-# time <- c(tm["elapsed"], tm3["elapsed"])
-# lloss <- c(logloss, logloss.xgb)
-# acc <- c(mean(y_test == yhat), mean(y_test == yhat.xgb))
-# 
-# results = rbind(time, lloss, acc)
-# 
-# rownames(results) = c("Time", "LogLoss", "Accuracy")
-# colnames(results) <- c("XBART keep large trees", "XGBoost")
-# 
-# print(results)
+
+tm3 <- proc.time()
+fit.xgb <- xgboost(
+    data = X_train, label = y_train,
+    num_class = num_class,
+    verbose = 0,
+    # max_depth = 15,
+    # subsample = 0.80,
+    nrounds = 150,
+    early_stopping_rounds = 2,
+    # eta = 0.1,
+    params = list(objective = "multi:softprob")
+)
+tm3 <- proc.time() - tm3
+cat(paste("XGBoost runtime: ", round(tm3["elapsed"], 3), " seconds"), "\n")
+phat.xgb <- predict(fit.xgb, X_test)
+phat.xgb <- matrix(phat.xgb, ncol = num_class, byrow = TRUE)
+
+yhat.xgb <- max.col(phat.xgb) - 1
+
+spr <- split(phat.xgb, row(phat.xgb))
+logloss.xgb <- sum(mapply(function(x, y) -log(x[y]), spr, y_test + 1, SIMPLIFY = TRUE))
+
+
+time <- c(tm["elapsed"], tm3["elapsed"])
+lloss <- c(logloss, logloss.xgb)
+acc <- c(mean(y_test == yhat), mean(y_test == yhat.xgb))
+
+results = rbind(time, lloss, acc)
+
+rownames(results) = c("Time", "LogLoss", "Accuracy")
+colnames(results) <- c("XBART keep large trees", "XGBoost")
+
+print(results)

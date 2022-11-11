@@ -649,10 +649,7 @@ void LogitModel::copy_initialization(State &state, X_struct &x_struct, vector<ve
     tree::tree_p bn; // pointer to bottom node
 
     // if this is other trees in the first sweep, copy directly from the first tree
-    cout << "copy from sweep " << from_sweep << " from tree " << from_tree << " treesize " << trees[from_sweep][from_tree].treesize() << endl;
-    cout << "new tree addr " << &(trees[sweeps][tree_ind]) << ", old tree addr " << &(trees[from_sweep][from_tree]) << endl;
     trees[sweeps][tree_ind].cp(&(trees[sweeps][tree_ind]), &(trees[from_sweep][from_tree]));
-    cout << "finish copy, old tree addr " << &(trees[from_sweep][from_tree]) << " size" << trees[from_sweep][from_tree].treesize() << endl;
     // copy all other objects for fitted values
     (*state.lambdas)[tree_ind] = (*state.lambdas)[from_tree];
     // update data_pointers

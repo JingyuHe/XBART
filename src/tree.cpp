@@ -339,8 +339,8 @@ void tree::cp(tree_p n, tree_cp o)
     n->loglike_node = o->loglike_node;
     n->tree_like = o->tree_like;
     n->theta_vector = o->theta_vector;
-    n->suff_stat = o->suff_stat;
     n->N = o->N;
+    n->suff_stat = o->suff_stat;
     n->ID = o->ID;
     n->depth = o->depth;
     n->c_index = o->c_index;
@@ -365,22 +365,14 @@ void tree::copy_only_root(tree_p o)
 // NOT LIKE cp() function
 // this function pointer new root to the OLD structure
 {
-    n->v = o->v;
-    n->c = o->c;
-    n->prob_split = o->prob_split;
-    n->prob_leaf = o->prob_leaf;
-    n->drawn_ind = o->drawn_ind;
-    n->loglike_node = o->loglike_node;
-    n->tree_like = o->tree_like;
-    n->theta_vector = o->theta_vector;
-    n->suff_stat = o->suff_stat;
-    n->N = o->N;
-    n->ID = o->ID;
-    n->depth = o->depth;
-    n->c_index = o->c_index;
-    n->tau_prior = o->tau_prior;
-    n->tau_post = o->tau_post;
-    n->num_cutpoint_candidates = o->num_cutpoint_candidates;
+    this->v = o->v;
+    this->c = o->c;
+    this->prob_split = o->prob_split;
+    this->prob_leaf = o->prob_leaf;
+    this->drawn_ind = o->drawn_ind;
+    this->loglike_node = o->loglike_node;
+    this->tree_like = o->tree_like;
+    this->theta_vector = o->theta_vector;
 
     if (o->l)
     {
@@ -422,9 +414,9 @@ size_t tree::get_max_depth()
     size_t output = 0;
     std::vector<tree *> leaf_nodes;
     this->getbots(leaf_nodes);
-    for (size_t i = 0; i < leaf_nodes.size(); i++)
+    for (size_t i = 0; i < leaf_nodes.size();i++)
     {
-        if (leaf_nodes[i]->getdepth() > output)
+        if(leaf_nodes[i]->getdepth() > output)
         {
             output = leaf_nodes[i]->getdepth();
         }
@@ -762,7 +754,7 @@ void tree::update_theta(State &state, matrix<size_t> &Xorder_std, std::vector<si
     size_t split_point;
 
     this->N = N_Xorder;
-
+     
     model->samplePars(state, this->suff_stat, this->theta_vector, this->prob_leaf);
 
     if ((this->l == 0) && (this->r == 0))
@@ -789,14 +781,14 @@ void tree::update_theta(State &state, matrix<size_t> &Xorder_std, std::vector<si
 
         return;
     }
-
+  
     split_var = this->v;
     split_point = 0;
     while ((split_point < N_Xorder - 1) && (*(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point + 1]) <= this->c))
     {
         split_point = split_point + 1;
-    }
-
+        }
+    
     // cout << "split_var " << split_var << " split_point " << split_point << " depth " << this->depth << endl;
 
     this->l->ini_suff_stat();
@@ -832,6 +824,7 @@ void tree::update_theta(State &state, matrix<size_t> &Xorder_std, std::vector<si
 
     return;
 }
+
 
 void tree::grow_from_root_entropy(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, X_struct &x_struct, const size_t &sweeps, const size_t &tree_ind)
 {
@@ -947,7 +940,7 @@ void tree::grow_from_root_entropy(State &state, matrix<size_t> &Xorder_std, std:
     // If GROW FROM ROOT MODE
     this->v = split_var;
     this->c = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
-
+    
     size_t index_in_full = 0;
     while ((*state.Xorder_std)[split_var][index_in_full] != Xorder_std[split_var][split_point])
     {
