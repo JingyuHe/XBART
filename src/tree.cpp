@@ -365,14 +365,22 @@ void tree::copy_only_root(tree_p o)
 // NOT LIKE cp() function
 // this function pointer new root to the OLD structure
 {
-    this->v = o->v;
-    this->c = o->c;
-    this->prob_split = o->prob_split;
-    this->prob_leaf = o->prob_leaf;
-    this->drawn_ind = o->drawn_ind;
-    this->loglike_node = o->loglike_node;
-    this->tree_like = o->tree_like;
-    this->theta_vector = o->theta_vector;
+    n->v = o->v;
+    n->c = o->c;
+    n->prob_split = o->prob_split;
+    n->prob_leaf = o->prob_leaf;
+    n->drawn_ind = o->drawn_ind;
+    n->loglike_node = o->loglike_node;
+    n->tree_like = o->tree_like;
+    n->theta_vector = o->theta_vector;
+    n->suff_stat = o->suff_stat;
+    n->N = o->N;
+    n->ID = o->ID;
+    n->depth = o->depth;
+    n->c_index = o->c_index;
+    n->tau_prior = o->tau_prior;
+    n->tau_post = o->tau_post;
+    n->num_cutpoint_candidates = o->num_cutpoint_candidates;
 
     if (o->l)
     {
