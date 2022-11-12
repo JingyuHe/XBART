@@ -87,12 +87,12 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
             // update partial residual for the next tree to fit
             model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), x_struct);
         }
-/*
+
         if (model->sampling_tau)
         {
             // update tau per sweep (after drawing a forest)
             model->update_tau_per_forest(state, sweeps, trees);
-        }*/
+        }
     }
     return;
 }

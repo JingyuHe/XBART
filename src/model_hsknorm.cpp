@@ -161,3 +161,45 @@ void hskNormalModel::update_state(State &state, size_t tree_ind, X_struct &x_str
     state.update_sigma(1.0 / sqrt(gamma_samp(state.gen)));
     return;
 }
+
+void hskNormalModel::switch_state_params(State &state)
+{
+    // update state settings to mean forest
+    state.num_trees = state.num_trees_m;
+    state.n_min = state.n_min_m;
+    state.max_depth = state.max_depth_m;
+    state.n_cutpoints = state.n_cutpoints_m;
+
+    return;
+}
+
+void hskNormalModel::store_residual(State &state)
+{
+    for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
+    {
+        (*state.mean_res)[i] = (*state.residual_std)[0][i];
+    }
+    return;
+}
+
+void hskNormalModel::update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> &trees)
+{
+    // this function samples tau based on all leaf parameters of the entire forest (a sweep)
+    // tighter posterior, better performance
+
+    std::vector<tree *> leaf_nodes;
+    for (size_t tree_ind = 0; tree_ind < state.num_trees; tree_ind++)
+    {
+        trees[sweeps][tree_ind].getbots(leaf_nodes);
+    }
+    double sum_squared = 0.0;
+    for (size_t i = 0; i < leaf_nodes.size(); i++)
+    {
+        sum_squared = sum_squared + pow(leaf_nodes[i]->theta_vector[0], 2);
+    }
+    double kap = this->tau_kap;
+    double s = this->tau_s * this->tau_mean;
+    std::gamma_distribution<double> gamma_samp((leaf_nodes.size() + kap) / 2.0, 2.0 / (sum_squared + s));
+    this->tau = 1.0 / gamma_samp(state.gen);
+    return;
+}

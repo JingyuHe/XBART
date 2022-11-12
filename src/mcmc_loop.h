@@ -35,3 +35,13 @@ void mcmc_loop_hsk(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sig
                     vector<vector<tree>> &var_trees, State &var_state, logNormalModel *var_model, X_struct &var_x_struct,
                     matrix<double> &res_m,
                     matrix<double> &res_v);
+
+void mcmc_loop_heteroskedastic(matrix<size_t> &Xorder_std,
+                    bool verbose,
+                    State &state,
+                    hskNormalModel *mean_model,
+                    vector<vector<tree>> &mean_trees,
+                    X_struct &mean_x_struct,
+                    logNormalModel *var_model,
+                    vector<vector<tree>> &var_trees,
+                    X_struct &var_x_struct);

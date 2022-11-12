@@ -146,23 +146,6 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     // cout << "after define model " << model->tau << " " << model->tau_mean << endl;
     model_v->setNoSplitPenalty(no_split_penalty_v);
 
-    // State settings for the mean model
- //   NormalState state_m(Xpointer, Xorder_std, N, p, num_trees_m, p_categorical, p_continuous, set_random_seed, random_seed, n_min_m, num_cutpoints_m, mtry, Xpointer, num_sweeps, sample_weights, &y_std, 1.0, max_depth_m, y_mean, burnin, model_m->dim_residual, nthread, parallel);
-    std::vector<double> sigma_vec(N, ini_var); // initialize vector of heterogeneous sigmas
-    hskState state_m(Xpointer, Xorder_std, N, p, num_trees_m,
-                                                p_categorical, p_continuous, set_random_seed,
-                                                random_seed, n_min_m, num_cutpoints_m,
-                                                mtry, Xpointer, num_sweeps, sample_weights,
-                                                &y_std, 1.0, max_depth_m, y_mean, burnin, model_m->dim_residual,
-                                                nthread, parallel, sigma_vec); //last input is nthread, need update*/
-    // State settings for the variance model
-    hskState state_v(Xpointer, Xorder_std, N, p, num_trees_v,
-                                                   p_categorical, p_continuous, set_random_seed,
-                                                   random_seed, n_min_v, num_cutpoints_v,
-                                                   mtry, Xpointer, num_sweeps, sample_weights,
-                                                   &y_std, 1.0, max_depth_v, y_mean, burnin, model_v->dim_residual,
-                                                   nthread, parallel, sigma_vec); //last input is nthread, need update
-
     // initialize X_struct
     std::vector<double> initial_theta_m(1, y_mean / (double)num_trees_m);
     X_struct x_struct_m(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_m, num_trees_m);
@@ -171,14 +154,80 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     //std::vector<double> initial_theta_v(1, 1);
     X_struct x_struct_v(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_v, num_trees_v);
 
+    // State settings for the mean model
+ //   NormalState state_m(Xpointer, Xorder_std, N, p, num_trees_m, p_categorical, p_continuous, set_random_seed, random_seed, n_min_m, num_cutpoints_m, mtry, Xpointer, num_sweeps, sample_weights, &y_std, 1.0, max_depth_m, y_mean, burnin, model_m->dim_residual, nthread, parallel);
+    std::vector<double> sigma_vec(N, ini_var); // initialize vector of heterogeneous sigmas
+
+    HeteroskedasticState state(Xpointer, Xorder_std,
+                               N, p,
+                               num_trees_m, num_trees_v,
+                               p_categorical, p_continuous,
+                               set_random_seed, random_seed,
+                               n_min_m, n_min_v,
+                               num_cutpoints_m, num_cutpoints_v,
+                               mtry, Xpointer,
+                               num_sweeps, sample_weights,
+                               &y_std, 1.0,
+                               max_depth_m, max_depth_v,
+                               y_mean, burnin,
+                               model_v->dim_residual, nthread,
+                               parallel, sigma_vec);
+
+/*
+    // Create trees for the mean model
+    vector<vector<tree>> *trees1_m = new vector<vector<tree>>(num_sweeps);
+    for (size_t i = 0; i < num_sweeps; i++)
+    {
+        (*trees1_m)[i] = vector<tree>(num_trees_m);
+    }
+
+    // Create trees for the variance model
+    vector<vector<tree>> *trees1_v = new vector<vector<tree>>(num_sweeps);
+    for (size_t i = 0; i < num_sweeps; i++)
+    {
+        (*trees1_v)[i] = vector<tree>(num_trees_v);
+    }
+*/
+    mcmc_loop_heteroskedastic(Xorder_std, verbose, state, model_m, *trees2_m, x_struct_m, model_v, *trees2_v, x_struct_v);
+
+/*
+    HeteroskedasticState state_m(Xpointer, Xorder_std,
+                               N, p,
+                               num_trees_m, num_trees_m,
+                               p_categorical, p_continuous,
+                               set_random_seed, random_seed,
+                               n_min_m, n_min_m,
+                               num_cutpoints_m, num_cutpoints_m,
+                               mtry, Xpointer,
+                               num_sweeps, sample_weights,
+                               &y_std, 1.0,
+                               max_depth_m, max_depth_m,
+                               y_mean, burnin,
+                               model_v->dim_residual, nthread,
+                               parallel, sigma_vec);
+
+    HeteroskedasticState state_v(Xpointer, Xorder_std,
+                               N, p,
+                               num_trees_v, num_trees_v,
+                               p_categorical, p_continuous,
+                               set_random_seed, random_seed,
+                               n_min_v, n_min_v,
+                               num_cutpoints_v, num_cutpoints_v,
+                               mtry, Xpointer,
+                               num_sweeps, sample_weights,
+                               &y_std, 1.0,
+                               max_depth_v, max_depth_v,
+                               y_mean, burnin,
+                               model_v->dim_residual, nthread,
+                               parallel, sigma_vec);
+
     //COUT << "Running the model." << endl;
     ////////////////////////////////////////////////////////////////
     // mcmc loop
     mcmc_loop_hsk(Xorder_std, verbose, sigma_draw_xinfo, *trees2_m, state_m, model_m, x_struct_m, *trees2_v, state_v, model_v, x_struct_v,
                   res_m, res_v);
 
-    //mcmc_loop_hsk_test(Xorder_std, verbose, sigma_draw_xinfo, *trees2_m, state_m, model_m, x_struct_m);
-
+*/
     // stop parallel computing
     thread_pool.stop();
 

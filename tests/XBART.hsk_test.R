@@ -64,11 +64,16 @@ fit = XBART.heterosk(y=matrix(y),X=x, Xtest=xp,
                      ini_var = 1,
                      verbose = FALSE,
                      parallel = FALSE,
+                     sample_weights_flag = FALSE
                      )
 # predicted ys
 y_hats <- rowMeans(fit$yhats_test[,burnin:num_sweeps])
 plot(y_hats,fxp,ylab="y",cex.axis=1,cex.lab=1)
 abline(0,1)
+
+# y_hats <- rowMeans(fit$sigma2hats_test[,burnin:num_sweeps])
+# plot(y_hats,fxp,ylab="y",cex.axis=1,cex.lab=1)
+# abline(0,1)
 
 # predicted sigma2
 sig2_hats <- rowMeans(fit$sigma2hats_test[,burnin:num_sweeps])
@@ -88,6 +93,8 @@ fit.xb = XBART(y=matrix(y),X=x, Xtest=x,
              num_cutpoints = 20,
              verbose = FALSE,
              parallel = FALSE,
+             sample_weights_flag = FALSE
+             
   )
 pred <- predict(fit.xb, xp)
 y_hats <- rowMeans(pred[,burnin:num_sweeps])

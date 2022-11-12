@@ -20,6 +20,16 @@ void logNormalModel::ini_residual_std(State &state, matrix<double> &mean_residua
     return;
 }
 
+void logNormalModel::ini_residual_std2(State &state, X_struct &x_struct)
+{
+    // initialize partial residual at the residual^2 from the mean model
+    for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
+    {
+        (*state.residual_std)[0][i] = 2*log(abs((*state.mean_res)[i])) + log((*state.precision)[i]) - log((*(x_struct.data_pointers[0][i]))[0]);
+    }
+    return;
+}
+
 void logNormalModel::initialize_root_suffstat(State &state,
                                               std::vector<double> &suff_stat)
 {
@@ -184,6 +194,37 @@ void logNormalModel::update_state(State &state,
             log_sigma2 += log((*(x_struct.data_pointers[j][i]))[0]);
         }
         (*state.precision)[i] = exp(log_sigma2);
+//        (*state.residual_std)[0][i] = (*state.mean_res)[i];
+//        (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
     }
+    return;
+}
+
+void logNormalModel::update_state2(State &state,
+                                  size_t tree_ind,
+                                  X_struct &x_struct)
+{
+    for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
+    {
+        double log_sigma2 = 0;
+        for (size_t j = 0; j < tree_ind; j++)
+        {
+            log_sigma2 += log((*(x_struct.data_pointers[j][i]))[0]);
+        }
+        (*state.precision)[i] = exp(log_sigma2);
+        (*state.residual_std)[0][i] = (*state.mean_res)[i];
+        (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
+    }
+    return;
+}
+
+void logNormalModel::switch_state_params(State &state)
+{
+    // update state settings to mean forest
+    state.num_trees = state.num_trees_v;
+    state.n_min = state.n_min_v;
+    state.max_depth = state.max_depth_v;
+    state.n_cutpoints = state.n_cutpoints_v;
+
     return;
 }

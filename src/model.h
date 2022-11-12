@@ -634,6 +634,12 @@ public:
 
     void update_state(State &state, size_t tree_ind, X_struct &x_struct);
 
+    void switch_state_params(State &state);
+
+    void store_residual(State &state);
+
+    void update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> &trees);
+
 };
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -667,6 +673,8 @@ public:
     // redefined functions
     void ini_residual_std(State &state, matrix<double> &mean_residual_std, X_struct &x_struct);
 
+    void ini_residual_std2(State &state, X_struct &x_struct);
+
     void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
 
     void updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
@@ -691,6 +699,10 @@ public:
 
     //unused
     void update_state(State &state, size_t tree_ind, X_struct &x_struct);
+
+    void update_state2(State &state, size_t tree_ind, X_struct &x_struct);
+
+    void switch_state_params(State &state);
 
     //void update_tau(State &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> & trees);
 
