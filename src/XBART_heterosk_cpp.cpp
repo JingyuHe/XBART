@@ -7,11 +7,11 @@
 #include "mcmc_loop.h"
 #include "X_struct.h"
 #include "utility_rcpp.h"
+#include "json_io.h"
 
 using namespace std;
 using namespace chrono;
 
-// TODO: determine the appropriate set of input variables
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::List XBART_heterosk_cpp(arma::mat y,
@@ -117,19 +117,28 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     // TODO: check and remove -- this is likely an unnecessary storage
     matrix<double> sigma_draw_xinfo;
     ini_matrix(sigma_draw_xinfo, num_trees_m, num_sweeps);
-
+/*
     // Create trees for the mean model
-    vector<vector<tree>> *trees2_m = new vector<vector<tree>>(num_sweeps);
+    vector<vector<tree>> *trees_mean = new vector<vector<tree>>(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++)
     {
-        (*trees2_m)[i] = vector<tree>(num_trees_m);
+        (*trees_mean)[i] = vector<tree>(num_trees_m);
     }
 
     // Create trees for the variance model
-    vector<vector<tree>> *trees2_v = new vector<vector<tree>>(num_sweeps);
+    vector<vector<tree>> *trees_var = new vector<vector<tree>>(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++)
     {
-        (*trees2_v)[i] = vector<tree>(num_trees_v);
+        (*trees_var)[i] = vector<tree>(num_trees_v);
+    }
+*/
+    vector<vector<tree>> trees_mean(num_sweeps);
+    vector<vector<tree>> trees_var(num_sweeps);
+
+    for (size_t i = 0; i < num_sweeps; i++)
+    {
+        trees_mean[i].resize(num_trees_m);
+        trees_var[i].resize(num_trees_v);
     }
 
     // COUT << "Objects init." << endl;
@@ -188,7 +197,7 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
         (*trees1_v)[i] = vector<tree>(num_trees_v);
     }
 */
-    mcmc_loop_heteroskedastic(Xorder_std, verbose, state, model_m, *trees2_m, x_struct_m, model_v, *trees2_v, x_struct_v);
+    mcmc_loop_heteroskedastic(Xorder_std, verbose, state, model_m, trees_mean, x_struct_m, model_v, trees_var, x_struct_v);
 
 /*
     HeteroskedasticState state_m(Xpointer, Xorder_std,
@@ -224,7 +233,7 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     //COUT << "Running the model." << endl;
     ////////////////////////////////////////////////////////////////
     // mcmc loop
-    mcmc_loop_hsk(Xorder_std, verbose, sigma_draw_xinfo, *trees2_m, state_m, model_m, x_struct_m, *trees2_v, state_v, model_v, x_struct_v,
+    mcmc_loop_hsk(Xorder_std, verbose, sigma_draw_xinfo, *trees_mean, state_m, model_m, x_struct_m, *trees_var, state_v, model_v, x_struct_v,
                   res_m, res_v);
 
 */
@@ -233,8 +242,8 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
 
     //COUT << "Predict." << endl;
     // TODO: check how predict function will be different
-    model_m->predict_std(Xtestpointer, N_test, p, num_trees_m, num_sweeps, mhats_test_xinfo, *trees2_m);
-    model_v->predict_std(Xtestpointer, N_test, p, num_trees_v, num_sweeps, vhats_test_xinfo, *trees2_v);
+    model_m->predict_std(Xtestpointer, N_test, p, num_trees_m, num_sweeps, mhats_test_xinfo, trees_mean);
+    model_v->predict_std(Xtestpointer, N_test, p, num_trees_v, num_sweeps, vhats_test_xinfo, trees_var);
 
     //state_m.reset();
     //state_v.reset();
@@ -250,24 +259,44 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
         }
     }
     // R Objects to Return
-    // Rcpp::NumericMatrix yhats(N, num_sweeps);
     Rcpp::NumericMatrix yhats_test(N_test, num_sweeps);
     Rcpp::NumericMatrix sigma2_test(N_test, num_sweeps);
-
-    Rcpp::NumericMatrix res_mm(N, num_sweeps);
-    Rcpp::NumericMatrix res_vm(N, num_sweeps);
+    Rcpp::NumericVector split_count_sum_mean(p, 0);
+    Rcpp::NumericVector split_count_sum_var(p, 0);
 
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(yhats_test_xinfo, yhats_test);
     Matrix_to_NumericMatrix(sigma2_test_xinfo, sigma2_test);
-    Matrix_to_NumericMatrix(res_m, res_mm);
-    Matrix_to_NumericMatrix(res_v, res_vm);
+    for (size_t i = 0; i < p; i++)
+    {
+        split_count_sum_mean(i) = (int)(*state.split_count_all_m)[i];
+        split_count_sum_var(i) = (int)(*state.split_count_all_v)[i];
+    }
 
-    // TODO: check outputs
+    // print out tree structure, for usage of BART warm-start
+    Rcpp::StringVector output_tree_mean(num_sweeps);
+    Rcpp::StringVector output_tree_var(num_sweeps);
+
+    tree_to_string(trees_mean, output_tree_mean, num_sweeps, num_trees_m, p);
+    tree_to_string(trees_var, output_tree_var, num_sweeps, num_trees_v, p);
+
+    Rcpp::StringVector tree_json_mean(1);
+    Rcpp::StringVector tree_json_var(1);
+    json j = get_forest_json(trees_mean, y_mean);
+    json j2 = get_forest_json(trees_var, y_mean);
+    tree_json_mean[0] = j.dump(4);
+    tree_json_var[0] = j2.dump(4);
+
+
     return Rcpp::List::create(
         Rcpp::Named("yhats_test") = yhats_test,
         Rcpp::Named("sigma2hats_test") = sigma2_test,
-        Rcpp::Named("res_mm") = res_mm,
-        Rcpp::Named("res_vm") = res_vm
+        Rcpp::Named("importance_mean") = split_count_sum_mean,
+        Rcpp::Named("importance_variance") = split_count_sum_var,
+        Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p") = p),
+        Rcpp::Named("tree_json_mean") = tree_json_mean,
+        Rcpp::Named("tree_json_variance") = tree_json_var,
+        Rcpp::Named("tree_string_mean") = output_tree_mean,
+        Rcpp::Named("tree_string_variance") = output_tree_var
         );
 }
