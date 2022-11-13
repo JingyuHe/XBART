@@ -510,3 +510,63 @@ Rcpp::List json_to_r_3D(Rcpp::StringVector json_string_r)
 
     return Rcpp::List::create(Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("tree_pnt") = tree_pnt));
 }
+
+// [[Rcpp::export]]
+Rcpp::List xbart_heteroskedastic_predict(mat X,
+                                         Rcpp::XPtr<std::vector<std::vector<tree>>> tree_m,
+                                         Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v)
+{
+    // size of data
+    size_t N = X.n_rows;
+    size_t p = X.n_cols;
+
+    // Init X_std matrix
+    Rcpp::NumericMatrix X_std(N, p);
+
+    for (size_t i = 0; i < N; i++)
+    {
+        for (size_t j = 0; j < p; j++)
+        {
+            X_std(i, j) = X(i, j);
+        }
+    }
+    double *Xpointer = &X_std[0];
+
+    // Trees
+    std::vector<std::vector<tree>> *trees_m = tree_m;
+    std::vector<std::vector<tree>> *trees_v = tree_v;
+
+    // Result Container
+    size_t num_sweeps = (*trees_m).size();
+    size_t num_trees_m = (*trees_m)[0].size();
+    size_t num_trees_v = (*trees_v)[0].size();
+
+    COUT << "number of trees " << num_trees_m << " " << num_trees_v << endl;
+
+    matrix<double> mhats_test_xinfo;
+    ini_matrix(mhats_test_xinfo, N, num_sweeps);
+
+    matrix<double> vhats_test_xinfo;
+    ini_matrix(vhats_test_xinfo, N, num_sweeps);
+
+    hskNormalModel *model_m = new hskNormalModel();
+    logNormalModel *model_v = new logNormalModel();
+
+    // Predict
+    model_m->predict_std(Xpointer, N, p, num_trees_m, num_sweeps, mhats_test_xinfo, *trees_m);
+    model_v->predict_std(Xpointer, N, p, num_trees_v, num_sweeps, vhats_test_xinfo, *trees_v);
+
+    // Convert back to Rcpp
+    Rcpp::NumericMatrix mhats(N, num_sweeps);
+    Rcpp::NumericMatrix vhats(N, num_sweeps);
+    for (size_t i = 0; i < N; i++)
+    {
+        for (size_t j = 0; j < num_sweeps; j++)
+        {
+            mhats(i, j) = mhats_test_xinfo[j][i];
+            vhats(i, j) = 1.0 / vhats_test_xinfo[j][i];
+        }
+    }
+
+    return Rcpp::List::create(Rcpp::Named("mhats") = mhats, Rcpp::Named("vhats") = vhats);
+}

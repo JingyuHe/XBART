@@ -50,9 +50,14 @@ public:
     bool sample_weights;
     double ini_var_yhat;
 
+//    std::vector<double> *var_fit;    // for heteroskedastic XBART
+//
     // residual standard deviation
     double sigma;
     double sigma2; // sigma squared
+
+    // for heteroskedastic case
+    // std::vector<double> sigma_vec; // residual standard deviation
 
     // paralization
     size_t nthread;
@@ -63,6 +68,27 @@ public:
     std::vector<std::vector<std::vector<double>>> *lambdas_separate;
     size_t weight_exponent;
     double logloss_last_sweep;
+
+// for heteroskedastic XBART
+    matrix<double> *split_count_all_tree_m;
+    std::vector<double> *split_count_all_m;
+    std::vector<double> *mtry_weight_current_tree_m;
+    matrix<double> *split_count_all_tree_v;
+    std::vector<double> *split_count_all_v;
+    std::vector<double> *mtry_weight_current_tree_v;
+
+    bool forest_flag; // 0 = mean forest; 1 = variance forest
+    std::vector<double> *mean_res; // temporary storage for mean model residual
+    std::vector<double> *precision;
+    std::vector<double> *res_x_precision;
+    size_t n_min_m;
+    size_t n_min_v;
+    size_t n_cutpoints_m;
+    size_t n_cutpoints_v;
+    size_t max_depth_m;
+    size_t max_depth_v;
+    size_t num_trees_m;
+    size_t num_trees_v;
 
     // for continuous treatment XBCF
     matrix<double> *split_count_all_tree_con;
@@ -165,6 +191,13 @@ public:
         this->split_count_all_mod = NULL;
         this->mtry_weight_current_tree_con = NULL;
         this->mtry_weight_current_tree_mod = NULL;
+
+        this->split_count_all_tree_m = NULL;
+        this->split_count_all_tree_v = NULL;
+        this->split_count_all_m = NULL;
+        this->split_count_all_v = NULL;
+        this->mtry_weight_current_tree_m = NULL;
+        this->mtry_weight_current_tree_v = NULL;
         return;
     }
 
@@ -183,6 +216,7 @@ public:
         this->sigma = sigma;
         this->sigma2 = pow(sigma, 2);
         this->parallel = parallel;
+//        this->var_fit = (new std::vector<double>(N, 0)); //initialize fit at log(1)=0 for all observations
     }
 };
 
@@ -309,5 +343,87 @@ public:
         this->sigma_vec[1] = 1;
     }
 };
+
+class hskState : public State
+{
+    // for hskState we have residual_std of size 3xN
+    // residual[0] is the original residual we try to learn
+    // residual[1] is the precision vector
+    // residual[2] is the element-wise product of residual[0] and residual[1]
+
+    private:
+
+        void ini_sigma(std::vector<double> &sigma, std::vector<double> &input)
+        {
+            sigma.resize(input.size());
+            for (size_t i = 0; i < input.size(); i++)
+            {
+                sigma[i] = input[i];
+            }
+        }
+
+
+    public:
+
+        hskState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel, std::vector<double> &sigma_vec) : State(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, n_cutpoints, mtry, X_std, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
+        {
+            //COUT << "hsk " <<ini_var_yhat << endl;
+            ini_sigma(this->sigma_vec, sigma_vec);
+            this->parallel = parallel;
+            this->precision = (new std::vector<double>(N, 1));
+            this->res_x_precision = (new std::vector<double>(N, 0));
+        }
+
+
+};
+
+class HeteroskedasticState : public State
+{
+    private:
+
+        void ini_sigma(std::vector<double> &sigma, std::vector<double> &input)
+        {
+            sigma.resize(input.size());
+            for (size_t i = 0; i < input.size(); i++)
+            {
+                sigma[i] = input[i];
+            }
+        }
+    public:
+        HeteroskedasticState(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees_m, size_t num_trees_v,
+                            size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min_m, size_t n_min_v,
+                            size_t n_cutpoints_m, size_t n_cutpoints_v, size_t mtry, const double *X_std, size_t num_sweeps,
+                            bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth_m, size_t max_depth_v,
+                            double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel, std::vector<double> &sigma_vec) :
+                    State(Xpointer, Xorder_std, N, p, num_trees_m, p_categorical, p_continuous, set_random_seed, random_seed,
+                        n_min_m, n_cutpoints_m, mtry, Xpointer, num_sweeps, sample_weights, y_std, sigma, max_depth_m,
+                        ini_var_yhat, burnin, dim_residual, nthread)
+        {
+            this->split_count_all_tree_m = new matrix<double>();
+            this->split_count_all_tree_v = new matrix<double>();
+            ini_xinfo((*this->split_count_all_tree_m), p, num_trees_m);
+            ini_xinfo((*this->split_count_all_tree_v), p, num_trees_v);
+            this->split_count_all_m = new std::vector<double>(p, 0);
+            this->mtry_weight_current_tree_m = new std::vector<double>(p, 0);
+            this->split_count_all_v = new std::vector<double>(p, 0);
+            this->mtry_weight_current_tree_v = new std::vector<double>(p, 0);
+            ini_sigma(this->sigma_vec, sigma_vec);
+            this->sigma = sigma;
+            this->parallel = parallel;
+            this->mean_res = (new std::vector<double>(N, 0));
+            this->precision = (new std::vector<double>(N, 1));
+            this->res_x_precision = (new std::vector<double>(N, 0));
+            this->mtry = mtry;
+            this->num_trees_m = num_trees_m;
+            this->num_trees_v = num_trees_v;
+            this->n_cutpoints_m = n_cutpoints_m;
+            this->n_cutpoints_v = n_cutpoints_v;
+            this->n_min_m = n_min_m;
+            this->n_min_v = n_min_v;
+            this->max_depth_m = max_depth_m;
+            this->max_depth_v = max_depth_v;
+        }
+};
+
 
 #endif
