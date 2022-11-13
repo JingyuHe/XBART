@@ -71,14 +71,20 @@ y_hats <- rowMeans(fit$yhats_test[,burnin:num_sweeps])
 plot(y_hats,fxp,ylab="y",cex.axis=1,cex.lab=1)
 abline(0,1)
 
-# y_hats <- rowMeans(fit$sigma2hats_test[,burnin:num_sweeps])
-# plot(y_hats,fxp,ylab="y",cex.axis=1,cex.lab=1)
-# abline(0,1)
-
 # predicted sigma2
 sig2_hats <- rowMeans(fit$sigma2hats_test[,burnin:num_sweeps])
 plot(sig2_hats,sxp^2,ylab="var(y)",cex.axis=1,cex.lab=1)
 abline(0,1)
+
+# test predict
+pred <- predict.XBARTheteroskedastic(fit, xp)
+mhats <- rowMeans(pred$mhats[,burnin:num_sweeps])
+plot(mhats,fxp,ylab="y",cex.axis=1,cex.lab=1)
+abline(0,1)
+vhats <- rowMeans(pred$vhats[,burnin:num_sweeps])
+plot(vhats,sxp^2,ylab="var(y)",cex.axis=1,cex.lab=1)
+abline(0,1)
+
 
 num_sweeps = 80
 burnin = 30

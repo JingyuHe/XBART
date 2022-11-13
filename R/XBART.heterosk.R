@@ -134,6 +134,6 @@ XBART.heterosk <- function(y,
 #    tree_json = r_to_json(mean(y), obj$model$tree_pnt)
 #   obj$tree_json = tree_json
 
-    class(obj) = "XBART"
+    class(obj) = "XBARTheteroskedastic"
     return(obj)
 }
