@@ -162,45 +162,7 @@ void logNormalModel::predict_std(const double *Xtestpointer, size_t N_test, size
 }
 
 
-void logNormalModel::update_sigmas(State &state,
-                                   size_t M,
-                                   X_struct &x_struct)
-{
-    // update sigma2
-    for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
-    {
-        double log_sigma2 = 0;
-        for (size_t j = 0; j < M; j++)
-        {
-            log_sigma2 += log((*(x_struct.data_pointers[j][i]))[0]);
-        }
-//        (*state.residual_std)[1][i] = exp(log_sigma2);
-        (*state.precision)[i] = exp(log_sigma2);
-//        (*state.residual_std)[2][i] = (*state.residual_std)[0][i] * (*state.residual_std)[1][i];
-        (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
-    }
-    return;
-}
-
 void logNormalModel::update_state(State &state,
-                                  size_t tree_ind,
-                                  X_struct &x_struct)
-{
-    for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
-    {
-        double log_sigma2 = 0;
-        for (size_t j = 0; j < tree_ind; j++)
-        {
-            log_sigma2 += log((*(x_struct.data_pointers[j][i]))[0]);
-        }
-        (*state.precision)[i] = exp(log_sigma2);
-//        (*state.residual_std)[0][i] = (*state.mean_res)[i];
-//        (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
-    }
-    return;
-}
-
-void logNormalModel::update_state2(State &state,
                                   size_t tree_ind,
                                   X_struct &x_struct)
 {

@@ -1,7 +1,5 @@
-# TODO: update the inputs for the dunction
 XBART.heterosk <- function(y,
                            X,
-                           Xtest,
                            num_sweeps,
                            burnin = 1L,
                            p_categorical = 0L,
@@ -36,11 +34,6 @@ XBART.heterosk <- function(y,
         X = as.matrix(X)
     }
 
-    if (!("matrix" %in% class(Xtest))) {
-        cat("Input Xtest is not a matrix, try to convert type.\n")
-        Xtest = as.matrix(Xtest)
-    }
-
     if (!("matrix" %in% class(y))) {
         cat("Input y is not a matrix, try to convert type.\n")
         y = as.matrix(y)
@@ -48,10 +41,6 @@ XBART.heterosk <- function(y,
 
     if (dim(X)[1] != length(y)) {
         stop("Length of X must match length of y")
-    }
-
-    if (dim(X)[2] != dim(X)[2]) {
-        stop("Column of X must match columns of Xtest")
     }
 
     if (is.null(random_seed)) {
@@ -97,8 +86,8 @@ XBART.heterosk <- function(y,
         p_categorical = dim(X)[2]
         stop("p_categorical cannot exceed p")
     }
-    # check input type
 
+    # check input type
     check_positive_integer(num_sweeps, "num_sweeps")
     check_non_negative_integer(burnin, "burnin")
     check_non_negative_integer(p_categorical, "p_categorical")
@@ -122,7 +111,7 @@ XBART.heterosk <- function(y,
     check_scalar(s, "s")
 
 
-    obj = XBART_heterosk_cpp(y, X, Xtest, num_sweeps, burnin, p_categorical, mtry,
+    obj = XBART_heterosk_cpp(y, X, num_sweeps, burnin, p_categorical, mtry,
                              no_split_penality_m, num_trees_m, max_depth_m,
                              Nmin_m, num_cutpoints_m, tau_m,
                              no_split_penality_v, num_trees_v, max_depth_v,
@@ -130,9 +119,6 @@ XBART.heterosk <- function(y,
                              kap, s, tau_kap, tau_s, alpha, beta,
                              verbose, sampling_tau, parallel, set_random_seed,
                              random_seed, sample_weights_flag, nthread)
-
-#    tree_json = r_to_json(mean(y), obj$model$tree_pnt)
-#   obj$tree_json = tree_json
 
     class(obj) = "XBARTheteroskedastic"
     return(obj)

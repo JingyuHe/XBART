@@ -8,6 +8,7 @@ p=1 #just one x
 x = matrix(sort(runif(n*p)),ncol=p) #iid uniform x values
 #x = matrix(sort(rbinom(n*p,1,0.5)),ncol=p)
 fx = 4*(x[,1]^2) #quadratric function f
+#fx = x[,1]*2
 #fx = rep(0,n) #constant mean
 sx = .8*exp(2*x[,1]) # exponential function s
 #sx = .5*x[,1]
@@ -19,6 +20,7 @@ y = fx + sx*rnorm(n)
 np=1000
 xp = matrix(sort(runif(np*p)),ncol=p)
 fxp = 4*(xp[,1]^2)
+#fxp = xp[,1]*2
 #fxp = rep(0,np) #constant mean
 sxp = .8*exp(2*xp[,1])
 #sxp = .5*xp[,1]
@@ -45,8 +47,8 @@ yp = fxp + sxp*rnorm(np)
 
 ###################### xbart  #################
 library(XBART)
-num_sweeps = 80
-burnin = 30
+num_sweeps = 50
+burnin = 20
 
 fit = XBART.heterosk(y=matrix(y),X=x, Xtest=xp, 
                      num_sweeps = num_sweeps,
@@ -67,14 +69,14 @@ fit = XBART.heterosk(y=matrix(y),X=x, Xtest=xp,
                      sample_weights_flag = FALSE
                      )
 # predicted ys
-y_hats <- rowMeans(fit$yhats_test[,burnin:num_sweeps])
-plot(y_hats,fxp,ylab="y",cex.axis=1,cex.lab=1)
-abline(0,1)
+# y_hats <- rowMeans(fit$yhats_test[,burnin:num_sweeps])
+# plot(y_hats,fxp,ylab="y",cex.axis=1,cex.lab=1)
+# abline(0,1)
 
 # predicted sigma2
-sig2_hats <- rowMeans(fit$sigma2hats_test[,burnin:num_sweeps])
-plot(sig2_hats,sxp^2,ylab="var(y)",cex.axis=1,cex.lab=1)
-abline(0,1)
+# sig2_hats <- rowMeans(fit$sigma2hats_test[,burnin:num_sweeps])
+# plot(sig2_hats,sxp^2,ylab="var(y)",cex.axis=1,cex.lab=1)
+# abline(0,1)
 
 # test predict
 pred <- predict.XBARTheteroskedastic(fit, xp)
@@ -86,8 +88,8 @@ plot(vhats,sxp^2,ylab="var(y)",cex.axis=1,cex.lab=1)
 abline(0,1)
 
 
-num_sweeps = 80
-burnin = 30
+num_sweeps = 50
+burnin = 20
 fit.xb = XBART(y=matrix(y),X=x, Xtest=x,
              num_sweeps = num_sweeps,
              burnin = burnin,

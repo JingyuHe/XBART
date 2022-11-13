@@ -30,12 +30,6 @@ void mcmc_loop_xbcf_continuous(matrix<size_t> &Xorder_std_con, matrix<size_t> &X
 void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, bool verbose, matrix<double> &sigma0_draw_xinfo, matrix<double> &sigma1_draw_xinfo, matrix<double> &a_xinfo, matrix<double> &b_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod, double no_split_penalty, State &state, XBCFDiscreteModel *model, X_struct &x_struct_con, X_struct &x_struct_mod);
 
 // XBART with heteroskedastic variance
-void mcmc_loop_hsk(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo,
-                    vector<vector<tree>> &mean_trees, State &mean_state, hskNormalModel *mean_model, X_struct &mean_x_struct,
-                    vector<vector<tree>> &var_trees, State &var_state, logNormalModel *var_model, X_struct &var_x_struct,
-                    matrix<double> &res_m,
-                    matrix<double> &res_v);
-
 void mcmc_loop_heteroskedastic(matrix<size_t> &Xorder_std,
                     bool verbose,
                     State &state,

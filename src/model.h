@@ -616,9 +616,7 @@ public:
 
     void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
-    //void update_tau(State &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> & trees);
-
-    //void update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> & trees);
+    void update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> & trees);
 
     void updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
 
@@ -628,24 +626,18 @@ public:
 
     double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State &state) const;
 
-    // double likelihood_no_split(std::vector<double> &suff_stat, State &state) const;
-
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
-
-    void update_state(State &state, size_t tree_ind, X_struct &x_struct);
 
     void switch_state_params(State &state);
 
     void store_residual(State &state);
-
-    void update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> &trees);
 
 };
 
 //////////////////////////////////////////////////////////////////////////////////////
 //  LogNormal Model
 //////////////////////////////////////////////////////////////////////////////////////
-// TODO: incorporate a_v and b_v appropriately
+
 class logNormalModel : public Model
 {
 public:
@@ -689,24 +681,11 @@ public:
 
     void state_sweep(size_t tree_ind, size_t M, matrix<double> &residual_std, X_struct &x_struct) const;
 
-    // double likelihood_no_split(std::vector<double> &suff_stat, State &state) const;
-
     void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
 
-    //new functions added
-    //void update_sigmas(matrix<double> &mean_residual_std, std::vector<double> &fit);
-    void update_sigmas(State &state, size_t M, X_struct &x_struct);
-
-    //unused
     void update_state(State &state, size_t tree_ind, X_struct &x_struct);
 
-    void update_state2(State &state, size_t tree_ind, X_struct &x_struct);
-
     void switch_state_params(State &state);
-
-    //void update_tau(State &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> & trees);
-
-    //void update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> & trees);
 };
 
 #endif
