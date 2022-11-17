@@ -688,4 +688,83 @@ public:
     void switch_state_params(State &state);
 };
 
+//////////////////////////////////////////////////////////////////////////////////////
+//  Heteroskedastic XBCF discrete (binary) Model
+//////////////////////////////////////////////////////////////////////////////////////
+
+class hskXBCFDiscreteModel : public Model
+{
+public:
+    size_t dim_suffstat = 2;
+
+    // model prior
+    // prior on sigma
+    double kap;
+    double s;
+    double tau_kap;
+    double tau_s;
+    // prior on leaf parameter
+    double tau; // might be updated if sampling tau
+    double tau_mean; // copy of the original value
+    bool sampling_tau;
+
+    hskXBCFDiscreteModel(double kap, double s, double tau, double alpha, double beta, bool sampling_tau, double tau_kap, double tau_s) : Model(1, 2)
+    {
+        this->kap = kap;
+        this->s = s;
+        this->tau_kap = tau_kap;
+        this->tau_s = tau_s;
+        this->tau = tau;
+        this->tau_mean = tau;
+        this->alpha = alpha;
+        this->beta = beta;
+        this->dim_residual = 3;
+        this->class_operating = 0;
+        this->sampling_tau = sampling_tau;
+    }
+
+    hskXBCFDiscreteModel(double kap, double s, double tau, double alpha, double beta) : Model(1, 2)
+    {
+        this->kap = kap;
+        this->s = s;
+        this->tau = tau;
+        this->tau_mean = tau;
+        this->alpha = alpha;
+        this->beta = beta;
+        this->dim_residual = 3;
+        this->class_operating = 0;
+        this->sampling_tau = true;
+    }
+
+    hskXBCFDiscreteModel() : Model(1, 2) {}
+
+    Model *clone() { return new hskXBCFDiscreteModel(*this); }
+
+    // redefined functions
+    void ini_residual_std(State &state);
+
+    void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
+
+    void incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats);
+
+    void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
+
+    void update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> & trees);
+
+    void updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
+
+    void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side);
+
+    void state_sweep(size_t tree_ind, size_t M, State &state, X_struct &x_struct) const;
+
+    double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State &state) const;
+
+    void predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees);
+
+    void switch_state_params(State &state);
+
+    void store_residual(State &state);
+
+};
+
 #endif
