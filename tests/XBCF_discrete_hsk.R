@@ -58,12 +58,17 @@ for(i in c(1:reps)) {
   
   #### 2. XBCF
   
+  num_sweeps <-60
+  burnin <- 30
   # run XBCF heteroskedastic
   t1 = proc.time()
-  fit.hsk <- XBCF.discrete.heterosk(y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat, p_categorical_con = 5, p_categorical_mod = 5, num_sweeps = 60, burnin = 30)
+  fit.hsk <- XBCF.discrete.heterosk(y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat, 
+                                    p_categorical_con = 5, p_categorical_mod = 5, 
+                                    num_trees_con = 5, num_trees_mod = 5,
+                                    num_sweeps = num_sweeps, burnin = burnin)
   t1 = proc.time() - t1
   
-  pred <- predict.XBCFdiscreteHeterosk(fit.hsk, X_con = x_con, X_mod = x_mod, Z = z, pihat = pihat, burnin = 30)
+  pred <- predict.XBCFdiscreteHeterosk(fit.hsk, X_con = x_con, X_mod = x_mod, Z = z, pihat = pihat, burnin = burnin)
   tauhats <- pred$tau.adj.mean
   
   # compare results to inference
@@ -72,15 +77,19 @@ for(i in c(1:reps)) {
   abline(0, 1)
   print(paste0("xbcf hsk RMSE: ", sqrt(mean((tauhats - tau)^2))))
   print(paste0("xbcf hsk runtime: ", round(as.list(t1)$elapsed, 2), " seconds"))
-
+  
   rmse.stats[i,1] <- sqrt(mean((tauhats - tau)^2))
-    
+  
   # run XBCF homoskedastic
   t2 = proc.time()
-  fit <- XBCF.discrete(y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat, p_categorical_con = 5, p_categorical_mod = 5, num_sweeps = 60, burnin = 30)
+  fit <- XBCF.discrete(y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat, 
+                       p_categorical_con = 5, p_categorical_mod = 5, 
+                       num_sweeps = num_sweeps, burnin = burnin, 
+                       num_trees_con = 5, num_trees_mod = 5,
+                       a_scaling = FALSE, b_scaling = FALSE)
   t2 = proc.time() - t2
   
-  pred2 <- predict(fit, X_con = x_con, X_mod = x_mod, Z = z, pihat = pihat, burnin = 30)
+  pred2 <- predict(fit, X_con = x_con, X_mod = x_mod, Z = z, pihat = pihat, burnin = burnin)
   tauhats2 <- pred2$tau.adj.mean
   
   
