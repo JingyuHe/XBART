@@ -749,7 +749,7 @@ public:
 
     void update_state(State &state, size_t tree_ind, X_struct &x_struct, size_t ind);
 
-    void update_tau(State &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> &trees);
+//    void update_tau(State &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> &trees);
 
     void update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> &trees);
 

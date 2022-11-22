@@ -18,14 +18,14 @@ void hskXBCFDiscreteModel::incSuffStat(State &state, size_t index_next_obs, std:
         if ((*state.Z_std)[0][index_next_obs] == 1)
         {
             // if treated
-            suffstats[1] += ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[1] * (*state.tau_fit)[index_next_obs]) / state.b_vec[1];
-            suffstats[3] += 1;
+            suffstats[1] += (*state.res_x_precision)[index_next_obs];
+            suffstats[3] += (*state.precision)[index_next_obs];
         }
         else
         {
             // if control group
-            suffstats[0] += ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[0] * (*state.tau_fit)[index_next_obs]) / state.b_vec[0];
-            suffstats[2] += 1;
+            suffstats[0] += (*state.res_x_precision)[index_next_obs];
+            suffstats[2] += (*state.precision)[index_next_obs];
         }
     }
     else
@@ -34,14 +34,14 @@ void hskXBCFDiscreteModel::incSuffStat(State &state, size_t index_next_obs, std:
         if ((*state.Z_std)[0][index_next_obs] == 1)
         {
             // if treated
-            suffstats[1] += ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[1] * (*state.tau_fit)[index_next_obs]) / state.a;
-            suffstats[3] += 1;
+            suffstats[1] += (*state.res_x_precision)[index_next_obs];
+            suffstats[3] += (*state.precision)[index_next_obs];
         }
         else
         {
             // if control group
-            suffstats[0] += ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[0] * (*state.tau_fit)[index_next_obs]) / state.a;
-            suffstats[2] += 1;
+            suffstats[0] += (*state.res_x_precision)[index_next_obs];
+            suffstats[2] += (*state.precision)[index_next_obs];
         }
     }
     return;
@@ -64,26 +64,32 @@ void hskXBCFDiscreteModel::samplePars(State &state, std::vector<double> &suff_st
 
     double s0 = 0;
     double s1 = 0;
+    double s2 = 0;
+    double s3 = 0;
 
     if (state.treatment_flag)
     {
-        s0 = state.sigma_vec[0] / fabs(state.b_vec[0]);
-        s1 = state.sigma_vec[1] / fabs(state.b_vec[1]);
+        s0 = suff_stat[0] / pow(state.b_vec[0], 2);
+        s1 = suff_stat[1] / pow(state.b_vec[1], 2);
+        s2 = suff_stat[2] / pow(state.b_vec[0], 2);
+        s3 = suff_stat[3] / pow(state.b_vec[1], 2);
     }
     else
     {
-        s0 = state.sigma_vec[0] / fabs(state.a);
-        s1 = state.sigma_vec[1] / fabs(state.a);
+        s0 = suff_stat[0] / pow(state.a, 2);
+        s1 = suff_stat[1] / pow(state.a, 2);
+        s2 = suff_stat[2] / pow(state.a, 2);
+        s3 = suff_stat[3] / pow(state.a, 2);
     }
 
     // step 1 (control group)
-    double denominator0 = 1.0 / tau_use + suff_stat[2] / pow(s0, 2);
-    double m0 = (suff_stat[0] / pow(s0, 2)) / denominator0;
+    double denominator0 = 1.0 / tau_use + s2;
+    double m0 = (s0) / denominator0;
     double v0 = 1.0 / denominator0;
 
     // step 2 (treatment group)
-    double denominator1 = (1.0 / v0 + suff_stat[3] / pow(s1, 2));
-    double m1 = (1.0 / v0) * m0 / denominator1 + suff_stat[1] / pow(s1, 2) / denominator1;
+    double denominator1 = 1.0 / v0 + s3;
+    double m1 = (1.0 / v0) * m0 / denominator1 + s1 / denominator1;
     double v1 = 1.0 / denominator1;
 
     // sample leaf parameter
@@ -130,17 +136,35 @@ void hskXBCFDiscreteModel::update_state(State &state, size_t tree_ind, X_struct 
     if (ind == 0)
     {
         sigma = 1.0 / sqrt(gamma_samp0(state.gen));
+        for (size_t i = 0; i < state.n_y; i++)
+        {
+            if ((*state.Z_std)[0][i] == 0)
+            {
+                // if treated
+                state.sigma_vec[i] = sigma;
+                (*state.precision)[i] = double (1.0 / pow(sigma,2));
+            }
+        }
     }
     else
     {
         sigma = 1.0 / sqrt(gamma_samp1(state.gen));
+        for (size_t i = 0; i < state.n_y; i++)
+        {
+            if ((*state.Z_std)[0][i] == 1)
+            {
+                // if treated
+                state.sigma_vec[i] = sigma;
+                (*state.precision)[i] = double (1.0 / pow(sigma,2));
+            }
+        }
     }
 
-    state.update_sigma(sigma, ind);
+    //state.update_sigma(sigma, ind);
 
     return;
 }
-
+/*
 void hskXBCFDiscreteModel::update_tau(State &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> &trees)
 {
     std::vector<tree *> leaf_nodes;
@@ -170,7 +194,7 @@ void hskXBCFDiscreteModel::update_tau(State &state, size_t tree_ind, size_t swee
 
     return;
 };
-
+*/
 void hskXBCFDiscreteModel::update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> &trees)
 {
     std::vector<tree *> leaf_nodes;
@@ -251,39 +275,51 @@ double hskXBCFDiscreteModel::likelihood(std::vector<double> &temp_suff_stat, std
         tau_use = tau_con;
     }
 
-    double s0 = 0;
-    double s1 = 0;
     double denominator;   // the denominator (1 + tau * precision_squared) is the same for both terms
     double s_psi_squared; // (residual * precision_squared)^2
 
-    if (state.treatment_flag)
+    if(state.treatment_flag)
     {
-        // if this is treatment forest
-        s0 = state.sigma_vec[0] / fabs(state.b_vec[0]);
-        s1 = state.sigma_vec[1] / fabs(state.b_vec[1]);
-    }
-    else
-    {
-        s0 = state.sigma_vec[0] / fabs(state.a);
-        s1 = state.sigma_vec[1] / fabs(state.a);
-    }
-
-    if (no_split)
-    {
-        denominator = 1 + (suff_stat_all[2] / pow(s0, 2) + suff_stat_all[3] / pow(s1, 2)) * tau_use;
-        s_psi_squared = suff_stat_all[0] / pow(s0, 2) + suff_stat_all[1] / pow(s1, 2);
-    }
-    else
-    {
-        if (left_side)
+        if (no_split)
         {
-            denominator = 1 + (temp_suff_stat[2] / pow(s0, 2) + temp_suff_stat[3] / pow(s1, 2)) * tau_use;
-            s_psi_squared = temp_suff_stat[0] / pow(s0, 2) + temp_suff_stat[1] / pow(s1, 2);
+            denominator = 1 + (suff_stat_all[2] * pow(state.b_vec[0], 2) + suff_stat_all[3] * pow(state.b_vec[1], 2)) * tau_use;
+            s_psi_squared = suff_stat_all[0] * pow(state.b_vec[0], 2) + suff_stat_all[1] * pow(state.b_vec[1], 2);
         }
         else
         {
-            denominator = 1 + ((suff_stat_all[2] - temp_suff_stat[2]) / pow(s0, 2) + (suff_stat_all[3] - temp_suff_stat[3]) / pow(s1, 2)) * tau_use;
-            s_psi_squared = (suff_stat_all[0] - temp_suff_stat[0]) / pow(s0, 2) + (suff_stat_all[1] - temp_suff_stat[1]) / pow(s1, 2);
+            if (left_side)
+            {
+                denominator = 1 + (temp_suff_stat[2] * pow(state.b_vec[0], 2) + temp_suff_stat[3] * pow(state.b_vec[1], 2)) * tau_use;
+                s_psi_squared = temp_suff_stat[0] * pow(state.b_vec[0], 2) + temp_suff_stat[1] * pow(state.b_vec[1], 2);
+            }
+            else
+            {
+                denominator = 1 + ((suff_stat_all[2] - temp_suff_stat[2]) * pow(state.b_vec[0], 2) +
+                                   (suff_stat_all[3] - temp_suff_stat[3]) * pow(state.b_vec[1], 2)) * tau_use;
+                s_psi_squared = (suff_stat_all[0] - temp_suff_stat[0]) * pow(state.b_vec[0], 2) +
+                                (suff_stat_all[1] - temp_suff_stat[1]) * pow(state.b_vec[1], 2);
+            }
+        }
+    }
+    else
+    {
+        if (no_split)
+        {
+            denominator = 1 + (suff_stat_all[2] + suff_stat_all[3]) * tau_use * state.a;
+            s_psi_squared = (suff_stat_all[0] + suff_stat_all[1]) * state.a;
+        }
+        else
+        {
+            if (left_side)
+            {
+                denominator = 1 + (temp_suff_stat[2] + temp_suff_stat[3]) * tau_use * state.a;
+                s_psi_squared = (temp_suff_stat[0] + temp_suff_stat[1]) * state.a;
+            }
+            else
+            {
+                denominator = 1 + ((suff_stat_all[2] - temp_suff_stat[2]) + (suff_stat_all[3] - temp_suff_stat[3])) * tau_use * state.a;
+                s_psi_squared = ((suff_stat_all[0] - temp_suff_stat[0]) + (suff_stat_all[1] - temp_suff_stat[1])) * state.a;
+            }
         }
     }
     return 0.5 * log(1 / denominator) + 0.5 * pow(s_psi_squared, 2) * tau_use / denominator;
@@ -298,6 +334,8 @@ void hskXBCFDiscreteModel::ini_residual_std(State &state)
         b_value = ((*state.Z_std)[0][i] == 1) ? state.b_vec[1] : state.b_vec[0];
 
         (*state.residual_std)[0][i] = (*state.y_std)[i] - (state.a) * (*state.mu_fit)[i] - b_value * (*state.tau_fit)[i];
+        (*state.precision)[i] = double (1.0 / state.sigma_vec[i]);
+        (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
     }
     return;
 }
@@ -443,6 +481,7 @@ void hskXBCFDiscreteModel::update_partial_residuals(size_t tree_ind, State &stat
             {
                 ((*state.residual_std))[0][i] = ((*state.y_std)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[0]) * (*state.tau_fit)[i]) / (state.b_vec[0]);
             }
+            (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
         }
     }
     else
@@ -459,6 +498,7 @@ void hskXBCFDiscreteModel::update_partial_residuals(size_t tree_ind, State &stat
             {
                 ((*state.residual_std))[0][i] = ((*state.y_std)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[0]) * (*state.tau_fit)[i]) / (state.a);
             }
+            (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
         }
     }
     return;
@@ -481,8 +521,9 @@ void hskXBCFDiscreteModel::update_split_counts(State &state, size_t tree_ind)
 
 void hskXBCFDiscreteModel::update_a(State &state)
 {
-    // update parameter a, y = a * mu + b_z * tau
 
+    // update parameter a, y = a * mu + b_z * tau
+/*
     std::normal_distribution<double> normal_samp(0.0, 1.0);
 
     double mu2sum_ctrl = 0;
@@ -504,6 +545,7 @@ void hskXBCFDiscreteModel::update_a(State &state)
             (*state.residual_std)[0][i] = (*state.y_std)[i] - (*state.tau_fit)[i] * state.b_vec[0];
         }
     }
+
     for (size_t i = 0; i < state.n_y; i++)
     {
         if ((*state.Z_std)[0][i] == 1)
@@ -525,14 +567,15 @@ void hskXBCFDiscreteModel::update_a(State &state)
     double m1 = v1 * (m0 / v0 + (muressum_trt) / pow(state.sigma_vec[1], 2));
 
     state.a = m1 + sqrt(v1) * normal_samp(state.gen);
-
+*/
     return;
 }
 
 void hskXBCFDiscreteModel::update_b(State &state)
 {
-    // update b0 and b1 for XBCF discrete treatment
 
+    // update b0 and b1 for XBCF discrete treatment
+/*
     std::normal_distribution<double> normal_samp(0.0, 1.0);
 
     double tau2sum_ctrl = 0;
@@ -573,6 +616,6 @@ void hskXBCFDiscreteModel::update_b(State &state)
 
     state.b_vec[1] = b1;
     state.b_vec[0] = b0;
-
+*/
     return;
 }
