@@ -254,6 +254,8 @@ Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y,
 
     Rcpp::NumericVector split_count_sum_mod(p_mod, 0);
 
+    Rcpp::NumericVector split_count_sum_v(p_con, 0);
+
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(sigma0_draw_xinfo, sigma0_draw);
     Matrix_to_NumericMatrix(sigma0_draw_xinfo, sigma0_draw);
@@ -270,32 +272,43 @@ Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y,
         split_count_sum_mod(i) = (int)(*state.split_count_all_mod)[i];
     }
 
+    for (size_t i = 0; i < p_con; i++)
+    {
+        split_count_sum_v(i) = (int)(*state.split_count_all_v)[i];
+    }
+
     // print out tree structure, for usage of BART warm-start
     Rcpp::StringVector output_tree_con(num_sweeps);
     Rcpp::StringVector output_tree_mod(num_sweeps);
+    Rcpp::StringVector output_tree_v(num_sweeps);
 
     tree_to_string(trees_mod, output_tree_mod, num_sweeps, num_trees_mod, p_mod);
     tree_to_string(trees_con, output_tree_con, num_sweeps, num_trees_con, p_con);
+    tree_to_string(trees_v, output_tree_con, num_sweeps, num_trees_v, p_con);
 
     Rcpp::StringVector tree_json_mod(1);
     Rcpp::StringVector tree_json_con(1);
+    Rcpp::StringVector tree_json_v(1);
     json j = get_forest_json(trees_mod, y_mean);
     json j2 = get_forest_json(trees_con, y_mean);
+    json j3 = get_forest_json(trees_v, y_mean);
     tree_json_mod[0] = j.dump(4);
     tree_json_con[0] = j2.dump(4);
+    tree_json_v[0] = j3.dump(4);
 
     thread_pool.stop();
 
     return Rcpp::List::create(
-        Rcpp::Named("sigma0") = sigma0_draw,
-        Rcpp::Named("sigma1") = sigma1_draw,
         Rcpp::Named("a") = a_draw,
         Rcpp::Named("b") = b_draw,
         Rcpp::Named("importance_prognostic") = split_count_sum_con,
         Rcpp::Named("importance_treatment") = split_count_sum_mod,
+        Rcpp::Named("importance_precision") = split_count_sum_v,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p_con") = p_con, Rcpp::Named("p_mod") = p_mod),
         Rcpp::Named("tree_json_mod") = tree_json_mod,
         Rcpp::Named("tree_json_con") = tree_json_con,
+        Rcpp::Named("tree_json_v") = tree_json_v,
         Rcpp::Named("tree_string_mod") = output_tree_mod,
-        Rcpp::Named("tree_string_con") = output_tree_con);
+        Rcpp::Named("tree_string_con") = output_tree_con,
+        Rcpp::Named("tree_string_v") = output_tree_v);
 }
