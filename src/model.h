@@ -747,7 +747,7 @@ public:
 
     void samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf);
 
-    void update_state(State &state, size_t tree_ind, X_struct &x_struct, size_t ind);
+//    void update_state(State &state, size_t tree_ind, X_struct &x_struct, size_t ind);
 
 //    void update_tau(State &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> &trees);
 
@@ -782,6 +782,10 @@ public:
     void update_a(State &state);
 
     void update_b(State &state);
+
+    void switch_state_params(State &state);
+
+    void update_state(State &state);
 };
 
 #endif

@@ -101,69 +101,6 @@ void hskXBCFDiscreteModel::samplePars(State &state, std::vector<double> &suff_st
     return;
 }
 
-void hskXBCFDiscreteModel::update_state(State &state, size_t tree_ind, X_struct &x_struct, size_t ind)
-{
-    // Draw Sigma
-    std::vector<double> full_residual_trt(state.N_trt);
-    std::vector<double> full_residual_ctrl(state.N_ctrl);
-
-    // index
-    size_t index_trt = 0;
-    size_t index_ctrl = 0;
-
-    for (size_t i = 0; i < state.n_y; i++)
-    {
-        if ((*state.Z_std)[0][i] == 1)
-        {
-            // if treated
-            full_residual_trt[index_trt] = (*state.y_std)[i] - state.a * (*state.mu_fit)[i] - state.b_vec[1] * (*state.tau_fit)[i];
-            index_trt++;
-        }
-        else
-        {
-            // if control group
-            full_residual_ctrl[index_ctrl] = (*state.y_std)[i] - state.a * (*state.mu_fit)[i] - state.b_vec[0] * (*state.tau_fit)[i];
-            index_ctrl++;
-        }
-    }
-
-    std::gamma_distribution<double> gamma_samp1((state.N_trt + kap) / 2.0, 2.0 / (sum_squared(full_residual_trt) + s));
-
-    std::gamma_distribution<double> gamma_samp0((state.N_ctrl + kap) / 2.0, 2.0 / (sum_squared(full_residual_ctrl) + s));
-
-    double sigma;
-
-    if (ind == 0)
-    {
-        sigma = 1.0 / sqrt(gamma_samp0(state.gen));
-        for (size_t i = 0; i < state.n_y; i++)
-        {
-            if ((*state.Z_std)[0][i] == 0)
-            {
-                // if treated
-                state.sigma_vec[i] = sigma;
-                (*state.precision)[i] = double (1.0 / pow(sigma,2));
-            }
-        }
-    }
-    else
-    {
-        sigma = 1.0 / sqrt(gamma_samp1(state.gen));
-        for (size_t i = 0; i < state.n_y; i++)
-        {
-            if ((*state.Z_std)[0][i] == 1)
-            {
-                // if treated
-                state.sigma_vec[i] = sigma;
-                (*state.precision)[i] = double (1.0 / pow(sigma,2));
-            }
-        }
-    }
-
-    //state.update_sigma(sigma, ind);
-
-    return;
-}
 /*
 void hskXBCFDiscreteModel::update_tau(State &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> &trees)
 {
@@ -617,5 +554,48 @@ void hskXBCFDiscreteModel::update_b(State &state)
     state.b_vec[1] = b1;
     state.b_vec[0] = b0;
 */
+    return;
+}
+
+void hskXBCFDiscreteModel::switch_state_params(State &state)
+{
+    // update state settings to mean forest
+    state.num_trees = state.num_trees_m;
+    state.n_min = state.n_min_m;
+    state.max_depth = state.max_depth_m;
+    state.n_cutpoints = state.n_cutpoints_m;
+
+    return;
+}
+
+void hskXBCFDiscreteModel::update_state(State &state)
+{
+    state.p = state.p_con;
+    state.p_categorical = state.p_categorical_con;
+    state.p_continuous = state.p_continuous_con;
+    state.Xorder_std = state.Xorder_std_con;
+    state.mtry = state.mtry_con;
+    state.num_trees = state.num_trees_v;
+    state.X_std = state.X_std_con;
+    this->alpha = this->alpha_con;
+    this->beta = this->beta_con;
+
+    for (size_t i = 0; i < state.n_y; i++)
+    {
+        if ((*state.Z_std)[0][i] == 1)
+        {
+            // if treated
+            (*state.residual_std)[0][i] = (*state.y_std)[i] - state.a * (*state.mu_fit)[i] - state.b_vec[1] * (*state.tau_fit)[i];
+        }
+        else
+        {
+            // if control group
+            (*state.residual_std)[0][i] = (*state.y_std)[i] - state.a * (*state.mu_fit)[i] - state.b_vec[0] * (*state.tau_fit)[i];
+        }
+    }
+    for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
+    {
+        (*state.mean_res)[i] = (*state.residual_std)[0][i];
+    }
     return;
 }

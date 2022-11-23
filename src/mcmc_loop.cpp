@@ -676,7 +676,7 @@ void mcmc_loop_heteroskedastic(matrix<size_t> &Xorder_std,
             }
 
             var_model->initialize_root_suffstat(state, var_trees[sweeps][tree_ind].suff_stat);
-
+            COUT << var_trees[sweeps][tree_ind].suff_stat[0] << " " << var_trees[sweeps][tree_ind].suff_stat[1] << endl;
             // single core
             var_trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, var_x_struct.X_counts, var_x_struct.X_num_unique, var_model, var_x_struct, sweeps, tree_ind);
 

@@ -25,7 +25,7 @@ void logNormalModel::ini_residual_std2(State &state, X_struct &x_struct)
     // initialize partial residual at the residual^2 from the mean model
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
     {
-        (*state.residual_std)[0][i] = 2*log(abs((*state.mean_res)[i])) + log((*state.precision)[i]) - log((*(x_struct.data_pointers[0][i]))[0]);
+        (*state.residual_std)[0][i] = 2*log(abs((*state.residual_std)[0][i])) + log((*state.precision)[i]) - log((*(x_struct.data_pointers[0][i]))[0]);
     }
     return;
 }

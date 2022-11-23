@@ -13,7 +13,44 @@ using namespace arma;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mod, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha_con, double beta_con, double alpha_mod, double beta_mod, double tau_con, double tau_mod, double no_split_penalty, size_t burnin = 1, size_t mtry_con = 0, size_t mtry_mod = 0, size_t p_categorical_con = 0, size_t p_categorical_mod = 0, double kap = 16, double s = 4, double tau_con_kap = 3, double tau_con_s = 0.5, double tau_mod_kap = 3, double tau_mod_s = 0.5, bool pr_scale = false, bool trt_scale = false, bool a_scaling = true, bool b_scaling = true, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, double nthread = 0)
+Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y,
+                                      arma::mat Z,
+                                      arma::mat X_con,
+                                      arma::mat X_mod,
+                                      size_t num_trees_con,
+                                      size_t num_trees_mod,
+                                      size_t num_sweeps,
+                                      size_t max_depth,
+                                      size_t n_min,
+                                      size_t num_cutpoints,
+                                      double alpha_con,
+                                      double beta_con,
+                                      double alpha_mod,
+                                      double beta_mod,
+                                      double tau_con,
+                                      double tau_mod,
+                                      double no_split_penalty,
+                                      size_t burnin = 1,
+                                      size_t mtry_con = 0,
+                                      size_t mtry_mod = 0,
+                                      size_t p_categorical_con = 0,
+                                      size_t p_categorical_mod = 0,
+                                      double kap = 16, double s = 4,
+                                      double tau_con_kap = 3,
+                                      double tau_con_s = 0.5,
+                                      double tau_mod_kap = 3,
+                                      double tau_mod_s = 0.5,
+                                      bool pr_scale = false,
+                                      bool trt_scale = false,
+                                      bool a_scaling = true,
+                                      bool b_scaling = true,
+                                      bool verbose = false,
+                                      bool sampling_tau = true,
+                                      bool parallel = true,
+                                      bool set_random_seed = false,
+                                      size_t random_seed = 0,
+                                      bool sample_weights = true,
+                                      double nthread = 0)
 {
     if (parallel)
     {
@@ -136,21 +173,56 @@ Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y, arma::mat Z, arma::mat X_con,
         trees_mod[i].resize(num_trees_mod);
     }
 
-    // define model
+    // define the mean model
     hskXBCFDiscreteModel *model = new hskXBCFDiscreteModel(kap, s, tau_con, tau_mod, alpha_con, beta_con, alpha_mod, beta_mod, sampling_tau, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s);
     model->setNoSplitPenalty(no_split_penalty);
+
+///// HARDCODED PARAMETERS FOR PRECISION MODEL /////////
+    size_t num_trees_v = 5;
+    size_t max_depth_v = 250;
+    size_t n_min_v = 50;
+    size_t num_cutpoints_v = 100;
+
+    double a_v = 1.0;
+    double b_v = 1.0;
+    double kap_v = kap;
+    double s_v = s;
+    double tau_m = 1.0 / num_trees_v;
+    double alpha_v = alpha_con;
+    double beta_v = alpha_con;
+    double ini_var = 1.0;
+    double no_split_penalty_v = no_split_penalty;
+/////
+    // create trees
+    vector<vector<tree>> trees_v(num_sweeps);
+    for (size_t i = 0; i < num_sweeps; i++)
+    {
+        trees_v[i].resize(num_trees_v);
+    }
+
+    // define the variance model
+    logNormalModel *model_v = new logNormalModel(a_v, b_v, kap_v, s_v, tau_m, alpha_v, beta_v);
+    model_v->setNoSplitPenalty(no_split_penalty_v);
+        // initialize X_struct
+    std::vector<double> initial_theta_v(1, exp(log(1.0/ ini_var) / (double)num_trees_v));
+    X_struct x_struct_v(Xpointer_con, &y_std, N, Xorder_std_con, p_categorical_con, p_continuous_con, &initial_theta_v, num_trees_v);
+
 
     // State settings
     std::vector<double> sigma_vec(N, 1.0);
     XBCFdiscreteHeteroskedasticState state(&Z_std, Xpointer_con, Xpointer_mod,
                                            Xorder_std_con, Xorder_std_mod,
-                                           N, p_con, p_mod, num_trees_con, num_trees_mod,
+                                           N, p_con, p_mod, num_trees_con,
+                                           num_trees_mod, num_trees_v,
                                            p_categorical_con, p_categorical_mod,
                                            p_continuous_con, p_continuous_mod,
-                                           set_random_seed, random_seed, n_min,
-                                           num_cutpoints, mtry_con, mtry_mod,
+                                           set_random_seed, random_seed,
+                                           n_min, n_min_v,
+                                           num_cutpoints, num_cutpoints_v,
+                                           mtry_con, mtry_mod,
                                            num_sweeps, sample_weights,
-                                           &y_std, 1.0, max_depth, y_mean, burnin,
+                                           &y_std, 1.0, max_depth, max_depth_v,
+                                           y_mean, burnin,
                                            model->dim_residual, nthread, parallel,
                                            a_scaling, b_scaling, N_trt, N_ctrl, sigma_vec);
 
@@ -162,7 +234,12 @@ Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y, arma::mat Z, arma::mat X_con,
     X_struct x_struct_mod(Xpointer_mod, &y_std, N, Xorder_std_mod, p_categorical_mod, p_continuous_mod, &initial_theta_mod, num_trees_mod);
 
     ////////////////////////////////////////////////////////////////
-    mcmc_loop_xbcf_discrete_heteroskedastic(Xorder_std_con, Xorder_std_mod, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, a_xinfo, b_xinfo, trees_con, trees_mod, no_split_penalty, state, model, x_struct_con, x_struct_mod);
+    mcmc_loop_xbcf_discrete_heteroskedastic(Xorder_std_con, Xorder_std_mod,
+                                            verbose, sigma0_draw_xinfo, sigma1_draw_xinfo,
+                                            a_xinfo, b_xinfo,
+                                            trees_con, trees_mod, trees_v,
+                                            no_split_penalty, state, model, model_v,
+                                            x_struct_con, x_struct_mod, x_struct_v);
 
     // R Objects to Return
     Rcpp::NumericMatrix sigma0_draw(num_trees_con + num_trees_mod, num_sweeps); // save predictions of each tree

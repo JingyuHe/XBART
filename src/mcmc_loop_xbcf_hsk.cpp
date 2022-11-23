@@ -9,11 +9,15 @@ void mcmc_loop_xbcf_discrete_heteroskedastic(matrix<size_t> &Xorder_std_con,
                                              matrix<double> &b_xinfo,
                                              vector<vector<tree>> &trees_con,
                                              vector<vector<tree>> &trees_mod,
+                                             vector<vector<tree>> &var_trees,
                                              double no_split_penalty,
                                              State &state,
                                              hskXBCFDiscreteModel *model,
+                                             logNormalModel *var_model,
                                              X_struct &x_struct_con,
-                                             X_struct &x_struct_mod)
+                                             X_struct &x_struct_mod,
+                                             X_struct &var_x_struct
+                                             )
 {
     model->ini_tau_mu_fit(state);
 
@@ -27,7 +31,8 @@ void mcmc_loop_xbcf_discrete_heteroskedastic(matrix<size_t> &Xorder_std_con,
         }
 
         // prognostic forest
-        model->set_treatmentflag(state, 0);
+        model->set_treatmentflag(state, 0); // switch params (from treatment forest)
+        model->switch_state_params(state); // switch params (from precision forest)
 
         for (size_t tree_ind = 0; tree_ind < state.num_trees_con; tree_ind++)
         {
@@ -35,11 +40,6 @@ void mcmc_loop_xbcf_discrete_heteroskedastic(matrix<size_t> &Xorder_std_con,
             {
                 COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
             }
-
-            // Draw Sigma
-            model->update_state(state, tree_ind, x_struct_con, 0);
-
-            sigma0_draw_xinfo[sweeps][tree_ind] = state.sigma_vec[0];
 
             if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
             {
@@ -79,18 +79,6 @@ void mcmc_loop_xbcf_discrete_heteroskedastic(matrix<size_t> &Xorder_std_con,
                     (*state.split_count_all_con)[i] += (*state.split_count_current_tree)[i];
                 }
             }
-
-/*            if (sweeps != 0)
-            {
-                if (state.a_scaling)
-                {
-                    model->update_a(state);
-                }
-                if (state.b_scaling)
-                {
-                    model->update_b(state);
-                }
-            }*/
         }
 
         if (model->sampling_tau)
@@ -107,11 +95,6 @@ void mcmc_loop_xbcf_discrete_heteroskedastic(matrix<size_t> &Xorder_std_con,
             {
                 COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
             }
-
-            // Draw Sigma
-            model->update_state(state, tree_ind, x_struct_mod, 1);
-
-            sigma1_draw_xinfo[sweeps][tree_ind + state.num_trees_con] = state.sigma_vec[1];
 
             if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
             {
@@ -152,17 +135,6 @@ void mcmc_loop_xbcf_discrete_heteroskedastic(matrix<size_t> &Xorder_std_con,
                 }
             }
 
-/*            if (sweeps != 0)
-            {
-                if (state.a_scaling)
-                {
-                    model->update_a(state);
-                }
-                if (state.b_scaling)
-                {
-                    model->update_b(state);
-                }
-            }*/
         }
 
         if (model->sampling_tau)
@@ -173,78 +145,9 @@ void mcmc_loop_xbcf_discrete_heteroskedastic(matrix<size_t> &Xorder_std_con,
         b_xinfo[0][sweeps] = state.b_vec[0];
         b_xinfo[1][sweeps] = state.b_vec[1];
         a_xinfo[0][sweeps] = state.a;
-    }
-    return;
-}
-/*
-void mcmc_loop_heteroskedastic(matrix<size_t> &Xorder_std,
-                    bool verbose,
-                    State &state,
-                    hskNormalModel *mean_model,
-                    vector<vector<tree>> &mean_trees,
-                    X_struct &mean_x_struct,
-                    logNormalModel *var_model,
-                    vector<vector<tree>> &var_trees,
-                    X_struct &var_x_struct
-                    )
-{
-    mean_model->ini_residual_std(state);
 
-    for (size_t sweeps = 0; sweeps < state.num_sweeps; sweeps++)
-    {
+        model->update_state(state); // update residual to full, switch some parameters
 
-        if (verbose == true)
-        {
-            COUT << "--------------------------------" << endl;
-            COUT << "number of sweeps " << sweeps << endl;
-            COUT << "--------------------------------" << endl;
-        }
-        mean_model->switch_state_params(state);
-
-        // loop for the mean model forest
-        for (size_t tree_ind = 0; tree_ind < state.num_trees; tree_ind++)
-        {
-
-            if (verbose)
-            {
-                cout << "sweep " << sweeps << " tree " << tree_ind << endl;
-            }
-
-            if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
-            {
-                state.use_all = false;
-            }
-
-            // clear counts of splits for one tree
-            std::fill((*state.split_count_current_tree).begin(), (*state.split_count_current_tree).end(), 0.0);
-
-            // subtract old tree for sampling case
-            if (state.sample_weights)
-            {
-                (*state.mtry_weight_current_tree_m) = (*state.mtry_weight_current_tree_m) - (*state.split_count_all_tree_m)[tree_ind];
-                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree_m);
-            }
-
-            mean_model->initialize_root_suffstat(state, mean_trees[sweeps][tree_ind].suff_stat);
-
-            // single core
-            mean_trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, mean_x_struct.X_counts, mean_x_struct.X_num_unique, mean_model, mean_x_struct, sweeps, tree_ind);
-
-            // update tau after sampling the tree
-            // model->update_tau(state, tree_ind, sweeps, trees);
-
-            state.update_split_counts(tree_ind);
-
-            // update partial residual for the next tree to fit
-            mean_model->state_sweep(tree_ind, state.num_trees, state, mean_x_struct);
-        }
-
-        if (mean_model->sampling_tau)
-        {
-            mean_model->update_tau_per_forest(state, sweeps, mean_trees);
-        }
-
-        mean_model->store_residual(state);
         var_model->ini_residual_std2(state, var_x_struct);
         var_model->switch_state_params(state);
 
@@ -275,7 +178,7 @@ void mcmc_loop_heteroskedastic(matrix<size_t> &Xorder_std,
             var_model->initialize_root_suffstat(state, var_trees[sweeps][tree_ind].suff_stat);
 
             // single core
-            var_trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, var_x_struct.X_counts, var_x_struct.X_num_unique, var_model, var_x_struct, sweeps, tree_ind);
+            var_trees[sweeps][tree_ind].grow_from_root(state, Xorder_std_con, var_x_struct.X_counts, var_x_struct.X_num_unique, var_model, var_x_struct, sweeps, tree_ind);
 
             state.update_split_counts(tree_ind);
 
@@ -287,8 +190,5 @@ void mcmc_loop_heteroskedastic(matrix<size_t> &Xorder_std,
         var_model->update_state(state, state.num_trees, var_x_struct);
 
     }
-    // thread_pool.stop();
-
     return;
 }
-*/

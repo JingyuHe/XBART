@@ -50,8 +50,11 @@ void mcmc_loop_xbcf_discrete_heteroskedastic(matrix<size_t> &Xorder_std_con,
                                              matrix<double> &b_xinfo,
                                              vector<vector<tree>> &trees_con,
                                              vector<vector<tree>> &trees_mod,
+                                             vector<vector<tree>> &var_trees,
                                              double no_split_penalty,
                                              State &state,
                                              hskXBCFDiscreteModel *model,
+                                             logNormalModel *var_model,
                                              X_struct &x_struct_con,
-                                             X_struct &x_struct_mod);
+                                             X_struct &x_struct_mod,
+                                             X_struct &var_x_struct);

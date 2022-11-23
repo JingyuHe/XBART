@@ -445,14 +445,17 @@ class XBCFdiscreteHeteroskedasticState : public State
                                          matrix<size_t> &Xorder_std_mod,
                                          size_t N, size_t p_con, size_t p_mod,
                                          size_t num_trees_con, size_t num_trees_mod,
+                                         size_t num_trees_v,
                                          size_t p_categorical_con, size_t p_categorical_mod,
                                          size_t p_continuous_con, size_t p_continuous_mod,
                                          bool set_random_seed, size_t random_seed,
-                                         size_t n_min, size_t n_cutpoints,
+                                         size_t n_min, size_t n_min_v,
+                                         size_t n_cutpoints, size_t n_cutpoints_v,
                                          size_t mtry_con, size_t mtry_mod,
                                          size_t num_sweeps, bool sample_weights,
                                          std::vector<double> *y_std, double sigma,
-                                         size_t max_depth, double ini_var_yhat,
+                                         size_t max_depth, size_t max_depth_v,
+                                         double ini_var_yhat,
                                          size_t burnin, size_t dim_residual,
                                          size_t nthread, bool parallel,
                                          bool a_scaling, bool b_scaling,
@@ -470,12 +473,16 @@ class XBCFdiscreteHeteroskedasticState : public State
             this->X_std_mod = Xpointer_mod;
             this->split_count_all_tree_con = new matrix<double>();
             this->split_count_all_tree_mod = new matrix<double>();
+            this->split_count_all_tree_v = new matrix<double>();
             ini_xinfo((*this->split_count_all_tree_con), p_con, num_trees_con);
             ini_xinfo((*this->split_count_all_tree_mod), p_mod, num_trees_mod);
+            ini_xinfo((*this->split_count_all_tree_v), p_con, num_trees_v);
             this->split_count_all_con = new std::vector<double>(p_con, 0);
             this->mtry_weight_current_tree_con = new std::vector<double>(p_con, 0);
             this->split_count_all_mod = new std::vector<double>(p_mod, 0);
             this->mtry_weight_current_tree_mod = new std::vector<double>(p_mod, 0);
+            this->split_count_all_v = new std::vector<double>(p_con, 0);
+            this->mtry_weight_current_tree_v = new std::vector<double>(p_con, 0);
             this->Z_std = Z_std;
             this->sigma = sigma;
             this->sigma2 = pow(sigma, 2);
@@ -484,6 +491,7 @@ class XBCFdiscreteHeteroskedasticState : public State
             this->mu_fit = (new std::vector<double>(N, 0));
             this->precision = (new std::vector<double>(N, 1));
             this->res_x_precision = (new std::vector<double>(N, 0));
+            this->mean_res = (new std::vector<double>(N, 0));
             this->Xorder_std_con = &Xorder_std_con;
             this->Xorder_std_mod = &Xorder_std_mod;
             this->p_con = p_con;
@@ -504,10 +512,15 @@ class XBCFdiscreteHeteroskedasticState : public State
             this->b_vec.resize(2);
             this->b_vec[0] = -0.5;
             this->b_vec[1] = 0.5;
-//            this->sigma_vec.resize(2);
-//            this->sigma_vec[0] = 1;
-//            this->sigma_vec[1] = 1;
             ini_sigma(this->sigma_vec,sigma_vec);
+            this->num_trees_m = num_trees_con;
+            this->num_trees_v = num_trees_v;
+            this->n_cutpoints_m = n_cutpoints;
+            this->n_cutpoints_v = n_cutpoints_v;
+            this->n_min_m = n_min;
+            this->n_min_v = n_min_v;
+            this->max_depth_m = max_depth;
+            this->max_depth_v = max_depth_v;
 
         }
 };
