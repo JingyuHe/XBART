@@ -574,11 +574,9 @@ void hskXBCFDiscreteModel::update_state(State &state)
     state.p_categorical = state.p_categorical_con;
     state.p_continuous = state.p_continuous_con;
     state.Xorder_std = state.Xorder_std_con;
-    state.mtry = state.mtry_con;
+    state.mtry = state.mtry_v;
     state.num_trees = state.num_trees_v;
     state.X_std = state.X_std_con;
-    this->alpha = this->alpha_con;
-    this->beta = this->beta_con;
 
     for (size_t i = 0; i < state.n_y; i++)
     {
