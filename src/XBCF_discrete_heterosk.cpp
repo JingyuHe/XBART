@@ -104,6 +104,11 @@ Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y,
         mtry_mod = p_mod;
     }
 
+    if (mtry_v == 0)
+    {
+        mtry_v = p_con;
+    }
+
     if (mtry_con != p_con)
     {
         COUT << "Sample " << mtry_con << " out of " << p_con << " variables when grow each prognostic tree." << endl;
@@ -112,6 +117,11 @@ Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y,
     if (mtry_mod != p_mod)
     {
         COUT << "Sample " << mtry_mod << " out of " << p_mod << " variables when grow each treatment tree." << endl;
+    }
+
+    if (mtry_v != p_con)
+    {
+        COUT << "Sample " << mtry_v << " out of " << p_con << " variables when grow each variance tree." << endl;
     }
 
     arma::umat Xorder_con(X_con.n_rows, X_con.n_cols);
@@ -212,7 +222,7 @@ Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y,
                                            set_random_seed, random_seed,
                                            n_min, n_min_v,
                                            num_cutpoints, num_cutpoints_v,
-                                           mtry_con, mtry_mod,
+                                           mtry_con, mtry_mod, mtry_v,
                                            num_sweeps, sample_weights,
                                            &y_std, 1.0, max_depth, max_depth_v,
                                            y_mean, burnin,

@@ -89,6 +89,7 @@ public:
     size_t max_depth_v;
     size_t num_trees_m;
     size_t num_trees_v;
+    size_t mtry_v;
 
     // for continuous treatment XBCF
     matrix<double> *split_count_all_tree_con;
@@ -451,7 +452,7 @@ class XBCFdiscreteHeteroskedasticState : public State
                                          bool set_random_seed, size_t random_seed,
                                          size_t n_min, size_t n_min_v,
                                          size_t n_cutpoints, size_t n_cutpoints_v,
-                                         size_t mtry_con, size_t mtry_mod,
+                                         size_t mtry_con, size_t mtry_mod, size_t mtry_v,
                                          size_t num_sweeps, bool sample_weights,
                                          std::vector<double> *y_std, double sigma,
                                          size_t max_depth, size_t max_depth_v,
@@ -502,6 +503,7 @@ class XBCFdiscreteHeteroskedasticState : public State
             this->p_continuous_mod = p_continuous_mod;
             this->mtry_con = mtry_con;
             this->mtry_mod = mtry_mod;
+            this->mtry_v = mtry_v;
             this->num_trees_con = num_trees_con;
             this->num_trees_mod = num_trees_mod;
             this->a_scaling = a_scaling;
