@@ -73,3 +73,7 @@ xbart_heteroskedastic_predict <- function(X, tree_m, tree_v) {
     .Call(`_XBART_xbart_heteroskedastic_predict`, X, tree_m, tree_v)
 }
 
+XBCF_discrete_heteroskedastic_predict <- function(X_con, X_mod, Z, tree_con, tree_mod, tree_v) {
+    .Call(`_XBART_XBCF_discrete_heteroskedastic_predict`, X_con, X_mod, Z, tree_con, tree_mod, tree_v)
+}
+

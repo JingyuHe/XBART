@@ -152,7 +152,11 @@ predict.XBCFdiscreteHeterosk <- function(object, X_con, X_mod, Z, pihat=NULL, bu
     Z <- as.matrix(Z)
     out_con <- json_to_r(object$tree_json_con)
     out_mod <- json_to_r(object$tree_json_mod)
-    obj <- .Call("_XBART_XBCF_discrete_predict", X_con, X_mod, Z, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt)
+    out_v <- json_to_r(object$tree_json_v)
+    obj <- .Call("_XBART_XBCF_discrete_heteroskedastic_predict", X_con, X_mod, Z,
+                 out_con$model_list$tree_pnt,
+                 out_mod$model_list$tree_pnt,
+                 out_v$model_list$tree_pnt)
 
     burnin <- burnin
     sweeps <- nrow(object$a)
@@ -164,6 +168,7 @@ predict.XBCFdiscreteHeterosk <- function(object, X_con, X_mod, Z, pihat=NULL, bu
         mus[, i] = obj$mu[,i] * object$sdy * (object$a[i]) + object$meany
     }
 
+    obj$variance <- obj$variance * object$sdy
     obj$tau.adj <- taus
     obj$mu.adj <- mus
     obj$yhats.adj <- Z[,1] * obj$tau.adj + obj$mu.adj
