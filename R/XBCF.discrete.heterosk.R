@@ -213,7 +213,8 @@ XBCF.discrete.heterosk <- function(y, Z, X_con, X_mod,
 
     # center the outcome variable
     meany <- mean(y)
-    sdy <- sd(y)
+    #sdy <- sd(y)
+    sdy <- 1
     if (sdy == 0) {
         stop("y is a constant variable; sdy = 0")
     } else {

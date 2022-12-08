@@ -4,7 +4,7 @@ library(dbarts)
 
 reps <- 1
 rmse.stats <- matrix(NA, nrow = reps, ncol = 2)
-colnames(rmse.stats) <- c("xbcf::xbcf", "xbart::xbcf")
+colnames(rmse.stats) <- c("xbcf-het", "xbcf-reg")
 
 for(i in c(1:reps)) {
   #### 1. DATA GENERATION PROCESS
@@ -36,8 +36,10 @@ for(i in c(1:reps)) {
   z <- rbinom(n, 1, pi)
   
   # generate outcome variable
+  #Ey <- mu(x) + tau * z
   Ey <- mu(x) + tau * z
-  sig <- 0.25 * sd(Ey)
+  #sig <- 0.25 * sd(Ey) 
+  sig <- .8*exp(x[,1]) #+ 0.25 * sd(Ey) # exponential function s
   y <- Ey + sig * rnorm(n)
   
   # If you didn't know pi, you would estimate it here
@@ -70,13 +72,17 @@ for(i in c(1:reps)) {
   
   pred <- predict.XBCFdiscreteHeterosk(fit.hsk, X_con = x_con, X_mod = x_mod, Z = z, pihat = pihat, burnin = burnin)
   tauhats <- pred$tau.adj.mean
+  muhats <- pred$mu.adj.mean
   
+  sigma <- sqrt(rowMeans(pred$variance[,burnin:num_sweeps]))
   # compare results to inference
-  par(mfrow = c(1, 2))
-  plot(tau, tauhats)
-  abline(0, 1)
-  print(paste0("xbcf hsk RMSE: ", sqrt(mean((tauhats - tau)^2))))
-  print(paste0("xbcf hsk runtime: ", round(as.list(t1)$elapsed, 2), " seconds"))
+  # plot(tau, tauhats)
+  # abline(0, 1)
+  # plot(mu(x), muhats)
+  # abline(0, 1)
+  
+  print(paste0("xbcf-het tau RMSE: ", sqrt(mean((tauhats - tau)^2))))
+  print(paste0("xbcf-het runtime: ", round(as.list(t1)$elapsed, 2), " seconds"))
   
   rmse.stats[i,1] <- sqrt(mean((tauhats - tau)^2))
   
@@ -91,15 +97,25 @@ for(i in c(1:reps)) {
   
   pred2 <- predict(fit, X_con = x_con, X_mod = x_mod, Z = z, pihat = pihat, burnin = burnin)
   tauhats2 <- pred2$tau.adj.mean
+  muhats2 <- pred2$mu.adj.mean
   
-  
-  plot(tau, tauhats2)
-  abline(0, 1)
-  print(paste0("xbcf RMSE: ", sqrt(mean((tauhats2 - tau)^2))))
+  print(paste0("xbcf tau RMSE: ", sqrt(mean((tauhats2 - tau)^2))))
   print(paste0("xbcf runtime: ", round(as.list(t2)$elapsed, 2), " seconds"))
   rmse.stats[i,2] <- sqrt(mean((tauhats2 - tau)^2))
   # check predicted outcomes
   # plot(y,rowMeans(pred$yhats.adj[,30:60]))
+  par(mfrow = c(1, 2))
+  plot(tau, tauhats)
+  abline(0, 1)
+  plot(tau, tauhats2)
+  abline(0, 1)
+  plot(mu(x), muhats)
+  abline(0, 1)
+  plot(mu(x), muhats2)
+  abline(0, 1)
+  par(mfrow = c(1, 1))
+  plot(sig * rep(1,n), sigma)
+  abline(0,1)
 }
 
 
