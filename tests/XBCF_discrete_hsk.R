@@ -21,7 +21,7 @@ for(i in c(1:reps)) {
   x <- cbind(x1, x2, x3, x4, x5)
   
   # define treatment effects
-  tau <- 2 + 0.5 * x[, 4] * (2 * x[, 5] - 1)
+  tau <- 3 + 0.5 * x[, 4] * (2 * x[, 5] - 1)
   
   ## define prognostic function (RIC)
   mu <- function(x) {
@@ -44,6 +44,9 @@ for(i in c(1:reps)) {
   
   # If you didn't know pi, you would estimate it here
   pihat <- pi
+  
+  # store mu values before processing input matrix
+  muvec <- mu(x)
   
   # matrix prep
   x <- data.frame(x)
@@ -109,9 +112,9 @@ for(i in c(1:reps)) {
   abline(0, 1)
   plot(tau, tauhats2)
   abline(0, 1)
-  plot(mu(x), muhats)
+  plot(muvec, muhats)
   abline(0, 1)
-  plot(mu(x), muhats2)
+  plot(muvec, muhats2)
   abline(0, 1)
   par(mfrow = c(1, 1))
   plot(sig * rep(1,n), sigma)

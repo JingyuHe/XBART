@@ -165,7 +165,7 @@ predict.XBCFdiscreteHeterosk <- function(object, X_con, X_mod, Z, pihat=NULL, bu
     seq <- c(1:sweeps)
     for (i in seq) {
         taus[, i] = obj$tau[,i] * (object$b[i,2] - object$b[i,1])
-        mus[, i] = obj$mu[,i] * (object$a[i]) + object$meany
+        mus[, i] = obj$mu[,i] * (object$a[i]) + object$meany + obj$tau[,i] * object$b[i,1]
     }
 
     obj$variance <- obj$variance * object$sdy
