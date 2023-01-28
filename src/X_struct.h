@@ -96,9 +96,10 @@ public:
     std::mt19937 gen;
     matrix<std::vector<double>> resid;
     double num_trees;
-    std::vector<double> sigma;
+    // std::vector<double> sigma;
+    matrix<double> sigma;
 
-    gp_struct(const double *X_std, const std::vector<double> *y_std, size_t N, std::vector<std::vector<size_t>> &Xorder_std, size_t p_categorical, size_t p_continuous, std::vector<double> *initial_theta, std::vector<double> sigma, size_t num_trees) : X_struct(X_std, y_std, N, Xorder_std, p_categorical, p_continuous, initial_theta, num_trees)
+    gp_struct(const double *X_std, const std::vector<double> *y_std, size_t N, std::vector<std::vector<size_t>> &Xorder_std, size_t p_categorical, size_t p_continuous, std::vector<double> *initial_theta, matrix<double> sigma, size_t num_trees) : X_struct(X_std, y_std, N, Xorder_std, p_categorical, p_continuous, initial_theta, num_trees)
     {
         get_X_range(X_std, Xorder_std, X_range, N);
 

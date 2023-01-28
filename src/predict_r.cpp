@@ -305,10 +305,13 @@ Rcpp::List gp_predict(mat y, mat X, mat Xtest, Rcpp::XPtr<std::vector<std::vecto
     size_t num_sweeps = (*trees).size();
     size_t num_trees = (*trees)[0].size();
 
-    std::vector<double> sigma_std(num_sweeps);
-    for (size_t i = 0; i < num_sweeps; i++)
-    {
-        sigma_std[i] = sigma(i);
+    // Create sigma draw info
+    matrix<double> sigma_std;
+    ini_matrix(sigma_std, sigma.n_rows, sigma.n_cols);
+    for (size_t i = 0; i < sigma.n_rows; i++){
+      for (size_t j = 0; j < sigma.n_cols; j++){
+        sigma_std[j][i] = sigma(i, j);
+      }
     }
 
     // initialize X_struct
