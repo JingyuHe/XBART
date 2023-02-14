@@ -1,6 +1,6 @@
 useDynLib(XBART, .registration=TRUE)
 importFrom(Rcpp, evalCpp)
-importFrom(stats, predict, pnorm, quantile, runif, sd)
+importFrom(stats, predict, pnorm, quantile, runif, sd, var)
 importFrom(tools, psnice)
 S3method(predict, XBART)
 S3method(predict, XBARTmultinomial)
