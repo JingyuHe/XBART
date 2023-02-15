@@ -173,6 +173,8 @@ XBCF.discrete <- function(y, Z, X_con, X_mod, pihat = NULL, num_trees_con = 30, 
                          n_burnin = burnin,
                          n_trees_con = num_trees_con,
                          n_trees_mod = num_trees_mod,
+                         tau_con = tau_con,
+                         tau_mod = tau_mod,
                          pihat_status = "control")
     obj$model_params <- model_params
     
