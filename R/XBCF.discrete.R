@@ -168,7 +168,14 @@ XBCF.discrete <- function(y, Z, X_con, X_mod, pihat = NULL, num_trees_con = 30, 
     # store mean and sd in the model object (for predictions)
     obj$meany <- meany
     obj$sdy <- sdy
-
+    
+    model_params <- list(n_sweeps = num_sweeps,
+                         n_burnin = burnin,
+                         n_trees_con = num_trees_con,
+                         n_trees_mod = num_trees_mod,
+                         pihat_status = "control")
+    obj$model_params <- model_params
+    
     class(obj) <- "XBCFdiscrete"
     return(obj)
 }
