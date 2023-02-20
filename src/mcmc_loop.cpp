@@ -416,7 +416,21 @@ void mcmc_loop_xbcf_continuous(matrix<size_t> &Xorder_std_con, matrix<size_t> &X
     return;
 }
 
-void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, bool verbose, matrix<double> &sigma0_draw_xinfo, matrix<double> &sigma1_draw_xinfo, matrix<double> &a_xinfo, matrix<double> &b_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod, double no_split_penalty, State &state, XBCFDiscreteModel *model, X_struct &x_struct_con, X_struct &x_struct_mod)
+void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con,
+                             matrix<size_t> &Xorder_std_mod,
+                             bool verbose, matrix<double> &sigma0_draw_xinfo,
+                             matrix<double> &sigma1_draw_xinfo,
+                             matrix<double> &a_xinfo,
+                             matrix<double> &b_xinfo,
+                             matrix<double> &tau_con_xinfo,
+                             matrix<double> &tau_mod_xinfo,
+                             vector<vector<tree>> &trees_con,
+                             vector<vector<tree>> &trees_mod,
+                             double no_split_penalty,
+                             State &state,
+                             XBCFDiscreteModel *model,
+                             X_struct &x_struct_con,
+                             X_struct &x_struct_mod)
 {
     model->ini_tau_mu_fit(state);
 
@@ -572,7 +586,8 @@ void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xor
         {
             model->update_tau_per_forest(state, sweeps, trees_mod);
         }
-
+        tau_con_xinfo[0][sweeps] = model->tau_con;
+        tau_mod_xinfo[0][sweeps] = model->tau_mod;
         b_xinfo[0][sweeps] = state.b_vec[0];
         b_xinfo[1][sweeps] = state.b_vec[1];
         a_xinfo[0][sweeps] = state.a;
