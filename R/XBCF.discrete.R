@@ -109,7 +109,9 @@ XBCF.discrete <- function(y, Z, X_con, X_mod, pihat = NULL, num_trees_con = 30, 
     }
 
     if (is.null(no_split_penalty) || no_split_penalty == "Auto") {
-        no_split_penalty <- log(num_cutpoints)
+        no_split_penalty <- log(log(num_cutpoints))
+    } else {
+        no_split_penalty <- log(no_split_penalty)
     }
 
     if (is.null(tau_con)) {
