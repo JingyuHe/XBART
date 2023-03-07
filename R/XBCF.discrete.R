@@ -36,17 +36,25 @@
 #' @param nthread Integer, number of threads to use if run in parallel.
 #' @param random_seed Integer, random seed for replication.
 #' @param sample_weights Bool, if TRUE, the weight to sample \eqn{X} variables at each tree will be sampled.
+#' @param include_pi String, takes values "control", "moderate", "both" or "none". Whether to
+#' include pihat in mu(x) ("control"), tau(x) ("moderate"), both or none. Values of "control"
+#' or "both" are HIGHLY recommended with observational data.
 #'
 #' @return A list contains fitted trees as well as parameter draws at each sweep.
 #' @export
 
 
-XBCF.discrete <- function(y, Z, X_con, X_mod, pihat = NULL, num_trees_con = 30, num_trees_mod = 10, num_sweeps = 60, max_depth = 50, Nmin = 1, num_cutpoints = 100, alpha_con = 0.95, beta_con = 1.25, alpha_mod = 0.25, beta_mod = 3, tau_con = NULL, tau_mod = NULL, no_split_penalty = NULL, burnin = 20, mtry_con = NULL, mtry_mod = NULL, p_categorical_con = 0L, p_categorical_mod = 0L, kap = 16, s = 4, tau_con_kap = 3, tau_con_s = 0.5, tau_mod_kap = 3, tau_mod_s = 0.5, pr_scale = FALSE, trt_scale = FALSE, a_scaling = TRUE, b_scaling = TRUE, verbose = FALSE, update_tau = TRUE, parallel = TRUE, random_seed = NULL, sample_weights = TRUE, nthread = 0, ...) {
+XBCF.discrete <- function(y, Z, X_con, X_mod, pihat = NULL, num_trees_con = 30, num_trees_mod = 10, num_sweeps = 60, max_depth = 50, Nmin = 1, num_cutpoints = 100, alpha_con = 0.95, beta_con = 1.25, alpha_mod = 0.25, beta_mod = 3, tau_con = NULL, tau_mod = NULL, no_split_penalty = NULL, burnin = 20, mtry_con = NULL, mtry_mod = NULL, p_categorical_con = 0L, p_categorical_mod = 0L, kap = 16, s = 4, tau_con_kap = 3, tau_con_s = 0.5, tau_mod_kap = 3, tau_mod_s = 0.5, pr_scale = FALSE, trt_scale = FALSE, a_scaling = TRUE, b_scaling = TRUE, verbose = FALSE, update_tau = TRUE, parallel = TRUE, random_seed = NULL, sample_weights = TRUE, nthread = 0, include_pi = "control", ...) {
     if (!("matrix" %in% class(X_con))) {
         cat("Input X_con is not a matrix, try to convert type.\n")
         X_con <- as.matrix(X_con)
     }
 
+    if (!("matrix" %in% class(X_mod))) {
+        cat("Input X_mod is not a matrix, try to convert type.\n")
+        X_mod <- as.matrix(X_mod)
+    }
+    
     if (!("matrix" %in% class(y))) {
         cat("Input y is not a matrix, try to convert type.\n")
         y <- as.matrix(y)
@@ -81,7 +89,12 @@ XBCF.discrete <- function(y, Z, X_con, X_mod, pihat = NULL, num_trees_con = 30, 
         pihat <- as.matrix(pihat)
     }
 
-    X_con <- cbind(pihat, X_con)
+    if(include_pi=="both" | include_pi=="control") {
+        X_con <- cbind(pihat, X_con)
+    }
+    if(include_pi=="both" | include_pi=="moderate") {
+        X_mod <- cbind(pihat, X_mod)
+    }
 
     if (is.null(random_seed)) {
         set_random_seed <- FALSE
