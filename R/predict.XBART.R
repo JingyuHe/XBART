@@ -82,6 +82,61 @@ predict.XBCFdiscrete <- function(object, X_con, X_mod, Z, pihat=NULL, burnin = 0
     return(obj)
 }
 
+predict.XBCFrd <- function(object, W, X, c, burnin = 0L, ...) {
+
+    stopifnot("Propensity scores (pihat) must be provided by user for prediction."=!is.null(pihat))
+
+    if (!("matrix" %in% class(W))) {
+        cat("Input X_con is not a matrix, try to convert type.\n")
+        W <- as.matrix(W)
+    }
+
+    if (!("matrix" %in% class(X))) {
+        cat("Input X_con is not a matrix, try to convert type.\n")
+        X <- as.matrix(X)
+    }
+
+    if (dim(X)[2] > 1) {
+        stop("Running varialbe X should be a column vector")
+    }
+
+    if (dim(W)[1] != length(X)) {
+        stop("Number of rows in covariates W must match Length of X")
+    }
+
+    X_con <- cbind(W, X)
+    X_mod <- X_con
+
+    if ( (c <= range(X)[1]) || (c >= range(X)[2])){
+        stop("Cut off point c should within the range of the running variable X")
+    }
+
+    Z <- as.matrix(X >= c)
+    
+    out_con <- json_to_r(object$tree_json_con)
+    out_mod <- json_to_r(object$tree_json_mod)
+    obj <- .Call("_XBART_XBCF_discrete_predict", X_con, X_mod, Z, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt)
+
+    burnin <- burnin
+    sweeps <- nrow(object$a)
+    mus <- matrix(NA, nrow(X_con), sweeps)
+    taus <- matrix(NA, nrow(X_mod), sweeps)
+    seq <- c(1:sweeps)
+    for (i in seq) {
+        taus[, i] = obj$tau[,i] * object$sdy * (object$b[i,2] - object$b[i,1])
+        mus[, i] = object$sdy * ( obj$mu[,i]  * (object$a[i]) + obj$tau[,i] * object$b[i,1]) +  object$meany
+    }
+
+    obj$tau.adj <- taus
+    obj$mu.adj <- mus
+    obj$yhats.adj <- Z[,1] * obj$tau.adj + obj$mu.adj
+    obj$tau.adj.mean <- rowMeans(obj$tau.adj[,(burnin+1):sweeps])
+    obj$mu.adj.mean <- rowMeans(obj$mu.adj[,(burnin+1):sweeps])
+    obj$yhats.adj.mean <- rowMeans(obj$yhats.adj[,(burnin+1):sweeps])
+
+    return(obj)
+}
+
 predict_full <- function(object, X, ...) {
     out <- json_to_r(object$tree_json)
     obj <- .Call(`_XBART_xbart_predict_full`, X, object$model_list$y_mean, out$model_list$tree_pnt) # object$tree_pnt

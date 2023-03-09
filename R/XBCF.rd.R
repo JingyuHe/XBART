@@ -81,7 +81,7 @@ XBCF.rd <- function(y, W, X, c, num_trees_con = 30, num_trees_mod = 10, num_swee
         stop("Cut off point c should within the range of the running variable X")
     }
 
-    Z <- X >= c
+    Z <- as.matrix(X >= c)
     # if (!("matrix" %in% class(Z))) {
     #     cat("Input Z is not a matrix, try to convert type.\n")
     #     Z <- as.matrix(Z)
