@@ -118,6 +118,7 @@ public:
     size_t num_trees_mod;
 
     // for XBCF-RD (regression discontinuity design)
+    double cutoff;
     double Owidth;
     size_t Omin;
 
@@ -351,8 +352,9 @@ public:
 class XBCFrdState : public XBCFdiscreteState
 {
 public:
-    XBCFrdState(matrix<double> *Z_std, const double *Xpointer_con, const double *Xpointer_mod, matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, size_t N, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t p_categorical_con, size_t p_categorical_mod, size_t p_continuous_con, size_t p_continuous_mod, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry_con, size_t mtry_mod, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel, bool a_scaling, bool b_scaling, size_t N_trt, size_t N_ctrl, double Owidth, size_t Omin) : XBCFdiscreteState(Z_std, Xpointer_con, Xpointer_mod, Xorder_std_con, Xorder_std_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, p_categorical_con, p_categorical_mod, p_continuous_con, p_continuous_mod, set_random_seed, random_seed, n_min, n_cutpoints, mtry_con, mtry_mod, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread, parallel, a_scaling, b_scaling, N_trt, N_ctrl)
+    XBCFrdState(matrix<double> *Z_std, const double *Xpointer_con, const double *Xpointer_mod, matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, size_t N, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t p_categorical_con, size_t p_categorical_mod, size_t p_continuous_con, size_t p_continuous_mod, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry_con, size_t mtry_mod, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel, bool a_scaling, bool b_scaling, size_t N_trt, size_t N_ctrl, double cutoff, double Owidth, size_t Omin) : XBCFdiscreteState(Z_std, Xpointer_con, Xpointer_mod, Xorder_std_con, Xorder_std_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, p_categorical_con, p_categorical_mod, p_continuous_con, p_continuous_mod, set_random_seed, random_seed, n_min, n_cutpoints, mtry_con, mtry_mod, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread, parallel, a_scaling, b_scaling, N_trt, N_ctrl)
     {
+        this->cutoff = cutoff;
         this->Owidth = Owidth;
         this->Omin = Omin;
     }

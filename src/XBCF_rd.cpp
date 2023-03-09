@@ -13,7 +13,7 @@ using namespace arma;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBCF_rd_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mod, double Owidth, size_t Omin, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha_con, double beta_con, double alpha_mod, double beta_mod, double tau_con, double tau_mod, double no_split_penalty, size_t burnin = 1, size_t mtry_con = 0, size_t mtry_mod = 0, size_t p_categorical_con = 0, size_t p_categorical_mod = 0, double kap = 16, double s = 4, double tau_con_kap = 3, double tau_con_s = 0.5, double tau_mod_kap = 3, double tau_mod_s = 0.5, bool pr_scale = false, bool trt_scale = false, bool a_scaling = true, bool b_scaling = true, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, double nthread = 0)
+Rcpp::List XBCF_rd_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mod, double cutoff, double Owidth, size_t Omin, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha_con, double beta_con, double alpha_mod, double beta_mod, double tau_con, double tau_mod, double no_split_penalty, size_t burnin = 1, size_t mtry_con = 0, size_t mtry_mod = 0, size_t p_categorical_con = 0, size_t p_categorical_mod = 0, double kap = 16, double s = 4, double tau_con_kap = 3, double tau_con_s = 0.5, double tau_mod_kap = 3, double tau_mod_s = 0.5, bool pr_scale = false, bool trt_scale = false, bool a_scaling = true, bool b_scaling = true, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, double nthread = 0)
 {
     if (parallel)
     {
@@ -147,7 +147,7 @@ Rcpp::List XBCF_rd_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mo
     model->setNoSplitPenalty(no_split_penalty);
 
     // State settings
-    XBCFrdState state(&Z_std, Xpointer_con, Xpointer_mod, Xorder_std_con, Xorder_std_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, p_categorical_con, p_categorical_mod, p_continuous_con, p_continuous_mod, set_random_seed, random_seed, n_min, num_cutpoints, mtry_con, mtry_mod, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread, parallel, a_scaling, b_scaling, N_trt, N_ctrl, Owidth, Omin);
+    XBCFrdState state(&Z_std, Xpointer_con, Xpointer_mod, Xorder_std_con, Xorder_std_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, p_categorical_con, p_categorical_mod, p_continuous_con, p_continuous_mod, set_random_seed, random_seed, n_min, num_cutpoints, mtry_con, mtry_mod, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread, parallel, a_scaling, b_scaling, N_trt, N_ctrl, cutoff, Owidth, Omin);
 
     // initialize X_struct
     std::vector<double> initial_theta_con(1, 0);
