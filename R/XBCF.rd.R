@@ -41,7 +41,7 @@
 #' @export
 
 
-XBCF.rd <- function(y, W, X, c, num_trees_con = 30, num_trees_mod = 10, num_sweeps = 60, 
+XBCF.rd <- function(y, W, X, c, Owidth = 0.1, Omin = 10, num_trees_con = 30, num_trees_mod = 10, num_sweeps = 60, 
                     max_depth = 50, Nmin = 1, num_cutpoints = 100, alpha_con = 0.95, beta_con = 1.25, 
                     alpha_mod = 0.25, beta_mod = 3, tau_con = NULL, tau_mod = NULL, no_split_penalty = NULL, 
                     burnin = 20, mtry_con = NULL, mtry_mod = NULL, p_categorical_con = 0L, p_categorical_mod = 0L, 
