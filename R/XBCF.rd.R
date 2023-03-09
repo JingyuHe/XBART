@@ -208,6 +208,6 @@ XBCF.rd <- function(y, W, X, c, num_trees_con = 30, num_trees_mod = 10, num_swee
                          pihat_status = "control")
     obj$model_params <- model_params
     
-    class(obj) <- "XBCFdiscrete"
+    class(obj) <- "XBCFrd"
     return(obj)
 }

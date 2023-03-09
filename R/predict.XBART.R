@@ -83,9 +83,7 @@ predict.XBCFdiscrete <- function(object, X_con, X_mod, Z, pihat=NULL, burnin = 0
 }
 
 predict.XBCFrd <- function(object, W, X, c, burnin = 0L, ...) {
-
-    stopifnot("Propensity scores (pihat) must be provided by user for prediction."=!is.null(pihat))
-
+    
     if (!("matrix" %in% class(W))) {
         cat("Input X_con is not a matrix, try to convert type.\n")
         W <- as.matrix(W)
@@ -112,7 +110,7 @@ predict.XBCFrd <- function(object, W, X, c, burnin = 0L, ...) {
     }
 
     Z <- as.matrix(X >= c)
-    
+
     out_con <- json_to_r(object$tree_json_con)
     out_mod <- json_to_r(object$tree_json_mod)
     obj <- .Call("_XBART_XBCF_discrete_predict", X_con, X_mod, Z, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt)
