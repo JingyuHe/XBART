@@ -795,6 +795,72 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
         }
     }
 
+    if (!no_split){
+        // Check number of observations in "overlap" area
+        size_t Oll = 0;
+        size_t Olr = 0;
+        size_t Orl = 0;
+        size_t Orr = 0;
+        // Assuming the last column is running variable
+        // if (split_var == p - 1){
+        //     double cutpoint = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
+        //     if ((cutpoint >= state.cutoff - state.Owidth) & (cutpoint <= state.cutoff - state.Owidth)){
+        //         // if the cutpoint falls in the overlap range, one side will definitely not satisfy the condition
+        //         no_split = true;
+        //     }
+        //     // if the cutpoint falls outside, it doesn't affect the condition
+        // } else {
+        // First allocate boundary index for running variable
+        std::vector<size_t> &xo = Xorder_std[p - 1];
+        const double *split_var_x_pointer = state.X_std + state.n_y * split_var;
+        const double *run_var_x_pointer = state.X_std + state.n_y * (p-1);
+        double cutvalue = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
+        double run_var_value;
+        for (size_t j = 0; j < N_Xorder; j++)
+        {
+            run_var_value = *(run_var_x_pointer + xo[j]);
+
+            if (*(split_var_x_pointer + xo[j]) <= cutvalue)
+            {
+                // point in the left node, check which region it belongs
+                if ((run_var_value >= state.cutoff - state.Owidth) && (run_var_value < state.cutoff)){
+                    // running variable on the left
+                    Oll += 1;
+                } else if ((run_var_value >= state.cutoff) && (run_var_value <= state.cutoff + state.Owidth)){
+                    // running varialbe on the right
+                    Olr += 1;
+                }
+            }
+            else
+            {
+                // point in the right node, check which region it belongs
+                if ((run_var_value >= state.cutoff - state.Owidth) && (run_var_value < state.cutoff)){
+                    // running variable on the left
+                    Orl += 1;
+                } else if ((run_var_value >= state.cutoff) && (run_var_value <= state.cutoff + state.Owidth)){
+                    // running varialbe on the right
+                    Orr += 1;
+                }
+            }
+        }
+        // }
+        
+        if ((Oll > 0) || (Olr > 0)) {
+            if ((Oll < state.Omin) || (Olr < state.Omin)){
+                no_split = true;
+            }
+        }
+        if ((Orl > 0) || (Orr > 0)){
+            if ((Orl < state.Omin) || (Orr < state.Omin)){
+                no_split = true;
+            }
+        }
+        cout << "Total " << N_Xorder << " Oll " << Oll << " Olr " << Olr << " Orl " << Orl << " Orr " << Orr << " no_split is " << no_split << endl;
+    }
+
+
+
+
     if (no_split == true)
     {
         for (size_t i = 0; i < N_Xorder; i++)

@@ -26,7 +26,7 @@ library(XBART)
 mu <- function(W, X){return(0.1 * rowSums(W) + 1/(1+exp(-5*X)))} 
 tau <- function(W, X) return(sin(mu(W, X)) + 1) # make sure the treatment effect is non-zero
 
-n       <- 500
+n       <- 2000
 p       <- 2
 c       <- 0 # Cutoff
 h_overlap       <- 0.1 # overlap bandwidth 
@@ -34,6 +34,7 @@ h_test <- 0.5
 
 ## Data
 w <- matrix(rnorm(n*p), n, p)
+# w <- matrix(rep(0, n*p), n, p)
 x <- rnorm(n,sd=.5)
 # z <- rbinom(n,1,0.8*(xf >= c) + 0.1)
 z <- x >= c
