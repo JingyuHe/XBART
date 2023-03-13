@@ -36,13 +36,14 @@ h_test <- 0.5
 w <- matrix(rnorm(n*p), n, p)
 # w <- matrix(rep(0, n*p), n, p)
 x <- rnorm(n,sd=.5)
+x[1] <- 0
 # z <- rbinom(n,1,0.8*(xf >= c) + 0.1)
 z <- x >= c
 y <- mu(w, x) + tau(w, x)*z + rnorm(n, 0, 0.2)
 
 ## XBCF
 fit.XBCFrd <- XBCF.rd(y, w, x, c, pcat_con = 0, pcat_mod = 0,
-                    n_trees_mod = 40, n_trees_con = 40, num_sweeps = 100, Nmin = 20)
+                    num_trees_mod = 2, num_trees_con = 2, num_sweeps = 21, Nmin = 20)
 
 xtest <- sort(x)
 wtest <- matrix(rep(0, n*p), n, p)

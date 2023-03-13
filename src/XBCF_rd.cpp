@@ -202,6 +202,35 @@ Rcpp::List XBCF_rd_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mo
 
     Rcpp::NumericVector split_count_sum_mod(p_mod, 0);
 
+    Rcpp::NumericMatrix con_res_indicator_rcpp(num_trees_con * num_sweeps, N);
+
+    Rcpp::NumericMatrix con_valid_residuals_rcpp(num_trees_con * num_sweeps, N);
+
+    Rcpp::NumericMatrix mod_res_indicator_rcpp(num_trees_mod * num_sweeps, N);
+
+    Rcpp::NumericMatrix mod_valid_residuals_rcpp(num_trees_mod * num_sweeps, N);
+
+    for (size_t i = 0; i < num_sweeps; i++)
+    {
+        for (size_t j = 0; j < num_trees_con; j++)
+        {
+            for (size_t k = 0; k < N; k++)
+            {
+                con_res_indicator_rcpp(i * num_trees_con + j, k) = con_res_indicator[i][j][k];
+                con_valid_residuals_rcpp(i * num_trees_con + j, k) = con_valid_residuals[i][j][k];
+            }
+        }
+        for (size_t j = 0; j < num_trees_mod; j++)
+        {
+            for (size_t k = 0; k < N; k++)
+            {
+                mod_res_indicator_rcpp(i * num_trees_mod + j, k) = mod_res_indicator[i][j][k];
+                mod_valid_residuals_rcpp(i * num_trees_mod + j, k) = mod_valid_residuals[i][j][k];
+            }
+        }
+
+    }
+
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(sigma0_draw_xinfo, sigma0_draw);
     Matrix_to_NumericMatrix(sigma0_draw_xinfo, sigma0_draw);
@@ -249,5 +278,10 @@ Rcpp::List XBCF_rd_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mo
         Rcpp::Named("tree_json_mod") = tree_json_mod,
         Rcpp::Named("tree_json_con") = tree_json_con,
         Rcpp::Named("tree_string_mod") = output_tree_mod,
-        Rcpp::Named("tree_string_con") = output_tree_con);
+        Rcpp::Named("tree_string_con") = output_tree_con,
+        Rcpp::Named("res_indicator_con") = con_res_indicator_rcpp,
+        Rcpp::Named("valid_residuals_con") = con_valid_residuals_rcpp,
+        Rcpp::Named("res_indicator_mod") = mod_res_indicator_rcpp,
+        Rcpp::Named("valid_residuals_mod") = mod_valid_residuals_rcpp
+        );
 }
