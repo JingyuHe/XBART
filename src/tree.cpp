@@ -855,7 +855,7 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
                 no_split = true;
             }
         }
-        cout << "Total " << N_Xorder << " Oll " << Oll << " Olr " << Olr << " Orl " << Orl << " Orr " << Orr << " no_split is " << no_split << endl;
+        // cout << "Total " << N_Xorder << " Oll " << Oll << " Olr " << Olr << " Orl " << Orl << " Orr " << Orr << " no_split is " << no_split << endl;
     }
 
 
