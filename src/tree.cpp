@@ -708,7 +708,8 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
     return;
 }
 
-void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, X_struct &x_struct, const size_t &sweeps, const size_t &tree_ind)
+void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, X_struct &x_struct, 
+                            std::vector<size_t> &res_indicator, std::vector<double> &valid_residuals, const size_t &sweeps, const size_t &tree_ind)
 {
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
@@ -873,7 +874,7 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
         this->r = 0;
 
         // Check and keep residuals for data within bandwidth
-        
+
 
         return;
     }
@@ -929,9 +930,9 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
 
-    this->l->grow_from_root_rd(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind);
+    this->l->grow_from_root_rd(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, res_indicator, valid_residuals, sweeps, tree_ind);
 
-    this->r->grow_from_root_rd(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind);
+    this->r->grow_from_root_rd(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, res_indicator, valid_residuals, sweeps, tree_ind);
 
     return;
 }
