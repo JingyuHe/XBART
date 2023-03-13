@@ -132,6 +132,31 @@ Rcpp::List XBCF_rd_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mo
     matrix<double> tau_mod_xinfo;
     ini_matrix(tau_mod_xinfo, num_sweeps, 1);
 
+    matrix<std::vector<size_t>> con_res_indicator;
+    matrix<std::vector<double>> con_valid_residuals;
+    matrix<std::vector<size_t>> mod_res_indicator;
+    matrix<std::vector<double>> mod_valid_residuals;
+    con_res_indicator.resize(num_sweeps);
+    con_valid_residuals.resize(num_sweeps);
+    mod_res_indicator.resize(num_sweeps);
+    mod_valid_residuals.resize(num_sweeps);
+    for (size_t i = 0; i < num_sweeps; i++){
+        con_res_indicator[i].resize(num_trees_con);
+        con_valid_residuals[i].resize(num_trees_con);
+        mod_res_indicator[i].resize(num_trees_mod);
+        mod_valid_residuals[i].resize(num_trees_mod);
+        for (size_t j = 0; j < num_trees_con; j++)
+        {
+            con_res_indicator[i][j].resize(N);
+            con_valid_residuals[i][j].resize(N);
+        }
+        for (size_t j = 0; j < num_trees_mod; j++)
+        {
+            mod_res_indicator[i][j].resize(N);
+            mod_valid_residuals[i][j].resize(N);
+        }
+    }
+
     // create trees
     vector<vector<tree>> trees_con(num_sweeps);
     vector<vector<tree>> trees_mod(num_sweeps);

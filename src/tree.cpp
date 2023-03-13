@@ -801,6 +801,7 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
         size_t Olr = 0;
         size_t Orl = 0;
         size_t Orr = 0;
+
         // Assuming the last column is running variable
         // if (split_var == p - 1){
         //     double cutpoint = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
@@ -870,6 +871,10 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
 
         this->l = 0;
         this->r = 0;
+
+        // Check and keep residuals for data within bandwidth
+        
+
         return;
     }
 
