@@ -44,21 +44,26 @@ void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con,
                              X_struct &x_struct_mod);
 
 // XBCF for regression discontinuity
-void mcmc_loop_xbcf_rd(matrix<size_t> &Xorder_std_con,
-                             matrix<size_t> &Xorder_std_mod,
-                             bool verbose, matrix<double> &sigma0_draw_xinfo,
-                             matrix<double> &sigma1_draw_xinfo,
-                             matrix<double> &a_xinfo,
-                             matrix<double> &b_xinfo,
-                             matrix<double> &tau_con_xinfo,
-                             matrix<double> &tau_mod_xinfo,
-                             vector<vector<tree>> &trees_con,
-                             vector<vector<tree>> &trees_mod,
-                             double no_split_penalty,
-                             State &state,
-                             XBCFDiscreteModel *model,
-                             X_struct &x_struct_con,
-                             X_struct &x_struct_mod);
+void mcmc_loop_xbcf_rd( matrix<size_t> &Xorder_std_con,
+                        matrix<size_t> &Xorder_std_mod,
+                        bool verbose, matrix<double> &sigma0_draw_xinfo,
+                        matrix<double> &sigma1_draw_xinfo,
+                        matrix<double> &a_xinfo,
+                        matrix<double> &b_xinfo,
+                        matrix<double> &tau_con_xinfo,
+                        matrix<double> &tau_mod_xinfo,
+                        vector<vector<tree>> &trees_con,
+                        vector<vector<tree>> &trees_mod,
+                        double no_split_penalty,
+                        State &state,
+                        XBCFDiscreteModel *model,
+                        X_struct &x_struct_con,
+                        X_struct &x_struct_mod,
+                        matrix<std::vector<size_t>> con_res_indicator,
+                        matrix<std::vector<double>> con_valid_residuals,
+                        matrix<std::vector<size_t>> mod_res_indicator,
+                        matrix<std::vector<double>> mod_valid_residuals
+                        );
 
 // XBART with heteroskedastic variance
 void mcmc_loop_heteroskedastic(matrix<size_t> &Xorder_std,
