@@ -874,7 +874,106 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
         this->r = 0;
 
         // Check and keep residuals for data within bandwidth
+        std::vector<size_t> &xo = Xorder_std[p - 1];
+        const double *run_var_x_pointer = state.X_std + state.n_y * (p-1);
 
+        // Count number of obs on each side in the bandwidth
+        size_t Ol = 0;
+        size_t Or = 0;
+        // Keep a copy of residual indicator first;
+        std::vector<size_t> res_indicator_cp(N_Xorder, 0);
+        std::vector<double> valid_residuals_cp(N_Xorder);
+        if ((*(run_var_x_pointer + xo[0]) <= state.cutoff + state.Owidth) & (*(run_var_x_pointer + xo[N_Xorder-1]) >= state.cutoff - state.Owidth)){
+            // (smallest value in running variable <= right bandwidth boundary) & (largest value >= left bandwidth boundary)
+            // above is the minimum requirement to have obs for extrapolation 
+            size_t ind = 0;
+            size_t index_next_obs = xo[ind];
+            while ((ind < N_Xorder) & (*(run_var_x_pointer + xo[ind]) < state.cutoff - state.Owidth )){
+                ind += 1; // on the left side of the bandwidth
+            }
+            while ((ind < N_Xorder) & (*(run_var_x_pointer + xo[ind]) < state.cutoff )){
+                Ol += 1;
+                index_next_obs = xo[ind];
+                res_indicator_cp[ind] = 1;
+                // get residuals
+                if (state.treatment_flag)
+                {
+                    // treatment forest
+                    if ((*state.Z_std)[0][index_next_obs] == 1)
+                    {
+                        // if treated
+                        valid_residuals_cp[ind] = ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[1] * (*state.tau_fit)[index_next_obs]) / state.b_vec[1];
+                    }
+                    else
+                    {
+                        // if control group
+                        valid_residuals_cp[ind] = ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[0] * (*state.tau_fit)[index_next_obs]) / state.b_vec[0];
+                    }
+                }
+                else
+                {
+                    // prognostic forest
+                    if ((*state.Z_std)[0][index_next_obs] == 1)
+                    {
+                        // if treated
+                        valid_residuals_cp[ind] = ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[1] * (*state.tau_fit)[index_next_obs]) / state.a;
+                    }
+                    else
+                    {
+                        // if control group
+                        valid_residuals_cp[ind] = ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[0] * (*state.tau_fit)[index_next_obs]) / state.a;
+                    }
+                }
+                ind += 1;
+            }
+            while ((ind < N_Xorder) & (*(run_var_x_pointer + xo[ind]) <= state.cutoff + state.Owidth )){
+                Or += 1;
+                index_next_obs = xo[ind];
+                res_indicator_cp[ind] = 1;
+                // get residuals
+                if (state.treatment_flag)
+                {
+                    // treatment forest
+                    if ((*state.Z_std)[0][index_next_obs] == 1)
+                    {
+                        // if treated
+                        valid_residuals_cp[ind] = ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[1] * (*state.tau_fit)[index_next_obs]) / state.b_vec[1];
+                    }
+                    else
+                    {
+                        // if control group
+                        valid_residuals_cp[ind] = ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[0] * (*state.tau_fit)[index_next_obs]) / state.b_vec[0];
+                    }
+                }
+                else
+                {
+                    // prognostic forest
+                    if ((*state.Z_std)[0][index_next_obs] == 1)
+                    {
+                        // if treated
+                        valid_residuals_cp[ind] = ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[1] * (*state.tau_fit)[index_next_obs]) / state.a;
+                    }
+                    else
+                    {
+                        // if control group
+                        valid_residuals_cp[ind] = ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[0] * (*state.tau_fit)[index_next_obs]) / state.a;
+                    }
+                }
+                ind += 1;
+            }
+
+            if ((Ol >= state.Omin) & (Or >= state.Omin)){
+                // leaf node qualify for extrapolation
+                // copy residuals
+                for (size_t i = 0; i < N_Xorder; i++){
+                    if (res_indicator_cp[i] == 1){
+                        res_indicator[xo[i]] = 1;
+                        valid_residuals[xo[i]] = valid_residuals_cp[i];
+                    }
+                }
+                // cout << "valid leaf node with Ol = " << Ol << " Or = " << Or << endl;
+            }
+        }
 
         return;
     }
