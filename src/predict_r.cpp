@@ -222,7 +222,7 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
                             Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod,
                             Rcpp::NumericMatrix res_indicator_con, Rcpp::NumericMatrix valid_residuals_con, Rcpp::NumericMatrix resid_mean_con,
                             Rcpp::NumericMatrix res_indicator_mod, Rcpp::NumericMatrix valid_residuals_mod, Rcpp::NumericMatrix resid_mean_mod,
-                            double theta, double tau)
+                            double cutoff, double theta, double tau)
 {
     // size of data
     size_t Ntr = Xtr_con.n_rows;
@@ -341,8 +341,6 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
         X_range_mod[j] = X_lim_mod[j][1] - X_lim_mod[j][0];
     }
 
-    // get X_range
-
     
     mat cov_con(Ntr + Npred, Ntr + Npred);
     mat cov_mod(Ntr + Npred, Ntr + Npred);
@@ -353,6 +351,13 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
     //     cov(i, i) += pow(x_struct.sigma[tree_ind], 2) / x_struct.num_trees;
     // }
 
+    // get l2 distance on running variable to the cutoff for weighted residual mean 
+    // (l2 is the same as absolute distance in 1d)
+    mat resid_dist(Ntr, 1);
+    for (size_t i = 0; i < Ntr; i++){
+        // !! Assuming the last column is running variable
+        resid_dist(i, 0) = abs(Xtr_con(i, p_con - 1) - cutoff);
+    }
 
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
@@ -363,16 +368,20 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
             size_t this_tree = sweeps * num_trees_con  + tree_ind;
             size_t N_valid = 0;
             mat resid(Ntr, 1);
-            double mean_res = 0;
+            double weighted_res = 0;
+            double sum_weight = 0;
             for (size_t k = 0; k < Ntr; k++){
                 if (res_indicator_con(this_tree, k) == 1){
                     resid(N_valid, 0) = valid_residuals_con(this_tree, k);
-                    mean_res += resid(N_valid, 0);
+
+                    weighted_res += resid(N_valid, 0) * resid_dist(N_valid, 0);
+                    sum_weight += resid_dist(N_valid, 0);
+
                     N_valid += 1;
                 }
             }
             resid.resize(N_valid);
-            mean_res = mean_res / N_valid;
+            weighted_res = weighted_res / sum_weight;
 
             // mat cov(N + Ntest, N + Ntest);
             // get_rel_covariance(cov, X, x_range, theta, tau);
