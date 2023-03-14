@@ -321,6 +321,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// XBCF_rd_predict
+Rcpp::List XBCF_rd_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod, Rcpp::NumericMatrix res_indicator_con, Rcpp::NumericMatrix valid_residuals_con, Rcpp::NumericMatrix res_indicator_mod, Rcpp::NumericMatrix valid_residuals_mod);
+RcppExport SEXP _XBART_XBCF_rd_predict(SEXP X_conSEXP, SEXP X_modSEXP, SEXP ZSEXP, SEXP tree_conSEXP, SEXP tree_modSEXP, SEXP res_indicator_conSEXP, SEXP valid_residuals_conSEXP, SEXP res_indicator_modSEXP, SEXP valid_residuals_modSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< mat >::type X_con(X_conSEXP);
+    Rcpp::traits::input_parameter< mat >::type X_mod(X_modSEXP);
+    Rcpp::traits::input_parameter< mat >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_con(tree_conSEXP);
+    Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_mod(tree_modSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type res_indicator_con(res_indicator_conSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type valid_residuals_con(valid_residuals_conSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type res_indicator_mod(res_indicator_modSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type valid_residuals_mod(valid_residuals_modSEXP);
+    rcpp_result_gen = Rcpp::wrap(XBCF_rd_predict(X_con, X_mod, Z, tree_con, tree_mod, res_indicator_con, valid_residuals_con, res_indicator_mod, valid_residuals_mod));
+    return rcpp_result_gen;
+END_RCPP
+}
 // xbart_predict_full
 Rcpp::List xbart_predict_full(mat X, double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt);
 RcppExport SEXP _XBART_xbart_predict_full(SEXP XSEXP, SEXP y_meanSEXP, SEXP tree_pntSEXP) {
@@ -450,6 +469,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART_xbart_predict", (DL_FUNC) &_XBART_xbart_predict, 3},
     {"_XBART_XBCF_continuous_predict", (DL_FUNC) &_XBART_XBCF_continuous_predict, 5},
     {"_XBART_XBCF_discrete_predict", (DL_FUNC) &_XBART_XBCF_discrete_predict, 5},
+    {"_XBART_XBCF_rd_predict", (DL_FUNC) &_XBART_XBCF_rd_predict, 9},
     {"_XBART_xbart_predict_full", (DL_FUNC) &_XBART_xbart_predict_full, 3},
     {"_XBART_gp_predict", (DL_FUNC) &_XBART_gp_predict, 9},
     {"_XBART_xbart_multinomial_predict", (DL_FUNC) &_XBART_xbart_multinomial_predict, 4},

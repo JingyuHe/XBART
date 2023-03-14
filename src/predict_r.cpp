@@ -218,6 +218,142 @@ Rcpp::List XBCF_discrete_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::ve
 }
 
 // [[Rcpp::export]]
+Rcpp::List XBCF_rd_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod,
+                            Rcpp::NumericMatrix res_indicator_con, Rcpp::NumericMatrix valid_residuals_con, Rcpp::NumericMatrix res_indicator_mod, Rcpp::NumericMatrix valid_residuals_mod)
+{
+    // size of data
+    size_t N = X_con.n_rows;
+    size_t p_con = X_con.n_cols;
+    size_t p_mod = X_mod.n_cols;
+    size_t p_z = Z.n_cols;
+    assert(X_con.n_rows == X_mod.n_rows);
+
+    // Init X_std matrix
+    Rcpp::NumericMatrix X_std_con(N, p_con);
+    Rcpp::NumericMatrix X_std_mod(N, p_mod);
+
+    matrix<double> Ztest_std;
+    ini_matrix(Ztest_std, N, p_z);
+
+    for (size_t i = 0; i < N; i++)
+    {
+        for (size_t j = 0; j < p_con; j++)
+        {
+            X_std_con(i, j) = X_con(i, j);
+        }
+
+        for (size_t j = 0; j < p_mod; j++)
+        {
+            X_std_mod(i, j) = X_mod(i, j);
+        }
+
+        for (size_t j = 0; j < p_z; j++)
+        {
+            Ztest_std[j][i] = Z(i, j);
+        }
+    }
+    double *Xpointer_con = &X_std_con[0];
+    double *Xpointer_mod = &X_std_mod[0];
+
+    // Trees
+    std::vector<std::vector<tree>> *trees_con = tree_con;
+    std::vector<std::vector<tree>> *trees_mod = tree_mod;
+
+    // Result Container
+    size_t num_sweeps = (*trees_con).size();
+    size_t num_trees_con = (*trees_con)[0].size();
+    size_t num_trees_mod = (*trees_mod)[0].size();
+
+    COUT << "number of trees " << num_trees_con << " " << num_trees_mod << endl;
+
+    matrix<double> prognostic_xinfo;
+    ini_matrix(prognostic_xinfo, N, num_sweeps);
+
+    matrix<double> treatment_xinfo;
+    ini_matrix(treatment_xinfo, N, num_sweeps);
+
+    matrix<double> yhats_test_xinfo;
+    ini_xinfo(yhats_test_xinfo, N, num_sweeps);
+    
+    
+    for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
+    {
+        for (size_t tree_ind = 0; tree_ind < num_trees_con; tree_ind++)
+        {
+            // get valid residuals for each tree
+            // count valid residuals
+            size_t this_tree = sweeps * num_trees_con  + tree_ind;
+            size_t N_tr = 0;
+            mat resid(N, 1);
+            double mean_res = 0;
+            for (size_t k = 0; k < N; k++){
+                if (res_indicator_con(this_tree, k) == 1){
+                    resid(N_tr, 0) = valid_residuals_con(this_tree, k);
+                    mean_res += resid(N_tr, 0);
+                    N_tr += 1;
+                }
+            }
+
+        //     mat cov(N + Ntest, N + Ntest);
+        //     get_rel_covariance(cov, X, x_range, theta, tau);
+        //     for (size_t i = 0; i < N; i++)
+        //     {
+        //         cov(i, i) += pow(x_struct.sigma[tree_ind], 2) / x_struct.num_trees;
+        //     }
+
+        //     mat mu(Ntest, 1);
+        //     mat Sig(Ntest, Ntest);
+        //     if (N > 0)
+        //     {
+        //         mat k = cov.submat(N, 0, N + Ntest - 1, N - 1);
+        //         mat Kinv = pinv(cov.submat(0, 0, N - 1, N - 1));
+        //         mu = k * Kinv * resid;
+        //         Sig = cov.submat(N, N, N + Ntest - 1, N + Ntest - 1) - k * Kinv * trans(k);
+        //     }
+        //     else
+        //     {
+        //         // prior
+        //         mu.zeros(Ntest, 1);
+        //         Sig = cov.submat(0, 0, Ntest - 1, Ntest - 1);
+        //     }
+        //     mat U;
+        //     vec S;
+        //     mat V;
+        //     svd(U, S, V, Sig);
+
+        //     std::normal_distribution<double> normal_samp(0.0, 1.0);
+        //     mat samp(Ntest, 1);
+        //     for (size_t i = 0; i < Ntest; i++)
+        //         samp(i, 0) = normal_samp(x_struct.gen);
+        //     mat draws = mu + U * diagmat(sqrt(S)) * samp;
+        //     for (size_t i = 0; i < Ntest; i++)
+        //         yhats_test_xinfo[sweeps][test_ind[i]] += draws(i, 0);
+        }
+        //     }
+        //     for (size_t tree_ind = 0; tree_ind < num_trees_mod; tree_ind++)
+        //     {
+            
+        //     }
+    }
+
+    // Convert back to Rcpp
+    Rcpp::NumericMatrix yhats(N, num_sweeps);
+    Rcpp::NumericMatrix prognostic(N, num_sweeps);
+    Rcpp::NumericMatrix treatment(N, num_sweeps);
+    for (size_t i = 0; i < N; i++)
+    {
+        for (size_t j = 0; j < num_sweeps; j++)
+        {
+            yhats(i, j) = yhats_test_xinfo[j][i];
+            prognostic(i, j) = prognostic_xinfo[j][i];
+            treatment(i, j) = treatment_xinfo[j][i];
+        }
+    }
+
+    return Rcpp::List::create(Rcpp::Named("mu") = prognostic, Rcpp::Named("tau") = treatment, Rcpp::Named("yhats") = yhats);
+}
+
+// [[Rcpp::export]]
 Rcpp::List xbart_predict_full(mat X, double y_mean, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_pnt)
 {
 

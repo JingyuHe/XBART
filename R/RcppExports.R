@@ -37,6 +37,10 @@ XBCF_discrete_predict <- function(X_con, X_mod, Z, tree_con, tree_mod) {
     .Call(`_XBART_XBCF_discrete_predict`, X_con, X_mod, Z, tree_con, tree_mod)
 }
 
+XBCF_rd_predict <- function(X_con, X_mod, Z, tree_con, tree_mod, res_indicator_con, valid_residuals_con, res_indicator_mod, valid_residuals_mod) {
+    .Call(`_XBART_XBCF_rd_predict`, X_con, X_mod, Z, tree_con, tree_mod, res_indicator_con, valid_residuals_con, res_indicator_mod, valid_residuals_mod)
+}
+
 xbart_predict_full <- function(X, y_mean, tree_pnt) {
     .Call(`_XBART_xbart_predict_full`, X, y_mean, tree_pnt)
 }
