@@ -218,9 +218,11 @@ Rcpp::List XBCF_discrete_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::ve
 }
 
 // [[Rcpp::export]]
-Rcpp::List XBCF_rd_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod,
+Rcpp::List XBCF_rd_predict(mat X_con, mat X_mod, mat Z, mat Xtr_con, mat Xtr_mod,
+                            Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod,
                             Rcpp::NumericMatrix res_indicator_con, Rcpp::NumericMatrix valid_residuals_con, Rcpp::NumericMatrix resid_mean_con,
-                            Rcpp::NumericMatrix res_indicator_mod, Rcpp::NumericMatrix valid_residuals_mod, Rcpp::NumericMatrix resid_mean_mod)
+                            Rcpp::NumericMatrix res_indicator_mod, Rcpp::NumericMatrix valid_residuals_mod, Rcpp::NumericMatrix resid_mean_mod,
+                            double theta, double tau)
 {
     // size of data
     size_t N = X_con.n_rows;
@@ -281,6 +283,15 @@ Rcpp::List XBCF_rd_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::vector<s
 
     model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
     
+    // get covariance matrix for predict
+    // mat cov(N + Ntest, N + Ntest);
+    // get_rel_covariance(cov, X, x_range, theta, tau);
+    // for (size_t i = 0; i < N; i++)
+    // {
+    //     cov(i, i) += pow(x_struct.sigma[tree_ind], 2) / x_struct.num_trees;
+    // }
+
+
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
         for (size_t tree_ind = 0; tree_ind < num_trees_con; tree_ind++)
@@ -301,12 +312,12 @@ Rcpp::List XBCF_rd_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::vector<s
             resid.resize(N_tr);
             mean_res = mean_res / N_tr;
 
-        //     mat cov(N + Ntest, N + Ntest);
-        //     get_rel_covariance(cov, X, x_range, theta, tau);
-        //     for (size_t i = 0; i < N; i++)
-        //     {
-        //         cov(i, i) += pow(x_struct.sigma[tree_ind], 2) / x_struct.num_trees;
-        //     }
+            // mat cov(N + Ntest, N + Ntest);
+            // get_rel_covariance(cov, X, x_range, theta, tau);
+            // for (size_t i = 0; i < N; i++)
+            // {
+            //     cov(i, i) += pow(x_struct.sigma[tree_ind], 2) / x_struct.num_trees;
+            // }
 
         //     mat mu(Ntest, 1);
         //     mat Sig(Ntest, Ntest);

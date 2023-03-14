@@ -82,15 +82,15 @@ predict.XBCFdiscrete <- function(object, X_con, X_mod, Z, pihat=NULL, burnin = 0
     return(obj)
 }
 
-predict.XBCFrd <- function(object, W, X, c, burnin = 0L, ...) {
+predict.XBCFrd <- function(object, W, X, c, Wtr, Xtr, burnin = 0L, theta = 0.1, tau = 1, ...) {
     
     if (!("matrix" %in% class(W))) {
-        cat("Input X_con is not a matrix, try to convert type.\n")
+        cat("Input W is not a matrix, try to convert type.\n")
         W <- as.matrix(W)
     }
 
     if (!("matrix" %in% class(X))) {
-        cat("Input X_con is not a matrix, try to convert type.\n")
+        cat("Input X is not a matrix, try to convert type.\n")
         X <- as.matrix(X)
     }
 
@@ -105,16 +105,35 @@ predict.XBCFrd <- function(object, W, X, c, burnin = 0L, ...) {
     X_con <- cbind(W, X)
     X_mod <- X_con
 
-    if ( (c <= range(X)[1]) || (c >= range(X)[2])){
-        stop("Cut off point c should within the range of the running variable X")
+    Z <- as.matrix(X >= c)
+
+    if (!("matrix" %in% class(Wtr))) {
+        cat("Input Wtr is not a matrix, try to convert type.\n")
+        Wtr <- as.matrix(Wtr)
     }
 
-    Z <- as.matrix(X >= c)
+    if (!("matrix" %in% class(Xtr))) {
+        cat("Input Xtr is not a matrix, try to convert type.\n")
+        Xtr <- as.matrix(Xtr)
+    }
+
+    if (dim(Xtr)[2] > 1) {
+        stop("Running varialbe Xtr should be a column vector")
+    }
+
+    if (dim(Wtr)[1] != length(Xtr)) {
+        stop("Number of rows in covariates Wtr must match Length of Xtr")
+    }
+
+    Xtr_con <- cbind(Wtr, Xtr)
+    Xtr_mod <- Xtr_con
+
 
     out_con <- json_to_r(object$tree_json_con)
     out_mod <- json_to_r(object$tree_json_mod)
-    obj <- .Call("_XBART_XBCF_rd_predict", X_con, X_mod, Z, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt,
-                object$res_indicator_con, object$valid_residuals_con, object$resid_mean_con, object$res_indicator_mod, object$valid_residuals_mod, object$resid_mean_mod)
+    obj <- .Call("_XBART_XBCF_rd_predict", X_con, X_mod, Z, Xtr_con, Xtr_mod, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt,
+                object$res_indicator_con, object$valid_residuals_con, object$resid_mean_con, object$res_indicator_mod, object$valid_residuals_mod, object$resid_mean_mod,
+                theta, tau)
 
     burnin <- burnin
     sweeps <- nrow(object$a)

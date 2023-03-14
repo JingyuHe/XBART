@@ -50,11 +50,11 @@ wtest <- matrix(rep(0, n*p), n, p)
 tau.test <- tau(wtest, xtest)
 ytest <- mu(wtest, xtest) + tau.test*(xtest>=c)
 
-data <- list(y = ytest, W = wtest, X = xtest, c = c)
+data <- list(y = ytest, W = wtest, X = xtest, c = c, Wtr = w, Xtr = x)
 # test_xbcf_rd(fit.XBCFrd, data, 0.01, mean(tau.test))
 
 # Make predictions on the test data
-pred.XBCFrd <- predict.XBCFrd(fit.XBCFrd, data$W, data$X, data$c)
+pred.XBCFrd <- predict.XBCFrd(fit.XBCFrd, W = wtest, X = xtest, c = c, Wtr = w, Xtr = x)
 
 # Check yhats
 rmse.yhats <- sqrt(mean((data$y - pred.XBCFrd$yhats.adj.mean)^2))
