@@ -238,8 +238,6 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
     // Init X_std matrix
     Rcpp::NumericMatrix Xpred_std_con(Npred, p_con);
     Rcpp::NumericMatrix Xpred_std_mod(Npred, p_mod);
-    Rcpp::NumericMatrix Xtr_std_con(Ntr, p_con);
-    Rcpp::NumericMatrix Xtr_std_mod(Ntr, p_mod);
 
     matrix<double> Ztest_std;
     ini_matrix(Ztest_std, Npred, p_z);
@@ -259,19 +257,6 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
         for (size_t j = 0; j < p_z; j++)
         {
             Ztest_std[j][i] = Zpred(i, j);
-        }
-    }
-
-    for (size_t i = 0; i < Ntr; i++)
-    {
-        for (size_t j = 0; j < p_con; j++)
-        {
-            Xtr_std_con(i, j) = Xtr_con(i, j);
-        }
-
-        for (size_t j = 0; j < p_mod; j++)
-        {
-            Xtr_std_mod(i, j) = Xtr_mod(i, j);
         }
     }
 
@@ -306,8 +291,59 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
     // get covariance matrix for predict
 
     // combine X matrix using only running variable
+    mat X_con(Ntr + Npred, p_con);
+    mat X_mod(Ntr + Npred, p_mod);
 
+    // get X_range
+    matrix<double> X_lim_con;
+    matrix<double> X_lim_mod;
+    ini_matrix(X_lim_con, 2, p_con);
+    ini_matrix(X_lim_mod, 2, p_mod);
+    std::vector<double> X_range_con(p_con);
+    std::vector<double> X_range_mod(p_mod);
 
+    for (size_t i = 0; i < Ntr; i++){
+        for (size_t j = 0; j < p_con; j++){
+            X_con(i, j) = Xtr_con(i, j);
+
+            // check X limit for X_range
+            if (X_con(i, j) < X_lim_con[j][0]){
+                X_lim_con[j][0] = X_con(i, j);
+            } else if (X_con(i, j) > X_lim_con[j][1]){
+                X_lim_con[j][1] = X_con(i, j);
+            }
+        }
+        for (size_t j = 0; j < p_mod; j++){
+            X_mod(i, j) = Xtr_mod(i, j);
+
+            // check X limit for X_range
+            if (X_mod(i, j) < X_lim_mod[j][0]){
+                X_lim_mod[j][0] = X_mod(i, j);
+            } else if (X_mod(i, j) > X_lim_mod[j][1]){
+                X_lim_mod[j][1] = X_mod(i, j);
+            }
+        }
+    }
+    for (size_t i = 0; i < Npred; i++){
+        for (size_t j = 0; j < p_con; j++){
+            X_con(i + Ntr, j) = Xpred_con(i, j);
+        }
+        for (size_t j = 0; j < p_mod; j++){
+            X_mod(i + Ntr, j) = Xpred_mod(i, j);
+        }
+    }
+
+    for (size_t j = 0; j < p_con; j++){
+        X_range_con[j] = X_lim_con[j][1] - X_lim_con[j][0];
+    }
+
+    for (size_t j = 0; j < p_mod; j++){
+        X_range_mod[j] = X_lim_mod[j][1] - X_lim_mod[j][0];
+    }
+
+    // get X_range
+
+    
     mat cov_con(Ntr + Npred, Ntr + Npred);
     mat cov_mod(Ntr + Npred, Ntr + Npred);
 
