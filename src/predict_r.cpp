@@ -218,45 +218,65 @@ Rcpp::List XBCF_discrete_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::ve
 }
 
 // [[Rcpp::export]]
-Rcpp::List XBCF_rd_predict(mat X_con, mat X_mod, mat Z, mat Xtr_con, mat Xtr_mod,
+Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con, mat Xtr_mod,
                             Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod,
                             Rcpp::NumericMatrix res_indicator_con, Rcpp::NumericMatrix valid_residuals_con, Rcpp::NumericMatrix resid_mean_con,
                             Rcpp::NumericMatrix res_indicator_mod, Rcpp::NumericMatrix valid_residuals_mod, Rcpp::NumericMatrix resid_mean_mod,
                             double theta, double tau)
 {
     // size of data
-    size_t N = X_con.n_rows;
-    size_t p_con = X_con.n_cols;
-    size_t p_mod = X_mod.n_cols;
-    size_t p_z = Z.n_cols;
-    assert(X_con.n_rows == X_mod.n_rows);
+    size_t Ntr = Xtr_con.n_rows;
+    size_t Npred = Xpred_con.n_rows;
+    size_t p_con = Xpred_con.n_cols;
+    size_t p_mod = Xpred_mod.n_cols;
+    size_t p_z = Zpred.n_cols;
+    assert(Xpred_con.n_rows == Xpred_mod.n_rows);
+    assert(Xpred_con.n_cols == Xtr_con.n_cols);
+    assert(Xpred_mod.n_cols == Xtr_mod.n_cols);
+
 
     // Init X_std matrix
-    Rcpp::NumericMatrix X_std_con(N, p_con);
-    Rcpp::NumericMatrix X_std_mod(N, p_mod);
+    Rcpp::NumericMatrix Xpred_std_con(Npred, p_con);
+    Rcpp::NumericMatrix Xpred_std_mod(Npred, p_mod);
+    Rcpp::NumericMatrix Xtr_std_con(Ntr, p_con);
+    Rcpp::NumericMatrix Xtr_std_mod(Ntr, p_mod);
 
     matrix<double> Ztest_std;
-    ini_matrix(Ztest_std, N, p_z);
+    ini_matrix(Ztest_std, Npred, p_z);
 
-    for (size_t i = 0; i < N; i++)
+    for (size_t i = 0; i < Npred; i++)
     {
         for (size_t j = 0; j < p_con; j++)
         {
-            X_std_con(i, j) = X_con(i, j);
+            Xpred_std_con(i, j) = Xpred_con(i, j);
         }
 
         for (size_t j = 0; j < p_mod; j++)
         {
-            X_std_mod(i, j) = X_mod(i, j);
+            Xpred_std_mod(i, j) = Xpred_mod(i, j);
         }
 
         for (size_t j = 0; j < p_z; j++)
         {
-            Ztest_std[j][i] = Z(i, j);
+            Ztest_std[j][i] = Zpred(i, j);
         }
     }
-    double *Xpointer_con = &X_std_con[0];
-    double *Xpointer_mod = &X_std_mod[0];
+
+    for (size_t i = 0; i < Ntr; i++)
+    {
+        for (size_t j = 0; j < p_con; j++)
+        {
+            Xtr_std_con(i, j) = Xtr_con(i, j);
+        }
+
+        for (size_t j = 0; j < p_mod; j++)
+        {
+            Xtr_std_mod(i, j) = Xtr_mod(i, j);
+        }
+    }
+
+    double *Xpointer_con = &Xpred_std_con[0];
+    double *Xpointer_mod = &Xpred_std_mod[0];
 
     // Trees
     std::vector<std::vector<tree>> *trees_con = tree_con;
@@ -270,21 +290,27 @@ Rcpp::List XBCF_rd_predict(mat X_con, mat X_mod, mat Z, mat Xtr_con, mat Xtr_mod
     COUT << "number of trees " << num_trees_con << " " << num_trees_mod << endl;
 
     matrix<double> prognostic_xinfo;
-    ini_matrix(prognostic_xinfo, N, num_sweeps);
+    ini_matrix(prognostic_xinfo, Npred, num_sweeps);
 
     matrix<double> treatment_xinfo;
-    ini_matrix(treatment_xinfo, N, num_sweeps);
+    ini_matrix(treatment_xinfo, Npred, num_sweeps);
 
     matrix<double> yhats_test_xinfo;
-    ini_xinfo(yhats_test_xinfo, N, num_sweeps);
+    ini_xinfo(yhats_test_xinfo, Npred, num_sweeps);
 
     XBCFContinuousModel *model = new XBCFContinuousModel();
     // Predict
 
-    model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
+    model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, Npred, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
     
     // get covariance matrix for predict
-    // mat cov(N + Ntest, N + Ntest);
+
+    // combine X matrix using only running variable
+
+
+    mat cov_con(Ntr + Npred, Ntr + Npred);
+    mat cov_mod(Ntr + Npred, Ntr + Npred);
+
     // get_rel_covariance(cov, X, x_range, theta, tau);
     // for (size_t i = 0; i < N; i++)
     // {
@@ -299,18 +325,18 @@ Rcpp::List XBCF_rd_predict(mat X_con, mat X_mod, mat Z, mat Xtr_con, mat Xtr_mod
             // get valid residuals for each tree
             // count valid residuals
             size_t this_tree = sweeps * num_trees_con  + tree_ind;
-            size_t N_tr = 0;
-            mat resid(N, 1);
+            size_t N_valid = 0;
+            mat resid(Ntr, 1);
             double mean_res = 0;
-            for (size_t k = 0; k < N; k++){
+            for (size_t k = 0; k < Ntr; k++){
                 if (res_indicator_con(this_tree, k) == 1){
-                    resid(N_tr, 0) = valid_residuals_con(this_tree, k);
-                    mean_res += resid(N_tr, 0);
-                    N_tr += 1;
+                    resid(N_valid, 0) = valid_residuals_con(this_tree, k);
+                    mean_res += resid(N_valid, 0);
+                    N_valid += 1;
                 }
             }
-            resid.resize(N_tr);
-            mean_res = mean_res / N_tr;
+            resid.resize(N_valid);
+            mean_res = mean_res / N_valid;
 
             // mat cov(N + Ntest, N + Ntest);
             // get_rel_covariance(cov, X, x_range, theta, tau);
@@ -355,10 +381,10 @@ Rcpp::List XBCF_rd_predict(mat X_con, mat X_mod, mat Z, mat Xtr_con, mat Xtr_mod
     }
 
     // Convert back to Rcpp
-    Rcpp::NumericMatrix yhats(N, num_sweeps);
-    Rcpp::NumericMatrix prognostic(N, num_sweeps);
-    Rcpp::NumericMatrix treatment(N, num_sweeps);
-    for (size_t i = 0; i < N; i++)
+    Rcpp::NumericMatrix yhats(Npred, num_sweeps);
+    Rcpp::NumericMatrix prognostic(Npred, num_sweeps);
+    Rcpp::NumericMatrix treatment(Npred, num_sweeps);
+    for (size_t i = 0; i < Npred; i++)
     {
         for (size_t j = 0; j < num_sweeps; j++)
         {
