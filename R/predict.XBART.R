@@ -113,7 +113,8 @@ predict.XBCFrd <- function(object, W, X, c, burnin = 0L, ...) {
 
     out_con <- json_to_r(object$tree_json_con)
     out_mod <- json_to_r(object$tree_json_mod)
-    obj <- .Call("_XBART_XBCF_discrete_predict", X_con, X_mod, Z, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt)
+    obj <- .Call("_XBART_XBCF_rd_predict", X_con, X_mod, Z, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt,
+                object$res_indicator_con, object$valid_residuals_con, object$resid_mean_con, object$res_indicator_mod, object$valid_residuals_mod, object$resid_mean_mod)
 
     burnin <- burnin
     sweeps <- nrow(object$a)

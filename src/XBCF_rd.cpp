@@ -132,28 +132,36 @@ Rcpp::List XBCF_rd_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mo
     matrix<double> tau_mod_xinfo;
     ini_matrix(tau_mod_xinfo, num_sweeps, 1);
 
-    matrix<std::vector<size_t>> con_res_indicator;
-    matrix<std::vector<double>> con_valid_residuals;
+    matrix<std::vector<size_t>> con_res_indicator; // indicate residuals in bandwidth
+    matrix<std::vector<double>> con_valid_residuals; // residual values
+    matrix<std::vector<double>> con_resid_mean; // leaf parameters
     matrix<std::vector<size_t>> mod_res_indicator;
     matrix<std::vector<double>> mod_valid_residuals;
+    matrix<std::vector<double>> mod_resid_mean;
     con_res_indicator.resize(num_sweeps);
     con_valid_residuals.resize(num_sweeps);
+    con_resid_mean.resize(num_sweeps);
     mod_res_indicator.resize(num_sweeps);
     mod_valid_residuals.resize(num_sweeps);
+    mod_resid_mean.resize(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++){
         con_res_indicator[i].resize(num_trees_con);
         con_valid_residuals[i].resize(num_trees_con);
+        con_resid_mean[i].resize(num_trees_con);
         mod_res_indicator[i].resize(num_trees_mod);
         mod_valid_residuals[i].resize(num_trees_mod);
+        mod_resid_mean[i].resize(num_trees_mod);
         for (size_t j = 0; j < num_trees_con; j++)
         {
             con_res_indicator[i][j].resize(N);
             con_valid_residuals[i][j].resize(N);
+            con_resid_mean[i][j].resize(N);
         }
         for (size_t j = 0; j < num_trees_mod; j++)
         {
             mod_res_indicator[i][j].resize(N);
             mod_valid_residuals[i][j].resize(N);
+            mod_resid_mean[i][j].resize(N);
         }
     }
 
@@ -183,7 +191,7 @@ Rcpp::List XBCF_rd_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mo
 
     ////////////////////////////////////////////////////////////////
     mcmc_loop_xbcf_rd(Xorder_std_con, Xorder_std_mod, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, a_xinfo, b_xinfo, tau_con_xinfo, tau_mod_xinfo, trees_con, trees_mod, no_split_penalty, state, model, x_struct_con, x_struct_mod,
-                    con_res_indicator, con_valid_residuals, mod_res_indicator, mod_valid_residuals);
+                    con_res_indicator, con_valid_residuals, con_resid_mean, mod_res_indicator, mod_valid_residuals, mod_resid_mean);
 
     // R Objects to Return
     Rcpp::NumericMatrix sigma0_draw(num_trees_con + num_trees_mod, num_sweeps); // save predictions of each tree
@@ -206,9 +214,13 @@ Rcpp::List XBCF_rd_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mo
 
     Rcpp::NumericMatrix con_valid_residuals_rcpp(num_trees_con * num_sweeps, N);
 
+    Rcpp::NumericMatrix con_resid_mean_rcpp(num_trees_con * num_sweeps, N);
+
     Rcpp::NumericMatrix mod_res_indicator_rcpp(num_trees_mod * num_sweeps, N);
 
     Rcpp::NumericMatrix mod_valid_residuals_rcpp(num_trees_mod * num_sweeps, N);
+
+    Rcpp::NumericMatrix mod_resid_mean_rcpp(num_trees_mod * num_sweeps, N);
 
     for (size_t i = 0; i < num_sweeps; i++)
     {
@@ -218,6 +230,7 @@ Rcpp::List XBCF_rd_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mo
             {
                 con_res_indicator_rcpp(i * num_trees_con + j, k) = con_res_indicator[i][j][k];
                 con_valid_residuals_rcpp(i * num_trees_con + j, k) = con_valid_residuals[i][j][k];
+                con_resid_mean_rcpp(i * num_trees_con + j, k) = con_resid_mean[i][j][k];
             }
         }
         for (size_t j = 0; j < num_trees_mod; j++)
@@ -226,6 +239,7 @@ Rcpp::List XBCF_rd_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mo
             {
                 mod_res_indicator_rcpp(i * num_trees_mod + j, k) = mod_res_indicator[i][j][k];
                 mod_valid_residuals_rcpp(i * num_trees_mod + j, k) = mod_valid_residuals[i][j][k];
+                mod_resid_mean_rcpp(i * num_trees_con + j, k) = mod_resid_mean[i][j][k];
             }
         }
 
@@ -281,7 +295,9 @@ Rcpp::List XBCF_rd_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mo
         Rcpp::Named("tree_string_con") = output_tree_con,
         Rcpp::Named("res_indicator_con") = con_res_indicator_rcpp,
         Rcpp::Named("valid_residuals_con") = con_valid_residuals_rcpp,
+        Rcpp::Named("resid_mean_con") = con_resid_mean_rcpp,
         Rcpp::Named("res_indicator_mod") = mod_res_indicator_rcpp,
-        Rcpp::Named("valid_residuals_mod") = mod_valid_residuals_rcpp
+        Rcpp::Named("valid_residuals_mod") = mod_valid_residuals_rcpp,
+        Rcpp::Named("resid_mean_mod") = mod_resid_mean_rcpp
         );
 }
