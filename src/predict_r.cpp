@@ -235,6 +235,8 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
     assert(Xpred_con.n_cols == Xtr_con.n_cols);
     assert(Xpred_mod.n_cols == Xtr_mod.n_cols);
 
+    std::random_device rd;
+    std::mt19937 gen = std::mt19937(rd());
 
     // Init X_std matrix
     Rcpp::NumericMatrix Xpred_std_con(Npred, p_con);
@@ -289,6 +291,13 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
 
     model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, Npred, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
     
+
+    matrix<double> prognostic_gp_xinfo;
+    ini_matrix(prognostic_gp_xinfo, Npred, num_sweeps);
+
+    matrix<double> treatment_gp_xinfo;
+    ini_matrix(treatment_gp_xinfo, Npred, num_sweeps);
+
     // get covariance matrix for predict
 
     // combine X matrix using only running variable
@@ -359,83 +368,85 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
 
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
-        for (size_t tree_ind = 0; tree_ind < num_trees_con; tree_ind++)
-        {
-            // get valid residuals for each tree
-            // count valid residuals
-            size_t this_tree = sweeps * num_trees_con  + tree_ind;
-            size_t Nvalid = 0;
-            mat resid(Ntr, 1);
-            double weighted_res = 0;
-            double sum_weight = 0;
+        // for (size_t tree_ind = 0; tree_ind < num_trees_con; tree_ind++)
+        // {
+        //     // get valid residuals for each tree
+        //     // count valid residuals
+        //     size_t this_tree = sweeps * num_trees_con  + tree_ind;
+        //     size_t Nvalid = 0;
+        //     mat resid(Ntr, 1);
+        //     double weighted_res = 0;
+        //     double sum_weight = 0;
 
-            arma::uvec cov_rows(Ntr);
-            for (size_t k = 0; k < Ntr; k++){
-                if (res_indicator_con(this_tree, k) == 1){
-                    resid(Nvalid, 0) = valid_residuals_con(this_tree, k);
+        //     arma::uvec cov_rows(Ntr);
+        //     for (size_t k = 0; k < Ntr; k++){
+        //         if (res_indicator_con(this_tree, k) == 1){
+        //             resid(Nvalid, 0) = valid_residuals_con(this_tree, k);
 
-                    weighted_res += resid(Nvalid, 0) * resid_dist(Nvalid, 0);
-                    sum_weight += resid_dist(Nvalid, 0);
+        //             weighted_res += resid(Nvalid, 0) * resid_dist(Nvalid, 0);
+        //             sum_weight += resid_dist(Nvalid, 0);
 
-                    cov_rows(Nvalid) = k;
-                    Nvalid += 1;
-                }
-            }
-            resid.resize(Nvalid);
-            weighted_res = weighted_res / sum_weight;
+        //             cov_rows(Nvalid) = k;
+        //             Nvalid += 1;
+        //         }
+        //     }
+        //     resid.resize(Nvalid);
+        //     weighted_res = weighted_res / sum_weight;
 
             
-            // add sigma to covairnace diagnal for predict data
-            for (size_t i = 0; i < Npred; i++)
-            {
-                if (Zpred(i, 0) == 0){
-                    cov_con(i + Ntr, i + Ntr) += pow(sigma0(tree_ind, sweeps), 2) / num_trees_con;
-                } else {
-                    cov_con(i + Ntr, i + Ntr) += pow(sigma1(tree_ind, sweeps), 2) / num_trees_con;
-                }
-            }
+        //     // add sigma to covairnace diagnal for predict data
+        //     for (size_t i = 0; i < Npred; i++)
+        //     {
+        //         if (Zpred(i, 0) == 0){
+        //             cov_con(i + Ntr, i + Ntr) += pow(sigma0(tree_ind, sweeps), 2) / num_trees_con;
+        //         } else {
+        //             cov_con(i + Ntr, i + Ntr) += pow(sigma1(tree_ind, sweeps), 2) / num_trees_con;
+        //         }
+        //     }
 
-            // resize cov_rows and add Npred
-            cov_rows.resize(Nvalid + Npred);
-            cov_rows.subvec(Nvalid, Nvalid + Npred - 1) = arma::regspace<arma::uvec>(Nvalid, Nvalid + Npred - 1);
-            mat cov = cov_con.submat(cov_rows, cov_rows);
+        //     // resize cov_rows and add Npred
+        //     cov_rows.resize(Nvalid + Npred);
+        //     cov_rows.subvec(Nvalid, Nvalid + Npred - 1) = arma::regspace<arma::uvec>(Nvalid, Nvalid + Npred - 1);
+        //     mat cov = cov_con.submat(cov_rows, cov_rows);
 
-            mat mu(Npred, 1);
-            mat Sig(Npred, Npred);
-            if (Nvalid > 0) {
-                mat k = cov.submat(Nvalid, 0, Nvalid + Npred - 1, Nvalid - 1);
-                mat Kinv = pinv(cov.submat(0, 0, Nvalid - 1, Nvalid - 1));
-                mu = k * Kinv * resid;
-                Sig = cov.submat(Nvalid, Nvalid, Nvalid + Npred - 1, Nvalid + Npred - 1) - k * Kinv * trans(k);
-            } else {
-                // prior
-                mu.zeros(Npred, 1);
-                Sig = cov.submat(0, 0, Npred - 1, Npred - 1);
-            }
+        //     mat mu(Npred, 1);
+        //     mat Sig(Npred, Npred);
+        //     if (Nvalid > 0) {
+        //         mat k = cov.submat(Nvalid, 0, Nvalid + Npred - 1, Nvalid - 1);
+        //         mat Kinv = pinv(cov.submat(0, 0, Nvalid - 1, Nvalid - 1));
+        //         mu = k * Kinv * resid;
+        //         Sig = cov.submat(Nvalid, Nvalid, Nvalid + Npred - 1, Nvalid + Npred - 1) - k * Kinv * trans(k);
+        //     } else {
+        //         // prior
+        //         mu.zeros(Npred, 1);
+        //         Sig = cov.submat(0, 0, Npred - 1, Npred - 1);
+        //     }
+
         //     mat U;
         //     vec S;
         //     mat V;
         //     svd(U, S, V, Sig);
 
         //     std::normal_distribution<double> normal_samp(0.0, 1.0);
-        //     mat samp(Ntest, 1);
-        //     for (size_t i = 0; i < Ntest; i++)
-        //         samp(i, 0) = normal_samp(x_struct.gen);
+        //     mat samp(Npred, 1);
+        //     for (size_t i = 0; i < Npred; i++)
+        //         samp(i, 0) = normal_samp(gen);
         //     mat draws = mu + U * diagmat(sqrt(S)) * samp;
-        //     for (size_t i = 0; i < Ntest; i++)
-        //         yhats_test_xinfo[sweeps][test_ind[i]] += draws(i, 0);
+        //     for (size_t i = 0; i < Npred; i++)
+        //         prognostic_gp_xinfo[sweeps][i] += draws(i, 0);
+        //         // yhats_test_xinfo[sweeps][test_ind[i]] += draws(i, 0);
 
-            // remove sigma from covairnace diagnal for predict data
-            for (size_t i = 0; i < Npred; i++)
-            {
-                if (Zpred(i, 0) == 0){
-                    cov_con(i + Ntr, i + Ntr) -= pow(sigma0(tree_ind, sweeps), 2) / num_trees_con;
-                } else {
-                    cov_con(i + Ntr, i + Ntr) += pow(sigma1(tree_ind, sweeps), 2) / num_trees_con;
-                }
-            }
-        }
+        //     // remove sigma from covairnace diagnal for predict data
+        //     for (size_t i = 0; i < Npred; i++)
+        //     {
+        //         if (Zpred(i, 0) == 0){
+        //             cov_con(i + Ntr, i + Ntr) -= pow(sigma0(tree_ind, sweeps), 2) / num_trees_con;
+        //         } else {
+        //             cov_con(i + Ntr, i + Ntr) += pow(sigma1(tree_ind, sweeps), 2) / num_trees_con;
+        //         }
         //     }
+        // }
+
         //     for (size_t tree_ind = 0; tree_ind < num_trees_mod; tree_ind++)
         //     {
             
