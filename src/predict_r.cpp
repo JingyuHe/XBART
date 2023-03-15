@@ -218,10 +218,11 @@ Rcpp::List XBCF_discrete_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::ve
 }
 
 // [[Rcpp::export]]
-Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con, mat Xtr_mod,
+Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con, mat Xtr_mod, mat Ztr,
                             Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod,
                             Rcpp::NumericMatrix res_indicator_con, Rcpp::NumericMatrix valid_residuals_con, Rcpp::NumericMatrix resid_mean_con,
                             Rcpp::NumericMatrix res_indicator_mod, Rcpp::NumericMatrix valid_residuals_mod, Rcpp::NumericMatrix resid_mean_mod,
+                            Rcpp::NumericMatrix sigma0, Rcpp::NumericMatrix sigma1,
                             double cutoff, double theta, double tau)
 {
     // size of data
@@ -347,10 +348,6 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
 
     get_rel_covariance(cov_con, X_con, X_range_con, theta, tau);
     get_rel_covariance(cov_mod, X_mod, X_range_mod, theta, tau);
-    // for (size_t i = 0; i < N; i++)
-    // {
-    //     cov(i, i) += pow(x_struct.sigma[tree_ind], 2) / x_struct.num_trees;
-    // }
 
     // get l2 distance on running variable to the cutoff for weighted residual mean 
     // (l2 is the same as absolute distance in 1d)
@@ -383,6 +380,16 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
             }
             resid.resize(N_valid);
             weighted_res = weighted_res / sum_weight;
+
+            // add sigma to covairnace diagnal for predict data
+            for (size_t i = 0; i < Npred; i++)
+            {
+                if (Zpred(i, 0) == 0){
+                    cov_con(i + Ntr, i + Ntr) += pow(sigma0(tree_ind, sweeps), 2) / num_trees_con;
+                } else {
+                    cov_con(i + Ntr, i + Ntr) += pow(sigma1(tree_ind, sweeps), 2) / num_trees_con;
+                }
+            }
 
             // mat cov(N + Ntest, N + Ntest);
             // get_rel_covariance(cov, X, x_range, theta, tau);
@@ -418,6 +425,16 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
         //     mat draws = mu + U * diagmat(sqrt(S)) * samp;
         //     for (size_t i = 0; i < Ntest; i++)
         //         yhats_test_xinfo[sweeps][test_ind[i]] += draws(i, 0);
+
+            // remove sigma from covairnace diagnal for predict data
+            for (size_t i = 0; i < Npred; i++)
+            {
+                if (Zpred(i, 0) == 0){
+                    cov_con(i + Ntr, i + Ntr) -= pow(sigma0(tree_ind, sweeps), 2) / num_trees_con;
+                } else {
+                    cov_con(i + Ntr, i + Ntr) += pow(sigma1(tree_ind, sweeps), 2) / num_trees_con;
+                }
+            }
         }
         //     }
         //     for (size_t tree_ind = 0; tree_ind < num_trees_mod; tree_ind++)

@@ -127,12 +127,13 @@ predict.XBCFrd <- function(object, W, X, c, Wtr, Xtr, burnin = 0L, theta = 0.1, 
 
     Xtr_con <- cbind(Wtr, Xtr)
     Xtr_mod <- Xtr_con
-
+    Ztr <- as.matrix(Xtr >= c)
 
     out_con <- json_to_r(object$tree_json_con)
     out_mod <- json_to_r(object$tree_json_mod)
-    obj <- .Call("_XBART_XBCF_rd_predict", X_con, X_mod, Z, Xtr_con, Xtr_mod, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt,
+    obj <- .Call("_XBART_XBCF_rd_predict", X_con, X_mod, Z, Xtr_con, Xtr_mod, Ztr, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt,
                 object$res_indicator_con, object$valid_residuals_con, object$resid_mean_con, object$res_indicator_mod, object$valid_residuals_mod, object$resid_mean_mod,
+                object$sigma0, object$sigma1,
                 c, theta, tau)
 
     burnin <- burnin
