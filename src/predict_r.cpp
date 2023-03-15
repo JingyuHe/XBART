@@ -368,6 +368,8 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
             mat resid(Ntr, 1);
             double weighted_res = 0;
             double sum_weight = 0;
+
+            arma::uvec cov_rows(Ntr);
             for (size_t k = 0; k < Ntr; k++){
                 if (res_indicator_con(this_tree, k) == 1){
                     resid(N_valid, 0) = valid_residuals_con(this_tree, k);
@@ -375,12 +377,14 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
                     weighted_res += resid(N_valid, 0) * resid_dist(N_valid, 0);
                     sum_weight += resid_dist(N_valid, 0);
 
+                    cov_rows(N_valid) = k;
                     N_valid += 1;
                 }
             }
             resid.resize(N_valid);
             weighted_res = weighted_res / sum_weight;
 
+            
             // add sigma to covairnace diagnal for predict data
             for (size_t i = 0; i < Npred; i++)
             {
@@ -391,17 +395,15 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
                 }
             }
 
-            // mat cov(N + Ntest, N + Ntest);
-            // get_rel_covariance(cov, X, x_range, theta, tau);
-            // for (size_t i = 0; i < N; i++)
-            // {
-            //     cov(i, i) += pow(x_struct.sigma[tree_ind], 2) / x_struct.num_trees;
-            // }
+            // resize cov_rows and add Npred
+            cov_rows.resize(N_valid + Npred);
+            cov_rows.subvec(N_valid, N_valid + Npred - 1) = arma::regspace<arma::uvec>(N_valid, N_valid + Npred - 1);
+            mat cov = cov_con.submat(cov_rows, cov_rows);
 
-        //     mat mu(Ntest, 1);
         //     mat Sig(Ntest, Ntest);
         //     if (N > 0)
-        //     {
+        //     {mat mu(Ntest, 1);
+        //     
         //         mat k = cov.submat(N, 0, N + Ntest - 1, N - 1);
         //         mat Kinv = pinv(cov.submat(0, 0, N - 1, N - 1));
         //         mu = k * Kinv * resid;
