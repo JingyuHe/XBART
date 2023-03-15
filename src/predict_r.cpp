@@ -345,7 +345,8 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
     mat cov_con(Ntr + Npred, Ntr + Npred);
     mat cov_mod(Ntr + Npred, Ntr + Npred);
 
-    // get_rel_covariance(cov, X, x_range, theta, tau);
+    get_rel_covariance(cov_con, X_con, X_range_con, theta, tau);
+    get_rel_covariance(cov_mod, X_mod, X_range_mod, theta, tau);
     // for (size_t i = 0; i < N; i++)
     // {
     //     cov(i, i) += pow(x_struct.sigma[tree_ind], 2) / x_struct.num_trees;
