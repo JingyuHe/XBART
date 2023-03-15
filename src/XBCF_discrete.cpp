@@ -178,7 +178,7 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::ma
 
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(sigma0_draw_xinfo, sigma0_draw);
-    Matrix_to_NumericMatrix(sigma0_draw_xinfo, sigma0_draw);
+    Matrix_to_NumericMatrix(sigma1_draw_xinfo, sigma1_draw);
     Matrix_to_NumericMatrix(a_xinfo, a_draw);
     Matrix_to_NumericMatrix(tau_con_xinfo, tau_con_draw);
     Matrix_to_NumericMatrix(tau_mod_xinfo, tau_mod_draw);
