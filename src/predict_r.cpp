@@ -364,7 +364,7 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
             // get valid residuals for each tree
             // count valid residuals
             size_t this_tree = sweeps * num_trees_con  + tree_ind;
-            size_t N_valid = 0;
+            size_t Nvalid = 0;
             mat resid(Ntr, 1);
             double weighted_res = 0;
             double sum_weight = 0;
@@ -372,16 +372,16 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
             arma::uvec cov_rows(Ntr);
             for (size_t k = 0; k < Ntr; k++){
                 if (res_indicator_con(this_tree, k) == 1){
-                    resid(N_valid, 0) = valid_residuals_con(this_tree, k);
+                    resid(Nvalid, 0) = valid_residuals_con(this_tree, k);
 
-                    weighted_res += resid(N_valid, 0) * resid_dist(N_valid, 0);
-                    sum_weight += resid_dist(N_valid, 0);
+                    weighted_res += resid(Nvalid, 0) * resid_dist(Nvalid, 0);
+                    sum_weight += resid_dist(Nvalid, 0);
 
-                    cov_rows(N_valid) = k;
-                    N_valid += 1;
+                    cov_rows(Nvalid) = k;
+                    Nvalid += 1;
                 }
             }
-            resid.resize(N_valid);
+            resid.resize(Nvalid);
             weighted_res = weighted_res / sum_weight;
 
             
@@ -396,25 +396,22 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
             }
 
             // resize cov_rows and add Npred
-            cov_rows.resize(N_valid + Npred);
-            cov_rows.subvec(N_valid, N_valid + Npred - 1) = arma::regspace<arma::uvec>(N_valid, N_valid + Npred - 1);
+            cov_rows.resize(Nvalid + Npred);
+            cov_rows.subvec(Nvalid, Nvalid + Npred - 1) = arma::regspace<arma::uvec>(Nvalid, Nvalid + Npred - 1);
             mat cov = cov_con.submat(cov_rows, cov_rows);
 
-        //     mat Sig(Ntest, Ntest);
-        //     if (N > 0)
-        //     {mat mu(Ntest, 1);
-        //     
-        //         mat k = cov.submat(N, 0, N + Ntest - 1, N - 1);
-        //         mat Kinv = pinv(cov.submat(0, 0, N - 1, N - 1));
-        //         mu = k * Kinv * resid;
-        //         Sig = cov.submat(N, N, N + Ntest - 1, N + Ntest - 1) - k * Kinv * trans(k);
-        //     }
-        //     else
-        //     {
-        //         // prior
-        //         mu.zeros(Ntest, 1);
-        //         Sig = cov.submat(0, 0, Ntest - 1, Ntest - 1);
-        //     }
+            mat mu(Npred, 1);
+            mat Sig(Npred, Npred);
+            if (Nvalid > 0) {
+                mat k = cov.submat(Nvalid, 0, Nvalid + Npred - 1, Nvalid - 1);
+                mat Kinv = pinv(cov.submat(0, 0, Nvalid - 1, Nvalid - 1));
+                mu = k * Kinv * resid;
+                Sig = cov.submat(Nvalid, Nvalid, Nvalid + Npred - 1, Nvalid + Npred - 1) - k * Kinv * trans(k);
+            } else {
+                // prior
+                mu.zeros(Npred, 1);
+                Sig = cov.submat(0, 0, Npred - 1, Npred - 1);
+            }
         //     mat U;
         //     vec S;
         //     mat V;
