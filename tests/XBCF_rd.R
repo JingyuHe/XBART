@@ -56,7 +56,7 @@ data <- list(y = ytest, W = wtest, X = xtest, c = c, Wtr = w, Xtr = x)
 # test_xbcf_rd(fit.XBCFrd, data, 0.01, mean(tau.test))
 
 # Make predictions on the test data
-pred.XBCFrd <- predict.XBCFrd(fit.XBCFrd, W = wtest, X = xtest, c = c, Wtr = w, Xtr = x, theta = 0.01, tau = 0.1)
+pred.XBCFrd <- predict.XBCFrd(fit.XBCFrd, W = wtest, X = xtest, c = c, Wtr = w, Xtr = x, theta = 0.1, tau = 1)
 
 # Check yhats
 rmse.yhats <- sqrt(mean((data$y - pred.XBCFrd$yhats.adj.mean)^2))

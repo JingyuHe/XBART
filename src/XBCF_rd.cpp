@@ -239,7 +239,7 @@ Rcpp::List XBCF_rd_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mo
             {
                 mod_res_indicator_rcpp(i * num_trees_mod + j, k) = mod_res_indicator[i][j][k];
                 mod_valid_residuals_rcpp(i * num_trees_mod + j, k) = mod_valid_residuals[i][j][k];
-                mod_resid_mean_rcpp(i * num_trees_con + j, k) = mod_resid_mean[i][j][k];
+                mod_resid_mean_rcpp(i * num_trees_mod + j, k) = mod_resid_mean[i][j][k];
             }
         }
 

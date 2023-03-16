@@ -514,6 +514,9 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
                 // if ((tree_ind == 0) & (sweeps == 0)){
                 cout << "cov.submat = " << cov.submat(0, 0, 5, 5) << endl;
                 cout << "Kinv.submat = " << Kinv.submat(0, 0, 5, 5) << endl;
+                cout << "resid = " << resid.submat(0, 0, 5, 0).t() << endl;
+                cout << "mu = " << resid_mu.submat(0, 0, 5, 0).t() << endl;
+                // cout << "resid - mu = " << resid.submat(0, 0, 5, 0).t() - resid_mu.submat(0, 0, 5, 0).t() << endl;
                 // }
             } else {
                 // prior
@@ -523,7 +526,7 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
 
             cout << "weighted res = " << weighted_res << endl;
             // if ((tree_ind == 0) & (sweeps == 0)){
-            cout << "mu = " << mu.t() << endl;
+            cout << "mu = " << mu.submat(0, 0, 5, 0).t() << endl;
             // }
 
             mat U;
