@@ -348,7 +348,8 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
     }
 
     for (size_t j = 0; j < p_mod; j++){
-        X_range_mod[j] = X_lim_mod[j][1] - X_lim_mod[j][0];
+        // X_range_mod[j] = X_lim_mod[j][1] - X_lim_mod[j][0];
+        X_range_mod[j] = 1;
     }
 
     
@@ -356,12 +357,18 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
     mat cov_mod(Ntr + Npred, Ntr + Npred);
 
     get_rel_covariance(cov_con, X_con, X_range_con, theta, tau);
-    get_rel_covariance(cov_mod, X_mod, X_range_mod, theta, tau);
-    // cout << "theta = " << theta << " tau = " << tau << endl;
-    // cout << "X_range " << X_range_con << endl;
-    // cout << "X_size " << X_con.submat(0, 0, 5, p_con - 1) << endl;
-    // cout << "cov_mod train " << cov_con.submat(0, 0, 5, 5) << endl;
+    // get_rel_covariance(cov_mod, X_mod, X_range_mod, theta, tau);
 
+    mat X_con_cp(Ntr + Npred, 1);
+    mat X_mod_cp(Ntr + Npred, 1);
+    std::vector<double> X_range_con_cp(1);
+    std::vector<double> X_range_mod_cp(1);
+    for (size_t i = 0; i < Ntr + Npred; i++){
+        X_mod_cp(i, 0) = X_mod(i, p_mod - 1);
+    }
+    X_range_mod_cp[0] = 1;
+    get_rel_covariance(cov_mod, X_mod_cp, X_range_mod_cp, theta, tau);
+    
     // get l2 distance on running variable to the cutoff for weighted residual mean 
     // (l2 is the same as absolute distance in 1d)
     mat resid_dist(Ntr, 1);
@@ -480,7 +487,6 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
             resid_mu.resize(Nvalid);
             weighted_res = weighted_res / sum_weight;
             // cout << "weighted_res = " << weighted_res << endl;
-
             
             // add sigma to covairnace diagnal for predict data
             for (size_t i = 0; i < Ntr; i++)
@@ -497,6 +503,7 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
             cov_rows.subvec(Nvalid, Nvalid + Npred - 1) = arma::regspace<arma::uvec>(Nvalid, Nvalid + Npred - 1);
             mat cov = cov_mod.submat(cov_rows, cov_rows);
 
+
             mat mu(Npred, 1); // conditional mean
             mat Sig(Npred, Npred); // conditional variance
             if (Nvalid > 0) {
@@ -504,18 +511,20 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
                 mat Kinv = pinv(cov.submat(0, 0, Nvalid - 1, Nvalid - 1)); // [Sigma_ii + sigma^2 / L^2]^(-1)
                 mu = weighted_res +  k * Kinv * (resid - resid_mu);
                 Sig = cov.submat(Nvalid, Nvalid, Nvalid + Npred - 1, Nvalid + Npred - 1) - k * Kinv * trans(k);
-                if ((tree_ind == 0) & (sweeps == 0)){
-                    cout << "cov.submat = " << cov.submat(0, 0, 5, 5) << endl;
-                    cout << "Kinv.submat = " << Kinv.submat(0, 0, 5, 5) << endl;
-                }
+                // if ((tree_ind == 0) & (sweeps == 0)){
+                cout << "cov.submat = " << cov.submat(0, 0, 5, 5) << endl;
+                cout << "Kinv.submat = " << Kinv.submat(0, 0, 5, 5) << endl;
+                // }
             } else {
                 // prior
                 mu.zeros(Npred, 1);
                 Sig = cov.submat(0, 0, Npred - 1, Npred - 1);
             }
 
-            // cout << "weighted res = " << weighted_res << endl;
-            // cout << "mu = " << mu.t() << endl;
+            cout << "weighted res = " << weighted_res << endl;
+            // if ((tree_ind == 0) & (sweeps == 0)){
+            cout << "mu = " << mu.t() << endl;
+            // }
 
             mat U;
             vec S;
@@ -536,7 +545,7 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
             for (size_t i = 0; i < Ntr; i++)
             {
                 if (Ztr(i, 0) == 0){
-                    cov_mod(i, i) -= pow(sigma1(tree_ind + sweeps * num_trees_con, sweeps), 2) / pow(num_trees_mod, 2);
+                    cov_mod(i, i) -= pow(sigma0(tree_ind + sweeps * num_trees_con, sweeps), 2) / pow(num_trees_mod, 2);
                 } else {
                     cov_mod(i, i) -= pow(sigma1(tree_ind + sweeps * num_trees_con, sweeps), 2) / pow(num_trees_mod, 2);
                 }

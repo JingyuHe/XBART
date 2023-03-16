@@ -20,7 +20,7 @@ test_xbcf_rd <- function(model, data, expected_rmse, expected_ate) {
 }
 
 ## Setup
-set.seed(000)
+set.seed(010)
 library(XBART)
 ### DGPfunction(x) return(single_index(x)) #  + 1/(1+exp(-5*xf))
 mu <- function(W, X){return(0.1 * rowSums(W) + 1/(1+exp(-5*X)))} 
@@ -43,7 +43,7 @@ y <- mu(w, x) + tau(w, x)*z + rnorm(n, 0, 0.2)
 
 ## XBCF
 fit.XBCFrd <- XBCF.rd(y, w, x, c, pcat_con = 0, pcat_mod = 0,
-                    num_trees_mod = 2, num_trees_con = 2, num_sweeps = 21, Nmin = 20)
+                    num_trees_mod = 1, num_trees_con = 2, num_sweeps = 2, burnin = 1, Nmin = 20)
 
 ntest <- 100
 xtest <- rnorm(ntest, sd = 0.5)
@@ -56,7 +56,7 @@ data <- list(y = ytest, W = wtest, X = xtest, c = c, Wtr = w, Xtr = x)
 # test_xbcf_rd(fit.XBCFrd, data, 0.01, mean(tau.test))
 
 # Make predictions on the test data
-pred.XBCFrd <- predict.XBCFrd(fit.XBCFrd, W = wtest, X = xtest, c = c, Wtr = w, Xtr = x, theta = 1, tau = 1)
+pred.XBCFrd <- predict.XBCFrd(fit.XBCFrd, W = wtest, X = xtest, c = c, Wtr = w, Xtr = x, theta = 0.01, tau = 0.1)
 
 # Check yhats
 rmse.yhats <- sqrt(mean((data$y - pred.XBCFrd$yhats.adj.mean)^2))
