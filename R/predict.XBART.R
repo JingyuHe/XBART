@@ -70,7 +70,6 @@ predict.XBCFdiscrete <- function(object, X_con, X_mod, Z, pihat=NULL, burnin = 0
     for (i in seq) {
         taus[, i] = obj$tau[,i] * object$sdy * (object$b[i,2] - object$b[i,1])
         mus[, i] = object$sdy * ( obj$mu[,i]  * (object$a[i]) + obj$tau[,i] * object$b[i,1]) +  object$meany
-<<<<<<< HEAD
     }
 
     obj$tau.adj <- taus

@@ -483,12 +483,12 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
 
             
             // add sigma to covairnace diagnal for predict data
-            for (size_t i = 0; i < Npred; i++)
+            for (size_t i = 0; i < Ntr; i++)
             {
-                if (Zpred(i, 0) == 0){
-                    cov_mod(i + Ntr, i + Ntr) += pow(sigma0(tree_ind + sweeps * num_trees_con, sweeps), 2) / num_trees_mod;
+                if (Ztr(i, 0) == 0){
+                    cov_mod(i, i) += pow(sigma0(tree_ind + sweeps * num_trees_con, sweeps), 2) / num_trees_mod;
                 } else {
-                    cov_mod(i + Ntr, i + Ntr) += pow(sigma1(tree_ind + sweeps * num_trees_con, sweeps), 2) / num_trees_mod;
+                    cov_mod(i, i) += pow(sigma1(tree_ind + sweeps * num_trees_con, sweeps), 2) / num_trees_mod;
                 }
             }
 
@@ -497,47 +497,50 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
             cov_rows.subvec(Nvalid, Nvalid + Npred - 1) = arma::regspace<arma::uvec>(Nvalid, Nvalid + Npred - 1);
             mat cov = cov_mod.submat(cov_rows, cov_rows);
 
-            // mat mu(Npred, 1);
-            // mat Sig(Npred, Npred);
-            // if (Nvalid > 0) {
-            //     mat k = cov.submat(Nvalid, 0, Nvalid + Npred - 1, Nvalid - 1);
-            //     mat Kinv = pinv(cov.submat(0, 0, Nvalid - 1, Nvalid - 1));
-            //     mu = weighted_res +  k * Kinv * (resid - resid_mu);
-            //     Sig = cov.submat(Nvalid, Nvalid, Nvalid + Npred - 1, Nvalid + Npred - 1) - k * Kinv * trans(k);
-            //     // cout << "test cov submat = " << cov.submat(Nvalid, Nvalid, Nvalid + 5, Nvalid + 5) << endl;
-            // } else {
-            //     // prior
-            //     mu.zeros(Npred, 1);
-            //     Sig = cov.submat(0, 0, Npred - 1, Npred - 1);
-            // }
+            mat mu(Npred, 1);
+            mat Sig(Npred, Npred);
+            if (Nvalid > 0) {
+                mat k = cov.submat(Nvalid, 0, Nvalid + Npred - 1, Nvalid - 1);
+                mat Kinv = pinv(cov.submat(0, 0, Nvalid - 1, Nvalid - 1));
+                mu = weighted_res +  k * Kinv * (resid - resid_mu);
+                Sig = cov.submat(Nvalid, Nvalid, Nvalid + Npred - 1, Nvalid + Npred - 1) - k * Kinv * trans(k);
+                if ((tree_ind == 0) & (sweeps == 0)){
+                    cout << "cov.submat = " << cov.submat(0, 0, 5, 5) << endl;
+                    cout << "Kinv.submat = " << Kinv.submat(0, 0, 5, 5) << endl;
+                }
+            } else {
+                // prior
+                mu.zeros(Npred, 1);
+                Sig = cov.submat(0, 0, Npred - 1, Npred - 1);
+            }
 
-            // // cout << "weighted res = " << weighted_res << endl;
-            // // cout << "mu = " << mu.t() << endl;
+            // cout << "weighted res = " << weighted_res << endl;
+            // cout << "mu = " << mu.t() << endl;
 
-            // mat U;
-            // vec S;
-            // mat V;
-            // svd(U, S, V, Sig);
+            mat U;
+            vec S;
+            mat V;
+            svd(U, S, V, Sig);
 
-            // std::normal_distribution<double> normal_samp(0.0, 1.0);
-            // mat samp(Npred, 1);
-            // for (size_t i = 0; i < Npred; i++)
-            //     samp(i, 0) = normal_samp(gen);
-            // mat draws = mu + U * diagmat(sqrt(S)) * samp;
+            std::normal_distribution<double> normal_samp(0.0, 1.0);
+            mat samp(Npred, 1);
+            for (size_t i = 0; i < Npred; i++)
+                samp(i, 0) = normal_samp(gen);
+            mat draws = mu + U * diagmat(sqrt(S)) * samp;
 
-            // for (size_t i = 0; i < Npred; i++)
-            //     treatment_gp_xinfo[sweeps][i] += draws(i, 0);
-            //     // yhats_test_xinfo[sweeps][test_ind[i]] += draws(i, 0);
+            for (size_t i = 0; i < Npred; i++)
+                treatment_gp_xinfo[sweeps][i] += draws(i, 0);
+                // yhats_test_xinfo[sweeps][test_ind[i]] += draws(i, 0);
 
-            // // remove sigma from covairnace diagnal for predict data
-            // for (size_t i = 0; i < Npred; i++)
-            // {
-            //     if (Zpred(i, 0) == 0){
-            //         cov_mod(i + Ntr, i + Ntr) -= pow(sigma0(tree_ind + sweeps * num_trees_con, sweeps), 2) / num_trees_mod;
-            //     } else {
-            //         cov_mod(i + Ntr, i + Ntr) -= pow(sigma1(tree_ind + sweeps * num_trees_con, sweeps), 2) / num_trees_mod;
-            //     }
-            // }
+            // remove sigma from covairnace diagnal for predict data
+            for (size_t i = 0; i < Ntr; i++)
+            {
+                if (Ztr(i, 0) == 0){
+                    cov_mod(i, i) -= pow(sigma1(tree_ind + sweeps * num_trees_con, sweeps), 2) / num_trees_mod;
+                } else {
+                    cov_mod(i, i) -= pow(sigma1(tree_ind + sweeps * num_trees_con, sweeps), 2) / num_trees_mod;
+                }
+            }
         }
     }
 
@@ -551,8 +554,8 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
         {
             yhats(i, j) = yhats_test_xinfo[j][i];
             prognostic(i, j) = prognostic_xinfo[j][i];
-            // treatment(i, j) = treatment_gp_xinfo[j][i];
-            treatment(i, j) = treatment_xinfo[j][i];
+            treatment(i, j) = treatment_gp_xinfo[j][i];
+            // treatment(i, j) = treatment_xinfo[j][i];
         }
     }
 
