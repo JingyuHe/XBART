@@ -457,6 +457,7 @@ void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con,
             model->update_state(state, tree_ind, x_struct_con, 0);
 
             sigma0_draw_xinfo[sweeps][tree_ind] = state.sigma_vec[0];
+            sigma1_draw_xinfo[sweeps][tree_ind] = state.sigma_vec[1]; // not updated
 
             if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
             {
@@ -528,6 +529,7 @@ void mcmc_loop_xbcf_discrete(matrix<size_t> &Xorder_std_con,
             // Draw Sigma
             model->update_state(state, tree_ind, x_struct_mod, 1);
 
+            sigma0_draw_xinfo[sweeps][tree_ind + state.num_trees_con] = state.sigma_vec[0]; // not udated
             sigma1_draw_xinfo[sweeps][tree_ind + state.num_trees_con] = state.sigma_vec[1];
 
             if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
@@ -643,6 +645,7 @@ void mcmc_loop_xbcf_rd( matrix<size_t> &Xorder_std_con,
             model->update_state(state, tree_ind, x_struct_con, 0);
 
             sigma0_draw_xinfo[sweeps][tree_ind] = state.sigma_vec[0];
+            sigma1_draw_xinfo[sweeps][tree_ind] = state.sigma_vec[1]; // not updated
 
             if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
             {
@@ -715,6 +718,7 @@ void mcmc_loop_xbcf_rd( matrix<size_t> &Xorder_std_con,
             // Draw Sigma
             model->update_state(state, tree_ind, x_struct_mod, 1);
 
+            sigma0_draw_xinfo[sweeps][tree_ind + state.num_trees_con] = state.sigma_vec[0]; // not updated
             sigma1_draw_xinfo[sweeps][tree_ind + state.num_trees_con] = state.sigma_vec[1];
 
             if (state.use_all && (sweeps > state.burnin) && (state.mtry != state.p))
