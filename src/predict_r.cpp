@@ -457,12 +457,12 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
             // count valid residuals
             size_t this_tree = sweeps * num_trees_mod + tree_ind;
             size_t Nvalid = 0;
-            mat resid(Ntr, 1);
-            mat resid_mu(Ntr, 1);
+            mat resid(Ntr, 1); // get residuals within bandwidth
+            mat resid_mu(Ntr, 1); // get corresponding leaf parameter
             double weighted_res = 0;
             double sum_weight = 0;
 
-            arma::uvec cov_rows(Ntr);
+            arma::uvec cov_rows(Ntr); // get which rows to extract from the large covariance matrix
             for (size_t k = 0; k < Ntr; k++){
                 if (res_indicator_mod(this_tree, k) == 1){
                     resid(Nvalid, 0) = valid_residuals_mod(this_tree, k);
@@ -486,22 +486,22 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
             for (size_t i = 0; i < Ntr; i++)
             {
                 if (Ztr(i, 0) == 0){
-                    cov_mod(i, i) += pow(sigma0(tree_ind + sweeps * num_trees_con, sweeps), 2) / num_trees_mod;
+                    cov_mod(i, i) += pow(sigma0(tree_ind + sweeps * num_trees_con, sweeps), 2) / pow(num_trees_mod, 2);
                 } else {
-                    cov_mod(i, i) += pow(sigma1(tree_ind + sweeps * num_trees_con, sweeps), 2) / num_trees_mod;
+                    cov_mod(i, i) += pow(sigma1(tree_ind + sweeps * num_trees_con, sweeps), 2) / pow(num_trees_mod, 2);
                 }
             }
 
-            // resize cov_rows and add Npred
+            // resize cov_rows and add prediction index
             cov_rows.resize(Nvalid + Npred);
             cov_rows.subvec(Nvalid, Nvalid + Npred - 1) = arma::regspace<arma::uvec>(Nvalid, Nvalid + Npred - 1);
             mat cov = cov_mod.submat(cov_rows, cov_rows);
 
-            mat mu(Npred, 1);
-            mat Sig(Npred, Npred);
+            mat mu(Npred, 1); // conditional mean
+            mat Sig(Npred, Npred); // conditional variance
             if (Nvalid > 0) {
-                mat k = cov.submat(Nvalid, 0, Nvalid + Npred - 1, Nvalid - 1);
-                mat Kinv = pinv(cov.submat(0, 0, Nvalid - 1, Nvalid - 1));
+                mat k = cov.submat(Nvalid, 0, Nvalid + Npred - 1, Nvalid - 1); // Sigma_ei
+                mat Kinv = pinv(cov.submat(0, 0, Nvalid - 1, Nvalid - 1)); // [Sigma_ii + sigma^2 / L^2]^(-1)
                 mu = weighted_res +  k * Kinv * (resid - resid_mu);
                 Sig = cov.submat(Nvalid, Nvalid, Nvalid + Npred - 1, Nvalid + Npred - 1) - k * Kinv * trans(k);
                 if ((tree_ind == 0) & (sweeps == 0)){
@@ -536,9 +536,9 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
             for (size_t i = 0; i < Ntr; i++)
             {
                 if (Ztr(i, 0) == 0){
-                    cov_mod(i, i) -= pow(sigma1(tree_ind + sweeps * num_trees_con, sweeps), 2) / num_trees_mod;
+                    cov_mod(i, i) -= pow(sigma1(tree_ind + sweeps * num_trees_con, sweeps), 2) / pow(num_trees_mod, 2);
                 } else {
-                    cov_mod(i, i) -= pow(sigma1(tree_ind + sweeps * num_trees_con, sweeps), 2) / num_trees_mod;
+                    cov_mod(i, i) -= pow(sigma1(tree_ind + sweeps * num_trees_con, sweeps), 2) / pow(num_trees_mod, 2);
                 }
             }
         }
