@@ -30,7 +30,7 @@ n       <- 2000
 p       <- 2
 c       <- 0 # Cutoff
 h_overlap       <- 0.1 # overlap bandwidth 
-h_test <- 0.5
+h_test <- 0.2
 
 ## Data
 w <- matrix(rnorm(n*p), n, p)
@@ -42,11 +42,13 @@ z <- x >= c
 y <- mu(w, x) + tau(w, x)*z + rnorm(n, 0, 0.2)
 
 ## XBCF
+num_sweeps = 20
+burnin = 5
 fit.XBCFrd <- XBCF.rd(y, w, x, c, pcat_con = 0, pcat_mod = 0,
-                    num_trees_mod = 5, num_trees_con = 2, num_sweeps = 2, burnin = 1, Nmin = 20)
+                    num_trees_mod = 10, num_trees_con = 20, num_sweeps = num_sweeps, burnin = burnin, Nmin = 20)
 
 ntest <- 100
-xtest <- rnorm(ntest, sd = 0.5)
+xtest <- rnorm(ntest, sd = 0.2)
 xtest <- sort(xtest)
 wtest <- matrix(rep(0, ntest*p), ntest, p)
 tau.test <- tau(wtest, xtest)
@@ -56,7 +58,7 @@ data <- list(y = ytest, W = wtest, X = xtest, c = c, Wtr = w, Xtr = x)
 # test_xbcf_rd(fit.XBCFrd, data, 0.01, mean(tau.test))
 
 # Make predictions on the test data
-pred.XBCFrd <- predict.XBCFrd(fit.XBCFrd, W = wtest, X = xtest, c = c, Wtr = w, Xtr = x, theta = 20, tau = 1)
+pred.XBCFrd <- predict.XBCFrd(fit.XBCFrd, W = wtest, X = xtest, c = c, Wtr = w, Xtr = x, theta = 0.1, tau = 0.01)
 
 # Check yhats
 rmse.yhats <- sqrt(mean((data$y - pred.XBCFrd$yhats.adj.mean)^2))
@@ -64,7 +66,7 @@ print(paste("RMSE on yhats ", round(rmse.yhats, 3), sep = ""))
 
 # Check tauhats in the test bandwidth
 test.ind <- (xtest <= c+h_test) & (xtest >= c-h_test)
-ate.hat <- colMeans(pred.XBCFrd$tau.adj[test.ind, ])
+ate.hat <- colMeans(pred.XBCFrd$tau.adj[test.ind, ])[(burnin + 1):num_sweeps]
 expected_ate <- mean(tau.test[test.ind])
 rmse.ate <- sqrt(mean((ate.hat - expected_ate)^2))
 print(paste("RMSE on ATE ", round(rmse.ate, 3), sep = ""))

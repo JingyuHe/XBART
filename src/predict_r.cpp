@@ -502,7 +502,6 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
             cov_rows.resize(Nvalid + Npred);
             cov_rows.subvec(Nvalid, Nvalid + Npred - 1) = arma::regspace<arma::uvec>(Ntr, Ntr + Npred - 1);
             mat cov = cov_mod.submat(cov_rows, cov_rows);
-            // cout << "cov_rows = " << cov_rows.subvec(Nvalid, Nvalid + Npred - 1).t() << endl;
 
 
             mat mu(Npred, 1); // conditional mean
@@ -513,12 +512,9 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
                 mu = weighted_res +  k * Kinv * (resid - resid_mu);
                 Sig = cov.submat(Nvalid, Nvalid, Nvalid + Npred - 1, Nvalid + Npred - 1) - k * Kinv * trans(k);
                 // if ((tree_ind == 0) & (sweeps == 0)){
-                // cout << "valid_residuals " << cov_rows.subvec(0, 5) << endl;
-                // cout << "cov_mod = " << cov_mod.submat(Ntr, 0, Ntr + 5, 12) << endl;
-                // cout << "k = " << k.submat(0, 0, 5, 5) << endl;
-                // cout << "cov.submat = " << cov.submat(0, 0, 5, 5) << endl;
-                // cout << "Kinv.submat = " << Kinv.submat(0, 0, 5, 5) << endl;
-                // cout << "resid - mu = " << resid.submat(0, 0, 5, 0).t() - resid_mu.submat(0, 0, 5, 0).t() << endl;
+                //     cout << "cov.submat = " << cov.submat(0, 0, 5, 5) << endl;
+                //     cout << "Kinv.submat = " << Kinv.submat(0, 0, 5, 5) << endl;
+                //     cout << "resid - mu = " << resid.submat(0, 0, 5, 0).t() - resid_mu.submat(0, 0, 5, 0).t() << endl;
                 // }
             } else {
                 // prior
