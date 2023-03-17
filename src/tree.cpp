@@ -1692,24 +1692,32 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
 
 void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorder, double &loglike_max, Model *model, X_struct &x_struct, size_t &total_categorical_split_candidates, State &state, tree *tree_pointer)
 {
-    size_t loglike_size = 0;
-    for (size_t i = 0; i < loglike.size(); i++)
-    {
-        if (loglike[i] > -INFINITY)
-        {
-            loglike_size += 1;
-        }
-    }
+    // size_t loglike_size = 0;
+    // for (size_t i = 0; i < loglike.size(); i++)
+    // {
+    //     if (loglike[i] > -INFINITY)
+    //     {
+    //         loglike_size += 1;
+    //     }
+    // }
 
-    if (loglike_size > 0)
-    {
-        loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike_size) + model->getNoSplitPenalty();
-        // !!Note loglike_size shouldn't get minus 1 when it count non zero of loglike.
-    }
-    else
-    {
-        loglike[loglike.size() - 1] = 1;
-    }
+    // if (loglike_size > 0)
+    // {
+    //     loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike_size) + model->getNoSplitPenalty();
+    //     // !!Note loglike_size shouldn't get minus 1 when it count non zero of loglike.
+    // }
+    // else
+    // {
+    //     loglike[loglike.size() - 1] = 1;
+    // }
+
+
+    // loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike_size) + model->getNoSplitPenalty();
+    //     // !!Note loglike_size shouldn't get minus 1 when it count non zero of loglike.
+
+    loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + (model->getNoSplitPenalty());
+  
+
 
     // loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + log(model->getNoSplitPenalty());
 

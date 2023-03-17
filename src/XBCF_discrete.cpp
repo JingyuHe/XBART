@@ -126,6 +126,12 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::ma
     matrix<double> b_xinfo;
     ini_matrix(b_xinfo, num_sweeps, 2);
 
+    matrix<double> tau_con_xinfo;
+    ini_matrix(tau_con_xinfo, num_sweeps, 1);
+
+    matrix<double> tau_mod_xinfo;
+    ini_matrix(tau_mod_xinfo, num_sweeps, 1);
+
     // create trees
     vector<vector<tree>> trees_con(num_sweeps);
     vector<vector<tree>> trees_mod(num_sweeps);
@@ -151,7 +157,7 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::ma
     X_struct x_struct_mod(Xpointer_mod, &y_std, N, Xorder_std_mod, p_categorical_mod, p_continuous_mod, &initial_theta_mod, num_trees_mod);
 
     ////////////////////////////////////////////////////////////////
-    mcmc_loop_xbcf_discrete(Xorder_std_con, Xorder_std_mod, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, a_xinfo, b_xinfo, trees_con, trees_mod, no_split_penalty, state, model, x_struct_con, x_struct_mod);
+    mcmc_loop_xbcf_discrete(Xorder_std_con, Xorder_std_mod, verbose, sigma0_draw_xinfo, sigma1_draw_xinfo, a_xinfo, b_xinfo, tau_con_xinfo, tau_mod_xinfo, trees_con, trees_mod, no_split_penalty, state, model, x_struct_con, x_struct_mod);
 
     // R Objects to Return
     Rcpp::NumericMatrix sigma0_draw(num_trees_con + num_trees_mod, num_sweeps); // save predictions of each tree
@@ -162,14 +168,20 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::ma
 
     Rcpp::NumericMatrix b_draw(num_sweeps, 2);
 
+    Rcpp::NumericMatrix tau_con_draw(num_sweeps, 1);
+
+    Rcpp::NumericMatrix tau_mod_draw(num_sweeps, 1);
+
     Rcpp::NumericVector split_count_sum_con(p_con, 0);                         // split counts
 
     Rcpp::NumericVector split_count_sum_mod(p_mod, 0);
 
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(sigma0_draw_xinfo, sigma0_draw);
-    Matrix_to_NumericMatrix(sigma0_draw_xinfo, sigma0_draw);
+    Matrix_to_NumericMatrix(sigma1_draw_xinfo, sigma1_draw);
     Matrix_to_NumericMatrix(a_xinfo, a_draw);
+    Matrix_to_NumericMatrix(tau_con_xinfo, tau_con_draw);
+    Matrix_to_NumericMatrix(tau_mod_xinfo, tau_mod_draw);
     Matrix_to_NumericMatrix(b_xinfo, b_draw);
 
     for (size_t i = 0; i < p_con; i++)
@@ -203,6 +215,8 @@ Rcpp::List XBCF_discrete_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::ma
         Rcpp::Named("sigma1") = sigma1_draw,
         Rcpp::Named("a") = a_draw,
         Rcpp::Named("b") = b_draw,
+        Rcpp::Named("tau_con") = tau_con_draw,
+        Rcpp::Named("tau_mod") = tau_mod_draw,
         Rcpp::Named("importance_prognostic") = split_count_sum_con,
         Rcpp::Named("importance_treatment") = split_count_sum_mod,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p_con") = p_con, Rcpp::Named("p_mod") = p_mod),
