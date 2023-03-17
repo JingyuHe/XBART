@@ -12,8 +12,8 @@
 #' @param num_cutpoints Integer, number of cutpoint candidates to consider for each variable. Take in quantiles of the data.
 #' @param alpha_con Scalar, BART prior parameter for prognostic forest. The default value is 0.95.
 #' @param beta_con Scalar, BART prior parameter for prognostic forest. The default value is 1.25.
-#' @param alpha_mod Scalar, BART prior parameter for treatment forest. The default value is 0.95.
-#' @param beta_mod Scalar, BART prior parameter for treatment forest. The default value is 1.25.
+#' @param alpha_mod Scalar, BART prior parameter for treatment forest. The default value is 0.25.
+#' @param beta_mod Scalar, BART prior parameter for treatment forest. The default value is 3.
 #' @param tau_con Scalar, prior parameter for prognostic forest. The default value is 0.6 * var(y) / num_trees_con.
 #' @param tau_mod Scalar, prior parameter for treatment forest. The default value is 0.1 * var(y) / num_trees_mod.
 #' @param no_split_penalty Weight of no-split option. The default value is log(num_cutpoints), or you can take any other number in log scale.

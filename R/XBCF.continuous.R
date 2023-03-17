@@ -12,11 +12,11 @@
 #' @param num_cutpoints Integer, number of cutpoint candidates to consider for each variable. Take in quantiles of the data.
 #' @param alpha_con Scalar, BART prior parameter for prognostic forest. The default value is 0.95.
 #' @param beta_con Scalar, BART prior parameter for prognostic forest. The default value is 1.25.
-#' @param alpha_mod Scalar, BART prior parameter for treatment forest. The default value is 0.95.
-#' @param beta_mod Scalar, BART prior parameter for treatment forest. The default value is 1.25.
+#' @param alpha_mod Scalar, BART prior parameter for treatment forest. The default value is 0.25.
+#' @param beta_mod Scalar, BART prior parameter for treatment forest. The default value is 3.
 #' @param tau_con Scalar, prior parameter for prognostic forest. The default value is 0.6 * var(y) / num_trees_con.
 #' @param tau_mod Scalar, prior parameter for treatment forest. The default value is 0.1 * var(y) / num_trees_mod.
-#' @param no_split_penalty Extra weight of no-split option. The default value is 1, or you can take any other number greater than 0.
+#' @param no_split_penalty Weight of no-split option. The default value is log(num_cutpoints), or you can take any other number in log scale.
 #' @param burnin Integer, number of burnin sweeps.
 #' @param mtry_con Integer, number of X variables to sample at each split of the prognostic forest.
 #' @param mtry_mod Integer, number of X variables to sample at each split of the treatment forest.
@@ -39,7 +39,7 @@
 #' @export
 
 
-XBCF.continuous <- function(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth = 250, Nmin = 1, num_cutpoints = 100, alpha_con = 0.95, beta_con = 1.25, alpha_mod = 0.95, beta_mod = 1.25, tau_con = NULL, tau_mod = NULL, no_split_penalty = NULL, burnin = 1L, mtry_con = NULL, mtry_mod = NULL, p_categorical_con = 0L, p_categorical_mod = 0L, kap = 16, s = 4, tau_con_kap = 3, tau_con_s = 0.5, tau_mod_kap = 3, tau_mod_s = 0.5, verbose = FALSE, update_tau = TRUE, parallel = TRUE, random_seed = NULL, sample_weights = TRUE, nthread = 0, ...) {
+XBCF.continuous <- function(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth = 250, Nmin = 1, num_cutpoints = 100, alpha_con = 0.95, beta_con = 1.25, alpha_mod = 0.25, beta_mod = 3, tau_con = NULL, tau_mod = NULL, no_split_penalty = NULL, burnin = 1L, mtry_con = NULL, mtry_mod = NULL, p_categorical_con = 0L, p_categorical_mod = 0L, kap = 16, s = 4, tau_con_kap = 3, tau_con_s = 0.5, tau_mod_kap = 3, tau_mod_s = 0.5, verbose = FALSE, update_tau = TRUE, parallel = TRUE, random_seed = NULL, sample_weights = TRUE, nthread = 0, ...) {
     if (!("matrix" %in% class(X_con))) {
         cat("Input X_con is not a matrix, try to convert type.\n")
         X_con <- as.matrix(X_con)
