@@ -10,7 +10,7 @@
 #' @param alpha Scalar, BART prior parameter for trees. The default value is 0.95.
 #' @param beta Scalar, BART prior parameter for trees. The default value is 1.25.
 #' @param tau Scalar, prior parameter for the trees. The default value is 1 / num_trees.
-#' @param no_split_penalty Extra weight of no-split option. The default value is 1, or you can take any other number greater than 0.
+#' @param no_split_penalty Extra weight of no-split option. The default value is 0, or you can take any other number greater than 0.
 #' @param burnin Integer, number of burnin sweeps.
 #' @param mtry Integer, number of X variables to sample at each split of the tree.
 #' @param p_categorical Integer, number of categorical variables in X, note that all categorical variables should be put after continuous variables. Default value is 0.
