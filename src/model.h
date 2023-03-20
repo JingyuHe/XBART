@@ -555,6 +555,20 @@ public:
     void update_b(State &state);
 };
 
+class XBCFrdModel : public XBCFDiscreteModel
+{
+public:
+
+    XBCFrdModel(double kap, double s, double tau_con, double tau_mod, double alpha_con, double beta_con, double alpha_mod, double beta_mod, bool sampling_tau, double tau_con_kap, double tau_con_s, double tau_mod_kap, double tau_mod_s) : XBCFDiscreteModel(kap, s, tau_con, tau_mod, alpha_con, beta_con, alpha_mod, beta_mod, sampling_tau, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s) {}
+
+    XBCFrdModel() : XBCFDiscreteModel(1, 4) {}
+
+    Model *clone() { return new XBCFrdModel(*this); }
+
+    void predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer_con, const double *Xtestpointer_mod, size_t N_test, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod);
+
+};
+
 //////////////////////////////////////////////////////////////////////////////////////
 //  Heteroskedastic Normal Model
 //////////////////////////////////////////////////////////////////////////////////////
