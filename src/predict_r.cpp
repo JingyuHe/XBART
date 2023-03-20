@@ -286,7 +286,7 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
     matrix<double> yhats_test_xinfo;
     ini_xinfo(yhats_test_xinfo, Npred, num_sweeps);
 
-    XBCFContinuousModel *model = new XBCFContinuousModel();
+    XBCFrdModel *model = new XBCFrdModel();
     // Predict
 
     model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, Npred, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);

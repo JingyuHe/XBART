@@ -561,7 +561,7 @@ public:
 
     XBCFrdModel(double kap, double s, double tau_con, double tau_mod, double alpha_con, double beta_con, double alpha_mod, double beta_mod, bool sampling_tau, double tau_con_kap, double tau_con_s, double tau_mod_kap, double tau_mod_s) : XBCFDiscreteModel(kap, s, tau_con, tau_mod, alpha_con, beta_con, alpha_mod, beta_mod, sampling_tau, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s) {}
 
-    XBCFrdModel() : XBCFDiscreteModel(1, 4) {}
+    XBCFrdModel() : XBCFDiscreteModel() {}
 
     Model *clone() { return new XBCFrdModel(*this); }
 
