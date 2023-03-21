@@ -205,6 +205,9 @@ XBCF.rd <- function(y, W, X, c, Owidth = 0.1, Omin = 10, num_trees_con = 30, num
                          n_trees_mod = num_trees_mod,
                          tau_con = tau_con,
                          tau_mod = tau_mod,
+                         cutoff = c,
+                         Owidth = Owidth,
+                         Omin = Omin,
                          pihat_status = "control")
     obj$model_params <- model_params
     

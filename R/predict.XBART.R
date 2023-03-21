@@ -82,8 +82,12 @@ predict.XBCFdiscrete <- function(object, X_con, X_mod, Z, pihat=NULL, burnin = 0
     return(obj)
 }
 
-predict.XBCFrd <- function(object, W, X, c, Wtr, Xtr, burnin = 0L, theta = 0.1, tau = 1, ...) {
+predict.XBCFrd <- function(object, W, X, Wtr, Xtr, theta = 0.1, tau = 1, ...) {
     
+    c <- object$model_params$cutoff
+    burnin <- object$model_params$n_burnin
+    sweeps <- nrow(object$a)
+
     if (!("matrix" %in% class(W))) {
         cat("Input W is not a matrix, try to convert type.\n")
         W <- as.matrix(W)
@@ -106,6 +110,23 @@ predict.XBCFrd <- function(object, W, X, c, Wtr, Xtr, burnin = 0L, theta = 0.1, 
     X_mod <- X_con
 
     Z <- as.matrix(X >= c)
+
+    # get local ATE near cutoff
+    out_con <- json_to_r(object$tree_json_con)
+    out_mod <- json_to_r(object$tree_json_mod)
+    local.ind <- (X <= c + object$model_params$Owidth) & (X >= c - object$model_params$Owidth);
+    obj.local <- .Call("_XBART_XBCF_discrete_predict", as.matrix(X_con[local.ind, ]), as.matrix(X_mod[local.ind, ]), as.matrix(Z[local.ind]), 
+                        out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt)
+
+    taus.local <- matrix(NA, sum(local.ind), sweeps)
+    for (i in 1:sweeps) {
+        taus.local[, i] = obj.local$tau[,i] * object$sdy * (object$b[i,2] - object$b[i,1])
+    }
+
+    obj.local$tau.adj <- taus.local
+    obj.local$tau.adj.mean <- rowMeans(obj.local$tau.adj[,(burnin+1):sweeps])
+    local.ate <- mean(obj.local$tau.adj.mean)
+
 
     if (!("matrix" %in% class(Wtr))) {
         cat("Input Wtr is not a matrix, try to convert type.\n")
