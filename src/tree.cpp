@@ -714,6 +714,7 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
+    size_t p_continuous = state.p_continuous;
     size_t split_var;
     size_t split_point;
 
@@ -804,7 +805,7 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
         size_t Orr = 0;
 
         // Assuming the last column is running variable
-        // if (split_var == p - 1){
+        // if (split_var == p_continuous - 1){
         //     double cutpoint = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
         //     if ((cutpoint >= state.cutoff - state.Owidth) & (cutpoint <= state.cutoff - state.Owidth)){
         //         // if the cutpoint falls in the overlap range, one side will definitely not satisfy the condition
@@ -813,9 +814,9 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
         //     // if the cutpoint falls outside, it doesn't affect the condition
         // } else {
         // First allocate boundary index for running variable
-        std::vector<size_t> &xo = Xorder_std[p - 1];
+        std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
         const double *split_var_x_pointer = state.X_std + state.n_y * split_var;
-        const double *run_var_x_pointer = state.X_std + state.n_y * (p-1);
+        const double *run_var_x_pointer = state.X_std + state.n_y * (p_continuous - 1);
         double cutvalue = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
         double run_var_value;
         for (size_t j = 0; j < N_Xorder; j++)
@@ -874,8 +875,8 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
         this->r = 0;
 
         // Check and keep residuals for data within bandwidth
-        std::vector<size_t> &xo = Xorder_std[p - 1];
-        const double *run_var_x_pointer = state.X_std + state.n_y * (p-1);
+        std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
+        const double *run_var_x_pointer = state.X_std + state.n_y * (p_continuous - 1);
 
         // Count number of obs on each side in the bandwidth
         size_t Ol = 0;
@@ -2672,14 +2673,14 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         get_X_range(x_struct.X_std, Xorder_std, local_X_range, x_struct.n_y);
 
         // check number of leaf nodes in bandwidth
-        std::vector<size_t> test_ind;
+        std::vector<size_t> train_ind;
 
         // Count number of obs on each side in the bandwidth
         size_t Ol = 0;
         size_t Or = 0;
 
-        const double *run_var_x_pointer = x_struct.X_std + x_struct.n_y * (p-1);
-        std::vector<size_t> &xo = Xorder_std[p - 1];
+        const double *run_var_x_pointer = x_struct.X_std + x_struct.n_y * (p_continuous - 1);
+        std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
 
         if ((*(run_var_x_pointer + xo[0]) <= x_struct.cutoff + x_struct.Owidth) & (*(run_var_x_pointer + xo[N-1]) >= x_struct.cutoff - x_struct.Owidth)){
             // (smallest value in running variable <= right bandwidth boundary) & (largest value >= left bandwidth boundary)
@@ -2690,10 +2691,12 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
                 ind += 1; // on the left side of the bandwidth
             }
             while ((ind < N) & (*(run_var_x_pointer + xo[ind]) < x_struct.cutoff )){
+                train_ind.push_back(xo[ind]);
                 Ol += 1;
                 ind += 1;
             }
             while ((ind < N) & (*(run_var_x_pointer + xo[ind]) <= x_struct.cutoff + x_struct.Owidth )){
+                train_ind.push_back(xo[ind]);
                 Or += 1;
                 ind += 1;
             }
@@ -2704,62 +2707,73 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
             // }
         }
 
-        std::vector<bool> active_var_out_range(p_continuous, false);
-        for (size_t i = 0; i < Ntest; i++)
-        {
-            for (size_t j = 0; j < p_continuous; j++)
-            {
-                if (active_var[j])
-                {
-                    if (*(xtest_struct.X_std + xtest_struct.n_y * j + Xtestorder_std[j][i]) > local_X_range[j][1])
-                    {
-                        test_ind.push_back(Xtestorder_std[j][i]);
-                        active_var_out_range[j] = true;
-                        break;
-                    }
-                    else if (*(xtest_struct.X_std + xtest_struct.n_y * j + Xtestorder_std[j][i]) < local_X_range[j][0])
-                    {
-                        test_ind.push_back(Xtestorder_std[j][i]);
-                        active_var_out_range[j] = true;
-                        break;
-                    }
-                }
-            }
+        // Get test ind
+        // test data in the bandwidth don't need extrapolation
+        std::vector<size_t> &xo_test = Xtestorder_std[p_continuous - 1];
+        std::vector<size_t> test_ind_const;
+        std::vector<size_t> test_ind_gp;
+
+        run_var_x_pointer = xtest_struct.X_std + xtest_struct.n_y * (p_continuous - 1);
+        size_t ind = 0;
+        size_t index_next_obs = xo_test[ind];
+        while ((ind < Ntest) & (*(run_var_x_pointer + xo_test[ind]) < xtest_struct.cutoff - xtest_struct.Owidth )){
+            test_ind_gp.push_back(xo_test[ind]);
+            ind += 1; // on the left side of the bandwidth
+        }
+        while ((ind < Ntest) & (*(run_var_x_pointer + xo_test[ind]) < xtest_struct.cutoff )){
+            test_ind_const.push_back(xo_test[ind]);
+            ind += 1;
+        }
+        while ((ind < Ntest) & (*(run_var_x_pointer + xo_test[ind]) <= xtest_struct.cutoff + xtest_struct.Owidth )){
+            test_ind_const.push_back(xo_test[ind]);
+            ind += 1;
+        }
+        while (ind < Ntest) {
+            test_ind_gp.push_back(xo_test[ind]);
+            ind += 1;
         }
 
         // assign mu as leaf param if it's near the boundary. Otherwise, assign posterior mean of ATE near cutoff (take input)
-        for (size_t i = 0; i < Ntest; i++)
-        {
-            yhats_test_xinfo[sweeps][Xtestorder_std[0][i]] += this->theta_vector[0]; // TODO: change the mean to local ATE at cutoff
+        if ((Ol >= x_struct.Omin) & (Or >= x_struct.Omin)){
+            for (size_t i = 0; i < Ntest; i++)
+            {
+                yhats_test_xinfo[sweeps][Xtestorder_std[0][i]] += this->theta_vector[0]; // TODO: change the mean to local ATE at cutoff
+            }
+        } else {
+            for (size_t i = 0; i < Ntest; i++)
+            {
+                yhats_test_xinfo[sweeps][Xtestorder_std[0][i]] += local_ate; // TODO: change the mean to local ATE at cutoff
+            }
         }
 
         // construct covariance matrix
         // TODO: consider categorical active variables
-        size_t p_active = std::accumulate(active_var_out_range.begin(), active_var_out_range.end(), 0);
-        if (p_active == 0)
-        {
-            return;
-        }
 
-        Ntest = test_ind.size();
+        Ntest = test_ind_gp.size();
         if (Ntest == 0)
         {
             return;
         }
 
         // get training set
-        std::vector<size_t> train_ind;
-        if (N < 100)
+        std::vector<size_t> train_ind_samp;
+        if (train_ind.size() < 100)
         {
-            train_ind.resize(N);
-            std::copy(Xorder_std[0].begin(), Xorder_std[0].end(), train_ind.begin());
+            N = train_ind.size();
+            train_ind_samp.resize(N);
+            std::copy(train_ind.begin(), train_ind.end(), train_ind_samp.begin());
         }
         else
         {
             N = 100;
-            train_ind.resize(100);
-            std::sample(Xorder_std[0].begin(), Xorder_std[0].end(), train_ind.begin(), 100, x_struct.gen);
+            train_ind_samp.resize(100);
+            std::sample(train_ind.begin(), train_ind.end(), train_ind_samp.begin(), 100, x_struct.gen);
         }
+
+        // restrict active variable to the last column (assuming running variable)
+        size_t p_active = 1;
+        std::vector<bool> active_var_out_range(p_continuous, false);
+        active_var_out_range[p_continuous - 1] = true;
 
         mat X(N + Ntest, p_active);
         std::vector<double> x_range(p_active);
@@ -2772,7 +2786,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
                 split_var_x_pointer = x_struct.X_std + x_struct.n_y * j;
                 for (size_t i = 0; i < N; i++)
                 {
-                    X(i, j_count) = *(split_var_x_pointer + train_ind[i]);
+                    X(i, j_count) = *(split_var_x_pointer + train_ind_samp[i]);
                 }
 
                 // if (local_X_range[j][1] > local_X_range[j][0]){
@@ -2792,7 +2806,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
                 split_var_x_pointer = xtest_struct.X_std + xtest_struct.n_y * j;
                 for (size_t i = 0; i < Ntest; i++)
                 {
-                    X(i + N, j_count) = *(split_var_x_pointer + test_ind[i]);
+                    X(i + N, j_count) = *(split_var_x_pointer + test_ind_gp[i]);
                 }
 
                 if (x_range[j_count] == 0)
@@ -2808,11 +2822,12 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         mat resid(N, 1);
         for (size_t i = 0; i < N; i++)
         {
-            resid(i, 0) = x_struct.resid[sweeps][tree_ind][train_ind[i]] - this->theta_vector[0];
+            resid(i, 0) = x_struct.resid[sweeps][tree_ind][train_ind_samp[i]] - this->theta_vector[0];
         }
 
         mat cov(N + Ntest, N + Ntest);
         get_rel_covariance(cov, X, x_range, theta, tau);
+        // TODO: change sigma to sigma0, 1
         for (size_t i = 0; i < N; i++)
         {
             cov(i, i) += pow(x_struct.sigma[tree_ind], 2) / x_struct.num_trees;
@@ -2844,7 +2859,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
             samp(i, 0) = normal_samp(x_struct.gen);
         mat draws = mu + U * diagmat(sqrt(S)) * samp;
         for (size_t i = 0; i < Ntest; i++)
-            yhats_test_xinfo[sweeps][test_ind[i]] += draws(i, 0);
+            yhats_test_xinfo[sweeps][test_ind_gp[i]] += draws(i, 0);
     }
     return;
 }
