@@ -2135,7 +2135,7 @@ size_t get_split_point(const double *Xpointer, matrix<size_t> &Xorder_std, size_
     return split_point;
 }
 
-void split_xorder_std_categorical_simplified(gp_struct &x_struct, matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, size_t p_categorical)
+void split_xorder_std_categorical_simplified(X_struct &x_struct, matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts_left, std::vector<size_t> &X_counts_right, std::vector<size_t> &X_num_unique_left, std::vector<size_t> &X_num_unique_right, std::vector<size_t> &X_counts, size_t p_categorical)
 {
     // without model, state, don't update suff stats
 
@@ -2264,7 +2264,7 @@ void split_xorder_std_categorical_simplified(gp_struct &x_struct, matrix<size_t>
     return;
 }
 
-void split_xorder_std_continuous_simplified(gp_struct &x_struct, matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, size_t p_continuous)
+void split_xorder_std_continuous_simplified(X_struct &x_struct, matrix<size_t> &Xorder_left_std, matrix<size_t> &Xorder_right_std, size_t split_var, size_t split_point, matrix<size_t> &Xorder_std, size_t p_continuous)
 {
     // without model, state, don't update suff stats
 
@@ -2558,7 +2558,7 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, gp_struct &x_struct,
 }
 
 
-void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, gp_struct &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, matrix<size_t> &Xtestorder_std, gp_struct &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique, matrix<double> &yhats_test_xinfo, std::vector<bool> active_var, const size_t &p_categorical, const size_t &sweeps, const size_t &tree_ind, const double &theta, const double &tau, const double &local_ate)
+void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, matrix<size_t> &Xtestorder_std, rd_struct &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique, matrix<double> &yhats_test_xinfo, std::vector<bool> active_var, const size_t &p_categorical, const size_t &sweeps, const size_t &tree_ind, const double &theta, const double &tau, const double &local_ate)
 {
     // gaussian process prediction from root
     size_t N = Xorder_std[0].size();
@@ -2673,6 +2673,37 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, gp_struct &x_struct,
 
         // check number of leaf nodes in bandwidth
         std::vector<size_t> test_ind;
+
+        // Count number of obs on each side in the bandwidth
+        size_t Ol = 0;
+        size_t Or = 0;
+
+        const double *run_var_x_pointer = x_struct.X_std + x_struct.n_y * (p-1);
+        std::vector<size_t> &xo = Xorder_std[p - 1];
+
+        if ((*(run_var_x_pointer + xo[0]) <= x_struct.cutoff + x_struct.Owidth) & (*(run_var_x_pointer + xo[N-1]) >= x_struct.cutoff - x_struct.Owidth)){
+            // (smallest value in running variable <= right bandwidth boundary) & (largest value >= left bandwidth boundary)
+            // above is the minimum requirement to have obs for extrapolation 
+            size_t ind = 0;
+            size_t index_next_obs = xo[ind];
+            while ((ind < N) & (*(run_var_x_pointer + xo[ind]) < x_struct.cutoff - x_struct.Owidth )){
+                ind += 1; // on the left side of the bandwidth
+            }
+            while ((ind < N) & (*(run_var_x_pointer + xo[ind]) < x_struct.cutoff )){
+                Ol += 1;
+                ind += 1;
+            }
+            while ((ind < N) & (*(run_var_x_pointer + xo[ind]) <= x_struct.cutoff + x_struct.Owidth )){
+                Or += 1;
+                ind += 1;
+            }
+
+            // if ((Ol >= x_struct.Omin) & (Or >= x_struct.Omin)){
+            //     // leaf node qualify for extrapolation
+            //     // cout << "valid leaf node with Ol = " << Ol << " Or = " << Or << endl;
+            // }
+        }
+
         std::vector<bool> active_var_out_range(p_continuous, false);
         for (size_t i = 0; i < Ntest; i++)
         {

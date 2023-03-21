@@ -114,4 +114,40 @@ public:
     }
 };
 
+struct rd_struct : public X_struct
+{
+public: 
+    double cutoff;
+    double Owidth;
+    double Omin;
+    std::random_device rd;
+    std::mt19937 gen;
+
+    matrix<std::vector<double>> resid;
+    double num_trees;
+    std::vector<double> sigma;
+
+    rd_struct(const double *X_std, const std::vector<double> *y_std, size_t N, std::vector<std::vector<size_t>> &Xorder_std, size_t p_categorical, size_t p_continuous,
+            std::vector<double> *initial_theta, size_t num_trees, double cutoff, double Owidth, double Omin) :
+            X_struct(X_std, y_std, N, Xorder_std, p_categorical, p_continuous, initial_theta, num_trees)
+    {
+
+        this->gen = std::mt19937(rd());
+        this->cutoff = cutoff;
+        this->Owidth = Owidth;
+        this->Omin = Omin;
+
+        this->num_trees = num_trees;
+        this->sigma = sigma;
+        return;
+    }
+
+    void set_resid(matrix<std::vector<double>> &resid)
+    {
+        this->resid = resid;
+    }
+
+
+};
+
 #endif
