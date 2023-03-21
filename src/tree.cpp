@@ -2558,7 +2558,7 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, gp_struct &x_struct,
 }
 
 
-void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, gp_struct &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, matrix<size_t> &Xtestorder_std, gp_struct &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique, matrix<double> &yhats_test_xinfo, std::vector<bool> active_var, const size_t &p_categorical, const size_t &sweeps, const size_t &tree_ind, const double &theta, const double &tau)
+void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, gp_struct &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, matrix<size_t> &Xtestorder_std, gp_struct &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique, matrix<double> &yhats_test_xinfo, std::vector<bool> active_var, const size_t &p_categorical, const size_t &sweeps, const size_t &tree_ind, const double &theta, const double &tau, const double &local_ate)
 {
     // gaussian process prediction from root
     size_t N = Xorder_std[0].size();
@@ -2622,14 +2622,16 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, gp_struct &x_struct,
             {
                 // all test data goes to the right node
                 this->r->rd_predict_from_root(Xorder_right_std, x_struct, X_counts_right, X_num_unique_right,
-                                              Xtestorder_std, xtest_struct, Xtest_counts, Xtest_num_unique, yhats_test_xinfo, active_var_right, p_categorical, sweeps, tree_ind, theta, tau);
+                                              Xtestorder_std, xtest_struct, Xtest_counts, Xtest_num_unique,
+                                              yhats_test_xinfo, active_var_right, p_categorical, sweeps, tree_ind, theta, tau, local_ate);
                 return;
             }
             if (c >= *(xtest_struct.X_std + xtest_struct.n_y * v + Xtestorder_std[v][Ntest - 1]))
             {
                 // all test data goes to the left node
                 this->l->rd_predict_from_root(Xorder_left_std, x_struct, X_counts_left, X_num_unique_left,
-                                              Xtestorder_std, xtest_struct, Xtest_counts, Xtest_num_unique, yhats_test_xinfo, active_var_left, p_categorical, sweeps, tree_ind, theta, tau);
+                                              Xtestorder_std, xtest_struct, Xtest_counts, Xtest_num_unique,
+                                              yhats_test_xinfo, active_var_left, p_categorical, sweeps, tree_ind, theta, tau, local_ate);
                 return;
             }
 
@@ -2649,10 +2651,12 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, gp_struct &x_struct,
         }
 
         this->l->rd_predict_from_root(Xorder_left_std, x_struct, X_counts_left, X_num_unique_left,
-                                      Xtestorder_left_std, xtest_struct, Xtest_counts_left, Xtest_num_unique_left, yhats_test_xinfo, active_var_left, p_categorical, sweeps, tree_ind, theta, tau);
+                                      Xtestorder_left_std, xtest_struct, Xtest_counts_left, Xtest_num_unique_left,
+                                      yhats_test_xinfo, active_var_left, p_categorical, sweeps, tree_ind, theta, tau, local_ate);
 
         this->r->rd_predict_from_root(Xorder_right_std, x_struct, X_counts_right, X_num_unique_right,
-                                      Xtestorder_right_std, xtest_struct, Xtest_counts_right, Xtest_num_unique_right, yhats_test_xinfo, active_var_right, p_categorical, sweeps, tree_ind, theta, tau);
+                                      Xtestorder_right_std, xtest_struct, Xtest_counts_right, Xtest_num_unique_right,
+                                      yhats_test_xinfo, active_var_right, p_categorical, sweeps, tree_ind, theta, tau, local_ate);
     }
     else
     {
