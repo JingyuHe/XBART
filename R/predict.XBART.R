@@ -123,9 +123,7 @@ predict.XBCFrd <- function(object, W, X, Wtr, Xtr, theta = 0.1, tau = 1, ...) {
         taus.local[, i] = obj.local$tau[,i] * object$sdy * (object$b[i,2] - object$b[i,1])
     }
 
-    obj.local$tau.adj <- taus.local
-    obj.local$tau.adj.mean <- rowMeans(obj.local$tau.adj[,(burnin+1):sweeps])
-    local.ate <- mean(obj.local$tau.adj.mean)
+    local.ate <- as.matrix(colMeans(taus.local))
 
 
     if (!("matrix" %in% class(Wtr))) {
@@ -154,7 +152,7 @@ predict.XBCFrd <- function(object, W, X, Wtr, Xtr, theta = 0.1, tau = 1, ...) {
     out_mod <- json_to_r(object$tree_json_mod)
     obj <- .Call("_XBART_XBCF_rd_predict", X_con, X_mod, Z, Xtr_con, Xtr_mod, Ztr, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt,
                 object$res_indicator_con, object$valid_residuals_con, object$resid_mean_con, object$res_indicator_mod, object$valid_residuals_mod, object$resid_mean_mod,
-                object$sigma0, object$sigma1,
+                object$sigma0, object$sigma1, local.ate,
                 c, theta, tau)
 
     burnin <- burnin

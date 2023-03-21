@@ -222,7 +222,7 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
                             Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod,
                             Rcpp::NumericMatrix res_indicator_con, Rcpp::NumericMatrix valid_residuals_con, Rcpp::NumericMatrix resid_mean_con,
                             Rcpp::NumericMatrix res_indicator_mod, Rcpp::NumericMatrix valid_residuals_mod, Rcpp::NumericMatrix resid_mean_mod,
-                            Rcpp::NumericMatrix sigma0, Rcpp::NumericMatrix sigma1,
+                            Rcpp::NumericMatrix sigma0, Rcpp::NumericMatrix sigma1, mat local_ate,
                             double cutoff, double theta, double tau)
 {
     // size of data
@@ -286,10 +286,15 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
     matrix<double> yhats_test_xinfo;
     ini_xinfo(yhats_test_xinfo, Npred, num_sweeps);
 
+    std::vector<double> local_ate_std(num_sweeps);
+    for (size_t i = 0; i < num_sweeps; i++){
+        local_ate_std[i] = local_ate(i, 0);
+    }
+
     XBCFrdModel *model = new XBCFrdModel();
     // Predict
 
-    model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, Npred, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
+    model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, Npred, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod, local_ate_std);
 
     // Convert back to Rcpp
     Rcpp::NumericMatrix yhats(Npred, num_sweeps);
