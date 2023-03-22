@@ -243,10 +243,10 @@ void get_X_range(const double *Xpointer, std::vector<std::vector<size_t>> &Xorde
 
     for (size_t i = 0; i < p; i++)
     {
-        // X_range[i][0] = *(Xpointer + i * n_y + Xorder_std[i][0]);
-        // X_range[i][1] = *(Xpointer + i * n_y + Xorder_std[i][N-1]);
-        X_range[i][0] = *(Xpointer + i * n_y + Xorder_std[i][low_idx]);
-        X_range[i][1] = *(Xpointer + i * n_y + Xorder_std[i][up_idx]);
+        X_range[i][0] = *(Xpointer + i * n_y + Xorder_std[i][0]);
+        X_range[i][1] = *(Xpointer + i * n_y + Xorder_std[i][N-1]);
+        // X_range[i][0] = *(Xpointer + i * n_y + Xorder_std[i][low_idx]);
+        // X_range[i][1] = *(Xpointer + i * n_y + Xorder_std[i][up_idx]);
     }
     return;
 }

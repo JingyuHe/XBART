@@ -565,8 +565,13 @@ public:
 
     Model *clone() { return new XBCFrdModel(*this); }
 
-    void predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer_con, const double *Xtestpointer_mod, size_t N_test, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod, std::vector<double> &local_ate);
-
+    void predict_std(matrix<size_t> &Xorder_std, rd_struct &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique,
+                    matrix<size_t> &Xtestorder_std, rd_struct &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique,
+                    const double *Xtestpointer_con, const double *Xtestpointer_mod,
+                    size_t N_test, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps,
+                    matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo,
+                    vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod, 
+                    const double &theta, const double &tau);
 };
 
 //////////////////////////////////////////////////////////////////////////////////////

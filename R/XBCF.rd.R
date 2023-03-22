@@ -208,6 +208,8 @@ XBCF.rd <- function(y, W, X, c, Owidth = 0.1, Omin = 10, num_trees_con = 30, num
                          cutoff = c,
                          Owidth = Owidth,
                          Omin = Omin,
+                         p_categorical_con = p_categorical_con,
+                         p_categorical_mod = p_categorical_mod,
                          pihat_status = "control")
     obj$model_params <- model_params
     

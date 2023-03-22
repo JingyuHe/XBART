@@ -125,10 +125,15 @@ public:
 
     matrix<std::vector<double>> resid;
     double num_trees;
-    std::vector<double> sigma;
+    matrix<double> sigma;
 
-    rd_struct(const double *X_std, const std::vector<double> *y_std, size_t N, std::vector<std::vector<size_t>> &Xorder_std, size_t p_categorical, size_t p_continuous,
-            std::vector<double> *initial_theta, std::vector<double> &sigma, size_t num_trees, double cutoff, double Owidth, double Omin) :
+    const std::vector<size_t> *z_std;
+
+    size_t p_categorical;
+    size_t p_continuous;
+
+    rd_struct(const double *X_std, const std::vector<double> *y_std, const std::vector<size_t> *z_std, size_t N, std::vector<std::vector<size_t>> &Xorder_std, size_t p_categorical, size_t p_continuous,
+            std::vector<double> *initial_theta, matrix<double> &sigma, size_t num_trees, double cutoff, double Owidth, double Omin) :
             X_struct(X_std, y_std, N, Xorder_std, p_categorical, p_continuous, initial_theta, num_trees)
     {
 
@@ -137,8 +142,12 @@ public:
         this->Owidth = Owidth;
         this->Omin = Omin;
 
+        this->z_std = z_std;
         this->num_trees = num_trees;
         this->sigma = sigma;
+
+        this->p_categorical = p_categorical;
+        this->p_continuous = p_continuous;
         return;
     }
 

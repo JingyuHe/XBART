@@ -748,6 +748,12 @@ void mcmc_loop_xbcf_rd( matrix<size_t> &Xorder_std_con,
             trees_mod[sweeps][tree_ind].grow_from_root_rd(state, Xorder_std_mod, x_struct_mod.X_counts, x_struct_mod.X_num_unique, model, x_struct_mod, 
                                                         mod_res_indicator[sweeps][tree_ind], mod_valid_residuals[sweeps][tree_ind], mod_resid_mean[sweeps][tree_ind], sweeps, tree_ind);
 
+            // store residuals:
+            for (size_t data_ind = 0; data_ind < (*state.residual_std)[0].size(); data_ind++)
+            {
+                mod_valid_residuals[sweeps][tree_ind][data_ind] = ((*state.residual_std))[0][data_ind]; 
+            }
+
             // update tau_fit from partial fit to full fit
             model->add_new_tree_fit(tree_ind, state, x_struct_mod);
 

@@ -168,6 +168,25 @@ void Matrix_to_NumericMatrix(matrix<double> &a, Rcpp::NumericMatrix &b)
     return;
 }
 
+void NumericMatrix_to_Matrix(Rcpp::NumericMatrix &a, matrix<double> &b)
+{
+    // copy from a to b
+
+    size_t a_cols = a.ncol();
+    size_t a_rows = a.nrow();
+    ini_matrix(b, a_rows, a_cols);
+
+    for (size_t i = 0; i < a_rows; i++)
+    {
+        for (size_t j = 0; j < a_cols; j++)
+        {
+            b[j][i] = a(i, j);
+        }
+    }
+    return;
+}
+
+
 void rcpp_to_std2(arma::mat &y, arma::mat &Z, arma::mat &X, arma::mat &Ztest, arma::mat &Xtest, std::vector<double> &y_std, double &y_mean, matrix<double> &Z_std, Rcpp::NumericMatrix &X_std, matrix<double> &Ztest_std, Rcpp::NumericMatrix &Xtest_std, matrix<size_t> &Xorder_std)
 {
     // The goal of this function is to convert RCPP object to std objects

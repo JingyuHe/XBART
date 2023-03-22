@@ -23,6 +23,8 @@ void rcpp_to_std2(arma::mat &y, arma::mat &Z, arma::mat &X_con, arma::mat &X_mod
 
 void Matrix_to_NumericMatrix(matrix<double> &a, Rcpp::NumericMatrix &b);
 
+void NumericMatrix_to_Matrix(Rcpp::NumericMatrix &a, matrix<double> &b);
+
 void tree_to_string(vector<vector<tree>> &trees, Rcpp::StringVector &output_tree, size_t num_sweeps, size_t num_trees, size_t p);
 
 #endif

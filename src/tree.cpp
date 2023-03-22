@@ -2559,13 +2559,13 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, gp_struct &x_struct,
 }
 
 
-void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, matrix<size_t> &Xtestorder_std, rd_struct &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique, matrix<double> &yhats_test_xinfo, std::vector<bool> active_var, const size_t &p_categorical, const size_t &sweeps, const size_t &tree_ind, const double &theta, const double &tau, const double &local_ate)
+void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, matrix<size_t> &Xtestorder_std, rd_struct &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique, matrix<double> &yhats_test_xinfo, std::vector<bool> active_var, const size_t &sweeps, const size_t &tree_ind, const double &theta, const double &tau, const double &local_ate)
 {
     // gaussian process prediction from root
     size_t N = Xorder_std[0].size();
     size_t Ntest = Xtestorder_std[0].size();
     size_t p = active_var.size();
-    size_t p_continuous = p - p_categorical;
+    size_t p_continuous = x_struct.p_continuous;
 
     if (Ntest == 0)
     { // no need to split if Ntest = 0
@@ -2604,15 +2604,15 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
             ini_xinfo_sizet(Xorder_left_std, split_point + 1, p);
             ini_xinfo_sizet(Xorder_right_std, N - split_point - 1, p);
 
-            if (p_categorical > 0)
+            if (x_struct.p_categorical > 0)
             {
                 split_xorder_std_categorical_simplified(x_struct, Xorder_left_std, Xorder_right_std, this->v, split_point, Xorder_std, X_counts_left, X_counts_right,
-                                                        X_num_unique_left, X_num_unique_right, X_counts, p_categorical);
+                                                        X_num_unique_left, X_num_unique_right, X_counts, x_struct.p_categorical);
             }
 
-            if (p_continuous > 0)
+            if (x_struct.p_continuous > 0)
             {
-                split_xorder_std_continuous_simplified(x_struct, Xorder_left_std, Xorder_right_std, v, split_point, Xorder_std, p_continuous);
+                split_xorder_std_continuous_simplified(x_struct, Xorder_left_std, Xorder_right_std, v, split_point, Xorder_std, x_struct.p_continuous);
             }
         }
 
@@ -2624,7 +2624,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
                 // all test data goes to the right node
                 this->r->rd_predict_from_root(Xorder_right_std, x_struct, X_counts_right, X_num_unique_right,
                                               Xtestorder_std, xtest_struct, Xtest_counts, Xtest_num_unique,
-                                              yhats_test_xinfo, active_var_right, p_categorical, sweeps, tree_ind, theta, tau, local_ate);
+                                              yhats_test_xinfo, active_var_right, sweeps, tree_ind, theta, tau, local_ate);
                 return;
             }
             if (c >= *(xtest_struct.X_std + xtest_struct.n_y * v + Xtestorder_std[v][Ntest - 1]))
@@ -2632,7 +2632,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
                 // all test data goes to the left node
                 this->l->rd_predict_from_root(Xorder_left_std, x_struct, X_counts_left, X_num_unique_left,
                                               Xtestorder_std, xtest_struct, Xtest_counts, Xtest_num_unique,
-                                              yhats_test_xinfo, active_var_left, p_categorical, sweeps, tree_ind, theta, tau, local_ate);
+                                              yhats_test_xinfo, active_var_left, sweeps, tree_ind, theta, tau, local_ate);
                 return;
             }
 
@@ -2641,23 +2641,23 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
             ini_xinfo_sizet(Xtestorder_left_std, test_split_point + 1, p);
             ini_xinfo_sizet(Xtestorder_right_std, Ntest - test_split_point - 1, p);
 
-            if (p_categorical > 0)
+            if (x_struct.p_categorical > 0)
             {
-                split_xorder_std_categorical_simplified(xtest_struct, Xtestorder_left_std, Xtestorder_right_std, v, test_split_point, Xtestorder_std, Xtest_counts_left, Xtest_counts_right, Xtest_num_unique_left, Xtest_num_unique_right, Xtest_counts, p_categorical);
+                split_xorder_std_categorical_simplified(xtest_struct, Xtestorder_left_std, Xtestorder_right_std, v, test_split_point, Xtestorder_std, Xtest_counts_left, Xtest_counts_right, Xtest_num_unique_left, Xtest_num_unique_right, Xtest_counts, x_struct.p_categorical);
             }
-            if (p_continuous > 0)
+            if (x_struct.p_continuous > 0)
             {
-                split_xorder_std_continuous_simplified(xtest_struct, Xtestorder_left_std, Xtestorder_right_std, v, test_split_point, Xtestorder_std, p_continuous);
+                split_xorder_std_continuous_simplified(xtest_struct, Xtestorder_left_std, Xtestorder_right_std, v, test_split_point, Xtestorder_std, x_struct.p_continuous);
             }
         }
 
         this->l->rd_predict_from_root(Xorder_left_std, x_struct, X_counts_left, X_num_unique_left,
                                       Xtestorder_left_std, xtest_struct, Xtest_counts_left, Xtest_num_unique_left,
-                                      yhats_test_xinfo, active_var_left, p_categorical, sweeps, tree_ind, theta, tau, local_ate);
+                                      yhats_test_xinfo, active_var_left, sweeps, tree_ind, theta, tau, local_ate);
 
         this->r->rd_predict_from_root(Xorder_right_std, x_struct, X_counts_right, X_num_unique_right,
                                       Xtestorder_right_std, xtest_struct, Xtest_counts_right, Xtest_num_unique_right,
-                                      yhats_test_xinfo, active_var_right, p_categorical, sweeps, tree_ind, theta, tau, local_ate);
+                                      yhats_test_xinfo, active_var_right, sweeps, tree_ind, theta, tau, local_ate);
     }
     else
     {
@@ -2706,6 +2706,13 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
             //     // cout << "valid leaf node with Ol = " << Ol << " Or = " << Or << endl;
             // }
         }
+
+        if ((Ol < x_struct.Omin) | (Or < x_struct.Omin)){
+            train_ind.clear();
+        }
+
+        // cout << "Ol = " << Ol << " Or = " << Or << " ";
+        // cout << "X range " << local_X_range[p_continuous - 1] << " Ntrain = " << train_ind.size() << endl;
 
         // Get test ind
         // test data in the bandwidth don't need extrapolation
@@ -2830,7 +2837,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         // TODO: change sigma to sigma0, 1
         for (size_t i = 0; i < N; i++)
         {
-            cov(i, i) += pow(x_struct.sigma[tree_ind], 2) / x_struct.num_trees;
+            cov(i, i) += pow(x_struct.sigma[sweeps][tree_ind], 2) / x_struct.num_trees;
         }
 
         mat mu(Ntest, 1);

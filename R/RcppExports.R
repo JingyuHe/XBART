@@ -37,8 +37,8 @@ XBCF_discrete_predict <- function(X_con, X_mod, Z, tree_con, tree_mod) {
     .Call(`_XBART_XBCF_discrete_predict`, X_con, X_mod, Z, tree_con, tree_mod)
 }
 
-XBCF_rd_predict <- function(Xpred_con, Xpred_mod, Zpred, Xtr_con, Xtr_mod, Ztr, tree_con, tree_mod, res_indicator_con, valid_residuals_con, resid_mean_con, res_indicator_mod, valid_residuals_mod, resid_mean_mod, sigma0, sigma1, local_ate, cutoff, theta, tau) {
-    .Call(`_XBART_XBCF_rd_predict`, Xpred_con, Xpred_mod, Zpred, Xtr_con, Xtr_mod, Ztr, tree_con, tree_mod, res_indicator_con, valid_residuals_con, resid_mean_con, res_indicator_mod, valid_residuals_mod, resid_mean_mod, sigma0, sigma1, local_ate, cutoff, theta, tau)
+XBCF_rd_predict <- function(Xpred_con, Xpred_mod, Zpred, Xtr_con, Xtr_mod, Ztr, tree_con, tree_mod, res_indicator_con, valid_residuals_con, resid_mean_con, res_indicator_mod, valid_residuals_mod, resid_mean_mod, sigma0, sigma1, local_ate, p_categorical_mod, cutoff, Owidth, Omin, theta, tau) {
+    .Call(`_XBART_XBCF_rd_predict`, Xpred_con, Xpred_mod, Zpred, Xtr_con, Xtr_mod, Ztr, tree_con, tree_mod, res_indicator_con, valid_residuals_con, resid_mean_con, res_indicator_mod, valid_residuals_mod, resid_mean_mod, sigma0, sigma1, local_ate, p_categorical_mod, cutoff, Owidth, Omin, theta, tau)
 }
 
 xbart_predict_full <- function(X, y_mean, tree_pnt) {
