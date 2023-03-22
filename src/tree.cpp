@@ -2728,11 +2728,13 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
             ind += 1; // on the left side of the bandwidth
         }
         while ((ind < Ntest) & (*(run_var_x_pointer + xo_test[ind]) < xtest_struct.cutoff )){
-            test_ind_const.push_back(xo_test[ind]);
+            // test_ind_const.push_back(xo_test[ind]);
+            test_ind_gp.push_back(xo_test[ind]);
             ind += 1;
         }
         while ((ind < Ntest) & (*(run_var_x_pointer + xo_test[ind]) <= xtest_struct.cutoff + xtest_struct.Owidth )){
-            test_ind_const.push_back(xo_test[ind]);
+            // test_ind_const.push_back(xo_test[ind]);
+            test_ind_gp.push_back(xo_test[ind]);
             ind += 1;
         }
         while (ind < Ntest) {
@@ -2740,17 +2742,9 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
             ind += 1;
         }
 
-        // assign mu as leaf param if it's near the boundary. Otherwise, assign posterior mean of ATE near cutoff (take input)
-        if ((Ol >= x_struct.Omin) & (Or >= x_struct.Omin)){
-            for (size_t i = 0; i < Ntest; i++)
-            {
-                yhats_test_xinfo[sweeps][Xtestorder_std[0][i]] += this->theta_vector[0]; // TODO: change the mean to local ATE at cutoff
-            }
-        } else {
-            for (size_t i = 0; i < Ntest; i++)
-            {
-                yhats_test_xinfo[sweeps][Xtestorder_std[0][i]] += local_ate; // TODO: change the mean to local ATE at cutoff
-            }
+        // assign mu as leaf param if it's near the boundary. 
+        for (size_t i = 0; i < test_ind_const.size(); i++){
+            yhats_test_xinfo[sweeps][test_ind_const[i]] += this->theta_vector[0];
         }
 
         // construct covariance matrix
@@ -2846,13 +2840,13 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         {
             mat k = cov.submat(N, 0, N + Ntest - 1, N - 1);
             mat Kinv = pinv(cov.submat(0, 0, N - 1, N - 1));
-            mu = k * Kinv * resid;
+            mu = this->theta_vector[0] +  k * Kinv * resid;
             Sig = cov.submat(N, N, N + Ntest - 1, N + Ntest - 1) - k * Kinv * trans(k);
         }
         else
         {
             // prior
-            mu.zeros(Ntest, 1);
+            mu.fill(local_ate);
             Sig = cov.submat(0, 0, Ntest - 1, Ntest - 1);
         }
         mat U;
