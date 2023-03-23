@@ -2829,9 +2829,15 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         mat cov(N + Ntest, N + Ntest);
         get_rel_covariance(cov, X, x_range, theta, tau);
         // TODO: change sigma to sigma0, 1
+        size_t num_trees_con = (x_struct.sigma0[0]).size() - x_struct.num_trees;
+    
         for (size_t i = 0; i < N; i++)
         {
-            cov(i, i) += pow(x_struct.sigma[sweeps][tree_ind], 2) / x_struct.num_trees;
+            if ( ((*x_struct.z_std)[train_ind_samp[i]]) == 0 ){
+                cov(i, i) += pow(x_struct.sigma0[sweeps][num_trees_con + tree_ind], 2) / x_struct.num_trees;
+            } else {
+                cov(i, i) += pow(x_struct.sigma1[sweeps][num_trees_con + tree_ind], 2) / x_struct.num_trees;
+            }
         }
 
         mat mu(Ntest, 1);

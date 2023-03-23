@@ -313,9 +313,10 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
     std::vector<size_t> ztest_std(Npred);
     std::vector<double> initial_theta(1, 0);
 
+    for (size_t i = 0; i < Ntr; i++){z_std[i] = Ztr(i, 0);}
 
-    rd_struct x_struct_mod(Xpointer_mod, &y_std, &z_std, Ntr, Xorder_mod, p_categorical_mod, p_mod - p_categorical_mod, &initial_theta, sigma0_std, num_trees_mod, cutoff, Owidth, Omin);
-    rd_struct xtest_struct_mod(Xtestpointer_mod, &ytest_std, &ztest_std, Npred, Xtestorder_mod, p_categorical_mod, p_mod - p_categorical_mod, &initial_theta, sigma0_std, num_trees_mod, cutoff, Owidth, Omin);
+    rd_struct x_struct_mod(Xpointer_mod, &y_std, &z_std, Ntr, Xorder_mod, p_categorical_mod, p_mod - p_categorical_mod, &initial_theta, sigma0_std, sigma1_std, num_trees_mod, cutoff, Owidth, Omin);
+    rd_struct xtest_struct_mod(Xtestpointer_mod, &ytest_std, &ztest_std, Npred, Xtestorder_mod, p_categorical_mod, p_mod - p_categorical_mod, &initial_theta, sigma0_std, sigma1_std, num_trees_mod, cutoff, Owidth, Omin);
 
     // get residuals
     matrix<std::vector<double>> residuals_mod;
