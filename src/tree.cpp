@@ -2711,9 +2711,6 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
             train_ind.clear();
         }
 
-        // cout << "Ol = " << Ol << " Or = " << Or << " ";
-        // cout << "X range " << local_X_range[p_continuous - 1] << " Ntrain = " << train_ind.size() << endl;
-
         // Get test ind
         // test data in the bandwidth don't need extrapolation
         std::vector<size_t> &xo_test = Xtestorder_std[p_continuous - 1];
@@ -2842,6 +2839,8 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
             }
         }
 
+        // cout << "local range " << local_X_range[p_continuous - 1] << " Ol = " << Ol << " Or = " << Or << " mu = " << this->theta_vector[0] << " local ate = " << local_ate << endl;
+
         mat mu(Ntest, 1);
         mat Sig(Ntest, Ntest);
         if (N > 0)
@@ -2855,7 +2854,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         {
             // prior
             mu.fill(local_ate);
-            Sig = cov.submat(0, 0, Ntest - 1, Ntest - 1);
+            Sig = cov.submat(N, N, N + Ntest - 1, N + Ntest - 1);
         }
         mat U;
         vec S;
