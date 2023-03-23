@@ -2819,6 +2819,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
                 j_count += 1;
             }
         }
+        x_range[0] = 1;
 
         mat resid(N, 1);
         for (size_t i = 0; i < N; i++)
