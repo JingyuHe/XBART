@@ -152,7 +152,7 @@ predict.XBCFrd <- function(object, W, X, Wtr, Xtr, theta = 0.1, tau = 1, ...) {
     out_mod <- json_to_r(object$tree_json_mod)
     obj <- .Call("_XBART_XBCF_rd_predict", X_con, X_mod, Z, Xtr_con, Xtr_mod, Ztr, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt,
                 object$res_indicator_con, object$valid_residuals_con, object$resid_mean_con, object$res_indicator_mod, object$valid_residuals_mod, object$resid_mean_mod,
-                object$sigma0, object$sigma1, local.ate, object$model_params$p_categorical_mod,
+                object$sigma0, object$sigma1, object$b, local.ate, object$model_params$p_categorical_mod,
                 object$model_params$cutoff, object$model_params$Owidth, object$model_params$Omin, theta, tau)
 
     burnin <- burnin

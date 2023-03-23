@@ -127,6 +127,7 @@ public:
     double num_trees;
     matrix<double> sigma0;
     matrix<double> sigma1;
+    matrix<double> b_draws;
 
     const std::vector<size_t> *z_std;
 
@@ -134,7 +135,7 @@ public:
     size_t p_continuous;
 
     rd_struct(const double *X_std, const std::vector<double> *y_std, const std::vector<size_t> *z_std, size_t N, std::vector<std::vector<size_t>> &Xorder_std, size_t p_categorical, size_t p_continuous,
-            std::vector<double> *initial_theta, matrix<double> &sigma0, matrix<double> sigma1, size_t num_trees, double cutoff, double Owidth, double Omin) :
+            std::vector<double> *initial_theta, matrix<double> &sigma0, matrix<double> sigma1, matrix<double> b_draws, size_t num_trees, double cutoff, double Owidth, double Omin) :
             X_struct(X_std, y_std, N, Xorder_std, p_categorical, p_continuous, initial_theta, num_trees)
     {
 
@@ -147,6 +148,7 @@ public:
         this->num_trees = num_trees;
         this->sigma0 = sigma0;
         this->sigma1 = sigma1;
+        this->b_draws = b_draws;
 
         this->p_categorical = p_categorical;
         this->p_continuous = p_continuous;

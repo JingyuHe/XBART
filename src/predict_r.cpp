@@ -222,7 +222,7 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
                             Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod,
                             Rcpp::NumericMatrix res_indicator_con, Rcpp::NumericMatrix valid_residuals_con, Rcpp::NumericMatrix resid_mean_con,
                             Rcpp::NumericMatrix res_indicator_mod, Rcpp::NumericMatrix valid_residuals_mod, Rcpp::NumericMatrix resid_mean_mod,
-                            Rcpp::NumericMatrix sigma0, Rcpp::NumericMatrix sigma1, mat local_ate, size_t p_categorical_mod,
+                            Rcpp::NumericMatrix sigma0, Rcpp::NumericMatrix sigma1, Rcpp::NumericMatrix b_xinfo, mat local_ate, size_t p_categorical_mod,
                             double cutoff, double Owidth, size_t Omin, double theta, double tau)
 {
     // size of data
@@ -298,9 +298,13 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
 
     matrix<double> sigma0_std;
     matrix<double> sigma1_std;
+    matrix<double> b_draws;
 
     NumericMatrix_to_Matrix(sigma0, sigma0_std);
     NumericMatrix_to_Matrix(sigma1, sigma1_std);
+    NumericMatrix_to_Matrix(b_xinfo, b_draws);
+
+    // cout << "b_draws dim " << b_xinfo.size() << " " << b_xinfo[0].size() << endl;
 
     std::vector<double> local_ate_std(num_sweeps);
     for (size_t i = 0; i < num_sweeps; i++){
@@ -315,8 +319,8 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
 
     for (size_t i = 0; i < Ntr; i++){z_std[i] = Ztr(i, 0);}
 
-    rd_struct x_struct_mod(Xpointer_mod, &y_std, &z_std, Ntr, Xorder_mod, p_categorical_mod, p_mod - p_categorical_mod, &initial_theta, sigma0_std, sigma1_std, num_trees_mod, cutoff, Owidth, Omin);
-    rd_struct xtest_struct_mod(Xtestpointer_mod, &ytest_std, &ztest_std, Npred, Xtestorder_mod, p_categorical_mod, p_mod - p_categorical_mod, &initial_theta, sigma0_std, sigma1_std, num_trees_mod, cutoff, Owidth, Omin);
+    rd_struct x_struct_mod(Xpointer_mod, &y_std, &z_std, Ntr, Xorder_mod, p_categorical_mod, p_mod - p_categorical_mod, &initial_theta, sigma0_std, sigma1_std, b_draws, num_trees_mod, cutoff, Owidth, Omin);
+    rd_struct xtest_struct_mod(Xtestpointer_mod, &ytest_std, &ztest_std, Npred, Xtestorder_mod, p_categorical_mod, p_mod - p_categorical_mod, &initial_theta, sigma0_std, sigma1_std, b_draws, num_trees_mod, cutoff, Owidth, Omin);
 
     // get residuals
     matrix<std::vector<double>> residuals_mod;

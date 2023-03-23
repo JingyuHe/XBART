@@ -2833,10 +2833,11 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
     
         for (size_t i = 0; i < N; i++)
         {
+            //   cov(i, i) +=  state->z[train_ind[i]]*pow(state->sigma_vec[1], 2) / (state->num_trees_vec[0] + state->num_trees_vec[1]) / abs(scale1);
             if ( ((*x_struct.z_std)[train_ind_samp[i]]) == 0 ){
-                cov(i, i) += pow(x_struct.sigma0[sweeps][num_trees_con + tree_ind], 2) / x_struct.num_trees;
+                cov(i, i) += pow(x_struct.sigma0[sweeps][num_trees_con + tree_ind], 2) / (x_struct.num_trees + num_trees_con) / abs(x_struct.b_draws[0][sweeps]);
             } else {
-                cov(i, i) += pow(x_struct.sigma1[sweeps][num_trees_con + tree_ind], 2) / x_struct.num_trees;
+                cov(i, i) += pow(x_struct.sigma1[sweeps][num_trees_con + tree_ind], 2) / (x_struct.num_trees + num_trees_con) / abs(x_struct.b_draws[1][sweeps]);
             }
         }
 
