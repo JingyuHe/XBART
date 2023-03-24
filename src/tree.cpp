@@ -790,8 +790,10 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
         }
     }
 
+    double no_split_penalty = model->getNoSplitPenalty();
     if ( (Ol >= state.Omin) & (Or >= state.Omin) &  ((double (Ol + Or) / N_Xorder) < 0.7)){
         force_split = true;
+        model->setNoSplitPenalty(-INFINITY);
     }
     
     // check force_split condtion
@@ -799,6 +801,7 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
     {
         BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this);
     }
+    model->setNoSplitPenalty(no_split_penalty);
 
     this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
 
@@ -1686,6 +1689,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
                 std::fill(loglike.begin(), loglike.begin() + (N_Xorder - 1) * state.p_continuous - 1, 0.0);
             }
         }
+        cout << "no split loglike " << loglike[loglike.size() - 1] << " no split penalty " << (model->getNoSplitPenalty()) << endl;
 
         std::discrete_distribution<> d(loglike.begin(), loglike.end());
 
@@ -1757,6 +1761,8 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         std::vector<size_t> candidate_index(state.n_cutpoints);
 
         seq_gen_std(state.n_min, N - state.n_min, state.n_cutpoints, candidate_index);
+
+        cout << "no split loglike " << loglike[loglike.size() - 1] << " no split penalty " << (model->getNoSplitPenalty()) << endl;
 
         std::discrete_distribution<size_t> d(loglike.begin(), loglike.end());
 
@@ -1973,7 +1979,6 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
 
     loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + (model->getNoSplitPenalty());
   
-
 
     // loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + log(model->getNoSplitPenalty());
 
