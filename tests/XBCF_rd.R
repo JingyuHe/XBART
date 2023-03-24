@@ -1,26 +1,8 @@
 # Problem description -----------------------------------------------------
 # Test performance on xbcf-rd
 
-test_xbcf_rd <- function(model, data, expected_rmse, expected_ate) {
-  
-  # Make predictions on the test data
-  pred.XBCFrd <- predict.XBCFrd(model, data$W, data$X, data$c)
-  
-  # Check yhats
-  rmse <- sqrt(mean((data$y - pred.XBCFrd$yhats.adj.mean)^2))
-  stopifnot(all.equal(rmse, expected_rmse))
-  
-  # Check tauhats
-  ate.hat <- colMeans(pred.XBCFrd$tau.adj)
-  rmse <- sqrt(mean((ate.hat - expected_ate)^2))
-  stopifnot(all.equal(rmse, expected_rmse))
-  
-  # Print a message indicating that the test passed
-  message("XBCFrd model test passed!")
-}
-
 ## Setup
-set.seed(010)
+set.seed(000)
 library(XBART)
 ### DGPfunction(x) return(single_index(x)) #  + 1/(1+exp(-5*xf))
 mu <- function(W, X){return(0.1 * rowSums(W) + 1/(1+exp(-5*X)))} 
@@ -34,21 +16,18 @@ h_test <- 0.2
 
 ## Data
 w <- matrix(rnorm(n*p), n, p)
-# w <- matrix(rep(0, n*p), n, p)
 x <- rnorm(n,sd=.5)
-x[5] <- 0
-# z <- rbinom(n,1,0.8*(xf >= c) + 0.1)
 z <- x >= c
 y <- mu(w, x) + tau(w, x)*z + rnorm(n, 0, 0.2)
 
 ## XBCF
-num_sweeps = 20
-burnin = 10
+num_sweeps = 100
+burnin = 20
 fit.XBCFrd <- XBCF.rd(y, w, x, c, pcat_con = 0, pcat_mod = 0,
-                    num_trees_mod = 10, num_trees_con = 20, num_sweeps = num_sweeps, burnin = burnin, Nmin = 5)
+                    num_trees_mod = 40, num_trees_con = 20, num_sweeps = num_sweeps, burnin = burnin, Nmin = 20)
 
 ntest <- 100
-xtest <- rnorm(ntest, sd = 0.2)
+xtest <- rnorm(ntest, sd = 0.5)
 xtest <- sort(xtest)
 wtest <- matrix(rep(0, ntest*p), ntest, p)
 tau.test <- tau(wtest, xtest)
