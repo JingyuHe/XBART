@@ -36,7 +36,7 @@ h_test <- 0.2
 w <- matrix(rnorm(n*p), n, p)
 # w <- matrix(rep(0, n*p), n, p)
 x <- rnorm(n,sd=.5)
-x[1] <- 0
+x[5] <- 0
 # z <- rbinom(n,1,0.8*(xf >= c) + 0.1)
 z <- x >= c
 y <- mu(w, x) + tau(w, x)*z + rnorm(n, 0, 0.2)

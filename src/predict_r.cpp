@@ -337,6 +337,7 @@ Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con,
         }
     }
     x_struct_mod.set_resid(residuals_mod);
+    // cout << "residual = " << x_struct_mod.resid[2][2][4] << endl;
 
 
     XBCFrdModel *model = new XBCFrdModel();

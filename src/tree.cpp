@@ -918,6 +918,7 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
                     }
                 }
                 // cout << "valid leaf node with Ol = " << Ol << " Or = " << Or << endl;
+                // cout << "residuals " << valid_residuals_cp << endl;
             }
         }
 
@@ -2725,13 +2726,13 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
             ind += 1; // on the left side of the bandwidth
         }
         while ((ind < Ntest) & (*(run_var_x_pointer + xo_test[ind]) < xtest_struct.cutoff )){
-            // test_ind_const.push_back(xo_test[ind]);
-            test_ind_gp.push_back(xo_test[ind]);
+            test_ind_const.push_back(xo_test[ind]);
+            // test_ind_gp.push_back(xo_test[ind]);
             ind += 1;
         }
         while ((ind < Ntest) & (*(run_var_x_pointer + xo_test[ind]) <= xtest_struct.cutoff + xtest_struct.Owidth )){
-            // test_ind_const.push_back(xo_test[ind]);
-            test_ind_gp.push_back(xo_test[ind]);
+            test_ind_const.push_back(xo_test[ind]);
+            // test_ind_gp.push_back(xo_test[ind]);
             ind += 1;
         }
         while (ind < Ntest) {

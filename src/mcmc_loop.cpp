@@ -790,6 +790,7 @@ void mcmc_loop_xbcf_rd( matrix<size_t> &Xorder_std_con,
         b_xinfo[1][sweeps] = state.b_vec[1];
         a_xinfo[0][sweeps] = state.a;
     }
+    // cout << "residual = " << mod_valid_residuals[2][2][4] << endl;
     return;
 }
 
