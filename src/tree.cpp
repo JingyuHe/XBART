@@ -781,13 +781,17 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
         double run_value;
         while (ind < N_Xorder){
             run_value = *(run_var_x_pointer + xo[ind]);
-            if ((run_value > state.cutoff + state.Owidth) & (run_value <= state.cutoff)){
+            if ((run_value > state.cutoff - state.Owidth) & (run_value <= state.cutoff)){
                 Ol += 1;
             } else if ((run_value > state.cutoff) & (run_value <= state.cutoff + state.Owidth  )){
                 Or += 1;
             }
             ind += 1;
         }
+    }
+
+    if ( (Ol >= state.Omin) & (Or >= state.Omin) &  ((double (Ol + Or) / N_Xorder) < 0.7)){
+        force_split = true;
     }
     
     // check force_split condtion
