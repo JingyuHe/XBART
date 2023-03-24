@@ -904,6 +904,7 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
 
         this->l = 0;
         this->r = 0;
+        // cout << "Ol " << Ol << " Or " << Or << " percentage " << (double(Ol + Or) / N_Xorder) << endl;
 
         return;
     }
@@ -1689,7 +1690,6 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
                 std::fill(loglike.begin(), loglike.begin() + (N_Xorder - 1) * state.p_continuous - 1, 0.0);
             }
         }
-        cout << "no split loglike " << loglike[loglike.size() - 1] << " no split penalty " << (model->getNoSplitPenalty()) << endl;
 
         std::discrete_distribution<> d(loglike.begin(), loglike.end());
 
@@ -1761,8 +1761,6 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         std::vector<size_t> candidate_index(state.n_cutpoints);
 
         seq_gen_std(state.n_min, N - state.n_min, state.n_cutpoints, candidate_index);
-
-        cout << "no split loglike " << loglike[loglike.size() - 1] << " no split penalty " << (model->getNoSplitPenalty()) << endl;
 
         std::discrete_distribution<size_t> d(loglike.begin(), loglike.end());
 
