@@ -6,7 +6,7 @@ set.seed(000)
 library(XBART)
 ### DGPfunction(x) return(single_index(x)) #  + 1/(1+exp(-5*xf))
 mu <- function(W, X){return(0.1 * rowSums(W) + 1/(1+exp(-5*X)))} 
-tau <- function(W, X) return(sin(mu(W, X)) + 1) # make sure the treatment effect is non-zero
+tau <- function(W, X) return( sin(mu(W, X)) + 1) # make sure the treatment effect is non-zero
 
 n       <- 2000
 p       <- 2
@@ -21,8 +21,8 @@ z <- x >= c
 y <- mu(w, x) + tau(w, x)*z + rnorm(n, 0, 0.2)
 
 ## XBCF
-num_sweeps = 100
-burnin = 20
+num_sweeps = 40
+burnin = 10
 fit.XBCFrd <- XBCF.rd(y, w, x, c, pcat_con = 0, pcat_mod = 0,
                     num_trees_mod = 40, num_trees_con = 20, num_sweeps = num_sweeps, burnin = burnin, Nmin = 20)
 

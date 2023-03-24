@@ -2711,6 +2711,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         if ((Ol < x_struct.Omin) | (Or < x_struct.Omin)){
             train_ind.clear();
         }
+        // train_ind.clear();
 
         // Get test ind
         // test data in the bandwidth don't need extrapolation
@@ -2725,15 +2726,15 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         while (ind < Ntest){
             run_value = *(run_var_x_pointer + xo_test[ind]);
             if (run_value < xtest_struct.cutoff - xtest_struct.Owidth){
-                // test_ind_gp.push_back(xo_test[ind]);
-                test_ind_const.push_back(xo_test[ind]);
+                test_ind_gp.push_back(xo_test[ind]);
+                // test_ind_const.push_back(xo_test[ind]);
             } else if (run_value <= xtest_struct.cutoff){
                 test_ind_const.push_back(xo_test[ind]);
             } else if (run_value <= xtest_struct.cutoff + xtest_struct.Owidth){
                 test_ind_const.push_back(xo_test[ind]);
             } else {
-                // test_ind_gp.push_back(xo_test[ind]);
-                test_ind_const.push_back(xo_test[ind]);
+                test_ind_gp.push_back(xo_test[ind]);
+                // test_ind_const.push_back(xo_test[ind]);
             }
             ind += 1;
         }
@@ -2852,6 +2853,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         else
         {
             // prior
+            cout << "extrapolation with prior x_range = " << local_X_range[p_continuous - 1] << endl;
             mu.fill(local_ate);
             Sig = cov.submat(N, N, N + Ntest - 1, N + Ntest - 1);
         }
