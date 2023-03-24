@@ -767,6 +767,30 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
             subset_vars = sample_int_ccrank(p, state.mtry, (*state.mtry_weight_current_tree), state.gen);
         }
     }
+
+    bool force_split = false;
+     // Count number of obs on each side in the bandwidth
+    size_t Ol = 0;
+    size_t Or = 0;
+    const double *run_var_x_pointer = state.X_std + state.n_y * (p_continuous - 1);
+    std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
+    if ((*(run_var_x_pointer + xo[0]) <= state.cutoff + state.Owidth) & (*(run_var_x_pointer + xo[N_Xorder-1]) >= state.cutoff - state.Owidth)){
+        // (smallest value in running variable <= right bandwidth boundary) & (largest value >= left bandwidth boundary)
+        // above is the minimum requirement to have obs for extrapolation 
+        size_t ind = 0;
+        double run_value;
+        while (ind < N_Xorder){
+            run_value = *(run_var_x_pointer + xo[ind]);
+            if ((run_value > state.cutoff + state.Owidth) & (run_value <= state.cutoff)){
+                Ol += 1;
+            } else if ((run_value > state.cutoff) & (run_value <= state.cutoff + state.Owidth  )){
+                Or += 1;
+            }
+            ind += 1;
+        }
+    }
+    
+    // check force_split condtion
     if (!no_split)
     {
         BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this);
@@ -814,9 +838,9 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
         //     // if the cutpoint falls outside, it doesn't affect the condition
         // } else {
         // First allocate boundary index for running variable
-        std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
+        // std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
         const double *split_var_x_pointer = state.X_std + state.n_y * split_var;
-        const double *run_var_x_pointer = state.X_std + state.n_y * (p_continuous - 1);
+        // const double *run_var_x_pointer = state.X_std + state.n_y * (p_continuous - 1);
         double cutvalue = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
         double run_var_value;
         for (size_t j = 0; j < N_Xorder; j++)
@@ -873,54 +897,6 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
 
         this->l = 0;
         this->r = 0;
-
-        // Check and keep residuals for data within bandwidth
-        std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
-        const double *run_var_x_pointer = state.X_std + state.n_y * (p_continuous - 1);
-
-        // Count number of obs on each side in the bandwidth
-        size_t Ol = 0;
-        size_t Or = 0;
-        // Keep a copy of residual indicator first;
-        std::vector<size_t> res_indicator_cp(N_Xorder, 0);
-        std::vector<double> valid_residuals_cp(N_Xorder);
-        if ((*(run_var_x_pointer + xo[0]) <= state.cutoff + state.Owidth) & (*(run_var_x_pointer + xo[N_Xorder-1]) >= state.cutoff - state.Owidth)){
-            // (smallest value in running variable <= right bandwidth boundary) & (largest value >= left bandwidth boundary)
-            // above is the minimum requirement to have obs for extrapolation 
-            size_t ind = 0;
-            size_t index_next_obs = xo[ind];
-            while ((ind < N_Xorder) & (*(run_var_x_pointer + xo[ind]) < state.cutoff - state.Owidth )){
-                ind += 1; // on the left side of the bandwidth
-            }
-            while ((ind < N_Xorder) & (*(run_var_x_pointer + xo[ind]) < state.cutoff )){
-                Ol += 1;
-                index_next_obs = xo[ind];
-                res_indicator_cp[ind] = 1;
-                valid_residuals_cp[ind] = ((*state.residual_std))[0][xo[ind]]; 
-                ind += 1;
-            }
-            while ((ind < N_Xorder) & (*(run_var_x_pointer + xo[ind]) <= state.cutoff + state.Owidth )){
-                Or += 1;
-                index_next_obs = xo[ind];
-                res_indicator_cp[ind] = 1;
-                valid_residuals_cp[ind] = ((*state.residual_std))[0][xo[ind]]; 
-                ind += 1;
-            }
-
-            if ((Ol >= state.Omin) & (Or >= state.Omin)){
-                // leaf node qualify for extrapolation
-                // copy residuals
-                for (size_t i = 0; i < N_Xorder; i++){
-                    if (res_indicator_cp[i] == 1){
-                        res_indicator[xo[i]] = 1;
-                        valid_residuals[xo[i]] = valid_residuals_cp[i];
-                        resid_mean[xo[i]] = (this->theta_vector)[0];
-                    }
-                }
-                // cout << "valid leaf node with Ol = " << Ol << " Or = " << Or << endl;
-                // cout << "residuals " << valid_residuals_cp << endl;
-            }
-        }
 
         return;
     }
