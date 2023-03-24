@@ -2675,6 +2675,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
 
         // check number of leaf nodes in bandwidth
         std::vector<size_t> train_ind;
+        std::vector<size_t> train_ext;
 
         // Count number of obs on each side in the bandwidth
         size_t Ol = 0;
@@ -2682,30 +2683,24 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
 
         const double *run_var_x_pointer = x_struct.X_std + x_struct.n_y * (p_continuous - 1);
         std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
-
-        if ((*(run_var_x_pointer + xo[0]) <= x_struct.cutoff + x_struct.Owidth) & (*(run_var_x_pointer + xo[N-1]) >= x_struct.cutoff - x_struct.Owidth)){
-            // (smallest value in running variable <= right bandwidth boundary) & (largest value >= left bandwidth boundary)
-            // above is the minimum requirement to have obs for extrapolation 
-            size_t ind = 0;
-            size_t index_next_obs = xo[ind];
-            while ((ind < N) & (*(run_var_x_pointer + xo[ind]) < x_struct.cutoff - x_struct.Owidth )){
-                ind += 1; // on the left side of the bandwidth
-            }
-            while ((ind < N) & (*(run_var_x_pointer + xo[ind]) < x_struct.cutoff )){
+        size_t ind = 0;
+        double run_value;
+        while (ind < N){
+            run_value = *(run_var_x_pointer + xo[ind]);
+            if (run_value < x_struct.cutoff - x_struct.Owidth){
+                train_ext.push_back(xo[ind]);
+                // test_ind_const.push_back(xo_test[ind]);
+            } else if (run_value <= x_struct.cutoff){
                 train_ind.push_back(xo[ind]);
                 Ol += 1;
-                ind += 1;
-            }
-            while ((ind < N) & (*(run_var_x_pointer + xo[ind]) <= x_struct.cutoff + x_struct.Owidth )){
+            } else if (run_value <= x_struct.cutoff + x_struct.Owidth){
                 train_ind.push_back(xo[ind]);
                 Or += 1;
-                ind += 1;
+            } else {
+                train_ext.push_back(xo[ind]);
+                // test_ind_const.push_back(xo_test[ind]);
             }
-
-            // if ((Ol >= x_struct.Omin) & (Or >= x_struct.Omin)){
-            //     // leaf node qualify for extrapolation
-            //     // cout << "valid leaf node with Ol = " << Ol << " Or = " << Or << endl;
-            // }
+            ind += 1;
         }
 
         if ((Ol < x_struct.Omin) | (Or < x_struct.Omin)){
@@ -2720,9 +2715,8 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         std::vector<size_t> test_ind_gp;
 
         run_var_x_pointer = xtest_struct.X_std + xtest_struct.n_y * (p_continuous - 1);
-        size_t ind = 0;
+        ind = 0;
         size_t index_next_obs = xo_test[ind];
-        double run_value;
         while (ind < Ntest){
             run_value = *(run_var_x_pointer + xo_test[ind]);
             if (run_value < xtest_struct.cutoff - xtest_struct.Owidth){
@@ -2848,12 +2842,12 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
             mat k = cov.submat(N, 0, N + Ntest - 1, N - 1);
             mat Kinv = pinv(cov.submat(0, 0, N - 1, N - 1));
             mu = this->theta_vector[0] +  k * Kinv * resid;
+            // mu.fill(mean_resid);
             Sig = cov.submat(N, N, N + Ntest - 1, N + Ntest - 1) - k * Kinv * trans(k);
         }
         else
         {
             // prior
-            cout << "extrapolation with prior x_range = " << local_X_range[p_continuous - 1] << endl;
             mu.fill(local_ate);
             Sig = cov.submat(N, N, N + Ntest - 1, N + Ntest - 1);
         }

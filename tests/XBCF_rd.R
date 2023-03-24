@@ -23,7 +23,7 @@ y <- mu(w, x) + tau(w, x)*z + rnorm(n, 0, 0.2)
 ## XBCF
 num_sweeps = 40
 burnin = 10
-fit.XBCFrd <- XBCF.rd(y, w, x, c, pcat_con = 0, pcat_mod = 0,
+fit.XBCFrd <- XBCF.rd(y, w, x, c, pcat_con = 0, pcat_mod = 0, Owidth = 0.1,
                     num_trees_mod = 40, num_trees_con = 20, num_sweeps = num_sweeps, burnin = burnin, Nmin = 20)
 
 ntest <- 100
