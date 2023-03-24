@@ -77,8 +77,12 @@ par(mfrow = c(1, 2))
 tau.hat <- pred.XBCFrd$tau.adj.mean
 plot(xtest, tau.test, ylim = range(tau.test, tau.hat))
 points(xtest, tau.hat, col = 'blue')
+# legend("topleft", legend = c("True", "XBCF-GP"), col = c("black", "blue"), pch = 1)
 
 # y.hat <- rowMeans(xbcf.fit$tauhats)*z + rowMeans(xbcf.fit$muhats)
 y.hat <- pred.XBCFrd$yhats.adj.mean
 plot(xtest, ytest, ylim = range(ytest, y.hat))
 points(xtest, y.hat, col = 'blue')
+legend("topleft", legend = c("True", "XBCF-GP"), col = c("black", "blue"), pch = 1)
+
+
