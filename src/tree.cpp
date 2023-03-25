@@ -795,101 +795,215 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
         force_split = true;
         model->setNoSplitPenalty(-INFINITY);
     }
-    
-    // check force_split condtion
-    if (!no_split)
-    {
-        BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this);
-    }
-    model->setNoSplitPenalty(no_split_penalty);
 
-    this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
-
-    // If our current split is same as parent, exit
-    if (!no_split)
-    {
-        // only check this when split_var and split_point is not void
-        double cutpoint = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
-        if ((this->p) && (this->v == (this->p)->v) && (cutpoint == (this->p)->c))
-        {
-            no_split = true;
-        }
-
-        // Update Cutpoint to be a true seperating point
-        // Increase split_point (index) until it is no longer equal to cutpoint value
-        while ((split_point < N_Xorder - 1) && (*(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point + 1]) == cutpoint))
-        {
-            split_point = split_point + 1;
-        }
-
-        if (split_point + 1 == N_Xorder)
-        {
-            no_split = true;
-        }
-    }
-
-    if (!no_split){
-        // Check number of observations in "overlap" area
-        size_t Oll = 0;
-        size_t Olr = 0;
-        size_t Orl = 0;
-        size_t Orr = 0;
-
-        // Assuming the last column is running variable
-        // if (split_var == p_continuous - 1){
-        //     double cutpoint = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
-        //     if ((cutpoint >= state.cutoff - state.Owidth) & (cutpoint <= state.cutoff - state.Owidth)){
-        //         // if the cutpoint falls in the overlap range, one side will definitely not satisfy the condition
-        //         no_split = true;
-        //     }
-        //     // if the cutpoint falls outside, it doesn't affect the condition
-        // } else {
-        // First allocate boundary index for running variable
-        // std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
-        const double *split_var_x_pointer = state.X_std + state.n_y * split_var;
-        // const double *run_var_x_pointer = state.X_std + state.n_y * (p_continuous - 1);
-        double cutvalue = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
-        double run_var_value;
-        for (size_t j = 0; j < N_Xorder; j++)
-        {
-            run_var_value = *(run_var_x_pointer + xo[j]);
-
-            if (*(split_var_x_pointer + xo[j]) <= cutvalue)
+    if(force_split){
+        no_split = true;
+        size_t count_loop = 0;
+        while(no_split){
+            no_split = false;
+            // check force_split condtion
+            if (!no_split)
             {
-                // point in the left node, check which region it belongs
-                if ((run_var_value >= state.cutoff - state.Owidth) && (run_var_value < state.cutoff)){
-                    // running variable on the left
-                    Oll += 1;
-                } else if ((run_var_value >= state.cutoff) && (run_var_value <= state.cutoff + state.Owidth)){
-                    // running varialbe on the right
-                    Olr += 1;
+                BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this);
+            }
+
+            this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
+
+            // If our current split is same as parent, exit
+            if (!no_split)
+            {
+                // only check this when split_var and split_point is not void
+                double cutpoint = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
+                if ((this->p) && (this->v == (this->p)->v) && (cutpoint == (this->p)->c))
+                {
+                    no_split = true;
+                }
+
+                // Update Cutpoint to be a true seperating point
+                // Increase split_point (index) until it is no longer equal to cutpoint value
+                while ((split_point < N_Xorder - 1) && (*(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point + 1]) == cutpoint))
+                {
+                    split_point = split_point + 1;
+                }
+
+                if (split_point + 1 == N_Xorder)
+                {
+                    no_split = true;
                 }
             }
-            else
-            {
-                // point in the right node, check which region it belongs
-                if ((run_var_value >= state.cutoff - state.Owidth) && (run_var_value < state.cutoff)){
-                    // running variable on the left
-                    Orl += 1;
-                } else if ((run_var_value >= state.cutoff) && (run_var_value <= state.cutoff + state.Owidth)){
-                    // running varialbe on the right
-                    Orr += 1;
+
+            if (!no_split){
+                // Check number of observations in "overlap" area
+                size_t Oll = 0;
+                size_t Olr = 0;
+                size_t Orl = 0;
+                size_t Orr = 0;
+
+                // Assuming the last column is running variable
+                // if (split_var == p_continuous - 1){
+                //     double cutpoint = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
+                //     if ((cutpoint >= state.cutoff - state.Owidth) & (cutpoint <= state.cutoff - state.Owidth)){
+                //         // if the cutpoint falls in the overlap range, one side will definitely not satisfy the condition
+                //         no_split = true;
+                //     }
+                //     // if the cutpoint falls outside, it doesn't affect the condition
+                // } else {
+                // First allocate boundary index for running variable
+                // std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
+                const double *split_var_x_pointer = state.X_std + state.n_y * split_var;
+                // const double *run_var_x_pointer = state.X_std + state.n_y * (p_continuous - 1);
+                double cutvalue = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
+                double run_var_value;
+                for (size_t j = 0; j < N_Xorder; j++)
+                {
+                    run_var_value = *(run_var_x_pointer + xo[j]);
+
+                    if (*(split_var_x_pointer + xo[j]) <= cutvalue)
+                    {
+                        // point in the left node, check which region it belongs
+                        if ((run_var_value >= state.cutoff - state.Owidth) && (run_var_value < state.cutoff)){
+                            // running variable on the left
+                            Oll += 1;
+                        } else if ((run_var_value >= state.cutoff) && (run_var_value <= state.cutoff + state.Owidth)){
+                            // running varialbe on the right
+                            Olr += 1;
+                        }
+                    }
+                    else
+                    {
+                        // point in the right node, check which region it belongs
+                        if ((run_var_value >= state.cutoff - state.Owidth) && (run_var_value < state.cutoff)){
+                            // running variable on the left
+                            Orl += 1;
+                        } else if ((run_var_value >= state.cutoff) && (run_var_value <= state.cutoff + state.Owidth)){
+                            // running varialbe on the right
+                            Orr += 1;
+                        }
+                    }
                 }
+                // }
+                
+                if ((Oll > 0) || (Olr > 0)) {
+                    if ((Oll < state.Omin) || (Olr < state.Omin)){
+                        no_split = true;
+                    }
+                }
+                if ((Orl > 0) || (Orr > 0)){
+                    if ((Orl < state.Omin) || (Orr < state.Omin)){
+                        no_split = true;
+                    }
+                }
+                // if (no_split){
+                //     cout << "Early termination sweeps " << sweeps << " tree " << tree_ind << endl;
+                // }
+                // cout << "Total " << N_Xorder << " Oll " << Oll << " Olr " << Olr << " Orl " << Orl << " Orr " << Orr << " no_split is " << no_split << endl;
+            }
+            count_loop += 1;
+            if (count_loop == 100){
+                // cout << "resample failed, sweeps " << sweeps << " tree " << tree_ind << endl;
+                break;
             }
         }
-        // }
+        model->setNoSplitPenalty(no_split_penalty);
+    } else {
         
-        if ((Oll > 0) || (Olr > 0)) {
-            if ((Oll < state.Omin) || (Olr < state.Omin)){
-                no_split = true;
+            // check force_split condtion
+            if (!no_split)
+            {
+                BART_likelihood_all(Xorder_std, no_split, split_var, split_point, subset_vars, X_counts, X_num_unique, model, x_struct, state, this);
             }
-        }
-        if ((Orl > 0) || (Orr > 0)){
-            if ((Orl < state.Omin) || (Orr < state.Omin)){
-                no_split = true;
+
+            this->loglike_node = model->likelihood(this->suff_stat, this->suff_stat, 1, false, true, state);
+
+            // If our current split is same as parent, exit
+            if (!no_split)
+            {
+                // only check this when split_var and split_point is not void
+                double cutpoint = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
+                if ((this->p) && (this->v == (this->p)->v) && (cutpoint == (this->p)->c))
+                {
+                    no_split = true;
+                }
+
+                // Update Cutpoint to be a true seperating point
+                // Increase split_point (index) until it is no longer equal to cutpoint value
+                while ((split_point < N_Xorder - 1) && (*(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point + 1]) == cutpoint))
+                {
+                    split_point = split_point + 1;
+                }
+
+                if (split_point + 1 == N_Xorder)
+                {
+                    no_split = true;
+                }
             }
-        }
-        // cout << "Total " << N_Xorder << " Oll " << Oll << " Olr " << Olr << " Orl " << Orl << " Orr " << Orr << " no_split is " << no_split << endl;
+
+            if (!no_split){
+                // Check number of observations in "overlap" area
+                size_t Oll = 0;
+                size_t Olr = 0;
+                size_t Orl = 0;
+                size_t Orr = 0;
+
+                // Assuming the last column is running variable
+                // if (split_var == p_continuous - 1){
+                //     double cutpoint = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
+                //     if ((cutpoint >= state.cutoff - state.Owidth) & (cutpoint <= state.cutoff - state.Owidth)){
+                //         // if the cutpoint falls in the overlap range, one side will definitely not satisfy the condition
+                //         no_split = true;
+                //     }
+                //     // if the cutpoint falls outside, it doesn't affect the condition
+                // } else {
+                // First allocate boundary index for running variable
+                // std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
+                const double *split_var_x_pointer = state.X_std + state.n_y * split_var;
+                // const double *run_var_x_pointer = state.X_std + state.n_y * (p_continuous - 1);
+                double cutvalue = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
+                double run_var_value;
+                for (size_t j = 0; j < N_Xorder; j++)
+                {
+                    run_var_value = *(run_var_x_pointer + xo[j]);
+
+                    if (*(split_var_x_pointer + xo[j]) <= cutvalue)
+                    {
+                        // point in the left node, check which region it belongs
+                        if ((run_var_value >= state.cutoff - state.Owidth) && (run_var_value < state.cutoff)){
+                            // running variable on the left
+                            Oll += 1;
+                        } else if ((run_var_value >= state.cutoff) && (run_var_value <= state.cutoff + state.Owidth)){
+                            // running varialbe on the right
+                            Olr += 1;
+                        }
+                    }
+                    else
+                    {
+                        // point in the right node, check which region it belongs
+                        if ((run_var_value >= state.cutoff - state.Owidth) && (run_var_value < state.cutoff)){
+                            // running variable on the left
+                            Orl += 1;
+                        } else if ((run_var_value >= state.cutoff) && (run_var_value <= state.cutoff + state.Owidth)){
+                            // running varialbe on the right
+                            Orr += 1;
+                        }
+                    }
+                }
+                // }
+                
+                if ((Oll > 0) || (Olr > 0)) {
+                    if ((Oll < state.Omin) || (Olr < state.Omin)){
+                        no_split = true;
+                    }
+                }
+                if ((Orl > 0) || (Orr > 0)){
+                    if ((Orl < state.Omin) || (Orr < state.Omin)){
+                        no_split = true;
+                    }
+                }
+                // if (no_split){
+                //     cout << "Early termination sweeps " << sweeps << " tree " << tree_ind << endl;
+                // }
+                // cout << "Total " << N_Xorder << " Oll " << Oll << " Olr " << Olr << " Orl " << Orl << " Orr " << Orr << " no_split is " << no_split << endl;
+            }
     }
 
 
