@@ -38,7 +38,9 @@ data <- list(y = ytest, W = wtest, X = xtest, c = c, Wtr = w, Xtr = x)
 
 # Make predictions on the test data
 tau.prior = var(y) / (fit.XBCFrd$model_params$n_trees_con = fit.XBCFrd$model_params$n_trees_mod)
-pred.XBCFrd <- predict.XBCFrd(fit.XBCFrd, W = wtest, X = xtest, Wtr = w, Xtr = x, theta = 1, tau = 0.01)
+
+pred.XBCFrd <- predict.XBCFrd(fit.XBCFrd, W = wtest, X = xtest)
+pred.XBCFrdgp <- predict.XBCFrdgp(fit.XBCFrd, W = wtest, X = xtest, Wtr = w, Xtr = x, theta = 1, tau = 0.01)
 
 # Check yhats
 rmse.yhats <- sqrt(mean((data$y - pred.XBCFrd$yhats.adj.mean)^2))
@@ -58,10 +60,11 @@ plot(xtest, tau.test, ylim = range(tau.test, tau.hat))
 points(xtest, tau.hat, col = 'blue')
 # legend("topleft", legend = c("True", "XBCF-GP"), col = c("black", "blue"), pch = 1)
 
-# y.hat <- rowMeans(xbcf.fit$tauhats)*z + rowMeans(xbcf.fit$muhats)
-y.hat <- pred.XBCFrd$yhats.adj.mean
-plot(xtest, ytest, ylim = range(ytest, y.hat))
-points(xtest, y.hat, col = 'blue')
-legend("topleft", legend = c("True", "XBCF-GP"), col = c("black", "blue"), pch = 1)
+# y.hat <- pred.XBCFrd$yhats.adj.mean
+# plot(xtest, ytest, ylim = range(ytest, y.hat))
+# points(xtest, y.hat, col = 'blue')
+# legend("topleft", legend = c("True", "XBCF-GP"), col = c("black", "blue"), pch = 1)
 
-
+tau.hat.gp <- pred.XBCFrdgp$tau.adj.mean
+plot(xtest, tau.test, ylim = range(tau.test, tau.hat))
+points(xtest, tau.hat.gp, col = 'blue')
