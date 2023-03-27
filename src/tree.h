@@ -162,7 +162,7 @@ public:
 
     void grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, X_struct &x_struct, const size_t &sweeps, const size_t &tree_ind);
 
-    void grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, X_struct &x_struct, 
+    void grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, XBCFrdModel *model, X_struct &x_struct, 
                             std::vector<size_t> &res_indicator, std::vector<double> &valid_residuals, std::vector<double> &resid_mean, const size_t &sweeps, const size_t &tree_ind);
                             
     void grow_from_root_entropy(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, X_struct &x_struct, const size_t &sweeps, const size_t &tree_ind);

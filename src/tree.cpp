@@ -708,7 +708,7 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
     return;
 }
 
-void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, X_struct &x_struct, 
+void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, XBCFrdModel *model, X_struct &x_struct, 
                             std::vector<size_t> &res_indicator, std::vector<double> &valid_residuals, std::vector<double> &resid_mean, const size_t &sweeps, const size_t &tree_ind)
 {
     // grow a tree, users can control number of split points
@@ -774,16 +774,16 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
     size_t Or = 0;
     const double *run_var_x_pointer = state.X_std + state.n_y * (p_continuous - 1);
     std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
-    if ((*(run_var_x_pointer + xo[0]) <= state.cutoff + state.Owidth) & (*(run_var_x_pointer + xo[N_Xorder-1]) >= state.cutoff - state.Owidth)){
+    if ((*(run_var_x_pointer + xo[0]) <= model->cutoff + model->Owidth) & (*(run_var_x_pointer + xo[N_Xorder-1]) >= model->cutoff - model->Owidth)){
         // (smallest value in running variable <= right bandwidth boundary) & (largest value >= left bandwidth boundary)
         // above is the minimum requirement to have obs for extrapolation 
         size_t ind = 0;
         double run_value;
         while (ind < N_Xorder){
             run_value = *(run_var_x_pointer + xo[ind]);
-            if ((run_value > state.cutoff - state.Owidth) & (run_value <= state.cutoff)){
+            if ((run_value > model->cutoff - model->Owidth) & (run_value <= model->cutoff)){
                 Ol += 1;
-            } else if ((run_value > state.cutoff) & (run_value <= state.cutoff + state.Owidth  )){
+            } else if ((run_value > model->cutoff) & (run_value <= model->cutoff + model->Owidth  )){
                 Or += 1;
             }
             ind += 1;
@@ -791,7 +791,7 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
     }
 
     double no_split_penalty = model->getNoSplitPenalty();
-    if ( (Ol >= state.Omin) & (Or >= state.Omin) &  ((double (Ol + Or) / N_Xorder) < state.Opct)){
+    if ( (Ol >= model->Omin) & (Or >= model->Omin) &  ((double (Ol + Or) / N_Xorder) < model->Opct)){
         force_split = true;
         model->setNoSplitPenalty(-INFINITY);
     }
@@ -842,7 +842,7 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
                 // Assuming the last column is running variable
                 // if (split_var == p_continuous - 1){
                 //     double cutpoint = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
-                //     if ((cutpoint >= state.cutoff - state.Owidth) & (cutpoint <= state.cutoff - state.Owidth)){
+                //     if ((cutpoint >= model->cutoff - model->Owidth) & (cutpoint <= model->cutoff - model->Owidth)){
                 //         // if the cutpoint falls in the overlap range, one side will definitely not satisfy the condition
                 //         no_split = true;
                 //     }
@@ -861,10 +861,10 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
                     if (*(split_var_x_pointer + xo[j]) <= cutvalue)
                     {
                         // point in the left node, check which region it belongs
-                        if ((run_var_value >= state.cutoff - state.Owidth) && (run_var_value < state.cutoff)){
+                        if ((run_var_value >= model->cutoff - model->Owidth) && (run_var_value < model->cutoff)){
                             // running variable on the left
                             Oll += 1;
-                        } else if ((run_var_value >= state.cutoff) && (run_var_value <= state.cutoff + state.Owidth)){
+                        } else if ((run_var_value >= model->cutoff) && (run_var_value <= model->cutoff + model->Owidth)){
                             // running varialbe on the right
                             Olr += 1;
                         }
@@ -872,10 +872,10 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
                     else
                     {
                         // point in the right node, check which region it belongs
-                        if ((run_var_value >= state.cutoff - state.Owidth) && (run_var_value < state.cutoff)){
+                        if ((run_var_value >= model->cutoff - model->Owidth) && (run_var_value < model->cutoff)){
                             // running variable on the left
                             Orl += 1;
-                        } else if ((run_var_value >= state.cutoff) && (run_var_value <= state.cutoff + state.Owidth)){
+                        } else if ((run_var_value >= model->cutoff) && (run_var_value <= model->cutoff + model->Owidth)){
                             // running varialbe on the right
                             Orr += 1;
                         }
@@ -884,12 +884,12 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
                 // }
                 
                 if ((Oll > 0) || (Olr > 0)) {
-                    if ((Oll < state.Omin) || (Olr < state.Omin)){
+                    if ((Oll < model->Omin) || (Olr < model->Omin)){
                         no_split = true;
                     }
                 }
                 if ((Orl > 0) || (Orr > 0)){
-                    if ((Orl < state.Omin) || (Orr < state.Omin)){
+                    if ((Orl < model->Omin) || (Orr < model->Omin)){
                         no_split = true;
                     }
                 }
@@ -948,7 +948,7 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
                 // Assuming the last column is running variable
                 // if (split_var == p_continuous - 1){
                 //     double cutpoint = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
-                //     if ((cutpoint >= state.cutoff - state.Owidth) & (cutpoint <= state.cutoff - state.Owidth)){
+                //     if ((cutpoint >= model->cutoff - model->Owidth) & (cutpoint <= model->cutoff - model->Owidth)){
                 //         // if the cutpoint falls in the overlap range, one side will definitely not satisfy the condition
                 //         no_split = true;
                 //     }
@@ -967,10 +967,10 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
                     if (*(split_var_x_pointer + xo[j]) <= cutvalue)
                     {
                         // point in the left node, check which region it belongs
-                        if ((run_var_value >= state.cutoff - state.Owidth) && (run_var_value < state.cutoff)){
+                        if ((run_var_value >= model->cutoff - model->Owidth) && (run_var_value < model->cutoff)){
                             // running variable on the left
                             Oll += 1;
-                        } else if ((run_var_value >= state.cutoff) && (run_var_value <= state.cutoff + state.Owidth)){
+                        } else if ((run_var_value >= model->cutoff) && (run_var_value <= model->cutoff + model->Owidth)){
                             // running varialbe on the right
                             Olr += 1;
                         }
@@ -978,10 +978,10 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
                     else
                     {
                         // point in the right node, check which region it belongs
-                        if ((run_var_value >= state.cutoff - state.Owidth) && (run_var_value < state.cutoff)){
+                        if ((run_var_value >= model->cutoff - model->Owidth) && (run_var_value < model->cutoff)){
                             // running variable on the left
                             Orl += 1;
-                        } else if ((run_var_value >= state.cutoff) && (run_var_value <= state.cutoff + state.Owidth)){
+                        } else if ((run_var_value >= model->cutoff) && (run_var_value <= model->cutoff + model->Owidth)){
                             // running varialbe on the right
                             Orr += 1;
                         }
@@ -990,12 +990,12 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
                 // }
                 
                 if ((Oll > 0) || (Olr > 0)) {
-                    if ((Oll < state.Omin) || (Olr < state.Omin)){
+                    if ((Oll < model->Omin) || (Olr < model->Omin)){
                         no_split = true;
                     }
                 }
                 if ((Orl > 0) || (Orr > 0)){
-                    if ((Orl < state.Omin) || (Orr < state.Omin)){
+                    if ((Orl < model->Omin) || (Orr < model->Omin)){
                         no_split = true;
                     }
                 }
