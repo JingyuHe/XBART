@@ -176,7 +176,7 @@ Rcpp::List XBCF_rd_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mo
     }
 
     // define model
-    XBCFrdModel *model = new XBCFrdModel(kap, s, tau_con, tau_mod, alpha_con, beta_con, alpha_mod, beta_mod, sampling_tau, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s, Owidth, Omin, Opct);
+    XBCFrdModel *model = new XBCFrdModel(kap, s, tau_con, tau_mod, alpha_con, beta_con, alpha_mod, beta_mod, sampling_tau, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s, cutoff, Owidth, Omin, Opct);
     model->setNoSplitPenalty(no_split_penalty);
 
     // State settings
