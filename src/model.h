@@ -585,14 +585,9 @@ public:
 
     Model *clone() { return new XBCFrdModel(*this); }
 
-    // void incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats);
+    void incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats);
 
-    // void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
-
-    // void updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
-
-    // void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side);
-
+    void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
 
     void predict_std(matrix<size_t> &Xorder_std, rd_struct &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique,
                     matrix<size_t> &Xtestorder_std, rd_struct &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique,

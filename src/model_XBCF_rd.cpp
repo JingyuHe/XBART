@@ -10,6 +10,70 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////
 
+
+void XBCFrdModel::incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats)
+{
+    if (state.treatment_flag)
+    {
+        // treatment forest
+        if ((*state.Z_std)[0][index_next_obs] == 1)
+        {
+            // if treated
+            suffstats[1] += ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[1] * (*state.tau_fit)[index_next_obs]) / state.b_vec[1];
+            suffstats[3] += 1;
+        }
+        else
+        {
+            // if control group
+            suffstats[0] += ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[0] * (*state.tau_fit)[index_next_obs]) / state.b_vec[0];
+            suffstats[2] += 1;
+        }
+
+        double running_value = *(state.X_std_mod + state.n_y * (state.p_continuous - 1) + index_next_obs);
+        if ((running_value > cutoff - Owidth) & (running_value <= cutoff)){
+            suffstats[4] += 1; // Ol
+        } else if ((running_value > cutoff) & (running_value <= cutoff + Owidth)){
+            suffstats[5] += 1; // Or
+        }
+    }
+    else
+    {
+        // prognostic forest
+        if ((*state.Z_std)[0][index_next_obs] == 1)
+        {
+            // if treated
+            suffstats[1] += ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[1] * (*state.tau_fit)[index_next_obs]) / state.a;
+            suffstats[3] += 1;
+        }
+        else
+        {
+            // if control group
+            suffstats[0] += ((*state.y_std)[index_next_obs] - state.a * (*state.mu_fit)[index_next_obs] - state.b_vec[0] * (*state.tau_fit)[index_next_obs]) / state.a;
+            suffstats[2] += 1;
+        }
+
+        double running_value = *(state.X_std_con + state.n_y * (state.p_continuous - 1) + index_next_obs);
+        if ((running_value > cutoff - Owidth) & (running_value <= cutoff)){
+            suffstats[4] += 1; // Ol
+        } else if ((running_value > cutoff) & (running_value <= cutoff + Owidth)){
+            suffstats[5] += 1; // Or
+        }
+    }
+
+    return;
+}
+
+void XBCFrdModel::initialize_root_suffstat(State &state, std::vector<double> &suff_stat)
+{
+    suff_stat.resize(dim_suffstat);
+    std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
+    for (size_t i = 0; i < state.n_y; i++)
+    {
+        incSuffStat(state, i, suff_stat);
+    }
+    return;
+}
+
 void XBCFrdModel::predict_std(matrix<size_t> &Xorder_std, rd_struct &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique,
                             matrix<size_t> &Xtestorder_std, rd_struct &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique,
                             const double *Xtestpointer_con, const double *Xtestpointer_mod,

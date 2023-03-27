@@ -790,6 +790,8 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
         }
     }
 
+    // cout << "Ol " << Ol << " Or " << Or << " suff stat " << suff_stat[4] << " " << suff_stat[5] << endl;
+
     double no_split_penalty = model->getNoSplitPenalty();
     if ( (Ol >= model->Omin) & (Or >= model->Omin) &  ((double (Ol + Or) / N_Xorder) < model->Opct)){
         force_split = true;
@@ -1005,7 +1007,6 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
                 // cout << "Total " << N_Xorder << " Oll " << Oll << " Olr " << Olr << " Orl " << Orl << " Orr " << Orr << " no_split is " << no_split << endl;
             }
     }
-
 
 
 
@@ -1708,6 +1709,8 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
 
 void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &split_var, size_t &split_point, const std::vector<size_t> &subset_vars, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, X_struct &x_struct, State &state, tree *tree_pointer)
 {
+    model->setDimSuffStat(tree_pointer->suff_stat.size()); // mysteriors bug that keep model->dim_suffstat = 4;
+
     // compute BART posterior (loglikelihood + logprior penalty)
 
     // subset_vars: a vector of indexes of varibles to consider (like random forest)
@@ -1964,7 +1967,6 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
     }
     else
     {
-
         // otherwise, adaptive number of cutpoints
         // use Ncutpoints
 
