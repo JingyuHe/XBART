@@ -559,11 +559,38 @@ class XBCFrdModel : public XBCFDiscreteModel
 {
 public:
 
-    XBCFrdModel(double kap, double s, double tau_con, double tau_mod, double alpha_con, double beta_con, double alpha_mod, double beta_mod, bool sampling_tau, double tau_con_kap, double tau_con_s, double tau_mod_kap, double tau_mod_s) : XBCFDiscreteModel(kap, s, tau_con, tau_mod, alpha_con, beta_con, alpha_mod, beta_mod, sampling_tau, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s) {}
+    size_t dim_suffstat = 6;
+
+    double Opct;
+    double Owidth;
+    size_t Omin;
+
+    XBCFrdModel(double kap, double s, double tau_con, double tau_mod, double alpha_con, double beta_con, double alpha_mod, double beta_mod, bool sampling_tau, double tau_con_kap, double tau_con_s, double tau_mod_kap, double tau_mod_s, double Owidth, size_t Omin, double Opct) : 
+    XBCFDiscreteModel(kap, s, tau_con, tau_mod, alpha_con, beta_con, alpha_mod, beta_mod, sampling_tau, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s) 
+    {
+        this->Opct = Opct;
+        this->Owidth = Owidth;
+        this->Omin = Omin;
+    }
 
     XBCFrdModel() : XBCFDiscreteModel() {}
 
+    XBCFrdModel(size_t dim_theta, size_t dim_suff) : XBCFDiscreteModel()
+    {
+        this->dim_theta = dim_theta;
+        this->dim_suffstat = dim_suff;
+    };
+
     Model *clone() { return new XBCFrdModel(*this); }
+
+    // void incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats);
+
+    // void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
+
+    // void updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
+
+    // void calculateOtherSideSuffStat(std::vector<double> &parent_suff_stat, std::vector<double> &lchild_suff_stat, std::vector<double> &rchild_suff_stat, size_t &N_parent, size_t &N_left, size_t &N_right, bool &compute_left_side);
+
 
     void predict_std(matrix<size_t> &Xorder_std, rd_struct &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique,
                     matrix<size_t> &Xtestorder_std, rd_struct &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique,
