@@ -791,7 +791,7 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
     }
 
     double no_split_penalty = model->getNoSplitPenalty();
-    if ( (Ol >= state.Omin) & (Or >= state.Omin) &  ((double (Ol + Or) / N_Xorder) < 0.7)){
+    if ( (Ol >= state.Omin) & (Or >= state.Omin) &  ((double (Ol + Or) / N_Xorder) < state.Opct)){
         force_split = true;
         model->setNoSplitPenalty(-INFINITY);
     }
