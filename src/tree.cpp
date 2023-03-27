@@ -769,30 +769,10 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
     }
 
     bool force_split = false;
-     // Count number of obs on each side in the bandwidth
-    size_t Ol = 0;
-    size_t Or = 0;
-    const double *run_var_x_pointer = state.X_std + state.n_y * (p_continuous - 1);
-    std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
-    if ((*(run_var_x_pointer + xo[0]) <= model->cutoff + model->Owidth) & (*(run_var_x_pointer + xo[N_Xorder-1]) >= model->cutoff - model->Owidth)){
-        // (smallest value in running variable <= right bandwidth boundary) & (largest value >= left bandwidth boundary)
-        // above is the minimum requirement to have obs for extrapolation 
-        size_t ind = 0;
-        double run_value;
-        while (ind < N_Xorder){
-            run_value = *(run_var_x_pointer + xo[ind]);
-            if ((run_value > model->cutoff - model->Owidth) & (run_value <= model->cutoff)){
-                Ol += 1;
-            } else if ((run_value > model->cutoff) & (run_value <= model->cutoff + model->Owidth  )){
-                Or += 1;
-            }
-            ind += 1;
-        }
-    }
-
-    // cout << "Ol " << Ol << " Or " << Or << " suff stat " << suff_stat[4] << " " << suff_stat[5] << endl;
 
     double no_split_penalty = model->getNoSplitPenalty();
+    double Ol = suff_stat[4];
+    double Or = suff_stat[5];
     if ( (Ol >= model->Omin) & (Or >= model->Omin) &  ((double (Ol + Or) / N_Xorder) < model->Opct)){
         force_split = true;
         model->setNoSplitPenalty(-INFINITY);
@@ -853,7 +833,8 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
                 // First allocate boundary index for running variable
                 // std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
                 const double *split_var_x_pointer = state.X_std + state.n_y * split_var;
-                // const double *run_var_x_pointer = state.X_std + state.n_y * (p_continuous - 1);
+                const double *run_var_x_pointer = state.X_std + state.n_y * (p_continuous - 1);
+                std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
                 double cutvalue = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
                 double run_var_value;
                 for (size_t j = 0; j < N_Xorder; j++)
@@ -959,7 +940,8 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
                 // First allocate boundary index for running variable
                 // std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
                 const double *split_var_x_pointer = state.X_std + state.n_y * split_var;
-                // const double *run_var_x_pointer = state.X_std + state.n_y * (p_continuous - 1);
+                const double *run_var_x_pointer = state.X_std + state.n_y * (p_continuous - 1);
+                std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
                 double cutvalue = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
                 double run_var_value;
                 for (size_t j = 0; j < N_Xorder; j++)
