@@ -589,6 +589,8 @@ public:
 
     void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
 
+    double likelihood(std::vector<double> &temp_suff_stat, std::vector<double> &suff_stat_all, size_t N_left, bool left_side, bool no_split, State &state) const;
+
     void predict_std(matrix<size_t> &Xorder_std, rd_struct &x_struct, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique,
                     matrix<size_t> &Xtestorder_std, rd_struct &xtest_struct, std::vector<size_t> &Xtest_counts, std::vector<size_t> &Xtest_num_unique,
                     const double *Xtestpointer_con, const double *Xtestpointer_mod,

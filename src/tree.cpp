@@ -869,11 +869,13 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
                 if ((Oll > 0) || (Olr > 0)) {
                     if ((Oll < model->Omin) || (Olr < model->Omin)){
                         no_split = true;
+                        cout << "no split trigured" << endl;
                     }
                 }
                 if ((Orl > 0) || (Orr > 0)){
                     if ((Orl < model->Omin) || (Orr < model->Omin)){
                         no_split = true;
+                        cout << "no split trigured" << endl;
                     }
                 }
                 // if (no_split){
