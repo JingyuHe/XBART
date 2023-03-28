@@ -78,22 +78,6 @@ double XBCFrdModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
 {
     // likelihood equation for XBCF with discrete binary treatment variable Z
 
-    // set likelihood to 0 (-inf in log scale) if producing small leaves within bandwidth
-    double Oll = temp_suff_stat[4];
-    double Olr = temp_suff_stat[5];
-    double Orl = suff_stat_all[4] - temp_suff_stat[4];
-    double Orr = suff_stat_all[5] - temp_suff_stat[5];
-    if ((Oll > 0) || (Olr > 0)) {
-        if ((Oll < Omin) || (Olr < Omin)){
-            return -INFINITY;
-        }
-    }
-    if ((Orl > 0) || (Orr > 0)){
-        if ((Orl < Omin) || (Orr < Omin)){
-            return -INFINITY;
-        }
-    }
-
     double tau_use;
 
     if (state.treatment_flag)
@@ -124,11 +108,32 @@ double XBCFrdModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
 
     if (no_split)
     {
+        // check force split condition
+        if ( (suff_stat_all[4] >= Omin) & (suff_stat_all[5] >= Omin) &  ((double (suff_stat_all[4] + suff_stat_all[5]) / (suff_stat_all[2] + suff_stat_all[3])) < Opct) ){
+            // cout << "force split " << " Ol " << suff_stat_all[4] << " Or " << suff_stat_all[5] << " N " << suff_stat_all[2] + suff_stat_all[3] << endl;
+            return -INFINITY;
+        }
         denominator = 1 + (suff_stat_all[2] / pow(s0, 2) + suff_stat_all[3] / pow(s1, 2)) * tau_use;
         s_psi_squared = suff_stat_all[0] / pow(s0, 2) + suff_stat_all[1] / pow(s1, 2);
     }
     else
     {
+        // set likelihood to 0 (-inf in log scale) if producing small leaves within bandwidth
+        double Oll = temp_suff_stat[4];
+        double Olr = temp_suff_stat[5];
+        double Orl = suff_stat_all[4] - temp_suff_stat[4];
+        double Orr = suff_stat_all[5] - temp_suff_stat[5];
+        if ((Oll > 0) || (Olr > 0)) {
+            if ((Oll < Omin) || (Olr < Omin)){
+                return -INFINITY;
+            }
+        }
+        if ((Orl > 0) || (Orr > 0)){
+            if ((Orl < Omin) || (Orr < Omin)){
+                return -INFINITY;
+            }
+        }
+
         if (left_side)
         {
             denominator = 1 + (temp_suff_stat[2] / pow(s0, 2) + temp_suff_stat[3] / pow(s1, 2)) * tau_use;
