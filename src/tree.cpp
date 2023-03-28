@@ -2541,8 +2541,9 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         mat resid(N, 1);
         for (size_t i = 0; i < N; i++)
         {
-            resid(i, 0) = x_struct.resid[sweeps][tree_ind][train_ind_samp[i]] - this->theta_vector[0];
+            resid(i, 0) = x_struct.resid[sweeps][tree_ind][train_ind_samp[i]]; // - this->theta_vector[0];
         }
+        cout << "theta " << this->theta_vector[0] << " resid " << resid.t() << endl;
 
         mat cov(N + Ntest, N + Ntest);
         get_rel_covariance(cov, X, x_range, theta, tau);
@@ -2567,7 +2568,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         {
             mat k = cov.submat(N, 0, N + Ntest - 1, N - 1);
             mat Kinv = pinv(cov.submat(0, 0, N - 1, N - 1));
-            mu = this->theta_vector[0] +  k * Kinv * resid;
+            mu = this->theta_vector[0] +  k * Kinv * (resid - this->theta_vector[0]);
             // mu.fill(mean(vectorise(resid)));
             Sig = cov.submat(N, N, N + Ntest - 1, N + Ntest - 1) - k * Kinv * trans(k);
         }
