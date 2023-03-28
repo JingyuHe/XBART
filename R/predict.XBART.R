@@ -169,21 +169,6 @@ predict.XBCFrdgp <- function(object, W, X, Wtr, Xtr, theta = 0.1, tau = 1, ...) 
 
     Z <- as.matrix(X >= c)
 
-    # get local ATE near cutoff
-    out_con <- json_to_r(object$tree_json_con)
-    out_mod <- json_to_r(object$tree_json_mod)
-    local.ind <- (X <= c + object$model_params$Owidth) & (X >= c - object$model_params$Owidth);
-    obj.local <- .Call("_XBART_XBCF_discrete_predict", as.matrix(X_con[local.ind, ]), as.matrix(X_mod[local.ind, ]), as.matrix(Z[local.ind]), 
-                        out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt)
-
-    taus.local <- matrix(NA, sum(local.ind), sweeps)
-    for (i in 1:sweeps) {
-        taus.local[, i] = obj.local$tau[,i] * object$sdy * (object$b[i,2] - object$b[i,1])
-    }
-
-    local.ate <- as.matrix(colMeans(taus.local))
-
-
     if (!("matrix" %in% class(Wtr))) {
         cat("Input Wtr is not a matrix, try to convert type.\n")
         Wtr <- as.matrix(Wtr)
@@ -209,8 +194,7 @@ predict.XBCFrdgp <- function(object, W, X, Wtr, Xtr, theta = 0.1, tau = 1, ...) 
     out_con <- json_to_r(object$tree_json_con)
     out_mod <- json_to_r(object$tree_json_mod)
     obj <- .Call("_XBART_XBCF_rd_predict", X_con, X_mod, Z, Xtr_con, Xtr_mod, Ztr, out_con$model_list$tree_pnt, out_mod$model_list$tree_pnt,
-                object$res_indicator_con, object$valid_residuals_con, object$resid_mean_con, object$res_indicator_mod, object$valid_residuals_mod, object$resid_mean_mod,
-                object$sigma0, object$sigma1, object$b, local.ate, object$model_params$p_categorical_mod,
+                object$residuals_con, object$residuals_mod, object$sigma0, object$sigma1, object$b, object$model_params$p_categorical_mod,
                 object$model_params$cutoff, object$model_params$Owidth, object$model_params$Omin, theta, tau)
 
     burnin <- burnin

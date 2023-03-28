@@ -323,8 +323,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // XBCF_rd_predict
-Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con, mat Xtr_mod, mat Ztr, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod, Rcpp::NumericMatrix res_indicator_con, Rcpp::NumericMatrix valid_residuals_con, Rcpp::NumericMatrix resid_mean_con, Rcpp::NumericMatrix res_indicator_mod, Rcpp::NumericMatrix valid_residuals_mod, Rcpp::NumericMatrix resid_mean_mod, Rcpp::NumericMatrix sigma0, Rcpp::NumericMatrix sigma1, Rcpp::NumericMatrix b_xinfo, mat local_ate, size_t p_categorical_mod, double cutoff, double Owidth, size_t Omin, double theta, double tau);
-RcppExport SEXP _XBART_XBCF_rd_predict(SEXP Xpred_conSEXP, SEXP Xpred_modSEXP, SEXP ZpredSEXP, SEXP Xtr_conSEXP, SEXP Xtr_modSEXP, SEXP ZtrSEXP, SEXP tree_conSEXP, SEXP tree_modSEXP, SEXP res_indicator_conSEXP, SEXP valid_residuals_conSEXP, SEXP resid_mean_conSEXP, SEXP res_indicator_modSEXP, SEXP valid_residuals_modSEXP, SEXP resid_mean_modSEXP, SEXP sigma0SEXP, SEXP sigma1SEXP, SEXP b_xinfoSEXP, SEXP local_ateSEXP, SEXP p_categorical_modSEXP, SEXP cutoffSEXP, SEXP OwidthSEXP, SEXP OminSEXP, SEXP thetaSEXP, SEXP tauSEXP) {
+Rcpp::List XBCF_rd_predict(mat Xpred_con, mat Xpred_mod, mat Zpred, mat Xtr_con, mat Xtr_mod, mat Ztr, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod, Rcpp::NumericMatrix residuals_con, Rcpp::NumericMatrix residuals_mod, Rcpp::NumericMatrix sigma0, Rcpp::NumericMatrix sigma1, Rcpp::NumericMatrix b_xinfo, size_t p_categorical_mod, double cutoff, double Owidth, size_t Omin, double theta, double tau);
+RcppExport SEXP _XBART_XBCF_rd_predict(SEXP Xpred_conSEXP, SEXP Xpred_modSEXP, SEXP ZpredSEXP, SEXP Xtr_conSEXP, SEXP Xtr_modSEXP, SEXP ZtrSEXP, SEXP tree_conSEXP, SEXP tree_modSEXP, SEXP residuals_conSEXP, SEXP residuals_modSEXP, SEXP sigma0SEXP, SEXP sigma1SEXP, SEXP b_xinfoSEXP, SEXP p_categorical_modSEXP, SEXP cutoffSEXP, SEXP OwidthSEXP, SEXP OminSEXP, SEXP thetaSEXP, SEXP tauSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -336,23 +336,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< mat >::type Ztr(ZtrSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_con(tree_conSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_mod(tree_modSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type res_indicator_con(res_indicator_conSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type valid_residuals_con(valid_residuals_conSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type resid_mean_con(resid_mean_conSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type res_indicator_mod(res_indicator_modSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type valid_residuals_mod(valid_residuals_modSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type resid_mean_mod(resid_mean_modSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type residuals_con(residuals_conSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type residuals_mod(residuals_modSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type sigma0(sigma0SEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type sigma1(sigma1SEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type b_xinfo(b_xinfoSEXP);
-    Rcpp::traits::input_parameter< mat >::type local_ate(local_ateSEXP);
     Rcpp::traits::input_parameter< size_t >::type p_categorical_mod(p_categorical_modSEXP);
     Rcpp::traits::input_parameter< double >::type cutoff(cutoffSEXP);
     Rcpp::traits::input_parameter< double >::type Owidth(OwidthSEXP);
     Rcpp::traits::input_parameter< size_t >::type Omin(OminSEXP);
     Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
-    rcpp_result_gen = Rcpp::wrap(XBCF_rd_predict(Xpred_con, Xpred_mod, Zpred, Xtr_con, Xtr_mod, Ztr, tree_con, tree_mod, res_indicator_con, valid_residuals_con, resid_mean_con, res_indicator_mod, valid_residuals_mod, resid_mean_mod, sigma0, sigma1, b_xinfo, local_ate, p_categorical_mod, cutoff, Owidth, Omin, theta, tau));
+    rcpp_result_gen = Rcpp::wrap(XBCF_rd_predict(Xpred_con, Xpred_mod, Zpred, Xtr_con, Xtr_mod, Ztr, tree_con, tree_mod, residuals_con, residuals_mod, sigma0, sigma1, b_xinfo, p_categorical_mod, cutoff, Owidth, Omin, theta, tau));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -485,7 +480,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART_xbart_predict", (DL_FUNC) &_XBART_xbart_predict, 3},
     {"_XBART_XBCF_continuous_predict", (DL_FUNC) &_XBART_XBCF_continuous_predict, 5},
     {"_XBART_XBCF_discrete_predict", (DL_FUNC) &_XBART_XBCF_discrete_predict, 5},
-    {"_XBART_XBCF_rd_predict", (DL_FUNC) &_XBART_XBCF_rd_predict, 24},
+    {"_XBART_XBCF_rd_predict", (DL_FUNC) &_XBART_XBCF_rd_predict, 19},
     {"_XBART_xbart_predict_full", (DL_FUNC) &_XBART_xbart_predict_full, 3},
     {"_XBART_gp_predict", (DL_FUNC) &_XBART_gp_predict, 9},
     {"_XBART_xbart_multinomial_predict", (DL_FUNC) &_XBART_xbart_multinomial_predict, 4},

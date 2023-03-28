@@ -612,12 +612,8 @@ void mcmc_loop_xbcf_rd( matrix<size_t> &Xorder_std_con,
                         XBCFrdModel *model,
                         X_struct &x_struct_con,
                         X_struct &x_struct_mod,
-                        matrix<std::vector<size_t>> &con_res_indicator,
-                        matrix<std::vector<double>> &con_valid_residuals,
-                        matrix<std::vector<double>> &con_resid_mean,
-                        matrix<std::vector<size_t>> &mod_res_indicator,
-                        matrix<std::vector<double>> &mod_valid_residuals,
-                        matrix<std::vector<double>> &mod_resid_mean
+                        matrix<std::vector<double>> &con_residuals,
+                        matrix<std::vector<double>> &mod_residuals
                         )
 {
     model->ini_tau_mu_fit(state);
@@ -671,8 +667,13 @@ void mcmc_loop_xbcf_rd( matrix<size_t> &Xorder_std_con,
 
             model->initialize_root_suffstat(state, trees_con[sweeps][tree_ind].suff_stat);
 
-            trees_con[sweeps][tree_ind].grow_from_root_rd(state, Xorder_std_con, x_struct_con.X_counts, x_struct_con.X_num_unique, model, x_struct_con, 
-                                                        con_res_indicator[sweeps][tree_ind], con_valid_residuals[sweeps][tree_ind], con_resid_mean[sweeps][tree_ind], sweeps, tree_ind);
+            trees_con[sweeps][tree_ind].grow_from_root_rd(state, Xorder_std_con, x_struct_con.X_counts, x_struct_con.X_num_unique, model, x_struct_con, sweeps, tree_ind);
+
+            // store residuals:
+            for (size_t data_ind = 0; data_ind < (*state.residual_std)[0].size(); data_ind++)
+            {
+                con_residuals[sweeps][tree_ind][data_ind] = ((*state.residual_std))[0][data_ind]; 
+            }
 
             // update tau_fit from partial fit to full fit
             model->add_new_tree_fit(tree_ind, state, x_struct_con);
@@ -745,13 +746,12 @@ void mcmc_loop_xbcf_rd( matrix<size_t> &Xorder_std_con,
 
             model->initialize_root_suffstat(state, trees_mod[sweeps][tree_ind].suff_stat);
 
-            trees_mod[sweeps][tree_ind].grow_from_root_rd(state, Xorder_std_mod, x_struct_mod.X_counts, x_struct_mod.X_num_unique, model, x_struct_mod, 
-                                                        mod_res_indicator[sweeps][tree_ind], mod_valid_residuals[sweeps][tree_ind], mod_resid_mean[sweeps][tree_ind], sweeps, tree_ind);
+            trees_mod[sweeps][tree_ind].grow_from_root_rd(state, Xorder_std_mod, x_struct_mod.X_counts, x_struct_mod.X_num_unique, model, x_struct_mod, sweeps, tree_ind);
 
             // store residuals:
             for (size_t data_ind = 0; data_ind < (*state.residual_std)[0].size(); data_ind++)
             {
-                mod_valid_residuals[sweeps][tree_ind][data_ind] = ((*state.residual_std))[0][data_ind]; 
+                mod_residuals[sweeps][tree_ind][data_ind] = ((*state.residual_std))[0][data_ind]; 
             }
 
             // update tau_fit from partial fit to full fit
