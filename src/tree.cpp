@@ -795,6 +795,7 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
         if ((this->p) && (this->v == (this->p)->v) && (cutpoint == (this->p)->c))
         {
             no_split = true;
+            // cout << "Split same as parent, sweeps " << sweeps << " tree " << tree_ind << " v " << v << " c " << c << endl;
         }
 
         // Update Cutpoint to be a true seperating point
@@ -807,6 +808,7 @@ void tree::grow_from_root_rd(State &state, matrix<size_t> &Xorder_std, std::vect
         if (split_point + 1 == N_Xorder)
         {
             no_split = true;
+            // cout << "Split at last value, sweeps " << sweeps << " tree " << tree_ind << " v " << split_var << endl;
         }
     }
 
