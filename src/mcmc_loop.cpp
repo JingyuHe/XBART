@@ -667,7 +667,7 @@ void mcmc_loop_xbcf_rd( matrix<size_t> &Xorder_std_con,
 
             model->initialize_root_suffstat(state, trees_con[sweeps][tree_ind].suff_stat);
 
-            trees_con[sweeps][tree_ind].grow_from_root_rd(state, Xorder_std_con, x_struct_con.X_counts, x_struct_con.X_num_unique, model, x_struct_con, sweeps, tree_ind);
+            trees_con[sweeps][tree_ind].grow_from_root(state, Xorder_std_con, x_struct_con.X_counts, x_struct_con.X_num_unique, model, x_struct_con, sweeps, tree_ind);
 
             // store residuals:
             for (size_t data_ind = 0; data_ind < (*state.residual_std)[0].size(); data_ind++)
@@ -746,7 +746,7 @@ void mcmc_loop_xbcf_rd( matrix<size_t> &Xorder_std_con,
 
             model->initialize_root_suffstat(state, trees_mod[sweeps][tree_ind].suff_stat);
 
-            trees_mod[sweeps][tree_ind].grow_from_root_rd(state, Xorder_std_mod, x_struct_mod.X_counts, x_struct_mod.X_num_unique, model, x_struct_mod, sweeps, tree_ind);
+            trees_mod[sweeps][tree_ind].grow_from_root(state, Xorder_std_mod, x_struct_mod.X_counts, x_struct_mod.X_num_unique, model, x_struct_mod, sweeps, tree_ind);
 
             // store residuals:
             for (size_t data_ind = 0; data_ind < (*state.residual_std)[0].size(); data_ind++)
