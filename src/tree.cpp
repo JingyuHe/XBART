@@ -2447,11 +2447,11 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
                 test_ind_gp.push_back(xo_test[ind]);
                 // test_ind_const.push_back(xo_test[ind]);
             } else if (run_value <= xtest_struct.cutoff){
-                test_ind_const.push_back(xo_test[ind]);
-                // test_ind_gp.push_back(xo_test[ind]);
+                // test_ind_const.push_back(xo_test[ind]);
+                test_ind_gp.push_back(xo_test[ind]);
             } else if (run_value <= xtest_struct.cutoff + xtest_struct.Owidth){
-                test_ind_const.push_back(xo_test[ind]);
-                // test_ind_gp.push_back(xo_test[ind]);
+                // test_ind_const.push_back(xo_test[ind]);
+                test_ind_gp.push_back(xo_test[ind]);
             } else {
                 test_ind_gp.push_back(xo_test[ind]);
                 // test_ind_const.push_back(xo_test[ind]);
@@ -2543,7 +2543,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         {
             resid(i, 0) = x_struct.resid[sweeps][tree_ind][train_ind_samp[i]]; // - this->theta_vector[0];
         }
-        // cout << "theta " << this->theta_vector[0] << " resid " << resid.t() << endl;
+        // if (N > 0) cout << "sweeps " << sweeps << " tree " << tree_ind <<  " theta " << this->theta_vector[0] << " mean resid " << mean(vectorise(resid)) << endl;
 
         mat cov(N + Ntest, N + Ntest);
         get_rel_covariance(cov, X, x_range, theta, tau);
