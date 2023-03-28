@@ -2448,8 +2448,10 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
                 // test_ind_const.push_back(xo_test[ind]);
             } else if (run_value <= xtest_struct.cutoff){
                 test_ind_const.push_back(xo_test[ind]);
+                // test_ind_gp.push_back(xo_test[ind]);
             } else if (run_value <= xtest_struct.cutoff + xtest_struct.Owidth){
                 test_ind_const.push_back(xo_test[ind]);
+                // test_ind_gp.push_back(xo_test[ind]);
             } else {
                 test_ind_gp.push_back(xo_test[ind]);
                 // test_ind_const.push_back(xo_test[ind]);
@@ -2551,9 +2553,9 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         {
             //   cov(i, i) +=  state->z[train_ind[i]]*pow(state->sigma_vec[1], 2) / (state->num_trees_vec[0] + state->num_trees_vec[1]) / abs(scale1);
             if ( ((*x_struct.z_std)[train_ind_samp[i]]) == 0 ){
-                cov(i, i) += pow(x_struct.sigma0[sweeps][num_trees_con + tree_ind], 2) / (x_struct.num_trees + num_trees_con) / abs(x_struct.b_draws[0][sweeps]);
+                cov(i, i) += pow(x_struct.sigma0[sweeps][num_trees_con + tree_ind], 2) / pow((x_struct.num_trees + num_trees_con), 2) / pow(abs(x_struct.b_draws[0][sweeps]), 2);
             } else {
-                cov(i, i) += pow(x_struct.sigma1[sweeps][num_trees_con + tree_ind], 2) / (x_struct.num_trees + num_trees_con) / abs(x_struct.b_draws[1][sweeps]);
+                cov(i, i) += pow(x_struct.sigma1[sweeps][num_trees_con + tree_ind], 2) / pow((x_struct.num_trees + num_trees_con), 2) / pow(abs(x_struct.b_draws[1][sweeps]), 2);
             }
         }
 
@@ -2566,7 +2568,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
             mat k = cov.submat(N, 0, N + Ntest - 1, N - 1);
             mat Kinv = pinv(cov.submat(0, 0, N - 1, N - 1));
             mu = this->theta_vector[0] +  k * Kinv * resid;
-            // mu.fill(mean_resid);
+            // mu.fill(mean(vectorise(resid)));
             Sig = cov.submat(N, N, N + Ntest - 1, N + Ntest - 1) - k * Kinv * trans(k);
         }
         else

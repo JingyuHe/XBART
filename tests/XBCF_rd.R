@@ -40,7 +40,7 @@ data <- list(y = ytest, W = wtest, X = xtest, c = c, Wtr = w, Xtr = x)
 tau.prior = var(y) / (fit.XBCFrd$model_params$n_trees_con = fit.XBCFrd$model_params$n_trees_mod)
 
 pred.XBCFrd <- predict.XBCFrd(fit.XBCFrd, W = wtest, X = xtest)
-pred.XBCFrdgp <- predict.XBCFrdgp(fit.XBCFrd, W = wtest, X = xtest, Wtr = w, Xtr = x, theta = 1, tau = 0.00001)
+pred.XBCFrdgp <- predict.XBCFrdgp(fit.XBCFrd, W = wtest, X = xtest, Wtr = w, Xtr = x, theta = 1, tau = 0.001)
 
 # Check yhats
 rmse.yhats <- sqrt(mean((data$y - pred.XBCFrd$yhats.adj.mean)^2))
