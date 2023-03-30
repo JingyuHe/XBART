@@ -21,13 +21,14 @@ z <- x >= c
 y <- mu(w, x) + tau(w, x)*z + rnorm(n, 0, 0.2)
 
 ## XBCF
-num_sweeps = 20
+num_sweeps = 12
 burnin = 10
 fit.XBCFrd <- XBCF.rd(y, w, x, c, Owidth = 0.1, Omin = 10, Opct = 0.9, pcat_con = 0, pcat_mod = 0,
-                    num_trees_mod = 20, num_trees_con = 20, num_cutpoints = n, num_sweeps = num_sweeps, burnin = burnin, Nmin = 20)
+                    num_trees_mod = 5, num_trees_con = 20, num_cutpoints = n, num_sweeps = num_sweeps, burnin = burnin, Nmin = 20)
 
 ntest <- 100
-xtest <- rnorm(ntest, sd = 0.5)
+# xtest <- rnorm(ntest, sd = 0.5)
+xtest <- runif(ntest, -h_test, h_test)
 xtest <- sort(xtest)
 wtest <- matrix(rep(0, ntest*p), ntest, p)
 tau.test <- tau(wtest, xtest)
@@ -77,6 +78,6 @@ points(xtest, y.hat, col = 'blue')
 
 mu.test <- mu(wtest, xtest)
 mu.hat <- pred.XBCFrd$mu.adj.mean
-plot(xtest, mu.test, ylim = range(mu.test, mu.hat), main = 'mu')
-points(xtest, mu.hat, col = 'blue')
+plot(xtest, ytest - mu.test, ylim = range(ytest - mu.test, y.hat - mu.hat), main = 'y - mu')
+points(xtest, y.hat - mu.hat, col = 'blue')
 
