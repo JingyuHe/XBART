@@ -2461,8 +2461,8 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
 
         // assign mu as leaf param if it's near the boundary. 
         for (size_t i = 0; i < test_ind_const.size(); i++){
-            // yhats_test_xinfo[sweeps][test_ind_const[i]] += this->theta_vector[0];
-            yhats_test_xinfo[sweeps][test_ind_const[i]] += local_ate;
+            yhats_test_xinfo[sweeps][test_ind_const[i]] += this->theta_vector[0];
+            // yhats_test_xinfo[sweeps][test_ind_const[i]] += local_ate;
         }
 
         // construct covariance matrix
@@ -2542,9 +2542,16 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         }
         x_range[0] = 1;
 
+        double prior_mean;
+        if(N > 0){
+            prior_mean = this->theta_vector[0];
+        } else {
+            prior_mean = local_ate;
+        }
+
         mat resid(N + 2, 1);
-        resid(0, 0) = local_ate;
-        resid(1, 0) = local_ate;
+        resid(0, 0) = prior_mean;
+        resid(1, 0) = prior_mean;
         for (size_t i = 0; i < N; i++)
         {
             resid(i + 2, 0) = x_struct.resid[sweeps][tree_ind][train_ind_samp[i]]; // - this->theta_vector[0];
@@ -2575,7 +2582,8 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         mat k = cov.submat(N + 2, 0, N + 2 + Ntest - 1, N + 2- 1);
         mat Kinv = pinv(cov.submat(0, 0, N + 2 - 1, N  + 2 - 1));
         // mu = this->theta_vector[0] +  k * Kinv * (resid - this->theta_vector[0]);
-        mu = local_ate + k * Kinv * (resid - local_ate);
+        mu = prior_mean + k * Kinv * (resid - prior_mean);
+        
         // mu.fill(mean(vectorise(resid)));
         Sig = cov.submat(N + 2, N + 2, N + 2 + Ntest - 1, N + 2 + Ntest - 1) - k * Kinv * trans(k);
         // cout << "draw" << endl;
