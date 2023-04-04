@@ -168,6 +168,13 @@ void XBCFrdModel::predict_std(matrix<size_t> &Xorder_std, rd_struct &x_struct, s
 
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
+        if (false)
+        {
+            COUT << "--------------------------------" << endl;
+            COUT << "number of sweeps " << sweeps << endl;
+            COUT << "--------------------------------" << endl;
+        }
+
         for (size_t data_ind = 0; data_ind < N_test; data_ind++)
         {
             // getThetaForObs_Outsample(output_mod, trees_mod[sweeps], data_ind, Xtestpointer_mod, N_test, p_mod);
@@ -206,6 +213,12 @@ void XBCFrdModel::predict_std(matrix<size_t> &Xorder_std, rd_struct &x_struct, s
 
         for (size_t tree_ind = 0; tree_ind < num_trees_mod; tree_ind++)
         {
+            if (false)
+            {
+                COUT << "--------------------------------" << endl;
+                COUT << "number of trees " << tree_ind << endl;
+                COUT << "--------------------------------" << endl;
+            }
             // cout << "sweeps " << sweeps << " tree " << tree_ind << " ate " << local_ate[tree_ind] / count_local << endl;
             std::vector<bool> active_var(Xorder_std.size(), false);
              trees_mod[sweeps][tree_ind].rd_predict_from_root(Xorder_std, x_struct, X_counts, X_num_unique, Xtestorder_std, xtest_struct, Xtest_counts, Xtest_num_unique,
