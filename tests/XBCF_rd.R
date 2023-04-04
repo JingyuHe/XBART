@@ -9,12 +9,12 @@ mu <- function(W, X){return(0.1 * rowSums(W) + 1/(1+exp(-5*X)))}
 tau <- function(W, X) return( sin(mu(W, X)) + 1) # make sure the treatment effect is non-zero
 # 
 # # 1d
-mu <- function(W, X){return(1/(1+exp(-5*X)))}
-tau <- function(W, X) return( sin(mu(W, X)) + 1) # make sure the treatment effect is non-zero
+# mu <- function(W, X){return(1/(1+exp(-5*X)))}
+# tau <- function(W, X) return( sin(mu(W, X)) + 1) # make sure the treatment effect is non-zero
 
 
 n       <- 2000
-p       <- 0
+p       <- 2
 c       <- 0 # Cutoff
 h_overlap       <- 0.1 # overlap bandwidth 
 h_test <- 0.2
