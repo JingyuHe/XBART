@@ -5,16 +5,16 @@
 set.seed(000)
 library(XBART)
 ### DGPfunction(x) return(single_index(x)) #  + 1/(1+exp(-5*xf))
-# mu <- function(W, X){return(0.1 * rowSums(W) + 1/(1+exp(-5*X)))} 
-# tau <- function(W, X) return( sin(mu(W, X)) + 1) # make sure the treatment effect is non-zero
-
-# 1d
-mu <- function(W, X){return(1/(1+exp(-5*X)))}
+mu <- function(W, X){return(0.1 * rowSums(W) + 1/(1+exp(-5*X)))}
 tau <- function(W, X) return( sin(mu(W, X)) + 1) # make sure the treatment effect is non-zero
+# 
+# # 1d
+# mu <- function(W, X){return(1/(1+exp(-5*X)))}
+# tau <- function(W, X) return( sin(mu(W, X)) + 1) # make sure the treatment effect is non-zero
 
 
 n       <- 2000
-p       <- 0
+p       <- 2
 c       <- 0 # Cutoff
 h_overlap       <- 0.1 # overlap bandwidth 
 h_test <- 0.2
@@ -23,17 +23,17 @@ h_test <- 0.2
 w <- matrix(rnorm(n*p), n, p)
 x <- rnorm(n,sd=.5)
 z <- x >= c
-y <- mu(w, x) + tau(w, x)*z + rnorm(n, 0, 0.1)
+y <- mu(w, x) + tau(w, x)*z# + rnorm(n, 0, 0.1)
 
 ## XBCF
 num_sweeps = 12
 burnin = 10
 fit.XBCFrd <- XBCF.rd(y, w, x, c, Owidth = 0.1, Omin = 10, Opct = 0.9, pcat_con = 0, pcat_mod = 0,
-                    num_trees_mod = 2, num_trees_con = 20, num_cutpoints = n, num_sweeps = num_sweeps, burnin = burnin, Nmin = 20)
+                    num_trees_mod = 10, num_trees_con = 20, num_cutpoints = n, num_sweeps = num_sweeps, burnin = burnin, Nmin = 20)
 
 ntest <- 100
-# xtest <- rnorm(ntest, sd = 0.5)
-xtest <- runif(ntest, -h_test, h_test)
+xtest <- rnorm(ntest, sd = 0.3)
+# xtest <- runif(ntest, -h_test, h_test)
 xtest <- sort(xtest)
 wtest <- matrix(rep(0, ntest*p), ntest, p)
 tau.test <- tau(wtest, xtest)
@@ -46,7 +46,7 @@ data <- list(y = ytest, W = wtest, X = xtest, c = c, Wtr = w, Xtr = x)
 tau.prior = var(y) / (fit.XBCFrd$model_params$n_trees_con = fit.XBCFrd$model_params$n_trees_mod)
 
 pred.XBCFrd <- predict.XBCFrd(fit.XBCFrd, W = wtest, X = xtest)
-pred.XBCFrdgp <- predict.XBCFrdgp(fit.XBCFrd, W = wtest, X = xtest, Wtr = w, Xtr = x, theta = 1, tau = 0.1)
+pred.XBCFrdgp <- predict.XBCFrdgp(fit.XBCFrd, W = wtest, X = xtest, Wtr = w, Xtr = x, theta = 0.1, tau = 0.001)
 
 # Check yhats
 rmse.yhats <- sqrt(mean((data$y - pred.XBCFrd$yhats.adj.mean)^2))

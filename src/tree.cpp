@@ -2569,6 +2569,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
             mat k = cov.submat(N, 0, N + Ntest - 1, N - 1);
             mat Kinv = pinv(cov.submat(0, 0, N - 1, N - 1));
             mu = this->theta_vector[0] +  k * Kinv * (resid - this->theta_vector[0]);
+            // mu = k * Kinv * resid;
             // mu.fill(mean(vectorise(resid)));
             Sig = cov.submat(N, N, N + Ntest - 1, N + Ntest - 1) - k * Kinv * trans(k);
         }
@@ -2583,13 +2584,38 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         mat V;
         svd(U, S, V, Sig);
 
-        std::normal_distribution<double> normal_samp(0.0, 1.0);
-        mat samp(Ntest, 1);
-        for (size_t i = 0; i < Ntest; i++)
-            samp(i, 0) = normal_samp(x_struct.gen);
-        mat draws = mu + U * diagmat(sqrt(S)) * samp;
-        for (size_t i = 0; i < Ntest; i++)
-            yhats_test_xinfo[sweeps][test_ind_gp[i]] += draws(i, 0);
+        vec eigvals = eig_sym(Sig);
+        bool is_ps = true;
+        for (size_t i = 0; i < eigvals.n_elem;i++){
+            if (eigvals(i) < 0){
+                is_ps = false;
+                break;
+            }
+        }
+
+        if (is_ps){
+            mat draws = mvnrnd(mu, Sig, 1);
+            for (size_t i = 0; i < Ntest; i++)
+                yhats_test_xinfo[sweeps][test_ind_gp[i]] += draws(i, 0);
+                // cout << "Mvnrnd N " << N << " Ntest " << Ntest << " mu " << local_ate << " draws " << draws.t() << endl;
+        } else {
+
+            // if ((N == 0)& (Ntest > 4)){
+            //     cout << "Sig " << Sig.submat(0, 0, 4, 4)<< endl; }
+            std::normal_distribution<double> normal_samp(0.0, 1.0);
+            mat samp(Ntest, 1);
+            mat draws;
+            for (size_t i = 0; i < Ntest; i++)
+                samp(i, 0) = normal_samp(x_struct.gen);
+
+            draws = mu + U * diagmat(sqrt(S)) * samp;
+            
+            // if ((N == 0)&(Ntest > 5)) {
+            //     cout << "N " << N << " Ntest "<< Ntest << " mu " << local_ate << " draws " << draws.t() << endl;
+            // }
+            for (size_t i = 0; i < Ntest; i++)
+                yhats_test_xinfo[sweeps][test_ind_gp[i]] += draws(i, 0);
+        }
     }
     return;
 }
