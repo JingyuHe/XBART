@@ -2447,11 +2447,11 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
                 test_ind_gp.push_back(xo_test[ind]);
                 // test_ind_const.push_back(xo_test[ind]);
             } else if (run_value <= xtest_struct.cutoff){
-                // test_ind_const.push_back(xo_test[ind]);
-                test_ind_gp.push_back(xo_test[ind]);
+                test_ind_const.push_back(xo_test[ind]);
+                // test_ind_gp.push_back(xo_test[ind]);
             } else if (run_value <= xtest_struct.cutoff + xtest_struct.Owidth){
-                // test_ind_const.push_back(xo_test[ind]);
-                test_ind_gp.push_back(xo_test[ind]);
+                test_ind_const.push_back(xo_test[ind]);
+                // test_ind_gp.push_back(xo_test[ind]);
             } else {
                 test_ind_gp.push_back(xo_test[ind]);
                 // test_ind_const.push_back(xo_test[ind]);
@@ -2461,7 +2461,8 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
 
         // assign mu as leaf param if it's near the boundary. 
         for (size_t i = 0; i < test_ind_const.size(); i++){
-            yhats_test_xinfo[sweeps][test_ind_const[i]] += this->theta_vector[0];
+            // yhats_test_xinfo[sweeps][test_ind_const[i]] += this->theta_vector[0];
+            yhats_test_xinfo[sweeps][test_ind_const[i]] += local_ate;
         }
 
         // construct covariance matrix
