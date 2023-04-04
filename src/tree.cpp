@@ -2542,8 +2542,8 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         x_range[0] = 1;
 
         mat resid(N + 2, 1);
-        resid(0, 0) = this->theta_vector[0];
-        resid(1, 0) = this->theta_vector[0];
+        resid(0, 0) = local_ate;
+        resid(1, 0) = local_ate;
         for (size_t i = 0; i < N; i++)
         {
             resid(i + 2, 0) = x_struct.resid[sweeps][tree_ind][train_ind_samp[i]]; // - this->theta_vector[0];
