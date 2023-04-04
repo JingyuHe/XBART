@@ -2461,8 +2461,10 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
                 // test_ind_const.push_back(xo_test[ind]);
             } else if (run_value <= xtest_struct.cutoff){
                 test_ind_const.push_back(xo_test[ind]);
+                // test_ind_gp.push_back(xo_test[ind]);
             } else if (run_value <= xtest_struct.cutoff + xtest_struct.Owidth){
                 test_ind_const.push_back(xo_test[ind]);
+                // test_ind_gp.push_back(xo_test[ind]);
             } else {
                 test_ind_gp.push_back(xo_test[ind]);
                 // test_ind_const.push_back(xo_test[ind]);
@@ -2472,7 +2474,8 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
 
         // assign mu as leaf param if it's near the boundary. 
         for (size_t i = 0; i < test_ind_const.size(); i++){
-            yhats_test_xinfo[sweeps][test_ind_const[i]] += this->theta_vector[0];
+            // yhats_test_xinfo[sweeps][test_ind_const[i]] += this->theta_vector[0];
+            yhats_test_xinfo[sweeps][test_ind_const[i]] += local_ate;
         }
 
         // construct covariance matrix
@@ -2504,7 +2507,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         std::vector<bool> active_var_out_range(p_continuous, false);
         active_var_out_range[p_continuous - 1] = true;
 
-        mat X(N + Ntest, p_active);
+        mat X(N + Ntest + 2, p_active);
         std::vector<double> x_range(p_active);
         const double *split_var_x_pointer;
         size_t j_count = 0;
@@ -2512,10 +2515,13 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         {
             if (active_var_out_range[j])
             {
+                // TODO: only applies to running variable
+                X(0, j_count) = x_struct.cutoff - x_struct.Owidth;
+                X(1, j_count) = x_struct.cutoff + x_struct.Owidth;
                 split_var_x_pointer = x_struct.X_std + x_struct.n_y * j;
                 for (size_t i = 0; i < N; i++)
                 {
-                    X(i, j_count) = *(split_var_x_pointer + train_ind_samp[i]);
+                    X(i + 2, j_count) = *(split_var_x_pointer + train_ind_samp[i]);
                 }
 
                 // if (local_X_range[j][1] > local_X_range[j][0]){
@@ -2529,13 +2535,13 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
                 }
                 else
                 {
-                    x_range[j_count] = (*(split_var_x_pointer + Xorder_std[j][Xorder_std[j].size() - 1]) - *(split_var_x_pointer + Xorder_std[j][0]));
+                    x_range[j_count] = (*(split_var_x_pointer + x_struct.n_y - 1) - *(split_var_x_pointer));
                 }
 
                 split_var_x_pointer = xtest_struct.X_std + xtest_struct.n_y * j;
                 for (size_t i = 0; i < Ntest; i++)
                 {
-                    X(i + N, j_count) = *(split_var_x_pointer + test_ind_gp[i]);
+                    X(i + N + 2, j_count) = *(split_var_x_pointer + test_ind_gp[i]);
                 }
 
                 if (x_range[j_count] == 0)
@@ -2549,13 +2555,16 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         }
         x_range[0] = 1;
 
-        mat resid(N, 1);
+        mat resid(N + 2, 1);
+        resid(0, 0) = local_ate;
+        resid(1, 0) = local_ate;
         for (size_t i = 0; i < N; i++)
         {
-            resid(i, 0) = x_struct.resid[sweeps][tree_ind][train_ind_samp[i]] - this->theta_vector[0];
+            resid(i + 2, 0) = x_struct.resid[sweeps][tree_ind][train_ind_samp[i]]; // - this->theta_vector[0];
         }
+        // if (N > 0) cout << "sweeps " << sweeps << " tree " << tree_ind <<  " theta " << this->theta_vector[0] << " mean resid " << mean(vectorise(resid)) << endl;
 
-        mat cov(N + Ntest, N + Ntest);
+        mat cov(N + Ntest + 2, N + Ntest + 2);
         get_rel_covariance(cov, X, x_range, theta, tau);
         // TODO: change sigma to sigma0, 1
         size_t num_trees_con = (x_struct.sigma0[0]).size() - x_struct.num_trees;
@@ -2564,42 +2573,69 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         {
             //   cov(i, i) +=  state->z[train_ind[i]]*pow(state->sigma_vec[1], 2) / (state->num_trees_vec[0] + state->num_trees_vec[1]) / abs(scale1);
             if ( ((*x_struct.z_std)[train_ind_samp[i]]) == 0 ){
-                cov(i, i) += pow(x_struct.sigma0[sweeps][num_trees_con + tree_ind], 2) / (x_struct.num_trees + num_trees_con) / abs(x_struct.b_draws[0][sweeps]);
+                cov(i + 2, i + 2) += pow(x_struct.sigma0[sweeps][num_trees_con + tree_ind], 2) / pow(abs(x_struct.b_draws[0][sweeps]), 2);
             } else {
-                cov(i, i) += pow(x_struct.sigma1[sweeps][num_trees_con + tree_ind], 2) / (x_struct.num_trees + num_trees_con) / abs(x_struct.b_draws[1][sweeps]);
+                cov(i + 2, i + 2) += pow(x_struct.sigma1[sweeps][num_trees_con + tree_ind], 2) / pow(abs(x_struct.b_draws[1][sweeps]), 2);
             }
         }
 
         // cout << "local range " << local_X_range[p_continuous - 1] << " Ol = " << Ol << " Or = " << Or << " mu = " << this->theta_vector[0] << " local ate = " << local_ate << endl;
 
         mat mu(Ntest, 1);
-        mat Sig(Ntest, Ntest);
-        if (N > 0)
-        {
-            mat k = cov.submat(N, 0, N + Ntest - 1, N - 1);
-            mat Kinv = pinv(cov.submat(0, 0, N - 1, N - 1));
-            mu = this->theta_vector[0] +  k * Kinv * resid;
-            // mu.fill(mean_resid);
-            Sig = cov.submat(N, N, N + Ntest - 1, N + Ntest - 1) - k * Kinv * trans(k);
-        }
-        else
-        {
-            // prior
-            mu.fill(local_ate);
-            Sig = cov.submat(N, N, N + Ntest - 1, N + Ntest - 1);
-        }
+        mat Sig(Ntest, Ntest);  
+        // cout << "get condi" << endl;
+
+        mat k = cov.submat(N + 2, 0, N + 2 + Ntest - 1, N + 2- 1);
+        mat Kinv = pinv(cov.submat(0, 0, N + 2 - 1, N  + 2 - 1));
+        // mu = this->theta_vector[0] +  k * Kinv * (resid - this->theta_vector[0]);
+        mu = local_ate + k * Kinv * (resid - local_ate);
+        // mu.fill(mean(vectorise(resid)));
+        Sig = cov.submat(N + 2, N + 2, N + 2 + Ntest - 1, N + 2 + Ntest - 1) - k * Kinv * trans(k);
+        // cout << "draw" << endl;
+        // else
+        // {
+        //     // prior
+        //     mu.fill(local_ate);
+        //     Sig = cov.submat(N, N, N + Ntest - 1, N + Ntest - 1);
+        // }
+
         mat U;
         vec S;
         mat V;
         svd(U, S, V, Sig);
 
-        std::normal_distribution<double> normal_samp(0.0, 1.0);
-        mat samp(Ntest, 1);
-        for (size_t i = 0; i < Ntest; i++)
-            samp(i, 0) = normal_samp(x_struct.gen);
-        mat draws = mu + U * diagmat(sqrt(S)) * samp;
-        for (size_t i = 0; i < Ntest; i++)
-            yhats_test_xinfo[sweeps][test_ind_gp[i]] += draws(i, 0);
+        // vec eigvals = eig_sym(Sig);
+        bool is_ps = false;
+        // for (size_t i = 0; i < eigvals.n_elem;i++){
+        //     if (eigvals(i) < 0){
+        //         is_ps = false;
+        //         break;
+        //     }
+        // }
+
+        if (is_ps){
+            mat draws = mvnrnd(mu, Sig, 1);
+            for (size_t i = 0; i < Ntest; i++)
+                yhats_test_xinfo[sweeps][test_ind_gp[i]] += draws(i, 0);
+                // cout << "Mvnrnd N " << N << " Ntest " << Ntest << " mu " << local_ate << " draws " << draws.t() << endl;
+        } else {
+
+            // if ((N == 0)& (Ntest > 4)){
+            //     cout << "Sig " << Sig.submat(0, 0, 4, 4)<< endl; }
+            std::normal_distribution<double> normal_samp(0.0, 1.0);
+            mat samp(Ntest, 1);
+            mat draws;
+            for (size_t i = 0; i < Ntest; i++)
+                samp(i, 0) = normal_samp(x_struct.gen);
+
+            draws = mu + U * diagmat(sqrt(S)) * samp;
+            
+            // if ((N == 0)&(Ntest > 5)) {
+            //     cout << "N " << N << " Ntest "<< Ntest << " mu " << local_ate << " draws " << draws.t() << endl;
+            // }
+            for (size_t i = 0; i < Ntest; i++)
+                yhats_test_xinfo[sweeps][test_ind_gp[i]] += draws(i, 0);
+        }
     }
     return;
 }
