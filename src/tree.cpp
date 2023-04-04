@@ -2291,7 +2291,11 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
     size_t Ntest = Xtestorder_std[0].size();
     size_t p = active_var.size();
     size_t p_continuous = x_struct.p_continuous;
-
+    
+    // Debugging each step of the recursion
+    COUT << "Tree node number: " << this->nid() << endl;
+    COUT << "N train = " << N << "; N test = " << Ntest << "; p active in node = " << p << "; p continuous = " << p_continuous << endl;
+    
     if (Ntest == 0)
     { // no need to split if Ntest = 0
         return;
@@ -2299,6 +2303,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
 
     if (this->l)
     {
+        COUT << "Node is parent" << endl;
         active_var[v] = true;
         std::vector<bool> active_var_left(active_var.size());
         std::vector<bool> active_var_right(active_var.size());
@@ -2386,6 +2391,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
     }
     else
     {
+        COUT << "Node is a leaf" << endl;
         if (N == 0)
         {
             COUT << "0 training data in the leaf node" << endl;
