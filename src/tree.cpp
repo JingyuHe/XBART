@@ -2521,7 +2521,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
                 }
                 else
                 {
-                    x_range[j_count] = (*(split_var_x_pointer + Xorder_std[j][Xorder_std[j].size() - 1]) - *(split_var_x_pointer + Xorder_std[j][0]));
+                    x_range[j_count] = (*(split_var_x_pointer + x_struct.n_y - 1) - *(split_var_x_pointer));
                 }
 
                 split_var_x_pointer = xtest_struct.X_std + xtest_struct.n_y * j;
