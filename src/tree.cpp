@@ -2573,8 +2573,8 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
 
         mat k = cov.submat(N + 2, 0, N + 2 + Ntest - 1, N + 2- 1);
         mat Kinv = pinv(cov.submat(0, 0, N + 2 - 1, N  + 2 - 1));
-        mu = this->theta_vector[0] +  k * Kinv * (resid - this->theta_vector[0]);
-        // mu = k * Kinv * resid;
+        // mu = this->theta_vector[0] +  k * Kinv * (resid - this->theta_vector[0]);
+        mu = local_ate + k * Kinv * (resid - local_ate);
         // mu.fill(mean(vectorise(resid)));
         Sig = cov.submat(N + 2, N + 2, N + 2 + Ntest - 1, N + 2 + Ntest - 1) - k * Kinv * trans(k);
         // cout << "draw" << endl;
