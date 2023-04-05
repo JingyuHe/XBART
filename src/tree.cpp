@@ -555,6 +555,7 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
 {
     cout << "" << endl;
     cout << "Sweep = " << sweeps << " Tree = " << tree_ind << " Node number = " << this->nid() << endl;
+    cout << "Suff stat dim = " << this->suff_stat.size() << endl;
 
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
@@ -1751,6 +1752,7 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
     // loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike_size) + model->getNoSplitPenalty();
     //     // !!Note loglike_size shouldn't get minus 1 when it count non zero of loglike.
 
+    cout << "No split eval, number of node sufficient statistics " << tree_pointer->suff_stat.size() << " node sufficient statistics " << tree_pointer->suff_stat << endl;
     loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + (model->getNoSplitPenalty());
     cout << "No split log likelihood " << loglike[loglike.size() - 1] << endl;
 
