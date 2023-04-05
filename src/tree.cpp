@@ -553,6 +553,7 @@ std::istream &operator>>(std::istream &is, tree &t)
 // main function to grow the tree recursively
 void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, X_struct &x_struct, const size_t &sweeps, const size_t &tree_ind)
 {
+    cout << "" << endl;
     cout << "Sweep = " << sweeps << " Tree = " << tree_ind << " Node number = " << this->nid() << endl;
 
     // grow a tree, users can control number of split points
@@ -1751,7 +1752,7 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
     //     // !!Note loglike_size shouldn't get minus 1 when it count non zero of loglike.
 
     loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + (model->getNoSplitPenalty());
-  
+    cout << "No split log likelihood " << loglike[loglike.size() - 1] << endl;
 
     // loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + log(model->getNoSplitPenalty());
 
