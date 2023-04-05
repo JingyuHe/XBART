@@ -2,7 +2,7 @@
 # Test performance on xbcf-rd
 
 ## Setup
-set.seed(000)
+set.seed(1234)
 library(XBART)
 ### DGPfunction(x) return(single_index(x)) #  + 1/(1+exp(-5*xf))
 mu <- function(W, X){return(0.1 * rowSums(W) + 1/(1+exp(-5*X)))}
