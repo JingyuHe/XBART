@@ -1403,19 +1403,29 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
     }
 
     //cout << "loglike " << loglike << endl;
-    cout << "number of loglike evaluations " << loglike.size() << endl;
+    size_t nonzero_loglike_evals;
+    nonzero_loglike_evals = 0;
+    for (size_t ii = 0; ii < loglike.size(); ii++){
+        if (loglike[ii] != 0.0){
+            nonzero_loglike_evals += 1;
+        }
+    }
+    cout << "Number of nonzero loglikelihood evaluations " << nonzero_loglike_evals << endl;
 
     // sampling cutpoints
     if (N <= state.n_cutpoints + 1 + 2 * state.n_min)
     {
 
         // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
-
+        cout << "Case I: Consider splitting on all data points" << endl;
+        
         // if number of observations is smaller than Ncutpoints, all data are splitpoint candidates
         // note that the first Nmin and last Nmin cannot be splitpoint candidate
 
         if ((N - 1) > 2 * state.n_min)
         {
+            cout << "Case I.a.: Truncate continuous variable splits by Nmin" << endl;
+            
             // for(size_t i = 0; i < p; i ++ ){
             for (auto &&i : subset_vars)
             {
@@ -1429,6 +1439,8 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         }
         else
         {
+            cout << "Case I.b.: Do not consider any continuous variable splits" << endl;
+            
             // do not use all continuous variables
             if (state.p_continuous > 0)
             {
@@ -1436,6 +1448,14 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
             }
         }
 
+        nonzero_loglike_evals = 0;
+        for (size_t ii = 0; ii < loglike.size(); ii++){
+            if (loglike[ii] != 0.0){
+                nonzero_loglike_evals += 1;
+            }
+        }
+        cout << "Number of nonzero loglikelihood evaluations after adjustment " << nonzero_loglike_evals << endl;
+        
         std::discrete_distribution<> d(loglike.begin(), loglike.end());
 
         // for MH update usage only
@@ -1451,6 +1471,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
 
         if (ind == loglike.size() - 1)
         {
+            cout << "No split" << endl;
             // no split
             no_split = true;
             split_var = 0;
@@ -1459,7 +1480,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         else if ((N - 1) <= 2 * state.n_min)
         {
             // np split
-
+            cout << "No split" << endl;
             /////////////////////////////////
             //
             // Need optimization, move before calculating likelihood
@@ -1472,12 +1493,14 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         }
         else if (ind < loglike_start)
         {
+            cout << "Continuous variable split" << endl;
             // split at continuous variable
             split_var = ind / (N - 1);
             split_point = ind % (N - 1);
         }
         else
         {
+            cout << "Categorical variable split" << endl;
             // split at categorical variable
             size_t start;
             ind = ind - loglike_start;
@@ -1498,15 +1521,19 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
             }
             split_var = split_var + state.p_continuous;
         }
+        cout << "Sampled index = " << ind << " Split var = " << split_var << " Split point = " << split_point << endl;
     }
     else
     {
         // use adaptive number of cutpoints
-
+        cout << "Case II: Consider an adaptive number of split points" << endl;
+        
         std::vector<size_t> candidate_index(state.n_cutpoints);
 
         seq_gen_std(state.n_min, N - state.n_min, state.n_cutpoints, candidate_index);
 
+        cout << "Candidate cutpoints: " << candidate_index << endl;
+        
         std::discrete_distribution<size_t> d(loglike.begin(), loglike.end());
 
         // For MH update usage only
@@ -1522,6 +1549,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
 
         if (ind == loglike.size() - 1)
         {
+            cout << "No split" << endl;
             // no split
             no_split = true;
             split_var = 0;
@@ -1529,12 +1557,14 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         }
         else if (ind < loglike_start)
         {
+            cout << "Continuous variable split" << endl;
             // split at continuous variable
             split_var = ind / state.n_cutpoints;
             split_point = candidate_index[ind % state.n_cutpoints];
         }
         else
         {
+            cout << "Categorical variable split" << endl;
             // split at categorical variable
             size_t start;
             ind = ind - loglike_start;
@@ -1555,6 +1585,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
             }
             split_var = split_var + state.p_continuous;
         }
+        cout << "Sampled index = " << ind << " Split var = " << split_var << " Split point = " << split_point << endl;
     }
 
     return;
