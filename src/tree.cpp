@@ -1400,7 +1400,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         loglike[ii] = exp(loglike[ii] - loglike_max);
     }
 
-    // cout << "loglike " << loglike << endl;
+    cout << "loglike " << loglike << endl;
 
     // sampling cutpoints
     if (N <= state.n_cutpoints + 1 + 2 * state.n_min)
