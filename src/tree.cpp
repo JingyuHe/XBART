@@ -553,6 +553,8 @@ std::istream &operator>>(std::istream &is, tree &t)
 // main function to grow the tree recursively
 void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, X_struct &x_struct, const size_t &sweeps, const size_t &tree_ind)
 {
+    cout << "Sweep = " << sweeps << " Tree = " << tree_ind << " Node number = " << this->nid() << endl;
+
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
@@ -1400,7 +1402,8 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         loglike[ii] = exp(loglike[ii] - loglike_max);
     }
 
-    cout << "loglike " << loglike << endl;
+    //cout << "loglike " << loglike << endl;
+    cout << "number of loglike evaluations " << loglike.size() << endl;
 
     // sampling cutpoints
     if (N <= state.n_cutpoints + 1 + 2 * state.n_min)
