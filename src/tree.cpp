@@ -1412,7 +1412,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
             nonzero_loglike_evals += 1;
         }
     }
-    cout << "Number of nonzero loglikelihood evaluations " << nonzero_loglike_evals << endl;
+    cout << "Size of loglikelihood vector: " << loglike.size() << "; Number of nonzero loglikelihood evaluations " << nonzero_loglike_evals << endl;
 
     // sampling cutpoints
     if (N <= state.n_cutpoints + 1 + 2 * state.n_min)
@@ -1456,7 +1456,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
                 nonzero_loglike_evals += 1;
             }
         }
-        cout << "Number of nonzero loglikelihood evaluations after adjustment " << nonzero_loglike_evals << endl;
+        cout << "Size of loglikelihood vector: " << loglike.size() << "; Number of nonzero loglikelihood evaluations after adjustment " << nonzero_loglike_evals << endl;
         
         std::discrete_distribution<> d(loglike.begin(), loglike.end());
 
