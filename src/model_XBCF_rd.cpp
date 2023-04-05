@@ -115,6 +115,7 @@ double XBCFrdModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
         }
         denominator = 1 + (suff_stat_all[2] / pow(s0, 2) + suff_stat_all[3] / pow(s1, 2)) * tau_use;
         s_psi_squared = suff_stat_all[0] / pow(s0, 2) + suff_stat_all[1] / pow(s1, 2);
+        cout << "No split likelihood not converted to zero; Denominator = " << denominator << " s_psi_squared = " << s_psi_squared << endl;
     }
     else
     {
