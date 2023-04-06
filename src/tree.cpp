@@ -1444,36 +1444,35 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         vec_sum(loglike, tree_pointer->prob_split);
         tree_pointer->prob_split = loglike[ind] / tree_pointer->prob_split;
 
-        if (tree_pointer->num_cutpoint_candidates == 0)
+        if (ind == loglike.size() - 1)        
         {
-            // Handles the following edge case:
-            //  When the log-likelihood vector is all -INFINITY, 
-            //  which is possible if both:
-            //      (a) The "no split" option was zero-ed out in the likelihood 
-            //      evaluation, corresponding to the RDD "force split" condition
-            //      (b) Each of the possible cutpoints have a zero likelihood, 
-            //      either because they were zero-ed out in the RDD likelihood 
-            //      or because of the Nmin condition
-            // 
-            //  Then std::discrete_distribution<> d(loglike.begin(), loglike.end()) 
-            //  only has zero / null probabilities. On MacOS (at least the 
-            //  version of clang shipped with xcode), sampling from this 
-            //  distribution will always return the __last__ index in the likelihood
-            //  vector (which corresponds to "no split"), while on linux 
-            //  (at least with several versions of gcc tested), sampling from 
-            //  this distribution will always return the __first__ index 
-            //  in the likelihood vector, which corresponds to splitting on 
-            //  the smallest available value of the first feature. 
-            //  
-            //  This was leading to much deeper trees on Linux than on MacOS.
+            // no split
             no_split = true;
             split_var = 0;
             split_point = 0;
-            cout << "Trying to sample a split on all zero likelihoods" << endl;
         }
-        else if (ind == loglike.size() - 1)
+        else if (tree_pointer->num_cutpoint_candidates == 0)
         {
-            // no split
+            // Handles the following edge case:
+            //  When the log-likelihood vector is all -INFINITY,
+            //  which is possible if both:
+            //      (a) The "no split" option was zero-ed out in the likelihood
+            //      evaluation, corresponding to the RDD "force split" condition
+            //      (b) Each of the possible cutpoints have a zero likelihood,
+            //      either because they were zero-ed out in the RDD likelihood
+            //      or because of the Nmin condition
+            //
+            //  Then std::discrete_distribution<> d(loglike.begin(), loglike.end())
+            //  only has zero / null probabilities. On MacOS (at least the
+            //  version of clang shipped with xcode), sampling from this
+            //  distribution will always return the __last__ index in the likelihood
+            //  vector (which corresponds to "no split"), while on linux
+            //  (at least with several versions of gcc tested), sampling from
+            //  this distribution will always return the __first__ index
+            //  in the likelihood vector, which corresponds to splitting on
+            //  the smallest available value of the first feature.
+            //
+            //  This was leading to much deeper trees on Linux than on MacOS.
             no_split = true;
             split_var = 0;
             split_point = 0;
@@ -1541,36 +1540,35 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         vec_sum(loglike, tree_pointer->prob_split);
         tree_pointer->prob_split = loglike[ind] / tree_pointer->prob_split;
 
-        if (tree_pointer->num_cutpoint_candidates == 0)
+        if (ind == loglike.size() - 1)
         {
-            // Handles the following edge case:
-            //  When the log-likelihood vector is all -INFINITY, 
-            //  which is possible if both:
-            //      (a) The "no split" option was zero-ed out in the likelihood 
-            //      evaluation, corresponding to the RDD "force split" condition
-            //      (b) Each of the possible cutpoints have a zero likelihood, 
-            //      either because they were zero-ed out in the RDD likelihood 
-            //      or because of the Nmin condition
-            // 
-            //  Then std::discrete_distribution<> d(loglike.begin(), loglike.end()) 
-            //  only has zero / null probabilities. On MacOS (at least the 
-            //  version of clang shipped with xcode), sampling from this 
-            //  distribution will always return the __last__ index in the likelihood
-            //  vector (which corresponds to "no split"), while on linux 
-            //  (at least with several versions of gcc tested), sampling from 
-            //  this distribution will always return the __first__ index 
-            //  in the likelihood vector, which corresponds to splitting on 
-            //  the smallest available value of the first feature. 
-            //  
-            //  This was leading to much deeper trees on Linux than on MacOS.
+            // no split
             no_split = true;
             split_var = 0;
             split_point = 0;
-            cout << "Trying to sample a split on all zero likelihoods" << endl;
         }
-        else if (ind == loglike.size() - 1)
+        else if (tree_pointer->num_cutpoint_candidates == 0)
         {
-            // no split
+            // Handles the following edge case:
+            //  When the log-likelihood vector is all -INFINITY,
+            //  which is possible if both:
+            //      (a) The "no split" option was zero-ed out in the likelihood
+            //      evaluation, corresponding to the RDD "force split" condition
+            //      (b) Each of the possible cutpoints have a zero likelihood,
+            //      either because they were zero-ed out in the RDD likelihood
+            //      or because of the Nmin condition
+            //
+            //  Then std::discrete_distribution<> d(loglike.begin(), loglike.end())
+            //  only has zero / null probabilities. On MacOS (at least the
+            //  version of clang shipped with xcode), sampling from this
+            //  distribution will always return the __last__ index in the likelihood
+            //  vector (which corresponds to "no split"), while on linux
+            //  (at least with several versions of gcc tested), sampling from
+            //  this distribution will always return the __first__ index
+            //  in the likelihood vector, which corresponds to splitting on
+            //  the smallest available value of the first feature.
+            //
+            //  This was leading to much deeper trees on Linux than on MacOS.
             no_split = true;
             split_var = 0;
             split_point = 0;
@@ -2342,13 +2340,6 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
     size_t p = active_var.size();
     size_t p_continuous = x_struct.p_continuous;
     
-    // Debugging each step of the recursion
-    if (N < 20){
-        COUT << "Sweep = " << sweeps << "; Tree = " << tree_ind << endl;
-        COUT << "Tree node number: " << this->nid() << endl;
-        COUT << "N train = " << N << "; N test = " << Ntest << "; p active in node = " << p << "; p continuous = " << p_continuous << endl;
-    }
-    
     if (Ntest == 0)
     { // no need to split if Ntest = 0
         return;
@@ -2356,9 +2347,6 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
 
     if (this->l)
     {
-        if (N < 20){
-            COUT << "Node is parent" << endl;
-        }
         active_var[v] = true;
         std::vector<bool> active_var_left(active_var.size());
         std::vector<bool> active_var_right(active_var.size());
@@ -2446,9 +2434,6 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
     }
     else
     {
-        if (N < 20){
-            COUT << "Node is a leaf" << endl;
-        }
         if (N == 0)
         {
             COUT << "0 training data in the leaf node" << endl;
