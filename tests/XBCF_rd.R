@@ -26,10 +26,10 @@ z <- x >= c
 y <- mu(w, x) + tau(w, x)*z# + rnorm(n, 0, 0.1)
 
 ## XBCF
-num_sweeps = 3
-burnin = 1
+num_sweeps = 12
+burnin = 10
 fit.XBCFrd <- XBCF.rd(y, w, x, c, Owidth = 0.1, Omin = 10, Opct = 0.9, pcat_con = 0, pcat_mod = 0,
-                    num_trees_mod = 3, num_trees_con = 3, num_cutpoints = n, num_sweeps = num_sweeps, burnin = burnin, Nmin = 20)
+                    num_trees_mod = 10, num_trees_con = 20, num_cutpoints = n, num_sweeps = num_sweeps, burnin = burnin, Nmin = 20)
 
 ntest <- 100
 xtest <- rnorm(ntest, sd = 0.2)
@@ -69,7 +69,6 @@ tau.hat <- pred.XBCFrd$tau.adj.mean
 tau.hat.gp <- pred.XBCFrdgp$tau.adj.mean
 plot(xtest, tau.test, ylim = range(tau.test, tau.hat, tau.hat.gp), main = 'XBCF')
 points(xtest, tau.hat, col = 'blue')
-legend("topleft", legend = c("True", "Estimate"), col = c("black", "blue"), pch = 1)
 
 plot(xtest, tau.test, ylim = range(tau.test, tau.hat.gp, tau.hat), main = 'XBCF-GP')
 points(xtest, tau.hat.gp, col = 'blue')
@@ -79,6 +78,7 @@ abline(v = 0.1)
 y.hat <- pred.XBCFrd$yhats.adj.mean
 plot(xtest, ytest, ylim = range(ytest, y.hat), main = 'yhat')
 points(xtest, y.hat, col = 'blue')
+legend("topleft", legend = c("True", "Estimate"), col = c("black", "blue"), pch = 1)
 # legend("topleft", legend = c("True", "XBCF-GP"), col = c("black", "blue"), pch = 1)
 
 mu.test <- mu(wtest, xtest)
