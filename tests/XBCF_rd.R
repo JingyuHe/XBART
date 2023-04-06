@@ -26,7 +26,7 @@ z <- x >= c
 y <- mu(w, x) + tau(w, x)*z# + rnorm(n, 0, 0.1)
 
 ## XBCF
-num_sweeps = 12
+num_sweeps = 40
 burnin = 10
 fit.XBCFrd <- XBCF.rd(y, w, x, c, Owidth = 0.1, Omin = 10, Opct = 0.9, pcat_con = 0, pcat_mod = 0,
                     num_trees_mod = 10, num_trees_con = 20, num_cutpoints = n, num_sweeps = num_sweeps, burnin = burnin, Nmin = 20)
@@ -55,12 +55,16 @@ print(paste("RMSE on yhats ", round(rmse.yhats, 3), sep = ""))
 # Check tauhats in the test bandwidth
 test.ind <- (xtest <= c+h_test) & (xtest >= c-h_test)
 expected_ate <- mean(tau.test[test.ind])
-ate.hat <- colMeans(pred.XBCFrd$tau.adj[test.ind, ])[(burnin + 1):num_sweeps]
+ate.hat <- colMeans(pred.XBCFrd$tau.adj[test.ind, (burnin + 1):num_sweeps])
 rmse.ate <- sqrt(mean((ate.hat - expected_ate)^2))
+var.ate <- var(ate.hat)
+bias.ate <- mean((ate.hat - expected_ate))
 print(paste("XBCF RMSE on ATE ", round(rmse.ate, 3), sep = ""))
 
-ate.hat.gp <- colMeans(pred.XBCFrdgp$tau.adj[test.ind, ])[(burnin + 1):num_sweeps]
+ate.hat.gp <- colMeans(pred.XBCFrdgp$tau.adj[test.ind, (burnin + 1):num_sweeps])
 rmse.ate.gp <- sqrt(mean((ate.hat.gp - expected_ate)^2))
+var.ate.gp <- var(ate.hat.gp)
+bias.ate.gp <- mean((ate.hat.gp - expected_ate))
 print(paste("XBCF-GP RMSE on ATE ", round(rmse.ate.gp, 3), sep = ""))
 
 

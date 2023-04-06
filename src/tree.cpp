@@ -1444,14 +1444,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         vec_sum(loglike, tree_pointer->prob_split);
         tree_pointer->prob_split = loglike[ind] / tree_pointer->prob_split;
 
-        if (ind == loglike.size() - 1)
-        {
-            // no split
-            no_split = true;
-            split_var = 0;
-            split_point = 0;
-        }
-        else if (tree_pointer->num_cutpoint_candidates == 0)
+        if (tree_pointer->num_cutpoint_candidates == 0)
         {
             // Handles the following edge case:
             //  When the log-likelihood vector is all -INFINITY, 
@@ -1473,6 +1466,14 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
             //  the smallest available value of the first feature. 
             //  
             //  This was leading to much deeper trees on Linux than on MacOS.
+            no_split = true;
+            split_var = 0;
+            split_point = 0;
+            cout << "Trying to sample a split on all zero likelihoods" << endl;
+        }
+        else if (ind == loglike.size() - 1)
+        {
+            // no split
             no_split = true;
             split_var = 0;
             split_point = 0;
@@ -1540,14 +1541,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         vec_sum(loglike, tree_pointer->prob_split);
         tree_pointer->prob_split = loglike[ind] / tree_pointer->prob_split;
 
-        if (ind == loglike.size() - 1)
-        {
-            // no split
-            no_split = true;
-            split_var = 0;
-            split_point = 0;
-        }
-        else if (tree_pointer->num_cutpoint_candidates == 0)
+        if (tree_pointer->num_cutpoint_candidates == 0)
         {
             // Handles the following edge case:
             //  When the log-likelihood vector is all -INFINITY, 
@@ -1569,6 +1563,14 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
             //  the smallest available value of the first feature. 
             //  
             //  This was leading to much deeper trees on Linux than on MacOS.
+            no_split = true;
+            split_var = 0;
+            split_point = 0;
+            cout << "Trying to sample a split on all zero likelihoods" << endl;
+        }
+        else if (ind == loglike.size() - 1)
+        {
+            // no split
             no_split = true;
             split_var = 0;
             split_point = 0;
