@@ -110,12 +110,11 @@ double XBCFrdModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
     {
         // check force split condition
         if ( (suff_stat_all[4] >= Omin) & (suff_stat_all[5] >= Omin) &  ((double (suff_stat_all[4] + suff_stat_all[5]) / (suff_stat_all[2] + suff_stat_all[3])) < Opct) ){
-            cout << "force split " << " Ol " << suff_stat_all[4] << " Or " << suff_stat_all[5] << " N " << suff_stat_all[2] + suff_stat_all[3] << " Omin " << Omin << " Opct " << Opct << endl;
+            // cout << "force split " << " Ol " << suff_stat_all[4] << " Or " << suff_stat_all[5] << " N " << suff_stat_all[2] + suff_stat_all[3] << endl;
             return -INFINITY;
         }
         denominator = 1 + (suff_stat_all[2] / pow(s0, 2) + suff_stat_all[3] / pow(s1, 2)) * tau_use;
         s_psi_squared = suff_stat_all[0] / pow(s0, 2) + suff_stat_all[1] / pow(s1, 2);
-        cout << "No split likelihood not converted to zero; Denominator = " << denominator << " s_psi_squared = " << s_psi_squared << endl;
     }
     else
     {

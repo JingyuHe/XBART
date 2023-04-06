@@ -553,10 +553,6 @@ std::istream &operator>>(std::istream &is, tree &t)
 // main function to grow the tree recursively
 void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<size_t> &X_counts, std::vector<size_t> &X_num_unique, Model *model, X_struct &x_struct, const size_t &sweeps, const size_t &tree_ind)
 {
-    cout << "" << endl;
-    cout << "Sweep = " << sweeps << " Tree = " << tree_ind << " Node number = " << this->nid() << endl;
-    cout << "Suff stat dim = " << this->suff_stat.size() << endl;
-
     // grow a tree, users can control number of split points
     size_t N_Xorder = Xorder_std[0].size();
     size_t p = Xorder_std.size();
@@ -1404,30 +1400,17 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         loglike[ii] = exp(loglike[ii] - loglike_max);
     }
 
-    //cout << "loglike " << loglike << endl;
-    size_t nonzero_loglike_evals;
-    nonzero_loglike_evals = 0;
-    for (size_t ii = 0; ii < loglike.size(); ii++){
-        if (loglike[ii] != 0.0){
-            nonzero_loglike_evals += 1;
-        }
-    }
-    cout << "Size of loglikelihood vector: " << loglike.size() << "; Number of nonzero loglikelihood evaluations " << nonzero_loglike_evals << endl;
-
     // sampling cutpoints
     if (N <= state.n_cutpoints + 1 + 2 * state.n_min)
     {
 
         // N - 1 - 2 * Nmin <= Ncutpoints, consider all data points
-        cout << "Case I: Consider splitting on all data points" << endl;
-        
+
         // if number of observations is smaller than Ncutpoints, all data are splitpoint candidates
         // note that the first Nmin and last Nmin cannot be splitpoint candidate
 
         if ((N - 1) > 2 * state.n_min)
         {
-            cout << "Case I.a.: Truncate continuous variable splits by Nmin" << endl;
-            
             // for(size_t i = 0; i < p; i ++ ){
             for (auto &&i : subset_vars)
             {
@@ -1441,8 +1424,6 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         }
         else
         {
-            cout << "Case I.b.: Do not consider any continuous variable splits" << endl;
-            
             // do not use all continuous variables
             if (state.p_continuous > 0)
             {
@@ -1450,14 +1431,6 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
             }
         }
 
-        nonzero_loglike_evals = 0;
-        for (size_t ii = 0; ii < loglike.size(); ii++){
-            if (loglike[ii] != 0.0){
-                nonzero_loglike_evals += 1;
-            }
-        }
-        cout << "Size of loglikelihood vector: " << loglike.size() << "; Number of nonzero loglikelihood evaluations after adjustment " << nonzero_loglike_evals << endl;
-        
         std::discrete_distribution<> d(loglike.begin(), loglike.end());
 
         // for MH update usage only
@@ -1473,16 +1446,40 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
 
         if (ind == loglike.size() - 1)
         {
-            cout << "No split" << endl;
             // no split
+            no_split = true;
+            split_var = 0;
+            split_point = 0;
+        }
+        else if (tree_pointer->num_cutpoint_candidates == 0)
+        {
+            // Handles the following edge case:
+            //  When the log-likelihood vector is all -INFINITY, 
+            //  which is possible if both:
+            //      (a) The "no split" option was zero-ed out in the likelihood 
+            //      evaluation, corresponding to the RDD "force split" condition
+            //      (b) Each of the possible cutpoints have a zero likelihood, 
+            //      either because they were zero-ed out in the RDD likelihood 
+            //      or because of the Nmin condition
+            // 
+            //  Then std::discrete_distribution<> d(loglike.begin(), loglike.end()) 
+            //  only has zero / null probabilities. On MacOS (at least the 
+            //  version of clang shipped with xcode), sampling from this 
+            //  distribution will always return the __last__ index in the likelihood
+            //  vector (which corresponds to "no split"), while on linux 
+            //  (at least with several versions of gcc tested), sampling from 
+            //  this distribution will always return the __first__ index 
+            //  in the likelihood vector, which corresponds to splitting on 
+            //  the smallest available value of the first feature. 
+            //  
+            //  This was leading to much deeper trees on Linux than on MacOS.
             no_split = true;
             split_var = 0;
             split_point = 0;
         }
         else if ((N - 1) <= 2 * state.n_min)
         {
-            // np split
-            cout << "No split" << endl;
+            // no split
             /////////////////////////////////
             //
             // Need optimization, move before calculating likelihood
@@ -1495,14 +1492,12 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         }
         else if (ind < loglike_start)
         {
-            cout << "Continuous variable split" << endl;
             // split at continuous variable
             split_var = ind / (N - 1);
             split_point = ind % (N - 1);
         }
         else
         {
-            cout << "Categorical variable split" << endl;
             // split at categorical variable
             size_t start;
             ind = ind - loglike_start;
@@ -1523,19 +1518,15 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
             }
             split_var = split_var + state.p_continuous;
         }
-        cout << "Sampled index = " << ind << " Split var = " << split_var << " Split point = " << split_point << endl;
     }
     else
     {
         // use adaptive number of cutpoints
-        cout << "Case II: Consider an adaptive number of split points" << endl;
-        
+
         std::vector<size_t> candidate_index(state.n_cutpoints);
 
         seq_gen_std(state.n_min, N - state.n_min, state.n_cutpoints, candidate_index);
 
-        cout << "Candidate cutpoints: " << candidate_index << endl;
-        
         std::discrete_distribution<size_t> d(loglike.begin(), loglike.end());
 
         // For MH update usage only
@@ -1551,22 +1542,45 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
 
         if (ind == loglike.size() - 1)
         {
-            cout << "No split" << endl;
             // no split
+            no_split = true;
+            split_var = 0;
+            split_point = 0;
+        }
+        else if (tree_pointer->num_cutpoint_candidates == 0)
+        {
+            // Handles the following edge case:
+            //  When the log-likelihood vector is all -INFINITY, 
+            //  which is possible if both:
+            //      (a) The "no split" option was zero-ed out in the likelihood 
+            //      evaluation, corresponding to the RDD "force split" condition
+            //      (b) Each of the possible cutpoints have a zero likelihood, 
+            //      either because they were zero-ed out in the RDD likelihood 
+            //      or because of the Nmin condition
+            // 
+            //  Then std::discrete_distribution<> d(loglike.begin(), loglike.end()) 
+            //  only has zero / null probabilities. On MacOS (at least the 
+            //  version of clang shipped with xcode), sampling from this 
+            //  distribution will always return the __last__ index in the likelihood
+            //  vector (which corresponds to "no split"), while on linux 
+            //  (at least with several versions of gcc tested), sampling from 
+            //  this distribution will always return the __first__ index 
+            //  in the likelihood vector, which corresponds to splitting on 
+            //  the smallest available value of the first feature. 
+            //  
+            //  This was leading to much deeper trees on Linux than on MacOS.
             no_split = true;
             split_var = 0;
             split_point = 0;
         }
         else if (ind < loglike_start)
         {
-            cout << "Continuous variable split" << endl;
             // split at continuous variable
             split_var = ind / state.n_cutpoints;
             split_point = candidate_index[ind % state.n_cutpoints];
         }
         else
         {
-            cout << "Categorical variable split" << endl;
             // split at categorical variable
             size_t start;
             ind = ind - loglike_start;
@@ -1587,7 +1601,6 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
             }
             split_var = split_var + state.p_continuous;
         }
-        cout << "Sampled index = " << ind << " Split var = " << split_var << " Split point = " << split_point << endl;
     }
 
     return;
@@ -1752,9 +1765,7 @@ void calculate_likelihood_no_split(std::vector<double> &loglike, size_t &N_Xorde
     // loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike_size) + model->getNoSplitPenalty();
     //     // !!Note loglike_size shouldn't get minus 1 when it count non zero of loglike.
 
-    cout << "No split eval, number of node sufficient statistics " << tree_pointer->suff_stat.size() << " node sufficient statistics " << tree_pointer->suff_stat << endl;
     loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + (model->getNoSplitPenalty());
-    cout << "No split log likelihood " << loglike[loglike.size() - 1] << endl;
 
     // loglike[loglike.size() - 1] = model->likelihood(tree_pointer->suff_stat, tree_pointer->suff_stat, loglike.size() - 1, false, true, state) + log(pow(1.0 + tree_pointer->getdepth(), model->beta) / model->alpha - 1.0) + log((double)loglike.size() - 1.0) + log(model->getNoSplitPenalty());
 
