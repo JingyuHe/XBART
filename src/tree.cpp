@@ -1444,7 +1444,7 @@ void BART_likelihood_all(matrix<size_t> &Xorder_std, bool &no_split, size_t &spl
         vec_sum(loglike, tree_pointer->prob_split);
         tree_pointer->prob_split = loglike[ind] / tree_pointer->prob_split;
 
-        if (ind == loglike.size() - 1)        
+        if (ind == loglike.size() - 1)
         {
             // no split
             no_split = true;
