@@ -23,7 +23,7 @@ y <- mu(w, x) + tau(w, x)*z + rnorm(n, 0, 0.2)
 ## XBCF
 num_sweeps = 100
 burnin =10
-fit.XBCFrd <- XBCF.rd(y, w, x, c, Owidth = 0.03, Omin = 50, Opct = 0.95, pcat_con = 0, pcat_mod = 0,
+fit.XBCFrd <- XBCF.rd(y, w, x, c, Owidth = 0.04, Omin = 50, Opct = 0.95, pcat_con = 0, pcat_mod = 0,
                       num_trees_mod = 5, num_trees_con = 20, num_cutpoints = n, num_sweeps = num_sweeps, burnin = burnin, Nmin = 20)
 
 # Test set generation
@@ -54,7 +54,7 @@ tau.hat <- pred.XBCFrd$tau.adj.mean
 
 ## Case 2: Predict tau(X) with GP
 # Make predictions on the test data
-pred.XBCFrdgp <- predict.XBCFrdgp(fit.XBCFrd, W = wtest, X = xtest, Wtr = w, Xtr = x, theta = 0.03, tau = 0.1)
+pred.XBCFrdgp <- predict.XBCFrdgp(fit.XBCFrd, W = wtest, X = xtest, Wtr = w, Xtr = x, theta = 0.2, tau = 0.3)
 
 # Check yhats
 y.hat.gp <- pred.XBCFrdgp$yhats.adj.mean
