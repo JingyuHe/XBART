@@ -211,23 +211,6 @@ Rcpp::List XBCF_rd_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mo
             }
         }
     }
-
-    // Debugging -- print number of bottom nodes in the last sweep
-    double total_leaves;
-    for (size_t j = 0; j < num_trees_con; j++){
-        total_leaves = 0.0;
-        for (size_t i = 0; i < num_sweeps; i++){
-            total_leaves += trees_con[i][j].nbots();
-        }
-        COUT << "Con tree: " << j << "; Average number of leaves: " << total_leaves / ((double) num_sweeps) << endl;
-    }
-    for (size_t j = 0; j < num_trees_mod; j++){
-        total_leaves = 0.0;
-        for (size_t i = 0; i < num_sweeps; i++){
-            total_leaves += trees_mod[i][j].nbots();
-        }
-        COUT << "Mod tree: " << j << "; Average number of leaves: " << total_leaves / ((double) num_sweeps) << endl;
-    }
     
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(sigma0_draw_xinfo, sigma0_draw);
