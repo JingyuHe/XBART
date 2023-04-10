@@ -109,10 +109,6 @@ predict.XBCFrd <- function(object, W, X, ...) {
     X_con <- cbind(W, X)
     X_mod <- X_con
 
-    if ( (c <= range(X)[1]) || (c >= range(X)[2])){
-        stop("Cut off point c should within the range of the running variable X")
-    }
-
     Z <- as.matrix(X >= c)
 
     out_con <- json_to_r(object$tree_json_con)
