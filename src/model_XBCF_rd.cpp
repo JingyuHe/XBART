@@ -221,7 +221,7 @@ void XBCFrdModel::predict_std(matrix<size_t> &Xorder_std, rd_struct &x_struct, s
             }
             // cout << "sweeps " << sweeps << " tree " << tree_ind << " ate " << local_ate[tree_ind] / count_local << endl;
             std::vector<bool> active_var(Xorder_std.size(), false);
-             trees_mod[sweeps][tree_ind].rd_predict_from_root(Xorder_std, x_struct, X_counts, X_num_unique, Xtestorder_std, xtest_struct, Xtest_counts, Xtest_num_unique,
+            trees_mod[sweeps][tree_ind].rd_predict_from_root(Xorder_std, x_struct, X_counts, X_num_unique, Xtestorder_std, xtest_struct, Xtest_counts, Xtest_num_unique,
                               treatment_xinfo, active_var, sweeps, tree_ind, theta, tau, local_ate[tree_ind] / count_local);
             // TODO: local_ate should be obtained on the tree level.
         }
