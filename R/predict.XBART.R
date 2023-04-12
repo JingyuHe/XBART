@@ -51,12 +51,17 @@ predict.XBCFcontinuous <- function(object, X_con, X_mod, Z, ...) {
 #' @export
 
 
-predict.XBCFdiscrete <- function(object, X_con, X_mod, Z, pihat=NULL, burnin = 0L, ...) {
+predict.XBCFdiscrete <- function(object, X_con, X_mod, Z, pihat=NULL, burnin = 0L, include_pi = "control", ...) {
 
     stopifnot("Propensity scores (pihat) must be provided by user for prediction."=!is.null(pihat))
 
-    X_con <- as.matrix(cbind(pihat,X_con))
-    X_mod <- as.matrix(X_mod)
+    if(include_pi=="both" | include_pi=="control") {
+        X_con <- cbind(pihat, X_con)
+    }
+    if(include_pi=="both" | include_pi=="moderate") {
+        X_mod <- cbind(pihat, X_mod)
+    }
+    
     Z <- as.matrix(Z)
     out_con <- json_to_r(object$tree_json_con)
     out_mod <- json_to_r(object$tree_json_mod)

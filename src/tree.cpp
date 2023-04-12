@@ -2247,9 +2247,10 @@ void tree::gp_predict_from_root(matrix<size_t> &Xorder_std, gp_struct &x_struct,
 
         mat cov(N + Ntest, N + Ntest);
         get_rel_covariance(cov, X, x_range, theta, tau);
+        
         for (size_t i = 0; i < N; i++)
         {
-            cov(i, i) += pow(x_struct.sigma[tree_ind], 2) / x_struct.num_trees;
+            cov(i, i) += pow(x_struct.sigma[sweeps][tree_ind], 2) / x_struct.num_trees;
         }
 
         mat mu(Ntest, 1);
