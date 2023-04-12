@@ -43,6 +43,9 @@ for(i in c(1:reps)) {
   # If you didn't know pi, you would estimate it here
   pihat <- pi
   
+  # store mu values before processing input matrix
+  muvec <- mu(x)
+  
   # matrix prep
   x <- data.frame(x)
   x[, 3] <- as.factor(x[, 3])
@@ -64,10 +67,13 @@ for(i in c(1:reps)) {
   t1 <- proc.time() - t1
   # get treatment individual-level estimates
   tauhats <- XBCF::getTaus(xbcf.fit)
+  muhats <- XBCF::getMus(xbcf.fit)
   
   # compare results to inference
   par(mfrow = c(1, 2))
   plot(tau, tauhats)
+  abline(0, 1)
+  plot(muvec, muhats)
   abline(0, 1)
   print(paste0("xbcf RMSE: ", sqrt(mean((tauhats - tau)^2))))
   print(paste0("xbcf runtime: ", round(as.list(t1)$elapsed, 2), " seconds"))
@@ -84,9 +90,11 @@ for(i in c(1:reps)) {
   # taus2 <- pred$tau.adj
   # tauhats2 = rowMeans(taus2)
   tauhats2 <- pred$tau.adj.mean
-  
+  muhats2 <- pred$mu.adj.mean
   
   plot(tau, tauhats2)
+  abline(0, 1)
+  plot(muvec, muhats2)
   abline(0, 1)
   print(paste0("xbcf binary RMSE: ", sqrt(mean((tauhats2 - tau)^2))))
   print(paste0("xbcf binary runtime: ", round(as.list(t2)$elapsed, 2), " seconds"))

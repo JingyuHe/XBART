@@ -21,6 +21,10 @@ XBCF_discrete_cpp <- function(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, 
     .Call(`_XBART_XBCF_discrete_cpp`, y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_sweeps, max_depth, n_min, num_cutpoints, alpha_con, beta_con, alpha_mod, beta_mod, tau_con, tau_mod, no_split_penalty, burnin, mtry_con, mtry_mod, p_categorical_con, p_categorical_mod, kap, s, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s, pr_scale, trt_scale, a_scaling, b_scaling, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights, nthread)
 }
 
+XBCF_discrete_heterosk_cpp <- function(y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_trees_v, num_sweeps, max_depth, max_depth_v, n_min, n_min_v, num_cutpoints, num_cutpoints_v, alpha_con, beta_con, alpha_mod, beta_mod, alpha_v, beta_v, tau_con, tau_mod, a_v, b_v, ini_var, no_split_penalty, no_split_penalty_v, burnin = 1L, mtry_con = 0L, mtry_mod = 0L, mtry_v = 0L, p_categorical_con = 0L, p_categorical_mod = 0L, kap = 16, s = 4, tau_con_kap = 3, tau_con_s = 0.5, tau_mod_kap = 3, tau_mod_s = 0.5, a_scaling = TRUE, b_scaling = TRUE, verbose = FALSE, sampling_tau = TRUE, parallel = TRUE, set_random_seed = FALSE, random_seed = 0L, sample_weights = TRUE, nthread = 0) {
+    .Call(`_XBART_XBCF_discrete_heterosk_cpp`, y, Z, X_con, X_mod, num_trees_con, num_trees_mod, num_trees_v, num_sweeps, max_depth, max_depth_v, n_min, n_min_v, num_cutpoints, num_cutpoints_v, alpha_con, beta_con, alpha_mod, beta_mod, alpha_v, beta_v, tau_con, tau_mod, a_v, b_v, ini_var, no_split_penalty, no_split_penalty_v, burnin, mtry_con, mtry_mod, mtry_v, p_categorical_con, p_categorical_mod, kap, s, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s, a_scaling, b_scaling, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights, nthread)
+}
+
 xbart_predict <- function(X, y_mean, tree_pnt) {
     .Call(`_XBART_xbart_predict`, X, y_mean, tree_pnt)
 }
@@ -67,5 +71,9 @@ json_to_r_3D <- function(json_string_r) {
 
 xbart_heteroskedastic_predict <- function(X, tree_m, tree_v) {
     .Call(`_XBART_xbart_heteroskedastic_predict`, X, tree_m, tree_v)
+}
+
+XBCF_discrete_heteroskedastic_predict <- function(X_con, X_mod, Z, tree_con, tree_mod, tree_v) {
+    .Call(`_XBART_XBCF_discrete_heteroskedastic_predict`, X_con, X_mod, Z, tree_con, tree_mod, tree_v)
 }
 
