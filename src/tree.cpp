@@ -2453,7 +2453,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         size_t Ol = 0;
         size_t Or = 0;
 
-        const double *run_var_x_pointer = x_struct.X_std + x_struct.n_y * (p_continuous - 1);
+        const double *run_var_x_pointer = x_struct.X_std;
         std::vector<size_t> &xo = Xorder_std[p_continuous - 1];
         size_t ind = 0;
         double run_value;
@@ -2486,7 +2486,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         std::vector<size_t> test_ind_const;
         std::vector<size_t> test_ind_gp;
 
-        run_var_x_pointer = xtest_struct.X_std + xtest_struct.n_y * (p_continuous - 1);
+        run_var_x_pointer = xtest_struct.X_std;
         ind = 0;
         size_t index_next_obs = xo_test[ind];
         while (ind < Ntest){
@@ -2540,7 +2540,7 @@ void tree::rd_predict_from_root(matrix<size_t> &Xorder_std, rd_struct &x_struct,
         // restrict active variable to the last column (assuming running variable)
         size_t p_active = 1;
         std::vector<bool> active_var_out_range(p_continuous, false);
-        active_var_out_range[p_continuous - 1] = true;
+        active_var_out_range[0] = true; // only use running variable for extrapolation
 
         mat X(N + Ntest + 2, p_active);
         std::vector<double> x_range(p_active);

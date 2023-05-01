@@ -69,7 +69,7 @@ XBCF.rd <- function(y, W, X, c, Owidth = 0.1, Omin = 10, Opct = 0.7, num_trees_c
         stop("Number of rows in covariates W must match Length of X")
     }
 
-    X_con <- cbind(W, X)
+    X_con <- cbind(X, W)
     X_mod <- X_con
 
     if (!("matrix" %in% class(y))) {

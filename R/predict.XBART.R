@@ -160,7 +160,7 @@ predict.XBCFrdgp <- function(object, W, X, Wtr, Xtr, theta = 0.1, tau = 1, ...) 
         stop("Number of rows in covariates W must match Length of X")
     }
 
-    X_con <- cbind(W, X)
+    X_con <- cbind(X, W)
     X_mod <- X_con
 
     Z <- as.matrix(X >= c)
@@ -183,7 +183,7 @@ predict.XBCFrdgp <- function(object, W, X, Wtr, Xtr, theta = 0.1, tau = 1, ...) 
         stop("Number of rows in covariates Wtr must match Length of Xtr")
     }
 
-    Xtr_con <- cbind(Wtr, Xtr)
+    Xtr_con <- cbind(Xtr, Wtr)
     Xtr_mod <- Xtr_con
     Ztr <- as.matrix(Xtr >= c)
 

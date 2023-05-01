@@ -29,7 +29,7 @@ void XBCFrdModel::incSuffStat(State &state, size_t index_next_obs, std::vector<d
             suffstats[2] += 1;
         }
 
-        double running_value = *(state.X_std_mod + state.n_y * (state.p_continuous - 1) + index_next_obs);
+        double running_value = *(state.X_std_mod + index_next_obs);
         if ((running_value > cutoff - Owidth) & (running_value <= cutoff)){
             suffstats[4] += 1; // Ol
         } else if ((running_value > cutoff) & (running_value <= cutoff + Owidth)){
@@ -52,7 +52,7 @@ void XBCFrdModel::incSuffStat(State &state, size_t index_next_obs, std::vector<d
             suffstats[2] += 1;
         }
 
-        double running_value = *(state.X_std_con + state.n_y * (state.p_continuous - 1) + index_next_obs);
+        double running_value = *(state.X_std_con + index_next_obs);
         if ((running_value > cutoff - Owidth) & (running_value <= cutoff)){
             suffstats[4] += 1; // Ol
         } else if ((running_value > cutoff) & (running_value <= cutoff + Owidth)){
@@ -196,7 +196,7 @@ void XBCFrdModel::predict_std(matrix<size_t> &Xorder_std, rd_struct &x_struct, s
 
         // get local ate
         std::vector<double> local_ate(num_trees_mod, 0.0);
-        const double *run_var_x_pointer = x_struct.X_std + x_struct.n_y * (x_struct.p_continuous - 1);
+        const double *run_var_x_pointer = x_struct.X_std;
         double run_var_value;
         size_t count_local = 0;
         for (size_t data_ind = 0; data_ind < x_struct.n_y; data_ind ++){

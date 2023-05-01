@@ -9,13 +9,15 @@ mu <- function(W, X){return(0.1 * rowSums(W) + 1/(1+exp(-5*X)))}
 tau <- function(W, X) return( sin(mu(W, X)) +1) # make sure the treatment effect is non-zero
 
 n       <- 5000
-p       <- 2
+p       <- 4
+p_cat   <- 2
+p_con   <- p - p_cat
 c       <- 0 # Cutoff
 
 h_test <- 0.25
 
 ## Data
-w <- matrix(rnorm(n*p), n, p)
+w <- cbind(matrix(rnorm(n*p_con), n, p_con), matrix(sample(c(-0.5, 0, 0.5), n * p_cat, replace = TRUE), n, p_cat))
 x <- rnorm(n,sd=.5)
 z <- x >= c
 y <- mu(w, x) + tau(w, x)*z + rnorm(n, 0, 0.2)
@@ -23,7 +25,7 @@ y <- mu(w, x) + tau(w, x)*z + rnorm(n, 0, 0.2)
 ## XBCF
 num_sweeps = 100
 burnin =10
-fit.XBCFrd <- XBCF.rd(y, w, x, c, Owidth = 0.04, Omin = 50, Opct = 0.95, pcat_con = 0, pcat_mod = 0,
+fit.XBCFrd <- XBCF.rd(y, w, x, c, Owidth = 0.04, Omin = 50, Opct = 0.95, pcat_con = p_cat, pcat_mod = p_cat,
                       num_trees_mod = 5, num_trees_con = 20, num_cutpoints = n, num_sweeps = num_sweeps, burnin = burnin, Nmin = 20)
 
 # Test set generation
