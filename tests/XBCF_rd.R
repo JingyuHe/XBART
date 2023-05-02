@@ -30,7 +30,7 @@ fit.XBCFrd <- XBCF.rd(y, w, x, c, Owidth = 0.04, Omin = 50, Opct = 0.95, pcat_co
 
 # Test set generation
 ntest <- 100
-xtest <- rnorm(ntest, sd = 0.5)
+xtest <- rnorm(ntest, sd = 0.2)
 xtest <- sort(xtest)
 wtest <- matrix(rep(0, ntest*p), ntest, p)
 tau.test <- tau(wtest, xtest)
@@ -40,7 +40,7 @@ data <- list(y = ytest, W = wtest, X = xtest, c = c, Wtr = w, Xtr = x)
 ## Case 1: Predict tau(X) without GP
 # Make predictions on the test data
 tau.prior = var(y) / (fit.XBCFrd$model_params$n_trees_con = fit.XBCFrd$model_params$n_trees_mod)
-pred.XBCFrd <- predict.XBCFrd(fit.XBCFrd, W = wtest, X = xtest, Wtr = w, Xtr = x)
+pred.XBCFrd <- predict.XBCFrd(fit.XBCFrd, W = wtest, X = xtest)
 
 # Check yhats
 y.hat <- pred.XBCFrd$yhats.adj.mean

@@ -106,7 +106,7 @@ predict.XBCFrd <- function(object, W, X, ...) {
         stop("Number of rows in covariates W must match Length of X")
     }
 
-    X_con <- cbind(W, X)
+    X_con <- cbind(X, W)
     X_mod <- X_con
 
     Z <- as.matrix(X >= c)
