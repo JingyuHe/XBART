@@ -35,7 +35,8 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
                               double ini_var, // optional initialization for variance
                               double kap = 16, double s = 4,
                               double tau_kap = 3, double tau_s = 0.5,
-                              double alpha = 0.95, double beta = 1.25, //BART tree params
+                              double alpha = 0.95, double beta = 1.25, // BART tree params (mean)
+                              double alpha_v = 0.95, double beta_v = 1.25, // BART tree params (variance)
                               bool verbose = false,
                               bool sampling_tau = true,
                               bool parallel = true,
@@ -97,7 +98,7 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     model_m->setNoSplitPenalty(no_split_penalty_m);
 
     // define the variance model
-    logNormalModel *model_v = new logNormalModel(a_v, b_v, kap, s, tau_m, alpha, beta);
+    logNormalModel *model_v = new logNormalModel(a_v, b_v, kap, s, tau_m, alpha_v, beta_v);
     model_v->setNoSplitPenalty(no_split_penalty_v);
 
     // initialize X_struct

@@ -19,6 +19,8 @@ XBART.heterosk <- function(y,
                            a_v = 1.0, b_v = 1.0,
                            alpha = 0.95,
                            beta = 1.25,
+                           alpha_v = 0.95,
+                           beta_v = 1.25,
                            kap = 16, s = 4,
                            tau_kap = 3, tau_s = 0.5,
                            verbose = FALSE,
@@ -106,7 +108,9 @@ XBART.heterosk <- function(y,
     check_scalar(no_split_penality_m, "no_split_penality_m")
     check_scalar(no_split_penality_v, "no_split_penality_v")
     check_scalar(alpha, "alpha")
+    check_scalar(alpha_v, "alpha_v")
     check_scalar(beta, "beta")
+    check_scalar(beta_v, "beta_v")
     check_scalar(kap, "kap")
     check_scalar(s, "s")
 
@@ -116,7 +120,7 @@ XBART.heterosk <- function(y,
                              Nmin_m, num_cutpoints_m, tau_m,
                              no_split_penality_v, num_trees_v, max_depth_v,
                              Nmin_v, num_cutpoints_v, a_v, b_v, ini_var,
-                             kap, s, tau_kap, tau_s, alpha, beta,
+                             kap, s, tau_kap, tau_s, alpha, beta, alpha_v, beta_v,
                              verbose, sampling_tau, parallel, set_random_seed,
                              random_seed, sample_weights_flag, nthread)
 
