@@ -92,3 +92,9 @@ fit2 = XBART.survival(
 )
 
 pred2 = rowMeans(predict(fit2, as.matrix(x))$mhats[,burnin:num_sweeps])
+
+
+# check mean squared error
+cat("MSE of plain XBART, ", mean((logt - pred1)^2), "\n")
+cat("MSE of survival XBART, ", mean((logt - pred2)^2), "\n")
+
