@@ -2,7 +2,6 @@
 #define GUARD_utility_h
 #define BOOST_MATH_OVERFLOW_ERROR_POLICY errno_on_error
 
-
 #include "common.h"
 
 #include "thread_pool.h"
@@ -169,14 +168,16 @@ double sum_vec_yzsq(std::vector<double> &v, matrix<double> &z);
 
 double sum_vec_y_z(std::vector<double> &v, matrix<double> &z);
 
-double drawlambdafromR(size_t n, double sy, double c, double d, std::mt19937& gen);
+double drawlambdafromR(size_t n, double sy, double c, double d, std::mt19937 &gen);
 
-double drawnodelambda(size_t n, double sy, double c, double d, std::mt19937& gen);
+double drawnodelambda(size_t n, double sy, double c, double d, std::mt19937 &gen);
 
 double gignorm(double eta, double chi, double psi);
 
-double loggignorm(double eta, double chi, double psi) ;
+double loggignorm(double eta, double chi, double psi);
 
 double lgigkernel(double x, double eta, double chi, double psi);
+
+double sample_truncated_normal(std::mt19937 &gen, double mu, double precision, double cutoff, bool greater);
 
 #endif

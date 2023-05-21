@@ -710,14 +710,14 @@ void mcmc_loop_heteroskedastic(matrix<size_t> &Xorder_std,
 
 // XBART with heteroskedastic variance for survival data analysis
 void mcmc_loop_heteroskedastic_survival(matrix<size_t> &Xorder_std,
-                               bool verbose,
-                               State &state,
-                               hskNormalModel *mean_model,
-                               vector<vector<tree>> &mean_trees,
-                               X_struct &mean_x_struct,
-                               logNormalModel *var_model,
-                               vector<vector<tree>> &var_trees,
-                               X_struct &var_x_struct)
+                                        bool verbose,
+                                        State &state,
+                                        hskNormalModel *mean_model,
+                                        vector<vector<tree>> &mean_trees,
+                                        X_struct &mean_x_struct,
+                                        logNormalModel *var_model,
+                                        vector<vector<tree>> &var_trees,
+                                        X_struct &var_x_struct)
 {
     mean_model->ini_residual_std(state);
 
@@ -775,7 +775,10 @@ void mcmc_loop_heteroskedastic_survival(matrix<size_t> &Xorder_std,
             mean_model->update_tau_per_forest(state, sweeps, mean_trees);
         }
 
+        // copy residual_std to mean_res in state
         mean_model->store_residual(state);
+
+        // update residual_std for variance forest
         var_model->ini_residual_std2(state, var_x_struct);
         var_model->switch_state_params(state);
 
@@ -817,13 +820,34 @@ void mcmc_loop_heteroskedastic_survival(matrix<size_t> &Xorder_std,
         // pass fitted values for sigmas to the mean model
         var_model->update_state(state, state.num_trees, var_x_struct);
 
-
         // sample missing values in the truncated survival data
+        // precision is saved in (*state.precision)
+        // mean is saved in (*state.full_fit_std)
+        // impute missing values from the truncated normal, should be larger than T_obs
 
+        for (size_t ii = 0; ii < (*state.tau_std).size(); ii++)
+        {
+            // loop over all the data, check tau
+            if ((*state.tau_std)[ii] == 1)
+            {
+                // T_obs = T, copy
+                (*state.y_imputed)[ii] = (*state.y_std)[ii];
+            }
+            else
+            {
+                // T_obs = L, impute T from truncated normal
+                (*state.y_imputed)[ii] = sample_truncated_normal(state.gen, (*state.full_fit_std)[0][ii], (*state.precision)[ii], (*state.y_std)[ii], true);
+            }
+        }
 
+        // update partial residual for the mean forest, fitted values does not change, but the data changes
+        for (size_t ii = 0; ii < (*state.tau_std).size(); ii++)
+        {
 
+            (*state.residual_std)[0][ii] = (*state.residual_std)[0][ii] - (*state.y_std)[ii] + (*state.y_imputed)[ii];
+
+            (*state.res_x_precision)[ii] = (*state.residual_std)[0][ii] * (*state.precision)[ii];
+        }
     }
-    // thread_pool.stop();
-
     return;
 }

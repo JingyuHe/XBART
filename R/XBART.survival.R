@@ -1,5 +1,6 @@
 XBART.survival <- function(y,
                            X,
+                           tau,
                            num_sweeps,
                            burnin = 1L,
                            p_categorical = 0L,
@@ -115,7 +116,7 @@ XBART.survival <- function(y,
     check_scalar(s, "s")
 
 
-    obj = XBART_survival_cpp(y, X, num_sweeps, burnin, p_categorical, mtry,
+    obj = XBART_survival_cpp(y, X, tau, num_sweeps, burnin, p_categorical, mtry,
                              no_split_penality_m, num_trees_m, max_depth_m,
                              Nmin_m, num_cutpoints_m, tau_m,
                              no_split_penality_v, num_trees_v, max_depth_v,
@@ -124,6 +125,6 @@ XBART.survival <- function(y,
                              verbose, sampling_tau, parallel, set_random_seed,
                              random_seed, sample_weights_flag, nthread)
 
-    class(obj) = "XBARTsurvival"
+    class(obj) = "XBARTheteroskedastic"
     return(obj)
 }
