@@ -843,8 +843,9 @@ void mcmc_loop_heteroskedastic_survival(matrix<size_t> &Xorder_std,
         // update partial residual for the mean forest, fitted values does not change, but the data changes
         for (size_t ii = 0; ii < (*state.tau_std).size(); ii++)
         {
-
             (*state.residual_std)[0][ii] = (*state.residual_std)[0][ii] - (*state.y_std)[ii] + (*state.y_imputed)[ii];
+
+            (*state.y_std)[ii] = (*state.y_imputed)[ii];
 
             (*state.res_x_precision)[ii] = (*state.residual_std)[0][ii] * (*state.precision)[ii];
         }

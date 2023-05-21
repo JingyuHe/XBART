@@ -763,37 +763,6 @@ double lgigkernel(double x, double eta, double chi, double psi)
     return (eta - 1) * log(x) - (chi / x + psi * x) / 2;
 }
 
-// double sample_truncated_normal(std::mt19937 &gen, double mu, double precision, double cutoff, bool greater)
-// {
-//     // draw from truncated normal
-//     // X ~ N(mu, sigma2) * I(X >= cutoff) if greater = true
-//     // X ~ N(mu, sigma2) * I(X < cutoff) if greater = false
-
-//     double u;
-//     double sigma = sqrt(1.0 / precision);
-//     double mu_quantile = normCDF((mu - cutoff) / sigma);
-
-//     double a = 0;
-//     double b = 1;
-
-//     if (greater)
-//     {
-//         a = std::min(mu_quantile, 0.999);
-//     }
-//     else
-//     {
-//         b = std::max(mu_quantile, 0.001);
-//     }
-
-//     std::uniform_real_distribution<double> unif(a, b);
-
-//     u = unif(gen);
-
-//     double output = normCDFInv(u) * sigma + mu;
-
-//     return output;
-// }
-
 double sample_truncated_normal(std::mt19937 &gen, double mu, double precision, double cutoff, bool greater)
 {
     // draw from truncated normal
@@ -807,10 +776,41 @@ double sample_truncated_normal(std::mt19937 &gen, double mu, double precision, d
     double a = 0;
     double b = 1;
 
+    if (greater)
+    {
+        a = std::min(mu_quantile, 0.999);
+    }
+    else
+    {
+        b = std::max(mu_quantile, 0.001);
+    }
+
     std::uniform_real_distribution<double> unif(a, b);
+
     u = unif(gen);
 
-    double output = normCDFInv(u + (1 - u) * mu_quantile) * sigma + mu;
+    double output = normCDFInv(u) * sigma + mu;
 
     return output;
 }
+
+// double sample_truncated_normal(std::mt19937 &gen, double mu, double precision, double cutoff, bool greater)
+// {
+//     // draw from truncated normal
+//     // X ~ N(mu, sigma2) * I(X >= cutoff) if greater = true
+//     // X ~ N(mu, sigma2) * I(X < cutoff) if greater = false
+
+//     double u;
+//     double sigma = sqrt(1.0 / precision);
+//     double mu_quantile = normCDF((mu - cutoff) / sigma);
+
+//     double a = 0;
+//     double b = 1;
+
+//     std::uniform_real_distribution<double> unif(a, b);
+//     u = unif(gen);
+
+//     double output = normCDFInv(u + (1 - u) * mu_quantile) * sigma + mu;
+
+//     return output;
+// }

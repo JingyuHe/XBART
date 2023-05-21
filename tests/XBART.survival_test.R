@@ -1,5 +1,6 @@
 library(XBART)
 
+
 cen <- c(20, 50, 80)
 cf <- c(3.55, 3, 2.45)
 
@@ -41,16 +42,16 @@ for (i in 1:ntest) {
 logt <- log(Yobs)
 
 
-num_sweeps = 30
-burnin = 10
+num_sweeps <- 30
+burnin <- 10
 
 
-fit = XBART.heterosk(
+fit <- XBART.heterosk(
   y = matrix(logt), X = x, Xtest = x,
   num_sweeps = num_sweeps,
   burnin = burnin,
   p_categorical = 0,
-  mtry = 1,
+  mtry = 4,
   num_trees_m = 20,
   max_depth_m = 250,
   Nmin_m = 1,
@@ -66,17 +67,14 @@ fit = XBART.heterosk(
 )
 
 
-pred1 = rowMeans(predict(fit, as.matrix(x))$mhats[,burnin:num_sweeps])
+pred1 <- predict(fit, as.matrix(x))
 
-
-
-
-fit2 = XBART.survival(
+fit2 <- XBART.survival(
   y = matrix(logt), X = x, tau = delta,
   num_sweeps = num_sweeps,
   burnin = burnin,
   p_categorical = 0,
-  mtry = 1,
+  mtry = 4,
   num_trees_m = 20,
   max_depth_m = 250,
   Nmin_m = 1,
@@ -91,10 +89,20 @@ fit2 = XBART.survival(
   sample_weights_flag = FALSE
 )
 
-pred2 = rowMeans(predict(fit2, as.matrix(x))$mhats[,burnin:num_sweeps])
+pred2 <- predict(fit2, as.matrix(x))
+
+par(mfrow = c(1, 2))
+plot(rowMeans(pred2$mhats), mu, pch = 20, col = "darkgrey")
+abline(0, 1, col = "red")
+plot(rowMeans(pred1$mhats), mu, pch = 20, col = "darkgrey")
+abline(0, 1, col = "red")
 
 
-# check mean squared error
-cat("MSE of plain XBART, ", mean((logt - pred1)^2), "\n")
-cat("MSE of survival XBART, ", mean((logt - pred2)^2), "\n")
+mu1 <- rowMeans(pred1$mhats)
+mu2 <- rowMeans(pred2$mhats)
 
+
+
+cat("MSE of plain XBART, ", mean((logt - mu1)^2), "\n")
+cat("MSE of survival XBART, ", mean((logt - mu2)^2), "\n")
+cat("compare variance, ", 1.0 / mean(pred1$vhats), " ", 1.0 / mean(pred2$vhats), "\n")
