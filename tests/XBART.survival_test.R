@@ -1,5 +1,8 @@
 library(XBART)
 
+set.seed(100)
+
+ini_impute = 1.05
 
 cen <- c(20, 50, 80)
 cf <- c(3.55, 3, 2.45)
@@ -84,6 +87,7 @@ fit2 <- XBART.survival(
   Nmin_v = 50,
   num_cutpoints_v = 100,
   ini_var = 1,
+  ini_impute = 1.01,
   verbose = FALSE,
   parallel = FALSE,
   sample_weights_flag = FALSE

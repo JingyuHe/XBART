@@ -427,7 +427,7 @@ public:
 class HeteroskedasticSurvivalState : public HeteroskedasticState
 {
 public:
-    HeteroskedasticSurvivalState(const double *Xpointer, matrix<size_t> &Xorder_std, std::vector<double> &delta_std, size_t N, size_t p, size_t num_trees_m, size_t num_trees_v, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min_m, size_t n_min_v, size_t n_cutpoints_m, size_t n_cutpoints_v, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth_m, size_t max_depth_v, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel, std::vector<double> &sigma_vec) : HeteroskedasticState(Xpointer, Xorder_std, N, p, num_trees_m, num_trees_v, p_categorical, p_continuous, set_random_seed, random_seed, n_min_m, n_min_v, n_cutpoints_m, n_cutpoints_v, mtry, X_std, num_sweeps, sample_weights, y_std, sigma, max_depth_m, max_depth_v, ini_var_yhat, burnin, dim_residual, nthread, parallel, sigma_vec)
+    HeteroskedasticSurvivalState(const double *Xpointer, matrix<size_t> &Xorder_std, std::vector<double> &delta_std, size_t N, size_t p, double ini_impute, size_t num_trees_m, size_t num_trees_v, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min_m, size_t n_min_v, size_t n_cutpoints_m, size_t n_cutpoints_v, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth_m, size_t max_depth_v, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel, std::vector<double> &sigma_vec) : HeteroskedasticState(Xpointer, Xorder_std, N, p, num_trees_m, num_trees_v, p_categorical, p_continuous, set_random_seed, random_seed, n_min_m, n_min_v, n_cutpoints_m, n_cutpoints_v, mtry, X_std, num_sweeps, sample_weights, y_std, sigma, max_depth_m, max_depth_v, ini_var_yhat, burnin, dim_residual, nthread, parallel, sigma_vec)
     {
         this->delta_std = &delta_std;
         this->y_imputed = new std::vector<double>(delta_std.size());
@@ -442,8 +442,8 @@ public:
             }
             else
             {
-                (*this->y_imputed)[i] = (*this->y_std)[i] * 1.1;
-                (*this->y_imputed_save)[i] = (*this->y_std)[i] * 1.1;
+                (*this->y_imputed)[i] = (*this->y_std)[i] * ini_impute;
+                (*this->y_imputed_save)[i] = (*this->y_std)[i] * ini_impute;
             }
         }
     }

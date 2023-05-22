@@ -34,6 +34,7 @@ Rcpp::List XBART_survival_cpp(arma::mat y,
                               size_t num_cutpoints_v,
                               double a_v, double b_v, // shape and rate
                               double ini_var,         // optional initialization for variance
+                              double ini_impute, 
                               double kap = 16, double s = 4,
                               double tau_kap = 3, double tau_s = 0.5,
                               double alpha = 0.95, double beta = 1.25,     // BART tree params (mean)
@@ -111,7 +112,7 @@ Rcpp::List XBART_survival_cpp(arma::mat y,
     std::vector<double> sigma_vec(N, ini_var); // initialize vector of heterogeneous sigmas
 
     HeteroskedasticSurvivalState state(Xpointer, Xorder_std, delta_std,
-                                       N, p,
+                                       N, p, ini_impute,
                                        num_trees_m, num_trees_v,
                                        p_categorical, p_continuous,
                                        set_random_seed, random_seed,
