@@ -70,7 +70,7 @@ fit <- XBART.heterosk(
 pred1 <- predict(fit, as.matrix(x))
 
 fit2 <- XBART.survival(
-  y = matrix(logt), X = x, tau = delta,
+  y = matrix(logt), X = x, delta = delta,
   num_sweeps = num_sweeps,
   burnin = burnin,
   p_categorical = 0,

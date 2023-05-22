@@ -135,14 +135,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // XBART_survival_cpp
-Rcpp::List XBART_survival_cpp(arma::mat y, arma::mat X, arma::vec tau, size_t num_sweeps, size_t burnin, size_t p_categorical, size_t mtry, double no_split_penalty_m, size_t num_trees_m, size_t max_depth_m, size_t n_min_m, size_t num_cutpoints_m, double tau_m, double no_split_penalty_v, size_t num_trees_v, size_t max_depth_v, size_t n_min_v, size_t num_cutpoints_v, double a_v, double b_v, double ini_var, double kap, double s, double tau_kap, double tau_s, double alpha, double beta, double alpha_v, double beta_v, bool verbose, bool sampling_tau, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights, double nthread);
-RcppExport SEXP _XBART_XBART_survival_cpp(SEXP ySEXP, SEXP XSEXP, SEXP tauSEXP, SEXP num_sweepsSEXP, SEXP burninSEXP, SEXP p_categoricalSEXP, SEXP mtrySEXP, SEXP no_split_penalty_mSEXP, SEXP num_trees_mSEXP, SEXP max_depth_mSEXP, SEXP n_min_mSEXP, SEXP num_cutpoints_mSEXP, SEXP tau_mSEXP, SEXP no_split_penalty_vSEXP, SEXP num_trees_vSEXP, SEXP max_depth_vSEXP, SEXP n_min_vSEXP, SEXP num_cutpoints_vSEXP, SEXP a_vSEXP, SEXP b_vSEXP, SEXP ini_varSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP tau_kapSEXP, SEXP tau_sSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP alpha_vSEXP, SEXP beta_vSEXP, SEXP verboseSEXP, SEXP sampling_tauSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weightsSEXP, SEXP nthreadSEXP) {
+Rcpp::List XBART_survival_cpp(arma::mat y, arma::mat X, arma::vec delta, size_t num_sweeps, size_t burnin, size_t p_categorical, size_t mtry, double no_split_penalty_m, size_t num_trees_m, size_t max_depth_m, size_t n_min_m, size_t num_cutpoints_m, double tau_m, double no_split_penalty_v, size_t num_trees_v, size_t max_depth_v, size_t n_min_v, size_t num_cutpoints_v, double a_v, double b_v, double ini_var, double kap, double s, double tau_kap, double tau_s, double alpha, double beta, double alpha_v, double beta_v, bool verbose, bool sampling_tau, bool parallel, bool set_random_seed, size_t random_seed, bool sample_weights, double nthread);
+RcppExport SEXP _XBART_XBART_survival_cpp(SEXP ySEXP, SEXP XSEXP, SEXP deltaSEXP, SEXP num_sweepsSEXP, SEXP burninSEXP, SEXP p_categoricalSEXP, SEXP mtrySEXP, SEXP no_split_penalty_mSEXP, SEXP num_trees_mSEXP, SEXP max_depth_mSEXP, SEXP n_min_mSEXP, SEXP num_cutpoints_mSEXP, SEXP tau_mSEXP, SEXP no_split_penalty_vSEXP, SEXP num_trees_vSEXP, SEXP max_depth_vSEXP, SEXP n_min_vSEXP, SEXP num_cutpoints_vSEXP, SEXP a_vSEXP, SEXP b_vSEXP, SEXP ini_varSEXP, SEXP kapSEXP, SEXP sSEXP, SEXP tau_kapSEXP, SEXP tau_sSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP alpha_vSEXP, SEXP beta_vSEXP, SEXP verboseSEXP, SEXP sampling_tauSEXP, SEXP parallelSEXP, SEXP set_random_seedSEXP, SEXP random_seedSEXP, SEXP sample_weightsSEXP, SEXP nthreadSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
     Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< size_t >::type num_sweeps(num_sweepsSEXP);
     Rcpp::traits::input_parameter< size_t >::type burnin(burninSEXP);
     Rcpp::traits::input_parameter< size_t >::type p_categorical(p_categoricalSEXP);
@@ -176,7 +176,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< size_t >::type random_seed(random_seedSEXP);
     Rcpp::traits::input_parameter< bool >::type sample_weights(sample_weightsSEXP);
     Rcpp::traits::input_parameter< double >::type nthread(nthreadSEXP);
-    rcpp_result_gen = Rcpp::wrap(XBART_survival_cpp(y, X, tau, num_sweeps, burnin, p_categorical, mtry, no_split_penalty_m, num_trees_m, max_depth_m, n_min_m, num_cutpoints_m, tau_m, no_split_penalty_v, num_trees_v, max_depth_v, n_min_v, num_cutpoints_v, a_v, b_v, ini_var, kap, s, tau_kap, tau_s, alpha, beta, alpha_v, beta_v, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights, nthread));
+    rcpp_result_gen = Rcpp::wrap(XBART_survival_cpp(y, X, delta, num_sweeps, burnin, p_categorical, mtry, no_split_penalty_m, num_trees_m, max_depth_m, n_min_m, num_cutpoints_m, tau_m, no_split_penalty_v, num_trees_v, max_depth_v, n_min_v, num_cutpoints_v, a_v, b_v, ini_var, kap, s, tau_kap, tau_s, alpha, beta, alpha_v, beta_v, verbose, sampling_tau, parallel, set_random_seed, random_seed, sample_weights, nthread));
     return rcpp_result_gen;
 END_RCPP
 }

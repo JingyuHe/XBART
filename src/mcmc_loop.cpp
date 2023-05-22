@@ -824,10 +824,10 @@ void mcmc_loop_heteroskedastic_survival(matrix<size_t> &Xorder_std,
         // precision is saved in (*state.precision)
         // impute missing values from the truncated normal, should be larger than T_obs
 
-        for (size_t ii = 0; ii < (*state.tau_std).size(); ii++)
+        for (size_t ii = 0; ii < (*state.delta_std).size(); ii++)
         {
             // loop over all the data, check tau
-            if ((*state.tau_std)[ii] == 1)
+            if ((*state.delta_std)[ii] == 1)
             {
                 // T_obs = T, copy
                 (*state.y_imputed)[ii] = (*state.y_std)[ii];
@@ -840,7 +840,7 @@ void mcmc_loop_heteroskedastic_survival(matrix<size_t> &Xorder_std,
         }
 
         // update partial residual for the mean forest, fitted values does not change, but the data changes
-        for (size_t ii = 0; ii < (*state.tau_std).size(); ii++)
+        for (size_t ii = 0; ii < (*state.delta_std).size(); ii++)
         {
             (*state.residual_std)[0][ii] = (*state.residual_std)[0][ii] - (*state.y_imputed_save)[ii] + (*state.y_imputed)[ii];
 

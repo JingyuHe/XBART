@@ -16,7 +16,7 @@ using namespace chrono;
 // [[Rcpp::export]]
 Rcpp::List XBART_survival_cpp(arma::mat y,
                               arma::mat X,
-                              arma::vec tau,
+                              arma::vec delta,
                               size_t num_sweeps,
                               size_t burnin,
                               size_t p_categorical,
@@ -74,11 +74,11 @@ Rcpp::List XBART_survival_cpp(arma::mat y,
 
     std::vector<double> y_std(N);
     double y_mean = 0.0;
-    std::vector<double> tau_std(N);
+    std::vector<double> delta_std(N);
 
     Rcpp::NumericMatrix X_std(N, p);
 
-    rcpp_to_std2(y, X, tau, tau_std, y_std, y_mean, X_std, Xorder_std);
+    rcpp_to_std2(y, X, delta, delta_std, y_std, y_mean, X_std, Xorder_std);
 
     ///////////////////////////////////////////////////////////////////
 
@@ -110,7 +110,7 @@ Rcpp::List XBART_survival_cpp(arma::mat y,
 
     std::vector<double> sigma_vec(N, ini_var); // initialize vector of heterogeneous sigmas
 
-    HeteroskedasticSurvivalState state(Xpointer, Xorder_std, tau_std,
+    HeteroskedasticSurvivalState state(Xpointer, Xorder_std, delta_std,
                                        N, p,
                                        num_trees_m, num_trees_v,
                                        p_categorical, p_continuous,

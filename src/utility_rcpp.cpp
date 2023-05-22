@@ -112,7 +112,7 @@ void rcpp_to_std2(arma::mat &y, arma::mat &X, std::vector<double> &y_std, double
     return;
 }
 
-void rcpp_to_std2(arma::mat &y, arma::mat &X, arma::vec &tau, std::vector<double> &tau_std, std::vector<double> &y_std, double &y_mean, Rcpp::NumericMatrix &X_std, matrix<size_t> &Xorder_std)
+void rcpp_to_std2(arma::mat &y, arma::mat &X, arma::vec &delta, std::vector<double> &delta_std, std::vector<double> &y_std, double &y_mean, Rcpp::NumericMatrix &X_std, matrix<size_t> &Xorder_std)
 {
     // The goal of this function is to convert RCPP object to std objects
 
@@ -128,7 +128,7 @@ void rcpp_to_std2(arma::mat &y, arma::mat &X, arma::vec &tau, std::vector<double
     {
         y_std[i] = y(i, 0);
         y_mean = y_mean + y_std[i];
-        tau_std[i] = tau(i);
+        delta_std[i] = delta(i);
     }
     y_mean = y_mean / (double)N;
 
