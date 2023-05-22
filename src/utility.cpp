@@ -771,7 +771,7 @@ double sample_truncated_normal(std::mt19937 &gen, double mu, double precision, d
 
     double u;
     double sigma = sqrt(1.0 / precision);
-    double mu_quantile = normCDF((mu - cutoff) / sigma);
+    double mu_quantile = normCDF((cutoff - mu) / sigma);
 
     double a = 0;
     double b = 1;

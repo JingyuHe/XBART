@@ -103,6 +103,6 @@ mu2 <- rowMeans(pred2$mhats)
 
 
 
-cat("MSE of plain XBART, ", mean((logt - mu1)^2), "\n")
-cat("MSE of survival XBART, ", mean((logt - mu2)^2), "\n")
-cat("compare variance, ", 1.0 / mean(pred1$vhats), " ", 1.0 / mean(pred2$vhats), "\n")
+cat("MSE of plain XBART, ", mean((mu - mu1)^2), "\n")
+cat("MSE of survival XBART, ", mean((mu - mu2)^2), "\n")
+cat("compare variance, ", mean(pred1$vhats), " ", mean(pred2$vhats), "\n")

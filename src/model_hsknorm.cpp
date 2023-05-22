@@ -20,9 +20,6 @@ void hskNormalModel::ini_residual_std(State &state)
         (*state.precision)[i] = double(1.0 / state.sigma_vec[i]);
         //        (*state.residual_std)[2][i] = (*state.residual_std)[0][i] * (*state.residual_std)[1][i];
         (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
-
-        // full fit of the mean forest
-        (*state.full_fit_std)[0][i] = value * (double)state.num_trees;
     }
     return;
 }
@@ -83,10 +80,6 @@ void hskNormalModel::state_sweep(size_t tree_ind, size_t M, State &state, X_stru
 
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
     {
-
-        // full fit
-        (*state.full_fit_std)[0][i] = (*state.y_std)[i] - (*state.residual_std)[0][i] + (*(x_struct.data_pointers[tree_ind][i]))[0];
-
         (*state.residual_std)[0][i] = (*state.residual_std)[0][i] - (*(x_struct.data_pointers[tree_ind][i]))[0] + (*(x_struct.data_pointers[next_index][i]))[0];
         //        (*state.residual_std)[2][i] = (*state.residual_std)[0][i] * (*state.residual_std)[1][i];
         (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];

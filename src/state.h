@@ -15,7 +15,6 @@ class State
 public:
     size_t dim_residual;          // residual size
     matrix<double> *residual_std; // a matrix to save all residuals, partial residuals
-    matrix<double> *full_fit_std; // a matrix to save full fit of the forest
     matrix<size_t> *Xorder_std;
 
     // random number generators
@@ -132,6 +131,7 @@ public:
     // for survival forest
     std::vector<double> *tau_std;
     std::vector<double> *y_imputed;
+    std::vector<double> *y_imputed_save;
 
     void update_sigma(double sigma)
     {
@@ -154,8 +154,6 @@ public:
         // initialize predictions_std at given value / number of trees
         this->residual_std = new matrix<double>();
         ini_matrix((*this->residual_std), N, dim_residual);
-        this->full_fit_std = new matrix<double>();
-        ini_matrix((*this->full_fit_std), N, dim_residual);
 
         // Random
         this->prob = std::vector<double>(2, 0.5);
@@ -433,6 +431,13 @@ public:
     {
         this->tau_std = &tau_std;
         this->y_imputed = new std::vector<double>(tau_std.size());
+        this->y_imputed_save = new std::vector<double>(tau_std.size());
+        // copy
+        for (size_t i = 0; i < this->y_std->size(); i++)
+        {
+            (*this->y_imputed)[i] = (*this->y_std)[i];
+            (*this->y_imputed_save)[i] = (*this->y_std)[i];
+        }
     }
 };
 

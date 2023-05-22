@@ -822,7 +822,6 @@ void mcmc_loop_heteroskedastic_survival(matrix<size_t> &Xorder_std,
 
         // sample missing values in the truncated survival data
         // precision is saved in (*state.precision)
-        // mean is saved in (*state.full_fit_std)
         // impute missing values from the truncated normal, should be larger than T_obs
 
         for (size_t ii = 0; ii < (*state.tau_std).size(); ii++)
@@ -836,16 +835,16 @@ void mcmc_loop_heteroskedastic_survival(matrix<size_t> &Xorder_std,
             else
             {
                 // T_obs = L, impute T from truncated normal
-                (*state.y_imputed)[ii] = sample_truncated_normal(state.gen, (*state.full_fit_std)[0][ii], (*state.precision)[ii], (*state.y_std)[ii], true);
+                (*state.y_imputed)[ii] = sample_truncated_normal(state.gen, (*state.y_imputed_save)[ii] - (*state.residual_std)[0][ii], (*state.precision)[ii], (*state.y_std)[ii], true);
             }
         }
 
         // update partial residual for the mean forest, fitted values does not change, but the data changes
         for (size_t ii = 0; ii < (*state.tau_std).size(); ii++)
         {
-            (*state.residual_std)[0][ii] = (*state.residual_std)[0][ii] - (*state.y_std)[ii] + (*state.y_imputed)[ii];
+            (*state.residual_std)[0][ii] = (*state.residual_std)[0][ii] - (*state.y_imputed_save)[ii] + (*state.y_imputed)[ii];
 
-            (*state.y_std)[ii] = (*state.y_imputed)[ii];
+            (*state.y_imputed_save)[ii] = (*state.y_imputed)[ii];
 
             (*state.res_x_precision)[ii] = (*state.residual_std)[0][ii] * (*state.precision)[ii];
         }
