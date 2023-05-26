@@ -111,7 +111,7 @@ double hskNormalModel::likelihood(std::vector<double> &temp_suff_stat, std::vect
         }
     }
 
-    return log(1.0 / (1.0 + tau * prec)) + res2 / (1.0 / tau + prec);
+    return 0.5 * log(1.0 / (1.0 + tau * prec)) + 0.5 * res2 / (1.0 / tau + prec);
 }
 
 void hskNormalModel::predict_std(const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees)
