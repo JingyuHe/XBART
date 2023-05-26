@@ -650,7 +650,11 @@ void mcmc_loop_heteroskedastic(matrix<size_t> &Xorder_std,
             // update tau after sampling the tree
             // model->update_tau(state, tree_ind, sweeps, trees);
 
-            state.update_split_counts(tree_ind);
+            if (state.sample_weights)
+            {
+                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) + (*state.split_count_current_tree);
+                (*state.split_count_all_tree_m)[tree_ind] = (*state.split_count_current_tree);
+            }
 
             // update partial residual for the next tree to fit
             mean_model->state_sweep(tree_ind, state.num_trees, state, mean_x_struct);
@@ -694,7 +698,11 @@ void mcmc_loop_heteroskedastic(matrix<size_t> &Xorder_std,
             // single core
             var_trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, var_x_struct.X_counts, var_x_struct.X_num_unique, var_model, var_x_struct, sweeps, tree_ind);
 
-            state.update_split_counts(tree_ind);
+            if (state.sample_weights)
+            {
+                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) + (*state.split_count_current_tree);
+                (*state.split_count_all_tree_v)[tree_ind] = (*state.split_count_current_tree);
+            }
 
             // update partial residual for the next tree to fit
             var_model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), var_x_struct);
@@ -764,7 +772,12 @@ void mcmc_loop_heteroskedastic_survival(matrix<size_t> &Xorder_std,
             // update tau after sampling the tree
             // model->update_tau(state, tree_ind, sweeps, trees);
 
-            state.update_split_counts(tree_ind);
+            //state.update_split_counts(tree_ind);
+            if (state.sample_weights)
+            {
+                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) + (*state.split_count_current_tree);
+                (*state.split_count_all_tree_m)[tree_ind] = (*state.split_count_current_tree);
+            }
 
             // update partial residual for the next tree to fit
             mean_model->state_sweep(tree_ind, state.num_trees, state, mean_x_struct);
@@ -811,7 +824,12 @@ void mcmc_loop_heteroskedastic_survival(matrix<size_t> &Xorder_std,
             // single core
             var_trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, var_x_struct.X_counts, var_x_struct.X_num_unique, var_model, var_x_struct, sweeps, tree_ind);
 
-            state.update_split_counts(tree_ind);
+            //state.update_split_counts(tree_ind);
+            if (state.sample_weights)
+            {
+                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) + (*state.split_count_current_tree);
+                (*state.split_count_all_tree_v)[tree_ind] = (*state.split_count_current_tree);
+            }
 
             // update partial residual for the next tree to fit
             var_model->state_sweep(tree_ind, state.num_trees, (*state.residual_std), var_x_struct);
