@@ -630,7 +630,7 @@ public:
 
     void switch_state_params(State &state);
 
-    void store_residual(State &state);
+    void store_residual(State &state, X_struct &x_struct);
 
 };
 

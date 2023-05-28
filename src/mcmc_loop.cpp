@@ -665,7 +665,10 @@ void mcmc_loop_heteroskedastic(matrix<size_t> &Xorder_std,
             mean_model->update_tau_per_forest(state, sweeps, mean_trees);
         }
 
-        mean_model->store_residual(state);
+        // copy residual_std to mean_res in state; update residual to include all tree fits
+        mean_model->store_residual(state, mean_x_struct);
+
+        // initialize residual for precision model; update state params
         var_model->ini_residual_std2(state, var_x_struct);
         var_model->switch_state_params(state);
 
@@ -788,8 +791,8 @@ void mcmc_loop_heteroskedastic_survival(matrix<size_t> &Xorder_std,
             mean_model->update_tau_per_forest(state, sweeps, mean_trees);
         }
 
-        // copy residual_std to mean_res in state
-        mean_model->store_residual(state);
+        // copy residual_std to mean_res in state; update residual to include all tree fits
+        mean_model->store_residual(state, mean_x_struct);
 
         // update residual_std for variance forest
         var_model->ini_residual_std2(state, var_x_struct);

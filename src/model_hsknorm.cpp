@@ -149,11 +149,12 @@ void hskNormalModel::switch_state_params(State &state)
     return;
 }
 
-void hskNormalModel::store_residual(State &state)
+void hskNormalModel::store_residual(State &state, X_struct &x_struct)
 {
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
     {
         (*state.mean_res)[i] = (*state.residual_std)[0][i];
+        (*state.residual_std)[0][i] -= (*(x_struct.data_pointers[0][i]))[0];
     }
     return;
 }
