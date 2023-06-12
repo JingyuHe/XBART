@@ -328,10 +328,10 @@ void get_rel_covariance(mat &cov, mat &X, std::vector<double> X_range, double th
             temp = 0;
             for (size_t k = 0; k < X.n_cols; k++)
             {
-                temp += pow(X(i, k) - X(j, k), 2) / pow(X_range[k], 2) / 2;
+                temp += pow(X(i, k) - X(j, k), 2) / pow(X_range[k], 2);
                 // temp += std::abs(X(i,k) - X(j, k)) / X_range[k];
             }
-            cov(i, j) = tau * exp(-theta * temp);
+            cov(i, j) = tau * exp(- temp / pow(theta, 2) / 2);
             cov(j, i) = cov(i, j);
         }
     }
