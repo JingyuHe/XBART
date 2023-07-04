@@ -445,12 +445,12 @@ void hskXBCFDiscreteModel::update_split_counts(State &state, size_t tree_ind)
 {
     if (state.treatment_flag)
     {
-        (*state.mtry_weight_current_tree_mod) = (*state.mtry_weight_current_tree_mod) + (*state.split_count_current_tree);
+        (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) + (*state.split_count_current_tree);
         (*state.split_count_all_tree_mod)[tree_ind] = (*state.split_count_current_tree);
     }
     else
     {
-        (*state.mtry_weight_current_tree_con) = (*state.mtry_weight_current_tree_con) + (*state.split_count_current_tree);
+        (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) + (*state.split_count_current_tree);
         (*state.split_count_all_tree_con)[tree_ind] = (*state.split_count_current_tree);
     }
     return;
