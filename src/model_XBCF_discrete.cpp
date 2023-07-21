@@ -202,10 +202,16 @@ void XBCFDiscreteModel::update_tau_per_forest(State &state, size_t sweeps, vecto
     return;
 }
 
-void XBCFDiscreteModel::initialize_root_suffstat(State &state, std::vector<double> &suff_stat)
+void XBCFDiscreteModel::ini_suff_stat(std::vector<double> &suff_stat)
 {
     suff_stat.resize(dim_suffstat);
     std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
+}
+
+void XBCFDiscreteModel::initialize_root_suffstat(State &state, std::vector<double> &suff_stat)
+{
+   
+    ini_suff_stat(suff_stat);
     for (size_t i = 0; i < state.n_y; i++)
     {
         incSuffStat(state, i, suff_stat);

@@ -88,6 +88,12 @@ void NormalModel::update_tau_per_forest(State &state, size_t sweeps, vector<vect
     return;
 }
 
+void NormalModel::ini_suff_stat(std::vector<double> &suff_stat)
+{
+    suff_stat.resize(dim_suffstat);
+    std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
+}
+
 void NormalModel::initialize_root_suffstat(State &state, std::vector<double> &suff_stat)
 {
     // this function calculates sufficient statistics at the root node when growing a new tree
@@ -666,6 +672,12 @@ double LogitModel::w_likelihood(State &state, double weight, double logloss)
     return output;
 }
 
+void LogitModel::ini_suff_stat(std::vector<double> &suff_stat)
+{
+    suff_stat.resize(2 * dim_theta);
+    std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
+}
+
 void LogitModel::initialize_root_suffstat(State &state, std::vector<double> &suff_stat)
 {
 
@@ -682,9 +694,7 @@ void LogitModel::initialize_root_suffstat(State &state, std::vector<double> &suf
     // reply: use it for now. Not sure how to call constructor of tree when initialize vector<vector<tree>>, see definition of trees2 in XBART_multinomial, train_all.cpp
 
     // remove resizing it does not work, strange
-
-    suff_stat.resize(2 * dim_theta);
-    std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
+    ini_suff_stat(suff_stat);
     for (size_t i = 0; i < state.n_y; i++)
     {
         // from 0

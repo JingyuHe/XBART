@@ -30,6 +30,12 @@ void logNormalModel::ini_residual_std2(State &state, X_struct &x_struct)
     return;
 }
 
+void logNormalModel::ini_suff_stat(std::vector<double> &suff_stat)
+{
+    suff_stat.resize(dim_suffstat);
+    std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
+}
+
 void logNormalModel::initialize_root_suffstat(State &state,
                                               std::vector<double> &suff_stat)
 {

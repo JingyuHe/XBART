@@ -677,8 +677,10 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
     lchild->tau_post = this->tau_post;
     rchild->tau_post = this->tau_post;
 
-    this->l->ini_suff_stat();
-    this->r->ini_suff_stat();
+    // this->l->ini_suff_stat();
+    // this->r->ini_suff_stat();
+    model->ini_suff_stat(this->l->suff_stat);
+    model->ini_suff_stat(this->r->suff_stat);
 
     matrix<size_t> Xorder_left_std;
     matrix<size_t> Xorder_right_std;
@@ -700,6 +702,24 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
     {
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
+
+    // XBCF-RD only:
+    if (this->suff_stat.size() == 8){
+        if (split_var == 0){
+            this->l->suff_stat[6] = this->suff_stat[6];
+            this->l->suff_stat[7] = this->c;
+            this->r->suff_stat[6] = this->c;
+            this->r->suff_stat[7] = this->suff_stat[7];
+        } else {
+            this->l->suff_stat[6] = this->suff_stat[6];
+            this->l->suff_stat[7] = this->suff_stat[7];
+            this->r->suff_stat[6] = this->suff_stat[6];
+            this->r->suff_stat[7] = this->suff_stat[7];
+        }
+    } 
+    // cout << "split_var " << this->v << " cutpoint " << this->c << endl;
+    // cout << "left " << this->l->suff_stat << endl;
+    // cout << "right " << this->r->suff_stat << endl;
 
     this->l->grow_from_root(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind);
 
@@ -873,8 +893,10 @@ void tree::grow_from_root_entropy(State &state, matrix<size_t> &Xorder_std, std:
     this->l->depth = this->depth + 1;
     this->r->depth = this->depth + 1;
 
-    this->l->ini_suff_stat();
-    this->r->ini_suff_stat();
+    // this->l->ini_suff_stat();
+    // this->r->ini_suff_stat();
+    model->ini_suff_stat(this->l->suff_stat);
+    model->ini_suff_stat(this->r->suff_stat);
 
     matrix<size_t> Xorder_left_std;
     matrix<size_t> Xorder_right_std;
@@ -1040,8 +1062,10 @@ void tree::grow_from_root_separate_tree(State &state, matrix<size_t> &Xorder_std
     lchild->depth = this->depth + 1;
     rchild->depth = this->depth + 1;
 
-    this->l->ini_suff_stat();
-    this->r->ini_suff_stat();
+    // this->l->ini_suff_stat();
+    // this->r->ini_suff_stat();
+    model->ini_suff_stat(this->l->suff_stat);
+    model->ini_suff_stat(this->r->suff_stat);
 
     matrix<size_t> Xorder_left_std;
     matrix<size_t> Xorder_right_std;
@@ -1085,8 +1109,10 @@ void split_xorder_std_continuous(matrix<size_t> &Xorder_left_std, matrix<size_t>
     // if the left side is smaller, we only compute sum of it
     bool compute_left_side = N_Xorder_left < N_Xorder_right;
 
-    current_node->l->ini_suff_stat();
-    current_node->r->ini_suff_stat();
+    // current_node->l->ini_suff_stat();
+    // current_node->r->ini_suff_stat();
+    model->ini_suff_stat(current_node->l->suff_stat);
+    model->ini_suff_stat(current_node->r->suff_stat);
 
     double cutvalue = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
 
@@ -1184,8 +1210,10 @@ void split_xorder_std_categorical(matrix<size_t> &Xorder_left_std, matrix<size_t
     // if the left side is smaller, we only compute sum of it
     bool compute_left_side = N_Xorder_left < N_Xorder_right;
 
-    current_node->l->ini_suff_stat();
-    current_node->r->ini_suff_stat();
+    // current_node->l->ini_suff_stat();
+    // current_node->r->ini_suff_stat();
+    model->ini_suff_stat(current_node->l->suff_stat);
+    model->ini_suff_stat(current_node->r->suff_stat);
 
     double cutvalue = *(state.X_std + state.n_y * split_var + Xorder_std[split_var][split_point]);
 
@@ -1628,11 +1656,22 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
 
                 // initialize sufficient statistics
                 std::vector<double> temp_suff_stat(model->dim_suffstat);
-                std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
+                model->ini_suff_stat(temp_suff_stat);
 
                 for (size_t j = 0; j < N_Xorder - 1; j++)
                 {
                     calcSuffStat_continuous(state, temp_suff_stat, xorder, candidate_index, j, false, model, (*state.residual_std));
+
+                    //XBCF-RDD only:
+                    if(temp_suff_stat.size() == 8){
+                        if (i == 0){
+                            temp_suff_stat[6] = tree_pointer->suff_stat[6];
+                            temp_suff_stat[7] = *(state.X_std + xorder[j]);
+                        } else {
+                            temp_suff_stat[6] = tree_pointer->suff_stat[6];
+                            temp_suff_stat[7] = tree_pointer->suff_stat[7];
+                        }
+                    }
 
                     loglike[(N_Xorder - 1) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, j, false, false, state);
                 }
@@ -1659,14 +1698,27 @@ void calculate_loglikelihood_continuous(std::vector<double> &loglike, const std:
                     // double llmax = -INFINITY;
 
                     std::vector<double> temp_suff_stat(model->dim_suffstat);
-
-                    std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
+                    model->ini_suff_stat(temp_suff_stat);
 
                     std::vector<double> &temp = loglike;
 
                     for (size_t j = 0; j < state.n_cutpoints; j++)
                     {
                         calcSuffStat_continuous(state, temp_suff_stat, xorder, candidate_index2, j, true, model, (*state.residual_std));
+
+                        //XBCF-RDD only:
+                        if(temp_suff_stat.size() == 8){
+                            if (i == 0){
+                                if (j == 0){
+                                    temp_suff_stat[7] = *(state.X_std + xorder[0]);
+                                } else {
+                                    temp_suff_stat[7] = *(state.X_std + xorder[candidate_index2[j + 1]]);
+                                }
+                            } else {
+                                temp_suff_stat[6] = tree_pointer->suff_stat[6];
+                                temp_suff_stat[7] = tree_pointer->suff_stat[7];
+                            }
+                        }
 
                         temp[(state.n_cutpoints) * i + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, candidate_index2[j + 1], false, false, state);
                     }
@@ -1697,7 +1749,8 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
         {
             // if this is a categorical variable, and it still has cutpoints
             std::vector<double> temp_suff_stat(model->dim_suffstat);
-            std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
+            // std::fill(temp_suff_stat.begin(), temp_suff_stat.end(), 0.0);
+            model->ini_suff_stat(temp_suff_stat);
             size_t start, end, end2, n1, temp;
 
             start = x_struct.variable_ind[i - state.p_continuous];
@@ -1724,6 +1777,12 @@ void calculate_loglikelihood_categorical(std::vector<double> &loglike, size_t &l
                     calcSuffStat_categorical(state, temp_suff_stat, Xorder_std[i], n1, temp, model);
 
                     n1 = n1 + X_counts[j];
+
+                    //XBCF-RDD only:
+                    if(temp_suff_stat.size() == 8){
+                        temp_suff_stat[6] = tree_pointer->suff_stat[6];
+                        temp_suff_stat[7] = tree_pointer->suff_stat[7];
+                    }
 
                     loglike[loglike_start + j] = model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, true, false, state) + model->likelihood(temp_suff_stat, tree_pointer->suff_stat, n1 - 1, false, false, state);
 

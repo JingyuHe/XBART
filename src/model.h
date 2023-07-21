@@ -47,6 +47,8 @@ public:
 
     virtual void update_state(State &state, size_t tree_ind, X_struct &x_struct) { return; };
 
+    virtual void ini_suff_stat(std::vector<double> &suff_stat) { return; };
+
     virtual void initialize_root_suffstat(State &state, std::vector<double> &suff_stat) { return; };
 
     virtual void updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind) { return; };
@@ -155,6 +157,8 @@ public:
     void update_tau(State &state, size_t tree_ind, size_t sweeps, vector<vector<tree>> &trees);
 
     void update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> &trees);
+
+    void ini_suff_stat(std::vector<double> &suff_stat);
 
     void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
 
@@ -297,6 +301,8 @@ public:
 
     void copy_initialization(State &state, X_struct &x_struct, vector<vector<tree>> &trees, size_t sweeps, size_t tree_ind, matrix<size_t> &Xorder_std);
 
+    void ini_suff_stat(std::vector<double> &suff_stat);
+
     void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
 
     void updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
@@ -435,6 +441,8 @@ public:
 
     void update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> &trees);
 
+    void ini_suff_stat(std::vector<double> &suff_stat);
+
     void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
 
     void updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
@@ -524,6 +532,8 @@ public:
 
     void update_tau_per_forest(State &state, size_t sweeps, vector<vector<tree>> &trees);
 
+    void ini_suff_stat(std::vector<double> &suff_stat);
+
     void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
 
     void updateNodeSuffStat(State &state, std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind);
@@ -559,7 +569,7 @@ class XBCFrdModel : public XBCFDiscreteModel
 {
 public:
 
-    size_t dim_suffstat = 6;
+    size_t dim_suffstat = 8;
 
     double cutoff;
     double Opct;
@@ -586,6 +596,8 @@ public:
     Model *clone() { return new XBCFrdModel(*this); }
 
     void incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats);
+
+    void ini_suff_stat(std::vector<double> &suff_stat);
 
     void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
 
@@ -711,6 +723,8 @@ public:
     void ini_residual_std(State &state, matrix<double> &mean_residual_std, X_struct &x_struct);
 
     void ini_residual_std2(State &state, X_struct &x_struct);
+
+    void ini_suff_stat(std::vector<double> &suff_stat);
 
     void initialize_root_suffstat(State &state, std::vector<double> &suff_stat);
 

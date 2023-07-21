@@ -14,7 +14,7 @@ p_cat   <- 2
 p_con   <- p - p_cat
 c       <- 0 # Cutoff
 
-h_test <- 0.25
+h_test <- 0.05
 
 ## Data
 w <- cbind(matrix(rnorm(n*p_con), n, p_con), matrix(sample(c(-0.5, 0, 0.5), n * p_cat, replace = TRUE), n, p_cat))
@@ -25,8 +25,8 @@ y <- mu(w, x) + tau(w, x)*z + rnorm(n, 0, 0.2)
 ## XBCF
 num_sweeps = 100
 burnin =10
-fit.XBCFrd <- XBCF.rd(y, w, x, c, Owidth = 0.04, Omin = 50, Opct = 0.95, p_categorical_con = p_cat, p_categorical_mod = p_cat,
-                      num_trees_mod = 5, num_trees_con = 20, num_cutpoints = n, num_sweeps = num_sweeps, burnin = burnin, Nmin = 20)
+fit.XBCFrd <- XBCF.rd(y, w, x, c, Owidth = h_test, Omin = 10, Opct = 0.8, p_categorical_con = p_cat, p_categorical_mod = p_cat,
+                      num_trees_mod = 5, num_trees_con = 20, num_cutpoints = n, num_sweeps = num_sweeps, burnin = burnin, Nmin = 20, verbose = FALSE)
 
 # Test set generation
 ntest <- 100

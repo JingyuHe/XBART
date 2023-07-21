@@ -63,10 +63,18 @@ void XBCFrdModel::incSuffStat(State &state, size_t index_next_obs, std::vector<d
     return;
 }
 
-void XBCFrdModel::initialize_root_suffstat(State &state, std::vector<double> &suff_stat)
+void XBCFrdModel::ini_suff_stat(std::vector<double> &suff_stat)
 {
     suff_stat.resize(dim_suffstat);
     std::fill(suff_stat.begin(), suff_stat.end(), 0.0);
+    suff_stat[6] = -INFINITY; // x_min
+    suff_stat[7] = INFINITY; // x_max
+
+}
+
+void XBCFrdModel::initialize_root_suffstat(State &state, std::vector<double> &suff_stat)
+{
+    ini_suff_stat(suff_stat);
     for (size_t i = 0; i < state.n_y; i++)
     {
         incSuffStat(state, i, suff_stat);
@@ -108,8 +116,17 @@ double XBCFrdModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
 
     if (no_split)
     {
+        // if ((suff_stat_all[4] > 0) || (suff_stat_all[5] > 0))  {
+        //     if (!( ((suff_stat_all[7] >= cutoff - Owidth) & (suff_stat_all[6] <= cutoff + Owidth) ))){
+        //         cout << "suffstat " << suff_stat_all<< endl;
+        //     }
+        // } else {
+        //     if ( ((suff_stat_all[7] >= cutoff - Owidth) & (suff_stat_all[6] <= cutoff + Owidth) )){
+        //         cout << "suffstat " << suff_stat_all<< endl;
+        //     }
+        // }
         // check force split condition
-        if ( (suff_stat_all[4] >= Omin) & (suff_stat_all[5] >= Omin) &  ((double (suff_stat_all[4] + suff_stat_all[5]) / (suff_stat_all[2] + suff_stat_all[3])) < Opct) ){
+        if ( (suff_stat_all[7] >= cutoff - Owidth) & (suff_stat_all[6] <= cutoff + Owidth) &  ((double (suff_stat_all[4] + suff_stat_all[5]) / (suff_stat_all[2] + suff_stat_all[3])) < Opct) ){
             // cout << "force split " << " Ol " << suff_stat_all[4] << " Or " << suff_stat_all[5] << " N " << suff_stat_all[2] + suff_stat_all[3] << endl;
             return -INFINITY;
         }
@@ -123,24 +140,43 @@ double XBCFrdModel::likelihood(std::vector<double> &temp_suff_stat, std::vector<
         double Olr = temp_suff_stat[5];
         double Orl = suff_stat_all[4] - temp_suff_stat[4];
         double Orr = suff_stat_all[5] - temp_suff_stat[5];
-        if ((Oll > 0) || (Olr > 0)) {
-            if ((Oll < Omin) || (Olr < Omin)){
-                return -INFINITY;
-            }
+
+        double lmin, lmax, rmin, rmax;
+        if (temp_suff_stat[7] == suff_stat_all[7]){ // not splitting on x
+            lmin = suff_stat_all[6];
+            lmax = suff_stat_all[7];
+            rmin = suff_stat_all[6];
+            rmax = suff_stat_all[7];
+        } else { // split on x
+            lmin = temp_suff_stat[6];
+            lmax = temp_suff_stat[7];
+            rmin = temp_suff_stat[7];
+            rmax = suff_stat_all[7];
         }
-        if ((Orl > 0) || (Orr > 0)){
-            if ((Orl < Omin) || (Orr < Omin)){
-                return -INFINITY;
-            }
-        }
+
+        // cout << "Oll = " << Oll << " Olr = " << Olr << " Orl = " << Orl << " Orr = " << Orr << endl;
+        // cout << "lmin = " << lmin << " lmax = " << lmax << " rmax = " << rmax << endl; 
+
+        // cout << "Condition 1 " << ((Oll > 0) || (Olr > 0)) << ", alternative " << ((lmax >= cutoff - Owidth) & (lmin <= cutoff + Owidth)) << endl;
+        // cout << "Condition 2 " << ((Orl > 0) || (Orr > 0)) << ", alternative " << ((rmax >= cutoff - Owidth) & (rmin <= cutoff + Owidth)) << endl;
 
         if (left_side)
         {
+            if ((lmax >= cutoff - Owidth) & (lmin <= cutoff + Owidth)) {
+                if ((Oll < Omin) || (Olr < Omin)){
+                    return -INFINITY;
+                }
+            }
             denominator = 1 + (temp_suff_stat[2] / pow(s0, 2) + temp_suff_stat[3] / pow(s1, 2)) * tau_use;
             s_psi_squared = temp_suff_stat[0] / pow(s0, 2) + temp_suff_stat[1] / pow(s1, 2);
         }
         else
         {
+            if ((rmax >= cutoff - Owidth) & (rmin <= cutoff + Owidth)){
+                if ((Orl < Omin) || (Orr < Omin)){
+                    return -INFINITY;
+                }
+            }
             denominator = 1 + ((suff_stat_all[2] - temp_suff_stat[2]) / pow(s0, 2) + (suff_stat_all[3] - temp_suff_stat[3]) / pow(s1, 2)) * tau_use;
             s_psi_squared = (suff_stat_all[0] - temp_suff_stat[0]) / pow(s0, 2) + (suff_stat_all[1] - temp_suff_stat[1]) / pow(s1, 2);
         }
