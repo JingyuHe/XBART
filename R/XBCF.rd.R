@@ -41,7 +41,7 @@
 #' @export
 
 
-XBCF.rd <- function(y, W, X, c, Owidth = 0.1, Omin = 10, Opct = 0.7, num_trees_con = 30, num_trees_mod = 10, num_sweeps = 60, 
+XBCF.rd <- function(y, W = NULL, X, c, Owidth = 0.1, Omin = 10, Opct = 0.7, num_trees_con = 30, num_trees_mod = 10, num_sweeps = 60, 
                     max_depth = 50, Nmin = 1, num_cutpoints = 100, alpha_con = 0.95, beta_con = 1.25, 
                     alpha_mod = 0.25, beta_mod = 3, tau_con = NULL, tau_mod = NULL, no_split_penalty = NULL, 
                     burnin = 20, mtry_con = NULL, mtry_mod = NULL, p_categorical_con = 0L, p_categorical_mod = 0L, 
@@ -51,9 +51,11 @@ XBCF.rd <- function(y, W, X, c, Owidth = 0.1, Omin = 10, Opct = 0.7, num_trees_c
                     ...) {
                         
 
-    if (!("matrix" %in% class(W))) {
-        cat("Input X_con is not a matrix, try to convert type.\n")
-        W <- as.matrix(W)
+    if (!is.null(W)) {
+        if (!("matrix" %in% class(W))) {
+            cat("Input X_con is not a matrix, try to convert type.\n")
+            W <- as.matrix(W)
+        }
     }
 
     if (!("matrix" %in% class(X))) {
@@ -65,8 +67,10 @@ XBCF.rd <- function(y, W, X, c, Owidth = 0.1, Omin = 10, Opct = 0.7, num_trees_c
         stop("Running varialbe X should be a column vector")
     }
 
-    if (dim(W)[1] != length(X)) {
-        stop("Number of rows in covariates W must match Length of X")
+    if (!is.null(W)) {
+        if (dim(W)[1] != length(X)) {
+            stop("Number of rows in covariates W must match Length of X")
+        }
     }
 
     X_con <- cbind(X, W)
