@@ -82,15 +82,17 @@ predict.XBCFdiscrete <- function(object, X_con, X_mod, Z, pihat=NULL, burnin = 0
     return(obj)
 }
 
-predict.XBCFrd <- function(object, W, X, ...) {
+predict.XBCFrd <- function(object, W = NULL, X, ...) {
 
     c <- object$model_params$cutoff
     burnin <- object$model_params$n_burnin
     sweeps <- nrow(object$a)
     
-    if (!("matrix" %in% class(W))) {
-        cat("Input X_con is not a matrix, try to convert type.\n")
-        W <- as.matrix(W)
+    if (!is.null(W)) {
+        if (!("matrix" %in% class(W))) {
+            cat("Input X_con is not a matrix, try to convert type.\n")
+            W <- as.matrix(W)
+        }
     }
 
     if (!("matrix" %in% class(X))) {
@@ -102,8 +104,10 @@ predict.XBCFrd <- function(object, W, X, ...) {
         stop("Running varialbe X should be a column vector")
     }
 
-    if (dim(W)[1] != length(X)) {
-        stop("Number of rows in covariates W must match Length of X")
+    if (!is.null(W)) {
+        if (dim(W)[1] != length(X)) {
+            stop("Number of rows in covariates W must match Length of X")
+        }
     }
 
     X_con <- cbind(X, W)
@@ -136,19 +140,21 @@ predict.XBCFrd <- function(object, W, X, ...) {
 }
 
 
-predict.XBCFrdgp <- function(object, W, X, Wtr, Xtr, theta = 0.1, tau = 1, ...) {
+predict.XBCFrdgp <- function(object, W = NULL, X, Wtr, Xtr, theta = 0.1, tau = 1, ...) {
     
     c <- object$model_params$cutoff
     burnin <- object$model_params$n_burnin
     sweeps <- nrow(object$a)
 
-    if (!("matrix" %in% class(W))) {
-        cat("Input W is not a matrix, try to convert type.\n")
-        W <- as.matrix(W)
+    if (!is.null(W)) {
+        if (!("matrix" %in% class(W))) {
+            cat("Input X_con is not a matrix, try to convert type.\n")
+            W <- as.matrix(W)
+        }
     }
 
     if (!("matrix" %in% class(X))) {
-        cat("Input X is not a matrix, try to convert type.\n")
+        cat("Input X_con is not a matrix, try to convert type.\n")
         X <- as.matrix(X)
     }
 
@@ -156,8 +162,10 @@ predict.XBCFrdgp <- function(object, W, X, Wtr, Xtr, theta = 0.1, tau = 1, ...) 
         stop("Running varialbe X should be a column vector")
     }
 
-    if (dim(W)[1] != length(X)) {
-        stop("Number of rows in covariates W must match Length of X")
+    if (!is.null(W)) {
+        if (dim(W)[1] != length(X)) {
+            stop("Number of rows in covariates W must match Length of X")
+        }
     }
 
     X_con <- cbind(X, W)
