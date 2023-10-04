@@ -6,6 +6,9 @@ reps <- 1
 rmse.stats <- matrix(NA, nrow = reps, ncol = 2)
 colnames(rmse.stats) <- c("xbcf-het", "xbcf-reg")
 
+a_scaling = TRUE
+b_scaling = TRUE
+
 for(i in c(1:reps)) {
   #### 1. DATA GENERATION PROCESS
   n <- 5000 # number of observations
@@ -95,7 +98,7 @@ for(i in c(1:reps)) {
                        p_categorical_con = 5, p_categorical_mod = 5, 
                        num_sweeps = num_sweeps, burnin = burnin, 
                        num_trees_con = 5, num_trees_mod = 5,
-                       a_scaling = FALSE, b_scaling = FALSE)
+                       a_scaling = a_scaling, b_scaling = b_scaling)
   t2 = proc.time() - t2
   
   pred2 <- predict(fit, X_con = x_con, X_mod = x_mod, Z = z, pihat = pihat, burnin = burnin)

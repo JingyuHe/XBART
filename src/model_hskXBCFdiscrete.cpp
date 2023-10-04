@@ -215,7 +215,7 @@ double hskXBCFDiscreteModel::likelihood(std::vector<double> &temp_suff_stat, std
     double denominator;   // the denominator (1 + tau * precision_squared) is the same for both terms
     double s_psi_squared; // (residual * precision_squared)^2
 
-    if(state.treatment_flag)
+    if (state.treatment_flag)
     {
         if (no_split)
         {
@@ -232,7 +232,8 @@ double hskXBCFDiscreteModel::likelihood(std::vector<double> &temp_suff_stat, std
             else
             {
                 denominator = 1 + ((suff_stat_all[2] - temp_suff_stat[2]) * pow(state.b_vec[0], 2) +
-                                   (suff_stat_all[3] - temp_suff_stat[3]) * pow(state.b_vec[1], 2)) * tau_use;
+                                   (suff_stat_all[3] - temp_suff_stat[3]) * pow(state.b_vec[1], 2)) *
+                                      tau_use;
                 s_psi_squared = (suff_stat_all[0] - temp_suff_stat[0]) * pow(state.b_vec[0], 2) +
                                 (suff_stat_all[1] - temp_suff_stat[1]) * pow(state.b_vec[1], 2);
             }
@@ -271,7 +272,7 @@ void hskXBCFDiscreteModel::ini_residual_std(State &state)
         b_value = ((*state.Z_std)[0][i] == 1) ? state.b_vec[1] : state.b_vec[0];
 
         (*state.residual_std)[0][i] = (*state.y_std)[i] - (state.a) * (*state.mu_fit)[i] - b_value * (*state.tau_fit)[i];
-        (*state.precision)[i] = double (1.0 / state.sigma_vec[i]);
+        (*state.precision)[i] = double(1.0 / state.sigma_vec[i]);
         (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
     }
     return;
@@ -460,7 +461,7 @@ void hskXBCFDiscreteModel::update_a(State &state)
 {
 
     // update parameter a, y = a * mu + b_z * tau
-/*
+
     std::normal_distribution<double> normal_samp(0.0, 1.0);
 
     double mu2sum_ctrl = 0;
@@ -504,7 +505,7 @@ void hskXBCFDiscreteModel::update_a(State &state)
     double m1 = v1 * (m0 / v0 + (muressum_trt) / pow(state.sigma_vec[1], 2));
 
     state.a = m1 + sqrt(v1) * normal_samp(state.gen);
-*/
+
     return;
 }
 
@@ -512,7 +513,7 @@ void hskXBCFDiscreteModel::update_b(State &state)
 {
 
     // update b0 and b1 for XBCF discrete treatment
-/*
+
     std::normal_distribution<double> normal_samp(0.0, 1.0);
 
     double tau2sum_ctrl = 0;
@@ -553,7 +554,7 @@ void hskXBCFDiscreteModel::update_b(State &state)
 
     state.b_vec[1] = b1;
     state.b_vec[0] = b0;
-*/
+
     return;
 }
 

@@ -16,8 +16,7 @@ void mcmc_loop_xbcf_discrete_heteroskedastic(matrix<size_t> &Xorder_std_con,
                                              logNormalModel *var_model,
                                              X_struct &x_struct_con,
                                              X_struct &x_struct_mod,
-                                             X_struct &var_x_struct
-                                             )
+                                             X_struct &var_x_struct)
 {
     model->ini_tau_mu_fit(state);
 
@@ -32,7 +31,7 @@ void mcmc_loop_xbcf_discrete_heteroskedastic(matrix<size_t> &Xorder_std_con,
 
         // prognostic forest
         model->set_treatmentflag(state, 0); // switch params (from treatment forest)
-        model->switch_state_params(state); // switch params (from precision forest)
+        model->switch_state_params(state);  // switch params (from precision forest)
 
         for (size_t tree_ind = 0; tree_ind < state.num_trees_con; tree_ind++)
         {
@@ -71,6 +70,18 @@ void mcmc_loop_xbcf_discrete_heteroskedastic(matrix<size_t> &Xorder_std_con,
             model->add_new_tree_fit(tree_ind, state, x_struct_con);
 
             model->update_split_counts(state, tree_ind);
+
+            if (sweeps != 0)
+            {
+                if (state.a_scaling)
+                {
+                    model->update_a(state);
+                }
+                if (state.b_scaling)
+                {
+                    model->update_b(state);
+                }
+            }
 
             if (sweeps >= state.burnin)
             {
@@ -134,7 +145,6 @@ void mcmc_loop_xbcf_discrete_heteroskedastic(matrix<size_t> &Xorder_std_con,
                     (*state.split_count_all_mod)[i] += (*state.split_count_current_tree)[i];
                 }
             }
-
         }
 
         if (model->sampling_tau)
@@ -188,7 +198,6 @@ void mcmc_loop_xbcf_discrete_heteroskedastic(matrix<size_t> &Xorder_std_con,
 
         // pass fitted values for sigmas to the mean model
         var_model->update_state(state, state.num_trees, var_x_struct);
-
     }
     return;
 }
