@@ -13,7 +13,41 @@ using namespace arma;
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::mat X_mod, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps, size_t max_depth, size_t n_min, size_t num_cutpoints, double alpha_con, double beta_con, double alpha_mod, double beta_mod, double tau_con, double tau_mod, double no_split_penalty, size_t burnin = 1, size_t mtry_con = 0, size_t mtry_mod = 0, size_t p_categorical_con = 0, size_t p_categorical_mod = 0, double kap = 16, double s = 4, double tau_con_kap = 3, double tau_con_s = 0.5, double tau_mod_kap = 3, double tau_mod_s = 0.5, bool verbose = false, bool sampling_tau = true, bool parallel = true, bool set_random_seed = false, size_t random_seed = 0, bool sample_weights = true, double nthread = 0)
+Rcpp::List XBCF_continuous_cpp(arma::mat y,
+                               arma::mat Z,
+                               arma::mat X_con,
+                               arma::mat X_mod,
+                               size_t num_trees_con,
+                               size_t num_trees_mod,
+                               size_t num_sweeps,
+                               size_t max_depth,
+                               size_t n_min,
+                               size_t num_cutpoints,
+                               double alpha_con,
+                               double beta_con,
+                               double alpha_mod,
+                               double beta_mod,
+                               double tau_con,
+                               double tau_mod,
+                               double no_split_penalty,
+                               size_t burnin = 1,
+                               size_t mtry_con = 0,
+                               size_t mtry_mod = 0,
+                               size_t p_categorical_con = 0,
+                               size_t p_categorical_mod = 0,
+                               double kap = 16,
+                               double s = 4,
+                               double tau_con_kap = 3,
+                               double tau_con_s = 0.5,
+                               double tau_mod_kap = 3,
+                               double tau_mod_s = 0.5,
+                               bool verbose = false,
+                               bool sampling_tau = true,
+                               bool parallel = true,
+                               bool set_random_seed = false,
+                               size_t random_seed = 0,
+                               bool sample_weights = true,
+                               double nthread = 0)
 {
     if (parallel)
     {
@@ -173,4 +207,3 @@ Rcpp::List XBCF_continuous_cpp(arma::mat y, arma::mat Z, arma::mat X_con, arma::
         Rcpp::Named("tree_string_mod") = output_tree_mod,
         Rcpp::Named("tree_string_con") = output_tree_con);
 }
- 

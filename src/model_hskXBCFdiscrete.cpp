@@ -272,7 +272,9 @@ void hskXBCFDiscreteModel::ini_residual_std(State &state)
         b_value = ((*state.Z_std)[0][i] == 1) ? state.b_vec[1] : state.b_vec[0];
 
         (*state.residual_std)[0][i] = (*state.y_std)[i] - (state.a) * (*state.mu_fit)[i] - b_value * (*state.tau_fit)[i];
+
         (*state.precision)[i] = double(1.0 / state.sigma_vec[i]);
+
         (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
     }
     return;
@@ -511,7 +513,6 @@ void hskXBCFDiscreteModel::update_a(State &state)
 
 void hskXBCFDiscreteModel::update_b(State &state)
 {
-
     // update b0 and b1 for XBCF discrete treatment
 
     std::normal_distribution<double> normal_samp(0.0, 1.0);

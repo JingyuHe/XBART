@@ -4,7 +4,15 @@
 
 #include "mcmc_loop.h"
 
-void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees, double no_split_penalty, State &state, NormalModel *model, X_struct &x_struct, std::vector<double> &resid)
+void mcmc_loop(matrix<size_t> &Xorder_std,
+               bool verbose,
+               matrix<double> &sigma_draw_xinfo,
+               vector<vector<tree>> &trees,
+               double no_split_penalty,
+               State &state,
+               NormalModel *model,
+               X_struct &x_struct,
+               std::vector<double> &resid)
 {
     size_t N = (*state.residual_std)[0].size();
 
@@ -97,8 +105,17 @@ void mcmc_loop(matrix<size_t> &Xorder_std, bool verbose, matrix<double> &sigma_d
     return;
 }
 
-void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vector<tree>> &trees, double no_split_penalty, State &state, LogitModel *model, X_struct &x_struct,
-                           std::vector<std::vector<double>> &weight_samples, std::vector<double> &lambda_samples, std::vector<std::vector<double>> &phi_samples, std::vector<std::vector<double>> &logloss,
+void mcmc_loop_multinomial(matrix<size_t> &Xorder_std,
+                           bool verbose,
+                           vector<vector<tree>> &trees,
+                           double no_split_penalty,
+                           State &state,
+                           LogitModel *model,
+                           X_struct &x_struct,
+                           std::vector<std::vector<double>> &weight_samples,
+                           std::vector<double> &lambda_samples,
+                           std::vector<std::vector<double>> &phi_samples,
+                           std::vector<std::vector<double>> &logloss,
                            std::vector<std::vector<double>> &tree_size)
 {
     // Residual for 0th tree
@@ -185,10 +202,17 @@ void mcmc_loop_multinomial(matrix<size_t> &Xorder_std, bool verbose, vector<vect
     }
 }
 
-void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verbose, vector<vector<vector<tree>>> &trees, double no_split_penalty, State &state,
-                                           LogitModelSeparateTrees *model, X_struct &x_struct,
-                                           std::vector<std::vector<double>> &weight_samples, std::vector<std::vector<double>> &tau_samples,
-                                           std::vector<std::vector<double>> &logloss, std::vector<std::vector<double>> &tree_size)
+void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std,
+                                           bool verbose,
+                                           vector<vector<vector<tree>>> &trees,
+                                           double no_split_penalty,
+                                           State &state,
+                                           LogitModelSeparateTrees *model,
+                                           X_struct &x_struct,
+                                           std::vector<std::vector<double>> &weight_samples,
+                                           std::vector<std::vector<double>> &tau_samples,
+                                           std::vector<std::vector<double>> &logloss,
+                                           std::vector<std::vector<double>> &tree_size)
 {
 
     // Residual for 0th tree
@@ -214,12 +238,6 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
 
         for (size_t tree_ind = 0; tree_ind < state.num_trees; tree_ind++)
         {
-
-            // if (verbose)
-            // {
-            //     COUT << "sweep " << sweeps << " tree " << tree_ind << endl;
-            // }
-            // Draw latents -- do last?
 
             if (state.use_all && (sweeps >= state.burnin)) // && (state.mtry != state.p) // If mtry = p, it will all be sampled anyway. Now use_all can be an indication of burnin period.
             {
@@ -280,7 +298,17 @@ void mcmc_loop_multinomial_sample_per_tree(matrix<size_t> &Xorder_std, bool verb
     return;
 }
 
-void mcmc_loop_xbcf_continuous(matrix<size_t> &Xorder_std_con, matrix<size_t> &Xorder_std_mod, bool verbose, matrix<double> &sigma_draw_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod, double no_split_penalty, State &state, XBCFContinuousModel *model, X_struct &x_struct_con, X_struct &x_struct_mod)
+void mcmc_loop_xbcf_continuous(matrix<size_t> &Xorder_std_con,
+                               matrix<size_t> &Xorder_std_mod,
+                               bool verbose,
+                               matrix<double> &sigma_draw_xinfo,
+                               vector<vector<tree>> &trees_con,
+                               vector<vector<tree>> &trees_mod,
+                               double no_split_penalty,
+                               State &state,
+                               XBCFContinuousModel *model,
+                               X_struct &x_struct_con,
+                               X_struct &x_struct_mod)
 {
     model->ini_tau_mu_fit(state);
 
@@ -670,6 +698,7 @@ void mcmc_loop_heteroskedastic(matrix<size_t> &Xorder_std,
 
         // initialize residual for precision model; update state params
         var_model->ini_residual_std2(state, var_x_struct);
+        
         var_model->switch_state_params(state);
 
         // loop for the variance model forest
@@ -697,8 +726,8 @@ void mcmc_loop_heteroskedastic(matrix<size_t> &Xorder_std,
             }
 
             var_model->initialize_root_suffstat(state, var_trees[sweeps][tree_ind].suff_stat);
-            //COUT << var_trees[sweeps][tree_ind].suff_stat[0] << " " << var_trees[sweeps][tree_ind].suff_stat[1] << endl;
-            // single core
+
+            //  single core
             var_trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, var_x_struct.X_counts, var_x_struct.X_num_unique, var_model, var_x_struct, sweeps, tree_ind);
 
             if (state.sample_weights)
@@ -775,7 +804,7 @@ void mcmc_loop_heteroskedastic_survival(matrix<size_t> &Xorder_std,
             // update tau after sampling the tree
             // model->update_tau(state, tree_ind, sweeps, trees);
 
-            //state.update_split_counts(tree_ind);
+            // state.update_split_counts(tree_ind);
             if (state.sample_weights)
             {
                 (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) + (*state.split_count_current_tree);
@@ -823,11 +852,11 @@ void mcmc_loop_heteroskedastic_survival(matrix<size_t> &Xorder_std,
             }
 
             var_model->initialize_root_suffstat(state, var_trees[sweeps][tree_ind].suff_stat);
-            //COUT << var_trees[sweeps][tree_ind].suff_stat[0] << " " << var_trees[sweeps][tree_ind].suff_stat[1] << endl;
-            // single core
+            // COUT << var_trees[sweeps][tree_ind].suff_stat[0] << " " << var_trees[sweeps][tree_ind].suff_stat[1] << endl;
+            //  single core
             var_trees[sweeps][tree_ind].grow_from_root(state, Xorder_std, var_x_struct.X_counts, var_x_struct.X_num_unique, var_model, var_x_struct, sweeps, tree_ind);
 
-            //state.update_split_counts(tree_ind);
+            // state.update_split_counts(tree_ind);
             if (state.sample_weights)
             {
                 (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree) + (*state.split_count_current_tree);

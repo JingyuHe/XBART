@@ -13,6 +13,7 @@
 void hskNormalModel::ini_residual_std(State &state)
 {
     double value = state.ini_var_yhat * ((double)state.num_trees - 1.0) / (double)state.num_trees;
+    
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
     {
         (*state.residual_std)[0][i] = (*state.y_std)[i] - value;
@@ -35,8 +36,10 @@ void hskNormalModel::initialize_root_suffstat(State &state, std::vector<double> 
 
 void hskNormalModel::incSuffStat(State &state, size_t index_next_obs, std::vector<double> &suffstats)
 {
-    suffstats[0] += (*state.res_x_precision)[index_next_obs]; // r/sigma^2
-    suffstats[1] += (*state.precision)[index_next_obs];       // 1/sigma^2
+    // r/sigma^2
+    suffstats[0] += (*state.res_x_precision)[index_next_obs];
+    // 1/sigma^2
+    suffstats[1] += (*state.precision)[index_next_obs];
 }
 
 void hskNormalModel::samplePars(State &state, std::vector<double> &suff_stat, std::vector<double> &theta_vector, double &prob_leaf)
@@ -52,7 +55,6 @@ void hskNormalModel::updateNodeSuffStat(State &state,
                                         std::vector<double> &suff_stat, matrix<size_t> &Xorder_std, size_t &split_var, size_t row_ind)
 {
     incSuffStat(state, Xorder_std[split_var][row_ind], suff_stat);
-    // COUT << "local node | ss0: " << suff_stat[0] << ", ss1:" << suff_stat[1] << endl;
     return;
 }
 
@@ -151,9 +153,15 @@ void hskNormalModel::switch_state_params(State &state)
 
 void hskNormalModel::store_residual(State &state, X_struct &x_struct)
 {
+    // once finish mean trees, copy residual_std to mean_res, saved for the next round
+    // state.residual_std will be clear for the variance tree
+
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
     {
+        // save results
         (*state.mean_res)[i] = (*state.residual_std)[0][i];
+
+        // update to full residuals of mean trees
         (*state.residual_std)[0][i] -= (*(x_struct.data_pointers[0][i]))[0];
     }
     return;
