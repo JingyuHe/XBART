@@ -146,7 +146,9 @@ public:
         this->sigma_vec[ind] = sigma; // sigma for the "ind" group
         return;
     }
-
+    // bool indicator for labeling currently growing trees for treat / control group variance
+    bool var_tree_treat;
+    
     State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread)
     {
 
