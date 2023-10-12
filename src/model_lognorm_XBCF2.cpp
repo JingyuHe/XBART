@@ -264,10 +264,14 @@ void logNormalXBCFModel2::update_state(State &state,
         if ((*state.Z_std)[0][i])
         {
             (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision_con)[i] * (*state.precision_mod)[i];
+
+            (*state.precision)[i] = (*state.precision_con)[i] * (*state.precision_mod)[i];
         }
         else
         {
             (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision_con)[i];
+
+            (*state.precision)[i] = (*state.precision_con)[i];
         }
 
         // copy mean_res back to residual_std, for the next mean trees
