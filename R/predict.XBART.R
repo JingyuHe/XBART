@@ -277,10 +277,10 @@ predict.XBCFdiscreteHeterosk3 <- function(object, X_con, X_mod, Z, pihat = NULL,
         taus[, i] <- obj$tau[, i] * (object$b[i, 2] - object$b[i, 1])
         mus[, i] <- obj$mu[, i] * (object$a[i]) + object$meany + obj$tau[, i] * object$b[i, 1]
     }
-
+    obj$sdy <- object$sdy
     obj$variance <- obj$variance * object$sdy
-    obj$variance_con <- obj$variance * object$sdy
-    obj$variance_mod <- obj$variance
+    obj$variance_con <- obj$variance_con
+    obj$variance_mod <- obj$variance_mod
     obj$tau.adj <- taus
     obj$mu.adj <- mus
     obj$yhats.adj <- Z[, 1] * obj$tau.adj + obj$mu.adj

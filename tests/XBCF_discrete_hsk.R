@@ -43,8 +43,8 @@ for (i in c(1:reps)) {
     # generate outcome variable
     # Ey <- mu(x) + tau * z
     Ey <- mu(x) + tau * z
-    # sig <- .8 * exp(x[, 1])
-    sig <- .8 * exp(x[, 1]) + z * 0.5 * exp(x[, 2]) #+ 0.25 * sd(Ey) # exponential function s
+    sig <- .8 * exp(x[, 1])
+    # sig <- .8 * exp(x[, 1]) + z * 0.5 * exp(x[, 2]) #+ 0.25 * sd(Ey) # exponential function s
     y <- Ey + sig * rnorm(n)
 
     # If you didn't know pi, you would estimate it here
@@ -86,6 +86,7 @@ for (i in c(1:reps)) {
     muhats <- pred$mu.adj.mean
 
     sigma <- sqrt(rowMeans(pred$variance[, burnin:num_sweeps]))
+    sigma_con <- sqrt(rowMeans(pred$variance_con[, burnin:num_sweeps]))
     # compare results to inference
     # plot(tau, tauhats)
     # abline(0, 1)
@@ -131,6 +132,8 @@ for (i in c(1:reps)) {
     plot(muvec, muhats2, main = "mu")
     abline(0, 1)
     plot(sig * rep(1, n), sigma, main = "sigma, hsk")
+    abline(0, 1)
+    plot(sig * rep(1, n), sigma_con, main = "sigma con, hsk")
     abline(0, 1)
 }
 

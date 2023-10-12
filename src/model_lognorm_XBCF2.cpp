@@ -200,27 +200,24 @@ void logNormalXBCFModel2::predict_std(matrix<double> &Ztestpointer, const double
             // prognostic trees
             getThetaForObs_Outsample(output_con, trees_con[sweeps], data_ind, Xtestpointer_con, N_test, p);
 
-            // treatment tree, if treated
-            if (Ztestpointer[0][data_ind])
-            {
-                getThetaForObs_Outsample(output_mod, trees_mod[sweeps], data_ind, Xtestpointer_mod, N_test, p);
-            }
-
-            // take sum of predictions of each tree, as final prediction
             for (size_t i = 0; i < trees_con[0].size(); i++)
             {
                 yhats_test_xinfo[sweeps][data_ind] += log(output_con[i][0]);
                 yhats_test_con[sweeps][data_ind] += log(output_con[i][0]);
             }
 
+            // treatment tree, if treated
             if (Ztestpointer[0][data_ind])
             {
-                for (size_t i = 0; i < trees_con[0].size(); i++)
+                getThetaForObs_Outsample(output_mod, trees_mod[sweeps], data_ind, Xtestpointer_mod, N_test, p);
+
+                for (size_t i = 0; i < trees_mod[0].size(); i++)
                 {
                     yhats_test_xinfo[sweeps][data_ind] += log(output_mod[i][0]);
                     yhats_test_mod[sweeps][data_ind] += log(output_mod[i][0]);
                 }
             }
+
             yhats_test_xinfo[sweeps][data_ind] = exp(yhats_test_xinfo[sweeps][data_ind]);
             yhats_test_con[sweeps][data_ind] = exp(yhats_test_con[sweeps][data_ind]);
             yhats_test_mod[sweeps][data_ind] = exp(yhats_test_mod[sweeps][data_ind]);

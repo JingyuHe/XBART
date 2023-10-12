@@ -174,6 +174,7 @@ void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance2(matrix<size_t> &Xord
 
         // prognostic forest
         model->set_treatmentflag(state, 0); // switch params
+        model->switch_state_params(state);  // switch params (from precision forest)
 
         var_model->ini_residual_std2(state, var_x_struct_con, var_x_struct_mod);
 
