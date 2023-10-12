@@ -184,29 +184,40 @@ void logNormalXBCFModel2::state_sweep(State &state,
 
 void logNormalXBCFModel2::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod)
 {
-
-    matrix<double> output;
+    matrix<double> output_con;
+    matrix<double> output_mod;
 
     // row : dimension of theta, column : number of trees
-    ini_matrix(output, this->dim_theta, trees_con[0].size());
+    ini_matrix(output_con, this->dim_theta, trees_con[0].size());
+    ini_matrix(output_mod, this->dim_theta, trees_mod[0].size());
 
     for (size_t sweeps = 0; sweeps < num_sweeps; sweeps++)
     {
         for (size_t data_ind = 0; data_ind < N_test; data_ind++)
         {
+            // prognostic trees
+            getThetaForObs_Outsample(output_con, trees_con[sweeps], data_ind, Xtestpointer, N_test, p);
+
+            // treatment tree, if treated
             if (Ztestpointer[0][data_ind])
             {
-                getThetaForObs_Outsample(output, trees_mod[sweeps], data_ind, Xtestpointer, N_test, p);
+                getThetaForObs_Outsample(output_mod, trees_mod[sweeps], data_ind, Xtestpointer, N_test, p);
             }
-            else
-            {
-                getThetaForObs_Outsample(output, trees_con[sweeps], data_ind, Xtestpointer, N_test, p);
-            }
+
             // take sum of predictions of each tree, as final prediction
             for (size_t i = 0; i < trees_con[0].size(); i++)
             {
-                yhats_test_xinfo[sweeps][data_ind] += log(output[i][0]);
+                yhats_test_xinfo[sweeps][data_ind] += log(output_con[i][0]);
             }
+
+            if (Ztestpointer[0][data_ind])
+            {
+                for (size_t i = 0; i < trees_con[0].size(); i++)
+                {
+                    yhats_test_xinfo[sweeps][data_ind] += log(output_mod[i][0]);
+                }
+            }
+
             yhats_test_xinfo[sweeps][data_ind] = exp(yhats_test_xinfo[sweeps][data_ind]);
         }
     }

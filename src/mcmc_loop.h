@@ -151,7 +151,7 @@ void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance2(matrix<size_t> &Xord
                                                             vector<vector<tree>> &trees_con,
                                                             vector<vector<tree>> &trees_mod,
                                                             vector<vector<tree>> &var_trees_con,
-                                                            vector<vector<tree>> &var_trees_trt,
+                                                            vector<vector<tree>> &var_trees_mod,
                                                             double no_split_penalty,
                                                             State &state,
                                                             hskXBCFDiscreteModel *model,
@@ -159,4 +159,4 @@ void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance2(matrix<size_t> &Xord
                                                             X_struct &x_struct_con,
                                                             X_struct &x_struct_mod,
                                                             X_struct &var_x_struct_con,
-                                                            X_struct &var_x_struct_trt);
+                                                            X_struct &var_x_struct_mod);

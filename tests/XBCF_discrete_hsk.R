@@ -43,8 +43,8 @@ for (i in c(1:reps)) {
     # generate outcome variable
     # Ey <- mu(x) + tau * z
     Ey <- mu(x) + tau * z
-    # sig <- 0.25 * sd(Ey)
-    sig <- .8 * exp(x[, 1]) #+ 0.25 * sd(Ey) # exponential function s
+    # sig <- .8 * exp(x[, 1])
+    sig <- .8 * exp(x[, 1]) + z * 0.5 * exp(x[, 2]) #+ 0.25 * sd(Ey) # exponential function s
     y <- Ey + sig * rnorm(n)
 
     # If you didn't know pi, you would estimate it here
@@ -93,6 +93,7 @@ for (i in c(1:reps)) {
     # abline(0, 1)
     cat("++++++++++++++++++++++++++++++++\n")
     print(paste0("xbcf-het tau RMSE: ", sqrt(mean((tauhats - tau)^2))))
+    print(paste0("xbcf-het mu RMSE: ", sqrt(mean((muhats - muvec)^2))))
     print(paste0("xbcf-het runtime: ", round(as.list(t1)$elapsed, 2), " seconds"))
 
     rmse.stats[i, 1] <- sqrt(mean((tauhats - tau)^2))
@@ -115,21 +116,21 @@ for (i in c(1:reps)) {
     result[i] <- sqrt(mean((tauhats2 - tau)^2))
     cat("------------------------------\n")
     print(paste0("xbcf tau RMSE: ", sqrt(mean((tauhats2 - tau)^2))))
+    print(paste0("xbcf tau RMSE: ", sqrt(mean((muhats2 - muvec)^2))))
     print(paste0("xbcf runtime: ", round(as.list(t2)$elapsed, 2), " seconds"))
     rmse.stats[i, 2] <- sqrt(mean((tauhats2 - tau)^2))
     # check predicted outcomes
     # plot(y,rowMeans(pred$yhats.adj[,30:60]))
-    par(mfrow = c(1, 2))
-    plot(tau, tauhats)
+    par(mfrow = c(2, 3))
+    plot(tau, tauhats, main = "tau, hsk")
     abline(0, 1)
-    plot(tau, tauhats2)
+    plot(tau, tauhats2, main = "tau")
     abline(0, 1)
-    plot(muvec, muhats)
+    plot(muvec, muhats, main = "mu, hsk")
     abline(0, 1)
-    plot(muvec, muhats2)
+    plot(muvec, muhats2, main = "mu")
     abline(0, 1)
-    par(mfrow = c(1, 1))
-    plot(sig * rep(1, n), sigma)
+    plot(sig * rep(1, n), sigma, main = "sigma, hsk")
     abline(0, 1)
 }
 

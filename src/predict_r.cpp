@@ -571,7 +571,6 @@ Rcpp::List xbart_heteroskedastic_predict(mat X,
     return Rcpp::List::create(Rcpp::Named("mhats") = mhats, Rcpp::Named("vhats") = vhats);
 }
 
-
 // [[Rcpp::export]]
 Rcpp::List XBCF_discrete_heteroskedastic_predict(mat X_con, mat X_mod, mat Z,
                                                  Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con,
@@ -671,10 +670,10 @@ Rcpp::List XBCF_discrete_heteroskedastic_predict(mat X_con, mat X_mod, mat Z,
 
 // [[Rcpp::export]]
 Rcpp::List XBCF_discrete_heteroskedastic_predict2(mat X_con, mat X_mod, mat Z,
-                                                 Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con,
-                                                 Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod,
-                                                 Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v_con,
-                                                 Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v_trt
+                                                  Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con,
+                                                  Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod,
+                                                  Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v_con,
+                                                  Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v_trt
 
 )
 {
@@ -770,14 +769,12 @@ Rcpp::List XBCF_discrete_heteroskedastic_predict2(mat X_con, mat X_mod, mat Z,
                               Rcpp::Named("variance") = vhats);
 }
 
-
-
 // [[Rcpp::export]]
 Rcpp::List XBCF_discrete_heteroskedastic_predict3(mat X_con, mat X_mod, mat Z,
-                                                 Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con,
-                                                 Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod,
-                                                 Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v_con,
-                                                 Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v_trt
+                                                  Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con,
+                                                  Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod,
+                                                  Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v_con,
+                                                  Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v_mod
 
 )
 {
@@ -819,14 +816,14 @@ Rcpp::List XBCF_discrete_heteroskedastic_predict3(mat X_con, mat X_mod, mat Z,
     std::vector<std::vector<tree>> *trees_con = tree_con;
     std::vector<std::vector<tree>> *trees_mod = tree_mod;
     std::vector<std::vector<tree>> *trees_v_con = tree_v_con;
-    std::vector<std::vector<tree>> *trees_v_trt = tree_v_trt;
+    std::vector<std::vector<tree>> *trees_v_mod = tree_v_mod;
 
     // Result Container
     size_t num_sweeps = (*trees_con).size();
     size_t num_trees_con = (*trees_con)[0].size();
     size_t num_trees_mod = (*trees_mod)[0].size();
     size_t num_trees_v = (*trees_v_con)[0].size();
-    // number of trees for trees_v_con and trees_v_trt are the same
+    // number of trees for trees_v_con and trees_v_mod are the same
 
     COUT << "number of trees " << num_trees_con << " " << num_trees_mod << endl;
 
@@ -844,11 +841,11 @@ Rcpp::List XBCF_discrete_heteroskedastic_predict3(mat X_con, mat X_mod, mat Z,
 
     // define models
     XBCFDiscreteModel *model = new XBCFDiscreteModel();
-    logNormalXBCFModel *model_v = new logNormalXBCFModel();
+    logNormalXBCFModel2 *model_v = new logNormalXBCFModel2();
     // Predict
     model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
 
-    model_v->predict_std(Ztest_std, Xpointer_con, N, p_con, num_trees_v, num_sweeps, vhats_test_xinfo, *trees_v_con, *trees_v_trt);
+    model_v->predict_std(Ztest_std, Xpointer_con, N, p_con, num_trees_v, num_sweeps, vhats_test_xinfo, *trees_v_con, *trees_v_mod);
 
     // Convert back to Rcpp
     Rcpp::NumericMatrix yhats(N, num_sweeps);

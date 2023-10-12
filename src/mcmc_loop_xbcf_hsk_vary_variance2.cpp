@@ -10,7 +10,7 @@ void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance2(matrix<size_t> &Xord
                                                             vector<vector<tree>> &trees_con,
                                                             vector<vector<tree>> &trees_mod,
                                                             vector<vector<tree>> &var_trees_con,
-                                                            vector<vector<tree>> &var_trees_trt,
+                                                            vector<vector<tree>> &var_trees_mod,
                                                             double no_split_penalty,
                                                             State &state,
                                                             hskXBCFDiscreteModel *model,
@@ -18,7 +18,7 @@ void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance2(matrix<size_t> &Xord
                                                             X_struct &x_struct_con,
                                                             X_struct &x_struct_mod,
                                                             X_struct &var_x_struct_con,
-                                                            X_struct &var_x_struct_trt)
+                                                            X_struct &var_x_struct_mod)
 {
     model->ini_tau_mu_fit(state);
 
@@ -175,7 +175,7 @@ void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance2(matrix<size_t> &Xord
         // prognostic forest
         model->set_treatmentflag(state, 0); // switch params
 
-        var_model->ini_residual_std2(state, var_x_struct_con, var_x_struct_trt);
+        var_model->ini_residual_std2(state, var_x_struct_con, var_x_struct_mod);
         var_model->switch_state_params(state);
 
         // loop for the variance model forest, prognostic forest
@@ -202,15 +202,15 @@ void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance2(matrix<size_t> &Xord
                 (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree_v);
             }
 
-            var_model->initialize_root_suffstat(state, var_trees_trt[sweeps][tree_ind].suff_stat);
+            var_model->initialize_root_suffstat(state, var_trees_mod[sweeps][tree_ind].suff_stat);
 
             // single core
-            var_trees_trt[sweeps][tree_ind].grow_from_root(state, Xorder_std_con, var_x_struct_trt.X_counts, var_x_struct_trt.X_num_unique, var_model, var_x_struct_trt, sweeps, tree_ind);
+            var_trees_mod[sweeps][tree_ind].grow_from_root(state, Xorder_std_con, var_x_struct_mod.X_counts, var_x_struct_mod.X_num_unique, var_model, var_x_struct_mod, sweeps, tree_ind);
 
             state.update_split_counts(tree_ind);
 
             // update partial residual for the next tree to fit
-            var_model->state_sweep(state, tree_ind, state.num_trees, (*state.residual_std), var_x_struct_con, var_x_struct_trt);
+            var_model->state_sweep(state, tree_ind, state.num_trees, (*state.residual_std), var_x_struct_con, var_x_struct_mod);
         }
 
         // treatment forest
@@ -248,11 +248,11 @@ void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance2(matrix<size_t> &Xord
             state.update_split_counts(tree_ind);
 
             // update partial residual for the next tree to fit
-            var_model->state_sweep(state, tree_ind, state.num_trees, (*state.residual_std), var_x_struct_con, var_x_struct_trt);
+            var_model->state_sweep(state, tree_ind, state.num_trees, (*state.residual_std), var_x_struct_con, var_x_struct_mod);
         }
 
         // pass fitted values for sigmas to the mean model
-        var_model->update_state(state, state.num_trees, var_x_struct_con, var_x_struct_trt);
+        var_model->update_state(state, state.num_trees, var_x_struct_con, var_x_struct_mod);
     }
     return;
 }
