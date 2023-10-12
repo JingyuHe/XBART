@@ -72,17 +72,16 @@ for (i in c(1:reps)) {
     burnin <- 30
     # run XBCF heteroskedastic
     t1 <- proc.time()
-    fit.hsk <- XBCF.discrete.heterosk2(
+    fit.hsk <- XBCF.discrete.heterosk3(
         y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat,
         p_categorical_con = 5, p_categorical_mod = 5,
         num_trees_con = 5, num_trees_mod = 5,
         num_sweeps = num_sweeps, burnin = burnin
     )
     t1 <- proc.time() - t1
-    cat(t1)
+    cat(t1, "\n")
 
-
-    pred <- predict.XBCFdiscreteHeterosk2(fit.hsk, X_con = x_con, X_mod = x_mod, Z = z, pihat = pihat, burnin = burnin)
+    pred <- predict.XBCFdiscreteHeterosk3(fit.hsk, X_con = x_con, X_mod = x_mod, Z = z, pihat = pihat, burnin = burnin)
     tauhats <- pred$tau.adj.mean
     muhats <- pred$mu.adj.mean
 
@@ -92,7 +91,7 @@ for (i in c(1:reps)) {
     # abline(0, 1)
     # plot(mu(x), muhats)
     # abline(0, 1)
-
+    cat("++++++++++++++++++++++++++++++++\n")
     print(paste0("xbcf-het tau RMSE: ", sqrt(mean((tauhats - tau)^2))))
     print(paste0("xbcf-het runtime: ", round(as.list(t1)$elapsed, 2), " seconds"))
 
@@ -113,8 +112,8 @@ for (i in c(1:reps)) {
     tauhats2 <- pred2$tau.adj.mean
     muhats2 <- pred2$mu.adj.mean
 
-    result[i] = sqrt(mean((tauhats2 - tau)^2))
-
+    result[i] <- sqrt(mean((tauhats2 - tau)^2))
+    cat("------------------------------\n")
     print(paste0("xbcf tau RMSE: ", sqrt(mean((tauhats2 - tau)^2))))
     print(paste0("xbcf runtime: ", round(as.list(t2)$elapsed, 2), " seconds"))
     rmse.stats[i, 2] <- sqrt(mean((tauhats2 - tau)^2))
@@ -134,7 +133,7 @@ for (i in c(1:reps)) {
     abline(0, 1)
 }
 
-cat(paste("Average RMSE for all simulations ", mean(result), "\n")
+cat(paste("Average RMSE for all simulations ", mean(result), "\n"))
 
 # main model parameters can be retrieved below
 # print(xbcf.fit$model_params)

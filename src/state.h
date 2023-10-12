@@ -80,6 +80,9 @@ public:
     bool forest_flag;              // 0 = mean forest; 1 = variance forest
     std::vector<double> *mean_res; // temporary storage for mean model residual
     std::vector<double> *precision;
+    // for XBCF different variance for treated / control
+    std::vector<double> *precision_con;
+    std::vector<double> *precision_mod;
     std::vector<double> *res_x_precision;
     size_t n_min_m;
     size_t n_min_v;
@@ -516,6 +519,8 @@ public:
         this->tau_fit = (new std::vector<double>(N, 0));
         this->mu_fit = (new std::vector<double>(N, 0));
         this->precision = (new std::vector<double>(N, 1));
+        this->precision_mod = (new std::vector<double>(N, 1));
+        this->precision_con = (new std::vector<double>(N, 1));
         this->res_x_precision = (new std::vector<double>(N, 0));
         this->mean_res = (new std::vector<double>(N, 0));
         this->Xorder_std_con = &Xorder_std_con;
