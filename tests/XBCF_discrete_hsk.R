@@ -43,8 +43,8 @@ for (i in c(1:reps)) {
     # generate outcome variable
     # Ey <- mu(x) + tau * z
     Ey <- mu(x) + tau * z
-    sig <- .8 * exp(x[, 1])
-    # sig <- .8 * exp(x[, 1]) + z * 0.5 * exp(x[, 2]) #+ 0.25 * sd(Ey) # exponential function s
+    # sig <- .8 * exp(x[, 1])
+    sig <- .8 * exp(x[, 1]) + z * 0.5 * exp(x[, 2]) #+ 0.25 * sd(Ey) # exponential function s
     y <- Ey + sig * rnorm(n)
 
     # If you didn't know pi, you would estimate it here
