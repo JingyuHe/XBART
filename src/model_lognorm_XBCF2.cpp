@@ -17,12 +17,15 @@ void logNormalXBCFModel2::ini_residual_std(State &state, matrix<double> &mean_re
     {
         if (state.treatment_flag)
         {
-            // treated group
-            (*state.residual_std)[0][i] = 2 * log(abs(mean_residual_std[0][i])) + log((*state.precision_con)[i]) + log((*state.precision_mod)[i]) - log((*(x_struct_v_mod.data_pointers[0][i]))[0]);
+            // fitting treatment tree
+            if ((*state.Z_std)[0][i])
+            {
+                (*state.residual_std)[0][i] = 2 * log(abs(mean_residual_std[0][i])) + log((*state.precision_con)[i]) + log((*state.precision_mod)[i]) - log((*(x_struct_v_mod.data_pointers[0][i]))[0]);
+            }
         }
         else
         {
-            // control group
+            // fitting prognostic tree
             (*state.residual_std)[0][i] = 2 * log(abs(mean_residual_std[0][i])) + log((*state.precision_con)[i]) + log((*state.precision_mod)[i]) - log((*(x_struct_v_con.data_pointers[0][i]))[0]);
         }
     }
@@ -178,11 +181,10 @@ void logNormalXBCFModel2::state_sweep(State &state,
             residual_std[0][i] = residual_std[0][i] + log((*(x_struct_v_con.data_pointers[tree_ind][i]))[0]) - log((*(x_struct_v_con.data_pointers[next_index][i]))[0]);
         }
     }
-
     return;
 }
 
-void logNormalXBCFModel2::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod)
+void logNormalXBCFModel2::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer_con, const double *Xtestpointer_mod, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &yhats_test_con, matrix<double> &yhats_test_mod, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod)
 {
     matrix<double> output_con;
     matrix<double> output_mod;
@@ -196,18 +198,19 @@ void logNormalXBCFModel2::predict_std(matrix<double> &Ztestpointer, const double
         for (size_t data_ind = 0; data_ind < N_test; data_ind++)
         {
             // prognostic trees
-            getThetaForObs_Outsample(output_con, trees_con[sweeps], data_ind, Xtestpointer, N_test, p);
+            getThetaForObs_Outsample(output_con, trees_con[sweeps], data_ind, Xtestpointer_con, N_test, p);
 
             // treatment tree, if treated
             if (Ztestpointer[0][data_ind])
             {
-                getThetaForObs_Outsample(output_mod, trees_mod[sweeps], data_ind, Xtestpointer, N_test, p);
+                getThetaForObs_Outsample(output_mod, trees_mod[sweeps], data_ind, Xtestpointer_mod, N_test, p);
             }
 
             // take sum of predictions of each tree, as final prediction
             for (size_t i = 0; i < trees_con[0].size(); i++)
             {
                 yhats_test_xinfo[sweeps][data_ind] += log(output_con[i][0]);
+                yhats_test_con[sweeps][data_ind] += log(output_con[i][0]);
             }
 
             if (Ztestpointer[0][data_ind])
@@ -215,10 +218,12 @@ void logNormalXBCFModel2::predict_std(matrix<double> &Ztestpointer, const double
                 for (size_t i = 0; i < trees_con[0].size(); i++)
                 {
                     yhats_test_xinfo[sweeps][data_ind] += log(output_mod[i][0]);
+                    yhats_test_mod[sweeps][data_ind] += log(output_mod[i][0]);
                 }
             }
-
             yhats_test_xinfo[sweeps][data_ind] = exp(yhats_test_xinfo[sweeps][data_ind]);
+            yhats_test_con[sweeps][data_ind] = exp(yhats_test_con[sweeps][data_ind]);
+            yhats_test_mod[sweeps][data_ind] = exp(yhats_test_mod[sweeps][data_ind]);
         }
     }
     return;
@@ -242,6 +247,8 @@ void logNormalXBCFModel2::update_state(State &state,
             log_sigma2_con += log((*(x_struct_v_con.data_pointers[j][i]))[0]);
         }
 
+        (*state.precision_con)[i] = exp(log_sigma2_con);
+
         if ((*state.Z_std)[0][i])
         {
             for (size_t j = 0; j < tree_ind; j++)
@@ -251,10 +258,12 @@ void logNormalXBCFModel2::update_state(State &state,
 
             (*state.precision_mod)[i] = exp(log_sigma2_mod);
         }
+        else
+        {
+            (*state.precision_mod)[i] = 1.0;
+        }
 
         // update fitted precision and res * precision
-        (*state.precision_con)[i] = exp(log_sigma2_con);
-
         if ((*state.Z_std)[0][i])
         {
             (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision_con)[i] * (*state.precision_mod)[i];
@@ -279,9 +288,4 @@ void logNormalXBCFModel2::switch_state_params(State &state)
     state.n_cutpoints = state.n_cutpoints_v;
 
     return;
-}
-
-void logNormalXBCFModel2::switch_var_tree_treat(State &state, bool var_tree_treat)
-{
-    state.var_tree_treat = var_tree_treat;
 }

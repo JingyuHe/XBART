@@ -783,13 +783,11 @@ public:
 
     void state_sweep(State &state, size_t tree_ind, size_t M, matrix<double> &residual_std, X_struct &x_struct_v_con, X_struct &x_struct_v_mod) const;
 
-    void predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod);
+    void predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer_con, const double *Xtestpointer_mod, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &yhats_test_con, matrix<double> &yhats_test_mod, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod);
 
     void update_state(State &state, size_t tree_ind, X_struct &x_struct_v_con, X_struct &x_struct_v_mod);
 
     void switch_state_params(State &state);
-
-    void switch_var_tree_treat(State &state, bool var_tree_treat);
 };
 
 //////////////////////////////////////////////////////////////////////////////////////

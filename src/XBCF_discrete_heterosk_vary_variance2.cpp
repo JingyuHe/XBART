@@ -200,12 +200,12 @@ Rcpp::List XBCF_discrete_heterosk_vary_variance_cpp2(arma::mat y,
     // create trees for variance
     // treated and control group fits different trees
     vector<vector<tree>> trees_v_con(num_sweeps);
-    vector<vector<tree>> trees_v_trt(num_sweeps);
+    vector<vector<tree>> trees_v_mod(num_sweeps);
 
     for (size_t i = 0; i < num_sweeps; i++)
     {
         trees_v_con[i].resize(num_trees_v);
-        trees_v_trt[i].resize(num_trees_v);
+        trees_v_mod[i].resize(num_trees_v);
     }
 
     // define the variance model
@@ -216,8 +216,8 @@ Rcpp::List XBCF_discrete_heterosk_vary_variance_cpp2(arma::mat y,
     std::vector<double> initial_theta_v_con(1, exp(log(1.0 / ini_var) / (double)num_trees_v));
     X_struct x_struct_v_con(Xpointer_con, &y_std, N, Xorder_std_con, p_categorical_con, p_continuous_con, &initial_theta_v_con, num_trees_v);
 
-    std::vector<double> initial_theta_v_trt(1, exp(log(1.0 / ini_var) / (double)num_trees_v));
-    X_struct x_struct_v_trt(Xpointer_con, &y_std, N, Xorder_std_con, p_categorical_con, p_continuous_con, &initial_theta_v_trt, num_trees_v);
+    std::vector<double> initial_theta_v_mod(1, exp(log(1.0 / ini_var) / (double)num_trees_v));
+    X_struct x_struct_v_mod(Xpointer_con, &y_std, N, Xorder_std_con, p_categorical_con, p_continuous_con, &initial_theta_v_mod, num_trees_v);
 
     // State settings
     std::vector<double> sigma_vec(N, 1.0);
@@ -248,9 +248,9 @@ Rcpp::List XBCF_discrete_heterosk_vary_variance_cpp2(arma::mat y,
     mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance2(Xorder_std_con, Xorder_std_mod,
                                                            verbose, sigma0_draw_xinfo, sigma1_draw_xinfo,
                                                            a_xinfo, b_xinfo,
-                                                           trees_con, trees_mod, trees_v_con, trees_v_trt,
+                                                           trees_con, trees_mod, trees_v_con, trees_v_mod,
                                                            no_split_penalty, state, model, model_v,
-                                                           x_struct_con, x_struct_mod, x_struct_v_con, x_struct_v_trt);
+                                                           x_struct_con, x_struct_mod, x_struct_v_con, x_struct_v_mod);
 
     // R Objects to Return
     Rcpp::NumericMatrix sigma0_draw(num_trees_con + num_trees_mod, num_sweeps); // save predictions of each tree
@@ -267,7 +267,7 @@ Rcpp::List XBCF_discrete_heterosk_vary_variance_cpp2(arma::mat y,
 
     Rcpp::NumericVector split_count_sum_v_con(p_con, 0);
 
-    Rcpp::NumericVector split_count_sum_v_trt(p_con, 0);
+    Rcpp::NumericVector split_count_sum_v_mod(p_con, 0);
 
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(sigma0_draw_xinfo, sigma0_draw);
@@ -294,27 +294,27 @@ Rcpp::List XBCF_discrete_heterosk_vary_variance_cpp2(arma::mat y,
     Rcpp::StringVector output_tree_con(num_sweeps);
     Rcpp::StringVector output_tree_mod(num_sweeps);
     Rcpp::StringVector output_tree_v_con(num_sweeps);
-    Rcpp::StringVector output_tree_v_trt(num_sweeps);
+    Rcpp::StringVector output_tree_v_mod(num_sweeps);
 
     tree_to_string(trees_mod, output_tree_mod, num_sweeps, num_trees_mod, p_mod);
     tree_to_string(trees_con, output_tree_con, num_sweeps, num_trees_con, p_con);
     tree_to_string(trees_v_con, output_tree_v_con, num_sweeps, num_trees_v, p_con);
-    tree_to_string(trees_v_trt, output_tree_v_trt, num_sweeps, num_trees_v, p_con);
+    tree_to_string(trees_v_mod, output_tree_v_mod, num_sweeps, num_trees_v, p_con);
 
     Rcpp::StringVector tree_json_mod(1);
     Rcpp::StringVector tree_json_con(1);
     Rcpp::StringVector tree_json_v_con(1);
-    Rcpp::StringVector tree_json_v_trt(1);
+    Rcpp::StringVector tree_json_v_mod(1);
 
     json j = get_forest_json(trees_mod, y_mean);
     json j2 = get_forest_json(trees_con, y_mean);
     json j3 = get_forest_json(trees_v_con, y_mean);
-    json j4 = get_forest_json(trees_v_trt, y_mean);
+    json j4 = get_forest_json(trees_v_mod, y_mean);
 
     tree_json_mod[0] = j.dump(4);
     tree_json_con[0] = j2.dump(4);
     tree_json_v_con[0] = j3.dump(4);
-    tree_json_v_trt[0] = j4.dump(4);
+    tree_json_v_mod[0] = j4.dump(4);
 
     thread_pool.stop();
 
@@ -330,9 +330,9 @@ Rcpp::List XBCF_discrete_heterosk_vary_variance_cpp2(arma::mat y,
         Rcpp::Named("tree_json_mod") = tree_json_mod,
         Rcpp::Named("tree_json_con") = tree_json_con,
         Rcpp::Named("tree_json_v_con") = tree_json_v_con,
-        Rcpp::Named("tree_json_v_trt") = tree_json_v_trt,
+        Rcpp::Named("tree_json_v_mod") = tree_json_v_mod,
         Rcpp::Named("tree_string_mod") = output_tree_mod,
         Rcpp::Named("tree_string_con") = output_tree_con,
         Rcpp::Named("tree_string_v_con") = output_tree_v_con,
-        Rcpp::Named("tree_string_v_trt") = output_tree_v_trt);
+        Rcpp::Named("tree_string_v_mod") = output_tree_v_mod);
 }
