@@ -214,6 +214,7 @@ void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance2(matrix<size_t> &Xord
             // update partial residual for the next tree to fit
             var_model->state_sweep(state, tree_ind, state.num_trees, (*state.residual_std), var_x_struct_con, var_x_struct_con);
         }
+        var_model->update_state(state, state.num_trees, var_x_struct_con, var_x_struct_mod);
 
         // treatment forest
         model->set_treatmentflag(state, 1);

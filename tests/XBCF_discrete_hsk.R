@@ -2,14 +2,12 @@
 library(XBART)
 library(dbarts)
 
-reps <- 1
-rmse.stats <- matrix(NA, nrow = reps, ncol = 2)
-colnames(rmse.stats) <- c("xbcf-het", "xbcf-reg")
+reps <- 30
+rmse.stats <- matrix(NA, nrow = reps, ncol = 6)
+colnames(rmse.stats) <- c("tau, model3", "mu, model3", "tau, hsk", "mu, hsk", "tau, XBCF", "mu, XBCF")
 
 a_scaling <- TRUE
 b_scaling <- TRUE
-
-result = rep(0, reps)
 
 for (i in c(1:reps)) {
     #### 1. DATA GENERATION PROCESS
@@ -45,7 +43,7 @@ for (i in c(1:reps)) {
     Ey <- mu(x) + tau * z
     # sig <- .8 * exp(x[, 1])
     sig <- .8 * exp(x[, 1]) + z * 0.5 * exp(x[, 2]) #+ 0.25 * sd(Ey) # exponential function s
-    y <- Ey + sig * rnorm(n)
+    y <- Ey + 0.2 * sig * rnorm(n)
 
     # If you didn't know pi, you would estimate it here
     pihat <- pi
@@ -76,7 +74,8 @@ for (i in c(1:reps)) {
         y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat,
         p_categorical_con = 5, p_categorical_mod = 5,
         num_trees_con = 5, num_trees_mod = 5,
-        num_sweeps = num_sweeps, burnin = burnin
+        num_sweeps = num_sweeps, burnin = burnin, sample_weights = FALSE,
+        a_scaling = a_scaling, b_scaling = b_scaling
     )
     t1 <- proc.time() - t1
     cat(t1, "\n")
@@ -98,6 +97,30 @@ for (i in c(1:reps)) {
     print(paste0("xbcf-het runtime: ", round(as.list(t1)$elapsed, 2), " seconds"))
 
     rmse.stats[i, 1] <- sqrt(mean((tauhats - tau)^2))
+    rmse.stats[i, 2] <- sqrt(mean((muhats - muvec)^2))
+
+    num_sweeps <- 60
+    burnin <- 30
+    # run XBCF heteroskedastic
+    t1 <- proc.time()
+    fit.hsk2 <- XBCF.discrete.heterosk(
+        y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat,
+        p_categorical_con = 5, p_categorical_mod = 5,
+        num_trees_con = 5, num_trees_mod = 5,
+        num_sweeps = num_sweeps, burnin = burnin,
+        a_scaling = a_scaling, b_scaling = b_scaling
+    )
+    t1 <- proc.time() - t1
+    cat(t1, "\n")
+
+    pred2 <- predict.XBCFdiscreteHeterosk(fit.hsk2, X_con = x_con, X_mod = x_mod, Z = z, pihat = pihat, burnin = burnin)
+    tauhats2 <- pred2$tau.adj.mean
+    muhats2 <- pred2$mu.adj.mean
+
+
+    rmse.stats[i, 3] <- sqrt(mean((tauhats2 - tau)^2))
+    rmse.stats[i, 4] <- sqrt(mean((muhats2 - muvec)^2))
+
 
     # run XBCF homoskedastic
     t2 <- proc.time()
@@ -110,26 +133,32 @@ for (i in c(1:reps)) {
     )
     t2 <- proc.time() - t2
 
-    pred2 <- predict(fit, X_con = x_con, X_mod = x_mod, Z = z, pihat = pihat, burnin = burnin)
-    tauhats2 <- pred2$tau.adj.mean
-    muhats2 <- pred2$mu.adj.mean
+    pred3 <- predict(fit, X_con = x_con, X_mod = x_mod, Z = z, pihat = pihat, burnin = burnin)
+    tauhats3 <- pred3$tau.adj.mean
+    muhats3 <- pred3$mu.adj.mean
 
-    result[i] <- sqrt(mean((tauhats2 - tau)^2))
+    rmse.stats[i, 5] <- sqrt(mean((tauhats3 - tau)^2))
+    rmse.stats[i, 6] <- sqrt(mean((muhats3 - muvec)^2))
+
     cat("------------------------------\n")
-    print(paste0("xbcf tau RMSE: ", sqrt(mean((tauhats2 - tau)^2))))
-    print(paste0("xbcf tau RMSE: ", sqrt(mean((muhats2 - muvec)^2))))
+    print(paste0("xbcf tau RMSE: ", sqrt(mean((tauhats3 - tau)^2))))
+    print(paste0("xbcf tau RMSE: ", sqrt(mean((muhats3 - muvec)^2))))
     print(paste0("xbcf runtime: ", round(as.list(t2)$elapsed, 2), " seconds"))
-    rmse.stats[i, 2] <- sqrt(mean((tauhats2 - tau)^2))
+
     # check predicted outcomes
     # plot(y,rowMeans(pred$yhats.adj[,30:60]))
-    par(mfrow = c(2, 3))
-    plot(tau, tauhats, main = "tau, hsk")
+    par(mfrow = c(3, 3))
+    plot(tau, tauhats, main = "tau, model3")
     abline(0, 1)
-    plot(tau, tauhats2, main = "tau")
+    plot(tau, tauhats2, main = "tau, hsk")
     abline(0, 1)
-    plot(muvec, muhats, main = "mu, hsk")
+    plot(tau, tauhats3, main = "tau, XBCF")
     abline(0, 1)
-    plot(muvec, muhats2, main = "mu")
+    plot(muvec, muhats, main = "mu, model3")
+    abline(0, 1)
+    plot(muvec, muhats2, main = "mu, hsk")
+    abline(0, 1)
+    plot(muvec, muhats3, main = "mu, XBCF")
     abline(0, 1)
     plot(sig * rep(1, n), sigma, main = "sigma, hsk")
     abline(0, 1)
@@ -137,7 +166,8 @@ for (i in c(1:reps)) {
     abline(0, 1)
 }
 
-cat(paste("Average RMSE for all simulations ", mean(result), "\n"))
+cat(paste("Average RMSE for all simulations.\n"))
+print(round(colMeans(rmse.stats), 3))
 
 # main model parameters can be retrieved below
 # print(xbcf.fit$model_params)

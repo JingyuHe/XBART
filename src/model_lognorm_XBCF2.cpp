@@ -22,6 +22,10 @@ void logNormalXBCFModel2::ini_residual_std(State &state, matrix<double> &mean_re
             {
                 (*state.residual_std)[0][i] = 2 * log(abs(mean_residual_std[0][i])) + log((*state.precision_con)[i]) + log((*state.precision_mod)[i]) - log((*(x_struct_v_mod.data_pointers[0][i]))[0]);
             }
+            else
+            {
+                (*state.residual_std)[0][i] = 2 * log(abs(mean_residual_std[0][i])) + log((*state.precision_con)[i]);
+            }
         }
         else
         {
@@ -44,12 +48,19 @@ void logNormalXBCFModel2::ini_residual_std2(State &state, X_struct &x_struct_v_c
         if (state.treatment_flag)
         {
             // treatment tree
-            (*state.residual_std)[0][i] = 2 * log(abs((*state.residual_std)[0][i])) + log((*state.precision_con)[i]) + log((*state.precision_mod)[i]) - log((*(x_struct_v_mod.data_pointers[0][i]))[0]);
+            if ((*state.Z_std)[0][i])
+            {
+                (*state.residual_std)[0][i] = 2 * log(abs((*state.residual_std)[0][i])) + log((*state.precision_con)[i]) + log((*state.precision_mod)[i]) - log((*(x_struct_v_mod.data_pointers[0][i]))[0]);
+            }
+            else
+            {
+                (*state.residual_std)[0][i] = 2 * log(abs((*state.residual_std)[0][i])) + log((*state.precision_con)[i]);
+            }
         }
         else
         {
             // prognostic tree
-            (*state.residual_std)[0][i] = 2 * log(abs((*state.residual_std)[0][i])) + log((*state.precision_con)[i]) - log((*(x_struct_v_con.data_pointers[0][i]))[0]);
+            (*state.residual_std)[0][i] = 2 * log(abs((*state.residual_std)[0][i])) + log((*state.precision_mod)[i]) + log((*state.precision_con)[i]) - log((*(x_struct_v_con.data_pointers[0][i]))[0]);
         }
     }
     return;
@@ -73,7 +84,7 @@ void logNormalXBCFModel2::incSuffStat(State &state,
     if (state.treatment_flag)
     {
         // trees for treated effect, mod trees
-        // if the observation is treated
+        // only if the observation is treated
         if ((*state.Z_std)[0][index_next_obs])
         {
             suffstats[0] += exp((*state.residual_std)[0][index_next_obs]);
@@ -174,10 +185,15 @@ void logNormalXBCFModel2::state_sweep(State &state,
     {
         if (state.treatment_flag)
         {
-            residual_std[0][i] = residual_std[0][i] + log((*(x_struct_v_mod.data_pointers[tree_ind][i]))[0]) - log((*(x_struct_v_mod.data_pointers[next_index][i]))[0]);
+            // only update treated data
+            if ((*state.Z_std)[0][i])
+            {
+                residual_std[0][i] = residual_std[0][i] + log((*(x_struct_v_mod.data_pointers[tree_ind][i]))[0]) - log((*(x_struct_v_mod.data_pointers[next_index][i]))[0]);
+            }
         }
         else
         {
+            // prognostic tree, modify all data
             residual_std[0][i] = residual_std[0][i] + log((*(x_struct_v_con.data_pointers[tree_ind][i]))[0]) - log((*(x_struct_v_con.data_pointers[next_index][i]))[0]);
         }
     }
@@ -263,16 +279,14 @@ void logNormalXBCFModel2::update_state(State &state,
         // update fitted precision and res * precision
         if ((*state.Z_std)[0][i])
         {
-            (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision_con)[i] * (*state.precision_mod)[i];
-
             (*state.precision)[i] = (*state.precision_con)[i] * (*state.precision_mod)[i];
         }
         else
         {
-            (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision_con)[i];
-
             (*state.precision)[i] = (*state.precision_con)[i];
         }
+
+        (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
 
         // copy mean_res back to residual_std, for the next mean trees
         (*state.residual_std)[0][i] = (*state.mean_res)[i];
