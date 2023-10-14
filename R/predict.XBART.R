@@ -181,60 +181,6 @@ predict.XBCFdiscreteHeterosk <- function(object, X_con, X_mod, Z, pihat = NULL, 
 
 
 
-#' Predicting new observations using fitted XBCF binary treatment model with heteroskedastic variance.
-#' @description This function predicts testing data given fitted XBCF binary treatment model.
-#' @param object Fitted \eqn{object} returned from XBART function.
-#' @param X_con A matrix of input testing data for the prognostic forest.
-#' @param X_mod A matrix of input testing data for the treatment forest.
-#' @param Z A vector of input testing data for the treatment variable.
-#' @param pihat An array of propensity score estimates.
-#' @param burnin The number of burn-in iterations to discard from averaging (the default value is 0).
-#'
-#' @details XBCF draws multiple samples of the forests (sweeps), each forest is an ensemble of trees. The final prediction returns predicted prognostic term, treatment effect and the final outcome \eqn{Y}
-#' @return A list containing predicted prognostic term, treatment effect, standard deviation and final outcome \eqn{Y}.
-#' @export
-
-
-predict.XBCFdiscreteHeterosk2 <- function(object, X_con, X_mod, Z, pihat = NULL, burnin = 0L, ...) {
-    stopifnot("Propensity scores (pihat) must be provided by user for prediction." = !is.null(pihat))
-
-    X_con <- as.matrix(cbind(pihat, X_con))
-    X_mod <- as.matrix(X_mod)
-    Z <- as.matrix(Z)
-    out_con <- json_to_r(object$tree_json_con)
-    out_mod <- json_to_r(object$tree_json_mod)
-    out_v_con <- json_to_r(object$tree_json_v_con)
-    out_v_trt <- json_to_r(object$tree_json_v_trt)
-
-    obj <- .Call(
-        "_XBART_XBCF_discrete_heteroskedastic_predict2", X_con, X_mod, Z,
-        out_con$model_list$tree_pnt,
-        out_mod$model_list$tree_pnt,
-        out_v_con$model_list$tree_pnt,
-        out_v_trt$model_list$tree_pnt
-    )
-    burnin <- burnin
-    sweeps <- nrow(object$a)
-    mus <- matrix(NA, nrow(X_con), sweeps)
-    taus <- matrix(NA, nrow(X_mod), sweeps)
-    seq <- c(1:sweeps)
-    for (i in seq) {
-        taus[, i] <- obj$tau[, i] * (object$b[i, 2] - object$b[i, 1])
-        mus[, i] <- obj$mu[, i] * (object$a[i]) + object$meany + obj$tau[, i] * object$b[i, 1]
-    }
-
-    obj$variance <- obj$variance * object$sdy
-    obj$tau.adj <- taus
-    obj$mu.adj <- mus
-    obj$yhats.adj <- Z[, 1] * obj$tau.adj + obj$mu.adj
-    obj$tau.adj.mean <- rowMeans(obj$tau.adj[, (burnin + 1):sweeps])
-    obj$mu.adj.mean <- rowMeans(obj$mu.adj[, (burnin + 1):sweeps])
-    obj$yhats.adj.mean <- rowMeans(obj$yhats.adj[, (burnin + 1):sweeps])
-
-    return(obj)
-}
-
-
 
 #' Predicting new observations using fitted XBCF binary treatment model with heteroskedastic variance.
 #' @description This function predicts testing data given fitted XBCF binary treatment model.

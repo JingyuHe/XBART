@@ -120,27 +120,6 @@ void mcmc_loop_xbcf_discrete_heteroskedastic(matrix<size_t> &Xorder_std_con,
                                              X_struct &var_x_struct);
 
 // Binary XBCF with heteroskedastic variance, treated / control have different trees to fit variances
-void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance(matrix<size_t> &Xorder_std_con,
-                                                           matrix<size_t> &Xorder_std_mod,
-                                                           bool verbose,
-                                                           matrix<double> &sigma0_draw_xinfo,
-                                                           matrix<double> &sigma1_draw_xinfo,
-                                                           matrix<double> &a_xinfo,
-                                                           matrix<double> &b_xinfo,
-                                                           vector<vector<tree>> &trees_con,
-                                                           vector<vector<tree>> &trees_mod,
-                                                           vector<vector<tree>> &var_trees_con,
-                                                           vector<vector<tree>> &var_trees_trt,
-                                                           double no_split_penalty,
-                                                           State &state,
-                                                           hskXBCFDiscreteModel *model,
-                                                           logNormalXBCFModel *var_model,
-                                                           X_struct &x_struct_con,
-                                                           X_struct &x_struct_mod,
-                                                           X_struct &var_x_struct_con,
-                                                           X_struct &var_x_struct_trt);
-
-// Binary XBCF with heteroskedastic variance, treated / control have different trees to fit variances
 void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance2(matrix<size_t> &Xorder_std_con,
                                                             matrix<size_t> &Xorder_std_mod,
                                                             bool verbose,
