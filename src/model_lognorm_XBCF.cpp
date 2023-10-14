@@ -10,7 +10,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////
 
-void logNormalXBCFModel::ini_residual_std(State &state, matrix<double> &mean_residual_std, X_struct &x_struct_v_con, X_struct &x_struct_v_trt)
+void logNormalXBCFModel::ini_residual_std(State &state, matrix<double> &mean_residual_std, X_struct &x_struct_v_con, X_struct &x_struct_v_mod)
 {
     // initialize partial residual at the residual^2 from the mean model
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
@@ -18,7 +18,7 @@ void logNormalXBCFModel::ini_residual_std(State &state, matrix<double> &mean_res
         if ((*state.Z_std)[0][i])
         {
             // treated group
-            (*state.residual_std)[0][i] = 2 * log(abs(mean_residual_std[0][i])) + log((*state.precision)[i]) - log((*(x_struct_v_trt.data_pointers[0][i]))[0]);
+            (*state.residual_std)[0][i] = 2 * log(abs(mean_residual_std[0][i])) + log((*state.precision)[i]) - log((*(x_struct_v_mod.data_pointers[0][i]))[0]);
         }
         else
         {
@@ -29,7 +29,7 @@ void logNormalXBCFModel::ini_residual_std(State &state, matrix<double> &mean_res
     return;
 }
 
-void logNormalXBCFModel::ini_residual_std2(State &state, X_struct &x_struct_v_con, X_struct &x_struct_v_trt)
+void logNormalXBCFModel::ini_residual_std2(State &state, X_struct &x_struct_v_con, X_struct &x_struct_v_mod)
 {
     // initialize partial residual at the residual^2 from the mean model
 
@@ -40,7 +40,7 @@ void logNormalXBCFModel::ini_residual_std2(State &state, X_struct &x_struct_v_co
     {
         if ((*state.Z_std)[0][i])
         {
-            (*state.residual_std)[0][i] = 2 * log(abs((*state.residual_std)[0][i])) + log((*state.precision)[i]) - log((*(x_struct_v_trt.data_pointers[0][i]))[0]);
+            (*state.residual_std)[0][i] = 2 * log(abs((*state.residual_std)[0][i])) + log((*state.precision)[i]) - log((*(x_struct_v_mod.data_pointers[0][i]))[0]);
         }
         else
         {
@@ -65,7 +65,7 @@ void logNormalXBCFModel::incSuffStat(State &state,
                                      size_t index_next_obs,
                                      std::vector<double> &suffstats)
 {
-    if (state.var_tree_treat)
+    if (state.treatment_flag)
     {
         // trees for treated group
         if ((*state.Z_std)[0][index_next_obs])
@@ -160,7 +160,7 @@ void logNormalXBCFModel::state_sweep(State &state,
                                      matrix<double> &residual_std,
                                      // std::vector<double> &fit,
                                      X_struct &x_struct_v_con,
-                                     X_struct &x_struct_v_trt) const
+                                     X_struct &x_struct_v_mod) const
 {
     size_t next_index = tree_ind + 1;
     if (next_index == M)
@@ -172,7 +172,7 @@ void logNormalXBCFModel::state_sweep(State &state,
     {
         if ((*state.Z_std)[0][i])
         {
-            residual_std[0][i] = residual_std[0][i] + log((*(x_struct_v_trt.data_pointers[tree_ind][i]))[0]) - log((*(x_struct_v_trt.data_pointers[next_index][i]))[0]);
+            residual_std[0][i] = residual_std[0][i] + log((*(x_struct_v_mod.data_pointers[tree_ind][i]))[0]) - log((*(x_struct_v_mod.data_pointers[next_index][i]))[0]);
         }
         else
         {
@@ -183,7 +183,7 @@ void logNormalXBCFModel::state_sweep(State &state,
     return;
 }
 
-void logNormalXBCFModel::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_trt)
+void logNormalXBCFModel::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer, size_t N_test, size_t p, size_t num_trees, size_t num_sweeps, matrix<double> &yhats_test_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod)
 {
 
     matrix<double> output;
@@ -197,7 +197,7 @@ void logNormalXBCFModel::predict_std(matrix<double> &Ztestpointer, const double 
         {
             if (Ztestpointer[0][data_ind])
             {
-                getThetaForObs_Outsample(output, trees_trt[sweeps], data_ind, Xtestpointer, N_test, p);
+                getThetaForObs_Outsample(output, trees_mod[sweeps], data_ind, Xtestpointer, N_test, p);
             }
             else
             {
@@ -217,7 +217,7 @@ void logNormalXBCFModel::predict_std(matrix<double> &Ztestpointer, const double 
 void logNormalXBCFModel::update_state(State &state,
                                       size_t tree_ind,
                                       X_struct &x_struct_v_con,
-                                      X_struct &x_struct_v_trt)
+                                      X_struct &x_struct_v_mod)
 {
     double log_sigma2;
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
@@ -228,7 +228,7 @@ void logNormalXBCFModel::update_state(State &state,
         {
             for (size_t j = 0; j < tree_ind; j++)
             {
-                log_sigma2 += log((*(x_struct_v_trt.data_pointers[j][i]))[0]);
+                log_sigma2 += log((*(x_struct_v_mod.data_pointers[j][i]))[0]);
             }
         }
         else
@@ -259,9 +259,4 @@ void logNormalXBCFModel::switch_state_params(State &state)
     state.n_cutpoints = state.n_cutpoints_v;
 
     return;
-}
-
-void logNormalXBCFModel::switch_var_tree_treat(State &state, bool var_tree_treat)
-{
-    state.var_tree_treat = var_tree_treat;
 }
