@@ -3,8 +3,8 @@ library(XBART)
 library(dbarts)
 
 reps <- 30
-rmse.stats <- matrix(NA, nrow = reps, ncol = 6)
-colnames(rmse.stats) <- c("tau, model3", "mu, model3", "tau, hsk", "mu, hsk", "tau, XBCF", "mu, XBCF")
+rmse.stats <- matrix(NA, nrow = reps, ncol = 8)
+colnames(rmse.stats) <- c("tau, model3", "mu, model3", "tau, model2", "mu, model2", "tau, hsk", "mu, hsk", "tau, XBCF", "mu, XBCF")
 
 a_scaling <- TRUE
 b_scaling <- TRUE
@@ -42,8 +42,8 @@ for (i in c(1:reps)) {
     # Ey <- mu(x) + tau * z
     Ey <- mu(x) + tau * z
     # sig <- .8 * exp(x[, 1])
-    sig <- .8 * exp(x[, 1]) + z * 0.5 * exp(x[, 2]) #+ 0.25 * sd(Ey) # exponential function s
-    y <- Ey + 0.2 * sig * rnorm(n)
+    sig <- .8 * exp(x[, 1]) + z * exp(x[, 2]) #+ 0.25 * sd(Ey) # exponential function s
+    y <- Ey + 0.5 * sig * rnorm(n)
 
     # If you didn't know pi, you would estimate it here
     pihat <- pi
@@ -64,7 +64,7 @@ for (i in c(1:reps)) {
     x_mod <- x
 
 
-    #### 2. XBCF
+    #### 2. XBCF, heterosk, treatment modified variance
 
     num_sweeps <- 60
     burnin <- 30
@@ -99,6 +99,30 @@ for (i in c(1:reps)) {
     rmse.stats[i, 1] <- sqrt(mean((tauhats - tau)^2))
     rmse.stats[i, 2] <- sqrt(mean((muhats - muvec)^2))
 
+
+    # XBCF, heterosk, separate variance forest for treated / control
+
+    t1 <- proc.time()
+    fit.hsk4 <- XBCF.discrete.heterosk2(
+        y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat,
+        p_categorical_con = 5, p_categorical_mod = 5,
+        num_trees_con = 5, num_trees_mod = 5,
+        num_sweeps = num_sweeps, burnin = burnin,
+        a_scaling = a_scaling, b_scaling = b_scaling
+    )
+    t1 <- proc.time() - t1
+    cat(t1, "\n")
+
+    pred4 <- predict.XBCFdiscreteHeterosk2(fit.hsk4, X_con = x_con, X_mod = x_mod, Z = z, pihat = pihat, burnin = burnin)
+    tauhats4 <- pred4$tau.adj.mean
+    muhats4 <- pred4$mu.adj.mean
+
+
+    rmse.stats[i, 3] <- sqrt(mean((tauhats4 - tau)^2))
+    rmse.stats[i, 4] <- sqrt(mean((muhats4 - muvec)^2))
+
+    # XBCF, heterosk, single variance forest
+
     num_sweeps <- 60
     burnin <- 30
     # run XBCF heteroskedastic
@@ -118,11 +142,12 @@ for (i in c(1:reps)) {
     muhats2 <- pred2$mu.adj.mean
 
 
-    rmse.stats[i, 3] <- sqrt(mean((tauhats2 - tau)^2))
-    rmse.stats[i, 4] <- sqrt(mean((muhats2 - muvec)^2))
+    rmse.stats[i, 5] <- sqrt(mean((tauhats2 - tau)^2))
+    rmse.stats[i, 6] <- sqrt(mean((muhats2 - muvec)^2))
 
 
-    # run XBCF homoskedastic
+    # XBCF, homoskedastic
+
     t2 <- proc.time()
     fit <- XBCF.discrete(
         y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat,
@@ -137,8 +162,8 @@ for (i in c(1:reps)) {
     tauhats3 <- pred3$tau.adj.mean
     muhats3 <- pred3$mu.adj.mean
 
-    rmse.stats[i, 5] <- sqrt(mean((tauhats3 - tau)^2))
-    rmse.stats[i, 6] <- sqrt(mean((muhats3 - muvec)^2))
+    rmse.stats[i, 7] <- sqrt(mean((tauhats3 - tau)^2))
+    rmse.stats[i, 8] <- sqrt(mean((muhats3 - muvec)^2))
 
     cat("------------------------------\n")
     print(paste0("xbcf tau RMSE: ", sqrt(mean((tauhats3 - tau)^2))))
@@ -147,8 +172,10 @@ for (i in c(1:reps)) {
 
     # check predicted outcomes
     # plot(y,rowMeans(pred$yhats.adj[,30:60]))
-    par(mfrow = c(3, 3))
+    par(mfrow = c(2, 4))
     plot(tau, tauhats, main = "tau, model3")
+    abline(0, 1)
+    plot(tau, tauhats4, main = "tau, model2")
     abline(0, 1)
     plot(tau, tauhats2, main = "tau, hsk")
     abline(0, 1)
@@ -156,14 +183,14 @@ for (i in c(1:reps)) {
     abline(0, 1)
     plot(muvec, muhats, main = "mu, model3")
     abline(0, 1)
+    plot(muvec, muhats4, main = "mu, model2")
+    abline(0, 1)
     plot(muvec, muhats2, main = "mu, hsk")
     abline(0, 1)
     plot(muvec, muhats3, main = "mu, XBCF")
     abline(0, 1)
-    plot(sig * rep(1, n), sigma, main = "sigma, hsk")
-    abline(0, 1)
-    plot(sig * rep(1, n), sigma_con, main = "sigma con, hsk")
-    abline(0, 1)
+    # plot(sig * rep(1, n), sigma, main = "sigma, hsk")
+    # abline(0, 1)
 }
 
 cat(paste("Average RMSE for all simulations.\n"))
