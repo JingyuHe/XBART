@@ -45,8 +45,8 @@ for (i in c(1:reps)) {
     Ey <- mu(x) + tau * z
     # sig <- .8 * exp(x[, 1])
     sig_con <- .8 * exp(x[, 1])
-    # sig_mod <- z * exp(x[, 2])
-    sig_mod <- rep(0, n)
+    sig_mod <- 0.1 * z * exp(x[, 2])
+    # sig_mod <- rep(0, n)
     sig <- sig_con + sig_mod #+ 0.25 * sd(Ey) # exponential function s
     y <- Ey + 0.5 * sig * rnorm(n)
 
@@ -92,11 +92,8 @@ for (i in c(1:reps)) {
     sigma <- sqrt(rowMeans(pred$variance[, burnin:num_sweeps]))
     sigma_con <- sqrt(rowMeans(pred$variance_con[, burnin:num_sweeps]))
     sigma_mod <- sqrt(rowMeans(pred$variance_mod[, burnin:num_sweeps]))
-    # compare results to inference
-    # plot(tau, tauhats)
-    # abline(0, 1)
-    # plot(mu(x), muhats)
-    # abline(0, 1)
+
+
     cat("++++++++++++++++++++++++++++++++\n")
     print(paste0("xbcf-het tau RMSE: ", sqrt(mean((tauhats - tau)^2))))
     print(paste0("xbcf-het mu RMSE: ", sqrt(mean((muhats - muvec)^2))))
@@ -158,7 +155,6 @@ for (i in c(1:reps)) {
 
     # XBCF, homoskedastic
 
-
     num_sweeps <- 60
     burnin <- 30
 
@@ -214,5 +210,3 @@ for (i in c(1:reps)) {
 cat(paste("Average RMSE for all simulations.\n"))
 print(round(colMeans(rmse.stats), 3))
 
-# main model parameters can be retrieved below
-# print(xbcf.fit$model_params)

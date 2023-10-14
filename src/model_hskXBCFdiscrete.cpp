@@ -461,7 +461,6 @@ void hskXBCFDiscreteModel::update_split_counts(State &state, size_t tree_ind)
 
 void hskXBCFDiscreteModel::update_a(State &state)
 {
-
     // update parameter a, y = a * mu + b_z * tau
 
     std::normal_distribution<double> normal_samp(0.0, 1.0);
@@ -491,20 +490,24 @@ void hskXBCFDiscreteModel::update_a(State &state)
         if ((*state.Z_std)[0][i] == 1)
         {
             // if treated
-            mu2sum_trt += pow((*state.mu_fit)[i], 2);
-            muressum_trt += (*state.mu_fit)[i] * (*state.residual_std)[0][i];
+            mu2sum_trt += pow((*state.mu_fit)[i], 2) * (*state.precision)[i];
+            muressum_trt += (*state.mu_fit)[i] * (*state.residual_std)[0][i] * (*state.precision)[i];
         }
         else
         {
-            mu2sum_ctrl += pow((*state.mu_fit)[i], 2);
-            muressum_ctrl += (*state.mu_fit)[i] * (*state.residual_std)[0][i];
+            mu2sum_ctrl += pow((*state.mu_fit)[i], 2) * (*state.precision)[i];
+            muressum_ctrl += (*state.mu_fit)[i] * (*state.residual_std)[0][i] * (*state.precision)[i];
         }
     }
     // update parameters
-    double v0 = 1.0 / (1.0 + mu2sum_ctrl / pow(state.sigma_vec[0], 2));
-    double m0 = v0 * (muressum_ctrl) / pow(state.sigma_vec[0], 2);
-    double v1 = 1 / (1.0 / v0 + mu2sum_trt / pow(state.sigma_vec[1], 2));
-    double m1 = v1 * (m0 / v0 + (muressum_trt) / pow(state.sigma_vec[1], 2));
+    // double v0 = 1.0 / (1.0 + mu2sum_ctrl / pow(state.sigma_vec[0], 2));
+    // double m0 = v0 * (muressum_ctrl) / pow(state.sigma_vec[0], 2);
+    // double v1 = 1 / (1.0 / v0 + mu2sum_trt / pow(state.sigma_vec[1], 2));
+    // double m1 = v1 * (m0 / v0 + (muressum_trt) / pow(state.sigma_vec[1], 2));
+    double v0 = 1.0 / (1.0 + mu2sum_ctrl);
+    double m0 = v0 * (muressum_ctrl);
+    double v1 = 1 / (1.0 / v0 + mu2sum_trt);
+    double m1 = v1 * (m0 / v0 + (muressum_trt));
 
     state.a = m1 + sqrt(v1) * normal_samp(state.gen);
 
@@ -532,22 +535,25 @@ void hskXBCFDiscreteModel::update_b(State &state)
     {
         if ((*state.Z_std)[0][i] == 1)
         {
-            tau2sum_trt += pow((*state.tau_fit)[i], 2);
-            tauressum_trt += (*state.tau_fit)[i] * (*state.residual_std)[0][i];
+            tau2sum_trt += pow((*state.tau_fit)[i], 2) * (*state.precision)[i];
+            tauressum_trt += (*state.tau_fit)[i] * (*state.residual_std)[0][i] * (*state.precision)[i];
         }
         else
         {
-            tau2sum_ctrl += pow((*state.tau_fit)[i], 2);
-            tauressum_ctrl += (*state.tau_fit)[i] * (*state.residual_std)[0][i];
+            tau2sum_ctrl += pow((*state.tau_fit)[i], 2) * (*state.precision)[i];
+            tauressum_ctrl += (*state.tau_fit)[i] * (*state.residual_std)[0][i] * (*state.precision)[i];
         }
     }
 
     // update parameters
-    double v0 = 1.0 / (2.0 + tau2sum_ctrl / pow(state.sigma_vec[0], 2));
-    double v1 = 1.0 / (2.0 + tau2sum_trt / pow(state.sigma_vec[1], 2));
-
-    double m0 = v0 * (tauressum_ctrl) / pow(state.sigma_vec[0], 2);
-    double m1 = v1 * (tauressum_trt) / pow(state.sigma_vec[1], 2);
+    // double v0 = 1.0 / (2.0 + tau2sum_ctrl / pow(state.sigma_vec[0], 2));
+    // double v1 = 1.0 / (2.0 + tau2sum_trt / pow(state.sigma_vec[1], 2));
+    // double m0 = v0 * (tauressum_ctrl) / pow(state.sigma_vec[0], 2);
+    // double m1 = v1 * (tauressum_trt) / pow(state.sigma_vec[1], 2);
+    double v0 = 1.0 / (2.0 + tau2sum_ctrl);
+    double v1 = 1.0 / (2.0 + tau2sum_trt);
+    double m0 = v0 * (tauressum_ctrl);
+    double m1 = v1 * (tauressum_trt);
 
     // sample b0, b1
     double b0 = m0 + sqrt(v0) * normal_samp(state.gen);
