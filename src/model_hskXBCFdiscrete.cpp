@@ -562,7 +562,7 @@ void hskXBCFDiscreteModel::update_b(State &state)
 void hskXBCFDiscreteModel::switch_state_params(State &state)
 {
     // update state settings to mean forest
-    state.num_trees = state.num_trees_m;
+    // state.num_trees = state.num_trees_m;
     state.n_min = state.n_min_m;
     state.max_depth = state.max_depth_m;
     state.n_cutpoints = state.n_cutpoints_m;

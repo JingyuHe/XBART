@@ -161,7 +161,7 @@ void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance(matrix<size_t> &Xorde
         model->update_state(state); // update residual to full, switch some parameters
 
         var_model->ini_residual_std2(state, var_x_struct_con, var_x_struct_trt);
-        var_model->switch_state_params(state);
+        // var_model->switch_state_params(state);
 
         var_model->switch_var_tree_treat(state, true);
 
@@ -199,6 +199,9 @@ void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance(matrix<size_t> &Xorde
             // update partial residual for the next tree to fit
             var_model->state_sweep(state, tree_ind, state.num_trees, (*state.residual_std), var_x_struct_con, var_x_struct_trt);
         }
+
+        // pass fitted values for sigmas to the mean model
+        var_model->update_state(state, state.num_trees, var_x_struct_con, var_x_struct_trt);
 
         var_model->switch_var_tree_treat(state, false);
 
