@@ -8,7 +8,6 @@
 #' @param X_mod A matrix of input for the treatment forest of size n by p_con. Column order matters: continuous features should all go before categorical. The number of categorical variables is p_categorical_mod.
 #' @param num_trees_con Integer, number of trees in the prognostic forest.
 #' @param num_trees_mod Integer, number of trees in the treatment forest.
-#' @param num_trees_v Integer, number of trees in the variance forest.
 #' @param num_sweeps Integer, number of sweeps to fit for both forests.
 #' @param max_depth Integer, maximum depth of the trees. The tree will stop grow if reaches the max depth.
 #' @param max_depth_v Integer, maximum depth of the trees (for the variace forest).

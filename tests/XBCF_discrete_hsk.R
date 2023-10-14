@@ -44,7 +44,10 @@ for (i in c(1:reps)) {
     # Ey <- mu(x) + tau * z
     Ey <- mu(x) + tau * z
     # sig <- .8 * exp(x[, 1])
-    sig <- .8 * exp(x[, 1])# + z * exp(x[, 2]) #+ 0.25 * sd(Ey) # exponential function s
+    sig_con <- .8 * exp(x[, 1])
+    # sig_mod <- z * exp(x[, 2])
+    sig_mod <- rep(0, n)
+    sig <- sig_con + sig_mod #+ 0.25 * sd(Ey) # exponential function s
     y <- Ey + 0.5 * sig * rnorm(n)
 
     # If you didn't know pi, you would estimate it here
@@ -75,7 +78,7 @@ for (i in c(1:reps)) {
     fit.hsk <- XBCF.discrete.heterosk3(
         y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat,
         p_categorical_con = 5, p_categorical_mod = 5,
-        num_trees_con = 5, num_trees_mod = 5,
+        num_trees_con = 15, num_trees_mod = 5,
         num_sweeps = num_sweeps, burnin = burnin, sample_weights = TRUE,
         a_scaling = a_scaling, b_scaling = b_scaling
     )
@@ -88,6 +91,7 @@ for (i in c(1:reps)) {
 
     sigma <- sqrt(rowMeans(pred$variance[, burnin:num_sweeps]))
     sigma_con <- sqrt(rowMeans(pred$variance_con[, burnin:num_sweeps]))
+    sigma_mod <- sqrt(rowMeans(pred$variance_mod[, burnin:num_sweeps]))
     # compare results to inference
     # plot(tau, tauhats)
     # abline(0, 1)
@@ -137,7 +141,6 @@ for (i in c(1:reps)) {
         y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat,
         p_categorical_con = 5, p_categorical_mod = 5,
         num_trees_con = 5, num_trees_mod = 5,
-        
         num_sweeps = num_sweeps, burnin = burnin,
         a_scaling = a_scaling, b_scaling = b_scaling
     )
@@ -158,7 +161,7 @@ for (i in c(1:reps)) {
 
     num_sweeps <- 60
     burnin <- 30
-    
+
     t2 <- proc.time()
     fit <- XBCF.discrete(
         y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat,
@@ -183,7 +186,7 @@ for (i in c(1:reps)) {
 
     # check predicted outcomes
     # plot(y,rowMeans(pred$yhats.adj[,30:60]))
-    par(mfrow = c(2, 4))
+    par(mfrow = c(3, 4))
     plot(tau, tauhats, main = "tau, model3")
     abline(0, 1)
     plot(tau, tauhats4, main = "tau, model2")
@@ -200,8 +203,12 @@ for (i in c(1:reps)) {
     abline(0, 1)
     plot(muvec, muhats3, main = "mu, XBCF")
     abline(0, 1)
-    # plot(sig * rep(1, n), sigma, main = "sigma, hsk")
-    # abline(0, 1)
+    plot(sig, sigma, main = "sigma, hsk")
+    abline(0, 1)
+    plot(sig_con, sigma_con, main = "sigma prognostic, hsk")
+    abline(0, 1)
+    plot(sig_mod, sigma_mod, main = "sigma treatment, hsk")
+    abline(0, 1)
 }
 
 cat(paste("Average RMSE for all simulations.\n"))

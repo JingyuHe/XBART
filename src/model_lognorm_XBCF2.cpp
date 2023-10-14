@@ -244,7 +244,6 @@ void logNormalXBCFModel2::predict_std(matrix<double> &Ztestpointer, const double
 }
 
 void logNormalXBCFModel2::update_state(State &state,
-                                       size_t tree_ind,
                                        X_struct &x_struct_v_con,
                                        X_struct &x_struct_v_mod)
 {
@@ -256,7 +255,7 @@ void logNormalXBCFModel2::update_state(State &state,
         log_sigma2_mod = 0;
         log_sigma2_con = 0;
 
-        for (size_t j = 0; j < tree_ind; j++)
+        for (size_t j = 0; j < state.num_trees_con; j++)
         {
             log_sigma2_con += log((*(x_struct_v_con.data_pointers[j][i]))[0]);
         }
@@ -265,7 +264,7 @@ void logNormalXBCFModel2::update_state(State &state,
 
         if ((*state.Z_std)[0][i])
         {
-            for (size_t j = 0; j < tree_ind; j++)
+            for (size_t j = 0; j < state.num_trees_mod; j++)
             {
                 log_sigma2_mod += log((*(x_struct_v_mod.data_pointers[j][i]))[0]);
             }
