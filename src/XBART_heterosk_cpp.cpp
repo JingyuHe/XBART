@@ -32,10 +32,10 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
                               size_t n_min_v,
                               size_t num_cutpoints_v,
                               double a_v, double b_v, // shape and rate
-                              double ini_var, // optional initialization for variance
+                              double ini_var,         // optional initialization for variance
                               double kap = 16, double s = 4,
                               double tau_kap = 3, double tau_s = 0.5,
-                              double alpha = 0.95, double beta = 1.25, // BART tree params (mean)
+                              double alpha = 0.95, double beta = 1.25,     // BART tree params (mean)
                               double alpha_v = 0.95, double beta_v = 1.25, // BART tree params (variance)
                               bool verbose = false,
                               bool sampling_tau = true,
@@ -43,8 +43,7 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
                               bool set_random_seed = false,
                               size_t random_seed = 0,
                               bool sample_weights = true,
-                              double nthread = 0
-                              )
+                              double nthread = 0)
 {
 
     size_t N = X.n_rows;
@@ -104,7 +103,7 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     // initialize X_struct
     std::vector<double> initial_theta_m(1, y_mean / (double)num_trees_m);
     X_struct x_struct_m(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_m, num_trees_m);
-    std::vector<double> initial_theta_v(1, exp(log(1.0/ ini_var) / (double)num_trees_v));
+    std::vector<double> initial_theta_v(1, exp(log(1.0 / ini_var) / (double)num_trees_v));
     X_struct x_struct_v(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta_v, num_trees_v);
 
     std::vector<double> sigma_vec(N, ini_var); // initialize vector of heterogeneous sigmas
@@ -151,7 +150,6 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     tree_json_mean[0] = j.dump(4);
     tree_json_var[0] = j2.dump(4);
 
-
     return Rcpp::List::create(
         Rcpp::Named("importance_mean") = split_count_sum_mean,
         Rcpp::Named("importance_variance") = split_count_sum_var,
@@ -159,6 +157,5 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
         Rcpp::Named("tree_json_mean") = tree_json_mean,
         Rcpp::Named("tree_json_variance") = tree_json_var,
         Rcpp::Named("tree_string_mean") = output_tree_mean,
-        Rcpp::Named("tree_string_variance") = output_tree_var
-        );
+        Rcpp::Named("tree_string_variance") = output_tree_var);
 }

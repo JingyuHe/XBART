@@ -670,4 +670,51 @@ public:
     }
 };
 
+class XBCFSurvivaldiscreteHeteroskedasticState2 : public XBCFdiscreteHeteroskedasticState2
+{
+public:
+    XBCFSurvivaldiscreteHeteroskedasticState2(matrix<double> *Z_std,
+                                              std::vector<double> &delta_std,
+                                              const double *Xpointer_con,
+                                              const double *Xpointer_mod,
+                                              matrix<size_t> &Xorder_std_con,
+                                              matrix<size_t> &Xorder_std_mod,
+                                              double ini_impute,
+                                              size_t N, size_t p_con, size_t p_mod,
+                                              size_t num_trees_con, size_t num_trees_mod,
+                                              size_t num_trees_v,
+                                              size_t p_categorical_con, size_t p_categorical_mod,
+                                              size_t p_continuous_con, size_t p_continuous_mod,
+                                              bool set_random_seed, size_t random_seed,
+                                              size_t n_min, size_t n_min_v,
+                                              size_t n_cutpoints, size_t n_cutpoints_v,
+                                              size_t mtry_con, size_t mtry_mod, size_t mtry_v,
+                                              size_t num_sweeps, bool sample_weights,
+                                              std::vector<double> *y_std, double sigma,
+                                              size_t max_depth, size_t max_depth_v,
+                                              double ini_var_yhat,
+                                              size_t burnin, size_t dim_residual,
+                                              size_t nthread, bool parallel,
+                                              bool a_scaling, bool b_scaling,
+                                              size_t N_trt, size_t N_ctrl, std::vector<double> &sigma_vec) : XBCFdiscreteHeteroskedasticState2(Z_std, Xpointer_con, Xpointer_mod, Xorder_std_con, Xorder_std_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_trees_v, p_categorical_con, p_categorical_mod, p_continuous_con, p_continuous_mod, set_random_seed, random_seed, n_min, n_min_v, n_cutpoints, n_cutpoints_v, mtry_con, mtry_mod, mtry_v, num_sweeps, sample_weights, y_std, sigma, max_depth, max_depth_v, ini_var_yhat, burnin, dim_residual, nthread, parallel, a_scaling, b_scaling, N_trt, N_ctrl, sigma_vec)
+    {
+        this->delta_std = &delta_std;
+        this->y_imputed = new std::vector<double>(delta_std.size());
+        this->y_imputed_save = new std::vector<double>(delta_std.size());
+        // copy
+        for (size_t i = 0; i < this->y_std->size(); i++)
+        {
+            if ((*this->delta_std)[i] == 1)
+            {
+                (*this->y_imputed)[i] = (*this->y_std)[i];
+                (*this->y_imputed_save)[i] = (*this->y_std)[i];
+            }
+            else
+            {
+                (*this->y_imputed)[i] = (*this->y_std)[i] * ini_impute;
+                (*this->y_imputed_save)[i] = (*this->y_std)[i] * ini_impute;
+            }
+        }
+    }
+};
 #endif
