@@ -176,6 +176,7 @@ void logNormalXBCFModel2::state_sweep(State &state,
                                       X_struct &x_struct_v_mod) const
 {
     size_t next_index = tree_ind + 1;
+    
     if (next_index == M)
     {
         next_index = 0;

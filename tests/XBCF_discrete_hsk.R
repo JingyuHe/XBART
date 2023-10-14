@@ -9,6 +9,8 @@ colnames(rmse.stats) <- c("tau, model3", "mu, model3", "tau, model2", "mu, model
 a_scaling <- TRUE
 b_scaling <- TRUE
 
+set.seed(100)
+
 for (i in c(1:reps)) {
     #### 1. DATA GENERATION PROCESS
     n <- 5000 # number of observations
@@ -74,7 +76,7 @@ for (i in c(1:reps)) {
         y = y, Z = z, X_con = x_con, X_mod = x_mod, pihat = pihat,
         p_categorical_con = 5, p_categorical_mod = 5,
         num_trees_con = 5, num_trees_mod = 5,
-        num_sweeps = num_sweeps, burnin = burnin, sample_weights = FALSE,
+        num_sweeps = num_sweeps, burnin = burnin, sample_weights = TRUE,
         a_scaling = a_scaling, b_scaling = b_scaling
     )
     t1 <- proc.time() - t1

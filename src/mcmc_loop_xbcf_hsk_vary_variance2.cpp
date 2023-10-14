@@ -39,7 +39,7 @@ void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance2(matrix<size_t> &Xord
 
         // prognostic forest
         model->set_treatmentflag(state, 0); // switch params (from treatment forest)
-        model->switch_state_params(state);  // switch params (from precision forest)
+        // model->switch_state_params(state);  // switch params (from precision forest)
 
         for (size_t tree_ind = 0; tree_ind < state.num_trees_con; tree_ind++)
         {
@@ -174,14 +174,14 @@ void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance2(matrix<size_t> &Xord
 
         // prognostic forest
         model->set_treatmentflag(state, 0); // switch params
-        model->switch_state_params(state);  // switch params (from precision forest)
+        // model->switch_state_params(state);  // switch params (from precision forest)
 
         var_model->ini_residual_std2(state, var_x_struct_con, var_x_struct_mod);
 
         // var_model->switch_state_params(state);
 
         // loop for the variance model forest, prognostic forest
-        for (size_t tree_ind = 0; tree_ind < state.num_trees_con; tree_ind++)
+        for (size_t tree_ind = 0; tree_ind < state.num_trees; tree_ind++)
         {
 
             if (verbose)
@@ -200,8 +200,8 @@ void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance2(matrix<size_t> &Xord
             // subtract old tree for sampling case
             if (state.sample_weights)
             {
-                (*state.mtry_weight_current_tree_v) = (*state.mtry_weight_current_tree_v) - (*state.split_count_all_tree_v)[tree_ind];
-                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree_v);
+                (*state.mtry_weight_current_tree_v_con) = (*state.mtry_weight_current_tree_v_con) - (*state.split_count_all_tree_v_con)[tree_ind];
+                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree_v_con);
             }
 
             var_model->initialize_root_suffstat(state, var_trees_con[sweeps][tree_ind].suff_stat);
@@ -240,8 +240,8 @@ void mcmc_loop_xbcf_discrete_heteroskedastic_vary_variance2(matrix<size_t> &Xord
             // subtract old tree for sampling case
             if (state.sample_weights)
             {
-                (*state.mtry_weight_current_tree_v) = (*state.mtry_weight_current_tree_v) - (*state.split_count_all_tree_v)[tree_ind];
-                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree_v);
+                (*state.mtry_weight_current_tree_v_mod) = (*state.mtry_weight_current_tree_v_mod) - (*state.split_count_all_tree_v_mod)[tree_ind];
+                (*state.mtry_weight_current_tree) = (*state.mtry_weight_current_tree_v_mod);
             }
 
             var_model->initialize_root_suffstat(state, var_trees_mod[sweeps][tree_ind].suff_stat);

@@ -204,8 +204,8 @@ Rcpp::List XBCF_discrete_heterosk_vary_variance_cpp2(arma::mat y,
 
     for (size_t i = 0; i < num_sweeps; i++)
     {
-        trees_v_con[i].resize(num_trees_v);
-        trees_v_mod[i].resize(num_trees_v);
+        trees_v_con[i].resize(num_trees_con);
+        trees_v_mod[i].resize(num_trees_mod);
     }
 
     // define the variance model
@@ -213,29 +213,29 @@ Rcpp::List XBCF_discrete_heterosk_vary_variance_cpp2(arma::mat y,
     model_v->setNoSplitPenalty(no_split_penalty_v);
 
     // initialize X_struct
-    std::vector<double> initial_theta_v_con(1, exp(log(1.0 / ini_var) / (double)num_trees_v));
-    X_struct x_struct_v_con(Xpointer_con, &y_std, N, Xorder_std_con, p_categorical_con, p_continuous_con, &initial_theta_v_con, num_trees_v);
+    std::vector<double> initial_theta_v_con(1, exp(log(1.0 / ini_var) / (double)num_trees_con));
+    X_struct x_struct_v_con(Xpointer_con, &y_std, N, Xorder_std_con, p_categorical_con, p_continuous_con, &initial_theta_v_con, num_trees_con);
 
-    std::vector<double> initial_theta_v_mod(1, exp(log(1.0 / ini_var) / (double)num_trees_v));
-    X_struct x_struct_v_mod(Xpointer_con, &y_std, N, Xorder_std_con, p_categorical_con, p_continuous_con, &initial_theta_v_mod, num_trees_v);
+    std::vector<double> initial_theta_v_mod(1, exp(log(1.0 / ini_var) / (double)num_trees_mod));
+    X_struct x_struct_v_mod(Xpointer_con, &y_std, N, Xorder_std_con, p_categorical_con, p_continuous_con, &initial_theta_v_mod, num_trees_mod);
 
     // State settings
     std::vector<double> sigma_vec(N, 1.0);
-    XBCFdiscreteHeteroskedasticState state(&Z_std, Xpointer_con, Xpointer_mod,
-                                           Xorder_std_con, Xorder_std_mod,
-                                           N, p_con, p_mod, num_trees_con,
-                                           num_trees_mod, num_trees_v,
-                                           p_categorical_con, p_categorical_mod,
-                                           p_continuous_con, p_continuous_mod,
-                                           set_random_seed, random_seed,
-                                           n_min, n_min_v,
-                                           num_cutpoints, num_cutpoints_v,
-                                           mtry_con, mtry_mod, mtry_v,
-                                           num_sweeps, sample_weights,
-                                           &y_std, 1.0, max_depth, max_depth_v,
-                                           y_mean, burnin,
-                                           model->dim_residual, nthread, parallel,
-                                           a_scaling, b_scaling, N_trt, N_ctrl, sigma_vec);
+    XBCFdiscreteHeteroskedasticState2 state(&Z_std, Xpointer_con, Xpointer_mod,
+                                            Xorder_std_con, Xorder_std_mod,
+                                            N, p_con, p_mod, num_trees_con,
+                                            num_trees_mod, num_trees_v,
+                                            p_categorical_con, p_categorical_mod,
+                                            p_continuous_con, p_continuous_mod,
+                                            set_random_seed, random_seed,
+                                            n_min, n_min_v,
+                                            num_cutpoints, num_cutpoints_v,
+                                            mtry_con, mtry_mod, mtry_v,
+                                            num_sweeps, sample_weights,
+                                            &y_std, 1.0, max_depth, max_depth_v,
+                                            y_mean, burnin,
+                                            model->dim_residual, nthread, parallel,
+                                            a_scaling, b_scaling, N_trt, N_ctrl, sigma_vec);
 
     // initialize X_struct for mean trees
     std::vector<double> initial_theta_con(1, 0);
@@ -251,6 +251,8 @@ Rcpp::List XBCF_discrete_heterosk_vary_variance_cpp2(arma::mat y,
                                                            trees_con, trees_mod, trees_v_con, trees_v_mod,
                                                            no_split_penalty, state, model, model_v,
                                                            x_struct_con, x_struct_mod, x_struct_v_con, x_struct_v_mod);
+
+    cout << "finish mcmc loop" << endl;
 
     // R Objects to Return
     Rcpp::NumericMatrix sigma0_draw(num_trees_con + num_trees_mod, num_sweeps); // save predictions of each tree
@@ -287,7 +289,12 @@ Rcpp::List XBCF_discrete_heterosk_vary_variance_cpp2(arma::mat y,
 
     for (size_t i = 0; i < p_con; i++)
     {
-        split_count_sum_v_con(i) = (int)(*state.split_count_all_v)[i];
+        split_count_sum_v_con(i) = (int)(*state.split_count_all_v_con)[i];
+    }
+
+    for (size_t i = 0; i < p_mod; i++)
+    {
+        split_count_sum_v_mod(i) = (int)(*state.split_count_all_v_mod)[i];
     }
 
     // print out tree structure, for usage of BART warm-start
@@ -298,8 +305,8 @@ Rcpp::List XBCF_discrete_heterosk_vary_variance_cpp2(arma::mat y,
 
     tree_to_string(trees_mod, output_tree_mod, num_sweeps, num_trees_mod, p_mod);
     tree_to_string(trees_con, output_tree_con, num_sweeps, num_trees_con, p_con);
-    tree_to_string(trees_v_con, output_tree_v_con, num_sweeps, num_trees_v, p_con);
-    tree_to_string(trees_v_mod, output_tree_v_mod, num_sweeps, num_trees_v, p_con);
+    tree_to_string(trees_v_mod, output_tree_v_mod, num_sweeps, num_trees_mod, p_mod);
+    tree_to_string(trees_v_con, output_tree_v_con, num_sweeps, num_trees_con, p_con);
 
     Rcpp::StringVector tree_json_mod(1);
     Rcpp::StringVector tree_json_con(1);
@@ -325,7 +332,8 @@ Rcpp::List XBCF_discrete_heterosk_vary_variance_cpp2(arma::mat y,
         Rcpp::Named("sigma1") = sigma1_draw,
         Rcpp::Named("importance_prognostic") = split_count_sum_con,
         Rcpp::Named("importance_treatment") = split_count_sum_mod,
-        Rcpp::Named("importance_precision") = split_count_sum_v_con,
+        Rcpp::Named("importance_precision_prognostic") = split_count_sum_v_con,
+        Rcpp::Named("importance_precision_treatment") = split_count_sum_v_mod,
         Rcpp::Named("model_list") = Rcpp::List::create(Rcpp::Named("y_mean") = y_mean, Rcpp::Named("p_con") = p_con, Rcpp::Named("p_mod") = p_mod),
         Rcpp::Named("tree_json_mod") = tree_json_mod,
         Rcpp::Named("tree_json_con") = tree_json_con,
