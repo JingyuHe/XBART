@@ -71,14 +71,27 @@ pihat <- pi
 a_scaling = TRUE
 b_scaling <- TRUE
 
+y <- matrix(logt) - mean(logt)
+
+t1 = proc.time()
 fit <- XBCF.survival.discrete.heterosk3(
-    y = matrix(logt) - mean(logt),
-    Z = z, delta = delta, X_con = x, X_mod = x, pihat = pihat,
-    p_categorical_con = 5, p_categorical_mod = 5,
-    num_trees_con = 15, num_trees_mod = 5,
-    num_sweeps = num_sweeps, burnin = burnin, sample_weights = TRUE,
-    a_scaling = a_scaling, b_scaling = b_scaling
+    y = y, Z = z, delta = delta, X_con = x, X_mod = x,
+    pihat = pihat, p_categorical_con = 2, p_categorical_mod = 2,
+    num_trees_con = 15, num_trees_mod = 10, num_trees_v = 5,
+    num_sweeps = num_sweeps, ini_var = 0.5 * var(logt), ini_impute = ini_impute,
+    burnin = burnin, sample_weights = TRUE,
+    a_scaling = a_scaling, b_scaling = b_scaling, verbose = TRUE
 )
+
+# fit <- XBCF.discrete.heterosk3(
+#     y = y, Z = z, X_con = x, X_mod = x, pihat = pihat,
+#     p_categorical_con = 5, p_categorical_mod = 5,
+#     num_trees_con = 15, num_trees_mod = 5,
+#     num_sweeps = num_sweeps, burnin = burnin, sample_weights = TRUE,
+#     a_scaling = a_scaling, b_scaling = b_scaling
+# )
+
+
 t1 <- proc.time() - t1
 cat(t1, "\n")
 
@@ -87,7 +100,7 @@ tauhats <- pred$tau.adj.mean
 muhats <- pred$mu.adj.mean
 
 par(mfrow = c(3, 3))
-plot(rowMeans(muhats) + mean(logt), mu, pch = 20, col = "darkgrey", main = "XBCF")
+plot((muhats) + mean(logt), mu, pch = 20, col = "darkgrey", main = "mu, XBCF")
 abline(0, 1, col = "red")
 
 
@@ -95,7 +108,7 @@ fit2 <- XBART.survival(
     y = matrix(logt) - mean(logt), X = x, delta = delta,
     num_sweeps = num_sweeps,
     burnin = burnin,
-    p_categorical = 0,
+    p_categorical = 2,
     mtry = 10,
     num_trees_m = 35,
     max_depth_m = 15,
@@ -114,10 +127,10 @@ fit2 <- XBART.survival(
 
 pred2 <- predict(fit2, as.matrix(x))
 
-plot(rowMeans(pred2$mhats) + mean(logt), mu, pch = 20, col = "darkgrey")
+plot(rowMeans(pred2$mhats) + mean(logt), mu, pch = 20, col = "darkgrey", main = "mu, XBART")
 abline(0, 1, col = "red")
 
-plot(rowMeans(sqrt(pred2$vhats)), sig, pch = 20, col = "darkgrey")
+plot(rowMeans(sqrt(pred2$vhats)), sig, pch = 20, col = "darkgrey", main = "variance, XBART")
 abline(0, 1, col = "red")
 
 

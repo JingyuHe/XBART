@@ -81,6 +81,11 @@ XBCF.survival.discrete.heterosk3 <- function(y, Z, delta, X_con, X_mod,
         X_con <- as.matrix(X_con)
     }
 
+    if (!("matrix" %in% class(X_mod))) {
+        cat("Input X_mod is not a matrix, try to convert type.\n")
+        X_mod <- as.matrix(X_mod)
+    }
+
     if (!("matrix" %in% class(y))) {
         cat("Input y is not a matrix, try to convert type.\n")
         y <- as.matrix(y)
@@ -182,7 +187,7 @@ XBCF.survival.discrete.heterosk3 <- function(y, Z, delta, X_con, X_mod,
         stop("p_categorical cannot exceed p")
     }
     # check input type
-
+    print("ok1")
     check_non_negative_integer(burnin, "burnin")
 
     check_positive_integer(max_depth, "max_depth")
@@ -191,12 +196,12 @@ XBCF.survival.discrete.heterosk3 <- function(y, Z, delta, X_con, X_mod,
     check_positive_integer(num_cutpoints, "num_cutpoints")
     check_positive_integer(num_trees_con, "num_trees_con")
     check_positive_integer(num_trees_mod, "num_trees_mod")
-
+    print("ok2")
     check_positive_integer(max_depth_v, "max_depth_v")
     check_positive_integer(Nmin_v, "Nmin_v")
     check_positive_integer(num_cutpoints_v, "num_cutpoints_v")
     check_positive_integer(num_trees_v, "num_trees_v")
-
+    print("ok3")
     check_scalar(tau_con, "tau_con")
     check_scalar(tau_mod, "tau_mod")
     check_scalar(no_split_penalty, "no_split_penalty")
@@ -209,7 +214,7 @@ XBCF.survival.discrete.heterosk3 <- function(y, Z, delta, X_con, X_mod,
     check_scalar(beta_v, "beta_v")
     check_scalar(kap, "kap")
     check_scalar(s, "s")
-
+    print("ok4")
     # center the outcome variable
     meany <- mean(y)
     # sdy <- sd(y)
@@ -219,9 +224,10 @@ XBCF.survival.discrete.heterosk3 <- function(y, Z, delta, X_con, X_mod,
     } else {
         y <- (y - meany) / sdy
     }
+    print("ok5")
 
-    obj <- XBCF_survival_discrete_heterosk_vary_variance_cpp2(
-        y, Z, delta, X_con, X_mod,
+
+    obj <- XBCF_survival_discrete_heterosk_vary_variance_cpp2(y, Z, delta, X_con, X_mod,
         num_trees_con, num_trees_mod, num_trees_v,
         num_sweeps,
         max_depth, max_depth_v,
@@ -231,8 +237,7 @@ XBCF.survival.discrete.heterosk3 <- function(y, Z, delta, X_con, X_mod,
         alpha_mod, beta_mod,
         alpha_v, beta_v,
         tau_con, tau_mod,
-        a_v, b_v,
-        ini_var, ini_impute,
+        a_v, b_v, ini_var, ini_impute,
         no_split_penalty, no_split_penalty_v,
         burnin, mtry_con, mtry_mod, mtry_v,
         p_categorical_con, p_categorical_mod,
@@ -240,10 +245,12 @@ XBCF.survival.discrete.heterosk3 <- function(y, Z, delta, X_con, X_mod,
         tau_con_kap, tau_con_s,
         tau_mod_kap, tau_mod_s,
         a_scaling, b_scaling,
-        verbose, update_tau, parallel,
+        verbose,
+        sampling_tau = update_tau, parallel,
         set_random_seed, random_seed,
         sample_weights, nthread
     )
+
 
     # store mean and sd in the model object (for predictions)
     obj$meany <- meany

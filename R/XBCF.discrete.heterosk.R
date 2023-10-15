@@ -82,6 +82,11 @@ XBCF.discrete.heterosk <- function(y, Z, X_con, X_mod,
         X_con <- as.matrix(X_con)
     }
 
+    if (!("matrix" %in% class(X_mod))) {
+        cat("Input X_mod is not a matrix, try to convert type.\n")
+        X_mod <- as.matrix(X_mod)
+    }
+
     if (!("matrix" %in% class(y))) {
         cat("Input y is not a matrix, try to convert type.\n")
         y <- as.matrix(y)

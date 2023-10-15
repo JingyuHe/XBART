@@ -126,15 +126,17 @@ Rcpp::List XBCF_survival_discrete_heterosk_vary_variance_cpp2(arma::mat y,
     {
         COUT << "Sample " << mtry_v << " out of " << p_con << " variables when grow each variance tree." << endl;
     }
-
+    cout << "fine 1 " << endl;
+    cout << X_con.n_rows << " " << X_con.n_cols << endl;
     arma::umat Xorder_con(X_con.n_rows, X_con.n_cols);
     matrix<size_t> Xorder_std_con;
     ini_matrix(Xorder_std_con, N, p_con);
-
+    cout << "fine 2 " << endl;
     arma::umat Xorder_mod(X_mod.n_rows, X_mod.n_cols);
     matrix<size_t> Xorder_std_mod;
     ini_matrix(Xorder_std_mod, N, p_mod);
 
+    cout << "fine 3 " << endl;
     cout << "size of Xorder con and mode " << Xorder_std_con.size() << " " << Xorder_std_con[0].size() << " " << Xorder_std_mod.size() << " " << Xorder_std_mod[0].size() << endl;
 
     std::vector<double> y_std(N);
