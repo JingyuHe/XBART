@@ -407,9 +407,7 @@ public:
                          size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min_m, size_t n_min_v,
                          size_t n_cutpoints_m, size_t n_cutpoints_v, size_t mtry, const double *X_std, size_t num_sweeps,
                          bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth_m, size_t max_depth_v,
-                         double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel, std::vector<double> &sigma_vec) : State(Xpointer, Xorder_std, N, p, num_trees_m, p_categorical, p_continuous, set_random_seed, random_seed,
-                                                                                                                                                         n_min_m, n_cutpoints_m, mtry, Xpointer, num_sweeps, sample_weights, y_std, sigma, max_depth_m,
-                                                                                                                                                         ini_var_yhat, burnin, dim_residual, nthread)
+                         double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel, std::vector<double> &sigma_vec) : State(Xpointer, Xorder_std, N, p, num_trees_m, p_categorical, p_continuous, set_random_seed, random_seed, n_min_m, n_cutpoints_m, mtry, Xpointer, num_sweeps, sample_weights, y_std, sigma, max_depth_m, ini_var_yhat, burnin, dim_residual, nthread)
     {
         this->split_count_all_tree_m = new matrix<double>();
         this->split_count_all_tree_v = new matrix<double>();
@@ -455,8 +453,8 @@ public:
             }
             else
             {
-                (*this->y_imputed)[i] = (*this->y_std)[i] * ini_impute;
-                (*this->y_imputed_save)[i] = (*this->y_std)[i] * ini_impute;
+                (*this->y_imputed)[i] = (*this->y_std)[i] + ini_impute;
+                (*this->y_imputed_save)[i] = (*this->y_std)[i] + ini_impute;
             }
         }
     }
@@ -496,15 +494,7 @@ public:
                                      size_t burnin, size_t dim_residual,
                                      size_t nthread, bool parallel,
                                      bool a_scaling, bool b_scaling,
-                                     size_t N_trt, size_t N_ctrl, std::vector<double> &sigma_vec) : State(Xpointer_con,
-                                                                                                          Xorder_std_con,
-                                                                                                          N, p_con, num_trees_con, p_categorical_con, p_continuous_con,
-                                                                                                          set_random_seed, random_seed,
-                                                                                                          n_min, n_cutpoints,
-                                                                                                          mtry_con, Xpointer_con,
-                                                                                                          num_sweeps, sample_weights,
-                                                                                                          y_std, sigma, max_depth,
-                                                                                                          ini_var_yhat, burnin, dim_residual, nthread)
+                                     size_t N_trt, size_t N_ctrl, std::vector<double> &sigma_vec) : State(Xpointer_con, Xorder_std_con, N, p_con, num_trees_con, p_categorical_con, p_continuous_con, set_random_seed, random_seed, n_min, n_cutpoints, mtry_con, Xpointer_con, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
     {
         this->X_std_con = Xpointer_con;
         this->X_std_mod = Xpointer_mod;
@@ -598,15 +588,7 @@ public:
                                       size_t burnin, size_t dim_residual,
                                       size_t nthread, bool parallel,
                                       bool a_scaling, bool b_scaling,
-                                      size_t N_trt, size_t N_ctrl, std::vector<double> &sigma_vec) : State(Xpointer_con,
-                                                                                                           Xorder_std_con,
-                                                                                                           N, p_con, num_trees_con, p_categorical_con, p_continuous_con,
-                                                                                                           set_random_seed, random_seed,
-                                                                                                           n_min, n_cutpoints,
-                                                                                                           mtry_con, Xpointer_con,
-                                                                                                           num_sweeps, sample_weights,
-                                                                                                           y_std, sigma, max_depth,
-                                                                                                           ini_var_yhat, burnin, dim_residual, nthread)
+                                      size_t N_trt, size_t N_ctrl, std::vector<double> &sigma_vec) : State(Xpointer_con, Xorder_std_con, N, p_con, num_trees_con, p_categorical_con, p_continuous_con, set_random_seed, random_seed, n_min, n_cutpoints, mtry_con, Xpointer_con, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
     {
         this->X_std_con = Xpointer_con;
         this->X_std_mod = Xpointer_mod;
@@ -711,8 +693,8 @@ public:
             }
             else
             {
-                (*this->y_imputed)[i] = (*this->y_std)[i] * ini_impute;
-                (*this->y_imputed_save)[i] = (*this->y_std)[i] * ini_impute;
+                (*this->y_imputed)[i] = (*this->y_std)[i] + ini_impute;
+                (*this->y_imputed_save)[i] = (*this->y_std)[i] + ini_impute;
             }
         }
     }
