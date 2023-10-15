@@ -8,7 +8,6 @@
 #' @param X_mod A matrix of input for the treatment forest of size n by p_con. Column order matters: continuous features should all go before categorical. The number of categorical variables is p_categorical_mod.
 #' @param num_trees_con Integer, number of trees in the prognostic forest.
 #' @param num_trees_mod Integer, number of trees in the treatment forest.
-#' @param num_trees_v Integer, number of trees in the variance forest.
 #' @param num_sweeps Integer, number of sweeps to fit for both forests.
 #' @param max_depth Integer, maximum depth of the trees. The tree will stop grow if reaches the max depth.
 #' @param max_depth_v Integer, maximum depth of the trees (for the variace forest).
@@ -53,30 +52,30 @@
 #' @export
 
 
-XBCF.discrete.heterosk <- function(y, Z, X_con, X_mod,
-                                   pihat = NULL,
-                                   num_trees_con = 30, num_trees_mod = 10, num_trees_v = 5,
-                                   num_sweeps = 60,
-                                   max_depth = 50, max_depth_v = 250,
-                                   Nmin = 1, Nmin_v = 50,
-                                   num_cutpoints = 100, num_cutpoints_v = 100,
-                                   alpha_con = 0.95, beta_con = 1.25,
-                                   alpha_mod = 0.25, beta_mod = 3,
-                                   alpha_v = 0.95, beta_v = 1.25,
-                                   tau_con = NULL, tau_mod = NULL,
-                                   a_v = 1.0, b_v = 1.0,
-                                   ini_var = 1.0,
-                                   no_split_penalty = NULL, no_split_penalty_v = NULL,
-                                   burnin = 20,
-                                   mtry_con = NULL, mtry_mod = NULL, mtry_v = NULL,
-                                   p_categorical_con = 0L, p_categorical_mod = 0L,
-                                   kap = 16, s = 4,
-                                   tau_con_kap = 3, tau_con_s = 0.5,
-                                   tau_mod_kap = 3, tau_mod_s = 0.5,
-                                   a_scaling = TRUE, b_scaling = TRUE,
-                                   verbose = FALSE, update_tau = TRUE,
-                                   parallel = TRUE, random_seed = NULL,
-                                   sample_weights = TRUE, nthread = 0, ...) {
+XBCF.discrete.heterosk3 <- function(y, Z, X_con, X_mod,
+                                    pihat = NULL,
+                                    num_trees_con = 30, num_trees_mod = 10, num_trees_v = 5,
+                                    num_sweeps = 60,
+                                    max_depth = 50, max_depth_v = 250,
+                                    Nmin = 1, Nmin_v = 50,
+                                    num_cutpoints = 100, num_cutpoints_v = 100,
+                                    alpha_con = 0.95, beta_con = 1.25,
+                                    alpha_mod = 0.25, beta_mod = 3,
+                                    alpha_v = 0.95, beta_v = 1.25,
+                                    tau_con = NULL, tau_mod = NULL,
+                                    a_v = 1.0, b_v = 1.0,
+                                    ini_var = 1.0,
+                                    no_split_penalty = NULL, no_split_penalty_v = NULL,
+                                    burnin = 20,
+                                    mtry_con = NULL, mtry_mod = NULL, mtry_v = NULL,
+                                    p_categorical_con = 0L, p_categorical_mod = 0L,
+                                    kap = 16, s = 4,
+                                    tau_con_kap = 3, tau_con_s = 0.5,
+                                    tau_mod_kap = 3, tau_mod_s = 0.5,
+                                    a_scaling = TRUE, b_scaling = TRUE,
+                                    verbose = FALSE, update_tau = TRUE,
+                                    parallel = TRUE, random_seed = NULL,
+                                    sample_weights = TRUE, nthread = 0, ...) {
     if (!("matrix" %in% class(X_con))) {
         cat("Input X_con is not a matrix, try to convert type.\n")
         X_con <- as.matrix(X_con)
@@ -218,7 +217,7 @@ XBCF.discrete.heterosk <- function(y, Z, X_con, X_mod,
 
     # center the outcome variable
     meany <- mean(y)
-    #sdy <- sd(y)
+    # sdy <- sd(y)
     sdy <- 1
     if (sdy == 0) {
         stop("y is a constant variable; sdy = 0")
@@ -226,28 +225,30 @@ XBCF.discrete.heterosk <- function(y, Z, X_con, X_mod,
         y <- (y - meany) / sdy
     }
 
-    obj <- XBCF_discrete_heterosk_cpp(y, Z, X_con, X_mod,
-                                      num_trees_con, num_trees_mod, num_trees_v,
-                                      num_sweeps,
-                                      max_depth, max_depth_v,
-                                      Nmin, Nmin_v,
-                                      num_cutpoints, num_cutpoints_v,
-                                      alpha_con, beta_con,
-                                      alpha_mod, beta_mod,
-                                      alpha_v, beta_v,
-                                      tau_con, tau_mod,
-                                      a_v, b_v,
-                                      ini_var,
-                                      no_split_penalty, no_split_penalty_v,
-                                      burnin, mtry_con, mtry_mod, mtry_v,
-                                      p_categorical_con, p_categorical_mod,
-                                      kap, s,
-                                      tau_con_kap, tau_con_s,
-                                      tau_mod_kap, tau_mod_s,
-                                      a_scaling, b_scaling,
-                                      verbose, update_tau, parallel,
-                                      set_random_seed, random_seed,
-                                      sample_weights, nthread)
+    obj <- XBCF_discrete_heterosk_vary_variance_cpp2(
+        y, Z, X_con, X_mod,
+        num_trees_con, num_trees_mod, num_trees_v,
+        num_sweeps,
+        max_depth, max_depth_v,
+        Nmin, Nmin_v,
+        num_cutpoints, num_cutpoints_v,
+        alpha_con, beta_con,
+        alpha_mod, beta_mod,
+        alpha_v, beta_v,
+        tau_con, tau_mod,
+        a_v, b_v,
+        ini_var,
+        no_split_penalty, no_split_penalty_v,
+        burnin, mtry_con, mtry_mod, mtry_v,
+        p_categorical_con, p_categorical_mod,
+        kap, s,
+        tau_con_kap, tau_con_s,
+        tau_mod_kap, tau_mod_s,
+        a_scaling, b_scaling,
+        verbose, update_tau, parallel,
+        set_random_seed, random_seed,
+        sample_weights, nthread
+    )
 
     # store mean and sd in the model object (for predictions)
     obj$meany <- meany

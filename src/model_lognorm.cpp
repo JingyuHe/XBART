@@ -5,7 +5,7 @@
 //////////////////////////////////////////////////////////////////////////////////////
 //
 //
-//  LogNormal Model
+//  LogNormal Model, for XBART regression & XBCF when same variance tree for treated / control group
 //
 //
 //////////////////////////////////////////////////////////////////////////////////////
@@ -15,7 +15,7 @@ void logNormalModel::ini_residual_std(State &state, matrix<double> &mean_residua
     // initialize partial residual at the residual^2 from the mean model
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
     {
-        (*state.residual_std)[0][i] = 2*log(abs(mean_residual_std[0][i])) + log((*state.precision)[i]) - log((*(x_struct.data_pointers[0][i]))[0]);
+        (*state.residual_std)[0][i] = 2 * log(abs(mean_residual_std[0][i])) + log((*state.precision)[i]) - log((*(x_struct.data_pointers[0][i]))[0]);
     }
     return;
 }
@@ -23,15 +23,18 @@ void logNormalModel::ini_residual_std(State &state, matrix<double> &mean_residua
 void logNormalModel::ini_residual_std2(State &state, X_struct &x_struct)
 {
     // initialize partial residual at the residual^2 from the mean model
+
+    // the full residual for lognormal model is res^2 / var
+
+    // then initialize partial residuals for the first tree
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
     {
-        (*state.residual_std)[0][i] = 2*log(abs((*state.residual_std)[0][i])) + log((*state.precision)[i]) - log((*(x_struct.data_pointers[0][i]))[0]);
+        (*state.residual_std)[0][i] = 2 * log(abs((*state.residual_std)[0][i])) + log((*state.precision)[i]) - log((*(x_struct.data_pointers[0][i]))[0]);
     }
     return;
 }
 
-void logNormalModel::initialize_root_suffstat(State &state,
-                                              std::vector<double> &suff_stat)
+void logNormalModel::initialize_root_suffstat(State &state, std::vector<double> &suff_stat)
 {
     suff_stat[0] = 0;
     suff_stat[1] = 0;
@@ -92,7 +95,7 @@ double logNormalModel::likelihood(std::vector<double> &temp_suff_stat,
                                   bool no_split,
                                   State &state) const
 {
-    size_t n_b; // number of observations in node b (times 0.5)
+    size_t n_b;       // number of observations in node b (times 0.5)
     double res_sum_b; // sum of res^2 in node b (times 0.5)
 
     if (no_split)
@@ -120,7 +123,7 @@ double logNormalModel::likelihood(std::vector<double> &temp_suff_stat,
 void logNormalModel::state_sweep(size_t tree_ind,
                                  size_t M,
                                  matrix<double> &residual_std,
-                                 //std::vector<double> &fit,
+                                 // std::vector<double> &fit,
                                  X_struct &x_struct) const
 {
     size_t next_index = tree_ind + 1;
@@ -161,7 +164,6 @@ void logNormalModel::predict_std(const double *Xtestpointer, size_t N_test, size
     return;
 }
 
-
 void logNormalModel::update_state(State &state,
                                   size_t tree_ind,
                                   X_struct &x_struct)
@@ -173,9 +175,14 @@ void logNormalModel::update_state(State &state,
         {
             log_sigma2 += log((*(x_struct.data_pointers[j][i]))[0]);
         }
+        
+        // update fitted precision and res * precision
         (*state.precision)[i] = exp(log_sigma2);
-        (*state.residual_std)[0][i] = (*state.mean_res)[i];
+
         (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
+
+        // copy mean_res back to residual_std, for the next mean trees
+        (*state.residual_std)[0][i] = (*state.mean_res)[i];
     }
     return;
 }

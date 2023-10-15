@@ -6,7 +6,7 @@
 struct X_struct
 {
 public:
-    // Vector pointers, it s a N by num_trees matrix of pointers, each points to corresponding leaf parameter vector
+    // Vector pointers, it is a N by num_trees matrix of pointers, each points to corresponding leaf parameter vector
     matrix<std::vector<double> *> data_pointers;
     // copy of data_pointers object, for MH update
     matrix<std::vector<double> *> data_pointers_copy;

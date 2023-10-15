@@ -575,7 +575,9 @@ Rcpp::List xbart_heteroskedastic_predict(mat X,
 Rcpp::List XBCF_discrete_heteroskedastic_predict(mat X_con, mat X_mod, mat Z,
                                                  Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con,
                                                  Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod,
-                                                 Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v)
+                                                 Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v
+
+)
 {
     // size of data
     size_t N = X_con.n_rows;
@@ -663,5 +665,117 @@ Rcpp::List XBCF_discrete_heteroskedastic_predict(mat X_con, mat X_mod, mat Z,
     return Rcpp::List::create(Rcpp::Named("mu") = prognostic,
                               Rcpp::Named("tau") = treatment,
                               Rcpp::Named("yhats") = yhats,
-                              Rcpp::Named("variance")= vhats);
+                              Rcpp::Named("variance") = vhats);
+}
+
+// [[Rcpp::export]]
+Rcpp::List XBCF_discrete_heteroskedastic_predict3(mat X_con, mat X_mod, mat Z,
+                                                  Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con,
+                                                  Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod,
+                                                  Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v_con,
+                                                  Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v_mod
+
+)
+{
+    // size of data
+    size_t N = X_con.n_rows;
+    size_t p_con = X_con.n_cols;
+    size_t p_mod = X_mod.n_cols;
+    size_t p_z = Z.n_cols;
+    assert(X_con.n_rows == X_mod.n_rows);
+
+    // Init X_std matrix
+    Rcpp::NumericMatrix X_std_con(N, p_con);
+    Rcpp::NumericMatrix X_std_mod(N, p_mod);
+
+    matrix<double> Ztest_std;
+    ini_matrix(Ztest_std, N, p_z);
+
+    for (size_t i = 0; i < N; i++)
+    {
+        for (size_t j = 0; j < p_con; j++)
+        {
+            X_std_con(i, j) = X_con(i, j);
+        }
+
+        for (size_t j = 0; j < p_mod; j++)
+        {
+            X_std_mod(i, j) = X_mod(i, j);
+        }
+
+        for (size_t j = 0; j < p_z; j++)
+        {
+            Ztest_std[j][i] = Z(i, j);
+        }
+    }
+    double *Xpointer_con = &X_std_con[0];
+    double *Xpointer_mod = &X_std_mod[0];
+
+    // Trees
+    std::vector<std::vector<tree>> *trees_con = tree_con;
+    std::vector<std::vector<tree>> *trees_mod = tree_mod;
+    std::vector<std::vector<tree>> *trees_v_con = tree_v_con;
+    std::vector<std::vector<tree>> *trees_v_mod = tree_v_mod;
+
+    // Result Container
+    size_t num_sweeps = (*trees_con).size();
+    size_t num_trees_con = (*trees_con)[0].size();
+    size_t num_trees_mod = (*trees_mod)[0].size();
+    size_t num_trees_v = (*trees_v_con)[0].size();
+    // number of trees for trees_v_con and trees_v_mod are the same
+
+    COUT << "number of trees " << num_trees_con << " " << num_trees_mod << endl;
+
+    matrix<double> prognostic_xinfo;
+    ini_matrix(prognostic_xinfo, N, num_sweeps);
+
+    matrix<double> treatment_xinfo;
+    ini_matrix(treatment_xinfo, N, num_sweeps);
+
+    matrix<double> yhats_test_xinfo;
+    ini_xinfo(yhats_test_xinfo, N, num_sweeps);
+
+    matrix<double> vhats_test_xinfo;
+    ini_matrix(vhats_test_xinfo, N, num_sweeps);
+
+    matrix<double> vhats_test_con;
+    matrix<double> vhats_test_mod;
+    ini_matrix(vhats_test_con, N, num_sweeps);
+    ini_matrix(vhats_test_mod, N, num_sweeps);
+
+    // define models
+    XBCFDiscreteModel *model = new XBCFDiscreteModel();
+    logNormalXBCFModel2 *model_v = new logNormalXBCFModel2();
+    // Predict
+    model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
+
+    model_v->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, num_trees_v, num_sweeps, vhats_test_xinfo, vhats_test_con, vhats_test_mod, *trees_v_con, *trees_v_mod);
+
+    // Convert back to Rcpp
+    Rcpp::NumericMatrix yhats(N, num_sweeps);
+    Rcpp::NumericMatrix prognostic(N, num_sweeps);
+    Rcpp::NumericMatrix treatment(N, num_sweeps);
+    Rcpp::NumericMatrix vhats(N, num_sweeps);
+    Rcpp::NumericMatrix vhats_con(N, num_sweeps);
+    Rcpp::NumericMatrix vhats_mod(N, num_sweeps);
+
+    for (size_t i = 0; i < N; i++)
+    {
+        for (size_t j = 0; j < num_sweeps; j++)
+        {
+            yhats(i, j) = yhats_test_xinfo[j][i];
+            prognostic(i, j) = prognostic_xinfo[j][i];
+            treatment(i, j) = treatment_xinfo[j][i];
+            vhats(i, j) = 1.0 / vhats_test_xinfo[j][i];
+            vhats_con(i, j) = 1.0 / vhats_test_con[j][i];
+            vhats_mod(i, j) = 1.0 / vhats_test_mod[j][i];
+        }
+    }
+
+    return Rcpp::List::create(Rcpp::Named("mu") = prognostic,
+                              Rcpp::Named("tau") = treatment,
+                              Rcpp::Named("yhats") = yhats,
+                              Rcpp::Named("variance") = vhats,
+                              Rcpp::Named("variance_con") = vhats_con,
+                              Rcpp::Named("variance_mod") = vhats_mod);
 }

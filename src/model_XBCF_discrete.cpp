@@ -504,6 +504,7 @@ void XBCFDiscreteModel::update_a(State &state)
             (*state.residual_std)[0][i] = (*state.y_std)[i] - (*state.tau_fit)[i] * state.b_vec[0];
         }
     }
+    
     for (size_t i = 0; i < state.n_y; i++)
     {
         if ((*state.Z_std)[0][i] == 1)

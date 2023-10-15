@@ -77,9 +77,20 @@ public:
     std::vector<double> *split_count_all_v;
     std::vector<double> *mtry_weight_current_tree_v;
 
+    // for heteroskedastic XBCF
+    matrix<double> *split_count_all_tree_v_con;
+    matrix<double> *split_count_all_tree_v_mod;
+    std::vector<double> *split_count_all_v_con;
+    std::vector<double> *split_count_all_v_mod;
+    std::vector<double> *mtry_weight_current_tree_v_con;
+    std::vector<double> *mtry_weight_current_tree_v_mod;
+
     bool forest_flag;              // 0 = mean forest; 1 = variance forest
     std::vector<double> *mean_res; // temporary storage for mean model residual
     std::vector<double> *precision;
+    // for XBCF different variance for treated / control
+    std::vector<double> *precision_con;
+    std::vector<double> *precision_mod;
     std::vector<double> *res_x_precision;
     size_t n_min_m;
     size_t n_min_v;
@@ -146,6 +157,8 @@ public:
         this->sigma_vec[ind] = sigma; // sigma for the "ind" group
         return;
     }
+    // bool indicator for labeling currently growing trees for treat / control group variance
+    bool var_tree_treat;
 
     State(const double *Xpointer, matrix<size_t> &Xorder_std, size_t N, size_t p, size_t num_trees, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min, size_t n_cutpoints, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread)
     {
@@ -394,9 +407,7 @@ public:
                          size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min_m, size_t n_min_v,
                          size_t n_cutpoints_m, size_t n_cutpoints_v, size_t mtry, const double *X_std, size_t num_sweeps,
                          bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth_m, size_t max_depth_v,
-                         double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel, std::vector<double> &sigma_vec) : State(Xpointer, Xorder_std, N, p, num_trees_m, p_categorical, p_continuous, set_random_seed, random_seed,
-                                                                                                                                                         n_min_m, n_cutpoints_m, mtry, Xpointer, num_sweeps, sample_weights, y_std, sigma, max_depth_m,
-                                                                                                                                                         ini_var_yhat, burnin, dim_residual, nthread)
+                         double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel, std::vector<double> &sigma_vec) : State(Xpointer, Xorder_std, N, p, num_trees_m, p_categorical, p_continuous, set_random_seed, random_seed, n_min_m, n_cutpoints_m, mtry, Xpointer, num_sweeps, sample_weights, y_std, sigma, max_depth_m, ini_var_yhat, burnin, dim_residual, nthread)
     {
         this->split_count_all_tree_m = new matrix<double>();
         this->split_count_all_tree_v = new matrix<double>();
@@ -442,8 +453,8 @@ public:
             }
             else
             {
-                (*this->y_imputed)[i] = (*this->y_std)[i] * ini_impute;
-                (*this->y_imputed_save)[i] = (*this->y_std)[i] * ini_impute;
+                (*this->y_imputed)[i] = (*this->y_std)[i] + ini_impute;
+                (*this->y_imputed_save)[i] = (*this->y_std)[i] + ini_impute;
             }
         }
     }
@@ -483,14 +494,7 @@ public:
                                      size_t burnin, size_t dim_residual,
                                      size_t nthread, bool parallel,
                                      bool a_scaling, bool b_scaling,
-                                     size_t N_trt, size_t N_ctrl, std::vector<double> &sigma_vec) : State(Xpointer_con, Xorder_std_con,
-                                                                                                          N, p_con, num_trees_con, p_categorical_con, p_continuous_con,
-                                                                                                          set_random_seed, random_seed,
-                                                                                                          n_min, n_cutpoints,
-                                                                                                          mtry_con, Xpointer_con,
-                                                                                                          num_sweeps, sample_weights,
-                                                                                                          y_std, sigma, max_depth,
-                                                                                                          ini_var_yhat, burnin, dim_residual, nthread)
+                                     size_t N_trt, size_t N_ctrl, std::vector<double> &sigma_vec) : State(Xpointer_con, Xorder_std_con, N, p_con, num_trees_con, p_categorical_con, p_continuous_con, set_random_seed, random_seed, n_min, n_cutpoints, mtry_con, Xpointer_con, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
     {
         this->X_std_con = Xpointer_con;
         this->X_std_mod = Xpointer_mod;
@@ -513,6 +517,8 @@ public:
         this->tau_fit = (new std::vector<double>(N, 0));
         this->mu_fit = (new std::vector<double>(N, 0));
         this->precision = (new std::vector<double>(N, 1));
+        this->precision_mod = (new std::vector<double>(N, 1));
+        this->precision_con = (new std::vector<double>(N, 1));
         this->res_x_precision = (new std::vector<double>(N, 0));
         this->mean_res = (new std::vector<double>(N, 0));
         this->Xorder_std_con = &Xorder_std_con;
@@ -548,4 +554,149 @@ public:
     }
 };
 
+class XBCFdiscreteHeteroskedasticState2 : public State
+{
+private:
+    void ini_sigma(std::vector<double> &sigma, std::vector<double> &input)
+    {
+        sigma.resize(input.size());
+        for (size_t i = 0; i < input.size(); i++)
+        {
+            sigma[i] = input[i];
+        }
+    }
+
+public:
+    XBCFdiscreteHeteroskedasticState2(matrix<double> *Z_std,
+                                      const double *Xpointer_con,
+                                      const double *Xpointer_mod,
+                                      matrix<size_t> &Xorder_std_con,
+                                      matrix<size_t> &Xorder_std_mod,
+                                      size_t N, size_t p_con, size_t p_mod,
+                                      size_t num_trees_con, size_t num_trees_mod,
+                                      size_t num_trees_v,
+                                      size_t p_categorical_con, size_t p_categorical_mod,
+                                      size_t p_continuous_con, size_t p_continuous_mod,
+                                      bool set_random_seed, size_t random_seed,
+                                      size_t n_min, size_t n_min_v,
+                                      size_t n_cutpoints, size_t n_cutpoints_v,
+                                      size_t mtry_con, size_t mtry_mod, size_t mtry_v,
+                                      size_t num_sweeps, bool sample_weights,
+                                      std::vector<double> *y_std, double sigma,
+                                      size_t max_depth, size_t max_depth_v,
+                                      double ini_var_yhat,
+                                      size_t burnin, size_t dim_residual,
+                                      size_t nthread, bool parallel,
+                                      bool a_scaling, bool b_scaling,
+                                      size_t N_trt, size_t N_ctrl, std::vector<double> &sigma_vec) : State(Xpointer_con, Xorder_std_con, N, p_con, num_trees_con, p_categorical_con, p_continuous_con, set_random_seed, random_seed, n_min, n_cutpoints, mtry_con, Xpointer_con, num_sweeps, sample_weights, y_std, sigma, max_depth, ini_var_yhat, burnin, dim_residual, nthread)
+    {
+        this->X_std_con = Xpointer_con;
+        this->X_std_mod = Xpointer_mod;
+        this->split_count_all_tree_con = new matrix<double>();
+        this->split_count_all_tree_mod = new matrix<double>();
+        this->split_count_all_tree_v_con = new matrix<double>();
+        this->split_count_all_tree_v_mod = new matrix<double>();
+        ini_xinfo((*this->split_count_all_tree_con), p_con, num_trees_con);
+        ini_xinfo((*this->split_count_all_tree_mod), p_mod, num_trees_mod);
+        ini_xinfo((*this->split_count_all_tree_v_con), p_con, num_trees_con);
+        ini_xinfo((*this->split_count_all_tree_v_mod), p_con, num_trees_mod);
+        this->split_count_all_con = new std::vector<double>(p_con, 0);
+        this->mtry_weight_current_tree_con = new std::vector<double>(p_con, 0);
+        this->split_count_all_mod = new std::vector<double>(p_mod, 0);
+        this->mtry_weight_current_tree_mod = new std::vector<double>(p_mod, 0);
+        this->split_count_all_v_con = new std::vector<double>(p_con, 0);
+        this->split_count_all_v_mod = new std::vector<double>(p_mod, 0);
+        this->mtry_weight_current_tree_v_con = new std::vector<double>(p_con, 0);
+        this->mtry_weight_current_tree_v_mod = new std::vector<double>(p_mod, 0);
+        this->Z_std = Z_std;
+        this->sigma = sigma;
+        this->sigma2 = pow(sigma, 2);
+        this->parallel = parallel;
+        this->tau_fit = (new std::vector<double>(N, 0));
+        this->mu_fit = (new std::vector<double>(N, 0));
+        this->precision = (new std::vector<double>(N, 1));
+        this->precision_mod = (new std::vector<double>(N, 1));
+        this->precision_con = (new std::vector<double>(N, 1));
+        this->res_x_precision = (new std::vector<double>(N, 0));
+        this->mean_res = (new std::vector<double>(N, 0));
+        this->Xorder_std_con = &Xorder_std_con;
+        this->Xorder_std_mod = &Xorder_std_mod;
+        this->p_con = p_con;
+        this->p_mod = p_mod;
+        this->p_categorical_con = p_categorical_con;
+        this->p_categorical_mod = p_categorical_mod;
+        this->p_continuous_con = p_continuous_con;
+        this->p_continuous_mod = p_continuous_mod;
+        this->mtry_con = mtry_con;
+        this->mtry_mod = mtry_mod;
+        this->mtry_v = mtry_v;
+        this->num_trees_con = num_trees_con;
+        this->num_trees_mod = num_trees_mod;
+        this->a_scaling = a_scaling;
+        this->b_scaling = b_scaling;
+        this->N_trt = N_trt;
+        this->N_ctrl = N_ctrl;
+        this->a = 1.0;
+        this->b_vec.resize(2);
+        this->b_vec[0] = -0.5;
+        this->b_vec[1] = 0.5;
+        ini_sigma(this->sigma_vec, sigma_vec);
+        this->num_trees_m = num_trees_con;
+        this->num_trees_v = num_trees_v;
+        this->n_cutpoints_m = n_cutpoints;
+        this->n_cutpoints_v = n_cutpoints_v;
+        this->n_min_m = n_min;
+        this->n_min_v = n_min_v;
+        this->max_depth_m = max_depth;
+        this->max_depth_v = max_depth_v;
+    }
+};
+
+class XBCFSurvivaldiscreteHeteroskedasticState2 : public XBCFdiscreteHeteroskedasticState2
+{
+public:
+    XBCFSurvivaldiscreteHeteroskedasticState2(matrix<double> *Z_std,
+                                              std::vector<double> &delta_std,
+                                              const double *Xpointer_con,
+                                              const double *Xpointer_mod,
+                                              matrix<size_t> &Xorder_std_con,
+                                              matrix<size_t> &Xorder_std_mod,
+                                              double ini_impute,
+                                              size_t N, size_t p_con, size_t p_mod,
+                                              size_t num_trees_con, size_t num_trees_mod,
+                                              size_t num_trees_v,
+                                              size_t p_categorical_con, size_t p_categorical_mod,
+                                              size_t p_continuous_con, size_t p_continuous_mod,
+                                              bool set_random_seed, size_t random_seed,
+                                              size_t n_min, size_t n_min_v,
+                                              size_t n_cutpoints, size_t n_cutpoints_v,
+                                              size_t mtry_con, size_t mtry_mod, size_t mtry_v,
+                                              size_t num_sweeps, bool sample_weights,
+                                              std::vector<double> *y_std, double sigma,
+                                              size_t max_depth, size_t max_depth_v,
+                                              double ini_var_yhat,
+                                              size_t burnin, size_t dim_residual,
+                                              size_t nthread, bool parallel,
+                                              bool a_scaling, bool b_scaling,
+                                              size_t N_trt, size_t N_ctrl, std::vector<double> &sigma_vec) : XBCFdiscreteHeteroskedasticState2(Z_std, Xpointer_con, Xpointer_mod, Xorder_std_con, Xorder_std_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_trees_v, p_categorical_con, p_categorical_mod, p_continuous_con, p_continuous_mod, set_random_seed, random_seed, n_min, n_min_v, n_cutpoints, n_cutpoints_v, mtry_con, mtry_mod, mtry_v, num_sweeps, sample_weights, y_std, sigma, max_depth, max_depth_v, ini_var_yhat, burnin, dim_residual, nthread, parallel, a_scaling, b_scaling, N_trt, N_ctrl, sigma_vec)
+    {
+        this->delta_std = &delta_std;
+        this->y_imputed = new std::vector<double>(delta_std.size());
+        this->y_imputed_save = new std::vector<double>(delta_std.size());
+        // copy
+        for (size_t i = 0; i < this->y_std->size(); i++)
+        {
+            if ((*this->delta_std)[i] == 1)
+            {
+                (*this->y_imputed)[i] = (*this->y_std)[i];
+                (*this->y_imputed_save)[i] = (*this->y_std)[i];
+            }
+            else
+            {
+                (*this->y_imputed)[i] = (*this->y_std)[i] + ini_impute;
+                (*this->y_imputed_save)[i] = (*this->y_std)[i] + ini_impute;
+            }
+        }
+    }
+};
 #endif

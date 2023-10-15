@@ -46,7 +46,8 @@ Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y,
                                       size_t mtry_v = 0,
                                       size_t p_categorical_con = 0,
                                       size_t p_categorical_mod = 0,
-                                      double kap = 16, double s = 4,
+                                      double kap = 16, 
+                                      double s = 4,
                                       double tau_con_kap = 3,
                                       double tau_con_s = 0.5,
                                       double tau_mod_kap = 3,
@@ -206,10 +207,10 @@ Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y,
     // define the variance model
     logNormalModel *model_v = new logNormalModel(a_v, b_v, kap, s, 0, alpha_v, beta_v);
     model_v->setNoSplitPenalty(no_split_penalty_v);
-        // initialize X_struct
-    std::vector<double> initial_theta_v(1, exp(log(1.0/ ini_var) / (double)num_trees_v));
+    
+    // initialize X_struct
+    std::vector<double> initial_theta_v(1, exp(log(1.0 / ini_var) / (double)num_trees_v));
     X_struct x_struct_v(Xpointer_con, &y_std, N, Xorder_std_con, p_categorical_con, p_continuous_con, &initial_theta_v, num_trees_v);
-
 
     // State settings
     std::vector<double> sigma_vec(N, 1.0);
@@ -253,7 +254,7 @@ Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y,
 
     Rcpp::NumericMatrix b_draw(num_sweeps, 2);
 
-    Rcpp::NumericVector split_count_sum_con(p_con, 0);                         // split counts
+    Rcpp::NumericVector split_count_sum_con(p_con, 0); // split counts
 
     Rcpp::NumericVector split_count_sum_mod(p_mod, 0);
 
@@ -261,7 +262,7 @@ Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y,
 
     // copy from std vector to Rcpp Numeric Matrix objects
     Matrix_to_NumericMatrix(sigma0_draw_xinfo, sigma0_draw);
-    Matrix_to_NumericMatrix(sigma0_draw_xinfo, sigma0_draw);
+    Matrix_to_NumericMatrix(sigma1_draw_xinfo, sigma1_draw);
     Matrix_to_NumericMatrix(a_xinfo, a_draw);
     Matrix_to_NumericMatrix(b_xinfo, b_draw);
 
@@ -304,6 +305,8 @@ Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y,
     return Rcpp::List::create(
         Rcpp::Named("a") = a_draw,
         Rcpp::Named("b") = b_draw,
+        Rcpp::Named("sigma0") = sigma0_draw,
+        Rcpp::Named("sigma1") = sigma1_draw,
         Rcpp::Named("importance_prognostic") = split_count_sum_con,
         Rcpp::Named("importance_treatment") = split_count_sum_mod,
         Rcpp::Named("importance_precision") = split_count_sum_v,
