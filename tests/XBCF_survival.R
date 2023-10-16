@@ -3,7 +3,7 @@ library(nftbart)
 
 set.seed(218390)
 
-samp_nft <- TRUE
+samp_nft <- FALSE
 ini_impute <- 0.5
 
 cen <- c(20, 50, 80)
@@ -64,7 +64,7 @@ for (i in 1:ntest) {
 logt <- log(Yobs)
 
 
-num_sweeps <- 150
+num_sweeps <- 30
 burnin <- 15
 
 pihat <- pi
@@ -99,8 +99,26 @@ pred <- predict.XBCFdiscreteHeterosk3(fit, X_con = x, X_mod = x, Z = z, pihat = 
 tauhats <- pred$tau.adj.mean
 muhats <- pred$mu.adj.mean
 
+
+mu1 = rowMeans(pred$mu)
+rmst.xbcf = rep(0, ntest)
+
+for (j in 1:num_sweeps) {
+    for (i in 1:ntest) {
+        rmst.xbcf[i] <- rmst.xbcf[i] + (1 / num_sweeps) * integrate(plnorm, 0, limit, meanlog = pred$mu[i, j] + mean(logt), sdlog = sqrt(pred$variance[i, j]), lower.tail = FALSE)$value
+    }
+}
+
+plot(rmst.xbcf, rmst.true, pch = 20, col = "black")
+abline(0, 1, col = "red")
+
+rmse.xbcf <- sqrt(mean((rmst.true - rmst.xbcf)^2))
+
 par(mfrow = c(3, 3))
 plot((muhats) + mean(logt), mu, pch = 20, col = "darkgrey", main = "mu, XBCF")
+abline(0, 1, col = "red")
+
+plot(rowMeans(sqrt(pred$variance)), sig, pch = 20, col = "darkgrey", main = "variance, XBCF")
 abline(0, 1, col = "red")
 
 
@@ -133,8 +151,6 @@ abline(0, 1, col = "red")
 plot(rowMeans(sqrt(pred2$vhats)), sig, pch = 20, col = "darkgrey", main = "variance, XBART")
 abline(0, 1, col = "red")
 
-
-
 mu2 <- rowMeans(pred2$mhats)
 
 rmst.xbart <- rep(0, ntest)
@@ -165,6 +181,8 @@ if (samp_nft) {
     timediff <- diff(c(0, nft.fit$events))
     rmst.nft <- rowSums(data.frame(mapply(`*`, as.data.frame(sp.nft), timediff, SIMPLIFY = FALSE)))
     gc()
+} else {
+    rmst.nft = rep(0, ntest)
 }
 
 # rmst.nft <- rmst.nft[1:ntest]
@@ -173,9 +191,11 @@ t.nft <- proc.time() - t.nft
 points(rmst.nft, rmst.true, pch = 20, col = "red")
 abline(0, 1, col = "red")
 
+rmse.xbcf <- sqrt(mean((rmst.true - rmst.xbcf)^2))
 rmse.nft <- sqrt(mean((rmst.true - rmst.nft)^2))
-rmse.x <- sqrt(mean((rmst.true - rmst.xbart)^2))
+rmse.xbart <- sqrt(mean((rmst.true - rmst.xbart)^2))
 
 
-print(rmse.x)
+print(rmse.xbart)
 print(rmse.nft)
+print(rmse.xbcf)
