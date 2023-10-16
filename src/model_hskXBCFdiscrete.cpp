@@ -219,19 +219,19 @@ double hskXBCFDiscreteModel::likelihood(std::vector<double> &temp_suff_stat, std
     {
         if (no_split)
         {
-            denominator = 1 + (suff_stat_all[2] * pow(state.b_vec[0], 2) + suff_stat_all[3] * pow(state.b_vec[1], 2)) * tau_use;
+            denominator = 1.0 + (suff_stat_all[2] * pow(state.b_vec[0], 2) + suff_stat_all[3] * pow(state.b_vec[1], 2)) * tau_use;
             s_psi_squared = suff_stat_all[0] * pow(state.b_vec[0], 2) + suff_stat_all[1] * pow(state.b_vec[1], 2);
         }
         else
         {
             if (left_side)
             {
-                denominator = 1 + (temp_suff_stat[2] * pow(state.b_vec[0], 2) + temp_suff_stat[3] * pow(state.b_vec[1], 2)) * tau_use;
+                denominator = 1.0 + (temp_suff_stat[2] * pow(state.b_vec[0], 2) + temp_suff_stat[3] * pow(state.b_vec[1], 2)) * tau_use;
                 s_psi_squared = temp_suff_stat[0] * pow(state.b_vec[0], 2) + temp_suff_stat[1] * pow(state.b_vec[1], 2);
             }
             else
             {
-                denominator = 1 + ((suff_stat_all[2] - temp_suff_stat[2]) * pow(state.b_vec[0], 2) +
+                denominator = 1.0 + ((suff_stat_all[2] - temp_suff_stat[2]) * pow(state.b_vec[0], 2) +
                                    (suff_stat_all[3] - temp_suff_stat[3]) * pow(state.b_vec[1], 2)) *
                                       tau_use;
                 s_psi_squared = (suff_stat_all[0] - temp_suff_stat[0]) * pow(state.b_vec[0], 2) +
@@ -243,24 +243,24 @@ double hskXBCFDiscreteModel::likelihood(std::vector<double> &temp_suff_stat, std
     {
         if (no_split)
         {
-            denominator = 1 + (suff_stat_all[2] + suff_stat_all[3]) * tau_use * state.a;
+            denominator = 1.0 + (suff_stat_all[2] + suff_stat_all[3]) * tau_use * state.a;
             s_psi_squared = (suff_stat_all[0] + suff_stat_all[1]) * state.a;
         }
         else
         {
             if (left_side)
             {
-                denominator = 1 + (temp_suff_stat[2] + temp_suff_stat[3]) * tau_use * state.a;
+                denominator = 1.0 + (temp_suff_stat[2] + temp_suff_stat[3]) * tau_use * state.a;
                 s_psi_squared = (temp_suff_stat[0] + temp_suff_stat[1]) * state.a;
             }
             else
             {
-                denominator = 1 + ((suff_stat_all[2] - temp_suff_stat[2]) + (suff_stat_all[3] - temp_suff_stat[3])) * tau_use * state.a;
+                denominator = 1.0 + ((suff_stat_all[2] - temp_suff_stat[2]) + (suff_stat_all[3] - temp_suff_stat[3])) * tau_use * state.a;
                 s_psi_squared = ((suff_stat_all[0] - temp_suff_stat[0]) + (suff_stat_all[1] - temp_suff_stat[1])) * state.a;
             }
         }
     }
-    return 0.5 * log(1 / denominator) + 0.5 * pow(s_psi_squared, 2) * tau_use / denominator;
+    return 0.5 * log(1.0 / denominator) + 0.5 * pow(s_psi_squared, 2) * tau_use / denominator;
 }
 
 void hskXBCFDiscreteModel::ini_residual_std(State &state)
