@@ -13,14 +13,28 @@
 void hskNormalModel::ini_residual_std(State &state)
 {
     double value = state.ini_var_yhat * ((double)state.num_trees - 1.0) / (double)state.num_trees;
-    
-    for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
+
+    if (state.survival)
     {
-        (*state.residual_std)[0][i] = (*state.y_std)[i] - value;
-        //        (*state.residual_std)[1][i] = double (1.0 / state.sigma_vec[i]);
-        (*state.precision)[i] = double(1.0 / state.sigma_vec[i]);
-        //        (*state.residual_std)[2][i] = (*state.residual_std)[0][i] * (*state.residual_std)[1][i];
-        (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
+        for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
+        {
+            (*state.residual_std)[0][i] = (*state.y_imputed)[i] - value;
+            //        (*state.residual_std)[1][i] = double (1.0 / state.sigma_vec[i]);
+            (*state.precision)[i] = double(1.0 / state.sigma_vec[i]);
+            //        (*state.residual_std)[2][i] = (*state.residual_std)[0][i] * (*state.residual_std)[1][i];
+            (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
+        }
+    }
+    else
+    {
+        for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)
+        {
+            (*state.residual_std)[0][i] = (*state.y_std)[i] - value;
+            //        (*state.residual_std)[1][i] = double (1.0 / state.sigma_vec[i]);
+            (*state.precision)[i] = double(1.0 / state.sigma_vec[i]);
+            //        (*state.residual_std)[2][i] = (*state.residual_std)[0][i] * (*state.residual_std)[1][i];
+            (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
+        }
     }
     return;
 }

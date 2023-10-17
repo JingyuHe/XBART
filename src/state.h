@@ -141,6 +141,7 @@ public:
     size_t N_ctrl;
 
     // for survival forest
+    bool survival;
     std::vector<double> *delta_std;
     std::vector<double> *y_imputed;
     std::vector<double> *y_imputed_save;
@@ -216,6 +217,7 @@ public:
         this->split_count_all_v = NULL;
         this->mtry_weight_current_tree_m = NULL;
         this->mtry_weight_current_tree_v = NULL;
+        this->survival = false;
         return;
     }
 
@@ -313,6 +315,7 @@ public:
         this->mtry_mod = mtry_mod;
         this->num_trees_con = num_trees_con;
         this->num_trees_mod = num_trees_mod;
+        this->survival = false;
     }
 };
 
@@ -360,6 +363,7 @@ public:
         this->sigma_vec.resize(2);
         this->sigma_vec[0] = 1;
         this->sigma_vec[1] = 1;
+        this->survival = false;
     }
 };
 
@@ -441,6 +445,7 @@ class HeteroskedasticSurvivalState : public HeteroskedasticState
 public:
     HeteroskedasticSurvivalState(const double *Xpointer, matrix<size_t> &Xorder_std, std::vector<double> &delta_std, size_t N, size_t p, double ini_impute, size_t num_trees_m, size_t num_trees_v, size_t p_categorical, size_t p_continuous, bool set_random_seed, size_t random_seed, size_t n_min_m, size_t n_min_v, size_t n_cutpoints_m, size_t n_cutpoints_v, size_t mtry, const double *X_std, size_t num_sweeps, bool sample_weights, std::vector<double> *y_std, double sigma, size_t max_depth_m, size_t max_depth_v, double ini_var_yhat, size_t burnin, size_t dim_residual, size_t nthread, bool parallel, std::vector<double> &sigma_vec) : HeteroskedasticState(Xpointer, Xorder_std, N, p, num_trees_m, num_trees_v, p_categorical, p_continuous, set_random_seed, random_seed, n_min_m, n_min_v, n_cutpoints_m, n_cutpoints_v, mtry, X_std, num_sweeps, sample_weights, y_std, sigma, max_depth_m, max_depth_v, ini_var_yhat, burnin, dim_residual, nthread, parallel, sigma_vec)
     {
+        this->survival = true;
         this->delta_std = &delta_std;
         this->y_imputed = new std::vector<double>(delta_std.size());
         this->y_imputed_save = new std::vector<double>(delta_std.size());
@@ -553,6 +558,7 @@ public:
         this->n_min_v = n_min_v;
         this->max_depth_m = max_depth;
         this->max_depth_v = max_depth_v;
+        this->survival = false;
     }
 };
 
@@ -652,6 +658,7 @@ public:
         this->n_min_v = n_min_v;
         this->max_depth_m = max_depth;
         this->max_depth_v = max_depth_v;
+        this->survival = false;
     }
 };
 
@@ -683,6 +690,7 @@ public:
                                               bool a_scaling, bool b_scaling,
                                               size_t N_trt, size_t N_ctrl, std::vector<double> &sigma_vec) : XBCFdiscreteHeteroskedasticState2(Z_std, Xpointer_con, Xpointer_mod, Xorder_std_con, Xorder_std_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_trees_v, p_categorical_con, p_categorical_mod, p_continuous_con, p_continuous_mod, set_random_seed, random_seed, n_min, n_min_v, n_cutpoints, n_cutpoints_v, mtry_con, mtry_mod, mtry_v, num_sweeps, sample_weights, y_std, sigma, max_depth, max_depth_v, ini_var_yhat, burnin, dim_residual, nthread, parallel, a_scaling, b_scaling, N_trt, N_ctrl, sigma_vec)
     {
+        this->survival = true;
         this->delta_std = &delta_std;
         this->y_imputed = new std::vector<double>(delta_std.size());
         this->y_imputed_save = new std::vector<double>(delta_std.size());

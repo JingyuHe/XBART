@@ -232,8 +232,8 @@ double hskXBCFDiscreteModel::likelihood(std::vector<double> &temp_suff_stat, std
             else
             {
                 denominator = 1.0 + ((suff_stat_all[2] - temp_suff_stat[2]) * pow(state.b_vec[0], 2) +
-                                   (suff_stat_all[3] - temp_suff_stat[3]) * pow(state.b_vec[1], 2)) *
-                                      tau_use;
+                                     (suff_stat_all[3] - temp_suff_stat[3]) * pow(state.b_vec[1], 2)) *
+                                        tau_use;
                 s_psi_squared = (suff_stat_all[0] - temp_suff_stat[0]) * pow(state.b_vec[0], 2) +
                                 (suff_stat_all[1] - temp_suff_stat[1]) * pow(state.b_vec[1], 2);
             }
@@ -407,6 +407,19 @@ void hskXBCFDiscreteModel::add_new_tree_fit(size_t tree_ind, State &state, X_str
 
 void hskXBCFDiscreteModel::update_partial_residuals(size_t tree_ind, State &state, X_struct &x_struct)
 {
+    std::vector<double> *y_data_use;
+
+    if (state.survival)
+    {
+        // survival model fit imputed y rather than the original input
+        y_data_use = state.y_imputed;
+    }
+    else
+    {
+        // regular model fits y
+        y_data_use = state.y_std;
+    }
+
     if (state.treatment_flag)
     {
         // treatment forest
@@ -415,11 +428,11 @@ void hskXBCFDiscreteModel::update_partial_residuals(size_t tree_ind, State &stat
         {
             if ((*state.Z_std)[0][i] == 1)
             {
-                ((*state.residual_std))[0][i] = ((*state.y_std)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[1]) * (*state.tau_fit)[i]) / (state.b_vec[1]);
+                ((*state.residual_std))[0][i] = ((*y_data_use)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[1]) * (*state.tau_fit)[i]) / (state.b_vec[1]);
             }
             else
             {
-                ((*state.residual_std))[0][i] = ((*state.y_std)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[0]) * (*state.tau_fit)[i]) / (state.b_vec[0]);
+                ((*state.residual_std))[0][i] = ((*y_data_use)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[0]) * (*state.tau_fit)[i]) / (state.b_vec[0]);
             }
             (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
         }
@@ -432,11 +445,11 @@ void hskXBCFDiscreteModel::update_partial_residuals(size_t tree_ind, State &stat
         {
             if ((*state.Z_std)[0][i] == 1)
             {
-                ((*state.residual_std))[0][i] = ((*state.y_std)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[1]) * (*state.tau_fit)[i]) / (state.a);
+                ((*state.residual_std))[0][i] = ((*y_data_use)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[1]) * (*state.tau_fit)[i]) / (state.a);
             }
             else
             {
-                ((*state.residual_std))[0][i] = ((*state.y_std)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[0]) * (*state.tau_fit)[i]) / (state.a);
+                ((*state.residual_std))[0][i] = ((*y_data_use)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[0]) * (*state.tau_fit)[i]) / (state.a);
             }
             (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
         }
@@ -472,16 +485,29 @@ void hskXBCFDiscreteModel::update_a(State &state)
 
     // compute the residual y - b * tau(x)
 
+    std::vector<double> *y_data_use;
+
+    if (state.survival)
+    {
+        // survival model fit imputed y rather than the original input
+        y_data_use = state.y_imputed;
+    }
+    else
+    {
+        // regular model fits y
+        y_data_use = state.y_std;
+    }
+
     for (size_t i = 0; i < state.n_y; i++)
     {
         if ((*state.Z_std)[0][i] == 1)
         {
             // if treated
-            (*state.residual_std)[0][i] = (*state.y_std)[i] - (*state.tau_fit)[i] * state.b_vec[1];
+            (*state.residual_std)[0][i] = (*y_data_use)[i] - (*state.tau_fit)[i] * state.b_vec[1];
         }
         else
         {
-            (*state.residual_std)[0][i] = (*state.y_std)[i] - (*state.tau_fit)[i] * state.b_vec[0];
+            (*state.residual_std)[0][i] = (*y_data_use)[i] - (*state.tau_fit)[i] * state.b_vec[0];
         }
     }
 
@@ -525,10 +551,23 @@ void hskXBCFDiscreteModel::update_b(State &state)
     double tauressum_ctrl = 0;
     double tauressum_trt = 0;
 
+    std::vector<double> *y_data_use;
+
+    if (state.survival)
+    {
+        // survival model fit imputed y rather than the original input
+        y_data_use = state.y_imputed;
+    }
+    else
+    {
+        // regular model fits y
+        y_data_use = state.y_std;
+    }
+
     // compute the residual y-a*mu(x) using state's objects y_std, mu_fit and a
     for (size_t i = 0; i < state.n_y; i++)
     {
-        (*state.residual_std)[0][i] = (*state.y_std)[i] - state.a * (*state.mu_fit)[i];
+        (*state.residual_std)[0][i] = (*y_data_use)[i] - state.a * (*state.mu_fit)[i];
     }
 
     for (size_t i = 0; i < state.n_y; i++)
@@ -586,17 +625,30 @@ void hskXBCFDiscreteModel::update_state(State &state)
     state.num_trees = state.num_trees_v;
     state.X_std = state.X_std_con;
 
+    std::vector<double> *y_data_use;
+
+    if (state.survival)
+    {
+        // survival model fit imputed y rather than the original input
+        y_data_use = state.y_imputed;
+    }
+    else
+    {
+        // regular model fits y
+        y_data_use = state.y_std;
+    }
+
     for (size_t i = 0; i < state.n_y; i++)
     {
         if ((*state.Z_std)[0][i] == 1)
         {
             // if treated
-            (*state.residual_std)[0][i] = (*state.y_std)[i] - state.a * (*state.mu_fit)[i] - state.b_vec[1] * (*state.tau_fit)[i];
+            (*state.residual_std)[0][i] = (*y_data_use)[i] - state.a * (*state.mu_fit)[i] - state.b_vec[1] * (*state.tau_fit)[i];
         }
         else
         {
             // if control group
-            (*state.residual_std)[0][i] = (*state.y_std)[i] - state.a * (*state.mu_fit)[i] - state.b_vec[0] * (*state.tau_fit)[i];
+            (*state.residual_std)[0][i] = (*y_data_use)[i] - state.a * (*state.mu_fit)[i] - state.b_vec[0] * (*state.tau_fit)[i];
         }
     }
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)

@@ -49,8 +49,8 @@ C <- rnorm(n, 3.3, 1)
 Yobs <- pmin(Y, C)
 delta <- as.numeric(Y < C)
 
- Yobs = Y
- delta = rep(1, n)
+#  Yobs = Y
+#  delta = rep(1, n)
 
 
 # set time limit (based on Yobs distribution), step for tgrid
@@ -85,11 +85,11 @@ b_scaling <- FALSE
 
 
 t1 = proc.time()
-fit <- XBCF.discrete.heterosk(
-    y = yscale, Z = z, X_con = x, X_mod = x,
+fit <- XBCF.survival.discrete.heterosk3(
+    y = yscale, Z = z, delta = delta, X_con = x, X_mod = x,
     pihat = pihat, p_categorical_con = 0, p_categorical_mod = 0,
     num_trees_con = 100, num_trees_mod = 20, num_trees_v = 5,
-    num_sweeps = num_sweeps, ini_var = 1, 
+    num_sweeps = num_sweeps, ini_var = 1, ini_impute = ini_impute,
     burnin = burnin, sample_weights = TRUE,
     a_scaling = a_scaling, b_scaling = b_scaling, verbose = FALSE
 )
@@ -97,15 +97,15 @@ fit <- XBCF.discrete.heterosk(
 t1 <- proc.time() - t1
 cat(t1, "\n")
 
-pred <- predict.XBCFdiscreteHeterosk(fit, X_con = x, X_mod = x, Z = z, pihat = pihat, burnin = burnin)
+pred <- predict.XBCFdiscreteHeterosk3(fit, X_con = x, X_mod = x, Z = z, pihat = pihat, burnin = burnin)
 tauhats <- pred$tau.adj.mean
 muhats <- pred$mu.adj.mean
 
 par(mfrow = c(3, 3))
-plot(sdlogt * (pred$yhats.adj.mean) + mlogt, Ey, pch = 20, col = z + 1, main = "yhats, XBCF")
+plot(sdlogt * (pred$yhats.adj.mean) + mlogt, Ey, pch = 20, col = z + 1, main = "yhats, XBCF survival")
 abline(0, 1, col = "red")
 
-plot(sdlogt * rowMeans(sqrt(pred$variance)), sig, pch = 20, col = z + 1, main = "std, XBCF")
+plot(sdlogt * rowMeans(sqrt(pred$variance)), sig, pch = 20, col = z + 1, main = "std, XBCF survival")
 abline(0, 1, col = "red")
 
 rmst.xbcf = rep(0, ntest)
