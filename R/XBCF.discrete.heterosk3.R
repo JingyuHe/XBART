@@ -23,8 +23,10 @@
 #' @param beta_v Scalar, BART prior parameter for variance forest. The default value is 1.25.
 #' @param tau_con Scalar, prior parameter for prognostic forest. The default value is 0.6 * var(y) / num_trees_con.
 #' @param tau_mod Scalar, prior parameter for treatment forest. The default value is 0.1 * var(y) / num_trees_mod.
-#' @param a_v Scalar, prior parameter (shape) for the variance forest. The default is 1.
-#' @param b_v Scalar, prior parameter (scale) for the variance forest. The default is 1.
+#' @param a_v_con Scalar, prior parameter (shape) for the variance prognostic forest. The default is 1.
+#' @param b_v_con Scalar, prior parameter (scale) for the variance prognostic forest. The default is 1.
+#' @param a_v_con Scalar, prior parameter (shape) for the variance treatment forest. The default is 1.
+#' @param b_v_con Scalar, prior parameter (scale) for the variance treatment forest. The default is 1.
 #' @param no_split_penalty Weight of no-split option. The default value is log(num_cutpoints), or you can take any other number in log scale.
 #' @param no_split_penalty_v Weight of no-split option (for the variace forest). The default value is log(num_cutpoints_v), or you can take any other number in log scale.
 #' @param burnin Integer, number of burnin sweeps.
@@ -63,7 +65,8 @@ XBCF.discrete.heterosk3 <- function(y, Z, X_con, X_mod,
                                     alpha_mod = 0.25, beta_mod = 3,
                                     alpha_v = 0.95, beta_v = 1.25,
                                     tau_con = NULL, tau_mod = NULL,
-                                    a_v = 1.0, b_v = 1.0,
+                                    a_v_con = 1.0, b_v_con = 1.0,
+                                    a_v_mod = 1.0, b_v_mod = 1.0,
                                     ini_var = 1.0,
                                     no_split_penalty = NULL, no_split_penalty_v = NULL,
                                     burnin = 20,
@@ -236,7 +239,8 @@ XBCF.discrete.heterosk3 <- function(y, Z, X_con, X_mod,
         alpha_mod, beta_mod,
         alpha_v, beta_v,
         tau_con, tau_mod,
-        a_v, b_v,
+        a_v_con, b_v_con,
+        a_v_mod, b_v_mod,
         ini_var,
         no_split_penalty, no_split_penalty_v,
         burnin, mtry_con, mtry_mod, mtry_v,

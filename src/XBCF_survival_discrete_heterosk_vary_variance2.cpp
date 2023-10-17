@@ -36,8 +36,10 @@ Rcpp::List XBCF_survival_discrete_heterosk_vary_variance_cpp2(arma::mat y,
                                                               double beta_v,
                                                               double tau_con,
                                                               double tau_mod,
-                                                              double a_v,
-                                                              double b_v,
+                                                              double a_v_con,
+                                                              double b_v_con,
+                                                              double a_v_mod,
+                                                              double b_v_mod,
                                                               double ini_var,
                                                               double ini_impute,
                                                               double no_split_penalty,
@@ -217,7 +219,7 @@ Rcpp::List XBCF_survival_discrete_heterosk_vary_variance_cpp2(arma::mat y,
     }
 
     // define the variance model
-    logNormalXBCFModel2 *model_v = new logNormalXBCFModel2(a_v, b_v, kap, s, 0, alpha_v, beta_v);
+    logNormalXBCFModel2 *model_v = new logNormalXBCFModel2(a_v_con, b_v_con, a_v_mod, b_v_mod, kap, s, 0, alpha_v, beta_v);
     model_v->setNoSplitPenalty(no_split_penalty_v);
 
     // initialize X_struct

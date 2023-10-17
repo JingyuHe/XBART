@@ -3,7 +3,7 @@ library(nftbart)
 
 # set.seed(11234)
 
-samp_nft <- FALSE
+samp_nft <- TRUE
 ini_impute <- -0.1
 
 cen <- c(20, 50, 80)
@@ -91,6 +91,7 @@ fit <- XBCF.survival.discrete.heterosk3(
     num_trees_con = 100, num_trees_mod = 20, num_trees_v = 5,
     num_sweeps = num_sweeps, ini_var = 1, ini_impute = ini_impute,
     burnin = burnin, sample_weights = TRUE,
+    a_v_con = 5, b_v_con = 5, a_v_mod = 5, b_v_mod = 5,
     a_scaling = a_scaling, b_scaling = b_scaling, verbose = FALSE
 )
 

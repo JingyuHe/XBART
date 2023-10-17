@@ -23,8 +23,10 @@
 #' @param beta_v Scalar, BART prior parameter for variance forest. The default value is 1.25.
 #' @param tau_con Scalar, prior parameter for prognostic forest. The default value is 0.6 * var(y) / num_trees_con.
 #' @param tau_mod Scalar, prior parameter for treatment forest. The default value is 0.1 * var(y) / num_trees_mod.
-#' @param a_v Scalar, prior parameter (shape) for the variance forest. The default is 1.
-#' @param b_v Scalar, prior parameter (scale) for the variance forest. The default is 1.
+#' @param a_v_con Scalar, prior parameter (shape) for the variance prognostic forest. The default is 1.
+#' @param b_v_con Scalar, prior parameter (scale) for the variance prognostic forest. The default is 1.
+#' @param a_v_con Scalar, prior parameter (shape) for the variance treatment forest. The default is 1.
+#' @param b_v_con Scalar, prior parameter (scale) for the variance treatment forest. The default is 1.
 #' @param no_split_penalty Weight of no-split option. The default value is log(num_cutpoints), or you can take any other number in log scale.
 #' @param no_split_penalty_v Weight of no-split option (for the variace forest). The default value is log(num_cutpoints_v), or you can take any other number in log scale.
 #' @param burnin Integer, number of burnin sweeps.
@@ -63,7 +65,8 @@ XBCF.survival.discrete.heterosk3 <- function(y, Z, delta, X_con, X_mod,
                                              alpha_mod = 0.25, beta_mod = 3,
                                              alpha_v = 0.95, beta_v = 1.25,
                                              tau_con = NULL, tau_mod = NULL,
-                                             a_v = 1.0, b_v = 1.0,
+                                             a_v_con = 1.0, b_v_con = 1.0,
+                                             a_v_mod = 1.0, b_v_mod = 1.0,
                                              ini_var = 1.0, ini_impute = 1.01,
                                              no_split_penalty = NULL, no_split_penalty_v = NULL,
                                              burnin = 20,
@@ -187,21 +190,17 @@ XBCF.survival.discrete.heterosk3 <- function(y, Z, delta, X_con, X_mod,
         stop("p_categorical cannot exceed p")
     }
     # check input type
-    print("ok1")
     check_non_negative_integer(burnin, "burnin")
-
     check_positive_integer(max_depth, "max_depth")
     check_positive_integer(Nmin, "Nmin")
     check_positive_integer(num_sweeps, "num_sweeps")
     check_positive_integer(num_cutpoints, "num_cutpoints")
     check_positive_integer(num_trees_con, "num_trees_con")
     check_positive_integer(num_trees_mod, "num_trees_mod")
-    print("ok2")
     check_positive_integer(max_depth_v, "max_depth_v")
     check_positive_integer(Nmin_v, "Nmin_v")
     check_positive_integer(num_cutpoints_v, "num_cutpoints_v")
     check_positive_integer(num_trees_v, "num_trees_v")
-    print("ok3")
     check_scalar(tau_con, "tau_con")
     check_scalar(tau_mod, "tau_mod")
     check_scalar(no_split_penalty, "no_split_penalty")
@@ -214,7 +213,6 @@ XBCF.survival.discrete.heterosk3 <- function(y, Z, delta, X_con, X_mod,
     check_scalar(beta_v, "beta_v")
     check_scalar(kap, "kap")
     check_scalar(s, "s")
-    print("ok4")
     # center the outcome variable
     meany <- mean(y)
     # sdy <- sd(y)
@@ -224,8 +222,6 @@ XBCF.survival.discrete.heterosk3 <- function(y, Z, delta, X_con, X_mod,
     } else {
         y <- (y - meany) / sdy
     }
-    print("ok5")
-
 
     obj <- XBCF_survival_discrete_heterosk_vary_variance_cpp2(y, Z, delta, X_con, X_mod,
         num_trees_con, num_trees_mod, num_trees_v,
@@ -237,7 +233,8 @@ XBCF.survival.discrete.heterosk3 <- function(y, Z, delta, X_con, X_mod,
         alpha_mod, beta_mod,
         alpha_v, beta_v,
         tau_con, tau_mod,
-        a_v, b_v, ini_var, ini_impute,
+        a_v_con, b_v_con, a_v_mod, b_v_mod,
+        ini_var, ini_impute,
         no_split_penalty, no_split_penalty_v,
         burnin, mtry_con, mtry_mod, mtry_v,
         p_categorical_con, p_categorical_mod,

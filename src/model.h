@@ -697,14 +697,18 @@ public:
     double tau_a;
     double tau_b;
     double tau;
+    double tau_a_mod;
+    double tau_b_mod;
 
-    logNormalXBCFModel2(double tau_a, double tau_b, double kap, double s, double tau, double alpha, double beta) : Model(1, 2)
+    logNormalXBCFModel2(double tau_a, double tau_b, double tau_a_mod, double tau_b_mod, double kap, double s, double tau, double alpha, double beta) : Model(1, 2)
     {
         this->kap = kap;
         this->s = s;
         this->tau = tau;
         this->tau_a = tau_a;
         this->tau_b = tau_b;
+        this->tau_a_mod = tau_a_mod;
+        this->tau_b_mod = tau_b_mod;
         this->alpha = alpha;
         this->beta = beta;
         this->dim_residual = 1;
