@@ -259,6 +259,12 @@ void mcmc_loop_xbcf_survival_discrete_heteroskedastic_vary_variance2(matrix<size
         // pass fitted values for sigmas to the mean model
         var_model->update_state(state, var_x_struct_con, var_x_struct_mod);
 
+        cout << "check residuals " << endl;
+        cout << (*state.residual_std)[0][100] << endl;
+
+        model->update_state(state); // update residual to full, switch some parameters
+        cout << (*state.residual_std)[0][100] << endl;
+
         // sample missing values in the truncated survival data
         // precision is saved in (*state.precision)
         // impute missing values from the truncated normal, should be larger than T_obs
@@ -274,7 +280,7 @@ void mcmc_loop_xbcf_survival_discrete_heteroskedastic_vary_variance2(matrix<size
             else
             {
                 // T_obs = L, impute T from truncated normal
-                (*state.y_imputed)[ii] = sample_truncated_normal(state.gen, (*state.y_imputed_save)[ii] - (*state.residual_std)[0][ii], (*state.precision)[ii], (*state.y_std)[ii], true);
+                (*state.y_imputed)[ii] = sample_truncated_normal(state.gen, (*state.total_fit)[ii], (*state.precision)[ii], (*state.y_std)[ii], true);
             }
         }
 

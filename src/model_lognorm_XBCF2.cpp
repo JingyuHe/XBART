@@ -116,9 +116,16 @@ void logNormalXBCFModel2::samplePars(State &state,
                                      std::vector<double> &theta_vector,
                                      double &prob_leaf)
 {
-    std::gamma_distribution<double> gammadist(tau_a + 0.5 * suff_stat[1], 1.0);
-    theta_vector[0] = gammadist(state.gen) / (tau_b + 0.5 * suff_stat[0]);
-
+    if (state.treatment_flag)
+    {
+        std::gamma_distribution<double> gammadist(20 + 0.5 * suff_stat[1], 1.0);
+        theta_vector[0] = gammadist(state.gen) / (20 + 0.5 * suff_stat[0]);
+    }
+    else
+    {
+        std::gamma_distribution<double> gammadist(tau_a + 0.5 * suff_stat[1], 1.0);
+        theta_vector[0] = gammadist(state.gen) / (tau_b + 0.5 * suff_stat[0]);
+    }
     return;
 }
 
@@ -176,7 +183,7 @@ void logNormalXBCFModel2::state_sweep(State &state,
                                       X_struct &x_struct_v_mod) const
 {
     size_t next_index = tree_ind + 1;
-    
+
     if (next_index == M)
     {
         next_index = 0;

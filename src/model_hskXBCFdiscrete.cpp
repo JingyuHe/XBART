@@ -232,8 +232,8 @@ double hskXBCFDiscreteModel::likelihood(std::vector<double> &temp_suff_stat, std
             else
             {
                 denominator = 1.0 + ((suff_stat_all[2] - temp_suff_stat[2]) * pow(state.b_vec[0], 2) +
-                                   (suff_stat_all[3] - temp_suff_stat[3]) * pow(state.b_vec[1], 2)) *
-                                      tau_use;
+                                     (suff_stat_all[3] - temp_suff_stat[3]) * pow(state.b_vec[1], 2)) *
+                                        tau_use;
                 s_psi_squared = (suff_stat_all[0] - temp_suff_stat[0]) * pow(state.b_vec[0], 2) +
                                 (suff_stat_all[1] - temp_suff_stat[1]) * pow(state.b_vec[1], 2);
             }
@@ -280,7 +280,7 @@ void hskXBCFDiscreteModel::ini_residual_std(State &state)
     return;
 }
 
-void hskXBCFDiscreteModel::predict_std(matrix<double> &Ztestpointer, const double *Xtestpointer_con, const double *Xtestpointer_mod, size_t N_test, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod)
+void hskXBCFDiscreteModel::predict_std(arma::mat &a, arma::mat &b, matrix<double> &Ztestpointer, const double *Xtestpointer_con, const double *Xtestpointer_mod, size_t N_test, size_t p_con, size_t p_mod, size_t num_trees_con, size_t num_trees_mod, size_t num_sweeps, matrix<double> &yhats_test_xinfo, matrix<double> &prognostic_xinfo, matrix<double> &treatment_xinfo, vector<vector<tree>> &trees_con, vector<vector<tree>> &trees_mod)
 {
     // predict the output as a matrix
     matrix<double> output_mod;
@@ -312,13 +312,12 @@ void hskXBCFDiscreteModel::predict_std(matrix<double> &Ztestpointer, const doubl
 
             if (Ztestpointer[0][data_ind] == 1)
             {
-                // yhats_test_xinfo[sweeps][data_ind] = (state.a) * prognostic_xinfo[sweeps][data_ind] + (state.b_vec[1]) * treatment_xinfo[sweeps][data_ind];
+                yhats_test_xinfo[sweeps][data_ind] = a(sweeps, 0) * prognostic_xinfo[sweeps][data_ind] + b(sweeps, 1) * treatment_xinfo[sweeps][data_ind];
             }
             else
             {
-                // yhats_test_xinfo[sweeps][data_ind] = (state.a) * prognostic_xinfo[sweeps][data_ind] + (state.b_vec[0]) * treatment_xinfo[sweeps][data_ind];
+                yhats_test_xinfo[sweeps][data_ind] = a(sweeps, 0) * prognostic_xinfo[sweeps][data_ind] + b(sweeps, 0) * treatment_xinfo[sweeps][data_ind];
             }
-            yhats_test_xinfo[sweeps][data_ind] = prognostic_xinfo[sweeps][data_ind] + treatment_xinfo[sweeps][data_ind];
         }
     }
     return;
@@ -591,12 +590,14 @@ void hskXBCFDiscreteModel::update_state(State &state)
         if ((*state.Z_std)[0][i] == 1)
         {
             // if treated
-            (*state.residual_std)[0][i] = (*state.y_std)[i] - state.a * (*state.mu_fit)[i] - state.b_vec[1] * (*state.tau_fit)[i];
+            (*state.total_fit)[i] = state.a * (*state.mu_fit)[i] - state.b_vec[1] * (*state.tau_fit)[i];
+            (*state.residual_std)[0][i] = (*state.y_std)[i] - (*state.total_fit)[i];
         }
         else
         {
             // if control group
-            (*state.residual_std)[0][i] = (*state.y_std)[i] - state.a * (*state.mu_fit)[i] - state.b_vec[0] * (*state.tau_fit)[i];
+            (*state.total_fit)[i] = state.a * (*state.mu_fit)[i] - state.b_vec[0] * (*state.tau_fit)[i];
+            (*state.residual_std)[0][i] = (*state.y_std)[i] - (*state.total_fit)[i];
         }
     }
     for (size_t i = 0; i < (*state.residual_std)[0].size(); i++)

@@ -2,15 +2,15 @@
 # basic parameters
 set.seed(27)
 n <- 500 # train (and test) sample sizes
-p <- 1 # just one x
+p <- 2 # just one x
 
 # train data
 x <- matrix(sort(runif(n * p)), ncol = p) # iid uniform x values
 # x = matrix(sort(rbinom(n*p,1,0.5)),ncol=p)
-fx <- 4 * (x[, 1]^2) # quadratric function f
+fx <- 5 * 4 * (x[, 1]^2) # quadratric function f
 # fx = x[,1]*2
 # fx = rep(0,n) #constant mean
-sx <- .8 * exp(2 * x[, 1]) # exponential function s
+sx <- .8 * exp(2 * x[, 2]) # exponential function s
 # sx = .5*x[,1]
 # sx = rep(.1,n)
 y <- fx + sx * rnorm(n)
@@ -19,10 +19,10 @@ y <- fx + sx * rnorm(n)
 # ##test data (the p added to the variable names is for predict)
 np <- 1000
 xp <- matrix(sort(runif(np * p)), ncol = p)
-fxp <- 4 * (xp[, 1]^2)
+fxp <- 5 * 4 * (xp[, 1]^2)
 # fxp = xp[,1]*2
 # fxp = rep(0,np) #constant mean
-sxp <- .8 * exp(2 * xp[, 1])
+sxp <- .8 * exp(2 * xp[, 2])
 # sxp = .5*xp[,1]
 # sxp = rep(.1,np)
 yp <- fxp + sxp * rnorm(np)
@@ -84,10 +84,10 @@ par(mfrow = c(2, 2))
 # test predict
 pred <- predict.XBARTheteroskedastic(fit, xp)
 mhats <- rowMeans(pred$mhats[, burnin:num_sweeps])
-plot(mhats, fxp, ylab = "y", cex.axis = 1, cex.lab = 1)
+plot(mhats, fxp, ylab = "y", cex.axis = 1, cex.lab = 1, main = "mu, hsk XBART")
 abline(0, 1)
 vhats <- rowMeans(pred$vhats[, burnin:num_sweeps])
-plot(vhats, sxp^2, ylab = "var(y)", cex.axis = 1, cex.lab = 1)
+plot(vhats, sxp^2, ylab = "var(y)", cex.axis = 1, cex.lab = 1, main = "sigma, hsk XBART")
 abline(0, 1)
 
 
@@ -109,5 +109,5 @@ fit.xb <- XBART(
 )
 pred <- predict(fit.xb, xp)
 y_hats <- rowMeans(pred[, burnin:num_sweeps])
-plot(y_hats, fxp, ylab = "y", cex.axis = 1, cex.lab = 1)
+plot(y_hats, fxp, ylab = "y", cex.axis = 1, cex.lab = 1, main = "homoskedastic XBART")
 abline(0, 1)

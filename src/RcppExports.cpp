@@ -613,35 +613,39 @@ BEGIN_RCPP
 END_RCPP
 }
 // XBCF_discrete_heteroskedastic_predict
-Rcpp::List XBCF_discrete_heteroskedastic_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v);
-RcppExport SEXP _XBART_XBCF_discrete_heteroskedastic_predict(SEXP X_conSEXP, SEXP X_modSEXP, SEXP ZSEXP, SEXP tree_conSEXP, SEXP tree_modSEXP, SEXP tree_vSEXP) {
+Rcpp::List XBCF_discrete_heteroskedastic_predict(mat X_con, mat X_mod, mat Z, mat a, mat b, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v);
+RcppExport SEXP _XBART_XBCF_discrete_heteroskedastic_predict(SEXP X_conSEXP, SEXP X_modSEXP, SEXP ZSEXP, SEXP aSEXP, SEXP bSEXP, SEXP tree_conSEXP, SEXP tree_modSEXP, SEXP tree_vSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< mat >::type X_con(X_conSEXP);
     Rcpp::traits::input_parameter< mat >::type X_mod(X_modSEXP);
     Rcpp::traits::input_parameter< mat >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< mat >::type a(aSEXP);
+    Rcpp::traits::input_parameter< mat >::type b(bSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_con(tree_conSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_mod(tree_modSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_v(tree_vSEXP);
-    rcpp_result_gen = Rcpp::wrap(XBCF_discrete_heteroskedastic_predict(X_con, X_mod, Z, tree_con, tree_mod, tree_v));
+    rcpp_result_gen = Rcpp::wrap(XBCF_discrete_heteroskedastic_predict(X_con, X_mod, Z, a, b, tree_con, tree_mod, tree_v));
     return rcpp_result_gen;
 END_RCPP
 }
 // XBCF_discrete_heteroskedastic_predict3
-Rcpp::List XBCF_discrete_heteroskedastic_predict3(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v_mod);
-RcppExport SEXP _XBART_XBCF_discrete_heteroskedastic_predict3(SEXP X_conSEXP, SEXP X_modSEXP, SEXP ZSEXP, SEXP tree_conSEXP, SEXP tree_modSEXP, SEXP tree_v_conSEXP, SEXP tree_v_modSEXP) {
+Rcpp::List XBCF_discrete_heteroskedastic_predict3(mat X_con, mat X_mod, mat Z, mat a, mat b, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_mod, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v_con, Rcpp::XPtr<std::vector<std::vector<tree>>> tree_v_mod);
+RcppExport SEXP _XBART_XBCF_discrete_heteroskedastic_predict3(SEXP X_conSEXP, SEXP X_modSEXP, SEXP ZSEXP, SEXP aSEXP, SEXP bSEXP, SEXP tree_conSEXP, SEXP tree_modSEXP, SEXP tree_v_conSEXP, SEXP tree_v_modSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< mat >::type X_con(X_conSEXP);
     Rcpp::traits::input_parameter< mat >::type X_mod(X_modSEXP);
     Rcpp::traits::input_parameter< mat >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< mat >::type a(aSEXP);
+    Rcpp::traits::input_parameter< mat >::type b(bSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_con(tree_conSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_mod(tree_modSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_v_con(tree_v_conSEXP);
     Rcpp::traits::input_parameter< Rcpp::XPtr<std::vector<std::vector<tree>>> >::type tree_v_mod(tree_v_modSEXP);
-    rcpp_result_gen = Rcpp::wrap(XBCF_discrete_heteroskedastic_predict3(X_con, X_mod, Z, tree_con, tree_mod, tree_v_con, tree_v_mod));
+    rcpp_result_gen = Rcpp::wrap(XBCF_discrete_heteroskedastic_predict3(X_con, X_mod, Z, a, b, tree_con, tree_mod, tree_v_con, tree_v_mod));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -668,8 +672,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_XBART_r_to_json_3D", (DL_FUNC) &_XBART_r_to_json_3D, 1},
     {"_XBART_json_to_r_3D", (DL_FUNC) &_XBART_json_to_r_3D, 1},
     {"_XBART_xbart_heteroskedastic_predict", (DL_FUNC) &_XBART_xbart_heteroskedastic_predict, 3},
-    {"_XBART_XBCF_discrete_heteroskedastic_predict", (DL_FUNC) &_XBART_XBCF_discrete_heteroskedastic_predict, 6},
-    {"_XBART_XBCF_discrete_heteroskedastic_predict3", (DL_FUNC) &_XBART_XBCF_discrete_heteroskedastic_predict3, 7},
+    {"_XBART_XBCF_discrete_heteroskedastic_predict", (DL_FUNC) &_XBART_XBCF_discrete_heteroskedastic_predict, 8},
+    {"_XBART_XBCF_discrete_heteroskedastic_predict3", (DL_FUNC) &_XBART_XBCF_discrete_heteroskedastic_predict3, 9},
     {NULL, NULL, 0}
 };
 

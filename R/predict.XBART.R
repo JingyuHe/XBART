@@ -152,7 +152,7 @@ predict.XBCFdiscreteHeterosk <- function(object, X_con, X_mod, Z, pihat = NULL, 
     out_mod <- json_to_r(object$tree_json_mod)
     out_v <- json_to_r(object$tree_json_v)
     obj <- .Call(
-        "_XBART_XBCF_discrete_heteroskedastic_predict", X_con, X_mod, Z,
+        "_XBART_XBCF_discrete_heteroskedastic_predict", X_con, X_mod, Z, as.matrix(object$a), as.matrix(object$b),
         out_con$model_list$tree_pnt,
         out_mod$model_list$tree_pnt,
         out_v$model_list$tree_pnt
@@ -208,7 +208,7 @@ predict.XBCFdiscreteHeterosk3 <- function(object, X_con, X_mod, Z, pihat = NULL,
     out_v_mod <- json_to_r(object$tree_json_v_mod)
 
     obj <- .Call(
-        "_XBART_XBCF_discrete_heteroskedastic_predict3", X_con, X_mod, Z,
+        "_XBART_XBCF_discrete_heteroskedastic_predict3", X_con, X_mod, Z, as.matrix(object$a), as.matrix(object$b),
         out_con$model_list$tree_pnt,
         out_mod$model_list$tree_pnt,
         out_v_con$model_list$tree_pnt,
@@ -224,11 +224,11 @@ predict.XBCFdiscreteHeterosk3 <- function(object, X_con, X_mod, Z, pihat = NULL,
         mus[, i] <- obj$mu[, i] * (object$a[i]) + object$meany + obj$tau[, i] * object$b[i, 1]
     }
     obj$sdy <- object$sdy
-    obj$variance <- obj$variance * object$sdy
-    obj$variance_con <- obj$variance_con
-    obj$variance_mod <- obj$variance_mod
-    obj$tau.adj <- taus
-    obj$mu.adj <- mus
+    obj$variance <- obj$variance * (object$sdy)^2
+    obj$variance_con <- obj$variance_con * (object$sdy)^2
+    obj$variance_mod <- obj$variance_mod * (object$sdy)^2
+    obj$tau.adj <- taus * obj$sdy
+    obj$mu.adj <- mus * obj$sdy
     obj$yhats.adj <- Z[, 1] * obj$tau.adj + obj$mu.adj
     obj$tau.adj.mean <- rowMeans(obj$tau.adj[, (burnin + 1):sweeps])
     obj$mu.adj.mean <- rowMeans(obj$mu.adj[, (burnin + 1):sweeps])
