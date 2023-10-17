@@ -115,6 +115,7 @@ public:
     matrix<double> *Z_std;
     std::vector<double> *tau_fit;
     std::vector<double> *mu_fit;
+    std::vector<double> *total_fit;
     bool treatment_flag;
     matrix<size_t> *Xorder_std_con;
     matrix<size_t> *Xorder_std_mod;
@@ -516,6 +517,7 @@ public:
         this->parallel = parallel;
         this->tau_fit = (new std::vector<double>(N, 0));
         this->mu_fit = (new std::vector<double>(N, 0));
+        this->total_fit = (new std::vector<double>(N, 0));
         this->precision = (new std::vector<double>(N, 1));
         this->precision_mod = (new std::vector<double>(N, 1));
         this->precision_con = (new std::vector<double>(N, 1));
@@ -614,6 +616,7 @@ public:
         this->parallel = parallel;
         this->tau_fit = (new std::vector<double>(N, 0));
         this->mu_fit = (new std::vector<double>(N, 0));
+        this->total_fit = (new std::vector<double>(N, 0));
         this->precision = (new std::vector<double>(N, 1));
         this->precision_mod = (new std::vector<double>(N, 1));
         this->precision_con = (new std::vector<double>(N, 1));

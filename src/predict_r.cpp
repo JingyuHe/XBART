@@ -195,7 +195,7 @@ Rcpp::List XBCF_discrete_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::ve
 
     matrix<double> yhats_test_xinfo;
     ini_xinfo(yhats_test_xinfo, N, num_sweeps);
-    XBCFContinuousModel *model = new XBCFContinuousModel();
+    XBCFDiscreteModel *model = new XBCFDiscreteModel();
     // Predict
 
     model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
@@ -639,7 +639,7 @@ Rcpp::List XBCF_discrete_heteroskedastic_predict(mat X_con, mat X_mod, mat Z,
     ini_matrix(vhats_test_xinfo, N, num_sweeps);
 
     // define models
-    XBCFDiscreteModel *model = new XBCFDiscreteModel();
+    hskXBCFDiscreteModel *model = new hskXBCFDiscreteModel();
     logNormalModel *model_v = new logNormalModel();
     // Predict
     model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
@@ -744,7 +744,7 @@ Rcpp::List XBCF_discrete_heteroskedastic_predict3(mat X_con, mat X_mod, mat Z,
     ini_matrix(vhats_test_mod, N, num_sweeps);
 
     // define models
-    XBCFDiscreteModel *model = new XBCFDiscreteModel();
+    hskXBCFDiscreteModel *model = new hskXBCFDiscreteModel();
     logNormalXBCFModel2 *model_v = new logNormalXBCFModel2();
     // Predict
     model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
