@@ -80,8 +80,8 @@ sdlogt <- sd(logt)
 yscale <- (logt - mlogt) / sdlogt
 
 pihat <- pi
-a_scaling = FALSE
-b_scaling <- FALSE
+a_scaling = 0
+b_scaling <- 0
 
 
 t1 = proc.time()

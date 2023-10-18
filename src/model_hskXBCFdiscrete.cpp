@@ -478,6 +478,11 @@ void hskXBCFDiscreteModel::update_a(State &state)
 
     std::normal_distribution<double> normal_samp(0.0, 1.0);
 
+    // X^TX
+    double mu2sum = 0;
+    // X^TY
+    double muressum = 0;
+
     double mu2sum_ctrl = 0;
     double mu2sum_trt = 0;
     double muressum_ctrl = 0;
@@ -513,29 +518,51 @@ void hskXBCFDiscreteModel::update_a(State &state)
 
     for (size_t i = 0; i < state.n_y; i++)
     {
+        // X^TX, scaled by heteroskedastic variances
+        mu2sum += pow((*state.mu_fit)[i], 2) * (*state.precision)[i];
+
+        // X^TY
+        muressum += (*state.mu_fit)[i] * (*state.residual_std)[0][i] * (*state.precision)[i];
+    }
+
+    for (size_t i = 0; i < state.n_y; i++)
+    {
         if ((*state.Z_std)[0][i] == 1)
         {
             // if treated
-            mu2sum_trt += pow((*state.mu_fit)[i], 2) * (*state.precision)[i];
-            muressum_trt += (*state.mu_fit)[i] * (*state.residual_std)[0][i] * (*state.precision)[i];
+            mu2sum_trt += pow((*state.mu_fit)[i], 2);
+            muressum_trt += (*state.mu_fit)[i] * (*state.residual_std)[0][i];
         }
         else
         {
-            mu2sum_ctrl += pow((*state.mu_fit)[i], 2) * (*state.precision)[i];
-            muressum_ctrl += (*state.mu_fit)[i] * (*state.residual_std)[0][i] * (*state.precision)[i];
+            mu2sum_ctrl += pow((*state.mu_fit)[i], 2);
+            muressum_ctrl += (*state.mu_fit)[i] * (*state.residual_std)[0][i];
         }
     }
-    // update parameters
-    // double v0 = 1.0 / (1.0 + mu2sum_ctrl / pow(state.sigma_vec[0], 2));
-    // double m0 = v0 * (muressum_ctrl) / pow(state.sigma_vec[0], 2);
-    // double v1 = 1 / (1.0 / v0 + mu2sum_trt / pow(state.sigma_vec[1], 2));
-    // double m1 = v1 * (m0 / v0 + (muressum_trt) / pow(state.sigma_vec[1], 2));
-    double v0 = 1.0 / (1.0 + mu2sum_ctrl);
-    double m0 = v0 * (muressum_ctrl);
-    double v1 = 1 / (1.0 / v0 + mu2sum_trt);
-    double m1 = v1 * (m0 / v0 + (muressum_trt));
 
-    state.a = m1 + sqrt(v1) * normal_samp(state.gen);
+
+    // update parameters
+
+    // nikolay's code
+    double v0 = 1.0 / (1.0 + mu2sum_ctrl / pow(state.sigma_vec[0], 2));
+    double m0 = v0 * (muressum_ctrl) / pow(state.sigma_vec[0], 2);
+    double v1 = 1 / (1.0 / v0 + mu2sum_trt / pow(state.sigma_vec[1], 2));
+    double m1 = v1 * (m0 / v0 + (muressum_trt) / pow(state.sigma_vec[1], 2));
+
+
+    // prior on a is N(0,1)
+    // also after reweighting, data has residual variance sigma = 1
+
+    // my code
+    // mean (X^TX + A)^{-1}(X^TY);
+    double m12 = 1.0 / (mu2sum + 100) * muressum;
+
+    // variance
+    double v12 = 1.0 / (mu2sum + 100);
+
+    state.a = m12 + sqrt(v12) * normal_samp(state.gen);
+
+
 
     return;
 }
@@ -589,9 +616,13 @@ void hskXBCFDiscreteModel::update_b(State &state)
     // double v1 = 1.0 / (2.0 + tau2sum_trt / pow(state.sigma_vec[1], 2));
     // double m0 = v0 * (tauressum_ctrl) / pow(state.sigma_vec[0], 2);
     // double m1 = v1 * (tauressum_trt) / pow(state.sigma_vec[1], 2);
-    double v0 = 1.0 / (2.0 + tau2sum_ctrl);
-    double v1 = 1.0 / (2.0 + tau2sum_trt);
-    double m0 = v0 * (tauressum_ctrl);
+
+    // mean (X^TX + A)^{-1}(X^TY);
+
+    // standard deviation
+    double v0 = 1.0 / (tau2sum_ctrl + 2.0);
+    double m0 = v0 * tauressum_ctrl;
+    double v1 = 1.0 / (tau2sum_trt + 2.0);
     double m1 = v1 * (tauressum_trt);
 
     // sample b0, b1
