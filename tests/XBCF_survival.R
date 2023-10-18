@@ -25,7 +25,7 @@ mu <- 1.5 + 0.5 * x[, 2] + 0.5 * x[, 4]
 
 
 # define treatment effects
-tau <- 3 
+tau <- 3
 
 # compute propensity scores and treatment assignment
 # pi <- pnorm(-0.5 + mu - x[, 2] + 0. * x[, 4], 0, 3)
@@ -38,7 +38,7 @@ Ey <- mu + 1 * tau * z
 
 # Ey  =mu
 
-sig <- (1 + 1 * abs(x[, 1])) 
+sig <- (1 + 1 * abs(x[, 1]))
 
 Y <- rnorm(n, Ey, sig)
 
@@ -80,8 +80,8 @@ sdlogt <- sd(logt)
 yscale <- (logt - mlogt) / sdlogt
 
 pihat <- pi
-a_scaling = 0
-b_scaling <- 0
+a_scaling <- TRUE
+b_scaling <- TRUE
 
 
 t1 = proc.time()
@@ -219,10 +219,12 @@ abline(0, 1, col = "red")
 # results
 rmse.xbcf <- sqrt(mean((rmst.true - rmst.xbcf)^2))
 # rmse.nft <- sqrt(mean((rmst.true - rmst.nft)^2))
-rmse.nft = 0
+rmse.nft <- 0
 rmse.xbart <- sqrt(mean((rmst.true - rmst.xbart)^2))
 
 results <- c(rmse.xbcf, rmse.nft, rmse.xbart)
 names(results) <- c("XBCF", "NFT", "XBART survival")
 print("RMSE of all methods \n")
 print(results)
+
+plot(fit$a,main = "trace of a, XBCF survival")

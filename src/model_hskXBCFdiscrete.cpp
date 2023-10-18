@@ -69,17 +69,17 @@ void hskXBCFDiscreteModel::samplePars(State &state, std::vector<double> &suff_st
 
     if (state.treatment_flag)
     {
-        s0 = suff_stat[0] / pow(state.b_vec[0], 2);
-        s1 = suff_stat[1] / pow(state.b_vec[1], 2);
-        s2 = suff_stat[2] / pow(state.b_vec[0], 2);
-        s3 = suff_stat[3] / pow(state.b_vec[1], 2);
+        s0 = suff_stat[0] * pow(state.b_vec[0], 2);
+        s1 = suff_stat[1] * pow(state.b_vec[1], 2);
+        s2 = suff_stat[2] * pow(state.b_vec[0], 2);
+        s3 = suff_stat[3] * pow(state.b_vec[1], 2);
     }
     else
     {
-        s0 = suff_stat[0] / pow(state.a, 2);
-        s1 = suff_stat[1] / pow(state.a, 2);
-        s2 = suff_stat[2] / pow(state.a, 2);
-        s3 = suff_stat[3] / pow(state.a, 2);
+        s0 = suff_stat[0] * pow(state.a, 2);
+        s1 = suff_stat[1] * pow(state.a, 2);
+        s2 = suff_stat[2] * pow(state.a, 2);
+        s3 = suff_stat[3] * pow(state.a, 2);
     }
 
     // step 1 (control group)
@@ -429,12 +429,17 @@ void hskXBCFDiscreteModel::update_partial_residuals(size_t tree_ind, State &stat
             if ((*state.Z_std)[0][i] == 1)
             {
                 ((*state.residual_std))[0][i] = ((*y_data_use)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[1]) * (*state.tau_fit)[i]) / (state.b_vec[1]);
+
+                (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
+                /// pow(state.b_vec[1], 2);
             }
             else
             {
                 ((*state.residual_std))[0][i] = ((*y_data_use)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[0]) * (*state.tau_fit)[i]) / (state.b_vec[0]);
+
+                (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
+                /// pow(state.b_vec[0], 2);
             }
-            (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
         }
     }
     else
@@ -445,13 +450,16 @@ void hskXBCFDiscreteModel::update_partial_residuals(size_t tree_ind, State &stat
         {
             if ((*state.Z_std)[0][i] == 1)
             {
-                ((*state.residual_std))[0][i] = ((*y_data_use)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[1]) * (*state.tau_fit)[i]) / (state.a);
+                ((*state.residual_std))[0][i] = ((*y_data_use)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[1]) * (*state.tau_fit)[i]);
+                /// (state.a);
             }
             else
             {
-                ((*state.residual_std))[0][i] = ((*y_data_use)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[0]) * (*state.tau_fit)[i]) / (state.a);
+                ((*state.residual_std))[0][i] = ((*y_data_use)[i] - state.a * (*state.mu_fit)[i] - (state.b_vec[0]) * (*state.tau_fit)[i]);
+                /// (state.a);
             }
-            (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i];
+            (*state.res_x_precision)[i] = (*state.residual_std)[0][i] * (*state.precision)[i] / 1;
+            // pow(state.a, 2);
         }
     }
     return;
@@ -482,11 +490,6 @@ void hskXBCFDiscreteModel::update_a(State &state)
     double mu2sum = 0;
     // X^TY
     double muressum = 0;
-
-    double mu2sum_ctrl = 0;
-    double mu2sum_trt = 0;
-    double muressum_ctrl = 0;
-    double muressum_trt = 0;
 
     // compute the residual y - b * tau(x)
 
@@ -525,44 +528,18 @@ void hskXBCFDiscreteModel::update_a(State &state)
         muressum += (*state.mu_fit)[i] * (*state.residual_std)[0][i] * (*state.precision)[i];
     }
 
-    for (size_t i = 0; i < state.n_y; i++)
-    {
-        if ((*state.Z_std)[0][i] == 1)
-        {
-            // if treated
-            mu2sum_trt += pow((*state.mu_fit)[i], 2);
-            muressum_trt += (*state.mu_fit)[i] * (*state.residual_std)[0][i];
-        }
-        else
-        {
-            mu2sum_ctrl += pow((*state.mu_fit)[i], 2);
-            muressum_ctrl += (*state.mu_fit)[i] * (*state.residual_std)[0][i];
-        }
-    }
-
-
     // update parameters
-
-    // nikolay's code
-    double v0 = 1.0 / (1.0 + mu2sum_ctrl / pow(state.sigma_vec[0], 2));
-    double m0 = v0 * (muressum_ctrl) / pow(state.sigma_vec[0], 2);
-    double v1 = 1 / (1.0 / v0 + mu2sum_trt / pow(state.sigma_vec[1], 2));
-    double m1 = v1 * (m0 / v0 + (muressum_trt) / pow(state.sigma_vec[1], 2));
-
 
     // prior on a is N(0,1)
     // also after reweighting, data has residual variance sigma = 1
 
-    // my code
     // mean (X^TX + A)^{-1}(X^TY);
-    double m12 = 1.0 / (mu2sum + 100) * muressum;
+    double m12 = 1.0 / (mu2sum)*muressum;
 
     // variance
-    double v12 = 1.0 / (mu2sum + 100);
+    double v12 = 1.0 / (mu2sum);
 
     state.a = m12 + sqrt(v12) * normal_samp(state.gen);
-
-
 
     return;
 }
@@ -612,13 +589,7 @@ void hskXBCFDiscreteModel::update_b(State &state)
     }
 
     // update parameters
-    // double v0 = 1.0 / (2.0 + tau2sum_ctrl / pow(state.sigma_vec[0], 2));
-    // double v1 = 1.0 / (2.0 + tau2sum_trt / pow(state.sigma_vec[1], 2));
-    // double m0 = v0 * (tauressum_ctrl) / pow(state.sigma_vec[0], 2);
-    // double m1 = v1 * (tauressum_trt) / pow(state.sigma_vec[1], 2);
-
     // mean (X^TX + A)^{-1}(X^TY);
-
     // standard deviation
     double v0 = 1.0 / (tau2sum_ctrl + 2.0);
     double m0 = v0 * tauressum_ctrl;
