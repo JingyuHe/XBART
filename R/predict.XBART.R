@@ -202,6 +202,7 @@ predict.XBCFdiscreteHeterosk3 <- function(object, X_con, X_mod, Z, pihat = NULL,
     X_con <- as.matrix(cbind(pihat, X_con))
     X_mod <- as.matrix(X_mod)
     Z <- as.matrix(Z)
+    N <- dim(X_con)[1]
     out_con <- json_to_r(object$tree_json_con)
     out_mod <- json_to_r(object$tree_json_mod)
     out_v_con <- json_to_r(object$tree_json_v_con)
@@ -219,10 +220,13 @@ predict.XBCFdiscreteHeterosk3 <- function(object, X_con, X_mod, Z, pihat = NULL,
     mus <- matrix(NA, nrow(X_con), sweeps)
     taus <- matrix(NA, nrow(X_mod), sweeps)
     seq <- c(1:sweeps)
+
+    # scaling by a and b
     for (i in seq) {
         taus[, i] <- obj$tau[, i] * (object$b[i, 2] - object$b[i, 1])
         mus[, i] <- obj$mu[, i] * (object$a[i]) + object$meany + obj$tau[, i] * object$b[i, 1]
     }
+
     obj$sdy <- object$sdy
     obj$variance <- obj$variance * object$sdy
     obj$variance_con <- obj$variance_con
@@ -233,6 +237,8 @@ predict.XBCFdiscreteHeterosk3 <- function(object, X_con, X_mod, Z, pihat = NULL,
     obj$tau.adj.mean <- rowMeans(obj$tau.adj[, (burnin + 1):sweeps])
     obj$mu.adj.mean <- rowMeans(obj$mu.adj[, (burnin + 1):sweeps])
     obj$yhats.adj.mean <- rowMeans(obj$yhats.adj[, (burnin + 1):sweeps])
+    dim(obj$mu_leaf_membership) <- c(sweeps, N, object$model_list$num_trees_con)
+    dim(obj$tau_leaf_membership) <- c(sweeps, N, object$model_list$num_trees_mod)
 
     return(obj)
 }

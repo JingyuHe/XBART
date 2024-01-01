@@ -701,6 +701,10 @@ void tree::grow_from_root(State &state, matrix<size_t> &Xorder_std, std::vector<
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
 
+    this->l->ID = 2 * this->ID;
+
+    this->r->ID = 2 * this->ID + 1;
+
     this->l->grow_from_root(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind);
 
     this->r->grow_from_root(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind);
@@ -899,6 +903,10 @@ void tree::grow_from_root_entropy(State &state, matrix<size_t> &Xorder_std, std:
 
     // cout << "left suff " << this->l->suff_stat << endl;
 
+    this->l->ID = 2 * this->ID;
+
+    this->r->ID = 2 * this->ID + 1;
+    
     this->l->grow_from_root_entropy(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind);
 
     // cout << "right suff " << this->r->suff_stat << endl;
@@ -1063,6 +1071,10 @@ void tree::grow_from_root_separate_tree(State &state, matrix<size_t> &Xorder_std
         split_xorder_std_continuous(Xorder_left_std, Xorder_right_std, split_var, split_point, Xorder_std, model, x_struct, state, this);
     }
 
+    this->l->ID = 2 * this->ID;
+
+    this->r->ID = 2 * this->ID + 1;
+    
     this->l->grow_from_root_separate_tree(state, Xorder_left_std, X_counts_left, X_num_unique_left, model, x_struct, sweeps, tree_ind);
 
     this->r->grow_from_root_separate_tree(state, Xorder_right_std, X_counts_right, X_num_unique_right, model, x_struct, sweeps, tree_ind);
@@ -2352,6 +2364,29 @@ void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, s
     }
     return;
 }
+
+void getThetaForObs_Outsample(matrix<double> &output, matrix<size_t> &leaf_membership, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p)
+{
+    // get theta of ONE observation of ALL trees, out sample fit
+    // input is a pointer to testing set matrix because it is out of sample
+    // tree is a vector of all trees
+
+    // output should have dimension (dim_theta, num_trees)
+
+    tree::tree_p bn; // pointer to bottom node
+
+    for (size_t i = 0; i < tree.size(); i++)
+    {
+        // loop over trees
+        // tree search
+        // d = 0; // max distance of outliers
+        bn = tree[i].search_bottom_std(Xtest, x_index, p, N_Xtest);
+        output[i] = bn->theta_vector;
+        leaf_membership[i][0] = bn->nid();
+    }
+    return;
+}
+
 
 void getThetaForObs_Outsample_ave(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p)
 {

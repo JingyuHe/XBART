@@ -638,11 +638,15 @@ Rcpp::List XBCF_discrete_heteroskedastic_predict(mat X_con, mat X_mod, mat Z,
     matrix<double> vhats_test_xinfo;
     ini_matrix(vhats_test_xinfo, N, num_sweeps);
 
+    Cube<size_t> treatment_leaf(num_sweeps, N, num_trees_mod);
+    Cube<size_t> prognostic_leaf(num_sweeps, N, num_trees_con);
+
     // define models
     hskXBCFDiscreteModel *model = new hskXBCFDiscreteModel();
     logNormalModel *model_v = new logNormalModel();
+
     // Predict
-    model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
+    model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod, treatment_leaf, prognostic_leaf);
     model_v->predict_std(Xpointer_con, N, p_con, num_trees_v, num_sweeps, vhats_test_xinfo, *trees_v);
 
     // Convert back to Rcpp
@@ -743,11 +747,14 @@ Rcpp::List XBCF_discrete_heteroskedastic_predict3(mat X_con, mat X_mod, mat Z,
     ini_matrix(vhats_test_con, N, num_sweeps);
     ini_matrix(vhats_test_mod, N, num_sweeps);
 
+    Cube<size_t> treatment_leaf(num_sweeps, N, num_trees_mod);
+    Cube<size_t> prognostic_leaf(num_sweeps, N, num_trees_con);
+
     // define models
     hskXBCFDiscreteModel *model = new hskXBCFDiscreteModel();
     logNormalXBCFModel2 *model_v = new logNormalXBCFModel2();
     // Predict
-    model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
+    model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod, treatment_leaf, prognostic_leaf);
 
     model_v->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, num_trees_v, num_sweeps, vhats_test_xinfo, vhats_test_con, vhats_test_mod, *trees_v_con, *trees_v_mod);
 
@@ -774,6 +781,8 @@ Rcpp::List XBCF_discrete_heteroskedastic_predict3(mat X_con, mat X_mod, mat Z,
 
     return Rcpp::List::create(Rcpp::Named("mu") = prognostic,
                               Rcpp::Named("tau") = treatment,
+                              Rcpp::Named("mu_leaf_membership") = Rcpp::wrap(prognostic_leaf),
+                              Rcpp::Named("tau_leaf_membership") = Rcpp::wrap(treatment_leaf),
                               Rcpp::Named("yhats") = yhats,
                               Rcpp::Named("variance") = vhats,
                               Rcpp::Named("variance_con") = vhats_con,

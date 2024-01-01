@@ -266,6 +266,8 @@ void getThetaForObs_Insample(matrix<double> &output, size_t x_index, State &stat
 
 void getThetaForObs_Outsample(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p);
 
+void getThetaForObs_Outsample(matrix<double> &output, matrix<size_t> &leaf_membership, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p);
+
 void getThetaForObs_Outsample_ave(matrix<double> &output, std::vector<tree> &tree, size_t x_index, const double *Xtest, size_t N_Xtest, size_t p);
 
 #endif
