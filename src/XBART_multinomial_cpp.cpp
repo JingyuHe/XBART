@@ -150,12 +150,12 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y,
             (*trees2)[i] = vector<tree>(num_trees);
         }
 
-        LogitModel *model = new LogitModel(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau, update_phi, hmult, heps, MH_step);
-        model->setNoSplitPenalty(no_split_penalty);
+        LogitModel model(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau, update_phi, hmult, heps, MH_step);
+        model.setNoSplitPenalty(no_split_penalty);
 
-        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penalty, state, model, x_struct, weight_samples, lambda_samples, phi_samples, logloss, tree_size);
+        mcmc_loop_multinomial(Xorder_std, verbose, *trees2, no_split_penalty, state, &model, x_struct, weight_samples, lambda_samples, phi_samples, logloss, tree_size);
 
-        model->predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees2, output_train);
+        model.predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees2, output_train);
 
         // delete model;
     }
@@ -170,13 +170,13 @@ Rcpp::List XBART_multinomial_cpp(Rcpp::IntegerVector y,
             }
         }
 
-        LogitModelSeparateTrees *model = new LogitModelSeparateTrees(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau, update_phi, MH_step);
+        LogitModelSeparateTrees model(num_class, tau_a, tau_b, alpha, beta, &y_size_t, &phi, weight, update_weight, update_tau, update_phi, MH_step);
 
-        model->setNoSplitPenalty(no_split_penalty);
+        model.setNoSplitPenalty(no_split_penalty);
 
-        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penalty, state, model, x_struct, weight_samples, phi_samples, logloss, tree_size);
+        mcmc_loop_multinomial_sample_per_tree(Xorder_std, verbose, *trees3, no_split_penalty, state, &model, x_struct, weight_samples, phi_samples, logloss, tree_size);
 
-        model->predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees3, output_train);
+        model.predict_std(Xpointer, N, p, num_trees, num_sweeps, yhats_train_xinfo, *trees3, output_train);
 
         // delete model;
     }

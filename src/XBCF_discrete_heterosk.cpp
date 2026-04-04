@@ -194,8 +194,8 @@ Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y,
     }
 
     // define the mean model
-    hskXBCFDiscreteModel *model = new hskXBCFDiscreteModel(kap, s, tau_con, tau_mod, alpha_con, beta_con, alpha_mod, beta_mod, sampling_tau, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s);
-    model->setNoSplitPenalty(no_split_penalty);
+    hskXBCFDiscreteModel model(kap, s, tau_con, tau_mod, alpha_con, beta_con, alpha_mod, beta_mod, sampling_tau, tau_con_kap, tau_con_s, tau_mod_kap, tau_mod_s);
+    model.setNoSplitPenalty(no_split_penalty);
 
     // create trees
     vector<vector<tree>> trees_v(num_sweeps);
@@ -205,8 +205,8 @@ Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y,
     }
 
     // define the variance model
-    logNormalModel *model_v = new logNormalModel(a_v, b_v, kap, s, 0, alpha_v, beta_v);
-    model_v->setNoSplitPenalty(no_split_penalty_v);
+    logNormalModel model_v(a_v, b_v, kap, s, 0, alpha_v, beta_v);
+    model_v.setNoSplitPenalty(no_split_penalty_v);
     
     // initialize X_struct
     std::vector<double> initial_theta_v(1, exp(log(1.0 / ini_var) / (double)num_trees_v));
@@ -227,7 +227,7 @@ Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y,
                                            num_sweeps, sample_weights,
                                            &y_std, 1.0, max_depth, max_depth_v,
                                            y_mean, burnin,
-                                           model->dim_residual, nthread, parallel,
+                                           model.dim_residual, nthread, parallel,
                                            a_scaling, b_scaling, N_trt, N_ctrl, sigma_vec);
 
     // initialize X_struct
@@ -242,7 +242,7 @@ Rcpp::List XBCF_discrete_heterosk_cpp(arma::mat y,
                                             verbose, sigma0_draw_xinfo, sigma1_draw_xinfo,
                                             a_xinfo, b_xinfo,
                                             trees_con, trees_mod, trees_v,
-                                            no_split_penalty, state, model, model_v,
+                                            no_split_penalty, state, &model, &model_v,
                                             x_struct_con, x_struct_mod, x_struct_v);
 
     // R Objects to Return

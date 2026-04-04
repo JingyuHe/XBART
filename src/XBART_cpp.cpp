@@ -97,13 +97,13 @@ Rcpp::List XBART_cpp(mat y,
     }
 
     // define model
-    NormalModel *model = new NormalModel(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
+    NormalModel model(kap, s, tau, alpha, beta, sampling_tau, tau_kap, tau_s);
 
-    model->setNoSplitPenalty(no_split_penalty);
+    model.setNoSplitPenalty(no_split_penalty);
 
     // State settings
     std::vector<double> initial_theta(1, y_mean / (double)num_trees);
-    NormalState state(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, model->dim_residual, nthread, parallel);
+    NormalState state(Xpointer, Xorder_std, N, p, num_trees, p_categorical, p_continuous, set_random_seed, random_seed, n_min, num_cutpoints, mtry, Xpointer, num_sweeps, sample_weights, &y_std, 1.0, max_depth, y_mean, burnin, model.dim_residual, nthread, parallel);
 
     // initialize X_struct
     X_struct x_struct(Xpointer, &y_std, N, Xorder_std, p_categorical, p_continuous, &initial_theta, num_trees);
@@ -111,7 +111,7 @@ Rcpp::List XBART_cpp(mat y,
     ////////////////////////////////////////////////////////////////
     std::vector<double> resid(N * num_sweeps * num_trees);
 
-    mcmc_loop(Xorder_std, verbose, sigma_draw_xinfo, trees, no_split_penalty, state, model, x_struct, resid);
+    mcmc_loop(Xorder_std, verbose, sigma_draw_xinfo, trees, no_split_penalty, state, &model, x_struct, resid);
 
     // R Objects to Return
     Rcpp::NumericMatrix sigma_draw(num_trees, num_sweeps); // save predictions of each tree

@@ -93,12 +93,12 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
     }
 
     // define the mean model
-    hskNormalModel *model_m = new hskNormalModel(kap, s, tau_m, alpha, beta, sampling_tau, tau_kap, tau_s);
-    model_m->setNoSplitPenalty(no_split_penalty_m);
+    hskNormalModel model_m(kap, s, tau_m, alpha, beta, sampling_tau, tau_kap, tau_s);
+    model_m.setNoSplitPenalty(no_split_penalty_m);
 
     // define the variance model
-    logNormalModel *model_v = new logNormalModel(a_v, b_v, kap, s, tau_m, alpha_v, beta_v);
-    model_v->setNoSplitPenalty(no_split_penalty_v);
+    logNormalModel model_v(a_v, b_v, kap, s, tau_m, alpha_v, beta_v);
+    model_v.setNoSplitPenalty(no_split_penalty_v);
 
     // initialize X_struct
     std::vector<double> initial_theta_m(1, y_mean / (double)num_trees_m);
@@ -120,10 +120,10 @@ Rcpp::List XBART_heterosk_cpp(arma::mat y,
                                &y_std, 1.0,
                                max_depth_m, max_depth_v,
                                y_mean, burnin,
-                               model_v->dim_residual, nthread,
+                               model_v.dim_residual, nthread,
                                parallel, sigma_vec);
 
-    mcmc_loop_heteroskedastic(Xorder_std, verbose, state, model_m, trees_mean, x_struct_m, model_v, trees_var, x_struct_v);
+    mcmc_loop_heteroskedastic(Xorder_std, verbose, state, &model_m, trees_mean, x_struct_m, &model_v, trees_var, x_struct_v);
 
     // R Objects to Return
     Rcpp::NumericVector split_count_sum_mean(p, 0);

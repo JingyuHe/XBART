@@ -43,10 +43,10 @@ Rcpp::List xbart_predict(mat X, double y_mean, Rcpp::XPtr<std::vector<std::vecto
     size_t M = (*trees)[0].size();
     ini_xinfo(yhats_test_xinfo, N, N_sweeps);
 
-    NormalModel *model = new NormalModel();
+    NormalModel model;
 
     // Predict
-    model->predict_std(Xpointer, N, p, M, N_sweeps, yhats_test_xinfo, *trees);
+    model.predict_std(Xpointer, N, p, M, N_sweeps, yhats_test_xinfo, *trees);
 
     // Convert back to Rcpp
     Rcpp::NumericMatrix yhats(N, N_sweeps);
@@ -117,10 +117,10 @@ Rcpp::List XBCF_continuous_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::
 
     matrix<double> yhats_test_xinfo;
     ini_xinfo(yhats_test_xinfo, N, num_sweeps);
-    XBCFContinuousModel *model = new XBCFContinuousModel();
+    XBCFContinuousModel model;
     // Predict
 
-    model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
+    model.predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
 
     // Convert back to Rcpp
     Rcpp::NumericMatrix yhats(N, num_sweeps);
@@ -195,10 +195,10 @@ Rcpp::List XBCF_discrete_predict(mat X_con, mat X_mod, mat Z, Rcpp::XPtr<std::ve
 
     matrix<double> yhats_test_xinfo;
     ini_xinfo(yhats_test_xinfo, N, num_sweeps);
-    XBCFDiscreteModel *model = new XBCFDiscreteModel();
+    XBCFDiscreteModel model;
     // Predict
 
-    model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
+    model.predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod);
 
     // Convert back to Rcpp
     Rcpp::NumericMatrix yhats(N, num_sweeps);
@@ -244,10 +244,10 @@ Rcpp::List xbart_predict_full(mat X, double y_mean, Rcpp::XPtr<std::vector<std::
 
     std::vector<double> output_vec(N * N_sweeps * M);
 
-    NormalModel *model = new NormalModel();
+    NormalModel model;
 
     // Predict
-    model->predict_whole_std(Xpointer, N, p, M, N_sweeps, output_vec, *trees);
+    model.predict_whole_std(Xpointer, N, p, M, N_sweeps, output_vec, *trees);
 
     Rcpp::NumericVector output = Rcpp::wrap(output_vec);
     output.attr("dim") = Rcpp::Dimension(N, N_sweeps, M);
@@ -392,12 +392,12 @@ Rcpp::List xbart_multinomial_predict(mat X, double y_mean, size_t num_class, Rcp
 
     std::vector<double> output_vec(N_sweeps * N * num_class);
 
-    LogitModel *model = new LogitModel();
+    LogitModel model;
 
-    model->dim_residual = num_class;
+    model.dim_residual = num_class;
 
     // Predict
-    model->predict_std(Xpointer, N, p, N_trees, N_sweeps, yhats_test_xinfo, *trees, output_vec);
+    model.predict_std(Xpointer, N, p, N_trees, N_sweeps, yhats_test_xinfo, *trees, output_vec);
 
     Rcpp::NumericVector output = Rcpp::wrap(output_vec);
     output.attr("dim") = Rcpp::Dimension(N_sweeps, N, num_class);
@@ -435,12 +435,12 @@ Rcpp::List xbart_multinomial_predict_separatetrees(mat X, double y_mean, size_t 
 
     std::vector<double> output_vec(N_sweeps * N * num_class);
 
-    LogitModelSeparateTrees *model = new LogitModelSeparateTrees();
+    LogitModelSeparateTrees model;
 
-    model->dim_residual = num_class;
+    model.dim_residual = num_class;
 
     // Predict
-    model->predict_std(Xpointer, N, p, N_trees, N_sweeps, yhats_test_xinfo, *trees, output_vec);
+    model.predict_std(Xpointer, N, p, N_trees, N_sweeps, yhats_test_xinfo, *trees, output_vec);
 
     Rcpp::NumericVector output = Rcpp::wrap(output_vec);
     output.attr("dim") = Rcpp::Dimension(N_sweeps, N, num_class);
@@ -549,12 +549,12 @@ Rcpp::List xbart_heteroskedastic_predict(mat X,
     matrix<double> vhats_test_xinfo;
     ini_matrix(vhats_test_xinfo, N, num_sweeps);
 
-    hskNormalModel *model_m = new hskNormalModel();
-    logNormalModel *model_v = new logNormalModel();
+    hskNormalModel model_m;
+    logNormalModel model_v;
 
     // Predict
-    model_m->predict_std(Xpointer, N, p, num_trees_m, num_sweeps, mhats_test_xinfo, *trees_m);
-    model_v->predict_std(Xpointer, N, p, num_trees_v, num_sweeps, vhats_test_xinfo, *trees_v);
+    model_m.predict_std(Xpointer, N, p, num_trees_m, num_sweeps, mhats_test_xinfo, *trees_m);
+    model_v.predict_std(Xpointer, N, p, num_trees_v, num_sweeps, vhats_test_xinfo, *trees_v);
 
     // Convert back to Rcpp
     Rcpp::NumericMatrix mhats(N, num_sweeps);
@@ -642,12 +642,12 @@ Rcpp::List XBCF_discrete_heteroskedastic_predict(mat X_con, mat X_mod, mat Z,
     Cube<size_t> prognostic_leaf(num_sweeps, N, num_trees_con);
 
     // define models
-    hskXBCFDiscreteModel *model = new hskXBCFDiscreteModel();
-    logNormalModel *model_v = new logNormalModel();
+    hskXBCFDiscreteModel model;
+    logNormalModel model_v;
 
     // Predict
-    model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod, treatment_leaf, prognostic_leaf);
-    model_v->predict_std(Xpointer_con, N, p_con, num_trees_v, num_sweeps, vhats_test_xinfo, *trees_v);
+    model.predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod, treatment_leaf, prognostic_leaf);
+    model_v.predict_std(Xpointer_con, N, p_con, num_trees_v, num_sweeps, vhats_test_xinfo, *trees_v);
 
     // Convert back to Rcpp
     Rcpp::NumericMatrix yhats(N, num_sweeps);
@@ -751,12 +751,12 @@ Rcpp::List XBCF_discrete_heteroskedastic_predict3(mat X_con, mat X_mod, mat Z,
     Cube<size_t> prognostic_leaf(num_sweeps, N, num_trees_con);
 
     // define models
-    hskXBCFDiscreteModel *model = new hskXBCFDiscreteModel();
-    logNormalXBCFModel2 *model_v = new logNormalXBCFModel2();
+    hskXBCFDiscreteModel model;
+    logNormalXBCFModel2 model_v;
     // Predict
-    model->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod, treatment_leaf, prognostic_leaf);
+    model.predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, p_mod, num_trees_con, num_trees_mod, num_sweeps, yhats_test_xinfo, prognostic_xinfo, treatment_xinfo, *trees_con, *trees_mod, treatment_leaf, prognostic_leaf);
 
-    model_v->predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, num_trees_v, num_sweeps, vhats_test_xinfo, vhats_test_con, vhats_test_mod, *trees_v_con, *trees_v_mod);
+    model_v.predict_std(Ztest_std, Xpointer_con, Xpointer_mod, N, p_con, num_trees_v, num_sweeps, vhats_test_xinfo, vhats_test_con, vhats_test_mod, *trees_v_con, *trees_v_mod);
 
     // Convert back to Rcpp
     Rcpp::NumericMatrix yhats(N, num_sweeps);
