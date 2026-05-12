@@ -388,7 +388,7 @@ class XBART(object):
 		self.fit(x,y,p_cat)
 		return self.predict(x_test,return_mean)
 
-	def predict_gp(self, x, y, x_test, p_cat = 0, theta = 10, tau = "auto", return_mean = True):
+	def predict_gp(self, x, y, x_test, p_cat = 0, theta = 1, tau = "auto", return_mean = True):
 		'''
 		Predict XBART model
         Parameters

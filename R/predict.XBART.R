@@ -101,7 +101,7 @@ predict_full <- function(object, X, ...) {
 #' @details This function fits Gaussian process in the leaf node, if the testing data lies out of the range of the training, the extrapolated prediction will be from Gaussian process. If the testing data lies within the range, the prediction is the same as that of predict.XBART.
 #' @return A vector of predictted outcome Y for the testing data.
 #'
-predict_gp <- function(object, y, X, Xtest, theta = 10, tau = 5, p_categorical = 0) {
+predict_gp <- function(object, y, X, Xtest, theta = 1, tau = 1, p_categorical = 0) {
     if (!("matrix" %in% class(X))) {
         cat("Input X is not a matrix, try to convert type.\n")
         X <- as.matrix(X)
